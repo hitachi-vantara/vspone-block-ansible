@@ -1,0 +1,24 @@
+-
+  name: Testing Create Multiple LUN With Count In DP
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - pool_id: 6
+    - size: 0.08GB
+    - storage_serial: 123456
+    - count: 2
+  tasks:
+    - hv_lun:
+        state: present
+        storage_serial: '{{ storage_serial }}'
+        data:
+          storage_pool:
+            id: '{{ pool_id }}'
+          size: '{{ size }}'
+          name: '{{ name  | default(None) }}'
+          cap_saving: '{{ cap_saving | default(None) }}'
+      with_sequence:  end={{count}} start=1
+      register: result
+    - debug: var=result

@@ -1,0 +1,17 @@
+-
+  name: Get LUN using naa across a number of storage systems
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - lun: naa.60060e8008758100005075810000010c
+  tasks:
+    - hv_lun_facts:
+        storage_serial: '{{ storage_serial | default(omit) }}'
+        data:
+          lun: '{{ lun | default(omit) }}'
+          name: '{{ name | default(omit) }}'
+          max_count: '{{ max_count | default(omit) }}'
+      register: result
+    - debug: var=result.luns

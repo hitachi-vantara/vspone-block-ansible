@@ -1,0 +1,22 @@
+-
+  name: Testing Delete LUN Path
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - host_group_name: hg_xyz
+    - ports:
+      - CL1-A
+    - storage_serial: 123456
+    - luns: 
+      - 333
+  tasks:
+    - hv_hg:
+        state: present
+        storage_serial: '{{ storage_serial }}'
+        data:
+          state: absent
+          name: '{{ host_group_name }}'
+          ports: '{{ ports | default(omit) }}'
+          luns: '{{ luns | default(omit) }}'
+      register: result
+    - debug: var=result

@@ -1,0 +1,13 @@
+-
+  name: Testing Delete VSM
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - virtual_storage_serial: 12345
+  tasks:
+    - hv_vsm:
+        state: absent
+        virtual_storage_serial: '{{ virtual_storage_serial }}'
+        physical_storage_serial: '{{ physical_storage_serial | default(None) }}'
+      register: result
+    - debug: var=result

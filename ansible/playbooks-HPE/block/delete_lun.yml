@@ -1,0 +1,20 @@
+-
+  name: Testing Delete LUN
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - luns:
+      - 800
+      - 801
+      - 802
+    - storage_serial: 12345
+  tasks:
+    - hpe_lun:
+        state: absent
+        storage_serial: '{{ storage_serial }}'
+        data:
+          luns: '{{ item }}'
+          name: '{{ name | default(None) }}'
+      with_items: '{{ luns }}'
+      register: result
+    - debug: var=result

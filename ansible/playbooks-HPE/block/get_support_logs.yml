@@ -1,0 +1,14 @@
+-
+  name: Collecting HPE Storage Management Server Support Log Bundle
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ./storage.json
+  tasks:
+    - hpe_troubleshooting_facts:
+        sanStorageSystems: '{{ sanStorageSystems }}'
+        hpeAPIGatewayService: '{{ hpeAPIGatewayService }}'
+        hpeAPIGatewayServicePort: '{{ hpeAPIGatewayServicePort }}'
+        hpeAPIGatewayServiceUser: '{{ hpeAPIGatewayServiceUser }}'
+      register: result
+    - debug: var=result

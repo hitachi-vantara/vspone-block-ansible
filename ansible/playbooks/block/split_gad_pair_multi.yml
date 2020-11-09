@@ -1,0 +1,20 @@
+-
+  name: Split GAD Pair
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - storage_serial: 12345
+    - luns:
+      - 1631
+      - 1632
+  tasks:
+    - hv_rep:
+        state: present 
+        storage_serial: '{{ storage_serial }}'
+        data:
+          copy_type: gad
+          subtask: split
+          lun: '{{ item }}'
+      with_items: '{{ luns }}'
+      register: result
+    - debug: var=result

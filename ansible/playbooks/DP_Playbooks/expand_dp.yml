@@ -1,0 +1,23 @@
+-
+  name: Expand Dynamic Pool
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - dp_name: test-ansible-dp
+    - luns:
+      - 1200
+    - storage_serial: 10076
+  tasks:
+    - hv_pool:
+        state: present
+        storage_serial: '{{ storage_serial }}'
+        data:
+          state: present
+          luns: '{{ luns }}'
+          name: '{{ dp_name }}'
+          subscription_limit: '{{ subscription_limit | default(None) }}'
+          capacity_warning: '{{ capacity_warning | default(None)}}'
+          capacity_depletion: '{{ capacity_depletion | default(None)}}'
+      register: result
+    - debug: var=result.pool
+

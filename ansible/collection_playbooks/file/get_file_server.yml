@@ -1,0 +1,12 @@
+-
+  name: Testing Get HNAS Fileserver
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - fileServerIP: 172.25.41.67
+  tasks:
+    - hv_fs_facts:
+        data:
+          fileServerIP: '{{ fileServerIP }}'
+      register: result
+    - debug: var=result.hnas

@@ -1,0 +1,51 @@
+- name: Hitachi Vantara storage module example - Get Storage Info
+  hosts: caas
+  gather_facts: yes
+  vars:
+  vars_files:
+    - ./storage_registration.yml
+  tasks:
+    # first task is getting Hitachi Storage array info
+    - name: get block storage information
+      uri:
+        url: "{{ url_prefix }}/storage/block-devices"
+        method: GET
+        headers:
+          X-Subsystem-User: "{{ user }}"
+          X-Subsystem-Password: "{{ password }}"
+          X-Subsystem-Type: "{{ storage_type }}"
+          X-Management-IPs: "{{ storage_IP }}"
+          X-Storage-Id: "{{ storage_serial }}"
+          Content-Type: "application/json"
+        validate_certs: no
+        return_content: yes
+      ignore_errors: yes
+      register: get_storage_info
+
+    - name: show storage information data
+      debug: msg="{{ get_storage_info.json }}"
+    
+    - copy: content="{{ get_storage_info.json }}" dest=/root/jsons/get_storage_info.log
+
+    # second task is getting Hitachi Storage array capacity
+    - name: get block storage capacity
+      uri:
+        url: "{{ url_prefix }}/storage/block-devices/capacity"
+        method: GET
+        headers:
+          X-Subsystem-User: "{{ user }}"
+          X-Subsystem-Password: "{{ password }}"
+          X-Subsystem-Type: "{{ storage_type }}"
+          X-Management-IPs: "{{ storage_IP }}"
+          X-Storage-Id: "{{ storage_serial }}"
+          Content-Type: "application/json"
+        validate_certs: no
+        return_content: yes
+      ignore_errors: yes
+      register: get_capacity_info
+
+    - name: show block storage capacity info
+      debug: msg="{{ get_capacity_info.json }}"
+
+    - copy: content="{{ get_capacity_info.json }}" dest=/root/jsons/get_capacity_info.log
+

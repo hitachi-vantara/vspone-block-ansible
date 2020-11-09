@@ -1,0 +1,16 @@
+- name: Hitachi Vantara Powershell-related storage module example - Get Storage Info
+  hosts: win
+  gather_facts: yes
+  vars:
+  vars_files:
+    - ./storage_registration.yml
+  tasks:
+    # first task is getting Hitachi Storage information
+    - name: Get Storage Information
+      win_command: powershell.exe -ExecutionPolicy ByPass -File "C:\powershell_scripts\GetStorageDevice.ps1" -serial "{{ storage_serial }}" -storageip "{{ storage_IP }}" -username "{{ user }}" -pass "{{ password }}"
+      register: getstorageresult
+    - debug: var=getstorageresult.stdout_lines
+    - name: finish succesfully
+      debug: msg="We finished succesfully."
+
+    #- copy: content="{{ getstorageresult.stdout_lines }}" dest="C:\powershell_scripts\results\get_storage_info.log"

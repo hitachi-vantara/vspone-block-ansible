@@ -1,0 +1,17 @@
+-
+  name: Testing Delete HNAS NFS Export
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - fileServerIP: 172.25.41.67
+    - evs: 200.200.200.200
+    - share_name: ansible-test-nfs-export1209-2
+  tasks:
+    - hv_nfs_share:
+        state: absent
+        data:
+          fileServerIP: '{{ fileServerIP }}'
+          evs: '{{ evs  }}'
+          share_name: '{{ share_name }}'
+      register: result
+    - debug: var=result.hnas

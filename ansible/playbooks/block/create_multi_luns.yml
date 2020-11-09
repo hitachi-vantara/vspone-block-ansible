@@ -1,0 +1,25 @@
+-
+  name: Testing Create Multiple LUN with ID In DP
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - pool_id: 6
+    - size: 0.09GB
+    - storage_serial: 123456
+    - luns:
+      - 8019
+      - 8018
+  tasks:
+    - hv_lun:
+        state: present
+        storage_serial: '{{ storage_serial }}'
+        data:
+          storage_pool:
+            id: '{{ pool_id | default(None) }}'
+          luns: '{{ item }}'
+          size: '{{ size | default(None) }}'
+          name: '{{ name  | default(None) }}'
+          cap_saving: '{{ cap_saving | default(None) }}'
+      with_items: '{{ luns }}'
+      register: result
+    - debug: var=result

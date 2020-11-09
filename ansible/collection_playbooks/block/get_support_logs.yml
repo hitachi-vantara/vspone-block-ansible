@@ -1,0 +1,16 @@
+-
+  name: Collecting Hitachi Storage Management Server Support Log Bundle
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars_files:
+    - ./storage.json
+  tasks:
+    - hv_troubleshooting_facts:
+        sanStorageSystems: '{{ sanStorageSystems }}'
+        hitachiAPIGatewayService: '{{ hitachiAPIGatewayService }}'
+        hitachiAPIGatewayServicePort: '{{ hitachiAPIGatewayServicePort }}'
+        hitachiAPIGatewayServiceUser: '{{ hitachiAPIGatewayServiceUser }}'
+      register: result
+    - debug: var=result

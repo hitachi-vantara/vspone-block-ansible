@@ -1,0 +1,13 @@
+-
+  name: Testing Get HNAS Filesystems
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - fileServerIP: 172.25.41.67
+  tasks:
+    - hv_file_systems_facts:
+        data:
+          fileServerIP: '{{ fileServerIP }}'
+          file_system: '{{ file_system | default(None) }}'
+      register: result
+    - debug: var=result.hnas

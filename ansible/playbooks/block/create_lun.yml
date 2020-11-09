@@ -1,0 +1,27 @@
+-
+  name: Testing Create LUN In DP
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - pool_id: 6
+    - size: 0.07GB
+    - storage_serial: 123456
+    - lun: 1391
+    - name: testsn
+    - cap_saving:
+       - compression
+       - deduplication
+  tasks:
+    - hv_lun:
+        state: present
+        sku: P1_Gen12_2DC
+        storage_serial: '{{ storage_serial }}'
+        data:
+          storage_pool:
+            id: '{{ pool_id | default(None) }}'
+          name: '{{ name  | default(None) }}'
+          size: '{{ size | default(None) }}'
+          lun: '{{ lun | default(None) }}'
+          cap_saving: '{{ cap_saving | default(None) }}'
+      register: result
+    - debug: var=result

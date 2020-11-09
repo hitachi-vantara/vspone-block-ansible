@@ -1,0 +1,22 @@
+-
+  name: Split Universal Replicator Pair
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - storage_serial: 12345
+    - target_storage_serial: 123456
+    - lun: 16502
+    - target_lun: 474
+  tasks:
+    - hv_rep:
+        state: present
+        storage_serial: '{{ storage_serial }}'
+        data:
+          copy_type: ur
+          lun: '{{lun}}'
+          subtask: split
+          target_lun: '{{target_lun}}'
+          target_storage_serial: '{{target_storage_serial}}'
+          enable_read_write: '{{enable_read_write | default(None)}}'
+      register: result
+    - debug: var=result

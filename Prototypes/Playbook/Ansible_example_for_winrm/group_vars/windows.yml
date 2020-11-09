@@ -1,0 +1,8 @@
+ansible_user: Administrator
+ansible_password: Hitachi1
+ansible_port: 5986
+ansible_connection: winrm
+ansible_winrm_scheme: https
+ansible_winrm_server_cert_validation: ignore
+ansible_become: false
+#ansible_winrm_transport: plaintext

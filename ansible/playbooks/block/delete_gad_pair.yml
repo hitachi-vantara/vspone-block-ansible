@@ -1,0 +1,16 @@
+-
+  name: Delete GAD Pair
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - storage_serial: 12345
+    - lun: 532
+  tasks:
+    - hv_rep:
+        state: absent 
+        storage_serial: '{{ storage_serial }}'
+        data:
+          copy_type: gad
+          lun: '{{lun}}'
+      register: result
+    - debug: var=result

@@ -1,0 +1,18 @@
+-
+  name: Testing Expand LUN
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - storage_serial: 123456
+    - luns: 8017
+    - size_gb: 4
+  tasks:
+    - hv_lun:
+        state: present
+        storage_serial: '{{ storage_serial }}'
+        data:
+          luns: '{{ luns }}'
+          size: '{{size_gb}}'
+          cap_saving: '{{ cap_saving | default(None) }}'
+      register: result
+    - debug: var=result.lun

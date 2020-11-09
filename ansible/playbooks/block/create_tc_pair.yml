@@ -1,0 +1,25 @@
+-
+  name: Create True Copy Pair using target lun
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - storage_serial: 12345
+    - target_storage_serial: 123456
+    - lun: 16502
+    - target_lun: 474
+  tasks:
+    - hv_rep:
+        state: present
+        storage_serial: '{{ storage_serial }}'
+        data:
+          copy_type: tc
+          lun: '{{lun}}'
+          target_lun: '{{target_lun  | default(None)}}'
+          target_pool_id: '{{target_pool_id  | default(None)}}'
+          target_storage_serial: '{{target_storage_serial}}'
+          fence_level: '{{fence_level  | default(None)}}'
+          consistency_group_id: '{{consistency_group_id  | default(None) }}'
+          allocate_consistency_group: '{{allocate_consistency_group | default(None)}}'
+          copy_pace: '{{copy_pace | default(None)}}'
+      register: result
+    - debug: var=result

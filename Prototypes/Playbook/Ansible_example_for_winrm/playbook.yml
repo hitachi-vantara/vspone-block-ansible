@@ -1,0 +1,12 @@
+- name: This is a simple test playbook
+  hosts: all
+  tasks:
+    - name: run ipconfig
+      raw: ipconfig
+      register: ipconfig
+    - debug: var=ipconfig
+    - name: hostname
+      raw: hostname
+      register: thehost
+    - debug: var=thehost
+

@@ -1,0 +1,15 @@
+- name: Hitachi Vantara storage module example - Get Lun Info
+  hosts: win
+  gather_facts: yes
+  vars:
+  vars_files:
+    - ./storage_registration.yml
+  tasks:
+    # first task is getting Lun information
+    - name: get lun information
+      win_command: powershell.exe -ExecutionPolicy ByPass -File "C:\powershell_scripts\GetLun.ps1" -serial "{{ storage_serial }}" -storageip "{{ storage_IP }}" -username "{{ user }}" -pass "{{ password }}" -lunid {{ lun_id }}
+      register: getlunresult
+    - name: show lun information
+      debug: var=getlunresult.stdout_lines
+    - name: finish succesfully
+      debug: msg="We finished succesfully."

@@ -1,0 +1,18 @@
+{
+ "version": "2.0.0",
+ "hpeAPIGatewayService": "10.10.57.30",
+ "hpeAPIGatewayServicePort": "2023",
+ "useOutOfBandConnection": "false",
+ "sanStorageSystems": [
+  {
+   "useOutOfBandConnection": "false",
+   "comment": "this useOutOfBandConnection is optional and overwrites the top level useOutOfBandConnection",
+   "serialNumber": 20339,
+   "svpIP": "172.25.47.54",
+   "comment1": "controllerIP is to create command devices",
+   "comment2": "on Gx00/Fx00 storage systems",
+   "poolId": 6,
+   "comment3": "poolId is only required to create command devices"
+  }
+ ]
+}

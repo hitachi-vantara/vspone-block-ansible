@@ -1,0 +1,13 @@
+- name: Getting Consistency Group info
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - storage_serial: 12345
+  tasks:
+    - hv_rep_facts:
+        storage_serial: '{{ storage_serial }}'
+        data:
+          grouping: consistency group
+          consistency_group_id: '{{consistency_group_id | default(None)}}'
+      register: result
+    - debug: var=result.pairs

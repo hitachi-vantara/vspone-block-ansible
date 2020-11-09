@@ -1,0 +1,23 @@
+-
+  name: Create HTI Pair
+  hosts: localhost
+  gather_facts: false
+  vars:
+    - storage_serial: 12345
+    - lun: 16502
+    - target_pool: 38
+  tasks:
+    - hv_rep:
+        state: present
+        storage_serial: '{{ storage_serial }}'
+        data:
+          copy_type: ti
+          lun: '{{lun}}'
+          data_pool: '{{target_pool}}'
+          auto_split: '{{auto_split | default(None)}}'
+          snapshot_grp: '{{snapshot_grp | default(None)}}'
+          consistency_group_id: '{{consistency_group_id | default(None)}}'
+          allocate_consistency_group: '{{allocate_consistency_group | default(None)}}'
+          target_lun: '{{target_lun | default(None)}}'
+      register: result
+    - debug: var=result

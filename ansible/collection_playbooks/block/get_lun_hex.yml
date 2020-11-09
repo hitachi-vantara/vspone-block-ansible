@@ -1,0 +1,18 @@
+-
+  name: Get LUN using hex value rather than decimal value
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - storage_serial: 10075
+    - lun: 00:01:0C 
+  tasks:
+    - hv_lun_facts:
+        storage_serial: '{{ storage_serial  | default(None) }}'
+        data:
+          lun: '{{ lun | default(None) }}'
+          name: '{{ name | default(None) }}'
+          max_count: '{{ max_count | default(None) }}'
+      register: result
+    - debug: var=result
