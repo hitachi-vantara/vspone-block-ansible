@@ -1,15 +1,16 @@
 [submodule "hi_python_sdk"]
 	path = hi_python_sdk
-	url = https://gpse-git.hitachivantara.com/scm/external/hi_python_sdk.git
-[submodule "common/hiEULA"]
-	path = common/hiEULA
-	url = https://gpse-git.hitachivantara.com/scm/external/hi_eula.git
+	url = https://gpse-git.hitachivantara.com/scm/external/hi_pythonsdk-next.git
+[submodule "vCenter-Restful-WS-Infra"]
+	path = vCenter-Restful-WS-Infra
+	url = https://gpse-git.hitachivantara.com/scm/external/hi_vcenter_restful-next.git
+#
+#[submodule "common/hiEULA"]
+#	path = common/hiEULA
+#	url = https://gpse-git.hitachivantara.com/scm/external/hi_eula.git
 #[submodule "common/packages"]
 #	path = common/packages
 #	url = https://gpse-git.hitachivantara.com/scm/external/hi_packages.git
-#[submodule "vCenter-Restful-WS-Infra"]
-#	path = vCenter-Restful-WS-Infra
-#	url = https://gpse-git.hitachivantara.com/scm/external/hi_vcenter_restful.git
 ##[submodule "HivROMultiPlatformWebService"]
 #	path = HivROMultiPlatformWebService
 #	url = https://gpse-git.hitachivantara.com/scm/external/hi_platform_web_service.git
