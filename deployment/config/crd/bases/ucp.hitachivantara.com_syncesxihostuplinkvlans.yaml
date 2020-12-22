@@ -1,0 +1,143 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: syncesxihostuplinkvlans.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.vCenter
+    description: VCenter
+    name: VCenter
+    type: string
+  - JSONPath: .spec.servers
+    description: servers
+    name: Servers
+    type: string
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: SyncESXiHostUplinkVLAN
+    listKind: SyncESXiHostUplinkVLANList
+    plural: syncesxihostuplinkvlans
+    shortNames:
+    - sv
+    singular: syncesxihostuplinkvlan
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: SyncESXiHostUplinkVLANSpec defines the desired state of SyncESXiHostUplinkVLAN
+          properties:
+            servers:
+              items:
+                type: string
+              type: array
+            timestamp:
+              type: string
+            ucpSystem:
+              type: string
+            vCenter:
+              description: EthernetSwitch and ESXiHosts must have already been onboarded
+                to UcpSystem of VCenter
+              type: string
+          required:
+          - servers
+          - ucpSystem
+          - vCenter
+          type: object
+        status:
+          description: SyncESXiHostUplinkVLANStatus defines the observed state of
+            SyncESXiHostUplinkVLAN
+          properties:
+            hostVlanTrunkInfo:
+              items:
+                properties:
+                  hostIp:
+                    type: string
+                  hostVlans:
+                    items:
+                      properties:
+                        nicName:
+                          type: string
+                        physicalPort:
+                          type: string
+                        physicalVlanTrunkRange:
+                          type: string
+                        portName:
+                          type: string
+                        switchIp:
+                          type: string
+                        tag:
+                          type: string
+                        virtualVlanTrunkRange:
+                          type: string
+                      type: object
+                    type: array
+                required:
+                - hostIp
+                - hostVlans
+                type: object
+              type: array
+            lastUpdate:
+              type: string
+            result:
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+          required:
+          - hostVlanTrunkInfo
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

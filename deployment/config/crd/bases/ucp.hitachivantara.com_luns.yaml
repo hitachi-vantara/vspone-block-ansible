@@ -1,0 +1,355 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: luns.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.logicalUnitId
+    description: Logical Unit Id
+    name: Lun
+    type: string
+  - JSONPath: .spec.size
+    description: Lun size
+    name: Size
+    type: string
+  - JSONPath: .spec.poolId
+    description: Pool id
+    name: Pool
+    type: integer
+  - JSONPath: .spec.parityGroupId
+    description: Paritygroup id
+    name: ParityGroup
+    type: string
+  - JSONPath: .spec.name
+    description: Lun name
+    name: LunName
+    type: string
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: Lun
+    listKind: LunList
+    plural: luns
+    shortNames:
+    - lun
+    singular: lun
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: Lun is the Schema for the luns API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: LunSpec defines the desired state of Lun
+          properties:
+            dedupCompressionMode:
+              description: 'dedupCompressionMode options are ■ COMPRESSION: set it
+                to compression ■ COMPRESSION_DEDUPLICATION: set it to dedup compression
+                ■ DISABLED: disable dedup setting if its set Notes: if lun is in COMPRESSION_DEDUPLICATION
+                you can change it back to COMPRESSION'
+              type: string
+            lunId:
+              type: integer
+            name:
+              type: string
+            parityGroupId:
+              pattern: ^(\d+\-\d+)?$
+              type: string
+            poolId:
+              type: integer
+            serialNumber:
+              type: string
+            shouldAllowDelete:
+              description: ShouldAllowDelete set to true if underlying entity need
+                to be deleted ignore if this this field is not required
+              type: boolean
+            size:
+              pattern: ^\d+(TB|GB|MB|KB)?$
+              type: string
+            timestamp:
+              type: string
+            ucpSystem:
+              description: UcpSystem - the preferred UcpSystem
+              minLength: 5
+              pattern: ^(UCP-CI|UCP-HC|UCP-RS|UCP-2000|UCP-4000|Logical-UCP)-\d{5}$
+              type: string
+          required:
+          - lunId
+          - serialNumber
+          - size
+          - ucpSystem
+          type: object
+        status:
+          description: LunStatus defines the observed state of Lun
+          properties:
+            logicalUnit:
+              description: LogicalUnit represent single lun in Storage Server
+              properties:
+                CLPRId:
+                  type: integer
+                assignedMPBladeId:
+                  type: integer
+                currentControllerId:
+                  type: integer
+                dedupCompressionMode:
+                  type: string
+                dedupCompressionProgress:
+                  type: integer
+                dedupCompressionStatus:
+                  type: string
+                emulationType:
+                  type: string
+                formatOrShredRate:
+                  type: integer
+                fullAllocationCapacity:
+                  format: int64
+                  type: integer
+                fullAllocationCapacityInUnit:
+                  type: string
+                grid:
+                  description: Global Resource ID
+                  type: string
+                individualCapacity:
+                  format: int64
+                  type: integer
+                individualCapacityInUnit:
+                  type: string
+                isALU:
+                  type: boolean
+                isALUA:
+                  type: boolean
+                isBusy:
+                  type: boolean
+                isCommandDevice:
+                  type: boolean
+                isDMLU:
+                  type: boolean
+                isDSDVolume:
+                  type: boolean
+                isDynamicPoolVolume:
+                  type: boolean
+                isExternalVolume:
+                  type: boolean
+                isFullAllocation:
+                  type: boolean
+                isHNASSystemVolume:
+                  type: boolean
+                isHNASUserVolume:
+                  type: boolean
+                isInGADPair:
+                  type: boolean
+                isJournalPoolVolume:
+                  type: boolean
+                isPoolVolume:
+                  type: boolean
+                isSLU:
+                  type: boolean
+                isTiered:
+                  type: boolean
+                isTieringRelocation:
+                  type: boolean
+                isVVOL:
+                  type: boolean
+                logicalUnitId:
+                  type: integer
+                logicalUnitIdHexFormat:
+                  type: string
+                logicalUnitResources:
+                  description: LogicalUnitResources --
+                  properties:
+                    incarnationNumber:
+                      type: integer
+                    logicalUnitId:
+                      type: integer
+                    resourceGroupId:
+                      type: integer
+                    resourceGroupName:
+                      type: string
+                    virtualDeviceId:
+                      type: integer
+                    virtualDeviceType:
+                      type: string
+                    virtualLogicalUnitId:
+                      type: integer
+                  required:
+                  - incarnationNumber
+                  - logicalUnitId
+                  - resourceGroupId
+                  - resourceGroupName
+                  - virtualDeviceId
+                  - virtualDeviceType
+                  - virtualLogicalUnitId
+                  type: object
+                luseLUNs:
+                  items:
+                    type: integer
+                  type: array
+                mpBladeId:
+                  type: integer
+                naaId:
+                  type: string
+                name:
+                  type: string
+                objectId:
+                  type: string
+                parityGroupId:
+                  type: string
+                pathCount:
+                  type: integer
+                poolId:
+                  type: integer
+                poolName:
+                  type: string
+                provisionType:
+                  type: string
+                quorumDiskId:
+                  type: integer
+                snapshotProperties:
+                  description: SnapshotProperties --
+                  properties:
+                    isInSnapshotPair:
+                      type: boolean
+                    isSnapOnSnapSVol:
+                      type: boolean
+                    snapOnSnapPoolId:
+                      type: integer
+                  required:
+                  - isInSnapshotPair
+                  - isSnapOnSnapSVol
+                  - snapOnSnapPoolId
+                  type: object
+                ssidId:
+                  type: integer
+                status:
+                  type: string
+                stripeSize:
+                  type: integer
+                totalCapacity:
+                  format: int64
+                  type: integer
+                totalCapacityInUnit:
+                  type: string
+                usedCapacity:
+                  format: int64
+                  type: integer
+                usedCapacityInUnit:
+                  type: string
+                volumeType:
+                  type: string
+              required:
+              - CLPRId
+              - assignedMPBladeId
+              - currentControllerId
+              - dedupCompressionMode
+              - dedupCompressionProgress
+              - dedupCompressionStatus
+              - emulationType
+              - formatOrShredRate
+              - fullAllocationCapacity
+              - fullAllocationCapacityInUnit
+              - grid
+              - individualCapacity
+              - individualCapacityInUnit
+              - isALU
+              - isALUA
+              - isBusy
+              - isCommandDevice
+              - isDMLU
+              - isDSDVolume
+              - isDynamicPoolVolume
+              - isExternalVolume
+              - isFullAllocation
+              - isHNASSystemVolume
+              - isHNASUserVolume
+              - isInGADPair
+              - isJournalPoolVolume
+              - isPoolVolume
+              - isSLU
+              - isTiered
+              - isTieringRelocation
+              - isVVOL
+              - logicalUnitId
+              - logicalUnitIdHexFormat
+              - logicalUnitResources
+              - mpBladeId
+              - naaId
+              - name
+              - objectId
+              - parityGroupId
+              - pathCount
+              - poolId
+              - poolName
+              - provisionType
+              - quorumDiskId
+              - snapshotProperties
+              - ssidId
+              - status
+              - stripeSize
+              - totalCapacity
+              - totalCapacityInUnit
+              - usedCapacity
+              - usedCapacityInUnit
+              - volumeType
+              type: object
+            logicalUnitId:
+              type: string
+            result:
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            serialNumber:
+              type: string
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

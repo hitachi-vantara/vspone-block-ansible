@@ -1,0 +1,24 @@
+# permissions for end users to edit hostgroupfacts.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: hostgroupfact-editor-role
+rules:
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - hostgroupfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - hostgroupfacts/status
+  verbs:
+  - get

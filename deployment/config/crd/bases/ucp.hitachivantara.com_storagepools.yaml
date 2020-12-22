@@ -1,0 +1,229 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: storagepools.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.storagePool.name
+    description: user defined Pool Name
+    name: Name
+    type: string
+  - JSONPath: .status.storagePool.type
+    description: storage pool type
+    name: PoolType
+    type: string
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: StoragePool
+    listKind: StoragePoolList
+    plural: storagepools
+    shortNames:
+    - sp
+    singular: storagepool
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: StoragePool is the Schema for the storagepools API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: StoragePoolSpec defines the desired state of StoragePool
+          properties:
+            depletionThresholdRate:
+              description: range 1 to 100, default is 80
+              type: integer
+            poolName:
+              type: string
+            poolVolumes:
+              items:
+                properties:
+                  parityGroup:
+                    description: drive-group/parity-group id
+                    type: string
+                  size:
+                    description: lunsize in readable format
+                    pattern: ^\d+(TB|GB|MB|KB)?$
+                    type: string
+                required:
+                - parityGroup
+                type: object
+              minItems: 1
+              type: array
+            shouldAllowDelete:
+              description: ShouldAllowDelete set to true if underlying entity need
+                to be deleted ignore if this this field is not required
+              type: boolean
+            storageSystemSerial:
+              type: string
+            subscriptionLimitRate:
+              description: range 0 to 65534, default is not set
+              type: integer
+            timestamp:
+              type: string
+            type:
+              enum:
+              - HTI
+              - HDP
+              - HDT
+              - HRT
+              type: string
+            ucpSystem:
+              description: UcpSystem - the preferred UcpSystem
+              type: string
+            warningThresholdRate:
+              description: range 1 to 100, default is 70
+              type: integer
+          required:
+          - poolName
+          - poolVolumes
+          - storageSystemSerial
+          - type
+          type: object
+        status:
+          description: StoragePoolStatus defines the observed state of StoragePool
+          properties:
+            auditLog:
+              items:
+                description: add to k8s event logs AuditLog .
+                properties:
+                  event:
+                    description: Time     time.Time     `json:"time,omitempty"`
+                    type: string
+                  severity:
+                    description: SeverityLevel defines severity
+                    type: string
+                type: object
+              type: array
+            grid:
+              type: string
+            lastUpdate:
+              type: string
+            objectId:
+              type: string
+            result:
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            storagePool:
+              description: StoragePoolSummary ...
+              properties:
+                currentSubscription:
+                  description: currentSubscription rate
+                  type: integer
+                depletionThresholdRate:
+                  description: depletionThresholdRate rate do not work for HTI pool
+                  type: integer
+                freeCapacity:
+                  description: FreeCapacity in bytes
+                  type: string
+                grid:
+                  description: Global Resource ID
+                  type: string
+                id:
+                  description: PoolID
+                  type: integer
+                name:
+                  description: pool name
+                  type: string
+                poolVolumeCount:
+                  description: size of poolvolumes
+                  type: integer
+                poolVolumes:
+                  items:
+                    properties:
+                      logicalUnitId:
+                        type: integer
+                      parityGroup:
+                        description: drive-group/parity-group id
+                        type: string
+                      size:
+                        description: lunsize in readable format
+                        type: string
+                    required:
+                    - logicalUnitId
+                    type: object
+                  type: array
+                resourceGroupID:
+                  description: resourceGroup id
+                  type: integer
+                totalCapacity:
+                  description: TotalCapacity in bytes
+                  type: string
+                type:
+                  description: pooltype
+                  type: string
+                warningSubscription:
+                  description: warningSubscription rate
+                  type: integer
+                warningThresholdRate:
+                  description: WarningThresholdRate rate
+                  type: integer
+              required:
+              - currentSubscription
+              - depletionThresholdRate
+              - freeCapacity
+              - id
+              - name
+              - poolVolumeCount
+              - poolVolumes
+              - resourceGroupID
+              - totalCapacity
+              - type
+              - warningSubscription
+              - warningThresholdRate
+              type: object
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

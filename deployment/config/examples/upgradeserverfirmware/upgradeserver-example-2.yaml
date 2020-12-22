@@ -1,0 +1,17 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: UpgradeServerFirmware
+metadata:
+  name: upgradeserverfirmware-example-2
+spec:
+  bmcIPAddresses: [172.25.11.60]
+  firmwareBundle: "UCPAdvisorComputeFirmwareBundle-06012020-v3.8"
+  
+  # cron expression,  below is 15 seconds on any minute
+  # schedule: "0,15,30,45 * * ? * * *"  
+
+  #defaults to true if omit
+  evacuateHosts: true
+  allowSameVersionUpgrade: false
+
+  timeStamp: "00:00"
+  

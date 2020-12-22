@@ -1,0 +1,20 @@
+# permissions for end users to view provisionbaremetalservers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: provisionbaremetalserver-viewer-role
+rules:
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionbaremetalservers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionbaremetalservers/status
+  verbs:
+  - get

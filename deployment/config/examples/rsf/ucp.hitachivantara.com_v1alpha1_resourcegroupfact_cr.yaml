@@ -1,0 +1,7 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ResourceGroupFact
+metadata:
+  name: example-resourcegroupfact
+spec:
+  # Add fields here
+  serialNumber: "415056"

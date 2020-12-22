@@ -1,0 +1,7 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: StoragePoolFact
+metadata:
+  name: example-storagepoolfact
+spec:
+  storageSerial: "410117"
+  timeStamp: "12:01"

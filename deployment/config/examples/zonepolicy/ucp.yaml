@@ -1,0 +1,20 @@
+
+apiVersion: ucp.hitachivantara.com/v1
+kind: UcpSystem
+metadata:
+  name: example-ucpsystem
+spec:
+  name: abc1
+  serialNumber: UCP-CI-10231
+  gatewayAddress: "10.76.59.245"
+  model: UCP CI
+  region: EMEA
+  zone: NA
+  type: NA
+  fcSwitches: ["10.76.59.34"]
+  ethernetSwitches: []
+  #storageSystems: ["56919", "441158"]
+  #servers: [example-server-59-102]
+  #servers: []
+  servers: [10.76.59.103, 10.76.59.115, 172.25.63.102]
+  timestamp: now

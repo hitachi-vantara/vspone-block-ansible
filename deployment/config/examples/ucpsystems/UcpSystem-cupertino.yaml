@@ -1,0 +1,18 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: UcpSystem
+metadata:
+  name: cupertino-ucpsystem
+spec:
+  name: cupertino
+  serialNumber: UCP-CI-10232
+  gatewayAddress: 172.25.21.37
+  model: UCP CI
+  region: EMEA
+  zone: NA
+  type: NA
+  fcSwitches: [example-fcswitch-63-33]
+  ethernetSwitches: []
+  storageSystems: []
+  servers: [example-server-94-104,example-server-11-24]
+  defaultPolicy: default-policy-cupertino-ucpsystem
+  timestamp: "00:00"

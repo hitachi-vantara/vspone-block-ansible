@@ -1,0 +1,39 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ESXiDatastore
+metadata:
+  name: example-esxidatastore-resource
+spec:
+  name: withResource
+  capacityInGB: 5
+  ucpSystem: testing-ucp
+  storageSerialNumber: "30078"
+  # esxiHosts: ["172.25.11.146", "172.25.11.71"]
+  # esxiHosts: ["172.25.11.71"]
+  esxiHosts:
+    - host: "172.25.11.146"
+      # serverHostGroups:
+      #   - name: "hostgroup1"
+      #     port: "CL1-A"
+    # - host: "172.25.11.71"
+      # serverHostGroups:
+      #   - name: "hostgroup1"
+      #     port: "CL1-A"
+
+  poolId: 4
+  # multipleDatastores:
+  #   numberOfDatastore: 2
+  #   initialDatastoreNumber: 4
+  # hostLunIds:
+  #   - 71
+  #   - 72
+  #   - 73
+  #   - 74
+  #   - 75
+  # hostLunIdRange:
+  #   start:  81
+  #   end: 85
+  resourceGroupId: 2
+  shouldAllowDelete: true
+  timestamp: now
+  # mount: true
+

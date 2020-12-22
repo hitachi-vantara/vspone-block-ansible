@@ -1,0 +1,11 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: Lun
+metadata:
+  name: lun-max
+spec:
+  serialNumber: "30078"
+  lunId: 65281
+  size: "1GB"
+  poolId: 5
+  name: "name-test-1"
+  timestamp: "now1"

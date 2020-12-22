@@ -1,0 +1,19 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongIngress
+metadata:
+  name:  porcelain-kongingress
+route:
+  methods:
+  - POST
+  - PUT
+  - DELETE
+  - PATCH
+  - GET
+  - OPTIONS
+  protocols:
+  - https
+  - http
+  #strip_path: true
+  preserve_host: true
+proxy:
+  protocol: https

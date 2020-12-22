@@ -1,0 +1,14 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: DeployESXiHost
+metadata:
+  name: example-deploy-esxi-host
+spec:
+  dataCenterPath: /Datacenter3
+  vCenter: 172.25.20.34
+  host: 172.25.11.146
+  # if not specified will be added as standalone host
+  clusterName: Cluster
+  licenseKey: 00000-00000-00000-00000-00000
+  # licenseKey: MN421-4T003-08RG1-0VK8H-3NF1M
+  hostProfileName: myhostprofilename
+  timeStamp: 00:03

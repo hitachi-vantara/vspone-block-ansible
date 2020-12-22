@@ -1,0 +1,16 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: HostGroup
+metadata:
+  name: hostgroup-30078-ds-1
+spec:
+  serialNumber: "30078"
+  # hostMode: "VMWARE_EXTENSION"
+  hostMode: "VMW"
+  hostModeOptions: [54,63]
+  # id: 0
+  name: "hg-ds-testing"
+  port: "CL2-A"
+  luns: [33]
+  # wwns: ["100000109B3C0FD3", "100000109B3C0FD4"]
+  timestamp: now
+  shouldAllowDelete: true

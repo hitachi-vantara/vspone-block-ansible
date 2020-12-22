@@ -1,0 +1,1528 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - servicemonitors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services/finalizers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - backupnetworkswitchconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - backupnetworkswitchconfigurations/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - baremetalosprovisioningpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - baremetalosprovisioningpolicies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - clearzoneconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - clearzoneconfigs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - consistenthostgrouplunfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - consistenthostgrouplunfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - datacenterfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - datacenterfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - deletemultiplelunsfromallhosts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - deletemultiplelunsfromallhosts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - deployesxihosts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - deployesxihosts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - esxidatastorefacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - esxidatastorefacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - esxidatastores
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - esxidatastores/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - esxihostfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - esxihostfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - esxihosts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - esxihosts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - ethernetswitchefacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - ethernetswitchefacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - ethernetswitches
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - ethernetswitches/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - ethernetswitchfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - ethernetswitchfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - fcsswitchefacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - fcsswitchefacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - fcswitches
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - fcswitches/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - fcswitchfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - fcswitchfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - firmwareupgradepolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - firmwareupgradepolicies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - freelunfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - freelunfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - gatewaynetworkinterfacesfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - gatewaynetworkinterfacesfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - generatelogbundles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - generatelogbundles/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - getalllogbundleinfoes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - getalllogbundleinfoes/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - hostgroupfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - hostgroupfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - hostgroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - hostgroups/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - hostipranges
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - hostipranges/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - infrastructuresparepools
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - infrastructuresparepools/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - linkedvcenterucpsystemfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - linkedvcenterucpsystemfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - lunfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - lunfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - lunperformancefacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - lunperformancefacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - luns
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - luns/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - paritygroupfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - paritygroupfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - paritygroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - paritygroups/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - poolperformancefacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - poolperformancefacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - portperformancefacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - portperformancefacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - presentluntomultiplehosts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - presentluntomultiplehosts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionbaremetalservers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionbaremetalservers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionmultipleesxidatastores
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionmultipleesxidatastores/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionmultipleluntohosts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionmultipleluntohosts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionvlanpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionvlanpolicies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionzonepolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionzonepolicies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - remotereplicationfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - remotereplicationfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - replaceesxihosts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - replaceesxihosts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - resetmultipleserversbmcpasswords
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - resetmultipleserversbmcpasswords/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - resourcegroupfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - resourcegroupfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - resourcegroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - resourcegroups/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - restorenetworkswitchconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - restorenetworkswitchconfigurations/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - schedulefirmwareupgrades
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - schedulefirmwareupgrades/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - serverbiostemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - serverbiostemplates/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - serverfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - serverfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - servers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - servers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storageharddrivefacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storageharddrivefacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storagepoolfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storagepoolfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storagepools
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storagepools/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storageportfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storageportfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storagesystemfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storagesystemfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storagesystems
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storagesystems/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - syncesxihostuplinkvlans
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - syncesxihostuplinkvlans/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - ucpsystems
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - ucpsystems/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - unpresentlunfrommultiplehosts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - unpresentlunfrommultiplehosts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - upgradenetworkfirmwares
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - upgradenetworkfirmwares/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - upgradeserverfirmwares
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - upgradeserverfirmwares/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - vcenters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - vcenters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - vcenterucpsystemfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - vcenterucpsystemfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - vlanpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - vlanpolicies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - vlans
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - vlans/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - vsanfacts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - vsanfacts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - zonealiases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - zonealiases/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - zoneconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - zoneconfigs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - zonepolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - zonepolicies/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - zones
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - zones/status
+  verbs:
+  - get
+  - patch
+  - update

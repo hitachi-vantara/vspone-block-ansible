@@ -1,0 +1,289 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: storagepoolfacts.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.storageSerial
+    description: Storage System serial number
+    name: SerialNum
+    type: string
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: StoragePoolFact
+    listKind: StoragePoolFactList
+    plural: storagepoolfacts
+    shortNames:
+    - poolf
+    singular: storagepoolfact
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: StoragePoolFact is the Schema for the storagepoolfacts API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: StoragePoolFactSpec defines the desired state of StoragePoolFact
+          properties:
+            storageSerial:
+              type: string
+            timestamp:
+              type: string
+            ucpSystem:
+              description: UcpSystem - the preferred UcpSystem
+              type: string
+          required:
+          - storageSerial
+          - ucpSystem
+          type: object
+        status:
+          description: StoragePoolFactStatus defines the observed state of StoragePoolFact
+          properties:
+            health:
+              type: string
+            result:
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            storagePools:
+              items:
+                properties:
+                  componentIds:
+                    items:
+                      properties:
+                        isExternal:
+                          type: boolean
+                        isParityGroup:
+                          type: boolean
+                        isRaidGroup:
+                          type: boolean
+                        logicalUnitId:
+                          type: integer
+                        parityGroup:
+                          type: string
+                        parityGroupNumber:
+                          type: integer
+                        paritySubGroupNumber:
+                          type: integer
+                        raidGroup:
+                          type: integer
+                        simpleParityGroup:
+                          type: string
+                      type: object
+                    type: array
+                  deduplicationCompressionOriganlCapacity:
+                    type: integer
+                  deduplicationCompressionReductionRate:
+                    type: integer
+                  deduplicationCompressionSavedCapacity:
+                    type: integer
+                  depletionThresholdRate:
+                    type: integer
+                  freeCapacity:
+                    format: int64
+                    type: integer
+                  freeCapacityInUnit:
+                    type: string
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  isDeduplicationEnabled:
+                    type: boolean
+                  logicalUnitIds:
+                    items:
+                      type: integer
+                    type: array
+                  logicalUnitIdsHexFormat:
+                    items:
+                      type: string
+                    type: array
+                  name:
+                    type: string
+                  objectId:
+                    type: string
+                  poolId:
+                    type: integer
+                  poolVolumes:
+                    items:
+                      properties:
+                        logicalUnitId:
+                          type: integer
+                        parityGroup:
+                          description: drive-group/parity-group id
+                          type: string
+                        size:
+                          description: lunsize in readable format
+                          type: string
+                      required:
+                      - logicalUnitId
+                      type: object
+                    type: array
+                  raidDriveAggregate:
+                    properties:
+                      driveConfigMixed:
+                        type: boolean
+                      driveConfiguration:
+                        properties:
+                          speed:
+                            type: integer
+                          type:
+                            type: string
+                        type: object
+                      isExternal:
+                        type: boolean
+                      raidConfigMixed:
+                        type: boolean
+                      raidConfiguration:
+                        properties:
+                          raidLevel:
+                            type: string
+                          raidType:
+                            properties:
+                              driveCount:
+                                type: integer
+                              isMirror:
+                                type: boolean
+                              isParity:
+                                type: boolean
+                              parityCount:
+                                type: integer
+                              speed:
+                                type: integer
+                              type:
+                                type: string
+                            type: object
+                        type: object
+                    type: object
+                  replicationDataReleaseRate:
+                    type: integer
+                  replicationDepletionAlertRate:
+                    type: integer
+                  replicationUsageRate:
+                    type: integer
+                  resourceGroupId:
+                    type: integer
+                  status:
+                    type: string
+                  stripeSize:
+                    type: integer
+                  subscriptionLimitRate:
+                    type: integer
+                  subscriptionRate:
+                    type: integer
+                  subscriptionWarningRate:
+                    type: integer
+                  systemVolumeId:
+                    type: integer
+                  tieringProperties:
+                    properties:
+                      isMonitoring:
+                        type: boolean
+                      isRelocating:
+                        type: boolean
+                      monitorMode:
+                        type: string
+                      relocationRate:
+                        type: integer
+                      tierManagement:
+                        type: string
+                    type: object
+                  tiers:
+                    items:
+                      description: Tier inforamtion
+                      properties:
+                        driveSpeed:
+                          type: integer
+                        driveType:
+                          type: string
+                        id:
+                          type: integer
+                        totalCapacity:
+                          type: integer
+                        type:
+                          type: string
+                        untilizationRate:
+                          type: integer
+                        usedCapacity:
+                          type: integer
+                      type: object
+                    type: array
+                  totalCapacity:
+                    format: int64
+                    type: integer
+                  totalCapacityInUnit:
+                    type: string
+                  type:
+                    type: string
+                  utilizationRate:
+                    format: int64
+                    type: integer
+                  virtualLogicalUnitCount:
+                    type: integer
+                  volumeCount:
+                    type: integer
+                  warningThresholdRate:
+                    type: integer
+                required:
+                - objectId
+                - poolId
+                type: object
+              type: array
+            storagePoolsCount:
+              type: integer
+          required:
+          - storagePoolsCount
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

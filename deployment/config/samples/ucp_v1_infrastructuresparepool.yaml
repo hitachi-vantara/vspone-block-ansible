@@ -1,0 +1,6 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: InfrastructureSparePool
+metadata:
+  name: gateway-20-35
+spec:
+  gatewayServer: "172.25.20.35"

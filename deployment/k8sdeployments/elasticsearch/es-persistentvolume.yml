@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-persistentvolume
+  labels:
+    type: local
+spec:
+  storageClassName: el-standard
+  capacity:
+    storage: 30Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/usr/share/elasticsearch/data"

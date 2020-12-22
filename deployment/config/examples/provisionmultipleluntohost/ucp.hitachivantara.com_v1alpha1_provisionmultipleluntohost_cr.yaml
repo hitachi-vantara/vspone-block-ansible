@@ -1,0 +1,11 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ProvisionMultipleLunToHost
+metadata:
+  name: example-provisionmultipleluntohost
+spec:
+  serialNumber: "415056"
+    lunCount: 1
+      lunNamePrefix: ""
+        poolId: 1
+          serverBmcIP: "172.25.11.11"
+  

@@ -1,0 +1,20 @@
+# permissions for end users to view storagesystemfacts.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: storagesystemfact-viewer-role
+rules:
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storagesystemfacts
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - storagesystemfacts/status
+  verbs:
+  - get

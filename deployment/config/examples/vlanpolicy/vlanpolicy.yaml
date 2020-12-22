@@ -1,0 +1,15 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: VLANPolicy
+metadata:
+  name:  vlanpolicy-sample
+spec:
+  name: test-vlan-policy 
+  shouldPropagateVLAN: false 
+  type: trunk # access 
+  vlanIds: [200, 235]
+  switchTags:
+    group: [hr,eng]
+  switchModels: []
+  serverModels: [] 
+  serverTags: 
+    group: [hr,eng]

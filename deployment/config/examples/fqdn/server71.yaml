@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: server-secret-esx71
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: T3BlcmF0b3JAMTI=
+  username2: cm9vdA==
+  password2: UGFzc3cwcmQh
+  
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: Server
+metadata:
+  name: example-esxi-71
+spec:
+  bmcIpAddress: bmc-11-60.adapters.local
+  # bmcIpAddress: 172.25.11.60
+  hostIpAddress: 172.25.11.71
+  credentialsName: server-secret-esx71
+  timestamp: now1
+

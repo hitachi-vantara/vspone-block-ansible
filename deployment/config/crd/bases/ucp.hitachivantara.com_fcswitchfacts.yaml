@@ -1,0 +1,446 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: fcswitchfacts.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.managementIP
+    description: Management IP Address
+    name: IP
+    type: string
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.portCount
+    description: Count of ports
+    name: Port Count
+    type: integer
+  - JSONPath: .status.zoneCount
+    description: Count of zones
+    name: Zone Count
+    type: integer
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: FcSwitchFact
+    listKind: FcSwitchFactList
+    plural: fcswitchfacts
+    shortNames:
+    - fcsfact
+    singular: fcswitchfact
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: FcSwitchFact is the Schema for the fcswitchfacts API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: FcSwitchFactSpec defines the desired state of FcSwitchFact
+          properties:
+            managementIp:
+              type: string
+            timestamp:
+              type: string
+            ucpSystem:
+              description: UcpSystem - the preferred UcpSystem
+              minLength: 5
+              pattern: ^(UCP-CI|UCP-HC|UCP-RS|UCP-2000|UCP-4000|Logical-UCP)-\d{5}$
+              type: string
+          required:
+          - managementIp
+          type: object
+        status:
+          description: FcSwitchFactStatus defines the observed state of FcSwitchFact
+          properties:
+            auditLog:
+              items:
+                description: add to k8s event logs AuditLog .
+                properties:
+                  event:
+                    description: Time     time.Time     `json:"time,omitempty"`
+                    type: string
+                  severity:
+                    description: SeverityLevel defines severity
+                    type: string
+                type: object
+              type: array
+            backupConfigurations:
+              description: list of Ethernet Switch Configurations
+              items:
+                description: NetworkSwitchConfiguration backup network configuration
+                  input values
+                properties:
+                  fileName:
+                    description: File name to save the switch configurations to a
+                      local flash drive or remote SCP/SFTP/TFTP server. When the proto
+                      parameter is not specified, the file will be saved to the local
+                      flash drive; the filePath, user, password, and host parameters
+                      will be ignored if specified. Saving to a local flash drive
+                      is not supported on the Brocade ICX switch; use the TFTP protocol
+                      instead.
+                    type: string
+                  fileSize:
+                    description: File Size
+                    type: integer
+                  fileTimeStamp:
+                    description: Time stamp when file was created
+                    type: string
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  host:
+                    description: SCP Server IP where configuration is stored
+                    type: string
+                type: object
+              type: array
+            fcSwitchDevice:
+              description: FC Switch details
+              properties:
+                Fan1Status:
+                  type: string
+                Fan2Status:
+                  type: string
+                Power1Status:
+                  type: string
+                Power2Status:
+                  type: string
+                address:
+                  type: string
+                addressMode:
+                  type: string
+                beacon:
+                  type: string
+                deviceStatus:
+                  type: string
+                domain:
+                  type: string
+                fabricId:
+                  type: string
+                firmwareVersion:
+                  type: string
+                grid:
+                  description: Global Resource ID
+                  type: string
+                highIntegrityFabricMode:
+                  type: string
+                macAddress:
+                  type: string
+                model:
+                  type: string
+                portCount:
+                  type: integer
+                resourceState:
+                  type: string
+                role:
+                  type: string
+                router:
+                  type: string
+                serialNumber:
+                  type: string
+                switchId:
+                  type: string
+                switchMode:
+                  type: string
+                switchName:
+                  type: string
+                tempStatus:
+                  type: string
+                ucpSystem:
+                  type: string
+                uptime:
+                  type: string
+                username:
+                  type: string
+                wwn:
+                  type: string
+              required:
+              - Fan1Status
+              - Fan2Status
+              - Power1Status
+              - Power2Status
+              - tempStatus
+              type: object
+            fcSwitchPorts:
+              description: list of ports of this Fibre channel
+              items:
+                description: FcSwitchPortInfo  mirrors the puma response
+                properties:
+                  connectedDevice:
+                    description: Fibre Channel port name server info
+                    properties:
+                      bmcIp:
+                        type: string
+                      controllerPort:
+                        type: string
+                      deviceName:
+                        type: string
+                      deviceType:
+                        type: string
+                      deviceWWN:
+                        type: string
+                      hostIp:
+                        type: string
+                      portId:
+                        type: string
+                      portWWN:
+                        type: string
+                      storageSerialNumber:
+                        type: string
+                    type: object
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  name:
+                    description: Fibre Channel port name
+                    type: string
+                  portId:
+                    description: Fibre Channel port ID in decimal format
+                    type: string
+                  protocol:
+                    description: 'Fibre Channel port protocol. Currently supported
+                      values: ■ FC ■ ETH'
+                    type: string
+                  speed:
+                    description: 'Fibre Channel port speed. Currently supported values
+                      and their explanation are as follows: ■ AN = Automatic speed
+                      negotiation is enabled ■ Nx = Negotiated x Gbps; for example
+                      N8 speed means the negotiated speed at 8 Gbps ■ xG = port speed
+                      is set as fixed at x Gbps; for example 8G speed means the speed
+                      is set fixed as 8 Gbps'
+                    type: string
+                  status:
+                    description: "FC port status. Currently supported values and their
+                      explanations are as follows: ■ NO_CARD - No interface card present.
+                      ■ NO_MODULE - No module (GBIC or other) present. ■ MOD_VAL -
+                      Module validation in process. ■ MOD_INV - Module speed mismatch
+                      or incompatible SFP. ■ NO_LIGHT - The module is not receiving
+                      light. This state is not applicable to \t\tCondor 3-based interchassis
+                      link (ICL) ports. ■ NO_SIGDET - No signal is detected on the
+                      port. For Condor 3-based interchassis \t link (ICL) ports, this
+                      state replaces the NO_LIGHT indicator. It indicates that \t
+                      a quad small formfactor pluggable (QSFP) has been installed
+                      but is not connected \t with a cable. ■ NO_SYNC - The module
+                      is receiving light but is out of sync. ■ IN_SYNC - The module
+                      is receiving light and in sync. ■ LASER_FLT - The module is
+                      signaling a laser fault. ■ PORT_FLT - The port is marked faulty.
+                      ■ DIAG_FLT - The port failed diagnostics. ■ LOCK_REF - The port
+                      is locking to the reference signal. ■ TESTING - THe port is
+                      running diagnostics. ■ OFFLINE - A port connection is not established
+                      (for virtual ports only). ■ ONLINE - The port is up and running."
+                    type: string
+                  type:
+                    description: 'Fibre Channel port type. Currently supported values:
+                      ■ N-Port ■ F-Port ■ E-Port ■ EX-Port ■ U-Port'
+                    type: string
+                  wwn:
+                    description: Fibre Channel port WWN
+                    type: string
+                required:
+                - name
+                type: object
+              type: array
+            fcSwitchZones:
+              description: list of zones attached to this fibre channel
+              items:
+                description: FcSwitchZoneInfo  mirrors the puma response
+                properties:
+                  config:
+                    type: string
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  members:
+                    items:
+                      type: string
+                    type: array
+                  name:
+                    type: string
+                  resourceId:
+                    type: string
+                  status:
+                    description: ObjectID  string   `json:"objectId,omitempty"`
+                    type: string
+                required:
+                - config
+                - name
+                - resourceId
+                type: object
+              type: array
+            fcZoneAliases:
+              description: list of zone aliases of this fibre channel
+              items:
+                description: FcZoneAlias list of aliases created for this FC Zone
+                properties:
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  members:
+                    description: 'Array of members belonging to this Fibre Channel
+                      zone alias. Members can be in these formats: 1. Switch domain
+                      and port index number pair (example: "1,2") 2. Node or port
+                      WWN'
+                    items:
+                      type: string
+                    type: array
+                  name:
+                    description: Fibre Channel zone alias name
+                    type: string
+                  switchId:
+                    description: Switch ID to which this Fibre Channel zone alias
+                      belongs
+                    type: string
+                required:
+                - name
+                - switchId
+                type: object
+              type: array
+            fcZoneConfigs:
+              description: list of zone configs
+              items:
+                description: 'EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
+                  NOTE: json tags are required.  Any new fields you add must have
+                  json tags for the fields to be serialized. FcZoneCfg fc switch zone
+                  config data'
+                properties:
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  members:
+                    items:
+                      type: string
+                    type: array
+                  name:
+                    type: string
+                  switchId:
+                    type: string
+                  type:
+                    type: string
+                required:
+                - members
+                - name
+                - switchId
+                - type
+                type: object
+              type: array
+            grid:
+              description: Global Resource ID
+              type: string
+            healthStatus:
+              description: HealthStatus is HEALTHY or UNHEALTHY
+              type: string
+            lastUpdate:
+              type: string
+            portCount:
+              description: port count
+              type: integer
+            result:
+              description: result status of custom resource
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            switchState:
+              description: switchState is optional, default=Enable
+              type: string
+            sysLogConfigs:
+              description: list of syslog configs
+              items:
+                description: SyslogConfig .
+                properties:
+                  isAuditLog:
+                    type: boolean
+                  remoteIp:
+                    type: string
+                  remotePort:
+                    type: integer
+                  rotateCount:
+                    type: integer
+                  size:
+                    type: integer
+                  syslogd:
+                    type: integer
+                  type:
+                    type: string
+                required:
+                - isAuditLog
+                - remoteIp
+                - remotePort
+                - rotateCount
+                - size
+                - syslogd
+                - type
+                type: object
+              type: array
+            ucpSystem:
+              description: UCP system name this resource is part of if not nil
+              type: string
+            usedPorts:
+              description: used ports count
+              type: integer
+            zoneAliasCount:
+              description: zone alias count
+              type: integer
+            zoneConfigCount:
+              description: zone config count
+              type: integer
+            zoneCount:
+              description: zone count
+              type: integer
+          required:
+          - healthStatus
+          - portCount
+          - sysLogConfigs
+          - usedPorts
+          - zoneAliasCount
+          - zoneConfigCount
+          - zoneCount
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

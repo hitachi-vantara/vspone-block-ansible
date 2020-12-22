@@ -1,0 +1,24 @@
+# permissions for end users to edit restorenetworkswitchconfigurations.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: restorenetworkswitchconfiguration-editor-role
+rules:
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - restorenetworkswitchconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - restorenetworkswitchconfigurations/status
+  verbs:
+  - get

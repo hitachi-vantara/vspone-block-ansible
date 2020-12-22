@@ -1,0 +1,7 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ReplaceESXIHost
+metadata:
+  name: example-replace-esxi-host
+spec:
+  oldHostIP: 172.25.11.71
+  newHostIP: 172.25.11.64   

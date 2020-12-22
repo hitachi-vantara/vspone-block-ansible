@@ -1,0 +1,13 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: Lun
+metadata:
+  name: lun-free
+spec:
+  ucpSystem: UCP-CI-10444
+  serialNumber: "30078"
+  lunId: -1
+  size: "1GB"
+  poolId: 1
+  name: ""
+  shouldAllowDelete: true
+  timestamp: now

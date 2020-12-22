@@ -1,0 +1,11 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: Lun
+metadata:
+  name: lun1143
+spec:
+  serialNumber: "415056"
+  lunId: 1143
+  size: "10GB"
+  poolId: 6
+  name: ""
+  shouldAllowDelete: false

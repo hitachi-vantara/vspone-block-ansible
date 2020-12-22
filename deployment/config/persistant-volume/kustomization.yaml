@@ -1,0 +1,4 @@
+resources:
+- local-storage.yaml
+- persistent-volume.yaml
+- persistent-volume-claim.yaml

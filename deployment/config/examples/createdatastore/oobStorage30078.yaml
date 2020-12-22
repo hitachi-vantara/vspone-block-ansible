@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: storage-secret-30078-1
+type: Opaque
+data:
+  username: bXNfdm13YXJl
+  password: SGl0YWNoaTE=
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: StorageSystem
+metadata:
+  name: example-storage-1
+spec:
+  serialNumber: "30078"
+  managementIP: 172.25.47.120
+  credentialsName: storage-secret-30078-1
+  outOfBand: true
+  timestamp: now
+

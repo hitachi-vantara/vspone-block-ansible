@@ -1,0 +1,14 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: UcpSystem
+metadata:
+  name: example-ucpsystem2
+spec:
+  name: testing-ucp2
+  serialNumber: UCP-CI-10232
+  gatewayAddress: "172.25.20.35"
+  model: UCP CI
+  region: EMEA
+  zone: NA
+  type: NA
+  timestamp: now1
+

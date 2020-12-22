@@ -1,0 +1,258 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: infrastructuresparepools.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.gatewayServerIP
+    description: Gateway Server IP
+    name: GatewayServer
+    type: string
+  - JSONPath: .status.storageDevicesCount
+    description: Storage Devices count
+    name: StorageDevicesCount
+    type: integer
+  - JSONPath: .status.serversCount
+    description: Server count
+    name: ServersCount
+    type: integer
+  - JSONPath: .status.fcSwitchesCount
+    description: Fc Switches count
+    name: FcSwitchesCount
+    type: integer
+  - JSONPath: .status.ethernetSwitchesCount
+    description: Ethernet Switches count
+    name: EthernetSwitchesCount
+    type: integer
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: InfrastructureSparePool
+    listKind: InfrastructureSparePoolList
+    plural: infrastructuresparepools
+    shortNames:
+    - isp
+    - infra
+    singular: infrastructuresparepool
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: InfrastructureSparePool is the Schema for the infrastructuresparepools
+        API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: InfrastructureSparePoolSpec defines the desired state of InfrastructureSparePool
+          properties:
+            gatewayServer:
+              type: string
+            timestamp:
+              type: string
+          required:
+          - gatewayServer
+          type: object
+        status:
+          description: InfrastructureSparePoolStatus defines the observed state of
+            InfrastructureSparePool
+          properties:
+            ethernetSwitches:
+              items:
+                description: EthernetSwitchTrim short description on ethenet switch
+                  device
+                properties:
+                  crName:
+                    type: string
+                  firmware:
+                    type: string
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  managementIP:
+                    description: Ethernet switch management IP address
+                    type: string
+                  model:
+                    description: Ethernet switch model
+                    type: string
+                  name:
+                    description: Ethernet switch name
+                    type: string
+                  serialNumber:
+                    description: customer resource name
+                    type: string
+                  status:
+                    description: Status
+                    type: string
+                  ucpSystem:
+                    description: UcpSystem UCP system
+                    type: string
+                type: object
+              type: array
+            ethernetSwitchesCount:
+              type: integer
+            fcSwitches:
+              items:
+                properties:
+                  crName:
+                    type: string
+                  firmwareVersion:
+                    type: string
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  managementIP:
+                    description: Ethernet switch management IP address
+                    type: string
+                  model:
+                    type: string
+                  serialNumber:
+                    type: string
+                  status:
+                    type: string
+                type: object
+              type: array
+            fcSwitchesCount:
+              type: integer
+            gatewayServerIP:
+              description: GatewayServer         *GatewayServer       `json:"gatewayServer,omitempty"`
+              type: string
+            result:
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            servers:
+              items:
+                description: ServerTrim is a simplified version of server
+                properties:
+                  biosVersion:
+                    type: string
+                  bmcIpAddress:
+                    type: string
+                  bootOption:
+                    description: Server             ServerInfo          `json:"server,omitempty"`
+                      BMC                BMC                 `json:"bmc,omitempty"`
+                      FRUs               []FRU               `json:"frus,omitempty"`
+                      MemoryModules      []MemoryModule      `json:"memoryModules,omitempty"`
+                      Result             Result              `json:"result,omitempty"`
+                    properties:
+                      legacy:
+                        type: boolean
+                      nextBootOnly:
+                        type: boolean
+                      option:
+                        type: string
+                    required:
+                    - legacy
+                    - nextBootOnly
+                    - option
+                    type: object
+                  crName:
+                    type: string
+                  firmwareVersion:
+                    type: string
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  name:
+                    type: string
+                  serial:
+                    type: string
+                  status:
+                    type: string
+                required:
+                - bmcIpAddress
+                - status
+                type: object
+              type: array
+            serversCount:
+              type: integer
+            storageDevices:
+              items:
+                properties:
+                  controllerIP:
+                    type: string
+                  crName:
+                    type: string
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  microcodeVersion:
+                    type: string
+                  model:
+                    type: string
+                  serialNumber:
+                    type: string
+                  status:
+                    type: string
+                  svpIP:
+                    type: string
+                  ucpSystems:
+                    items:
+                      type: string
+                    type: array
+                required:
+                - controllerIP
+                - serialNumber
+                - svpIP
+                type: object
+              type: array
+            storageDevicesCount:
+              type: integer
+          required:
+          - ethernetSwitchesCount
+          - fcSwitchesCount
+          - serversCount
+          - storageDevicesCount
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

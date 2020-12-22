@@ -1,0 +1,8 @@
+
+apiVersion: ucp.hitachivantara.com/v1
+kind: LinkedVCenterUCPSystemFact
+metadata:
+  name: linked-vcenter-ucpsystem-fact1
+spec:
+  vCenter: 172.25.20.26
+  timestamp: now1

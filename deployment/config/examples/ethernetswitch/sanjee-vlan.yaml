@@ -1,0 +1,9 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: VLan
+metadata:
+  name: example-vlan
+spec:
+  # Add fields here
+  ethernetSwitchIP: 172.25.66.23
+  vlanId: 1225
+  name: "vlan1225"

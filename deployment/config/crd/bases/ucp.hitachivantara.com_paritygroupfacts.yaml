@@ -1,0 +1,256 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: paritygroupfacts.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.serialNumber
+    description: StorageSystem serial number
+    name: SerialNum
+    type: string
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: ParityGroupFact
+    listKind: ParityGroupFactList
+    plural: paritygroupfacts
+    shortNames:
+    - pgf
+    singular: paritygroupfact
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: ParityGroupFact is the Schema for the paritygroupfacts API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ParityGroupFactSpec defines the desired state of ParityGroupFact
+          properties:
+            serialNumber:
+              type: string
+            timestamp:
+              type: string
+            ucpSystem:
+              description: UcpSystem - the preferred UcpSystem
+              type: string
+          required:
+          - serialNumber
+          - ucpSystem
+          type: object
+        status:
+          description: ParityGroupFactStatus defines the observed state of ParityGroupFact
+          properties:
+            health:
+              type: string
+            parityGroups:
+              items:
+                description: ParityGroupInfo --
+                properties:
+                  CLPRId:
+                    description: Cache logical partition ID
+                    type: integer
+                  actualDrives:
+                    description: Actual Drives used
+                    items:
+                      properties:
+                        CDEV/Tray:
+                          type: integer
+                        CLPRId:
+                          type: integer
+                        RDEV/HDU:
+                          type: integer
+                        arrayGroupId:
+                          type: integer
+                        arrayParityGroup:
+                          type: string
+                        arrayRAIDGroupId:
+                          type: integer
+                        arraySimpleParityGroup:
+                          type: string
+                        arraySubGroupId:
+                          type: integer
+                        capacity:
+                          type: integer
+                        capacityInUnit:
+                          type: string
+                        data:
+                          type: boolean
+                        grid:
+                          description: Global Resource ID
+                          type: string
+                        mounted:
+                          type: boolean
+                        poolArrayGroup:
+                          type: boolean
+                        product:
+                          type: string
+                        revision:
+                          type: string
+                        serialNo:
+                          type: string
+                        spare:
+                          type: boolean
+                        speed:
+                          type: integer
+                        status:
+                          type: string
+                        type:
+                          type: string
+                        vendor:
+                          type: string
+                      required:
+                      - CDEV/Tray
+                      - CLPRId
+                      - RDEV/HDU
+                      - arrayGroupId
+                      - arrayParityGroup
+                      - arrayRAIDGroupId
+                      - arraySimpleParityGroup
+                      - arraySubGroupId
+                      - capacity
+                      - data
+                      - mounted
+                      - poolArrayGroup
+                      - product
+                      - revision
+                      - serialNo
+                      - spare
+                      - speed
+                      - status
+                      - type
+                      - vendor
+                      type: object
+                    type: array
+                  copybackMode:
+                    description: Copy-back mode is required for this drive group.
+                      This mode does not apply to external drive groups; it is only
+                      applicable with SVP IP for VSP Gx00 models and VSP Fx00 models.
+                      Does not have copyback/ encryption for OUTOF- BAND mode
+                    type: boolean
+                  driveType:
+                    description: The type of the physical drive where the parity group
+                      is created. The drive type can be one of UNKNOWN, SAS, SATA,
+                      SSD, FMD, FMC, NL_SAS, SAS_SED, SAS_SFF, or SSD_SFF. This is
+                      only applicable for a parity group storage pool resource type.
+                    type: string
+                  freeCapacity:
+                    format: int64
+                    type: integer
+                  freeCapacityInUnit:
+                    type: string
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  isAcceleratedCompression:
+                    description: Indicates whether the accelerated compression setting
+                      is enabled or not in the drive group
+                    type: boolean
+                  isPoolArrayGroup:
+                    description: Indicates this drive group is a pool array group
+                    type: boolean
+                  ldevHexIds:
+                    description: A list of LDEV IDs of volumes constituting the parity
+                      group.
+                    items:
+                      type: string
+                    type: array
+                  ldevIds:
+                    description: A list of LDEV IDs of volumes constituting the parity
+                      group.
+                    items:
+                      type: integer
+                    type: array
+                  parityGroupId:
+                    type: string
+                  raidLevel:
+                    description: 'Drive group RAID level. Possible values: ■ RAID0
+                      ■ RAID1 ■ RAID5 ■ RAID6 ■ RAID1+0'
+                    type: string
+                  resourceGroupId:
+                    type: integer
+                  status:
+                    description: The status of the parity group.
+                    type: string
+                  totalCapacity:
+                    format: int64
+                    type: integer
+                  totalCapacityInUnit:
+                    type: string
+                required:
+                - CLPRId
+                - copybackMode
+                - driveType
+                - freeCapacity
+                - freeCapacityInUnit
+                - isAcceleratedCompression
+                - isPoolArrayGroup
+                - parityGroupId
+                - raidLevel
+                - resourceGroupId
+                - status
+                - totalCapacity
+                - totalCapacityInUnit
+                type: object
+              type: array
+            parityGroupsCount:
+              type: integer
+            result:
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+          required:
+          - parityGroupsCount
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

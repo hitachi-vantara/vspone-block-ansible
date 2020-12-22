@@ -1,0 +1,351 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: ethernetswitchfacts.ucp.hitachivantara.com
+spec:
+  group: ucp.hitachivantara.com
+  names:
+    kind: EthernetSwitchFact
+    listKind: EthernetSwitchFactList
+    plural: ethernetswitchfacts
+    singular: ethernetswitchfact
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: EthernetSwitchFact is the Schema for the ethernetswitchfacts API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: EthernetSwitchFactSpec defines the desired state of EthernetSwitchFact
+          properties:
+            managementIp:
+              type: string
+            timestamp:
+              type: string
+            ucpSystem:
+              description: UcpSystem - the preferred UcpSystem
+              type: string
+          required:
+          - managementIp
+          type: object
+        status:
+          description: EthernetSwitchFactStatus defines the observed state of EthernetSwitchFact
+          properties:
+            ID:
+              description: unique ID this ethernet switch
+              type: string
+            configuration:
+              description: list of Ethernet Switch Configurations
+              items:
+                description: NetworkSwitchConfiguration backup network configuration
+                  input values
+                properties:
+                  fileName:
+                    description: File name to save the switch configurations to a
+                      local flash drive or remote SCP/SFTP/TFTP server. When the proto
+                      parameter is not specified, the file will be saved to the local
+                      flash drive; the filePath, user, password, and host parameters
+                      will be ignored if specified. Saving to a local flash drive
+                      is not supported on the Brocade ICX switch; use the TFTP protocol
+                      instead.
+                    type: string
+                  fileSize:
+                    description: File Size
+                    type: integer
+                  fileTimeStamp:
+                    description: Time stamp when file was created
+                    type: string
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  host:
+                    description: SCP Server IP where configuration is stored
+                    type: string
+                type: object
+              type: array
+            details:
+              description: Ethernet switch detail
+              properties:
+                10GBPorts:
+                  description: Number of 10 GB ports
+                  type: integer
+                25GBPorts:
+                  description: Number of 25 GB ports
+                  type: integer
+                40GBPorts:
+                  description: Number of 40 GB ports
+                  type: integer
+                100GBPorts:
+                  description: Number of 100 GB ports
+                  type: integer
+                currentTime:
+                  description: Ethernet switch current time in format HH:MM::SS
+                  type: string
+                ethernetSwitchId:
+                  description: Ethernet switch ID
+                  type: string
+                firmware:
+                  description: Ethernet switch firmware version
+                  type: string
+                grid:
+                  description: Global Resource ID
+                  type: string
+                hwRev:
+                  description: Ethernet switch hardware version
+                  type: string
+                isJumboFrameCapable:
+                  description: Ethernet switch jumbo frame capable flag
+                  type: boolean
+                macAddresses:
+                  description: Ethernet switch (system burned-in) MAC address(es)
+                  items:
+                    type: string
+                  type: array
+                mgmtIP:
+                  description: Ethernet switch management IP address
+                  type: string
+                mgmtPortStatus:
+                  description: 'Ethernet switch management port status. Currently
+                    supported values: ■ CONNECTED ■ UP ■ DOWN'
+                  type: string
+                mgmtPortStatusDescription:
+                  description: Ethernet switch management port status description
+                    if the port status is not UP nor CONNECTED.
+                  type: string
+                model:
+                  description: Ethernet switch model
+                  type: string
+                name:
+                  description: Ethernet switch name
+                  type: string
+                os:
+                  description: Ethernet switch operating system information, if available
+                  type: string
+                portNum:
+                  description: Ethernet switch part number
+                  type: string
+                serialNum:
+                  description: Ethernet switch serial number
+                  type: string
+                status:
+                  description: 'Ethernet switch status. Currently supported values:
+                    ■ UP ■ DOWN ■ UNKNOWN'
+                  type: string
+                timezone:
+                  description: Ethernet switch current time zone.  The format of the
+                    time zone is determined by the vendor of the switch.
+                  type: string
+                uptime:
+                  description: Ethernet switch uptime in format <DAY> days, <HOURS>
+                    hours, <MINUTES> minutes, <SECONDS> seconds
+                  type: string
+              type: object
+            latestRestoreConfigFile:
+              description: LatestSaveConfigFile is used for infrastructure-operator
+                to ensure certain operations run once
+              type: string
+            latestSaveConfigFile:
+              description: LatestSaveConfigFile is used for infrastructure-operator
+                to ensure certain operations run once
+              type: string
+            macAddresses:
+              description: list of Ethernet MAC
+              items:
+                description: EthernetMAC The Ethernet switch resource enables you
+                  to obtain general information about the Ethernet switch.
+                properties:
+                  action:
+                    description: Ethernet MAC action
+                    type: string
+                  macAddress:
+                    description: Ethernet MAC address
+                    type: string
+                  port:
+                    description: Ethernet port channel
+                    type: string
+                  string:
+                    description: GRID global resource ID
+                    type: string
+                  type:
+                    description: Ethernet MAC address type
+                    type: string
+                  vlanId:
+                    description: Ethernet MAC VLAN ID
+                    type: integer
+                type: object
+              type: array
+            managementIP:
+              description: Management IP
+              type: string
+            ports:
+              description: list of Ethernet ports
+              items:
+                description: EthernetPort port information
+                properties:
+                  description:
+                    description: Ethernet port description.
+                    type: string
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  isOnline:
+                    description: Ethernet port flag to indicate its online status
+                    type: boolean
+                  macAddress:
+                    description: Ethernet port MAC address.
+                    type: string
+                  mtu:
+                    description: Ethernet port MTU.  -1 indicates that the MTU number
+                      has not been set.
+                    type: integer
+                  portId:
+                    description: Ethernet port ID.
+                    type: string
+                  speed:
+                    description: 'Ethernet port advertised speed. Unit: ■ G: Gb/s
+                      ■ M: Mb/s'
+                    type: string
+                  state:
+                    description: 'Ethernet port state. Currently supported values:
+                      ■ TAG ■ UNTAG ■ UNKNOWN'
+                    type: string
+                  status:
+                    description: 'Ethernet port status. Currently supported values:
+                      ■ DISABLED ■ CONNECTED ■ NOT_CONNECT ■ DOWN ■ UP ■ UNKNOWN'
+                    type: string
+                  tag:
+                    description: Ethernet port tag.  This is just a string description
+                      of the tag state.
+                    type: string
+                  type:
+                    description: Ethernet port type.  The port type is a vendor-specific
+                      attribute.
+                    type: string
+                type: object
+              type: array
+            result:
+              description: result
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            sysLogConfigs:
+              description: list of syslog configs
+              items:
+                description: SyslogConfig .
+                properties:
+                  isAuditLog:
+                    type: boolean
+                  remoteIp:
+                    type: string
+                  remotePort:
+                    type: integer
+                  rotateCount:
+                    type: integer
+                  size:
+                    type: integer
+                  syslogd:
+                    type: integer
+                  type:
+                    type: string
+                required:
+                - isAuditLog
+                - remoteIp
+                - remotePort
+                - rotateCount
+                - size
+                - syslogd
+                - type
+                type: object
+              type: array
+            ucpSystem:
+              description: UCP system name this ethernet switch is part of if not
+                nil
+              type: string
+            vlans:
+              description: list of Ethernet swith vlans
+              items:
+                description: VLanDevice .
+                properties:
+                  grid:
+                    description: Global Resource ID
+                    type: string
+                  isNative:
+                    description: IsNative .
+                    type: boolean
+                  name:
+                    description: Name .
+                    type: string
+                  portChannels:
+                    description: ObjectID . ObjectID string `json:"objectId,omitempty"`
+                      PortChannels .
+                    items:
+                      type: string
+                    type: array
+                  state:
+                    description: State .
+                    type: string
+                  tagPorts:
+                    description: TarPorts .
+                    items:
+                      type: string
+                    type: array
+                  type:
+                    description: Type .
+                    type: string
+                  untagPorts:
+                    description: UntagPorts .
+                    items:
+                      type: string
+                    type: array
+                  vlanId:
+                    description: VlanID .
+                    type: integer
+                type: object
+              type: array
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

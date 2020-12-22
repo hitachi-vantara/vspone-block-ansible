@@ -1,0 +1,12 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: HostGroup
+metadata:
+  name: hg-987
+spec:
+  serialNumber: "415056"
+  hostMode: "STANDARD"
+  hostModeOptions: []
+  name: "newname987"
+  port: "CL1-A"
+  luns: []
+  wwns: []

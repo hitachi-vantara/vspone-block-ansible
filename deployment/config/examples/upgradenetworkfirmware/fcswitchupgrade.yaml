@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fcswitch-secret
+type: Opaque
+data:
+  username: dGVzdHVzZXI= 
+  password: dGVzdHVzZXI= 
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: UpgradeNetworkFirmware
+metadata:
+  name: upgradenetworkfirmware-sample
+spec:
+  ucpSystem: agamboa-ucpsystem
+  networkDeviceIPAddresses: ["172.25.63.34"]
+  firmwareBundle: "UCPAdvisorNetworkFirmwareBundle-v3.8"
+  timestampe: now5

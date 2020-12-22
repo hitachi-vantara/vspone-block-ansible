@@ -1,0 +1,10 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ESXiDatastore
+metadata:
+  name: example-esxidatastore
+spec:
+  name: demo-esxidatastore
+  capacityInGB: 10
+  ucpSystem: example-ucpsystem-vcenter
+  storageSerialNumber: "410117"
+  esxiHosts: ["172.25.66.201"]

@@ -1,0 +1,22 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: UcpSystem
+metadata:
+  name: example-ucpsystem
+spec:
+  name: agamboa-ucpsystem
+  serialNumber: UCP-CI-10231
+  gatewayAddress: "172.25.58.50"
+  model: UCP CI
+  region: EMEA
+  zone: NA
+  type: NA
+  # fcSwitches: [example-fcswitch-66-33,example-fcswitch-66-35,example-fcswitch-66-36]
+  fcSwitches: [example-fcswitch-63-34, example-fcswitch-63-33]
+  # fcSwitches: [example-fcswitch-63-33, example-fcswitch-63-34]
+  # ethernetSwitches: [ethernetswitch-66-22, ethernetswitch-66-23, ethernetswitch-66-24, ethernetswitch-66-25]
+  # ethernetSwitches: [ethernetswitch-66-23, ethernetswitch-66-24]
+  ethernetSwitches: []
+  # storageSystems: []
+  # servers: [example-server-11-11, example-server-66-106]
+  # servers: [example-server-66-106]
+  timestamp: now

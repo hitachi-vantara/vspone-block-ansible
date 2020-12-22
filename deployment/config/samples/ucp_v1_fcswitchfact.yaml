@@ -1,0 +1,7 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: FcSwitchFact
+metadata:
+  name: fcswitchfact-sample
+spec:
+  # Add fields here
+  foo: bar

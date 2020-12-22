@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fcswitch-secret-66-35
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: UGFzc3cwcmQh
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: FcSwitch
+metadata:
+  name: example-fcswitch-66-35
+spec:
+  managementIP: 172.25.66.35
+  credentialsName: fcswitch-secret-66-35
+  syslogServerIps: [172.25.255.255]
+  timestamp: now2

@@ -1,0 +1,20 @@
+# permissions for end users to view vlanpolicies.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vlanpolicy-viewer-role
+rules:
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - vlanpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - vlanpolicies/status
+  verbs:
+  - get

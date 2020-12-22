@@ -1,0 +1,8 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ParityGroupFact
+metadata:
+  name: example-paritygroupfact
+spec:
+  serialNumber: "415056"
+  timeStamp: "12:00"
+

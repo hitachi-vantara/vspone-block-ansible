@@ -1,0 +1,10 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: Lun
+metadata:
+  name: lun-6000
+spec:
+  serialNumber: "415056"
+  lunId: 6000
+  size: "5GB"
+  poolId: 35
+  name: "newname-lun-6000"

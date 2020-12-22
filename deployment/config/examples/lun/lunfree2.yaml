@@ -1,0 +1,12 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: Lun 
+metadata:
+  name: lun-free2
+spec:
+  serialNumber: "415056"
+  lunId: -1
+  size: "100GB"
+  poolId: 35
+  name: "suresh-laptop"
+
+  

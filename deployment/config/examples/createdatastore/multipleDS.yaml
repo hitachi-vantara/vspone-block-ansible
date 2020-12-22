@@ -1,0 +1,37 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ProvisionMultipleESXiDatastore
+metadata:
+  name: multiple-esxidatastore
+spec:
+  ucpSystem: testing-ucp
+  vCenter: 172.25.20.34
+  storageSerialNumber: "30078"
+  name: newZ
+  capacityInGB: 5
+
+  esxiHosts:
+    # - host: "172.25.11.146"
+    #   serverHostGroups:
+    #     - name: "esxi-11-146"
+    #       port: "CL2-A"
+    - host: "172.25.11.71"
+      serverHostGroups:
+        - name: "bmc-11-60"
+          port: "CL2-A"
+
+  poolId: 10
+  multipleDatastores:
+    numberOfDatastore: 3
+    initialDatastoreNumber: 4
+  # hostLunIds:
+  #   - 81
+  #   - 82
+  #   - 83
+  #   - 84
+  #   - 85
+  # hostLunIdRange:
+  #   start:  81
+  #   end: 95
+  shouldAllowDelete: true
+  timestamp: now1
+

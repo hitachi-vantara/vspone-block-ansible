@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: switch-secret-11-52
+type: Opaque
+data:
+  username: dGVzdHVzZXI=
+  password: dGVzdHVzZXI=
+--- 
+
+apiVersion: ucp.hitachivantara.com/v1
+kind: RestoreNetworkSwitchConfiguration
+metadata:
+  name: example-restorenetworkswitchconfiguration
+spec:
+  type: "FC"
+  managementIP: 172.25.11.52
+  filePath: "/fcconf/"
+  fileName: "172.25.63.34-20200924-050234"
+  host: 172.25.239.247
+  credentialsName: switch-secret-11-52

@@ -1,0 +1,10 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: Lun
+metadata:
+  name: paritygroup-lun-6002
+spec:
+  serialNumber: "415056"
+  lunId: 6002
+  size: "1GB"
+  parityGroupId: "1-1"
+  name: ""

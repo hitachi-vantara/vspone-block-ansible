@@ -1,0 +1,209 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: esxidatastorefacts.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.vCenter
+    description: Vcenter
+    name: VCenter
+    type: string
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: ESXiDatastoreFact
+    listKind: ESXiDatastoreFactList
+    plural: esxidatastorefacts
+    shortNames:
+    - esxidsf
+    - edf
+    - dsf
+    - edsf
+    singular: esxidatastorefact
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: ESXiDatastoreFact is the Schema for the esxidatastorefacts API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ESXiDatastoreFactSpec defines the desired state of ESXiDatastoreFact
+          properties:
+            timestamp:
+              type: string
+            ucpSystem:
+              minLength: 5
+              pattern: ^(UCP-CI|UCP-HC|UCP-RS|UCP-2000|UCP-4000|Logical-UCP)-\d{5}$
+              type: string
+            vCenter:
+              description: StorageSystems and ESXiHosts must have already been onboarded
+                to UcpSystem of VCenter
+              type: string
+          required:
+          - ucpSystem
+          - vCenter
+          type: object
+        status:
+          description: ESXiDatastoreFactStatus defines the observed state of ESXiDatastoreFact
+          properties:
+            esxiDatastoreCount:
+              type: integer
+            esxiDatastores:
+              items:
+                description: ESXiDatastoreInfo defines ESXi datastore data
+                properties:
+                  accessible:
+                    type: boolean
+                  allocatedCapacityInGB:
+                    format: int64
+                    type: integer
+                  cluster:
+                    type: string
+                  datacenter:
+                    type: string
+                  esxiHostDSInfo:
+                    items:
+                      properties:
+                        cluster:
+                          type: string
+                        datacenter:
+                          type: string
+                        host:
+                          type: string
+                        mounted:
+                          type: boolean
+                      required:
+                      - cluster
+                      - datacenter
+                      - host
+                      - mounted
+                      type: object
+                    type: array
+                  esxiHosts:
+                    items:
+                      type: string
+                    type: array
+                  freeCapacityInGB:
+                    format: int64
+                    type: integer
+                  grid:
+                    type: string
+                  logicalUnits:
+                    items:
+                      properties:
+                        lunId:
+                          type: integer
+                        poolId:
+                          type: integer
+                        resourceGroupId:
+                          type: integer
+                      required:
+                      - lunId
+                      - poolId
+                      - resourceGroupId
+                      type: object
+                    type: array
+                  luns:
+                    items:
+                      type: integer
+                    type: array
+                  name:
+                    type: string
+                  status:
+                    type: string
+                  storageSerialNum:
+                    type: string
+                  totalCapacityInGB:
+                    format: int64
+                    type: integer
+                  type:
+                    description: Type should be enum of VMFS, NFS, vSAN, Virtual Volume
+                    type: string
+                  vCenterIP:
+                    type: string
+                required:
+                - accessible
+                - allocatedCapacityInGB
+                - cluster
+                - datacenter
+                - esxiHostDSInfo
+                - esxiHosts
+                - freeCapacityInGB
+                - grid
+                - luns
+                - name
+                - status
+                - storageSerialNum
+                - totalCapacityInGB
+                - type
+                - vCenterIP
+                type: object
+              type: array
+            lastUpdate:
+              type: string
+            result:
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            ucpSystem:
+              type: string
+            vCenter:
+              type: string
+          required:
+          - esxiDatastores
+          - ucpSystem
+          - vCenter
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

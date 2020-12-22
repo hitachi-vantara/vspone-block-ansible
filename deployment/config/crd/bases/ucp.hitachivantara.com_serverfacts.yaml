@@ -1,0 +1,692 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: serverfacts.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.bmcIpAddress
+    description: server bmc Ip Address
+    name: BMC IP Address
+    type: string
+  - JSONPath: .spec.hostIpAddress
+    description: server esxi Ip Address
+    name: ESXi IP Address
+    type: string
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: ServerFact
+    listKind: ServerFactList
+    plural: serverfacts
+    singular: serverfact
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: ServerFact is the Schema for the serverfacts API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ServerFactSpec defines the desired state of ServerFact
+          properties:
+            bmcIpAddress:
+              description: bmcIPAddress of the server
+              type: string
+            timestamp:
+              type: string
+            ucpSystem:
+              description: UcpSystem
+              pattern: ^(UCP-CI|UCP-HC|UCP-RS|UCP-2000|UCP-4000|Logical-UCP)-\d{5}$
+              type: string
+          required:
+          - bmcIpAddress
+          - ucpSystem
+          type: object
+        status:
+          description: ServerFactStatus defines the observed state of ServerFact
+          properties:
+            HBAPorts:
+              items:
+                description: HBAPort .
+                properties:
+                  bladeId:
+                    type: integer
+                  name:
+                    type: string
+                  port:
+                    type: integer
+                  slot:
+                    type: integer
+                  wwn:
+                    type: string
+                  wwpn:
+                    type: string
+                required:
+                - bladeId
+                - name
+                - port
+                - slot
+                - wwn
+                - wwpn
+                type: object
+              type: array
+            IsDcpmmPresent:
+              type: boolean
+            IsRAIDPhysicalDrivePresent:
+              type: boolean
+            IsSystemDrivePresent:
+              type: boolean
+            RaidPhysicalDrives:
+              items:
+                description: RaidPhysicalDrive .
+                properties:
+                  RAIDcontroller:
+                    type: string
+                  RAIDcontrollerID:
+                    type: integer
+                  capacity:
+                    type: integer
+                  configurationState:
+                    type: string
+                  deviceID:
+                    type: integer
+                  isPresent:
+                    type: boolean
+                  model:
+                    type: string
+                  serial:
+                    type: string
+                  slot:
+                    type: integer
+                  speed:
+                    type: string
+                  type:
+                    type: string
+                required:
+                - RAIDcontroller
+                - RAIDcontrollerID
+                - capacity
+                - configurationState
+                - deviceID
+                - isPresent
+                - model
+                - serial
+                - slot
+                - speed
+                - type
+                type: object
+              type: array
+            TotalMemoryInMB:
+              type: integer
+            adSetting:
+              properties:
+                domainControllerServers:
+                  items:
+                    type: string
+                  type: array
+                roleGroups:
+                  items:
+                    properties:
+                      groupDomain:
+                        type: string
+                      groupName:
+                        type: string
+                      groupPrivilege:
+                        type: string
+                      isKVMAccess:
+                        type: boolean
+                      isVMediaAccess:
+                        type: boolean
+                      roleGroup:
+                        type: integer
+                    required:
+                    - groupDomain
+                    - groupName
+                    - groupPrivilege
+                    - isKVMAccess
+                    - isVMediaAccess
+                    - roleGroup
+                    type: object
+                  type: array
+                userDomainName:
+                  type: string
+                userName:
+                  type: string
+              type: object
+            bmc:
+              description: BMC contains the information necessary to communicate with
+              properties:
+                LANChannel:
+                  description: Local Area Network Channel
+                  type: string
+                MAC:
+                  description: MAC Address
+                  type: string
+                channelAuthType:
+                  description: Channel authenication type
+                  type: string
+                chipSet:
+                  description: Chip set
+                  type: string
+                driveType:
+                  description: Driver Type
+                  type: string
+                gateway:
+                  description: IP address of gateway
+                  type: string
+                ipaddressV4:
+                  description: IP address version 4
+                  type: string
+                ipaddressV6:
+                  description: IP address version 6
+                  type: string
+                manufacturer:
+                  description: / Manufacturer
+                  type: string
+                networkMode:
+                  description: Network Mode
+                  type: string
+                selfTestStatus:
+                  description: Self test status
+                  type: string
+                version:
+                  description: version
+                  type: string
+              type: object
+            bootOption:
+              description: BootOption .
+              properties:
+                legacy:
+                  type: boolean
+                nextBootOnly:
+                  type: boolean
+                option:
+                  type: string
+              required:
+              - legacy
+              - nextBootOnly
+              - option
+              type: object
+            bootOrder:
+              description: BootOrder .
+              properties:
+                mode:
+                  type: string
+                order:
+                  items:
+                    type: string
+                  type: array
+              type: object
+            computeStatus:
+              type: boolean
+            cpuSetting:
+              description: CpuSetting .
+              properties:
+                cpuC6State:
+                  type: string
+                isHardwarePrefetchEnabled:
+                  type: boolean
+                isHyperThreadingEnabled:
+                  type: boolean
+                isMemoryRankSparingEnabled:
+                  type: boolean
+                isNUMAEnabled:
+                  type: boolean
+                isTurboModeEnabled:
+                  type: boolean
+                isVTModeEnabled:
+                  type: boolean
+                legacyOpROM:
+                  type: string
+                memorySize:
+                  type: integer
+                memorySpeed:
+                  type: string
+              required:
+              - cpuC6State
+              - isHardwarePrefetchEnabled
+              - isHyperThreadingEnabled
+              - isMemoryRankSparingEnabled
+              - isNUMAEnabled
+              - isTurboModeEnabled
+              - isVTModeEnabled
+              - legacyOpROM
+              - memorySize
+              - memorySpeed
+              type: object
+            driveHealthStatus:
+              type: string
+            esxihost:
+              properties:
+                bootTime:
+                  type: string
+                cpuUsage:
+                  type: string
+                logicalCpu:
+                  type: string
+                manufacturer:
+                  description: Path          string `json:"path"`
+                  type: string
+                memory:
+                  type: string
+                memoryUsage:
+                  type: string
+                name:
+                  type: string
+                os:
+                  type: string
+                processorType:
+                  type: string
+                state:
+                  type: string
+              required:
+              - bootTime
+              - cpuUsage
+              - logicalCpu
+              - manufacturer
+              - memory
+              - memoryUsage
+              - name
+              - os
+              - processorType
+              - state
+              type: object
+            fanHealthStatus:
+              type: string
+            frus:
+              items:
+                description: FRU describe Field Replaceable Units
+                properties:
+                  FRUDeviceDescription:
+                    description: example "Builtin FRU Device"
+                    type: string
+                  boardExtra:
+                    description: example "00"
+                    type: string
+                  boardMfg:
+                    description: example "Quanta Cloud Technology Inc."
+                    type: string
+                  boardMfgDate:
+                    description: example "Thu Aug 10 12:59:00 2017"
+                    type: string
+                  boardPartNumber:
+                    description: example "31S5BMB0000"
+                    type: string
+                  boardProduct:
+                    description: example "S5B-MB (LBG-4)"
+                    type: string
+                  boardSerial:
+                    description: example "AR272400017"
+                    type: string
+                  chassisExtra:
+                    description: example  "---"
+                    type: string
+                  chassisPartNumber:
+                    description: example  "---"
+                    type: string
+                  chassisSerial:
+                    description: example "QTFCR27320006"
+                    type: string
+                  chassisType:
+                    description: example "Rack Mount Chassis"
+                    type: string
+                  fruId:
+                    description: FRU ID example 1
+                    type: integer
+                  productAssetTag:
+                    description: example "---"
+                    type: string
+                  productExtra:
+                    description: example "---"
+                    type: string
+                  productManufacturer:
+                    description: example "Quanta Cloud Technology Inc."
+                    type: string
+                  productName:
+                    description: example "QuantaGrid D52B-1U"
+                    type: string
+                  productPartNumber:
+                    description: example "---"
+                    type: string
+                  productSerial:
+                    description: example "QTFCR27320006"
+                    type: string
+                  productVersion:
+                    description: example "---"
+                    type: string
+                required:
+                - boardMfg
+                type: object
+              type: array
+            grid:
+              description: Global Resource ID
+              type: string
+            jnlpFile:
+              description: JnlpFile .
+              properties:
+                jnlpFile:
+                  type: string
+              required:
+              - jnlpFile
+              type: object
+            jnlpFileTimeStamp:
+              type: string
+            memoryModules:
+              items:
+                description: MemoryModule .
+                properties:
+                  isPresent:
+                    type: boolean
+                  model:
+                    type: string
+                  size:
+                    type: string
+                  slot:
+                    type: integer
+                  socket:
+                    type: string
+                  speed:
+                    type: string
+                  type:
+                    type: string
+                required:
+                - isPresent
+                - model
+                - size
+                - slot
+                - socket
+                - speed
+                - type
+                type: object
+              type: array
+            network:
+              description: Network .
+              properties:
+                hostName:
+                  description: Hostname of the network
+                  type: string
+                networkInterfaces:
+                  description: all the network interfaces
+                  items:
+                    description: NetworkInterface describes one network interface
+                      on the server.
+                    properties:
+                      ipAddress:
+                        description: The IP address of the device
+                        type: string
+                      physicalAddress:
+                        description: The device MAC addr
+                        pattern: '[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}'
+                        type: string
+                      speed:
+                        description: The speed of the device
+                        type: string
+                      status:
+                        description: The status of the device
+                        type: string
+                      type:
+                        description: type of the network interface
+                        type: string
+                    required:
+                    - physicalAddress
+                    type: object
+                  type: array
+              type: object
+            ntpInfo:
+              description: NtpInfo .
+              properties:
+                primary:
+                  type: string
+                secondary:
+                  type: string
+                timezone:
+                  type: string
+              type: object
+            observedGeneration:
+              description: observedGeneration is used for infrastructure-operator
+                to ensure certain operations run once
+              format: int64
+              type: integer
+            onboardStatus:
+              type: string
+            powerState:
+              type: string
+            result:
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            server:
+              description: ServerInfo .
+              properties:
+                biosVersion:
+                  type: string
+                bladeId:
+                  type: integer
+                bmcIpAddress:
+                  type: string
+                cpldVersion:
+                  type: string
+                cpus:
+                  items:
+                    description: CPU describes one processor on the server.
+                    properties:
+                      cores:
+                        description: Number of cores
+                        type: integer
+                      isPresent:
+                        description: Is this CPU Present
+                        type: boolean
+                      model:
+                        description: the CPU model
+                        type: string
+                      slot:
+                        description: The CPU Slot number
+                        type: integer
+                      speed:
+                        description: The CPU speed
+                        type: string
+                      threads:
+                        description: CPU thread count
+                        type: integer
+                      vendor:
+                        description: The CPU vendor
+                        type: string
+                    required:
+                    - cores
+                    - slot
+                    type: object
+                  type: array
+                firmwareVersion:
+                  type: string
+                gpus:
+                  items:
+                    description: GPU describes one gpu on the server.
+                    properties:
+                      model:
+                        description: GPU Model
+                        type: string
+                      vendor:
+                        description: GPU vendor name
+                        type: string
+                    type: object
+                  type: array
+                grid:
+                  description: Global Resource ID
+                  type: string
+                name:
+                  type: string
+                objectId:
+                  type: string
+                serial:
+                  type: string
+                vendor:
+                  type: string
+              type: object
+            snmpInfoV2:
+              description: SnmpInfoV2 .
+              properties:
+                node:
+                  type: string
+                port:
+                  type: integer
+                readOnlyComm:
+                  type: string
+                readWriteComm:
+                  type: string
+                v1v2Enabled:
+                  type: boolean
+              type: object
+            snmpInfoV3:
+              description: SnmpInfo .
+              properties:
+                accessEnabled:
+                  description: V3
+                  type: boolean
+                accessLevel:
+                  type: string
+                authenProtocol:
+                  type: string
+                privacyProtocol:
+                  type: string
+              required:
+              - accessEnabled
+              - accessLevel
+              - authenProtocol
+              - privacyProtocol
+              type: object
+            snmpTrap:
+              description: SnmpTrapInfo .
+              properties:
+                comm:
+                  type: string
+                trapIps:
+                  items:
+                    type: string
+                  type: array
+                trapVersion:
+                  type: string
+              type: object
+            syslogConfig:
+              description: SyslogConfig .
+              properties:
+                isAuditLog:
+                  type: boolean
+                remoteIp:
+                  type: string
+                remotePort:
+                  type: integer
+                rotateCount:
+                  type: integer
+                size:
+                  type: integer
+                syslogd:
+                  type: integer
+                type:
+                  type: string
+              required:
+              - isAuditLog
+              - remoteIp
+              - remotePort
+              - rotateCount
+              - size
+              - syslogd
+              - type
+              type: object
+            systemDrives:
+              items:
+                description: SystemDrive .
+                properties:
+                  capacity:
+                    type: integer
+                  id:
+                    type: integer
+                  isPresent:
+                    type: boolean
+                  model:
+                    type: string
+                  protocol:
+                    type: string
+                  serial:
+                    type: string
+                  state:
+                    type: string
+                  status:
+                    type: string
+                  type:
+                    type: string
+                required:
+                - capacity
+                - id
+                - isPresent
+                - model
+                - protocol
+                - serial
+                - state
+                - status
+                - type
+                type: object
+              type: array
+            temperatureHealthStatus:
+              type: string
+            ucpSystem:
+              description: UCP system name this resource is part of if not nil
+              type: string
+            voltageHealthStatus:
+              type: string
+          required:
+          - IsDcpmmPresent
+          - IsRAIDPhysicalDrivePresent
+          - IsSystemDrivePresent
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: server-secret-92-101
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: Y21iOS5hZG1pbg==
+  
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: Server
+metadata:
+  name: example-server-92-101
+spec:
+  bmcIpAddress: 172.25.92.101
+  credentialsName: server-secret-92-101
+  timeStamp: "00:05"

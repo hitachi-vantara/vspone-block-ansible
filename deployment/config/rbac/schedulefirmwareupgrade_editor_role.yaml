@@ -1,0 +1,24 @@
+# permissions for end users to edit schedulefirmwareupgrades.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: schedulefirmwareupgrade-editor-role
+rules:
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - schedulefirmwareupgrades
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - schedulefirmwareupgrades/status
+  verbs:
+  - get

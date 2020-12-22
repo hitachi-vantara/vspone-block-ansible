@@ -1,0 +1,7 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ESXiHostFact
+metadata:
+  name: example-esxihostfact
+spec:
+  vCenter: 172.25.20.34
+  timestamp: now

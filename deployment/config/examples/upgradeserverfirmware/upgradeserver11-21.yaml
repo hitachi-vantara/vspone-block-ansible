@@ -1,0 +1,8 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: UpgradeServerFirmware
+metadata:
+  name: upgradeserverfirmware-11-21
+spec:
+  bmcIPAddresses: [172.25.11.24]
+  firmwareBundle: "UCPAdvisorComputeFirmwareBundle-06012020-v3.8"
+  # timeStamp: "00:00"
