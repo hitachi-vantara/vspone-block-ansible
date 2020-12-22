@@ -1,4 +1,11 @@
-sudo yum remove docker                   docker-client                   docker-client-latest                   docker-common                   docker-latest                   docker-latest-logrotate                   docker-logrotate                   docker-engine
+if [[ "$is_source_subshell" -eq 0 ]]; then
+              echo Please use \"source ansi_next_dpmt_hv.sh\"
+              exit 1
+fi
+
+
+function installDocker(){
+sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
 sudo yum install -y yum-utils
 sudo yum-config-manager     --add-repo     https://download.docker.com/linux/centos/docker-ce.repo
 sudo yum install docker-ce docker-ce-cli containerd.io --skip-broken
@@ -28,10 +35,12 @@ cat > /etc/docker/daemon.json << EOF
 }
 EOF
 systemctl restart docker
+}
 
+
+installDocker
 
 cp -r conf /home/ 
-
 mkdir -p /home/keycloak-db
 chmod 777 -R /home/keycloak-db
 
@@ -39,7 +48,8 @@ git clone https://github.com/Gallore/yaml_cli
 cd yaml_cli
 pip install .
 
-yaml_cli -s spec:externalIPs ["172.25.20.109"]
+ip_address=`ip addr | grep "^ *inet " | grep -v "vi" | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' `
+yaml_cli -s spec:externalIPs [$ip_address]
 
 /k8sdeployments/install-es.sh
 /k8sdeployments/deployer.sh
