@@ -1,8 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: RestoreNetworkSwitchConfiguration
-metadata:
-  name: example-restorenetworkconfiguration
-spec:
-  networkDeviceIPAddress: 10.76.59.34
-  fileName: "10.76.59.34_2020_10_08_06_56_15_before"
-  remoteRestore: true

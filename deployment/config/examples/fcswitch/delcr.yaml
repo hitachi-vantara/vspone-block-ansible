@@ -1,8 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: FcSwitch
-metadata:
-  name: example-fcswitch-63-33
-spec:
-  managementIP: 172.25.63.33
-  credentialsName: fcswitch-secret-63-33
-

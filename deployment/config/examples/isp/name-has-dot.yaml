@@ -1,7 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: InfrastructureSparePool
-metadata:
-  name: isp.with.dot
-spec:
-  gatewayServer: "172.25.20.27"
-  

@@ -1,7 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: StorageHardDriveFact
-metadata:
-  name: example-storageharddrivefact
-spec:
-  storageSerial: "30078"
-  timeStamp: "12:00"

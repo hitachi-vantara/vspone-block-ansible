@@ -1,7 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: ClearZoneConfig
-metadata:
-  name: clearzoneconfig-sample
-spec:
-  fcSwitch: "172.25.63.34"
-  ucpSystem: UCP-CI-10231

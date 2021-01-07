@@ -1,7 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: StoragePortFact
-metadata:
-  name: example-storageportfact
-spec:
-  storageSerial: "415056"
-  timeStamp: "12:00"

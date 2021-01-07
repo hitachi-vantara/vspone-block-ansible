@@ -1,8 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: ZoneConfig
-metadata:
-  name: zoneconfig1
-spec:
-  fcSwitch: "172.25.63.33"
-  name: "zoneconfig1"
-  members:  ["zone-test1","zone-test2","zone-test3"]

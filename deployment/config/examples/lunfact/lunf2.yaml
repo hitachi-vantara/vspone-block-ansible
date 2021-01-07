@@ -1,9 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: LunFact
-metadata:
-  name: lunfact
-spec:
-  ucpSystem: "testing-ucp"
-  serialNumber: "30078"
-  startLunId: 0
-  endLunId: 77

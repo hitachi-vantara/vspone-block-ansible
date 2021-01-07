@@ -1,9 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: FreeLunFact
-metadata:
-  name: example-freelunfact
-spec:
-  serialNumber: "415056"
-  count: 5
-  resourceGroupID : 0
-  ucpSystem: UCP-CI-10231

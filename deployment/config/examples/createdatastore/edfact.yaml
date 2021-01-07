@@ -1,7 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: ESXiDatastoreFact
-metadata:
-  name: example-esxidatastorefact
-spec:
-  ucpSystem: testing-ucp
-  name: example-ucpsystem

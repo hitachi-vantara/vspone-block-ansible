@@ -1,5 +1,0 @@
-resources:
-- storage-san-service.yaml
-- compute-service.yaml
-- baremetal-service.yaml
-- network-service.yaml

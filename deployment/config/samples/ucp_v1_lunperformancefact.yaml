@@ -1,7 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: LunPerformanceFact
-metadata:
-  name: lunperformancefact-sample
-spec:
-  # Add fields here
-  foo: bar

@@ -1,7 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: ConsistentHostGroupLunFact
-metadata:
-  name: consistenthostgrouplunfact-sample
-spec:
-  # Add fields here
-  foo: bar

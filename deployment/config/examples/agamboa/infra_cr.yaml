@@ -1,8 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: InfrastructureSparePool
-metadata:
-  name: good-isp
-spec:
-  # gatewayServer: "172.25.21.38"
-  gatewayServer: "172.25.58.50"
-  timestamp: now
