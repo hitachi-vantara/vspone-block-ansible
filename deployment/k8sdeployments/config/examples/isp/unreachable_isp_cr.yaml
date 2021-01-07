@@ -1,0 +1,6 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: InfrastructureSparePool
+metadata:
+  name: unreachable-isp
+spec:
+  gatewayServer: "172.25.20.999"

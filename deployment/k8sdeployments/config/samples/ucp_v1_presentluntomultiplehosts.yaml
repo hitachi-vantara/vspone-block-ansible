@@ -1,0 +1,9 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: PresentLunToMultipleHosts
+metadata:
+  name: example-presentluntomultiplehosts
+spec:
+  serialNumber: "415056"
+  serverBmcIPs: ["172.25.11.11"]
+  lun: 1490
+  ucpSystem: UCP-CI-10231

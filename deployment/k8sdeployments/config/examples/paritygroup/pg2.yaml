@@ -1,0 +1,19 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ParityGroup
+metadata:
+  name: pg3
+spec:
+  serialNumber: "415056"
+  parityGroupID: "2-5"
+  trayNumbers:
+    - cDev: 7
+      rDev: 22
+    - cDev: 7
+      rDev: 23
+    - cDev: 6
+      rDev: 21
+    - cDev: 6
+      rDev: 23
+  raidLevel: "RAID5"
+  enableAcceleratedCompression: false
+  shouldAllowDelete: false

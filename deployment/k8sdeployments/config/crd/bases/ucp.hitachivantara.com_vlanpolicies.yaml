@@ -1,0 +1,184 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: vlanpolicies.ucp.hitachivantara.com
+spec:
+  group: ucp.hitachivantara.com
+  names:
+    kind: VLANPolicy
+    listKind: VLANPolicyList
+    plural: vlanpolicies
+    singular: vlanpolicy
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: VLANPolicy is the Schema for the vlanpolicy API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: VLANPolicySpec defines the desired state of VLANPolicy
+          properties:
+            name:
+              description: Name of VLanPolicy.
+              minLength: 5
+              type: string
+            serverModels:
+              description: filter server based on server model options are DS120 DS220
+                DS225 DS240
+              items:
+                type: string
+              type: array
+            serverTags:
+              additionalProperties:
+                items:
+                  type: string
+                type: array
+              description: filter server based on server tag
+              type: object
+            shouldPropagateVLAN:
+              description: do you want recommended VLAN , true or false
+              type: boolean
+            switchModels:
+              description: filter switch based on switch model ■ Cisco_3048 ■ Cisco_5548
+                ■ Cisco_9332 ■ Cisco_9372 ■ Cisco_93180 ■ Arista_7050 ■ Arista_7010
+                ■ Brocade_VDX_6740 ■ Brocade_ICX_7450 ■ Brocade_VDX_6746
+              items:
+                type: string
+              type: array
+            switchTags:
+              additionalProperties:
+                items:
+                  type: string
+                type: array
+              description: filter switch based on switch tag
+              type: object
+            type:
+              description: VLan Type trunk access
+              enum:
+              - trunk
+              - access
+              type: string
+            vlanIds:
+              description: VLANIDs  list vlan ids atleast one is expected
+              items:
+                type: integer
+              minItems: 1
+              type: array
+          required:
+          - name
+          - shouldPropagateVLAN
+          - type
+          - vlanIds
+          type: object
+        status:
+          description: VLANPolicyStatus defines the observed state of VLANPolicy
+          properties:
+            result:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: Run "make" to regenerate code after modifying
+                this file result'
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            vlanPolicyInfo:
+              description: VLanPolicyInfo which show spec infomration here
+              properties:
+                name:
+                  description: Name of VLanPolicy.
+                  minLength: 5
+                  type: string
+                serverModels:
+                  description: filter server based on server model options are DS120
+                    DS220 DS225 DS240
+                  items:
+                    type: string
+                  type: array
+                serverTags:
+                  additionalProperties:
+                    items:
+                      type: string
+                    type: array
+                  description: filter server based on server tag
+                  type: object
+                shouldPropagateVLAN:
+                  description: do you want recommended VLAN , true or false
+                  type: boolean
+                switchModels:
+                  description: filter switch based on switch model ■ Cisco_3048 ■
+                    Cisco_5548 ■ Cisco_9332 ■ Cisco_9372 ■ Cisco_93180 ■ Arista_7050
+                    ■ Arista_7010 ■ Brocade_VDX_6740 ■ Brocade_ICX_7450 ■ Brocade_VDX_6746
+                  items:
+                    type: string
+                  type: array
+                switchTags:
+                  additionalProperties:
+                    items:
+                      type: string
+                    type: array
+                  description: filter switch based on switch tag
+                  type: object
+                type:
+                  description: VLan Type trunk access
+                  enum:
+                  - trunk
+                  - access
+                  type: string
+                vlanIds:
+                  description: VLANIDs  list vlan ids atleast one is expected
+                  items:
+                    type: integer
+                  minItems: 1
+                  type: array
+              required:
+              - name
+              - shouldPropagateVLAN
+              - type
+              - vlanIds
+              type: object
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

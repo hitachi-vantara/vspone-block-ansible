@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ethernetswitch-secret-11-52
+type: Opaque
+data:
+  username: YWRtaW4=  
+  password: SGl0YWNoaTE=
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: EthernetSwitch
+metadata:
+  name: ethernetswitch-11-52
+spec:
+  managementIP: 172.25.11.52
+  credentialsName: ethernetswitch-secret-11-52
+  syslogServerIps: [172.25.20.55]
+  timeStamp: now1

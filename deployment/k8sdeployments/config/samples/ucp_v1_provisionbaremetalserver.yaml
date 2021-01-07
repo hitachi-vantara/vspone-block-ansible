@@ -1,0 +1,12 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ProvisionBareMetalServer
+metadata:
+  name: provisionbaremetalserver-example
+spec:
+  ucpSystem: UCP-CI-10231
+  bareMetalOsProvisioningPolicy: baremetalosprovisioningpolicy-1
+  hostIpRange: hostiprange-1
+  servers: ["172.25.11.21"]
+  formateBootLun: false
+  storagePoolId: 19
+  storageSerialNumber: 30078

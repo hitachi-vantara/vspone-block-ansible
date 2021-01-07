@@ -1,0 +1,18 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ScheduleFirmwareUpgrade
+metadata:
+  name: schedulefirmwareupgrade-sample
+spec:
+  # schedule: 
+  schedule: "0 0/8 * 1/1 * ? *"  # every 8 minutes 
+  allowSameVersionUpgrade: true
+  ucpSystem: agamboa-ucpsystem
+  ethernetSwitch:
+    addresses: [172.25.66.23, 172.25.66.24]
+    firmwareBundle: UCPAdvisorNetworkFirmwareBundle-v3.8
+  fcSwitch:
+    addresses: [172.25.66.33]
+    firmwareBundle: UCPAdvisorNetworkFirmwareBundle-v3.8
+  server:
+    addresses: [172.25.66.106]
+    firmwareBundle: UCPAdvisorComputeFirmwareBundle-v3.9

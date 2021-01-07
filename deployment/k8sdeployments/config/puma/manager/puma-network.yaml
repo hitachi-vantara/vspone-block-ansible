@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    puma-network-service: sdi-gateway-network
+  name: sdi-gateway-network
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      puma-network-service: sdi-gateway-network
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        puma-network-service: sdi-gateway-network
+    spec:
+      containers:
+      - env:
+        - name: LD_LIBRARY_PATH
+          value: /opt/hitachi/puma
+        - name: TZ
+          value: America/Los_Angeles
+        - name: _REDIS_HOST
+          value: redis
+        - name: _REST_SERVER_CONSOLE_LOG
+          value: "true"
+        - name: _REST_SERVER_LIBRARY_LOG_LEVEL
+          value: verbose
+        - name: _REST_SERVER_LOG_LEVEL
+          value: verbose
+        - name: _REST_SERVER_CERTS_DIR
+          value: /var/certs
+        - name: _REST_SERVER_CERT
+          value: tls.crt
+        - name: _REST_SERVER_KEY
+          value: tls.key
+        image: cpumanetwork:8.6.0
+        name: sdi-gateway-network
+        ports:
+        - containerPort: 8444
+        resources: {}
+        volumeMounts:
+        - mountPath: /var/log
+          name: sdi-gateway-network-hostpath0
+      restartPolicy: Always
+      volumes:
+      - hostPath:
+          path: /var/docker/log
+        name: sdi-gateway-network-hostpath0

@@ -1,0 +1,16 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ESXiDatastore
+metadata:
+  name: example-esxidatastore
+spec:
+  name: dsTestTmp
+  capacityInGB: 14
+  ucpSystem: testing-ucp
+  storageSerialNumber: "415056"
+  esxiHosts: ["172.25.11.146"]
+  poolId: 6
+  multipleDatastores:
+    numberOfDatastore: 2
+    initialDatastoreNumber: 4
+  shouldAllowDelete: true
+

@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: server-secret-esx1
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: Y21iOS5hZG1pbg==
+  username2: cm9vdA==
+  password2: UGFzc3cwcmQh
+---
+
+apiVersion: ucp.hitachivantara.com/v1
+kind: ESXiHost
+metadata:
+  name: esxihost-sample-11-64
+spec:
+  host: 172.25.11.64
+  esxiCredentialsName: "server-secret-esx1"
+  bmcIPAddress: 172.25.58.10

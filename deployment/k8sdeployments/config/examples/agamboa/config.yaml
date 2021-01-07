@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: infrastructure-operator-config
+  labels:
+    app: ucp
+data:
+  cpuma.properties: |
+    gatewaysanstorageport=8444
+    gatewaynasstorageport=8444
+    gatewaycomputeport=8444
+    gatewaynetworkswitchport=8444
+    gatewaybaremetalprovisioningport=8444
+    ###    
+    #gatewaysanstorageport=8445
+    #gatewaynasstorageport=8446
+    #gatewaycomputeport=8447
+    #gatewaynetworkswitchport=8448
+    #gatewaybaremetalprovisioningport=8449
+  policy.properties: |
+    basepath=/var/local/firmwarebundles
+  scpserver.properties: |
+    host=172.25.239.247
+    credentialName=scp-credentials
+    filePath=/opt/hitachi/ucp-advisor/firmware-bundle

@@ -1,0 +1,21 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ParityGroup
+metadata:
+  name: pg1
+spec:
+  ucpSystem: testing-ucp
+  serialNumber: "30078"
+  parityGroupID: "1-6"
+  trayNumbers:
+    - cDev: 0
+      rDev: 5
+    - cDev: 2
+      rDev: 5
+    - cDev: 4
+      rDev: 5
+    - cDev: 6
+      rDev: 5
+  raidLevel: "RAID5"
+  enableAcceleratedCompression: false
+  shouldAllowDelete: true
+  timestamp: now

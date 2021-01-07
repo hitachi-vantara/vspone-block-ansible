@@ -1,0 +1,78 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: server-secret-63-102
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: Y21iOS5hZG1pbg==
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: Server
+metadata:
+  name: example-server-63-102
+spec:
+  bmcIpAddress: 172.25.63.102
+  credentialsName: server-secret-63-102
+  timeStamp: now3
+  # does work
+  # ntpSettingInfo:
+  #   primary: 172.25.11.1
+  #   secondary: 172.25.11.11
+  #   timezone: America/Phoenix
+
+  # does not work (operator sees all three fields as empty)
+  # ntpSettingInfo: 
+  #   primary: times.linux.com
+  #   secondary: nist.eurpo.com
+  #   timezone: America/New_York
+
+  # does not work (operator sees fields and makes call but puma rejects)
+  # ntpSettingInfo: 
+  #   primary: "times.linux.com"
+  #   secondary: "nist.eurpo.com"
+  #   timezone: "America/New_York"
+
+  
+  # ntpSettingInfo: 
+  #   timezone: "America/Phoenix"
+
+
+  ntpSettingInfo: {
+    # "primary": "times.linux.com",
+    # "secondary": "nist.eurpo.com",
+    "timezone": "America/New_York"
+  }
+
+  
+
+
+
+
+
+
+
+
+
+  # adSettingInfo: {
+  #   "userDomainName":"abc123.com",
+  #   "domainControllerServers":[
+  #     "172.25.155.43",
+  #     "172.25.155.44",
+  #     "172.25.155.45"
+  #   ],
+  #   "roleGroups":[
+  #     {
+  #       "groupPrivilege":"USER",
+  #       "groupDomain":"GD1","groupName":"ABC1"
+  #     },
+  #     {
+  #       "groupPrivilege":"ADMIN",
+  #       "groupDomain":"GD2",
+  #       "groupName":"XYZ2"
+  #     }
+  #   ]
+  # }
+  

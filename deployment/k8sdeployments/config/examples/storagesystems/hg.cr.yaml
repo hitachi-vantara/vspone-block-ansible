@@ -1,0 +1,14 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: HostGroup
+metadata:
+  name: example-hostgroup6
+spec:
+  # Add fields here
+  storageSystemSerial: "415056"
+  hostMode: "LINUX"
+  hostModeOptions: [1,2,3,4,5]
+  id: 11
+  name: "None"
+  port: "CL1-A"
+  luns: [500, 501, 502]
+  wwns: ["1234567890123456", "2222222222222222"]

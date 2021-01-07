@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fcswitch-secret
+type: Opaque
+data:
+  username: dGVzdHVzZXI= 
+  password: dGVzdHVzZXI= 
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: UpgradeNetworkFirmware
+metadata:
+  name: upgradenetworkfirmware-sample
+spec:
+  # Add fields here
+  managementIP: 172.25.63.33
+  type: FC
+  fileName: ""
+  filePath: v8.2.1e
+  proto: SCP
+  credentialsName: fcswitch-secret
+  remoteSCPServerIP: 172.25.239.247
+  timeStamp: now

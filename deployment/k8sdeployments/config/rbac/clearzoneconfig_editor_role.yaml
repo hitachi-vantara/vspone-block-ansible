@@ -1,0 +1,24 @@
+# permissions for end users to edit clearzoneconfigs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: clearzoneconfig-editor-role
+rules:
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - clearzoneconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - clearzoneconfigs/status
+  verbs:
+  - get

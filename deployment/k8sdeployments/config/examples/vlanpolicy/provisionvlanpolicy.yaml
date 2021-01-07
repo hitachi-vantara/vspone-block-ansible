@@ -1,0 +1,11 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ProvisionVLANPolicy
+metadata:
+  name: provisionvlanpolicy-single-to-single
+spec:
+  # Add fields here
+  ucpSystem: UCP-CI-10231
+  SwitchAddress: []
+  policyName: test-vlan-policy  
+  #servers: []
+  readOnly: true

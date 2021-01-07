@@ -1,0 +1,10 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: Lun
+metadata:
+  name: lun-free-pool-name
+spec:
+  serialNumber: "415056"
+  lunId: -1
+  size: "1GB"
+  poolId: 6
+  name: "using-free-lun-with-pool"

@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: switch-secret-11-52
+type: Opaque
+data:
+  username: dGVzdHVzZXI=
+  password: dGVzdHVzZXI=
+--- 
+
+apiVersion: ucp.hitachivantara.com/v1
+kind: RestoreNetworkSwitchConfiguration
+metadata:
+  name: example-restorenetworkswitchconfiguration
+spec:
+  type: "FC"
+  networkDeviceIPAddress: 172.25.63.34
+  remoteRestore: true
+  fileName: " 172.25.63.34_2020_10_01_12_06_21"

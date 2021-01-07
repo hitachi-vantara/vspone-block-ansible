@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    puma-nas-service: sdi-gateway-nas
+  annotations:
+    ingress.kubernetes.io/service-upstream: "true"
+    konghq.com/protocol: https
+    konghq.com/methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+    konghq.com/plugins: porcelain-kong-plugin
+  name: sdi-gateway-nas
+spec:
+  ports:
+  - name: https
+    port: 8444
+    protocol: TCP
+    targetPort: 8444
+  selector:
+    puma-nas-service: sdi-gateway-nas
+status:
+  loadBalancer: {}

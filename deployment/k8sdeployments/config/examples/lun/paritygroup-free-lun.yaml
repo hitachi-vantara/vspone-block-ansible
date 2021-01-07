@@ -1,0 +1,10 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: Lun
+metadata:
+  name: paritygroup-lun-6001
+spec:
+  serialNumber: "415056"
+  lunId: -1
+  size: "1GB"
+  parityGroupId: "1-4"
+  name: "using-free-lun-with-pg"

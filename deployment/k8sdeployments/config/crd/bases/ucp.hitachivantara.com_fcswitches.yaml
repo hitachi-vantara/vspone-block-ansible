@@ -1,0 +1,201 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: fcswitches.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.managementIP
+    description: Management IP Address
+    name: IP
+    type: string
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: FcSwitch
+    listKind: FcSwitchList
+    plural: fcswitches
+    shortNames:
+    - fc
+    singular: fcswitch
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: FcSwitch is the Schema for the fcswitches API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: FcSwitchSpec defines the desired state of FcSwitch
+          properties:
+            credentialsName:
+              description: The name of the secret containing the SAD credentials (requires
+                keys "username" and "password").
+              type: string
+            managementIP:
+              description: Address holds the IP Address for accessing management IP
+              type: string
+            switchState:
+              enum:
+              - Enable
+              - Disable
+              type: string
+            syslogServerIps:
+              description: SyslogServerIps are used to set syslog configuration on
+                fcswitch, omit this field will skip the operation
+              items:
+                type: string
+              type: array
+            timestamp:
+              type: string
+          required:
+          - credentialsName
+          - managementIP
+          type: object
+        status:
+          description: FcSwitchStatus defines the observed state of FcSwitch
+          properties:
+            auditLog:
+              items:
+                description: add to k8s event logs AuditLog .
+                properties:
+                  event:
+                    description: Time     time.Time     `json:"time,omitempty"`
+                    type: string
+                  severity:
+                    description: SeverityLevel defines severity
+                    type: string
+                type: object
+              type: array
+            fcSwitchDevice:
+              description: FC Switch details
+              properties:
+                address:
+                  type: string
+                addressMode:
+                  type: string
+                beacon:
+                  type: string
+                deviceStatus:
+                  type: string
+                domain:
+                  type: string
+                fabricId:
+                  type: string
+                firmwareVersion:
+                  type: string
+                grid:
+                  description: Global Resource ID
+                  type: string
+                highIntegrityFabricMode:
+                  type: string
+                macAddress:
+                  type: string
+                model:
+                  type: string
+                portCount:
+                  type: integer
+                resourceState:
+                  type: string
+                role:
+                  type: string
+                router:
+                  type: string
+                serialNumber:
+                  type: string
+                switchId:
+                  type: string
+                switchMode:
+                  type: string
+                switchName:
+                  type: string
+                ucpSystem:
+                  type: string
+                uptime:
+                  type: string
+                username:
+                  type: string
+                wwn:
+                  type: string
+              type: object
+            grid:
+              description: Global Resource ID
+              type: string
+            lastUpdate:
+              type: string
+            result:
+              description: result status of custom resource
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            switchState:
+              description: switchState is optional, default=Enable
+              type: string
+            ucpSystem:
+              description: UCP system name this resource is part of if not nil
+              type: string
+            zoneAliasCount:
+              description: zone alias count
+              type: integer
+            zoneConfigCount:
+              description: zone config count
+              type: integer
+            zoneCount:
+              description: zone count
+              type: integer
+          required:
+          - zoneAliasCount
+          - zoneConfigCount
+          - zoneCount
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

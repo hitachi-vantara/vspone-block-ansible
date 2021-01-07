@@ -1,0 +1,20 @@
+# permissions for end users to view freelunfacts.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: freelunfact-viewer-role
+rules:
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - freelunfacts
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - freelunfacts/status
+  verbs:
+  - get

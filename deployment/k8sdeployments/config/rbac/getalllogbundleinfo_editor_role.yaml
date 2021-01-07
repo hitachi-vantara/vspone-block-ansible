@@ -1,0 +1,24 @@
+# permissions for end users to edit getalllogbundleinfoes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: getalllogbundleinfo-editor-role
+rules:
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - getalllogbundleinfoes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - getalllogbundleinfoes/status
+  verbs:
+  - get

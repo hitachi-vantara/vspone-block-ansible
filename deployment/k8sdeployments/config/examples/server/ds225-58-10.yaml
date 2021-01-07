@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: server-secret-58-10
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: T3BlcmF0b3JAMTI=
+  
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: Server
+metadata:
+  name: example-server-58-10
+spec:
+  bmcIpAddress: 172.25.58.10
+  credentialsName: server-secret-58-10
+  timeStamp: "00:02"
+
+

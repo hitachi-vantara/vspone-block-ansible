@@ -1,0 +1,111 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: restorenetworkswitchconfigurations.ucp.hitachivantara.com
+spec:
+  group: ucp.hitachivantara.com
+  names:
+    kind: RestoreNetworkSwitchConfiguration
+    listKind: RestoreNetworkSwitchConfigurationList
+    plural: restorenetworkswitchconfigurations
+    singular: restorenetworkswitchconfiguration
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: RestoreNetworkSwitchConfiguration is the Schema for the restorenetworkswitchconfigurations
+        API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: RestoreNetworkSwitchConfigurationSpec defines the desired state
+            of RestoreNetworkSwitchConfiguration
+          properties:
+            fileName:
+              description: File name to save the switch configurations to a local
+                flash drive or remote SCP/SFTP/TFTP server. When the proto parameter
+                is not specified, the file will be saved to the local flash drive;
+                the filePath, user, password, and host parameters will be ignored
+                if specified. Saving to a local flash drive is not supported on the
+                Brocade ICX switch; use the TFTP protocol instead.
+              type: string
+            networkDeviceIPAddress:
+              description: The name of the network device
+              type: string
+            protocol:
+              description: The file transfer protocol type
+              enum:
+              - SCP
+              - SFTP
+              type: string
+            remoteRestore:
+              description: RemoteRestore if remote restore is set to true operator
+                will look for the restore file on the remote SCP server
+              type: boolean
+            timestamp:
+              type: string
+          required:
+          - networkDeviceIPAddress
+          type: object
+        status:
+          description: RestoreNetworkSwitchConfigurationStatus defines the observed
+            state of RestoreNetworkSwitchConfiguration
+          properties:
+            observedGeneration:
+              format: int64
+              type: integer
+            result:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: Run "operator-sdk generate k8s" to regenerate
+                code after modifying this file Add custom validation using kubebuilder
+                tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+                result'
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

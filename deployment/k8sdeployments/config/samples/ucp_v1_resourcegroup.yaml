@@ -1,0 +1,24 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ResourceGroup
+metadata:
+  name: resource-group-30078-1
+spec:
+  # Add fields here
+  serialNumber: "30078"
+  remoteStorageId: 415425
+  model: VSP_F700
+  type: VSP_FX00
+  name: snewar-vbox-415425
+  logicalUnitIds: [6792]
+  portIds: [CL8-B]
+  parityGroupIds: [1-10]
+  hostGroups:
+   - portId: "CL2-B"
+     hostGroupName: "HITACHI_HG2"
+   - portId: "CL2-B"
+     hostGroupName: "HITACHI_HG3"
+  iscsiTargets:
+   - portId: "CL4-C"
+     ISCSITargetName: "snewar-tgt"
+  shouldAllowDelete: true
+  timestamp: now1

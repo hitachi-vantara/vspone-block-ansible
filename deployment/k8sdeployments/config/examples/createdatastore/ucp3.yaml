@@ -1,0 +1,23 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: UcpSystem
+metadata:
+  name: example-ucpsystem3
+spec:
+  name: testing-ucp3
+  serialNumber: UCP-CI-10233
+  gatewayAddress: "172.25.20.35"
+  model: UCP CI
+  region: EMEA
+  zone: NA
+  type: NA
+  fcSwitches: []
+  ethernetSwitches: []
+  # storageSystems: ["example-storage-1"]
+  storageSystems: ["example-storage-10076"]
+  # storageSystems: ["storage-secret-10075-1"]
+  # servers: ["example-esxi-71", "example-esxi-146"]
+  # servers: ["example-esxi-146"]
+  servers: []
+  # vCenter: 172.25.20.34
+  timestamp: now1
+

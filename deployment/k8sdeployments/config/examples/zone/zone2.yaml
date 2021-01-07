@@ -1,0 +1,9 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: Zone
+metadata:
+  name: zone-test2
+spec:
+  # Add fields here
+  fcSwitch: "172.25.63.33"
+  name: "zone-test2"
+  members:  ["50:00:00:90:fa:b4:aa:10","10:00:00:90:fa:b4:aa:12","10:00:00:90:fa:b4:aa:13"]

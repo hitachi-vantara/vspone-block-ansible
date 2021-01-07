@@ -1,0 +1,9 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: GenerateLogBundle
+metadata:
+  name: generate-log-bundle1
+spec:
+  # logBundleFileName: "myownlogbundle"
+  numOfLogBundleToKeep: 5
+  timestamp: "now"
+

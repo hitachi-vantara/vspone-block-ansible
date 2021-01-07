@@ -1,0 +1,6 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: GetAllLogBundleInfo
+metadata:
+  name: getall-log-bundle1
+spec:
+  timestamp: "now"

@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ethswitch-secret-6
+type: Opaque
+data:
+  username: dGVzdHVzZXI= 
+  password: dGVzdHVzZXI= 
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: UpgradeNetworkFirmware
+metadata:
+  name: ethernet-switch-upgrade
+spec:
+  # Add fields here
+  ucpSystem: primary-site
+  #schedule: "0 0/8 * 1/1 * ? *"  # every 8 minutes 
+  fileName: "/v8.2.1e"
+  #filePath: /YC_v9.3.3/
+  credentialsName: ethswitch-secret-6
+  timeStamp: now

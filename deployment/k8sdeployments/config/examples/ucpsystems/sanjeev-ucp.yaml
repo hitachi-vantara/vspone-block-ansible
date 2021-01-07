@@ -1,0 +1,21 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: UcpSystem
+metadata:
+  name: primary-site
+spec:
+  name: primary-site
+  serialNumber: UCP-CI-10231
+  gatewayAddress: "172.25.20.35"
+  model: UCP CI
+  region: EMEA
+  zone: NA
+  type: NA
+  fcSwitches: [example-fcswitch-63-34]
+  # ethernetSwitches: [ethernetswitch-66-23, ethernetswitch-66-21]
+  # ethernetSwitches: [ethernetswitch-66-23]
+  # ethernetSwitches: []
+  # storageSystems: [example-storage-415056]
+  storageSystems: [storage-30078]
+  # storageSystems: []
+  servers: []
+  timestamp: now

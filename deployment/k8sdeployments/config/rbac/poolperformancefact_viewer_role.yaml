@@ -1,0 +1,20 @@
+# permissions for end users to view poolperformancefacts.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: poolperformancefact-viewer-role
+rules:
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - poolperformancefacts
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - poolperformancefacts/status
+  verbs:
+  - get

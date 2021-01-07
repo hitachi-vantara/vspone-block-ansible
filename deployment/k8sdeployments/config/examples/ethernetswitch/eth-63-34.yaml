@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ethernetswitch-secret-63-34
+type: Opaque
+data:
+  username: YWRtaW4=  
+  password: UGFzc3cwcmQh
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: EthernetSwitch
+metadata:
+  name: ethernetswitch-63-34
+spec:
+  managementIP: 172.25.63.34
+  credentialsName: ethernetswitch-secret-63-34
+  timeStamp: "3:15"

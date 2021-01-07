@@ -1,0 +1,63 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v1.0.0
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v2
+  name: infrastructure-operator.vX.Y.Z
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: StorageSystem is the Schema for the storages API
+      displayName: Storage System
+      kind: StorageSystem
+      name: storagesystems.ucp.hitachivantara.com
+      version: v1
+    - description: ResetMultipleServersBMCPassword is the Schema for the resetmultipleserversbmcpasswords API
+      displayName: Reset Multiple Servers BMCPassword
+      kind: ResetMultipleServersBMCPassword
+      name: resetmultipleserversbmcpasswords.ucp.hitachivantara.com
+      version: v1
+    - description: FreeLunFact is the Schema for the freelunfacts API
+      displayName: Free Lun Fact
+      kind: FreeLunFact
+      name: freelunfacts.ucp.hitachivantara.com
+      version: v1
+    - description: InfrastructureSparePool is the Schema for the infrastructuresparepools API
+      displayName: Infrastructure Spare Pool
+      kind: InfrastructureSparePool
+      name: infrastructuresparepools.ucp.hitachivantara.com
+      version: v1
+  description: hitachi infrastructure operator
+  displayName: infrastructure-operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - infrastructure
+  - ucp
+  links:
+  - name: Infrastructure Operator
+    url: https://infrastructure-operator.domain
+  maturity: alpha
+  provider:
+    name: Hitachi
+    url: www.hitachi.com
+  version: 0.0.0

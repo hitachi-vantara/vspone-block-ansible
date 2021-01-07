@@ -1,0 +1,20 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ZonePolicy
+metadata:
+  name: zonepolicy-single-to-single
+spec:
+  # Add fields here
+  name: "storage-to-storage"
+  connectionType: storage-storage
+  configType: single-single
+  shouldCreateZoneOnPeerFabric : false 
+  shouldAddToEffectiveZoneConfig : true
+  shouldUseRecommendedZoning : true
+  switchTags:
+    group: [hr]
+  switchModels: []
+  serverModels: [] 
+  serverTags: 
+    group: [hr]
+  storageModels: []
+  portTags: []  # currently this is not supported in Opreator

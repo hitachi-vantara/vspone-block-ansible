@@ -1,0 +1,140 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: esxihosts.ucp.hitachivantara.com
+spec:
+  group: ucp.hitachivantara.com
+  names:
+    kind: ESXiHost
+    listKind: ESXiHostList
+    plural: esxihosts
+    singular: esxihost
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: ESXiHost is the Schema for the esxihosts API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ESXiHostSpec defines the desired state of ESXiHost
+          properties:
+            bmcIPAddress:
+              type: string
+            esxiCredentialsName:
+              type: string
+            host:
+              description: Host IP address or FQDN
+              type: string
+            timestamp:
+              type: string
+          required:
+          - bmcIPAddress
+          - esxiCredentialsName
+          - host
+          type: object
+        status:
+          description: ESXiHostStatus defines the observed state of ESXiHost
+          properties:
+            datastore:
+              properties:
+                folderPath:
+                  type: string
+                name:
+                  description: Actual name of datastore
+                  type: string
+              required:
+              - folderPath
+              - name
+              type: object
+            hostInfo:
+              properties:
+                bootTime:
+                  type: string
+                cpuUsage:
+                  type: string
+                logicalCpu:
+                  type: string
+                manufacturer:
+                  description: Path          string `json:"path"`
+                  type: string
+                memory:
+                  type: string
+                memoryUsage:
+                  type: string
+                name:
+                  type: string
+                os:
+                  type: string
+                processorType:
+                  type: string
+                state:
+                  type: string
+              required:
+              - bootTime
+              - cpuUsage
+              - logicalCpu
+              - manufacturer
+              - memory
+              - memoryUsage
+              - name
+              - os
+              - processorType
+              - state
+              type: object
+            result:
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            vCenter:
+              type: string
+          required:
+          - datastore
+          - hostInfo
+          - vCenter
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

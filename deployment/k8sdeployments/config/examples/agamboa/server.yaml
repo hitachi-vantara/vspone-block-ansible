@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: server-secret-11-21
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: Y21iOS5hZG1pbg==
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: Server
+metadata:
+  name: example-server-11-21
+spec:
+  bmcIpAddress: 172.25.11.21
+  credentialsName: server-secret-11-21
+  timestamp: now3
+  snmpV3:
+    userName: "admin"
+    accessEnabled: true
+    accessLevel: "read_write"
+    authenProtocol: "sha"
+    privacyProtocol: "aes"
+  snmpV2:
+    readOnlyComm: "testing"
+    readWriteComm: "testing"
+  snmpTrap:
+    targetPort: "145"
+    trapComm: "public"
+    targetIps: ["172.25.239.120"]

@@ -1,0 +1,7 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ESXiHostFact
+metadata:
+  name: esxihostfact-sample
+spec:
+  # Add fields here
+  foo: bar

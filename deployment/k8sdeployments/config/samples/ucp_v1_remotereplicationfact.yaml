@@ -1,0 +1,7 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: RemoteReplicationFact
+metadata:
+  name: example-remotereplicationfact
+spec:
+  storageSerial: "415056"
+  timeStamp: "12:00"

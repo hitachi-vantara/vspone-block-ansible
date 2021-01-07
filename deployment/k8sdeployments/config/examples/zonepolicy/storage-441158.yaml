@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: storage-secret-441158
+type: Opaque
+data:
+  username: bWFpbnRlbmFuY2U=
+  password: cmFpZC1tYWludGVuYW5jZQ==
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: StorageSystem
+metadata:
+  name: example-storage-441158
+spec:
+  serialNumber: "441158"
+  managementIP: 172.25.42.193
+  credentialsName: storage-secret-441158
+

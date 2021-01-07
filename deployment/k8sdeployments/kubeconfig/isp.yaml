@@ -1,0 +1,6 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: InfrastructureSparePool
+metadata:
+  name: good-isp
+spec:
+  gatewayServer: "10.76.59.245"

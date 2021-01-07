@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: optional-storage-secret-415056-1
+type: Opaque
+data:
+  username: b3JhY2xlX3NhcA==
+  password: SGl0YWNoaTE=
+
+---
+apiVersion: ucp.hitachivantara.com/v1
+kind: StorageSystem
+metadata:
+  name: optional-controller-ip
+spec:
+  serialNumber: "415056"
+  managementIP: 172.25.43.250
+  credentialsName: optional-storage-secret-415056-1
+

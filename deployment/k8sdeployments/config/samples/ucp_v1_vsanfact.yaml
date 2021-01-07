@@ -1,0 +1,6 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: VsanFact
+metadata:
+  name: vsanfact-sample
+spec:
+  vCenter: 172.25.20.84

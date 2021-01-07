@@ -1,0 +1,8 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: BackupNetworkSwitchConfiguration
+metadata:
+  name: example-backupnetworkswitchconfiguration
+spec:
+  type: "FC"
+  managementIP: 172.25.63.33
+  filePath: "/"

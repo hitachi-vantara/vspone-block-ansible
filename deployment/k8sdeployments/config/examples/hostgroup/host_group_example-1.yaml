@@ -1,0 +1,14 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: HostGroup
+metadata:
+  name: example-hostgroup-1
+spec:
+  serialNumber: "30078"
+  hostMode: "VMWARE_EXTENSION"
+  hostModeOptions: [25]
+  name: "bmc-58-10"
+  port: "CL2-A"
+  luns: [664]
+  # wwns: ["1234567890123456", "2222222222222222"]
+  # wwns: ["1234567890123456", "2222222222222222"]
+  timestamp: now

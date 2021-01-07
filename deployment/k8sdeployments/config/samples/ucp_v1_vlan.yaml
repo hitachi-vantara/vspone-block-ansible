@@ -1,0 +1,14 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: VLan
+metadata:
+  name: example-vlan-66-23
+spec:
+  # Add fields here
+  ethernetSwitchIP: 172.25.66.23
+  vlanId: 489
+  name: "vlan489"
+  tagPorts: [ 1/21, 1/23, 1/39, 1/41, 1/49, 1/50, 1/53, 1/54]
+  untagPorts: [ 1/24, 1/25 ]
+  isNative: true
+  timestamp: now
+  shouldAllowDelete: true

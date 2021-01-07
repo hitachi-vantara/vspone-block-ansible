@@ -1,0 +1,24 @@
+# permissions for end users to edit provisionbaremetalservers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: provisionbaremetalserver-editor-role
+rules:
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionbaremetalservers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ucp.hitachivantara.com
+  resources:
+  - provisionbaremetalservers/status
+  verbs:
+  - get

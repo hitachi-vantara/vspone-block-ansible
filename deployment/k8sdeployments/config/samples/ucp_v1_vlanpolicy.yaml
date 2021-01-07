@@ -1,0 +1,7 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: VLANPolicy
+metadata:
+  name: vlanpolicy-sample
+spec:
+  # Add fields here
+  foo: bar

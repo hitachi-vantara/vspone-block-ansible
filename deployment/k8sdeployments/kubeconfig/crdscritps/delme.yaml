@@ -1,0 +1,67 @@
+apiVersion: v1
+items:
+- apiVersion: ucp.hitachivantara.com/v1
+  kind: InfrastructureSparePool
+  metadata:
+    creationTimestamp: "2020-10-16T23:51:42Z"
+    finalizers:
+    - finalizer.infrastructureSparePool
+    generation: 2
+    managedFields:
+    - apiVersion: ucp.hitachivantara.com/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:spec:
+          .: {}
+          f:gatewayServer: {}
+      manager: kubectl
+      operation: Update
+      time: "2020-10-16T23:51:42Z"
+    - apiVersion: ucp.hitachivantara.com/v1
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:metadata:
+          f:finalizers:
+            .: {}
+            v:"finalizer.infrastructureSparePool": {}
+        f:spec:
+          f:timestamp: {}
+        f:status:
+          .: {}
+          f:ethernetSwitchesCount: {}
+          f:fcSwitchesCount: {}
+          f:gatewayServerIP: {}
+          f:result:
+            .: {}
+            f:lastTimestamp: {}
+            f:message: {}
+            f:messageID: {}
+            f:status: {}
+          f:serversCount: {}
+          f:storageDevicesCount: {}
+      manager: manager
+      operation: Update
+      time: "2020-10-16T23:51:43Z"
+    name: good-isp
+    namespace: ucp
+    resourceVersion: "5565725"
+    selfLink: /apis/ucp.hitachivantara.com/v1/namespaces/ucp/infrastructuresparepools/good-isp
+    uid: ce0cc34b-1861-48d8-be7d-b78738ed8a81
+  spec:
+    gatewayServer: 172.25.20.35
+    timestamp: ""
+  status:
+    ethernetSwitchesCount: 0
+    fcSwitchesCount: 0
+    gatewayServerIP: 172.25.20.35
+    result:
+      lastTimestamp: Fri Oct 16 23:51:43 UTC 2020
+      message: ""
+      messageID: Normal
+      status: NORMAL
+    serversCount: 0
+    storageDevicesCount: 0
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

@@ -1,0 +1,19 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ParityGroup
+metadata:
+  name: san1
+spec:
+  serialNumber: "415056"
+  parityGroupID: "12-4"
+  trayNumbers:
+    - cDev: 2
+      rDev: 18
+    - cDev: 2
+      rDev: 19
+    - cDev: 2
+      rDev: 20
+    - cDev: 2
+      rDev: 21
+  raidLevel: "RAID5"
+  enableAcceleratedCompression: false
+  shouldAllowDelete: true

@@ -1,0 +1,143 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: zones.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.name
+    description: Zone Name
+    name: ZONENAME
+    type: string
+  - JSONPath: .spec.fcSwitch
+    description: FcSwitch IP Address
+    name: SWITCHIP
+    type: string
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: Zone
+    listKind: ZoneList
+    plural: zones
+    singular: zone
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: disable.kubebuilder:printcolumn:name="FCSWITCHNAME",type="string",JSONPath=".status.switchId",description="FcSwitch
+        ID"
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ZoneSpec defines the desired state of Zone to create a zone
+          properties:
+            fcSwitch:
+              type: string
+            members:
+              items:
+                type: string
+              type: array
+            name:
+              type: string
+            shouldAllowDelete:
+              description: ShouldAllowDelete set to true if underlying entity need
+                to be deleted ignore if this this field is not required
+              type: boolean
+            timestamp:
+              type: string
+            ucpSystem:
+              minLength: 5
+              pattern: ^(UCP-CI|UCP-HC|UCP-RS|UCP-2000|UCP-4000|Logical-UCP)-\d{5}$
+              type: string
+          required:
+          - ucpSystem
+          type: object
+        status:
+          description: ZoneStatus defines the observed state of Zone
+          properties:
+            auditLog:
+              items:
+                description: add to k8s event logs AuditLog .
+                properties:
+                  event:
+                    description: Time     time.Time     `json:"time,omitempty"`
+                    type: string
+                  severity:
+                    description: SeverityLevel defines severity
+                    type: string
+                type: object
+              type: array
+            configure:
+              type: string
+            grid:
+              description: Global Resource ID
+              type: string
+            lastUpdate:
+              type: string
+            members:
+              items:
+                type: string
+              type: array
+            name:
+              type: string
+            result:
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            status:
+              description: ObjectID  string   `json:"objectId,omitempty"`
+              type: string
+            zoneId:
+              type: string
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

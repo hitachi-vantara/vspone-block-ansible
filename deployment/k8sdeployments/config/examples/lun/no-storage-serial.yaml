@@ -1,0 +1,10 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: Lun
+metadata:
+  name: no-storage-serial
+spec:
+  serialNumber: "99111"
+  lunId: 6000
+  size: "1GB"
+  poolId: 35
+  name: ""

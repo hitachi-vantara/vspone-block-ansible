@@ -1,0 +1,9 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: RestoreNetworkSwitchConfiguration
+metadata:
+  name: example-restorenetworkswitchconfiguration
+spec:
+  type: "FC"
+  managementIP: 172.25.63.34
+  fileName: "172.25.63.34_2020_10_01_05_53_07"
+  timeStamp: now

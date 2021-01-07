@@ -1,0 +1,16 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ResourceGroup
+metadata:
+  name: resource-group-415999
+spec:
+  # Add fields here
+  name: test-vbox-415999
+  serialNumber: "30078"
+  poolIds: [8,10,25]
+  logicalUnitIds: []
+  portIds: []
+  parityGroupIds: []
+  hostGroups: []
+  iscsiTargets: []
+  shouldAllowDelete: true
+  timestamp: now1

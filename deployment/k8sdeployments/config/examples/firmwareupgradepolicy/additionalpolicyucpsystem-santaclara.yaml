@@ -1,0 +1,11 @@
+
+apiVersion: ucp.hitachivantara.com/v1
+kind: FirmwareUpgradePolicy
+metadata:
+  name: additional-policy-santa-clara-ucpsystem
+spec:
+  serverBundleName: UCPAdvisorComputeFirmwareBundle-v3.9
+  servers: [example-server-11-60,example-server-58-10]
+  ucpSystemName: santa-clara-ucpsystem
+  timeStamp: "00:00"
+  

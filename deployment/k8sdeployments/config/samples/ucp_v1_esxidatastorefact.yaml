@@ -1,0 +1,7 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: ESXiDatastoreFact
+metadata:
+  name: example-esxidatastorefact
+spec:
+  name: def
+  ucpSystem: example-ucpsystem-vcenter

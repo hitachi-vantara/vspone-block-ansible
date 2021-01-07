@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: porcelain
+  name: porcelain
+  annotations:
+    konghq.com/protocol: https
+    konghq.com/methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+    konghq.com/plugins: porcelain-kong-plugin
+spec:
+  ports:
+  - name: "23015"
+    port: 23015
+    targetPort: 23015
+  selector:
+    app: porcelain
+status:
+  loadBalancer: {}

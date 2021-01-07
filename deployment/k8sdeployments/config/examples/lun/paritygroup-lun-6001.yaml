@@ -1,0 +1,11 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: Lun
+metadata:
+  name: paritygroup-lun-6001
+spec:
+  ucpSystem: UCP-CI-10232
+  serialNumber: "30078"
+  lunId: 6001
+  size: "1GB"
+  parityGroupId: "1-1"
+  name: ""

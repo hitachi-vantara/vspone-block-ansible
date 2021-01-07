@@ -1,0 +1,10 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: BackupNetworkSwitchConfiguration
+metadata:
+  name: example-backupnetworkswitchconfiguration
+spec:
+  type: "Ethernet"
+  managementIP: 172.25.11.52
+  filePath: "/tmp"
+  # everything else is optional for save now
+  protocol: "scp"

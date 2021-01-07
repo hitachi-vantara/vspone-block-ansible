@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ucpadmin-group-crb
+subjects:
+- kind: Group
+  name: groups:ucpadminGroup # Name is case sensitive
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: ucpAdminRole
+  apiGroup: rbac.authorization.k8s.io

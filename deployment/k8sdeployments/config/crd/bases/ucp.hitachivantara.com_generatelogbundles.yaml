@@ -1,0 +1,112 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: generatelogbundles.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: GenerateLogBundle
+    listKind: GenerateLogBundleList
+    plural: generatelogbundles
+    shortNames:
+    - glb
+    singular: generatelogbundle
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: GenerateLogBundleSpec defines the desired state of GenerateLogBundle
+          properties:
+            logBundleFileName:
+              description: if not given, it uses default prefix for filename
+              type: string
+            numOfLogBundleToKeep:
+              description: 'default: 10, can be overridden by operator config file'
+              type: integer
+            timestamp:
+              type: string
+          type: object
+        status:
+          description: GenerateLogBundleStatus defines the observed state of GenerateLogBundle
+          properties:
+            lastUpdate:
+              type: string
+            logBundleInfo:
+              description: LogBundleInfo --
+              properties:
+                logBundleFileName:
+                  type: string
+                previousLogBundles:
+                  items:
+                    type: string
+                  type: array
+                scpServer:
+                  type: string
+                totalNumberOfLogBundles:
+                  type: integer
+              required:
+              - scpServer
+              - totalNumberOfLogBundles
+              type: object
+            result:
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

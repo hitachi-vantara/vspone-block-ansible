@@ -1,0 +1,8 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: DeleteMultipleLunsFromAllHosts 
+metadata:
+  name: deletemul-sample
+spec:
+  serialNumber: "30078"
+  luns: [882,884]
+  ucpSystem: testing-ucp

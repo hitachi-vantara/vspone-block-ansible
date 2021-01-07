@@ -1,0 +1,164 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: provisionbaremetalservers.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: ProvisionBareMetalServer
+    listKind: ProvisionBareMetalServerList
+    plural: provisionbaremetalservers
+    shortNames:
+    - pbms
+    - provisionbaremetalserver
+    - provisionbaremetalservers
+    singular: provisionbaremetalserver
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: ProvisionBareMetalServer is the Schema for the provisionbaremetalservers
+        API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ProvisionBareMetalServerSpec defines the desired state of ProvisionBareMetalServer
+          properties:
+            bareMetalOsProvisioningPolicy:
+              type: string
+            formateBootLun:
+              type: boolean
+            hostIpRange:
+              type: string
+            provVlanPolicySwitches:
+              items:
+                type: string
+              type: array
+            provZonePolicyStorages:
+              items:
+                type: string
+              type: array
+            servers:
+              items:
+                type: string
+              type: array
+            shouldPreserveExistingVLANs:
+              type: boolean
+            storagePoolId:
+              type: integer
+            storageSerialNumber:
+              type: integer
+            ucpSystem:
+              type: string
+            vlanPolicyName:
+              type: string
+            zonePolicyName:
+              type: string
+          required:
+          - bareMetalOsProvisioningPolicy
+          - hostIpRange
+          - servers
+          - ucpSystem
+          type: object
+        status:
+          description: ProvisionBareMetalServerStatus defines the observed state of
+            ProvisionBareMetalServer
+          properties:
+            result:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: Run "make" to regenerate code after modifying
+                this file'
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            serverOsInfo:
+              items:
+                description: from ucpa, for the CR status
+                properties:
+                  bmcIp:
+                    type: string
+                  hostName:
+                    type: string
+                  message:
+                    type: string
+                  osLabel:
+                    type: string
+                  osName:
+                    type: string
+                  provisionedIp:
+                    type: string
+                  provisionedPwd:
+                    type: string
+                  provisionedUser:
+                    type: string
+                  status:
+                    type: string
+                required:
+                - bmcIp
+                - hostName
+                - message
+                - osLabel
+                - osName
+                - provisionedIp
+                - provisionedPwd
+                - provisionedUser
+                - status
+                type: object
+              type: array
+          required:
+          - serverOsInfo
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

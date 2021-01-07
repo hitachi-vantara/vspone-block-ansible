@@ -1,0 +1,19 @@
+apiVersion: ucp.hitachivantara.com/v1
+kind: UcpSystem
+metadata:
+  name: example-ucpsystem-34a
+spec:
+  name: ucp-34-1
+  serialNumber: UCP-CI-22222
+  gatewayAddress: "172.25.20.35"
+  model: UCP CI
+  region: EMEA
+  zone: NA
+  type: NA
+  fcSwitches: []
+  ethernetSwitches: []
+  storageSystems: []
+  servers: []
+  vCenter: 172.25.20.34
+  # # vCenter: 172.25.20.84
+  timestamp: now1

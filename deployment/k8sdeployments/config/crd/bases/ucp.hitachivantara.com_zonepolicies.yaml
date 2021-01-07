@@ -1,0 +1,246 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: zonepolicies.ucp.hitachivantara.com
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.result.status
+    description: Status
+    name: Status
+    type: string
+  - JSONPath: .status.result.message
+    description: Most recent message
+    name: Message
+    type: string
+  group: ucp.hitachivantara.com
+  names:
+    kind: ZonePolicy
+    listKind: ZonePolicyList
+    plural: zonepolicies
+    shortNames:
+    - zpolicy
+    singular: zonepolicy
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ZonePolicySpec defines the desired state of ZonePolicies
+          properties:
+            configType:
+              description: 'configuraiton type that will be supported are for server
+                to storage options are single-single : zoning from single source port
+                to single target port single-multi  : zoning from single source port
+                to multi target ports peer  : peer or smart zoning for storage to
+                storage options are single-single : zoning from single source port
+                to single target port peer  : peer or smart zoning'
+              enum:
+              - single-single
+              - single-multi
+              - peer
+              type: string
+            connectionType:
+              description: connection type that will be configured , supported options
+                are server-storage storage-storage
+              enum:
+              - server-storage
+              - storage-storage
+              type: string
+            name:
+              description: Name is an example field of ZonePolicy. Edit ZonePolicy_types.go
+                to remove/update
+              minLength: 5
+              type: string
+            serverModels:
+              description: filter zoning based on server model options are DS120 DS220
+                DS225 DS240
+              items:
+                type: string
+              type: array
+            serverTags:
+              additionalProperties:
+                items:
+                  type: string
+                type: array
+              description: filter zoning based on server tag
+              type: object
+            shouldAddToEffectiveZoneConfig:
+              description: add to effective zone config , true or false
+              type: boolean
+            shouldCreateZoneOnPeerFabric:
+              description: create zone on "peer fabric" too , true or false
+              type: boolean
+            shouldUseRecommendedZoning:
+              description: do you want recommended zoning , true or false
+              type: boolean
+            storageModels:
+              description: filter zoning based on storage model options are ■ VSP
+                ■ HUS_VM ■ VSP_G1000 ■ VSP_F1500 ■ VSP_G200 ■ VSP_G400 ■ VSP_F400
+                ■ VSP_G600 ■ VSP_F600 ■ VSP_G800 ■ VSP_F800 ■ VSP_G130 ■ VSP_G150
+                ■ VSP_G350 ■ VSP_F350 ■ VSP_G370 ■ VSP_F370 ■ VSP_G700 ■ VSP_F700
+                ■ VSP_G900 ■ VSP_F900 ■ VSP_NX00 ■ VSP_5100 ■ VSP_5100H ■ VSP_5500
+                ■ VSP_5500H ■ VSP_E990
+              items:
+                type: string
+              type: array
+            switchModels:
+              description: filter zoning based on switch model ■ G620 ■ 5460 ■ 6510
+                ■ 6505 ■ 6546
+              items:
+                type: string
+              type: array
+            switchTags:
+              additionalProperties:
+                items:
+                  type: string
+                type: array
+              description: filter zoning based on switch tag
+              type: object
+            timestamp:
+              type: string
+          required:
+          - configType
+          - connectionType
+          - name
+          - shouldAddToEffectiveZoneConfig
+          - shouldCreateZoneOnPeerFabric
+          - shouldUseRecommendedZoning
+          type: object
+        status:
+          description: ZonePolicyStatus defines the observed state of ZonePolicies
+          properties:
+            result:
+              properties:
+                isToBeRequeued:
+                  type: boolean
+                lastTimestamp:
+                  type: string
+                message:
+                  type: string
+                messageID:
+                  type: string
+                requeueWaitTime:
+                  type: integer
+                status:
+                  type: string
+              required:
+              - lastTimestamp
+              - message
+              - messageID
+              - status
+              type: object
+            zonePolicyInfo:
+              description: ZonePolicySpec defines the desired state of ZonePolicies
+              properties:
+                configType:
+                  description: 'configuraiton type that will be supported are for
+                    server to storage options are single-single : zoning from single
+                    source port to single target port single-multi  : zoning from
+                    single source port to multi target ports peer  : peer or smart
+                    zoning for storage to storage options are single-single : zoning
+                    from single source port to single target port peer  : peer or
+                    smart zoning'
+                  enum:
+                  - single-single
+                  - single-multi
+                  - peer
+                  type: string
+                connectionType:
+                  description: connection type that will be configured , supported
+                    options are server-storage storage-storage
+                  enum:
+                  - server-storage
+                  - storage-storage
+                  type: string
+                name:
+                  description: Name is an example field of ZonePolicy. Edit ZonePolicy_types.go
+                    to remove/update
+                  minLength: 5
+                  type: string
+                serverModels:
+                  description: filter zoning based on server model options are DS120
+                    DS220 DS225 DS240
+                  items:
+                    type: string
+                  type: array
+                serverTags:
+                  additionalProperties:
+                    items:
+                      type: string
+                    type: array
+                  description: filter zoning based on server tag
+                  type: object
+                shouldAddToEffectiveZoneConfig:
+                  description: add to effective zone config , true or false
+                  type: boolean
+                shouldCreateZoneOnPeerFabric:
+                  description: create zone on "peer fabric" too , true or false
+                  type: boolean
+                shouldUseRecommendedZoning:
+                  description: do you want recommended zoning , true or false
+                  type: boolean
+                storageModels:
+                  description: filter zoning based on storage model options are ■
+                    VSP ■ HUS_VM ■ VSP_G1000 ■ VSP_F1500 ■ VSP_G200 ■ VSP_G400 ■ VSP_F400
+                    ■ VSP_G600 ■ VSP_F600 ■ VSP_G800 ■ VSP_F800 ■ VSP_G130 ■ VSP_G150
+                    ■ VSP_G350 ■ VSP_F350 ■ VSP_G370 ■ VSP_F370 ■ VSP_G700 ■ VSP_F700
+                    ■ VSP_G900 ■ VSP_F900 ■ VSP_NX00 ■ VSP_5100 ■ VSP_5100H ■ VSP_5500
+                    ■ VSP_5500H ■ VSP_E990
+                  items:
+                    type: string
+                  type: array
+                switchModels:
+                  description: filter zoning based on switch model ■ G620 ■ 5460 ■
+                    6510 ■ 6505 ■ 6546
+                  items:
+                    type: string
+                  type: array
+                switchTags:
+                  additionalProperties:
+                    items:
+                      type: string
+                    type: array
+                  description: filter zoning based on switch tag
+                  type: object
+                timestamp:
+                  type: string
+              required:
+              - configType
+              - connectionType
+              - name
+              - shouldAddToEffectiveZoneConfig
+              - shouldCreateZoneOnPeerFabric
+              - shouldUseRecommendedZoning
+              type: object
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
