@@ -1,5 +1,24 @@
 #!/bin/bash
 
+if [ "$#" -ne 1 ]; then
+	echo "Usage: ./install.sh ip"
+	exit 1
+fi
+
+ip_address=$1
+
+echo "Installing pip..."
+yum install -y  python-pip
+curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+python get-pip.py
+
+pip install pathlib
+pip install ruamel.yaml
+
+python update_k8s_cluster-config.py $ip_address
+python update_keycloak_service_ip.py $ip_address
+
+
 pwd=pwd
 
 cp -r conf /home/ 
@@ -30,19 +49,23 @@ kubectl apply -f kubeconfig/apiroles.yaml
 kubectl apply -f kubeconfig/auth.yaml
 kubectl apply -f kubeconfig/roles.yaml
 
+
+pip install ruamel.yaml
 #git clone https://github.com/Gallore/yaml_cli
 #cd yaml_cli
 #pip install .
-ip_address=`ip addr | grep "^ *inet " | grep -v "vi" | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' `
+ipaddr=$(hostname -I|awk '{print $1}')
 #yaml_cli -s spec:externalIPs [$ip_address]
 
+echo "$ip_address keycloak" >> /etc/hosts
+
 echo "installing elastic search, porcelain..."
-./install-es.sh
 ./deployer.sh 
+./install-es.sh
 
 kubectl taint nodes $(hostname) node-role.kubernetes.io/master:NoSchedule-
 echo $ip_address
-kubectl patch svc kong-proxy  -p '{"spec": {"type": "LoadBalancer", "externalIPs":[$ip_address]}}' -n kong
+kubectl patch svc kong-proxy  -p '{"spec": {"type": "LoadBalancer", "externalIPs":["$ip_address"]}}' -n kong
 
 curl -s "https://raw.githubusercontent.com/\
 kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash

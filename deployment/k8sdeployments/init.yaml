@@ -9,7 +9,7 @@ bootstrapTokens:
   - authentication
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: 172.25.20.11
+  advertiseAddress: 1.2.3.4
   bindPort: 6443
 nodeRegistration:
   criSocket: /var/run/dockershim.sock
@@ -19,14 +19,7 @@ nodeRegistration:
     key: node-role.kubernetes.io/master
 ---
 apiServer:
-  extraArgs:
-    oidc-issuer-url: https://keycloak:8081/auth/realms/ucpsystem
-    authorization-mode: RBAC,Node
-    oidc-username-prefix: '-'
-    oidc-client-id: ucpadvisor
-    oidc-username-claim: preferred_username
-    oidc-groups-claim: groups
-    oidc-groups-prefix: 'groups:'
+  timeoutForControlPlane: 4m0s
 apiVersion: kubeadm.k8s.io/v1beta2
 certificatesDir: /etc/kubernetes/pki
 clusterName: kubernetes

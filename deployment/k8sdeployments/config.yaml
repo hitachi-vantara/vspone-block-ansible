@@ -6,9 +6,10 @@ metadata:
   name: keycloak
 spec:
   type: LoadBalancer
-  externalIPs: ["172.25.20.11"]
+  externalIPs:
+  - 172.25.20.19
   ports:
-  - name: "8081"
+  - name: '8081'
     port: 8081
     targetPort: 8081
   selector:
