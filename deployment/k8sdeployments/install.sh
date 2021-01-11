@@ -65,7 +65,8 @@ echo "installing elastic search, porcelain..."
 
 kubectl taint nodes $(hostname) node-role.kubernetes.io/master:NoSchedule-
 echo $ip_address
-kubectl patch svc kong-proxy  -p '{"spec": {"type": "LoadBalancer", "externalIPs":["$ip_address"]}}' -n kong
+
+kubectl patch svc kong-proxy  -p '{"spec":{"type": "LoadBalancer", "externalIPs":["'"$ip_address"'"]}}' -n kong
 
 curl -s "https://raw.githubusercontent.com/\
 kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
