@@ -60,13 +60,12 @@ ipaddr=$(hostname -I|awk '{print $1}')
 echo "$ip_address keycloak" >> /etc/hosts
 
 echo "installing elastic search, porcelain..."
-./deployer.sh 
 ./install-es.sh
+./deployer.sh 
 
 kubectl taint nodes $(hostname) node-role.kubernetes.io/master:NoSchedule-
 echo $ip_address
-
-kubectl patch svc kong-proxy  -p '{"spec":{"type": "LoadBalancer", "externalIPs":["'"$ip_address"'"]}}' -n kong
+kubectl patch svc kong-proxy  -p '{"spec": {"type": "LoadBalancer", "externalIPs":["$ip_address"]}}' -n kong
 
 curl -s "https://raw.githubusercontent.com/\
 kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
