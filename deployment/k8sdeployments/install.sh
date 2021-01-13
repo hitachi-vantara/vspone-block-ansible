@@ -15,6 +15,8 @@ python get-pip.py
 pip install pathlib
 pip install ruamel.yaml
 
+echo "$ip_address $(hostname).test.com $(hostname)" >> /etc/hosts
+
 python update_k8s_cluster-config.py $ip_address
 python update_keycloak_service_ip.py $ip_address
 
