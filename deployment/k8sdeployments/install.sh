@@ -62,6 +62,7 @@ ipaddr=$(hostname -I|awk '{print $1}')
 echo "$ip_address keycloak" >> /etc/hosts
 
 echo "installing elastic search, porcelain..."
+kubectl create namespace ucp
 ./install-es.sh
 ./deployer.sh 
 
