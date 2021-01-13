@@ -17,6 +17,7 @@ pip install ruamel.yaml
 
 echo "$ip_address $(hostname).test.com $(hostname)" >> /etc/hosts
 
+
 python update_k8s_cluster-config.py $ip_address
 python update_keycloak_service_ip.py $ip_address
 
@@ -67,6 +68,7 @@ kubectl create namespace ucp
 ./deployer.sh 
 
 kubectl taint nodes $(hostname) node-role.kubernetes.io/master:NoSchedule-
+kubectl taint nodes master node-role.kubernetes.io/master:NoSchedule-
 echo $ip_address
 kubectl patch svc kong-proxy  -p '{"spec": {"type": "LoadBalancer", "externalIPs":["$ip_address"]}}' -n kong
 
