@@ -17,10 +17,8 @@ pip install ruamel.yaml
 
 echo "$ip_address $(hostname).test.com $(hostname)" >> /etc/hosts
 
-
 python update_k8s_cluster-config.py $ip_address
 python update_keycloak_service_ip.py $ip_address
-
 
 pwd=pwd
 
@@ -32,13 +30,13 @@ sudo cp /home/conf/certs/server.crt /home/conf/certs/tls.crt
 sudo cp /home/conf/certs/tls.crt /etc/pki/ca-trust/source/anchors/
 sudo update-ca-trust
 
-kubeadm init --config k8s_cluster_config.yaml
-
 modprobe br_netfilter
 echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
 echo '1' > /proc/sys/net/ipv4/ip_forward
 echo '1' > /proc/sys/net/bridge/bridge-nf-call-ip6tables
 echo '1' > /proc/sys/net/ipv6/ip_forward
+
+kubeadm init --config k8s_cluster_config.yaml
 
 mkdir -p $HOME/.kube
 cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
