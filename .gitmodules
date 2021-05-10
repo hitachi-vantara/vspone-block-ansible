@@ -1,9 +1,6 @@
 [submodule "hi_python_sdk"]
 	path = hi_python_sdk
 	url = https://gpse-git.hitachivantara.com/scm/external/hi_pythonsdk-next.git
-[submodule "vCenter-Restful-WS-Infra"]
-	path = vCenter-Restful-WS-Infra
-	url = https://gpse-git.hitachivantara.com/scm/external/hi_vcenter_restful-next.git
 [submodule "goDoLogin"]
 	path = goDoLogin
 	url = https://gpse-git.hitachivantara.com/scm/external/hi_login.git
