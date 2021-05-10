@@ -92,6 +92,7 @@ function buildDoLogin
 	cd ${Ansible_ROOT}/GO_WORKSPACE/src/doLogin
 	go get -u github.com/BurntSushi/toml
 	go get -u github.com/magiconair/properties
+	go get github.com/iancoleman/orderedmap
 	
 	/usr/local/go/bin/go build
 	
