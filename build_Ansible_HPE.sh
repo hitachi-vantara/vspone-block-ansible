@@ -248,7 +248,7 @@ else
 fi
 
 # Create tar file 
-mkdir -p  ${Ansible_ROOT}/HV_Storage_Ansible
+mkdir -p  ${Ansible_ROOT}/HPE_XP_Storage_Ansible
 
 cp -f  /root/rpmbuild/RPMS/x86_64/HPE_XP_Storage_Ansible-*.rpm  ${Ansible_ROOT}/Scripts/install.sh ${Ansible_ROOT}/Scripts/uninstall.sh ${Ansible_ROOT}/Scripts/.cleanup.sh  ${Ansible_ROOT}/Scripts/.cleanup4amo.sh ${Ansible_ROOT}/Scripts/generate-cert.sh  ${Ansible_ROOT}/Scripts/generate-remote-gw-cert.sh  ${Ansible_ROOT}/HPE_XP_Storage_Ansible
 cd $Ansible_ROOT
