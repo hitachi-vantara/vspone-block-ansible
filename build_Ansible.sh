@@ -32,49 +32,6 @@ echo "Build Mode: $BUILD_MODE"
 	# echo "+++++++++++++++++++Done+++++++++++++++++++++++++++++"
 # }
 
-# function buildVIService
-# {
-        # mkdir -p ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
-        
-	# # Copy all the static jars which were checked in the source tree under vRO-trunk/Installer
-	# /usr/bin/cp -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/*.jar ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
-	# /usr/bin/cp -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/*.xml ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense
-	# /usr/bin/cp -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/*.config ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense
-	# /usr/bin/cp -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/*.p12 ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense
-
-        # echo "======================================================================================"
- 	# echo "Start building vCenter Restful Web Service"
- 	# echo "======================================================================================"
-        # cd ${Ansible_ROOT}/vCenter-Restful-WS-Infra/gs-consuming-rest-complete
-        # /usr/bin/ant -f build-java.xml
-        
-	# response=`echo $?`
-        # if [ $response -ne 0 ]; then
-           # echo "ant install command failed. please see the log file for details."
-           # exit 1
-        # fi
-
-        # echo "======================================================================================"
- 	# echo "Start building VI-API"
- 	# echo "======================================================================================"
-	# cd ${Ansible_ROOT}/vCenter-Restful-WS-Infra/VI-API
-	    # cp -f VI-API-Service/src/main/resources/HI-VI-Service.ansible.properties VI-API-Service/src/main/resources/HI-VI-Service.properties
-        # /usr/bin/mvn install
-        
-	# response=`echo $?`
-        # if [ $response -ne 0 ]; then
-           # echo "mvn install command failed. please see the log file for details."
-           # exit 1
-        # fi
-
-	# # Copy the jars gs-consuming-rest-complete, VI-API-Service and VI-API-Integration jars into Installer_Linux lib
-        # /usr/bin/cp ${Ansible_ROOT}/vCenter-Restful-WS-Infra/gs-consuming-rest-complete/bin/*.jar ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
-        # /usr/bin/cp ${Ansible_ROOT}/vCenter-Restful-WS-Infra/VI-API/VI-API-Service/target/*.jar ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
-        # /usr/bin/cp ${Ansible_ROOT}/vCenter-Restful-WS-Infra/VI-API/VI-API-Integration/target/*.jar ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
-        # echo "======================================================================================"
- 	# echo "Done"
- 	# echo "======================================================================================"
-# }
 
 function buildDoLogin
 {
