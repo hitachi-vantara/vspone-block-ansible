@@ -4,7 +4,10 @@
 [submodule "vCenter-Restful-WS-Infra"]
 	path = vCenter-Restful-WS-Infra
 	url = https://gpse-git.hitachivantara.com/scm/external/hi_vcenter_restful-next.git
-#
+[submodule "goDoLogin"]
+	path = goDoLogin
+	url = https://gpse-git.hitachivantara.com/scm/external/hi_login.git
+
 #[submodule "common/hiEULA"]
 #	path = common/hiEULA
 #	url = https://gpse-git.hitachivantara.com/scm/external/hi_eula.git
@@ -20,9 +23,6 @@
 #[submodule "common/hiAloPlatform"]
 #	path = common/hiAloPlatform
 #	url = https://gpse-git.hitachivantara.com/scm/external/hi_alo_platform.git
-#[submodule "goDoLogin"]
-#	path = goDoLogin
-#	url = https://gpse-git.hitachivantara.com/scm/external/hi_login.git
 #[submodule "Installer/Utilities"]
 #	path = Installer/Utilities
 #	url = https://gpse-git.hitachivantara.com/scm/external/hi_viservice.git
