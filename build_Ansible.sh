@@ -1,105 +1,105 @@
 #!/bin/bash
 # Make sure these two variables are correct
 Ansible_ROOT=$(pwd)
-Ansible_VER=HV_Storage_Ansible-02.1.0
+Ansible_VER=HV_Storage_Ansible-02.2.0
 
 MasterProject="HivROMultiPlatformWebService/HivROMultiPlatformWebService.Ans.csproj"
-ProductionOutDir=${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService
+#ProductionOutDir=${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService
 # Build Arch
 BuildArch="x64"
 # Build mode: release or debug
 BUILD_MODE=$1
 echo "Build Mode: $BUILD_MODE"
 
-function PublishTarget
-{
-	echo "++++++++++++++++++++++Building vRO ++++++++++++++++++++++++++++"
-	dotnet clean ${Ansible_ROOT}/HivROMultiPlatformWebService/${MasterProject}
-	mkdir -p $ProductionOutDir/Ansible
-	if [ "$BUILD_MODE" = "Release" ]; then
-        	echo "Release Build ..."
-		dotnet publish ${Ansible_ROOT}/HivROMultiPlatformWebService/${MasterProject} -o $ProductionOutDir/Ansible -c Release > build.log
-	elif [ "$BUILD_MODE" = "Debug" ]; then 
-        	echo "Debug Build ..."
-		dotnet publish ${Ansible_ROOT}/HivROMultiPlatformWebService/${MasterProject} -o $ProductionOutDir/Ansible -c Debug > build.log
-	fi
-	response=`echo $?`
-        if [ $response -ne 0 ]; then
-	   echo "dotnet publish command failed. please see build.log for details."
-           exit 1
-        fi
+# function PublishTarget
+# {
+	# echo "++++++++++++++++++++++Building vRO ++++++++++++++++++++++++++++"
+	# dotnet clean ${Ansible_ROOT}/HivROMultiPlatformWebService/${MasterProject}
+	# mkdir -p $ProductionOutDir/Ansible
+	# if [ "$BUILD_MODE" = "Release" ]; then
+        	# echo "Release Build ..."
+		# dotnet publish ${Ansible_ROOT}/HivROMultiPlatformWebService/${MasterProject} -o $ProductionOutDir/Ansible -c Release > build.log
+	# elif [ "$BUILD_MODE" = "Debug" ]; then 
+        	# echo "Debug Build ..."
+		# dotnet publish ${Ansible_ROOT}/HivROMultiPlatformWebService/${#MasterProject} -o $ProductionOutDir/Ansible -c Debug > build.log
+	# fi
+	# response=`echo $?`
+        # if [ $response -ne 0 ]; then
+	   # echo "dotnet publish command failed. please see build.log for details."
+           # exit 1
+        # fi
 
-	echo "+++++++++++++++++++Done+++++++++++++++++++++++++++++"
-}
+	# echo "+++++++++++++++++++Done+++++++++++++++++++++++++++++"
+# }
 
-function buildVIService
-{
-        mkdir -p ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
+# function buildVIService
+# {
+        # mkdir -p ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
         
-	# Copy all the static jars which were checked in the source tree under vRO-trunk/Installer
-	/usr/bin/cp -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/*.jar ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
-	/usr/bin/cp -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/*.xml ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense
-	/usr/bin/cp -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/*.config ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense
-	/usr/bin/cp -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/*.p12 ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense
+	# # Copy all the static jars which were checked in the source tree under vRO-trunk/Installer
+	# /usr/bin/cp -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/*.jar ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
+	# /usr/bin/cp -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/*.xml ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense
+	# /usr/bin/cp -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/*.config ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense
+	# /usr/bin/cp -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/*.p12 ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense
 
-        echo "======================================================================================"
- 	echo "Start building vCenter Restful Web Service"
- 	echo "======================================================================================"
-        cd ${Ansible_ROOT}/vCenter-Restful-WS-Infra/gs-consuming-rest-complete
-        /usr/bin/ant -f build-java.xml
+        # echo "======================================================================================"
+ 	# echo "Start building vCenter Restful Web Service"
+ 	# echo "======================================================================================"
+        # cd ${Ansible_ROOT}/vCenter-Restful-WS-Infra/gs-consuming-rest-complete
+        # /usr/bin/ant -f build-java.xml
         
-	response=`echo $?`
-        if [ $response -ne 0 ]; then
-           echo "ant install command failed. please see the log file for details."
-           exit 1
-        fi
+	# response=`echo $?`
+        # if [ $response -ne 0 ]; then
+           # echo "ant install command failed. please see the log file for details."
+           # exit 1
+        # fi
 
-        echo "======================================================================================"
- 	echo "Start building VI-API"
- 	echo "======================================================================================"
-	cd ${Ansible_ROOT}/vCenter-Restful-WS-Infra/VI-API
-	    cp -f VI-API-Service/src/main/resources/HI-VI-Service.ansible.properties VI-API-Service/src/main/resources/HI-VI-Service.properties
-        /usr/bin/mvn install
+        # echo "======================================================================================"
+ 	# echo "Start building VI-API"
+ 	# echo "======================================================================================"
+	# cd ${Ansible_ROOT}/vCenter-Restful-WS-Infra/VI-API
+	    # cp -f VI-API-Service/src/main/resources/HI-VI-Service.ansible.properties VI-API-Service/src/main/resources/HI-VI-Service.properties
+        # /usr/bin/mvn install
         
-	response=`echo $?`
-        if [ $response -ne 0 ]; then
-           echo "mvn install command failed. please see the log file for details."
-           exit 1
-        fi
+	# response=`echo $?`
+        # if [ $response -ne 0 ]; then
+           # echo "mvn install command failed. please see the log file for details."
+           # exit 1
+        # fi
 
-	# Copy the jars gs-consuming-rest-complete, VI-API-Service and VI-API-Integration jars into Installer_Linux lib
-        /usr/bin/cp ${Ansible_ROOT}/vCenter-Restful-WS-Infra/gs-consuming-rest-complete/bin/*.jar ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
-        /usr/bin/cp ${Ansible_ROOT}/vCenter-Restful-WS-Infra/VI-API/VI-API-Service/target/*.jar ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
-        /usr/bin/cp ${Ansible_ROOT}/vCenter-Restful-WS-Infra/VI-API/VI-API-Integration/target/*.jar ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
-        echo "======================================================================================"
- 	echo "Done"
- 	echo "======================================================================================"
-}
+	# # Copy the jars gs-consuming-rest-complete, VI-API-Service and VI-API-Integration jars into Installer_Linux lib
+        # /usr/bin/cp ${Ansible_ROOT}/vCenter-Restful-WS-Infra/gs-consuming-rest-complete/bin/*.jar ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
+        # /usr/bin/cp ${Ansible_ROOT}/vCenter-Restful-WS-Infra/VI-API/VI-API-Service/target/*.jar ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
+        # /usr/bin/cp ${Ansible_ROOT}/vCenter-Restful-WS-Infra/VI-API/VI-API-Integration/target/*.jar ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib
+        # echo "======================================================================================"
+ 	# echo "Done"
+ 	# echo "======================================================================================"
+# }
 
 function buildDoLogin
 {
-        rm -rf ${Ansible_ROOT}/GO_WORKSPACE
-        mkdir -p ${Ansible_ROOT}/GO_WORKSPACE/src/doLogin
-        
+	rm -rf ${Ansible_ROOT}/GO_WORKSPACE
+	mkdir -p ${Ansible_ROOT}/GO_WORKSPACE/src/doLogin
+	
 	# Copy doLogin.go in the source tree under goDoLogin
 	/usr/bin/cp -f ${Ansible_ROOT}/goDoLogin/doLogin.go ${Ansible_ROOT}/GO_WORKSPACE/src/doLogin
 
-        export GOPATH=${Ansible_ROOT}/GO_WORKSPACE
+	export GOPATH=${Ansible_ROOT}/GO_WORKSPACE
 
-        echo "======================================================================================"
+	echo "======================================================================================"
  	echo "Start building doLogin"
  	echo "======================================================================================"
-        cd ${Ansible_ROOT}/GO_WORKSPACE/src/doLogin
-		go get -u github.com/BurntSushi/toml
-		go get -u github.com/magiconair/properties
-		
-        /usr/local/go/bin/go build
-        
-	response=`echo $?`
-        if [ $response -ne 0 ]; then
-           echo "go build command failed. please see the log file for details."
-           exit 1
-        fi
+	cd ${Ansible_ROOT}/GO_WORKSPACE/src/doLogin
+	go get -u github.com/BurntSushi/toml
+	go get -u github.com/magiconair/properties
+	
+	/usr/local/go/bin/go build
+	
+	 response=`echo $?`
+		  if [ $response -ne 0 ]; then
+		    echo "go build command failed. please see the log file for details."
+		    exit 1
+		 fi
 
         echo "======================================================================================"
  	echo "Copy to addLoginToConfigurations, .grains, and .checkLoginConfigurations"
@@ -118,8 +118,8 @@ function Clean
 {
 	echo "+++++++++++++++++++Cleaned Deployment folder+++++++++++++++++++++++"
 	#for now clean is not done by pulbish we have to do manually.
-	ex="`rm -rf $ProductionOutDir/Ansible/*`"
-	ex="`rm -f $ProductionOutDir/Ansible.tar`"
+	ex="`rm -rf $Ansible_ROOT/Ansible/*`"
+	ex="`rm -f $Ansible_ROOT/Ansible.tar`"
 	response=`echo $?`
 	if [ $response -ne 0 ]; then
 	   echo "cleanup command failed. please see the log file for details."
@@ -134,7 +134,7 @@ function GenerateTar
 	echo "++++++++++++++++++++++++++Generating Pacakge for export+++++++++++++++++"
 	#will add version no later
 	#ex="`tar cvfz $ProductionOutDir/vRO.tar.gz $ProductionOutDir/vRO-1.6.0`"
-	ex="`tar cvf $ProductionOutDir/Ansible.tar $ProductionOutDir/Ansible`"
+	ex="`tar cvf $Ansible_ROOT/Ansible.tar $Ansible_ROOT/ansible`"
         
         response=`echo $?`
         if [ $response -ne 0 ]; then
@@ -156,7 +156,7 @@ function CreateCollection
   mkdir ${Ansible_ROOT}/collections/ansible_collections/hitachi/storage/plugins/modules
   mkdir ${Ansible_ROOT}/collections/ansible_collections/hitachi/storage/plugins/module_utils
 
-  cp -rf ${Ansible_ROOT}/hi_python_sdk/modules/block/collections/modules/block/* ${Ansible_ROOT}/collections/ansible_collections/hitachi/storage/plugins/modules
+  cp -rf ${Ansible_ROOT}/hi_python_sdk/modules/collections/block/* ${Ansible_ROOT}/collections/ansible_collections/hitachi/storage/plugins/modules
   
   cp -rf ${Ansible_ROOT}/hi_python_sdk/sdk_package/collections/block/* ${Ansible_ROOT}/collections/ansible_collections/hitachi/storage/plugins/module_utils
   
@@ -168,30 +168,30 @@ function CreateCollection
   echo "++++++++++++++++++++++++++Done +++++++++++++++++++++++++++"
 }
 
-function InstallPuma
-{
-	for file in ${Ansible_ROOT}/puma-* ; do
-            if [ -f "$file" ]; then
-               	echo "File exists...".
-		cp -f $file /root/rpmbuild/60EB41E9-71D5-4D5C-85E9-7E0BB76698ED.rpm
-                break;
-            else
-               	echo "File doesn't exists...".
-            fi
-        done
+# function InstallPuma
+# {
+	# for file in ${Ansible_ROOT}/puma-* ; do
+            # if [ -f "$file" ]; then
+               	# echo "File exists...".
+		# cp -f $file /root/rpmbuild/60EB41E9-71D5-4D5C-85E9-7E0BB76698ED.rpm
+                # break;
+            # else
+               	# echo "File doesn't exists...".
+            # fi
+        # done
 
-}
+# }
 
 echo  "Cleaning the build"
 Clean
-echo  "publish the build"
-PublishTarget 
+# echo  "publish the build"
+# PublishTarget 
 echo  "Generating tar file"
 GenerateTar
-echo  "Build VI Service"
+# echo  "Build VI Service"
 buildDoLogin
-buildVIService
-InstallPuma
+# buildVIService
+# InstallPuma
 
 echo Create Collection
 CreateCollection
@@ -218,47 +218,47 @@ rm -rf /root/rpmbuild/sdk_package
 rm -rf /root/rpmbuild/hi_python_sdk
 
 # Blackduck issue, do not ship these jars, they only used by walkmod for java coding styling
-rm -f ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib/javalang-compiler-2.2.12.jar
-rm -f ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib/merger-1.0.1.jar
-rm -f ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib/model-checker-1.1.jar
-rm -f ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib/walkmod-core-2.3.3.jar
-rm -f ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib/walkmod-javalang-plugin-2.6.10.jar
+# rm -f ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib/javalang-compiler-2.2.12.jar
+# rm -f ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib/merger-1.0.1.jar
+# rm -f ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib/model-checker-1.1.jar
+# rm -f ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib/walkmod-core-2.3.3.jar
+# rm -f ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense/lib/walkmod-javalang-plugin-2.6.10.jar
 
-rm -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/javalang-compiler-2.2.12.jar
-rm -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/merger-1.0.1.jar
-rm -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/model-checker-1.1.jar
-rm -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/walkmod-core-2.3.3.jar
-rm -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/walkmod-javalang-plugin-2.6.10.jar
+# rm -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/javalang-compiler-2.2.12.jar
+# rm -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/merger-1.0.1.jar
+# rm -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/model-checker-1.1.jar
+# rm -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/walkmod-core-2.3.3.jar
+# rm -f ${Ansible_ROOT}/Installer/Utilities/VIService-ApacheLicense/lib/walkmod-javalang-plugin-2.6.10.jar
 
 echo "Finished cleanin up..."
 
 # Spec file
 cp -rf ${Ansible_ROOT}/spec/*.spec /root/rpmbuild/SPECS/
-cp -f ${Ansible_ROOT}/Scripts/hv-infra-gateway.service /root/rpmbuild/
-cp -f ${Ansible_ROOT}/Scripts/vi.service /root/rpmbuild/
-cp -f ${Ansible_ROOT}/Scripts/open_firewall_ports.sh /root/rpmbuild/
+#cp -f ${Ansible_ROOT}/Scripts/hv-infra-gateway.service /root/rpmbuild/
+#cp -f ${Ansible_ROOT}/Scripts/vi.service /root/rpmbuild/
+#cp -f ${Ansible_ROOT}/Scripts/open_firewall_ports.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/Scripts/create_log_bundle.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/Scripts/uninstall.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/Scripts/.cleanup.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/Scripts/.cleanup4amo.sh /root/rpmbuild/
-cp -f ${Ansible_ROOT}/Scripts/puma_external.sh /root/rpmbuild/
+#cp -f ${Ansible_ROOT}/Scripts/puma_external.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/logger.config /root/rpmbuild/
 cp -f ${Ansible_ROOT}/messages.properties /root/rpmbuild/
 cp -rf ${Ansible_ROOT}/ansible /root/rpmbuild/
 cp -rf ${Ansible_ROOT}/goDoLogin /root/rpmbuild/
 cp -rf ${Ansible_ROOT}/hi_python_sdk/modules /root/rpmbuild/ansible
 cp -rf ${Ansible_ROOT}/hi_python_sdk/sdk_package /root/rpmbuild/
-cp -rf $ProductionOutDir/Ansible /root/rpmbuild/
-cp -rf ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense /root/rpmbuild/
+#cp -rf $Ansible_ROOT/Ansible /root/rpmbuild/
+#cp -rf ${Ansible_ROOT}/Installer_Linux/Utilities/VIService-ApacheLicense /root/rpmbuild/
 rm -rf /root/rpmbuild/${Ansible_VER}/*
 
 if [[ $BUILD_MODE == "debug" ]]; then
     #Build vRO debug 
     
-    if [[ -f ${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService/Ansible.tar ]]; then
+    if [[ -f ${Ansible_ROOT}/Ansible.tar ]]; then
         # DEBUG version
         echo "Starting build rpm for debug version..."
-        cp -rf ${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService/Ansible.tar /root/rpmbuild/${Ansible_VER}
+        cp -rf ${Ansible_ROOT}/Ansible.tar /root/rpmbuild/${Ansible_VER}
         cd /root/rpmbuild/${Ansible_VER}
         echo "unzip..."
         tar -xvf Ansible.tar
@@ -272,10 +272,10 @@ if [[ $BUILD_MODE == "debug" ]]; then
         echo "${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService/Ansible.tar does not exist!"
     fi
 else
-    if [[ -f ${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService/Ansible.tar ]]; then
+    if [[ -f ${Ansible_ROOT}/Ansible.tar ]]; then
         # RELEASE version
         echo "Starting build rpm for release version..."
-        cp -rf ${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService/Ansible.tar /root/rpmbuild/${Ansible_VER}
+        cp -rf ${Ansible_ROOT}/Ansible.tar /root/rpmbuild/${Ansible_VER}
         cd /root/rpmbuild/${Ansible_VER}
         echo "untar..."
         tar -xvf Ansible.tar
@@ -285,7 +285,7 @@ else
         rpmbuild --target=x86_64 -bb -v SPECS/build_rpm.spec
         echo "Finished build rpm for release version..."
     else
-        echo "${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService/Ansible.tar does not exist!"
+        echo "${Ansible_ROOT}/Ansible.tar does not exist!"
     fi
 fi
 
