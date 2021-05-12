@@ -86,7 +86,7 @@ trap control_c SIGINT
 # fi
 
 # doMgmtService=1
-# doAnsibleModule=1
+  doAnsibleModule=1
 # if [[ "$gateway_server_install_only" -eq 1 ]]; then
   # #echo installing the Gateway Server only
   # doAnsibleModule=0
