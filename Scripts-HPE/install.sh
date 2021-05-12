@@ -202,7 +202,7 @@ fi
     # ## for ams/puma only, don't show that we extracting everything
   	# /usr/bin/rpm -Uvh HPE_Storage_Ansible-2.0.0-1.el7.x86_64.rpm > /dev/null 2>&1
 # else
-  	/usr/bin/rpm -Uvh HPE_XP_Storage_Ansible-02.2.0-1.el7.x86_64.rpm 
+  	/usr/bin/rpm -Uvh HPE_Storage_Ansible-2.2.0-1.el7.x86_64.rpm 
 # fi
 
 response=`echo $?`

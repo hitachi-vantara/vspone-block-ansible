@@ -18,5 +18,4 @@ fi
 	rm -rf /opt/hpe/ansible >> /dev/null
 	mkdir -p /opt/hpe
     mv /tmp/ansible.install.amo /opt/hpe/ansible
-	rm -rf /opt/hpe/ansible/vi_service/
-	rm -rf /opt/hpe/ansible/storage_management_services
+	

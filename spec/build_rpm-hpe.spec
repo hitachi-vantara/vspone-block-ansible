@@ -1,5 +1,5 @@
-name:          HPE_XP_Storage_Ansible
-Version:       02.2.0
+name:          HPE_Storage_Ansible
+Version:       2.2.0
 Release:       1%{?dist}
 Summary:       The Ansible modules allow the customer to run BLOCK and FILE storage playbooks.
 Vendor:        Hitachi Vantara
@@ -7,7 +7,7 @@ Vendor:        Hitachi Vantara
 Group:         Adapters 
 License:       hiAdapterLicense
 URL:           http://www.hitachivantara.com 
-Source0:       HPE_XP_Storage_Ansible-02.2.0.tar.gz        
+Source0:       HPE_Storage_Ansible-2.2.0.tar.gz        
 BuildArch:     x86_64
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReqProv:   no 

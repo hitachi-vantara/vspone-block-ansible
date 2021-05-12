@@ -1,7 +1,7 @@
 #!/bin/bash
 # Make sure these two variables are correct
 Ansible_ROOT=$(pwd)
-Ansible_VER=HPE_XP_Storage_Ansible-02.2.0
+Ansible_VER=HPE_Storage_Ansible-2.2.0
 
 MasterProject="HivROMultiPlatformWebService/HivROMultiPlatformWebService.Ans.csproj"
 #ProductionOutDir=${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService
@@ -248,19 +248,19 @@ else
 fi
 
 # Create tar file 
-mkdir -p  ${Ansible_ROOT}/HPE_XP_Storage_Ansible
+mkdir -p  ${Ansible_ROOT}/HPE_Storage_Ansible
 
-cp -f  /root/rpmbuild/RPMS/x86_64/HPE_XP_Storage_Ansible-*.rpm  ${Ansible_ROOT}/Scripts-HPE/install.sh ${Ansible_ROOT}/Scripts-HPE/uninstall.sh ${Ansible_ROOT}/Scripts-HPE/.cleanup.sh  ${Ansible_ROOT}/Scripts-HPE/.cleanup4amo.sh ${Ansible_ROOT}/HPE_XP_Storage_Ansible
+cp -f  /root/rpmbuild/RPMS/x86_64/HPE_Storage_Ansible-*.rpm  ${Ansible_ROOT}/Scripts-HPE/install.sh ${Ansible_ROOT}/Scripts-HPE/uninstall.sh ${Ansible_ROOT}/Scripts-HPE/.cleanup.sh  ${Ansible_ROOT}/Scripts-HPE/.cleanup4amo.sh ${Ansible_ROOT}/HPE_Storage_Ansible
 
-cp -f ${Ansible_ROOT}/collections/ansible_collections/hpe/storage/hpe-xp_storage-2.2.0.tar.gz ${Ansible_ROOT}/HPE_Storage_Ansible
+cp -f ${Ansible_ROOT}/collections/ansible_collections/hpe/xp_storage/hpe-xp_storage-2.2.0.tar.gz ${Ansible_ROOT}/HPE_Storage_Ansible
 cd $Ansible_ROOT
 
 # change permissions on the shell scripts
-chmod +x  HPE_XP_Storage_Ansible/install.sh
-#chmod +x  HPE_XP_Storage_Ansible/generate-cert.sh
-#chmod +x  HPE_XP_Storage_Ansible/generate-remote-gw-cert.sh
-chmod +x  HPE_XP_Storage_Ansible/uninstall.sh
-chmod +x  HPE_XP_Storage_Ansible/.cleanup.sh
-chmod +x  HPE_XP_Storage_Ansible/.cleanup4amo.sh
+chmod +x  HPE_Storage_Ansible/install.sh
+#chmod +x  HPE_Storage_Ansible/generate-cert.sh
+#chmod +x  HPE_Storage_Ansible/generate-remote-gw-cert.sh
+chmod +x  HPE_Storage_Ansible/uninstall.sh
+chmod +x  HPE_Storage_Ansible/.cleanup.sh
+chmod +x  HPE_Storage_Ansible/.cleanup4amo.sh
 
-tar -czvf  ${Ansible_VER}.tar.gz  HPE_XP_Storage_Ansible 
+tar -czvf  ${Ansible_VER}.tar.gz  HPE_Storage_Ansible 
