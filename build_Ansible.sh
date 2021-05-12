@@ -191,7 +191,7 @@ rm -rf /root/rpmbuild/hi_python_sdk
 echo "Finished cleanin up..."
 
 # Spec file
-cp -rf ${Ansible_ROOT}/spec/*.spec /root/rpmbuild/SPECS/
+cp -rf ${Ansible_ROOT}/spec/build_rpm.spec /root/rpmbuild/SPECS/
 #cp -f ${Ansible_ROOT}/Scripts/hv-infra-gateway.service /root/rpmbuild/
 #cp -f ${Ansible_ROOT}/Scripts/vi.service /root/rpmbuild/
 #cp -f ${Ansible_ROOT}/Scripts/open_firewall_ports.sh /root/rpmbuild/
@@ -250,13 +250,11 @@ fi
 # Create tar file 
 mkdir -p  ${Ansible_ROOT}/HV_Storage_Ansible
 
-cp -f  /root/rpmbuild/RPMS/x86_64/HV_Storage_Ansible-*.rpm  ${Ansible_ROOT}/Scripts/install.sh ${Ansible_ROOT}/Scripts/uninstall.sh ${Ansible_ROOT}/Scripts/.cleanup.sh  ${Ansible_ROOT}/Scripts/.cleanup4amo.sh ${Ansible_ROOT}/Scripts/generate-cert.sh  ${Ansible_ROOT}/Scripts/generate-remote-gw-cert.sh  ${Ansible_ROOT}/HV_Storage_Ansible
+cp -f  /root/rpmbuild/RPMS/x86_64/HV_Storage_Ansible-*.rpm  ${Ansible_ROOT}/Scripts/install.sh ${Ansible_ROOT}/Scripts/uninstall.sh ${Ansible_ROOT}/Scripts/.cleanup.sh  ${Ansible_ROOT}/Scripts/.cleanup4amo.sh ${Ansible_ROOT}/HV_Storage_Ansible
 cd $Ansible_ROOT
 
 # change permissions on the shell scripts
 chmod +x  HV_Storage_Ansible/install.sh
-chmod +x  HV_Storage_Ansible/generate-cert.sh
-chmod +x  HV_Storage_Ansible/generate-remote-gw-cert.sh
 chmod +x  HV_Storage_Ansible/uninstall.sh
 chmod +x  HV_Storage_Ansible/.cleanup.sh
 chmod +x  HV_Storage_Ansible/.cleanup4amo.sh
