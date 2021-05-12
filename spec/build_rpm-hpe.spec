@@ -107,6 +107,7 @@ cp -f -a /root/rpmbuild/goDoLogin/.grains    $RPM_BUILD_ROOT/opt/hpe/ansible/bin
 cp -f -a /root/rpmbuild/goDoLogin/addLoginToConfigurations $RPM_BUILD_ROOT/opt/hpe/ansible/bin
 cp -f -a /root/rpmbuild/goDoLogin/storagejson.properties $RPM_BUILD_ROOT/opt/hpe/ansible/bin
 cp -f -a /root/rpmbuild/goDoLogin/storagejson.properties $RPM_BUILD_ROOT/opt/hpe/ansible/
+cp -f -a /root/rpmbuild/ansible/storage-HPE.json $RPM_BUILD_ROOT/opt/hpe/ansible/storage.json
         
 #cp -f -a /root/rpmbuild/sdk_package/* $RPM_BUILD_ROOT/opt/hpe/ansible/module_utils
 #rm -f                                 $RPM_BUILD_ROOT/opt/hpe/ansible/module_utils/basic.py
