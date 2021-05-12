@@ -1,6 +1,8 @@
 -
   name: Testing Get Storage System
   hosts: localhost
+  collections:
+    - hpe.xp_storage
   gather_facts: false
   vars:
     - storage_serial: 12345

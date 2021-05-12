@@ -19,7 +19,7 @@ rm -rf /opt/hpe/ansible/playbooks/file/module_utils > /dev/null
 /usr/bin/rpm -e Ansible 2>/dev/null
 echo "Uninstalling HPE Sotrage Ansible..."
 response_o=`echo $?`
-/usr/bin/rpm -e HPE_XP_Storage_Ansible 2>/dev/null
+/usr/bin/rpm -e HPE_Storage_Ansible 2>/dev/null
 response=`echo $?`
 
 if [ $response -ne 0 ] && [ $response_o -ne 0 ] && [ "$1" != '-q' ]; then

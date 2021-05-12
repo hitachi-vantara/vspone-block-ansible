@@ -254,13 +254,13 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
 	  cp -f "${config_file}.bak" "$config_file"
 	fi		
 	
-	ln -s /opt/hpe/ansible/modules/block /opt/hpe/ansible/support/library  > /dev/null 2>&1
-	ln -s /opt/hpe/ansible/modules/block /opt/hpe/ansible/playbooks/block/library > /dev/null 2>&1
-	ln -s /opt/hpe/ansible/modules/file  /opt/hpe/ansible/playbooks/file/library > /dev/null 2>&1
+	#ln -s /opt/hpe/ansible/modules/block /opt/hpe/ansible/support/library  > /dev/null 2>&1
+	#ln -s /opt/hpe/ansible/modules/block /opt/hpe/ansible/playbooks/block/library > /dev/null 2>&1
+	#ln -s /opt/hpe/ansible/modules/file  /opt/hpe/ansible/playbooks/file/library > /dev/null 2>&1
 	
-	ln -s /opt/hpe/ansible/module_utils  /opt/hpe/ansible/support/module_utils > /dev/null 2>&1
-	ln -s /opt/hpe/ansible/module_utils  /opt/hpe/ansible/playbooks/block/module_utils > /dev/null 2>&1
-	ln -s /opt/hpe/ansible/module_utils  /opt/hpe/ansible/playbooks/file/module_utils > /dev/null 2>&1
+	#ln -s /opt/hpe/ansible/module_utils  /opt/hpe/ansible/support/module_utils > /dev/null 2>&1
+	#ln -s /opt/hpe/ansible/module_utils  /opt/hpe/ansible/playbooks/block/module_utils > /dev/null 2>&1
+	#ln -s /opt/hpe/ansible/module_utils  /opt/hpe/ansible/playbooks/file/module_utils > /dev/null 2>&1
 
     export PATH=$PATH:/opt/hpe/ansible/bin
 	export HV_STORAGE_ANSIBLE_PROFILE=/opt/hpe/ansible/storage.json
@@ -269,20 +269,12 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
 	export HV_STORAGE_MGMT_VAR_LOG_PATH=/var/log
 	export HV_STORAGE_MGMT_PATH=/opt/hpe/ansible
 	export HV_STORAGE_JSON_PROPERTIES_FILE=/opt/hpe/ansible/storagejson.properties
-	export ANSIBLE_LIBRARY=/opt/hpe/ansible/modules/block:/opt/hpe/ansible/modules/file
-	export ANSIBLE_MODULE_UTILS=/opt/hpe/ansible/module_utils/
+	#export ANSIBLE_LIBRARY=/opt/hpe/ansible/modules/block:/opt/hpe/ansible/modules/file
+	#export ANSIBLE_MODULE_UTILS=/opt/hpe/ansible/module_utils/
 	
 	if [ -f /etc/profile.d/custom.sh ]; then
 	    #echo "file exists."
 	    echo 'export PATH=$PATH:/opt/hpe/ansible/bin' >>/etc/profile.d/custom.sh
-	    grep "ansible/modules/block" /etc/profile.d/custom.sh
-	    if [ $? -ne 0 ]; then
-	        echo "export ANSIBLE_LIBRARY=/opt/hpe/ansible/modules/block:/opt/hpe/ansible/modules/file" >>/etc/profile.d/custom.sh
-	    fi
-	    grep "ansible/module_utils" /etc/profile.d/custom.sh
-	    if [ $? -ne 0 ]; then
-	        echo "export ANSIBLE_MODULE_UTILS=/opt/hpe/ansible/module_utils/" >>/etc/profile.d/custom.sh
-	    fi
 	    grep "HV_STORAGE_ANSIBLE_PROFILE" /etc/profile.d/custom.sh
 	    if [ $? -ne 0 ]; then
 	        echo "export HV_STORAGE_ANSIBLE_PROFILE=/opt/hpe/ansible/storage.json"  >>/etc/profile.d/custom.sh		
@@ -302,8 +294,6 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
 	        echo "export HV_STORAGE_MGMT_VAR_LOG_PATH=/var/log"  >>/etc/profile.d/custom.sh		
 	    fi
 	else
-	    echo "export ANSIBLE_MODULE_UTILS=/opt/hpe/ansible/module_utils/"  >/etc/profile.d/custom.sh
-	    echo "export ANSIBLE_LIBRARY=/opt/hpe/ansible/modules/block:/opt/hpe/ansible/modules/file" >>/etc/profile.d/custom.sh
 	    echo "export HV_STORAGE_ANSIBLE_PATH=/opt/hpe/ansible"  >>/etc/profile.d/custom.sh		
 	    echo "export HV_STORAGE_ANSIBLE_LOG_PATH=/var/log"  >>/etc/profile.d/custom.sh		
 	    echo "export HV_STORAGE_ANSIBLE_PROFILE=/opt/hpe/ansible/storage.json"  >>/etc/profile.d/custom.sh		

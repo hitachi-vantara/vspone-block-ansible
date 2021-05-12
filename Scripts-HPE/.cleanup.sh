@@ -11,9 +11,6 @@ if [ $response -ne 0 ] && [ $response_o -ne 0 ] && [ "$1" != '-q' ]; then
      exit 1
 fi
 
-# Stop VI service.
-PROCESS_NUM=$(ps -ef | grep "VIService" | grep -v "grep" |  awk '{print $2}')
-#echo $PROCESS_NUM
-kill -9 $PROCESS_NUM
+
 
 rm -rf /opt/hpe/ansible
