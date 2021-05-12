@@ -116,6 +116,7 @@ cp -f -a /root/rpmbuild/logger.config $RPM_BUILD_ROOT/opt/hpe/ansible/
 cp -f -a /root/rpmbuild/messages.properties $RPM_BUILD_ROOT/opt/hpe/ansible/
 
 cp -f -a /root/rpmbuild/goDoLogin/storagejson-HPE.properties $RPM_BUILD_ROOT/opt/hpe/ansible/storagejson.properties
+cp -f -a /root/rpmbuild/goDoLogin/storagejson-HPE.properties $RPM_BUILD_ROOT/opt/hpe/ansible/bin/storagejson.properties
 
 # remove jar files for build to resolve blackduck report issues
 #rm -rf $RPM_BUILD_ROOT/opt/hpe/ansible/vi_service/VIService-ApacheLicense/lib/javalang-compiler-2.2.12.jar
