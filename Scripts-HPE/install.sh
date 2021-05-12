@@ -231,16 +231,16 @@ fi
 
 
 if [[ "$full_install" -eq 1 ]]; then
-	echo "Installation: Full" >> /opt/hpe/ansible/playbooks/block/version.txt
+	echo "Installation: Full" >> /opt/hpe/ansible/playbooks/version.txt
 fi 
 
 if [[ "$gateway_server_install_only" -eq 1 ]]; then
-	echo "Installation: Gateway Server only" >> /opt/hpe/ansible/playbooks/block/version.txt
+	echo "Installation: Gateway Server only" >> /opt/hpe/ansible/playbooks/version.txt
 	yes | ./.cleanup.sh -q >> /dev/null
 fi 
 
 if [[ "$ansible_modules_only" -eq 1 ]]; then
-	echo "Installation: Ansible Modules only" >> /opt/hpe/ansible/playbooks/block/version.txt
+	echo "Installation: Ansible Modules only" >> /opt/hpe/ansible/playbooks/version.txt
 	yes | ./.cleanup4amo.sh -q >> /dev/null
 fi 
 
