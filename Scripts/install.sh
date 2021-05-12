@@ -1,8 +1,8 @@
 #!/bin/bash
 
-gateway_server_install_only=0
-gateway_server_install_exclude=0
-storage_mgmt_server_install_exclude=0
+#gateway_server_install_only=0
+#gateway_server_install_exclude=0
+#storage_mgmt_server_install_exclude=0
 ansible_modules_only=0
 full_install=1
 is_source_subshell=0
@@ -41,8 +41,8 @@ usage()
 
 configAMOnly()
 {
-  gateway_server_install_exclude=1
-  storage_mgmt_server_install_exclude=1
+  #gateway_server_install_exclude=1
+  #storage_mgmt_server_install_exclude=1
   ansible_modules_only=1
   full_install=0
   echo "installing Ansible Modules only"  
@@ -50,8 +50,8 @@ configAMOnly()
 
 configGSOnly()
 {
-  gateway_server_install_only=1
-  storage_mgmt_server_install_exclude=1
+  #gateway_server_install_only=1
+  #storage_mgmt_server_install_exclude=1
   full_install=0
 }
 
@@ -79,19 +79,19 @@ done
 
 trap control_c SIGINT
 
-doPuma=1
-if [[ "$gateway_server_install_exclude" -eq 1 ]]; then
-  #echo exclude the Gateway Server 
-  doPuma=0
-fi
+# doPuma=1
+# if [[ "$gateway_server_install_exclude" -eq 1 ]]; then
+  # #echo exclude the Gateway Server 
+  # doPuma=0
+# fi
 
 doMgmtService=1
 doAnsibleModule=1
-if [[ "$gateway_server_install_only" -eq 1 ]]; then
-  #echo installing the Gateway Server only
-  doAnsibleModule=0
-  doMgmtService=0
-fi
+# if [[ "$gateway_server_install_only" -eq 1 ]]; then
+  # #echo installing the Gateway Server only
+  # doAnsibleModule=0
+  # doMgmtService=0
+# fi
 
 # Install dependency RPM
 rpm_file="/opt/hitachi/60EB41E9-71D5-4D5C-85E9-7E0BB76698ED.rpm"
@@ -287,44 +287,44 @@ if [[ "$ansible_modules_only" -eq 0 ]]; then
     fi
 fi
 
-if [[ "$gateway_server_install_only" -eq 0 ]]; then	
-	check_scp_install
-    response=`echo $?`
-    if [ $response -ne 0 ]; then
-      return 1
-    fi
+# if [[ "$gateway_server_install_only" -eq 0 ]]; then	
+	# check_scp_install
+    # response=`echo $?`
+    # if [ $response -ne 0 ]; then
+      # return 1
+    # fi
     
-	check_requests_install
-    response=`echo $?`
-    if [ $response -ne 0 ]; then
-      return 1
-    fi
+	# check_requests_install
+    # response=`echo $?`
+    # if [ $response -ne 0 ]; then
+      # return 1
+    # fi
         	
-fi
+# fi
 
-if [[ "$storage_mgmt_server_install_exclude" -eq 0 ]]; then	
+# if [[ "$storage_mgmt_server_install_exclude" -eq 0 ]]; then	
 
-	# check if dotnet-2.2 is installed	
-	check_dotnet_install
-    response=`echo $?`
-    if [ $response -ne 0 ]; then
-      return 1
-    fi
+	# # check if dotnet-2.2 is installed	
+	# check_dotnet_install
+    # response=`echo $?`
+    # if [ $response -ne 0 ]; then
+      # return 1
+    # fi
     	
-	# check if dotnet dev-certs https is installed
-	dotnet dev-certs https 
+	# # check if dotnet dev-certs https is installed
+	# dotnet dev-certs https 
 	
-	response=`echo $?`
-	if [ $response -ne 0 ]; then
-	        echo "dotnet dev-certs is not installed. please install using 'dotnet dev-certs https'."
-	        if [[ "$is_source_subshell" -eq 0 ]]; then
-	          exit 1
-	        else
-	          return 1
-	        fi
-	fi
+	# response=`echo $?`
+	# if [ $response -ne 0 ]; then
+	        # echo "dotnet dev-certs is not installed. please install using 'dotnet dev-certs https'."
+	        # if [[ "$is_source_subshell" -eq 0 ]]; then
+	          # exit 1
+	        # else
+	          # return 1
+	        # fi
+	# fi
 	
-fi
+# fi
 
 # check for previous version of the management service
 if rpm -qa | grep -qw '\(HV_Storage_\)\?Ansible'; then
@@ -356,12 +356,12 @@ fi
 
 # Install C# storage gateway webservice RPM for all installation type,
 # since we need all the files to be installed
-if [[ "$storage_mgmt_server_install_exclude" -eq 1 ]]; then
-    ## for ams/puma only, don't show that we extracting everything
-  	/usr/bin/rpm -Uvh HV_Storage_Ansible-02.1.0-1.el7.x86_64.rpm > /dev/null 2>&1
-else
-  	/usr/bin/rpm -Uvh HV_Storage_Ansible-02.1.0-1.el7.x86_64.rpm 
-fi
+# if [[ "$storage_mgmt_server_install_exclude" -eq 1 ]]; then
+    # ## for ams/puma only, don't show that we extracting everything
+  	# /usr/bin/rpm -Uvh HV_Storage_Ansible-02.1.0-1.el7.x86_64.rpm > /dev/null 2>&1
+# else
+  	/usr/bin/rpm -Uvh HV_Storage_Ansible-02.2.0-1.el7.x86_64.rpm 
+# fi
 
 response=`echo $?`
 if [ $response -ne 0 ]; then
@@ -386,62 +386,62 @@ if [[ "$ansible_modules_only" -eq 1 ]]; then
 	fi
 fi	
 
-if [[ "$doPuma" -eq 1 ]]; then
-	PROCESS_NUM=$(ps -ef | grep "puma" | grep -v "grep" | wc -l)
-	#echo $PROCESS_NUM
-	if [ "$PROCESS_NUM" -eq "0" ]; then
-	    if ! rpm -qa | grep -qw puma; then	        
-			install_dependency_server
-            response=`echo $?`
-		    if [ $response -ne 0 ]; then
-		      return 1
-		    fi
-	    fi
-	else
-	    echo "Un-installing dependency server."
-	    /usr/bin/rpm -e puma
-	    conf_file=/var/log/hitachi/pumaconf
-	    if [ -f "$conf_file" ]; then
-	       # delete the conf file
-	       /bin/rm -f  $conf_file
-	    fi
+# if [[ "$doPuma" -eq 1 ]]; then
+	# PROCESS_NUM=$(ps -ef | grep "puma" | grep -v "grep" | wc -l)
+	# #echo $PROCESS_NUM
+	# if [ "$PROCESS_NUM" -eq "0" ]; then
+	    # if ! rpm -qa | grep -qw puma; then	        
+			# install_dependency_server
+            # response=`echo $?`
+		    # if [ $response -ne 0 ]; then
+		      # return 1
+		    # fi
+	    # fi
+	# else
+	    # echo "Un-installing dependency server."
+	    # /usr/bin/rpm -e puma
+	    # conf_file=/var/log/hitachi/pumaconf
+	    # if [ -f "$conf_file" ]; then
+	       # # delete the conf file
+	       # /bin/rm -f  $conf_file
+	    # fi
 	
-	    # Install dependency server with the new version
-		install_dependency_server
-        response=`echo $?`
-	    if [ $response -ne 0 ]; then
-	      return 1
-	    fi    
+	    # # Install dependency server with the new version
+		# install_dependency_server
+        # response=`echo $?`
+	    # if [ $response -ne 0 ]; then
+	      # return 1
+	    # fi    
 	    
-	fi
+	# fi
 	
-	# get IP address of the local machine
-	ip_address=`ip addr | grep "^ *inet " | grep -v "vi" | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' `
+	# # get IP address of the local machine
+	# ip_address=`ip addr | grep "^ *inet " | grep -v "vi" | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p' `
 	
-	# generate new certificate and key for dependency service to work with the IP address.
-	./generate-cert.sh $ip_address 
+	# # generate new certificate and key for dependency service to work with the IP address.
+	# ./generate-cert.sh $ip_address 
 	
-	# generate puma.pem cert
-	echo quit | openssl s_client -showcerts -servername $ip_address -connect $ip_address:8444 > puma.pem
+	# # generate puma.pem cert
+	# echo quit | openssl s_client -showcerts -servername $ip_address -connect $ip_address:8444 > puma.pem
 	
-	yum install -y ca-certificates
-	response=`echo $?`
-	if [ $response -ne 0 ]; then
-	        echo "yum install -y ca-certificates command failed. Please install ca-certificates manually and run the script again."
-	        if [[ "$is_source_subshell" -eq 0 ]]; then
-	          exit 1
-	        else
-	          return 1
-	        fi
-	fi
+	# yum install -y ca-certificates
+	# response=`echo $?`
+	# if [ $response -ne 0 ]; then
+	        # echo "yum install -y ca-certificates command failed. Please install ca-certificates manually and run the script again."
+	        # if [[ "$is_source_subshell" -eq 0 ]]; then
+	          # exit 1
+	        # else
+	          # return 1
+	        # fi
+	# fi
 	
-	update-ca-trust force-enable
+	# update-ca-trust force-enable
 	
-	#echo "copy the certificate to ca-trust.."
-	cp -f puma.pem /etc/pki/ca-trust/source/anchors/
+	# #echo "copy the certificate to ca-trust.."
+	# cp -f puma.pem /etc/pki/ca-trust/source/anchors/
 	
-	update-ca-trust extract
-fi
+	# update-ca-trust extract
+# fi
 
 
 #remove the dependency RPM
@@ -453,10 +453,10 @@ if [[ "$full_install" -eq 1 ]]; then
 	echo "Installation: Full" >> /opt/hitachi/ansible/playbooks/version.txt
 fi 
 
-if [[ "$gateway_server_install_only" -eq 1 ]]; then
-	echo "Installation: Gateway Server only" >> /opt/hitachi/ansible/playbooks/version.txt
-	yes | ./.cleanup.sh -q >> /dev/null
-fi 
+# if [[ "$gateway_server_install_only" -eq 1 ]]; then
+	# echo "Installation: Gateway Server only" >> /opt/hitachi/ansible/playbooks/version.txt
+	# yes | ./.cleanup.sh -q >> /dev/null
+# fi 
 
 if [[ "$ansible_modules_only" -eq 1 ]]; then
 	echo "Installation: Ansible Modules only" >> /opt/hitachi/ansible/playbooks/version.txt

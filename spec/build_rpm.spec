@@ -111,10 +111,10 @@ cp -f -a /root/rpmbuild/goDoLogin/storagejson.properties $RPM_BUILD_ROOT/opt/hit
 #cp -f -a /root/rpmbuild/sdk_package/* $RPM_BUILD_ROOT/opt/hitachi/ansible/module_utils
 #rm -f                                 $RPM_BUILD_ROOT/opt/hitachi/ansible/module_utils/basic.py
 #cp -f -a /root/rpmbuild/VIService-ApacheLicense  $RPM_BUILD_ROOT/opt/hitachi/ansible/vi_service
-cp -f -a /root/rpmbuild/open_firewall_ports.sh  $RPM_BUILD_ROOT/opt/hitachi/ansible/storage_management_services
+#cp -f -a /root/rpmbuild/open_firewall_ports.sh  $RPM_BUILD_ROOT/opt/hitachi/ansible/storage_management_services
 cp -f -a /root/rpmbuild/logger.config $RPM_BUILD_ROOT/opt/hitachi/ansible/
 cp -f -a /root/rpmbuild/messages.properties $RPM_BUILD_ROOT/opt/hitachi/ansible/
-cp -f -a /root/rpmbuild/puma_external.sh  $RPM_BUILD_ROOT/opt/hitachi/ansible/storage_management_services
+#cp -f -a /root/rpmbuild/puma_external.sh  $RPM_BUILD_ROOT/opt/hitachi/ansible/storage_management_services
 #cp -f -a /root/rpmbuild/60EB41E9-71D5-4D5C-85E9-7E0BB76698ED.rpm  $RPM_BUILD_ROOT/opt/hitachi
 
 # remove jar files for build to resolve blackduck report issues

@@ -9,7 +9,7 @@ vro_ip=$1
 vro_user=$2
 vro_password=$3
 
-SUPPORT_FOLDER="/opt/hitachi/vro/support"
+SUPPORT_FOLDER="/opt/hitachi/ansible/support"
 
 #log and configuration folders:
 BASE_LOG_FOLDER="/var/log"
@@ -19,18 +19,18 @@ BASE_CONFIGURATION_FOLDER="/opt/hitachi/ansible"
 
 DATE=`date '+%m%d%Y_%H%M'`
 
-adapter_version="02.0.0"
+adapter_version="02.2.0"
 LOG_BUNDLE_NAME="hitachi_storage_ansible_"
 LOG_BUNDLE_NAME+=$adapter_version
 LOG_BUNDLE_NAME+="_log_bundle_"
 LOG_BUNDLE_NAME+=$DATE
 echo "LOG_BUNDLE_NAME is $LOG_BUNDLE_NAME"
 
-mkdir -p $SUPPORT_FOLDER/$LOG_BUNDLE_NAME/vro_service/
-mkdir -p $SUPPORT_FOLDER/$LOG_BUNDLE_NAME/vi_service/
-mkdir -p $SUPPORT_FOLDER/$LOG_BUNDLE_NAME/puma/
-mkdir -p $SUPPORT_FOLDER/$LOG_BUNDLE_NAME/configuration/vi_service/
-mkdir -p $SUPPORT_FOLDER/$LOG_BUNDLE_NAME/configuration/vro_service/
+# mkdir -p $SUPPORT_FOLDER/$LOG_BUNDLE_NAME/vro_service/
+# mkdir -p $SUPPORT_FOLDER/$LOG_BUNDLE_NAME/vi_service/
+# mkdir -p $SUPPORT_FOLDER/$LOG_BUNDLE_NAME/puma/
+# mkdir -p $SUPPORT_FOLDER/$LOG_BUNDLE_NAME/configuration/vi_service/
+# mkdir -p $SUPPORT_FOLDER/$LOG_BUNDLE_NAME/configuration/vro_service/
 
 # copy the logs
 cp -f -a $BASE_LOG_FOLDER/$HITACHI_LOG_FOLDER/vroservice*.*  $SUPPORT_FOLDER/$LOG_BUNDLE_NAME/vro_service/
