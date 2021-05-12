@@ -251,6 +251,8 @@ fi
 mkdir -p  ${Ansible_ROOT}/HPE_XP_Storage_Ansible
 
 cp -f  /root/rpmbuild/RPMS/x86_64/HPE_XP_Storage_Ansible-*.rpm  ${Ansible_ROOT}/Scripts-HPE/install.sh ${Ansible_ROOT}/Scripts-HPE/uninstall.sh ${Ansible_ROOT}/Scripts-HPE/.cleanup.sh  ${Ansible_ROOT}/Scripts-HPE/.cleanup4amo.sh ${Ansible_ROOT}/HPE_XP_Storage_Ansible
+
+cp -f ${Ansible_ROOT}/collections/ansible_collections/hpe/storage/hpe-xp_storage-2.2.0.tar.gz ${Ansible_ROOT}/HPE_Storage_Ansible
 cd $Ansible_ROOT
 
 # change permissions on the shell scripts
