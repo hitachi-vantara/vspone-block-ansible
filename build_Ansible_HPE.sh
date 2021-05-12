@@ -114,9 +114,9 @@ function CreateCollection
   mkdir ${Ansible_ROOT}/collections/ansible_collections/hpe/xp_storage/plugins/modules
   mkdir ${Ansible_ROOT}/collections/ansible_collections/hpe/xp_storage/plugins/module_utils
 
-  cp -rf ${Ansible_ROOT}/hi_python_sdk/modules/collections/block/* ${Ansible_ROOT}/collections/ansible_collections/hpe/xp_storage/plugins/modules
+  cp -rf ${Ansible_ROOT}/hi_python_sdk/modules/collections/block-hpe/* ${Ansible_ROOT}/collections/ansible_collections/hpe/xp_storage/plugins/modules
   
-  cp -rf ${Ansible_ROOT}/hi_python_sdk/sdk_package/collections/block/* ${Ansible_ROOT}/collections/ansible_collections/hpe/xp_storage/plugins/module_utils
+  cp -rf ${Ansible_ROOT}/hi_python_sdk/sdk_package/collections/block-hpe/* ${Ansible_ROOT}/collections/ansible_collections/hpe/xp_storage/plugins/module_utils
   
   cp ${Ansible_ROOT}/ansible/collection_playbooks/galaxy-hpe.yml ${Ansible_ROOT}/collections/ansible_collections/hpe/xp_storage/galaxy.yml
 	
