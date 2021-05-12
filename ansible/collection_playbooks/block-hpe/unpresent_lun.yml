@@ -1,0 +1,23 @@
+-
+  name: Testing Unpresent LUN
+  hosts: localhost
+  collections:
+    - hpe.xp_storage
+  gather_facts: false
+  vars:
+    - host_group_name: test-ansible-hg-1
+    - luns:
+      - 800
+      - 801
+    - storage_serial: 12345
+    - state: absent
+  tasks:
+    - hpe_hg:
+        state: present
+        storage_serial: '{{ storage_serial }}'
+        data:
+          state: '{{ state | default(None) }}'
+          name: '{{ host_group_name }}'
+          ports: '{{ ports | default(None) }}'
+          luns: '{{ luns }}'
+      register: result

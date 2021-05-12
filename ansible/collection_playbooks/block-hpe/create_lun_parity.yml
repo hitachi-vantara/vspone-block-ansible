@@ -1,0 +1,22 @@
+-
+  name: Create LUN In PG
+  hosts: localhost
+  collections:
+    - hpe.xp_storage
+  gather_facts: false
+  vars:
+    - parity_group: 1-1
+    - size: 3GB
+    - lun: 800
+    - storage_serial: 12345
+  tasks:
+    - hpe_lun:
+        state: present
+        storage_serial: '{{ storage_serial }}'
+        data:
+          parity_group: '{{ parity_group | default(None) }}'
+          size: '{{ size | default(None) }}'
+          name: '{{ name  | default(None) }}'
+          lun: '{{ lun | default(None) }}'
+      register: result
+    - debug: var=result

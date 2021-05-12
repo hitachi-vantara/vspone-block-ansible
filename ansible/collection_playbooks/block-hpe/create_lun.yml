@@ -1,0 +1,26 @@
+-
+  name: Testing Create LUN In DP
+  hosts: localhost
+  collections:
+    - hpe.xp_storage
+  gather_facts: false
+  vars:
+    - pool_id: 6
+    - size: 4GB
+    - storage_serial: 12345
+    - cap_saving:
+       - compression
+       - deduplication
+  tasks:
+    - hpe_lun:
+        state: present
+        storage_serial: '{{ storage_serial }}'
+        data:
+          storage_pool:
+            id: '{{ pool_id }}'
+          name: '{{ name  | default(omit) }}'
+          size: '{{ size }}'
+          lun: '{{ lun | default(None) }}'
+          cap_saving: '{{ cap_saving | default(None) }}'
+      register: result
+    - debug: var=result

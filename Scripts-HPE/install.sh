@@ -91,7 +91,7 @@ trap control_c SIGINT
   # #echo installing the Gateway Server only
   # doAnsibleModule=0
   # doMgmtService=0
-fi
+#fi
 
 # Install dependency RPM
 #rpm_file="/opt/hpe/60EB41E9-71D5-4D5C-85E9-7E0BB76698ED.rpm"
@@ -160,7 +160,7 @@ fi
 if [[ "$ansible_modules_only" -eq 0 ]]; then	
 	# check if Java is installed
 	# no need to check if ansible_modules_only (AMO)
-    check_java_install
+    #check_java_install
     response=`echo $?`
     if [ $response -ne 0 ]; then
       return 1
@@ -202,7 +202,7 @@ fi
     # ## for ams/puma only, don't show that we extracting everything
   	# /usr/bin/rpm -Uvh HPE_Storage_Ansible-2.0.0-1.el7.x86_64.rpm > /dev/null 2>&1
 # else
-  	/usr/bin/rpm -Uvh HPE_Storage_Ansible-2.2.0-1.el7.x86_64.rpm 
+  	/usr/bin/rpm -Uvh HPE_XP_Storage_Ansible-02.2.0-1.el7.x86_64.rpm 
 # fi
 
 response=`echo $?`
@@ -317,9 +317,7 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
        mkdir -p /var/log/hpe
        mkdir -p /var/log/hpe/ansible
        mkdir -p /var/log/hpe/ansible/support
-	
-			
-fi
+fi	
 
 if [[ "$is_source_subshell" -eq 1 ]]; then
     trap - SIGINT

@@ -1,5 +1,5 @@
 name:          HPE_XP_Storage_Ansible
-Version:       02.2.0
+Version:       2.2.0
 Release:       1%{?dist}
 Summary:       The Ansible modules allow the customer to run BLOCK and FILE storage playbooks.
 Vendor:        Hitachi Vantara
@@ -7,7 +7,7 @@ Vendor:        Hitachi Vantara
 Group:         Adapters 
 License:       hiAdapterLicense
 URL:           http://www.hitachivantara.com 
-Source0:       HPE_XP_Storage_Ansible-02.2.0.tar.gz        
+Source0:       HPE_XP_Storage_Ansible-2.2.0.tar.gz        
 BuildArch:     x86_64
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReqProv:   no 
@@ -96,7 +96,7 @@ install -d $RPM_BUILD_ROOT%{ansible_root_dir}/ansible
 #cp -f -a %{previous_sub_dir} $RPM_BUILD_ROOT%{ansible_root_dir}
 #cp -f -a /root/rpmbuild/Ansible/*  $RPM_BUILD_ROOT/opt/hpe/ansible/storage_management_services
 cp -f -a /root/rpmbuild/ansible/storage.json $RPM_BUILD_ROOT/opt/hpe/ansible/storage.json
-cp -f -a /root/rpmbuild/ansible/collection_playbooks/block/* $RPM_BUILD_ROOT/opt/hpe/ansible/playbooks
+cp -f -a /root/rpmbuild/ansible/collection_playbooks/block-hpe/* $RPM_BUILD_ROOT/opt/hpe/ansible/playbooks
 rm -f                                             $RPM_BUILD_ROOT/opt/hpe/ansible/playbooks/get_support_logs.yml
 cp -f -a /root/rpmbuild/ansible/collection_playbooks/block/get_support_logs.yml $RPM_BUILD_ROOT/opt/hpe/ansible/support
 cp -f -a /root/rpmbuild/uninstall.sh                                 $RPM_BUILD_ROOT/opt/hpe/ansible/support

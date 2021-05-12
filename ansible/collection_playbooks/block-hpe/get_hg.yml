@@ -1,0 +1,22 @@
+-
+  name: Testing Get Host Group
+  hosts: localhost
+  collections:
+    - hpe.xp_storage
+  gather_facts: false
+  vars:
+    - storage_serial: 12345
+    - hgName: test-ansible-hg-1
+    - ports:
+      - CL1-A
+      - CL2-B
+  tasks:
+    - hpe_hg_facts:
+        storage_serial: '{{ storage_serial }}'
+        data:
+          query: '{{ query | default(None) }}'
+          lun: '{{ lun | default(None) }}'
+          name: '{{ hgName | default(None) }}'
+          ports: '{{ ports | default(None) }}'
+      register: result
+    - debug: var=result.hostGroups
