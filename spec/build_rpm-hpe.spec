@@ -114,7 +114,7 @@ cp -f -a /root/rpmbuild/ansible/storage-HPE.json $RPM_BUILD_ROOT/opt/hpe/ansible
 #cp -f -a /root/rpmbuild/VIService-ApacheLicense  $RPM_BUILD_ROOT/opt/hpe/ansible/vi_service
 #cp -f -a /root/rpmbuild/open_firewall_ports.sh  $RPM_BUILD_ROOT/opt/hpe/ansible/storage_management_services
 cp -f -a /root/rpmbuild/logger.config $RPM_BUILD_ROOT/opt/hpe/ansible/
-cp -f -a /root/rpmbuild/logger-HPE.config $RPM_BUILD_ROOT/opt/hpe/ansible/logger.config
+cp -f -a /root/rpmbuild/logger_HPE.config $RPM_BUILD_ROOT/opt/hpe/ansible/logger.config
         
 cp -f -a /root/rpmbuild/messages.properties $RPM_BUILD_ROOT/opt/hpe/ansible/
 
