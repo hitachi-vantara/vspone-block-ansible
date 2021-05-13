@@ -201,7 +201,7 @@ cp -f ${Ansible_ROOT}/Scripts-HPE/.cleanup.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/Scripts-HPE/.cleanup4amo.sh /root/rpmbuild/
 #cp -f ${Ansible_ROOT}/Scripts/puma_external.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/logger.config /root/rpmbuild/
-cp -f ${Ansible_ROOT}/logger_HPE.config ${Ansible_ROOT}/logger.config
+cp -f ${Ansible_ROOT}/logger_HPE.config /root/rpmbuild/
 cp -f ${Ansible_ROOT}/messages.properties /root/rpmbuild/
 cp -rf ${Ansible_ROOT}/ansible /root/rpmbuild/
 cp -rf ${Ansible_ROOT}/goDoLogin /root/rpmbuild/
