@@ -1,10 +1,10 @@
 {
  "version": "2.0.0",
  "hpeAPIGatewayService": "10.10.57.30",
- "hpeAPIGatewayServicePort": "2023",
  "useOutOfBandConnection": "false",
  "sanStorageSystems": [
   {
+   "hpePeerService":"172.25.20.22",
    "useOutOfBandConnection": "false",
    "comment": "this useOutOfBandConnection is optional and overwrites the top level useOutOfBandConnection",
    "serialNumber": 20339,

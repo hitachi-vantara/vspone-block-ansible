@@ -1,14 +1,14 @@
 {
- "version": "02.1.0",
+ "version": "02.2.0",
  "vCenterIP": "10.10.57.10",
  "vCenterVMName": "CentOS_Mgmt",
  "vCenterVMHostIpAddress": "10.10.57.20",
  "vCenterCluster": "Cluster2",
  "hitachiAPIGatewayService": "10.10.57.30",
- "hitachiAPIGatewayServicePort": "2023",
  "useOutOfBandConnection": "false",
  "sanStorageSystems": [
   {
+   "hitachiPeerService":"172.25.20.22",
    "useOutOfBandConnection": "false",
    "comment": "this useOutOfBandConnection is optional and overwrites the top level useOutOfBandConnection",
    "serialNumber": 444044,
