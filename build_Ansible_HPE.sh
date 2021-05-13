@@ -49,7 +49,7 @@ function buildDoLogin
 	cd ${Ansible_ROOT}/GO_WORKSPACE/src/doLogin
 	go get -u github.com/BurntSushi/toml
 	go get -u github.com/magiconair/properties
-	go get github.com/iancoleman/orderedmap
+	go get -u gitlab.com/c0b/go-ordered-json
 	
 	/usr/local/go/bin/go build
 	
