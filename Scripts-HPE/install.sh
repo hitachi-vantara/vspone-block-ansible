@@ -196,6 +196,8 @@ if [[ "$ansible_modules_only" -eq 1 ]]; then
 	fi
 fi	
 
+check_requests_install
+
 # Install C# storage gateway webservice RPM for all installation type,
 # since we need all the files to be installed
 # if [[ "$storage_mgmt_server_install_exclude" -eq 1 ]]; then
@@ -286,7 +288,7 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
 	    fi
 		grep "HV_STORAGE_JSON_PROPERTIES_FILE" /etc/profile.d/custom.sh
 		if [ $? -ne 0 ]; then
-	       export HV_STORAGE_JSON_PROPERTIES_FILE=/opt/hpe/ansible/storagejson.properties  >>/etc/profile.d/custom.sh		
+	       echo "export HV_STORAGE_JSON_PROPERTIES_FILE=/opt/hpe/ansible/storagejson.properties"  >>/etc/profile.d/custom.sh		
 	    fi
 	    grep "HV_STORAGE_MGMT_PATH" /etc/profile.d/custom.sh
 	    if [ $? -ne 0 ]; then

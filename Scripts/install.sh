@@ -192,6 +192,7 @@ if [[ "$ansible_modules_only" -eq 1 ]]; then
 	fi
 fi	
 
+check_requests_install
 # Install C# storage gateway webservice RPM for all installation type,
 # since we need all the files to be installed
 # if [[ "$storage_mgmt_server_install_exclude" -eq 1 ]]; then
@@ -260,10 +261,7 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
 	    #if [ $? -ne 0 ]; then
 	        #echo "export ANSIBLE_LIBRARY=/opt/hitachi/ansible/modules/block:/opt/hitachi/ansible/modules/file" >>/etc/profile.d/custom.sh
 	    #fi
-	    grep "ansible/module_utils" /etc/profile.d/custom.sh
-	    if [ $? -ne 0 ]; then
-	        echo "export ANSIBLE_MODULE_UTILS=/opt/hitachi/ansible/module_utils/" >>/etc/profile.d/custom.sh
-	    fi
+	   
 	    grep "HV_STORAGE_ANSIBLE_PROFILE" /etc/profile.d/custom.sh
 	    if [ $? -ne 0 ]; then
 	        echo "export HV_STORAGE_ANSIBLE_PROFILE=/opt/hitachi/ansible/storage.json"  >>/etc/profile.d/custom.sh		
@@ -275,7 +273,7 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
 	    fi
 		grep "HV_STORAGE_JSON_PROPERTIES_FILE" /etc/profile.d/custom.sh
 		if [ $? -ne 0 ]; then
-	       export HV_STORAGE_JSON_PROPERTIES_FILE=/opt/hitachi/ansible/storagejson.properties  >>/etc/profile.d/custom.sh		
+	       echo "export HV_STORAGE_JSON_PROPERTIES_FILE=/opt/hitachi/ansible/storagejson.properties"  >>/etc/profile.d/custom.sh		
 	    fi
 	    grep "HV_STORAGE_MGMT_PATH" /etc/profile.d/custom.sh
 	    if [ $? -ne 0 ]; then
@@ -291,7 +289,7 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
 	    echo 'export PATH=$PATH:/opt/hitachi/ansible/bin' >>/etc/profile.d/custom.sh
         echo "export HV_STORAGE_MGMT_PATH=/opt/hitachi/ansible"  >>/etc/profile.d/custom.sh		
 	    echo "export HV_STORAGE_MGMT_VAR_LOG_PATH=/var/log"  >>/etc/profile.d/custom.sh	
-		echo " export HV_STORAGE_JSON_PROPERTIES_FILE=/opt/hitachi/ansible/storagejson.properties"  >>/etc/profile.d/custom.sh			
+		echo "export HV_STORAGE_JSON_PROPERTIES_FILE=/opt/hitachi/ansible/storagejson.properties"  >>/etc/profile.d/custom.sh			
 	fi
 	
 	   #need to mkdir for the -ngs case
