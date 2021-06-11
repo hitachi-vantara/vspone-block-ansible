@@ -33,7 +33,7 @@
           state: present
           name: '{{ host_group_name }}'
           ports: '{{ ports | default(omit) }}'
-          luns: '{{ [item.lun.Lun] | default(omit) }}'
+          luns: '{{ [item.lun.ldevId] | default(omit) }}'
       with_items: 
         - '{{ output.results }}'
       register: response
