@@ -3,17 +3,13 @@
  "vCenterIP": "10.10.57.10",
  "vCenterVMName": "CentOS_Mgmt",
  "vCenterVMHostIpAddress": "10.10.57.20",
- "vCenterCluster": "Cluster2",
  "hitachiAPIGatewayService": "10.10.57.30",
- "useOutOfBandConnection": "false",
  "sanStorageSystems": [
   {
    "hitachiPeerService":"172.25.20.22",
-   "useOutOfBandConnection": "false",
    "comment": "this useOutOfBandConnection is optional and overwrites the top level useOutOfBandConnection",
    "serialNumber": 444044,
    "svpIP": "10.10.57.50",
-   "controllerIP": "10.10.57.51",
    "comment1": "controllerIP is to create command devices",
    "comment2": "on Gx00/Fx00 storage systems",
    "poolId": 6,

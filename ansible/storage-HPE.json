@@ -1,11 +1,9 @@
 {
  "version": "2.2.0",
  "hpeAPIGatewayService": "10.10.57.30",
- "useOutOfBandConnection": "false",
  "sanStorageSystems": [
   {
    "hpePeerService":"172.25.20.22",
-   "useOutOfBandConnection": "false",
    "comment": "this useOutOfBandConnection is optional and overwrites the top level useOutOfBandConnection",
    "serialNumber": 20339,
    "svpIP": "172.25.47.54",
