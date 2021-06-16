@@ -10,7 +10,5 @@
     - hv_troubleshooting_facts:
         sanStorageSystems: '{{ sanStorageSystems }}'
         hitachiAPIGatewayService: '{{ hitachiAPIGatewayService }}'
-        hitachiAPIGatewayServicePort: '{{ hitachiAPIGatewayServicePort }}'
-        hitachiAPIGatewayServiceUser: '{{ hitachiAPIGatewayServiceUser }}'
       register: result
     - debug: var=result
