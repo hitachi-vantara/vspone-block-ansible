@@ -6,7 +6,6 @@
  "hitachiAPIGatewayService": "10.10.57.30",
  "sanStorageSystems": [
   {
-   "hitachiPeerService":"172.25.20.22",
    "comment": "this useOutOfBandConnection is optional and overwrites the top level useOutOfBandConnection",
    "serialNumber": 444044,
    "svpIP": "10.10.57.50",
