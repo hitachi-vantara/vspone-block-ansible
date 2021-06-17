@@ -297,6 +297,7 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
        mkdir -p /var/log/hitachi/ansible
        mkdir -p /var/log/hitachi/ansible/support
 	
+	ansible-galaxy collection install hitachi-storage-2.2.0.tar.gz -p ~/.ansible/collections --force
 			
 fi
 

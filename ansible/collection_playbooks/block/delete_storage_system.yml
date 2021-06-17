@@ -9,6 +9,6 @@
   tasks:
     - hv_storagesystem:
         storage_profile: '{{ storage_profile | default(omit) }}'
-        state: present
+        state: absent
       register: result
     - debug: var=result
