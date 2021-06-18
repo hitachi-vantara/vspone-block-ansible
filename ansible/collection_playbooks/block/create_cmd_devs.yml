@@ -4,12 +4,6 @@
   collections:
     - hitachi.storage
   gather_facts: false
-  vars:
-    vCenterVMName: ''
-    vCenterIP: ''
-    vCenterUser: ''
-    vCenterKey: ''
-    - NOTE: for security reason, remove the key after usage
   vars_files:
     - ./storage.json
   tasks:
@@ -17,10 +11,10 @@
         state : 'present'
         sanStorageSystems: '{{ sanStorageSystems }}'
         hitachiAPIGatewayService: '{{ hitachiAPIGatewayService }}'
-        hitachiAPIGatewayServiceUser: '{{ hitachiAPIGatewayServiceUser  | default(omit) }}'
         vCenterVMName: '{{ vCenterVMName | default(omit) }}'
         vCenterIP: '{{ vCenterIP | default(omit) }}'
         vCenterKey: '{{ vCenterKey | default(omit) }}'
+        vCenterCluster: '{{ vCenterCluster | default(omit) }}'
         vCenterUser: '{{ vCenterUser | default(omit) }}'
       register: result
     - debug: var=result
