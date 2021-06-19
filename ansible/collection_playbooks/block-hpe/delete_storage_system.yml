@@ -1,5 +1,5 @@
 -
-  name: Adding Storage System from storage.json
+  name: Deleting Storage System from storage.json
   hosts: localhost
   collections:
     - hpe.xp_storage
@@ -8,7 +8,7 @@
     - storage_profile: ../storage.json
   tasks:
     - hpe_storagesystem:
-        state: present
+        state: absent
         storage_profile: '{{ storage_profile | default(omit) }}'
       register: result
     - debug: var=result
