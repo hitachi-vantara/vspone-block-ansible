@@ -9,17 +9,13 @@
    "comment": "this useOutOfBandConnection is optional and overwrites the top level useOutOfBandConnection",
    "serialNumber": 444044,
    "svpIP": "10.10.57.50",
-   "comment1": "controllerIP is to create command devices",
-   "comment2": "on Gx00/Fx00 storage systems",
    "poolId": 6,
-   "comment3": "poolId is only required to create command devices"
+   "comment1": "poolId is only required to create command devices"
   },
   {
    "serialNumber": 444022,
    "svpIP": "10.10.57.60",
    "poolId": 18,
-   "hitachiPeerService": "10.10.57.70",
-   "comment": "If the command device in hitachiPeerService is different than hitachiAPIGatewayService."
   }
  ]
 }

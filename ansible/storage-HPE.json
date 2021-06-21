@@ -3,14 +3,9 @@
  "hpeAPIGatewayService": "10.10.57.30",
  "sanStorageSystems": [
   {
-   "hpePeerService":"172.25.20.22",
-   "comment": "this useOutOfBandConnection is optional and overwrites the top level useOutOfBandConnection",
    "serialNumber": 20339,
    "svpIP": "172.25.47.54",
-   "comment1": "controllerIP is to create command devices",
-   "comment2": "on Gx00/Fx00 storage systems",
-   "poolId": 6,
-   "comment3": "poolId is only required to create command devices"
+   "comment1": "on Gx00/Fx00 storage systems",
   }
  ]
 }
