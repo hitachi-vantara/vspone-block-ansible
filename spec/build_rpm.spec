@@ -100,6 +100,7 @@ cp -f -a /root/rpmbuild/ansible/collection_playbooks/block/* $RPM_BUILD_ROOT/opt
 rm -f                                             $RPM_BUILD_ROOT/opt/hitachi/ansible/playbooks/get_support_logs.yml
 cp -f -a /root/rpmbuild/ansible/collection_playbooks/block/get_support_logs.yml $RPM_BUILD_ROOT/opt/hitachi/ansible/support
 cp -f -a /root/rpmbuild/uninstall.sh                                 $RPM_BUILD_ROOT/opt/hitachi/ansible/support
+cp -f -a /root/rpmbuild/crdetails.sh                                 $RPM_BUILD_ROOT/opt/hitachi/ansible/support
 
 cp -f -a /root/rpmbuild/goDoLogin/.grains.sh $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
 cp -f -a /root/rpmbuild/goDoLogin/checkLoginConfigurations.sh $RPM_BUILD_ROOT/opt/hitachi/ansible/bin

@@ -100,6 +100,8 @@ cp -f -a /root/rpmbuild/ansible/collection_playbooks/block-hpe/* $RPM_BUILD_ROOT
 rm -f                                             $RPM_BUILD_ROOT/opt/hpe/ansible/playbooks/get_support_logs.yml
 cp -f -a /root/rpmbuild/ansible/collection_playbooks/block-hpe/get_support_logs.yml $RPM_BUILD_ROOT/opt/hpe/ansible/support
 cp -f -a /root/rpmbuild/uninstall.sh                                 $RPM_BUILD_ROOT/opt/hpe/ansible/support
+cp -f -a /root/rpmbuild/crdetails.sh                                 $RPM_BUILD_ROOT/opt/hpe/ansible/support
+
 
 cp -f -a /root/rpmbuild/goDoLogin/.grains.sh $RPM_BUILD_ROOT/opt/hpe/ansible/bin
 cp -f -a /root/rpmbuild/goDoLogin/checkLoginConfigurations.sh $RPM_BUILD_ROOT/opt/hpe/ansible/bin

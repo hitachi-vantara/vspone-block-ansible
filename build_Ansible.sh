@@ -199,6 +199,7 @@ cp -f ${Ansible_ROOT}/Scripts/create_log_bundle.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/Scripts/uninstall.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/Scripts/.cleanup.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/Scripts/.cleanup4amo.sh /root/rpmbuild/
+cp -f ${Ansible_ROOT}/Scripts/crdetails.sh /root/rpmbuild/
 #cp -f ${Ansible_ROOT}/Scripts/puma_external.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/logger.config /root/rpmbuild/
 cp -f ${Ansible_ROOT}/messages.properties /root/rpmbuild/

@@ -199,6 +199,7 @@ cp -f ${Ansible_ROOT}/Scripts-HPE/create_log_bundle.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/Scripts-HPE/uninstall.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/Scripts-HPE/.cleanup.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/Scripts-HPE/.cleanup4amo.sh /root/rpmbuild/
+cp -f ${Ansible_ROOT}/Scripts-HPE/crdetails.sh /root/rpmbuild/
 #cp -f ${Ansible_ROOT}/Scripts/puma_external.sh /root/rpmbuild/
 cp -f ${Ansible_ROOT}/logger.config /root/rpmbuild/
 cp -f ${Ansible_ROOT}/logger_HPE.config /root/rpmbuild/
