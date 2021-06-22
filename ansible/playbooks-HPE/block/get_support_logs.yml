@@ -8,7 +8,5 @@
     - hpe_troubleshooting_facts:
         sanStorageSystems: '{{ sanStorageSystems }}'
         hpeAPIGatewayService: '{{ hpeAPIGatewayService }}'
-        hpeAPIGatewayServicePort: '{{ hpeAPIGatewayServicePort }}'
-        hpeAPIGatewayServiceUser: '{{ hpeAPIGatewayServiceUser }}'
       register: result
     - debug: var=result

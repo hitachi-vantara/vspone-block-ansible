@@ -2,11 +2,11 @@ name:          HPE_Storage_Ansible
 Version:       2.2.0
 Release:       1%{?dist}
 Summary:       The Ansible modules allow the customer to run BLOCK and FILE storage playbooks.
-Vendor:        Hitachi Vantara
+Vendor:        Hewlett Packard Enterprise 
 
 Group:         Adapters 
 License:       hiAdapterLicense
-URL:           http://www.hitachivantara.com 
+URL:           http://www.hpe.com 
 Source0:       HPE_Storage_Ansible-2.2.0.tar.gz        
 BuildArch:     x86_64
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -98,7 +98,7 @@ install -d $RPM_BUILD_ROOT%{ansible_root_dir}/ansible
 cp -f -a /root/rpmbuild/ansible/storage.json $RPM_BUILD_ROOT/opt/hpe/ansible/storage.json
 cp -f -a /root/rpmbuild/ansible/collection_playbooks/block-hpe/* $RPM_BUILD_ROOT/opt/hpe/ansible/playbooks
 rm -f                                             $RPM_BUILD_ROOT/opt/hpe/ansible/playbooks/get_support_logs.yml
-cp -f -a /root/rpmbuild/ansible/collection_playbooks/block/get_support_logs.yml $RPM_BUILD_ROOT/opt/hpe/ansible/support
+cp -f -a /root/rpmbuild/ansible/collection_playbooks/block-hpe/get_support_logs.yml $RPM_BUILD_ROOT/opt/hpe/ansible/support
 cp -f -a /root/rpmbuild/uninstall.sh                                 $RPM_BUILD_ROOT/opt/hpe/ansible/support
 
 cp -f -a /root/rpmbuild/goDoLogin/.grains.sh $RPM_BUILD_ROOT/opt/hpe/ansible/bin
