@@ -2,7 +2,6 @@
  "version": "02.2.0",
  "vCenterIP": "10.10.57.10",
  "vCenterVMName": "CentOS_Mgmt",
- "vCenterVMHostIpAddress": "10.10.57.20",
  "hitachiAPIGatewayService": "10.10.57.30",
  "sanStorageSystems": [
   {
