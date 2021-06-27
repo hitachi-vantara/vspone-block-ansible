@@ -5,7 +5,7 @@
     - hpe.xp_storage
   gather_facts: false
   vars:
-    - storage_profile: ../storage.json
+    - storage_profile: /opt/hpe/ansible/storage.json
   tasks:
     - hpe_storagesystem:
         state: present
