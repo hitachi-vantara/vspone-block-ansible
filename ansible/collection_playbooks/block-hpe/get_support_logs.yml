@@ -5,7 +5,7 @@
     - hpe.xp_storage
   gather_facts: false
   vars_files:
-    - ./storage.json
+    - /opt/hpe/ansible/storage.json
   tasks:
     - hpe_troubleshooting_facts:
         sanStorageSystems: '{{ sanStorageSystems }}'

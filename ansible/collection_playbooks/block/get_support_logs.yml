@@ -5,7 +5,7 @@
     - hitachi.storage
   gather_facts: false
   vars_files:
-    - ./storage.json
+    - /opt/hitachi/ansible/storage.json
   tasks:
     - hv_troubleshooting_facts:
         sanStorageSystems: '{{ sanStorageSystems }}'
