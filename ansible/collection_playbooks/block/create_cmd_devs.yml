@@ -11,10 +11,9 @@
         state : 'present'
         sanStorageSystems: '{{ sanStorageSystems }}'
         hitachiAPIGatewayService: '{{ hitachiAPIGatewayService }}'
-        vCenterVMName: '{{ vCenterVMName | default(omit) }}'
-        vCenterIP: '{{ vCenterIP | default(omit) }}'
-        vCenterKey: '{{ vCenterKey | default(omit) }}'
-        vCenterCluster: '{{ vCenterCluster | default(omit) }}'
-        vCenterUser: '{{ vCenterUser | default(omit) }}'
+        vCenterVMName: '{{ vCenterVMName }}'
+        vCenterIP: '{{ vCenterIP }}'
+        vCenterKey: '{{ vCenterKey }}'
+        vCenterUser: '{{ vCenterUser }}'
       register: result
     - debug: var=result
