@@ -33,7 +33,7 @@ getCRs() {
 	echo "Getting CRDs and CRs in namespace $NAMESPACE domain $DOMAIN"
 
 	CRDS=$(kubectl api-resources --verbs=list --namespaced -o name | grep "$DOMAIN")
-	echo "$CRDS" > CRDs.list
+	echo "$CRDS" > k8s_info/CRDs.list
 
 	echo "Skipping CRDs that don't have CR running"
 
@@ -47,8 +47,8 @@ getCRs() {
 		fi
 
 		echo "Getting CR list of $i"
-		mkdir $i >/dev/null 2>&1
-		kubectl get -n $NAMESPACE $i > $i/$i.crs.list
+		mkdir k8s_info/$i >/dev/null 2>&1
+		kubectl get -n $NAMESPACE $i > k8s_info/$i/$i.crs.list
 
 		# skip facts on kubectl describe
 		if echo $FACTSLIST | grep "$i"  >/dev/null 2>&1
@@ -59,7 +59,7 @@ getCRs() {
 		for j in $CRS
 		do
 			echo "kubectl describe on CR: $i $j"
-			kubectl describe -n $NAMESPACE $i $j > $i/$j.yaml
+			kubectl describe -n $NAMESPACE $i $j > k8s_info/$i/$j.yaml
 			# kubectl get -n $NAMESPACE $i $j -o json > $i/$j.json
 		done
 	done
@@ -68,6 +68,7 @@ getCRs() {
 	echo
 }
 
+mkdir k8s_info
 NSP=${1:-"ucp"}
 DIR=${2:-"."}
 
@@ -77,3 +78,34 @@ DIR=${2:-"."}
 cd $DIR
 
 getCRs $NSP "ucp.hitachivantara.com"
+
+mkdir k8s_info/pods
+cd k8s_info/pods
+
+echo "kubectl get pods -n ucp"
+kubectl get pods -n ucp > pods.txt
+
+for n in $(kubectl get pods -n ucp | awk -F 'NAME' '{print $1}' | awk '{ print $1 }')
+do
+    echo "kubectl describe pod $n -n ucp"
+	kubectl describe pod $n -n ucp > $n.txt
+    # do something on $n below, say count line numbers
+    # wc -l "$n"
+done
+
+cd ..
+
+echo "collecting memory info"
+cat /proc/meminfo > memory_info.txt
+
+free -h > memory_info_1.txt
+
+echo "collecting cpu usage"
+top -n 1 > cpu_usage.txt
+
+cd ..
+
+tar -czvf k8s_info.tar.gz k8s_info
+rm -rf k8s_info
+echo
+echo "Done collecting info"
