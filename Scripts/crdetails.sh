@@ -98,6 +98,8 @@ cd ..
 echo "collecting memory info"
 cat /proc/meminfo > memory_info.txt
 
+df -h > disk_info.txt
+
 free -h > memory_info_1.txt
 
 echo "collecting cpu usage"

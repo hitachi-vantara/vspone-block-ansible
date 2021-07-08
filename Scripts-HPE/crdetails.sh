@@ -100,6 +100,8 @@ cat /proc/meminfo > memory_info.txt
 
 free -h > memory_info_1.txt
 
+df -h > disk_info.txt
+
 echo "collecting cpu usage"
 top -n 1 > cpu_usage.txt
 
