@@ -5,21 +5,3 @@
 	path = goDoLogin
 	url = https://gpse-git.hitachivantara.com/scm/external/hi_login.git
 
-#[submodule "common/hiEULA"]
-#	path = common/hiEULA
-#	url = https://gpse-git.hitachivantara.com/scm/external/hi_eula.git
-#[submodule "common/packages"]
-#	path = common/packages
-#	url = https://gpse-git.hitachivantara.com/scm/external/hi_packages.git
-##[submodule "HivROMultiPlatformWebService"]
-#	path = HivROMultiPlatformWebService
-#	url = https://gpse-git.hitachivantara.com/scm/external/hi_platform_web_service.git
-#[submodule "common/Histor_Dist"]
-#	path = common/Histor_Dist
-#	url = https://gpse-git.hitachivantara.com/scm/external/histor_release.git
-#[submodule "common/hiAloPlatform"]
-#	path = common/hiAloPlatform
-#	url = https://gpse-git.hitachivantara.com/scm/external/hi_alo_platform.git
-#[submodule "Installer/Utilities"]
-#	path = Installer/Utilities
-#	url = https://gpse-git.hitachivantara.com/scm/external/hi_viservice.git
