@@ -105,6 +105,10 @@ df -h > disk_info.txt
 echo "collecting cpu usage"
 top -n 1 > cpu_usage.txt
 
+
+sdi=$(kubectl get pods -n ucp | awk -F 'NAME' '{print $1}' | awk '{ print $1 }' | grep sdi-gateway)
+kubectl -n ucp  exec -it $sdi -- /usr/sbin/fdisk -l > gateway_cmd_dev.txt
+
 cd ..
 
 tar -czvf k8s_info.tar.gz k8s_info

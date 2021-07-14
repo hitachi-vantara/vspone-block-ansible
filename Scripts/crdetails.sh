@@ -25,6 +25,8 @@ storagepoolfacts.ucp.hitachivantara.com
 storageportfacts.ucp.hitachivantara.com
 storagesystemfacts.ucp.hitachivantara.com
 vsanfacts.ucp.hitachivantara.com
+generatelogbundles.ucp.hitachivantara.com
+getalllogbundleinfoes.ucp.hitachivantara.com
 "
 
 getCRs() {
@@ -104,6 +106,9 @@ free -h > memory_info_1.txt
 
 echo "collecting cpu usage"
 top -n 1 > cpu_usage.txt
+
+sdi=$(kubectl get pods -n ucp | awk -F 'NAME' '{print $1}' | awk '{ print $1 }' | grep sdi-gateway)
+kubectl -n ucp  exec -it $sdi -- /usr/sbin/fdisk -l > gateway_cmd_dev.txt
 
 cd ..
 
