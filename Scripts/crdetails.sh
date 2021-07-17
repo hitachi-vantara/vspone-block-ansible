@@ -100,15 +100,17 @@ cd ..
 echo "collecting memory info"
 cat /proc/meminfo > memory_info.txt
 
-df -h > disk_info.txt
-
 free -h > memory_info_1.txt
+
+df -h > disk_info.txt
 
 echo "collecting cpu usage"
 top -n 1 > cpu_usage.txt
 
-sdi=$(kubectl get pods -n ucp | awk -F 'NAME' '{print $1}' | awk '{ print $1 }' | grep sdi-gateway)
-kubectl -n ucp  exec -it $sdi -- /usr/sbin/fdisk -l > gateway_cmd_dev.txt
+sdi=$(kubectl get pods -n ucp | awk -F 'NAME' '{print $1}' | awk '{ print $1 }' | grep sdi-gateway-block)
+kubectl -n ucp  exec -it $sdi -- /usr/sbin/fdisk -l > gateway_dev.txt
+
+kubectl exec -it $sdi -n ucp -- bash -c "ls /dev/sd* | /HORCM/usr/bin/inqraid -CLI -fx" > gateway_cmd_dev.txt
 
 cd ..
 
