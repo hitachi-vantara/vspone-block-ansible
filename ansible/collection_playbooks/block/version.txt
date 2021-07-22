@@ -1,3 +1,3 @@
-version 02.1.0
-svn branch: Ansible-02.1.0
+version 02.2.0
+svn branch: Ansible-02.2.0
 
