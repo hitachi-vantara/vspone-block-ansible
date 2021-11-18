@@ -1,5 +1,5 @@
 -
-  name: Testing Get LUN
+  name: Testing Get All LUNs
   hosts: localhost
   collections:
     - hpe.xp_storage
