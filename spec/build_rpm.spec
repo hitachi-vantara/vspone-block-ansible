@@ -1,5 +1,5 @@
 name:          HV_Storage_Ansible
-Version:       02.2.0
+Version:       02.3.1
 Release:       1%{?dist}
 Summary:       The Ansible modules allow the customer to run BLOCK and FILE storage playbooks.
 Vendor:        Hitachi Vantara

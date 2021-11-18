@@ -19,7 +19,7 @@ BASE_CONFIGURATION_FOLDER="/opt/hitachi/ansible"
 
 DATE=`date '+%m%d%Y_%H%M'`
 
-adapter_version="02.2.0"
+adapter_version="02.3.1"
 LOG_BUNDLE_NAME="hitachi_storage_ansible_"
 LOG_BUNDLE_NAME+=$adapter_version
 LOG_BUNDLE_NAME+="_log_bundle_"
