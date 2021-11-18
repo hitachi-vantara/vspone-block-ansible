@@ -7,7 +7,7 @@ Vendor:        Hitachi Vantara
 Group:         Adapters 
 License:       hiAdapterLicense
 URL:           http://www.hitachivantara.com 
-Source0:       HV_Storage_Ansible-02.2.0.tar.gz        
+Source0:       HV_Storage_Ansible-02.3.1.tar.gz        
 BuildArch:     x86_64
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReqProv:   no 
