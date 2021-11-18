@@ -253,7 +253,7 @@ mkdir -p  ${Ansible_ROOT}/HV_Storage_Ansible
 
 cp -f  /root/rpmbuild/RPMS/x86_64/HV_Storage_Ansible-*.rpm  ${Ansible_ROOT}/Scripts/install.sh ${Ansible_ROOT}/Scripts/uninstall.sh ${Ansible_ROOT}/Scripts/.cleanup.sh  ${Ansible_ROOT}/Scripts/.cleanup4amo.sh ${Ansible_ROOT}/HV_Storage_Ansible
 
-cp -f ${Ansible_ROOT}/collections/ansible_collections/hitachi/storage/hitachi-storage-2.2.0.tar.gz ${Ansible_ROOT}/HV_Storage_Ansible
+cp -f ${Ansible_ROOT}/collections/ansible_collections/hitachi/storage/hitachi-storage-2.3.1.tar.gz ${Ansible_ROOT}/HV_Storage_Ansible
 
 cd $Ansible_ROOT
 
