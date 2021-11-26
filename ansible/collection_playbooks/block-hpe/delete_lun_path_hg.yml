@@ -2,7 +2,7 @@
   name: Testing Delete LUN Path
   hosts: localhost
   collections:
-    - hitachi.storage
+    - hpe.xp_storage
   gather_facts: false
   vars:
     - host_group_name: hg_xyz
@@ -12,7 +12,7 @@
     - luns: 
       - 333
   tasks:
-    - hv_hg:
+    - hpe_hg:
         state: present
         storage_serial: '{{ storage_serial }}'
         data:
