@@ -5,6 +5,7 @@
   {
    "serialNumber": 20339,
    "svpIP": "172.25.47.54",
+   "hpeAPIStorageGatewayService":"10.20.56.55"
   }
  ]
 }

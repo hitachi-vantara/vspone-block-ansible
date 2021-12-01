@@ -7,13 +7,14 @@
   {
    "serialNumber": 444044,
    "svpIP": "10.10.57.50",
+   "hitachiAPIStorageGatewayService":"10.20.56.55",
    "poolId": 6,
    "comment1": "poolId is only required to create command devices"
   },
   {
    "serialNumber": 444022,
    "svpIP": "10.10.57.60",
-   "poolId": 18,
+   "poolId": 18
   }
  ]
 }
