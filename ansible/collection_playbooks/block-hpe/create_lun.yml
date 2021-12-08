@@ -8,6 +8,7 @@
     - pool_id: 6
     - size: 4GB
     - storage_serial: 12345
+    - lun_name: testsn
     - cap_saving:
        - compression
        - deduplication
@@ -18,7 +19,7 @@
         data:
           storage_pool:
             id: '{{ pool_id }}'
-          name: '{{ name  | default(omit) }}'
+          name: '{{ lun_name  | default(omit) }}'
           size: '{{ size }}'
           lun: '{{ lun | default(None) }}'
           cap_saving: '{{ cap_saving | default(None) }}'
