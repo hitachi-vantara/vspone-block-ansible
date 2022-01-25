@@ -10,7 +10,7 @@
   tasks:
     - hv_storagepool_facts:
         storage_serial: '{{ storage_serial  | default(None) }}'
-        pool_name: '{{ pool_name: | default(omit) }}'
+        pool_name: '{{ pool_name | default(omit) }}'
       register: result
     - debug: var=result
 
