@@ -19,5 +19,5 @@
           deplecation_threshold_rate: '{{ deplecation_threshold_rate | default(None)}}'
           warning_threshold_rate: '{{ warning_threshold_rate | default(None)}}'
       register: result
-    - debug: var=result.hostGroups
+    - debug: var=result.storagePool
 
