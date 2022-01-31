@@ -1,0 +1,23 @@
+-
+  name: Create Storage Pool
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - storage_pool_name: test-pool
+    - type: HDP
+    - deplecation_threshold_rate: 80
+    - warning_threshold_rate: 70
+    - storage_serial: 12345
+  tasks:
+    - hv_storagepool:
+        storage_serial: '{{ storage_serial }}'
+        data:
+          storage_pool_name: '{{ storage_pool_name }}'
+          type: '{{ type }}'
+          deplecation_threshold_rate: '{{ deplecation_threshold_rate | default(None)}}'
+          warning_threshold_rate: '{{ warning_threshold_rate | default(None)}}'
+      register: result
+    - debug: var=result.hostGroups
+
