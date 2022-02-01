@@ -1,0 +1,17 @@
+-
+  name: Testing Delete Storage Pool
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - storage_pool_id: storagepool-c35f5d0a7940e2ba8027d596e4
+    - storage_serial: 12345
+  tasks:
+    - hv_storagepool:
+        state: absent
+        storage_serial: '{{ storage_serial }}'
+        data:
+          storage_pool_id: '{{ storage_pool_id }}'
+      register: result
+    - debug: var=result

@@ -12,6 +12,7 @@
     - storage_serial: 12345
   tasks:
     - hv_storagepool:
+        state: present
         storage_serial: '{{ storage_serial }}'
         data:
           storage_pool_name: '{{ storage_pool_name }}'
