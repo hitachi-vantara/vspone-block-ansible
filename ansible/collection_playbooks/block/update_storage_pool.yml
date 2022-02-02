@@ -7,7 +7,7 @@
   vars:
     - pool_volumes: 
         capacity: 20GB
-        parityGroupId: 12345
+        parityGroupId: 1-1
   tasks:
     - hv_storagepool:
         state: present

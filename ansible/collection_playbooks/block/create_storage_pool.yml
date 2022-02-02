@@ -9,6 +9,9 @@
     - type: HDP
     - deplecation_threshold_rate: 80
     - warning_threshold_rate: 70
+    - pool_volumes: 
+        capacity: 20GB
+        parityGroupId: 1-1
     - storage_serial: 12345
   tasks:
     - hv_storagepool:
@@ -19,6 +22,7 @@
           type: '{{ type }}'
           deplecation_threshold_rate: '{{ deplecation_threshold_rate | default(None)}}'
           warning_threshold_rate: '{{ warning_threshold_rate | default(None)}}'
+          pool_volumes: '{{ pool_volumes }}'
       register: result
     - debug: var=result.storagePool
 
