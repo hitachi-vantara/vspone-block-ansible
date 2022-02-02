@@ -6,11 +6,11 @@
   gather_facts: false
   vars:
     - storage_serial: 123456
-    - pool_name: test_storage_pool
+    - storage_pool_id: storagepool-c244dec065003ab5ee83bd8d02588b6b
   tasks:
     - hv_storagepool_facts:
         storage_serial: '{{ storage_serial  | default(None) }}'
-        pool_name: '{{ pool_name | default(omit) }}'
+        storage_pool_id: '{{ storage_pool_id | default(omit) }}'
       register: result
     - debug: var=result
 

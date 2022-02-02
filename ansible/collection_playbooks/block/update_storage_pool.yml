@@ -1,0 +1,19 @@
+-
+  name: Update Storage Pool 
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - pool_volumes: 
+        capacity: 20GB
+        parityGroupId: 12345
+  tasks:
+    - hv_storagepool:
+        state: present
+        storage_serial: '{{ storage_serial }}'
+        data:
+          pool_volumes: '{{ pool_volumes }}'
+      register: result
+    - debug: var=result.storagePool
+
