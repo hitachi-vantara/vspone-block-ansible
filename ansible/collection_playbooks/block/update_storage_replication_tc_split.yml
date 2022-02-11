@@ -1,11 +1,11 @@
 -
-  name: Update Storage Pool deduplication
+  name: Split TrueCopy Storage Replication
   hosts: localhost
   collections:
     - hitachi.storage
   gather_facts: false
   vars:
-    - enable_deduplication: true
+    - repl_pair_id: replpair-447d3c6954efb460e6f47e331615176f
     - storage_pool_id: storagepool-c244dec065003ab5ee83bd8d02588b6b
     - storage_serial: 12345
   tasks:
@@ -15,8 +15,8 @@
         action_type: split
         storage_serial: '{{ storage_serial }}'
         data:
-          enable_deduplication: '{{ enable_deduplication }}'
-          storage_pool_id: '{{ storage_pool_id | default(omit) }}'
+          storage_pool_id: '{{ storage_pool_id }}'
+          repl_pair_id: '{{ repl_pair_id }}'
       register: result
-    - debug: var=result.storagePool
+    - debug: var=result
 
