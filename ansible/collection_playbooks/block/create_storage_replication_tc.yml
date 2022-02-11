@@ -1,5 +1,8 @@
-- name: Create TrueCopy storage replication
+-
+  name: Create TrueCopy storage replication
   hosts: localhost
+  collections:
+    - hitachi.storage
   gather_facts: false
   vars:
     - primary_lun_id: 123
@@ -20,18 +23,19 @@
         resourceGroupID: 0
     - storage_serial: 12345
   tasks:
-    - hv_storagereplication:
+    - hv_storage_replication:
         state: present
         copy_type: tc
         storage_serial: '{{ storage_serial }}'
         data:
-         primary_lun_id: '{{ primary_lun_id | default(omit)}}'
-         primary_serial_no: '{{ primary_serial_no | default(None)}}'
-         primary_ucp_system: '{{ primary_ucp_system }}'
-         primary_host_group: '{{ primary_host_group | default(None)}}'
-         secondary_pool_id: '{{ secondary_pool_id | default(omit)}}'
-         secondary_ucp_system: '{{ secondary_ucp_system | default(None)}}'
-         secondary_serial_no: '{{ secondary_serial_no }}'
-         secondary_host_group: '{{ secondary_host_group | default(None)}}'
+          primary_lun_id: '{{ primary_lun_id | default(omit)}}'
+          primary_serial_no: '{{ primary_serial_no | default(None)}}'
+          primary_ucp_system: '{{ primary_ucp_system }}'
+          primary_host_group: '{{ primary_host_group | default(None)}}'
+          secondary_pool_id: '{{ secondary_pool_id | default(omit)}}'
+          secondary_ucp_system: '{{ secondary_ucp_system | default(None)}}'
+          secondary_serial_no: '{{ secondary_serial_no }}'
+          secondary_host_group: '{{ secondary_host_group | default(None)}}'
       register: result
-    - debug: var=result.storageReplication
+    - debug: var=result
+

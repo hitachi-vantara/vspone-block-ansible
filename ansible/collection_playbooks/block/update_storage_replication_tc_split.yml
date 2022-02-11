@@ -9,8 +9,10 @@
     - storage_pool_id: storagepool-c244dec065003ab5ee83bd8d02588b6b
     - storage_serial: 12345
   tasks:
-    - hv_storagepool:
+    - hv_storage_replication:
         state: present
+        copy_type: tc
+        action_type: split
         storage_serial: '{{ storage_serial }}'
         data:
           enable_deduplication: '{{ enable_deduplication }}'
