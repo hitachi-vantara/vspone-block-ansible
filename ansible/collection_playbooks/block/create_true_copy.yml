@@ -8,11 +8,6 @@
     - primary_lun_id: 6
     - primary_serial_no: 21321
     - primary_ucp_system: LOGICAL-ucp-21321
-    - primary_host_group:
-       - hostGroupID: 1
-       - name: testTC
-       - port: 5
-       - resourceGroupID: 0
     - secondary_pool_id: 6
     - secondary_ucp_system: 0.07GB
     - secondary_serial_no: 123456
@@ -30,7 +25,6 @@
           primary_lun_id: '{{ primary_lun_id | default(None) }}'
           primary_serial_no: '{{ primary_serial_no  | default(None) }}'
           primary_ucp_system: '{{ primary_ucp_system | default(None) }}'
-          primary_host_group: '{{ primary_host_group | default(None) }}'
           secondary_pool_id: '{{ secondary_pool_id | default(None) }}'
           secondary_ucp_system: '{{ secondary_ucp_system  | default(None) }}'
           secondary_serial_no: '{{ secondary_serial_no | default(None) }}'
