@@ -1,27 +1,28 @@
 -
-  name: Testing Create TC In SP
+  name: Create TrueCopy storage replication
   hosts: localhost
   collections:
     - hitachi.storage
   gather_facts: false
   vars:
-    - primary_lun_id: 6
-    - primary_serial_no: 21321
-    - primary_ucp_system: LOGICAL-ucp-21321
-    - secondary_pool_id: 6
-    - secondary_ucp_system: 0.07GB
-    - secondary_serial_no: 123456
+    - primary_lun_id: 121
+    - primary_serial_no: 511309
+    - primary_ucp_system: LOGICAL-ucp-11309
+    - secondary_pool_id: 9
+    - secondary_ucp_system: LOGICAL-ucp-11308
+    - secondary_serial_no: 511308
     - secondary_host_group:
-       - hostGroupID: 2
-       - name: testTC2
-       - port: 5
-       - resourceGroupID: 0
-    - storage_serial: 12345
+        - hg_id: 2
+        - name: testTC2
+        - port: CL1-A
+        - resource_group_id: 0
+    - storage_serial: 21321
   tasks:
     - hv_storagereplication:
-        state: present
-        storage_serial: '{{ storage_serial }}'
-        data:
+      state: present
+      copy_type: tc
+      storage_serial: '{{ storage_serial }}'
+      data:
           primary_lun_id: '{{ primary_lun_id | default(None) }}'
           primary_serial_no: '{{ primary_serial_no  | default(None) }}'
           primary_ucp_system: '{{ primary_ucp_system | default(None) }}'
@@ -30,4 +31,4 @@
           secondary_serial_no: '{{ secondary_serial_no | default(None) }}'
           secondary_host_group: '{{ secondary_host_group | default(None) }}'
       register: result
-    - debug: var=result
+    - debug: var=result.storageReplication
