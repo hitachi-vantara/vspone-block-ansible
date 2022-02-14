@@ -5,24 +5,24 @@
     - hitachi.storage
   gather_facts: false
   vars:
-    - primary_lun_id: 121
-    - primary_serial_no: 511309
-    - primary_ucp_system: LOGICAL-ucp-11309
+    - primary_lun_id: 1791
+    - primary_serial_no: 611039
+    - primary_ucp_system: Logical-UCP-11039
     - secondary_pool_id: 9
-    - secondary_ucp_system: LOGICAL-ucp-11308
-    - secondary_serial_no: 511308
+    - secondary_ucp_system: Logicl-UCP-11032
+    - secondary_serial_no: 611302
     - secondary_host_group:
-        - hg_id: 2
-        - name: testTC2
+        - hg_id: 42
+        - name: test-ansible-hg-tc-32-1
         - port: CL1-A
         - resource_group_id: 0
-    - storage_serial: 21321
+    - storage_serial: 611309
   tasks:
     - hv_storagereplication:
-      state: present
-      copy_type: tc
-      storage_serial: '{{ storage_serial }}'
-      data:
+        state: present
+        copy_type: tc
+        storage_serial: '{{ storage_serial }}'
+        data:
           primary_lun_id: '{{ primary_lun_id | default(None) }}'
           primary_serial_no: '{{ primary_serial_no  | default(None) }}'
           primary_ucp_system: '{{ primary_ucp_system | default(None) }}'
