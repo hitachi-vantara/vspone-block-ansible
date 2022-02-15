@@ -6,7 +6,6 @@
   gather_facts: false
   vars:
     - primary_lun_id: 1791
-    - primary_serial_no: 611039
     - primary_ucp_system: Logical-UCP-11039
     - secondary_pool_id: 9
     - secondary_ucp_system: Logicl-UCP-11032
@@ -24,7 +23,6 @@
         storage_serial: '{{ storage_serial }}'
         data:
           primary_lun_id: '{{ primary_lun_id | default(None) }}'
-          primary_serial_no: '{{ primary_serial_no  | default(None) }}'
           primary_ucp_system: '{{ primary_ucp_system | default(None) }}'
           secondary_pool_id: '{{ secondary_pool_id | default(None) }}'
           secondary_ucp_system: '{{ secondary_ucp_system  | default(None) }}'
