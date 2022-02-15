@@ -199,7 +199,7 @@ check_requests_install
     # ## for ams/puma only, don't show that we extracting everything
   	# /usr/bin/rpm -Uvh HV_Storage_Ansible-02.1.0-1.el7.x86_64.rpm > /dev/null 2>&1
 # else
-  	/usr/bin/rpm -Uvh HV_Storage_Ansible-02.3.0.1-1.el7.x86_64.rpm 
+  	/usr/bin/rpm -Uvh HV_Storage_Ansible-02.3.0.2-1.el7.x86_64.rpm 
 # fi
 
 response=`echo $?`
@@ -297,7 +297,7 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
        mkdir -p /var/log/hitachi/ansible
        mkdir -p /var/log/hitachi/ansible/support
 	
-	ansible-galaxy collection install hitachi-storage-2.3.0.1.tar.gz -p ~/.ansible/collections --force
+	ansible-galaxy collection install hitachi-storage-2.3.0.2.tar.gz -p ~/.ansible/collections --force
 			
 fi
 

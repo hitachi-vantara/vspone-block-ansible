@@ -1,7 +1,7 @@
 #!/bin/bash
 # Make sure these two variables are correct
 Ansible_ROOT=$(pwd)
-Ansible_VER=HPE_Storage_Ansible-2.3.0.1
+Ansible_VER=HPE_Storage_Ansible-2.3.0.2
 
 MasterProject="HivROMultiPlatformWebService/HivROMultiPlatformWebService.Ans.csproj"
 #ProductionOutDir=${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService
@@ -254,7 +254,7 @@ mkdir -p  ${Ansible_ROOT}/HPE_Storage_Ansible
 
 cp -f  /root/rpmbuild/RPMS/x86_64/HPE_Storage_Ansible-*.rpm  ${Ansible_ROOT}/Scripts-HPE/install.sh ${Ansible_ROOT}/Scripts-HPE/uninstall.sh ${Ansible_ROOT}/Scripts-HPE/.cleanup.sh  ${Ansible_ROOT}/Scripts-HPE/.cleanup4amo.sh ${Ansible_ROOT}/HPE_Storage_Ansible
 
-cp -f ${Ansible_ROOT}/collections/ansible_collections/hpe/xp_storage/hpe-xp_storage-2.3.0.1.tar.gz ${Ansible_ROOT}/HPE_Storage_Ansible
+cp -f ${Ansible_ROOT}/collections/ansible_collections/hpe/xp_storage/hpe-xp_storage-2.3.0.2.tar.gz ${Ansible_ROOT}/HPE_Storage_Ansible
 cd $Ansible_ROOT
 
 # change permissions on the shell scripts
