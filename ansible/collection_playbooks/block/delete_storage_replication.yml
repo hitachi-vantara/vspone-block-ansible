@@ -1,0 +1,19 @@
+-
+  name: Testing Delete Storage Replication 
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - repl_pair_id: replpair-447d3c6954efb460e6f47e331615176f
+    - storage_serial: 12345
+  tasks:
+    - hv_storagereplication:
+        state: absent
+        copy_type: tc
+        storage_serial: '{{ storage_serial }}'
+        data:
+          storage_pool_id: '{{ storage_pool_id }}'
+          repl_pair_id: '{{ repl_pair_id }}'
+      register: result
+    - debug: var=result
