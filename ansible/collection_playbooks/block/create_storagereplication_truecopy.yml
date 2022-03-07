@@ -1,0 +1,28 @@
+-
+  name: Create TrueCopy storage replication
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - primary_lun_id: 1791
+    - primary_serial_no: 123456
+    - secondary_pool_id: 9
+    - secondary_serial_no: 123457
+    - secondary_host_group:
+        - name: test-ansible-hg-tc-47-1
+        - port: CL1-A
+    - storage_serial: 123456
+  tasks:
+    - hv_storagereplication:
+        state: present
+        repl_type: tc
+        storage_serial: '{{ storage_serial }}'
+        data:
+          primary_lun_id: '{{ primary_lun_id | default(None) }}'
+          primary_serial_no: '{{ primary_serial_no | default(None) }}'
+          secondary_pool_id: '{{ secondary_pool_id | default(None) }}'
+          secondary_serial_no: '{{ secondary_serial_no | default(None) }}'
+          secondary_host_group: '{{ secondary_host_group | default(None) }}'
+      register: result
+    - debug: var=result.storageReplication
