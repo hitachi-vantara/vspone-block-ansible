@@ -10,7 +10,7 @@
     - secondary_pool_id: 9
     - secondary_serial_no: 123457
     - secondary_host_group:
-        - name: test-ansible-hg-tc-47-1
+        - name: test-ansible-hg-tc
         - port: CL1-A
     - storage_serial: 123456
   tasks:

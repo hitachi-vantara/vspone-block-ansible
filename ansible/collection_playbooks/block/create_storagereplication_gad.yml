@@ -6,14 +6,14 @@
   gather_facts: false
   vars:
     - primary_lun_id: 1791
-    - primary_serial_no: Logical-UCP-23456
+    - primary_serial_no: 334566
     - quorum_disk_id: 1
     - secondary_pool_id: 9
     - secondary_serial_no: 123457
     - secondary_host_group:
-        - name: test-ansible-hg-tc-47-1
+        - name: test-ansible-hg-tc
         - port: CL1-A
-    - storage_serial: 123456
+    - storage_serial: 334566
   tasks:
     - hv_storagereplication:
         state: present
