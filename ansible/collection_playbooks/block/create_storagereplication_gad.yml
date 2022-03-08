@@ -13,12 +13,10 @@
     - secondary_host_group:
         - name: test-ansible-hg-tc
         - port: CL1-A
-    - storage_serial: 334566
   tasks:
     - hv_storagereplication:
         state: present
         repl_type: gad
-        storage_serial: '{{ storage_serial }}'
         data:
           primary_lun_id: '{{ primary_lun_id | default(None) }}'
           primary_serial_no: '{{ primary_serial_no | default(None) }}'
