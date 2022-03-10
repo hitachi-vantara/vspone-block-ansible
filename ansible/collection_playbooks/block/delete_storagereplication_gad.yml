@@ -1,5 +1,5 @@
 -
-  name: Split Gad storage replication
+  name: GAD Delete Storage Replication 
   hosts: localhost
   collections:
     - hitachi.storage
@@ -9,11 +9,10 @@
     - storage_serial: 12345
   tasks:
     - hv_storagereplication:
-        state: present
+        state: absent
         repl_type: gad
-        action_type: split
         storage_serial: '{{ storage_serial }}'
         data:
           pvol_id: '{{ pvol_id }}'
       register: result
-    - debug: var=result.storageReplication
+    - debug: var=result

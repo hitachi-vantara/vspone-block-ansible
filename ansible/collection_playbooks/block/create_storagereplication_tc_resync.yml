@@ -1,19 +1,19 @@
 -
-  name: Split TrueCopy storage replication
+  name: Resync TrueCopy storage replication
   hosts: localhost
   collections:
     - hitachi.storage
   gather_facts: false
   vars:
-    - repl_pair_id: replpair-447d3c6954efb460e6f47e331615176f
+    - pvol_id: 121
     - storage_serial: 12345
   tasks:
     - hv_storagereplication:
         state: present
         repl_type: tc
-        action_type: split
+        action_type: resync
         storage_serial: '{{ storage_serial }}'
         data:
-          repl_pair_id: '{{ repl_pair_id }}'
+          pvol_id: '{{ pvol_id }}'
       register: result
     - debug: var=result.storageReplication
