@@ -15,4 +15,4 @@
         data:
           pvol_id: '{{ pvol_id }}'
       register: result
-    - debug: var=result
+    - debug: var=result.storageReplication
