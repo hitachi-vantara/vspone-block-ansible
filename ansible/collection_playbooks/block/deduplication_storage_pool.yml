@@ -1,17 +1,20 @@
 -
-  name: Testing Delete Storage Pool
+  name: Update Storage Pool deduplication
   hosts: localhost
   collections:
     - hitachi.storage
   gather_facts: false
   vars:
+    - enable_deduplication: true
     - pool_id: 1
     - storage_serial: 12345
   tasks:
     - hv_storagepool:
-        state: absent
+        state: present
         storage_serial: '{{ storage_serial }}'
         data:
-          pool_id: '{{ pool_id }}'
+          enable_deduplication: '{{ enable_deduplication }}'
+          pool_id: '{{ pool_id | default(omit) }}'
       register: result
     - debug: var=result.storagePool
+

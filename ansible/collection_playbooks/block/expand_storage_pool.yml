@@ -8,14 +8,14 @@
     - pool_volumes: 
         capacity: 10GB
         parityGroupId: 1-1
-    - storage_pool_id: storagepool-c244dec0650ee83bd8d02588b6b
+    - pool_id: 1
     - storage_serial: 12345
   tasks:
     - hv_storagepool:
         state: present
         storage_serial: '{{ storage_serial }}'
         data:
-          storage_pool_id: '{{ storage_pool_id | default(omit) }}'
+          pool_id: '{{ pool_id | default(omit) }}'
           pool_volumes: '{{ pool_volumes }}'
       register: result
     - debug: var=result.storagePool
