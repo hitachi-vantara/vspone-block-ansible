@@ -1,5 +1,5 @@
 name:          HPE_Storage_Ansible
-Version:       2.3.0.2
+Version:       2.3.0.3
 Release:       1%{?dist}
 Summary:       The Ansible modules allow the customer to run BLOCK and FILE storage playbooks.
 Vendor:        Hewlett Packard Enterprise 
@@ -7,7 +7,7 @@ Vendor:        Hewlett Packard Enterprise
 Group:         Adapters 
 License:       hiAdapterLicense
 URL:           http://www.hpe.com 
-Source0:       HPE_Storage_Ansible-2.3.0.2.tar.gz        
+Source0:       HPE_Storage_Ansible-2.3.0.3.tar.gz        
 BuildArch:     x86_64
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReqProv:   no 
