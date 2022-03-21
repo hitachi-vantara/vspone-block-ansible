@@ -1,5 +1,5 @@
 - 
-  name: Testing Get All Storage Replication details
+  name: Get All Storage Replication details
   hosts: localhost
   collections:
     - hitachi.storage

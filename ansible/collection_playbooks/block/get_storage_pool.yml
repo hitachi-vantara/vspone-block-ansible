@@ -1,5 +1,5 @@
 -
-  name: Testing Get Storage Pool
+  name: Get Storage Pool
   hosts: localhost
   collections:
     - hitachi.storage
