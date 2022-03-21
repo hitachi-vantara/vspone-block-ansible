@@ -11,6 +11,6 @@
     - hv_storagereplication_facts:
         storage_serial: '{{ storage_serial  | default(None) }}'
         data:
-          pool_id: '{{ pool_id | default(omit) }}'
+          pvol_id: '{{ pvol_id | default(omit) }}'
       register: result
     - debug: var=result.storageReplication
