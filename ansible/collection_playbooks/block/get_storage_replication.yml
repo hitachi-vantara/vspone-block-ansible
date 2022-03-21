@@ -1,0 +1,16 @@
+- 
+  name: Get All Storage Replication details
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - storage_serial: 123456
+    - pvol_id: 121
+  tasks:
+    - hv_storagereplication_facts:
+        storage_serial: '{{ storage_serial  | default(None) }}'
+        data:
+          pool_id: '{{ pool_id | default(omit) }}'
+      register: result
+    - debug: var=result.storageReplication
