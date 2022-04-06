@@ -1,16 +1,17 @@
 - 
-  name: Get Storage Replication details
+  name: Get TC pair details
   hosts: localhost
   collections:
     - hitachi.storage
   gather_facts: false
   vars:
-    - storage_serial: 123456
+    - primary_storage_serial_no: 123456
     - pvol_id: 121
   tasks:
     - hv_storagereplication_facts:
-        storage_serial: '{{ storage_serial  | default(None) }}'
+        repl_type: tc
         data:
+          primary_storage_serial_no: '{{ primary_storage_serial_no  | default(None) }}'
           pvol_id: '{{ pvol_id | default(omit) }}'
       register: result
     - debug: var=result.storageReplication
