@@ -1,5 +1,5 @@
 -
-  name: Get Storage Pool
+  name: Get Dynamic Pool
   hosts: localhost
   collections:
     - hitachi.storage
@@ -13,5 +13,5 @@
         data:
           pool_id: '{{ pool_id | default(omit) }}'
       register: result
-    - debug: var=result
+    - debug: var=result.dynamicPool
 

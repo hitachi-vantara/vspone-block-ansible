@@ -6,11 +6,11 @@
   gather_facts: false
   vars:
     - primary_lun_id: 1791
-    - primary_serial_no: 334566
+    - primary_storage_serial_no: 334566
     - quorum_disk_id: 1
-    - secondary_pool_id: 9
-    - secondary_serial_no: 123457
-    - secondary_host_group:
+    - secondary_storage_pool_id: 9
+    - secondary_storage_serial_no: 123457
+    - secondary_storage_host_group:
         - name: test-ansible-hg-tc
         - port: CL1-A
   tasks:
@@ -19,10 +19,10 @@
         repl_type: gad
         data:
           primary_lun_id: '{{ primary_lun_id | default(None) }}'
-          primary_serial_no: '{{ primary_serial_no | default(None) }}'
+          primary_storage_serial_no: '{{ primary_storage_serial_no | default(None) }}'
           quorum_disk_id: '{{ quorum_disk_id  | default(None) }}'
-          secondary_pool_id: '{{ secondary_pool_id | default(None) }}'
-          secondary_serial_no: '{{ secondary_serial_no | default(None) }}'
-          secondary_host_group: '{{ secondary_host_group | default(None) }}'
+          secondary_storage_pool_id: '{{ secondary_storage_pool_id | default(None) }}'
+          secondary_storage_serial_no: '{{ secondary_storage_serial_no | default(None) }}'
+          secondary_storage_host_group: '{{ secondary_storage_host_group | default(None) }}'
       register: result
     - debug: var=result.storageReplication

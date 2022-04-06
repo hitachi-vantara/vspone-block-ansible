@@ -1,5 +1,5 @@
 - 
-  name: Get All Storage Pool details
+  name: Get All Dynamic Pool details
   hosts: localhost
   collections:
     - hitachi.storage
@@ -10,4 +10,4 @@
     - hv_storagepool_facts:
         storage_serial: '{{ storage_serial  | default(None) }}'
       register: result
-    - debug: var=result.storageSystem
+    - debug: var=result.dynamicPool

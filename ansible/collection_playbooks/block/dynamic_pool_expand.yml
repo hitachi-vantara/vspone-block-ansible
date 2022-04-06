@@ -1,5 +1,5 @@
 -
-  name: Update Storage Pool 
+  name: Update Dynamic Pool 
   hosts: localhost
   collections:
     - hitachi.storage
@@ -18,5 +18,5 @@
           pool_id: '{{ pool_id | default(omit) }}'
           pool_volumes: '{{ pool_volumes }}'
       register: result
-    - debug: var=result.storagePool
+    - debug: var=result.dynamicPool
 
