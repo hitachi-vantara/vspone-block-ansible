@@ -24,5 +24,5 @@
           warning_threshold_rate: '{{ warning_threshold_rate | default(None)}}'
           pool_volumes: '{{ pool_volumes }}'
       register: result
-    - debug: var=result.dynamicPool
+    - debug: var=result.storagePool
 

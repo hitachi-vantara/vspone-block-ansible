@@ -16,5 +16,5 @@
           enable_deduplication: '{{ enable_deduplication }}'
           pool_id: '{{ pool_id | default(omit) }}'
       register: result
-    - debug: var=result.dynamicPool
+    - debug: var=result.storagePool
 

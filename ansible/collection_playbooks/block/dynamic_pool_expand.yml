@@ -18,5 +18,5 @@
           pool_id: '{{ pool_id | default(omit) }}'
           pool_volumes: '{{ pool_volumes }}'
       register: result
-    - debug: var=result.dynamicPool
+    - debug: var=result.storagePool
 

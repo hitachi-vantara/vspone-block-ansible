@@ -10,8 +10,8 @@
   tasks:
     - hv_storagereplication_facts:
         repl_type: gad
+        primary_storage_serial_no: '{{ primary_storage_serial_no }}'
         data:
-          primary_storage_serial_no: '{{ primary_storage_serial_no  | default(None) }}'
           pvol_id: '{{ pvol_id | default(omit) }}'
       register: result
     - debug: var=result.storageReplication
