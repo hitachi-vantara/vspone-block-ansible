@@ -199,7 +199,7 @@ check_requests_install
     # ## for ams/puma only, don't show that we extracting everything
   	# /usr/bin/rpm -Uvh HV_Storage_Ansible-02.1.0-1.el7.x86_64.rpm > /dev/null 2>&1
 # else
-  	/usr/bin/rpm -Uvh HV_Storage_Ansible-02.3.0.3-1.el7.x86_64.rpm 
+  	/usr/bin/rpm -Uvh HV_Storage_Ansible-02.3.0.5-1.el7.x86_64.rpm 
 # fi
 
 response=`echo $?`

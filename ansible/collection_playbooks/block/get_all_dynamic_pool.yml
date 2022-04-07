@@ -10,4 +10,4 @@
     - hv_storagepool_facts:
         storage_serial: '{{ storage_serial  | default(None) }}'
       register: result
-    - debug: var=result.dynamicPool
+    - debug: var=result.storagePool

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Make sure these two variables are correct
 Ansible_ROOT=$(pwd)
-Ansible_VER=HV_Storage_Ansible-02.3.0.3
+Ansible_VER=HV_Storage_Ansible-02.3.0.5
 
 MasterProject="HivROMultiPlatformWebService/HivROMultiPlatformWebService.Ans.csproj"
 #ProductionOutDir=${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService
