@@ -1,5 +1,5 @@
 -
-  name: TC Delete Storage Replication 
+  name: Delete GAD 
   hosts: localhost
   collections:
     - hitachi.storage
@@ -10,7 +10,7 @@
   tasks:
     - hv_storagereplication:
         state: absent
-        repl_type: tc
+        repl_type: gad
         storage_serial: '{{ storage_serial }}'
         data:
           pvol_id: '{{ pvol_id }}'

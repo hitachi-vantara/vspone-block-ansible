@@ -1,19 +1,18 @@
 -
-  name: Resync Gad storage replication
+  name: Delete TrueCopy
   hosts: localhost
   collections:
     - hitachi.storage
   gather_facts: false
   vars:
     - pvol_id: 121
-    - primary_storage_serial_no: 12345
+    - storage_serial: 12345
   tasks:
     - hv_storagereplication:
-        state: present
-        repl_type: gad
-        action_type: resync
+        state: absent
+        repl_type: tc
+        storage_serial: '{{ storage_serial }}'
         data:
           pvol_id: '{{ pvol_id }}'
-          primary_storage_serial_no: '{{ primary_storage_serial_no }}'
       register: result
     - debug: var=result.storageReplication

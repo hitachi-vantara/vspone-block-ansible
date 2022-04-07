@@ -1,5 +1,5 @@
 -
-  name: Split Gad storage replication
+  name: Split Gad 
   hosts: localhost
   collections:
     - hitachi.storage
