@@ -14,4 +14,4 @@
         data:
           pvol_id: '{{ pvol_id | default(omit) }}'
       register: result
-    - debug: var=result.storageReplication
+    - debug: var=result.storageReplication  
