@@ -1,0 +1,21 @@
+-
+  name: Add Lun to resource group
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - storage_serial_from: 123456
+    - ldevIds:
+        - 121
+        - 122
+    - storage_serial_to: 123457
+  tasks:
+    - hv_resourcegroup:
+        state: present
+        storage_serial_from: '{{ storage_serial_from | default(None) }}'
+        data:
+          ldevIds: '{{ ldevIds }}'
+          storage_serial_to: '{{ storage_serial_to }}'
+      register: result
+    - debug: var=result.resourceGroup

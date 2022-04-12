@@ -1,0 +1,21 @@
+-
+  name: Remove Host Group from resource group
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - storage_serial_from: 123456
+    - host_group:
+        - name: test-ansible-hg-tc
+        - port: CL1-A
+    - storage_serial_to: 123457
+  tasks:
+    - hv_resourcegroup:
+        state: absent
+        storage_serial_from: '{{ storage_serial_from | default(None) }}'
+        data:
+          host_group: '{{ host_group }}'
+          storage_serial_to: '{{ storage_serial_to }}'
+      register: result
+    - debug: var=result
