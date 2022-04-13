@@ -1,5 +1,5 @@
 -
-  name: Remove Host Group from resource group
+  name: Delete Host Group from resource group
   hosts: localhost
   collections:
     - hitachi.storage
