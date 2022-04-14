@@ -5,17 +5,17 @@
     - hitachi.storage
   gather_facts: false
   vars:
-    - storage_serial_from: 123456
+    - primary_storage_serial_no: 123456
     - ldevIds:
         - 121
         - 122
-    - storage_serial_to: 123457
+    - secondary_storage_serial_no: 123457
   tasks:
     - hv_resourcegroup:
         state: absent
-        storage_serial_from: '{{ storage_serial_from | default(None) }}'
+        primary_storage_serial_no: '{{ primary_storage_serial_no | default(None) }}'
         data:
           ldevIds: '{{ ldevIds }}'
-          storage_serial_to: '{{ storage_serial_to }}'
+          secondary_storage_serial_no: '{{ secondary_storage_serial_no }}'
       register: result
     - debug: var=result
