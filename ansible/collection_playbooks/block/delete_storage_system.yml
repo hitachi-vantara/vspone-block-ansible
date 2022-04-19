@@ -5,7 +5,7 @@
     - hitachi.storage
   gather_facts: false
   vars:
-    - storage_profile: ../storage.json
+    - storage_profile: /opt/hitachi/ansible/storage.json
   tasks:
     - hv_storagesystem:
         storage_profile: '{{ storage_profile | default(omit) }}'

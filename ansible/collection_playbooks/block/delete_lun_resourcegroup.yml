@@ -6,16 +6,14 @@
   gather_facts: false
   vars:
     - primary_storage_serial_no: 123456
-    - ldevIds:
+    - ldevId:
         - 121
-        - 122
     - secondary_storage_serial_no: 123457
   tasks:
     - hv_resourcegroup:
         state: absent
         primary_storage_serial_no: '{{ primary_storage_serial_no | default(None) }}'
         data:
-          ldevIds: '{{ ldevIds }}'
+          ldevId: '{{ ldevId }}'
           secondary_storage_serial_no: '{{ secondary_storage_serial_no }}'
       register: result
-    - debug: var=result

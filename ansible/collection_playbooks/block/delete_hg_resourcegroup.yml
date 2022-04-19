@@ -18,4 +18,3 @@
           host_group: '{{ host_group }}'
           secondary_storage_serial_no: '{{ secondary_storage_serial_no }}'
       register: result
-    - debug: var=result
