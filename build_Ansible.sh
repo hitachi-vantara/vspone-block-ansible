@@ -1,7 +1,7 @@
 #!/bin/bash
 # Make sure these two variables are correct
 Ansible_ROOT=$(pwd)
-Ansible_VER=HV_Storage_Ansible-02.3.0.5
+Ansible_VER=HV_Storage_Ansible-02.3.0.6
 
 MasterProject="HivROMultiPlatformWebService/HivROMultiPlatformWebService.Ans.csproj"
 #ProductionOutDir=${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService
@@ -253,7 +253,7 @@ mkdir -p  ${Ansible_ROOT}/HV_Storage_Ansible
 
 cp -f  /root/rpmbuild/RPMS/x86_64/HV_Storage_Ansible-*.rpm  ${Ansible_ROOT}/Scripts/install.sh ${Ansible_ROOT}/Scripts/uninstall.sh ${Ansible_ROOT}/Scripts/.cleanup.sh  ${Ansible_ROOT}/Scripts/.cleanup4amo.sh ${Ansible_ROOT}/HV_Storage_Ansible
 
-cp -f ${Ansible_ROOT}/collections/ansible_collections/hitachi/storage/hitachi-storage-2.3.0.5.tar.gz ${Ansible_ROOT}/HV_Storage_Ansible
+cp -f ${Ansible_ROOT}/collections/ansible_collections/hitachi/storage/hitachi-storage-2.3.0.6.tar.gz ${Ansible_ROOT}/HV_Storage_Ansible
 
 cd $Ansible_ROOT
 

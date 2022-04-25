@@ -1,5 +1,5 @@
 {
- "version": "02.3.0.5",
+ "version": "02.3.0.6",
  "vCenterIP": "10.10.57.10",
  "vCenterVMName": "CentOS_Mgmt",
  "hitachiAPIGatewayService": "10.10.57.30",
