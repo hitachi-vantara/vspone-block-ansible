@@ -1,0 +1,20 @@
+-
+  name: Add Port to resource group
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - primary_storage_serial_no: 123456
+    - port:
+        - CL1-A
+    - secondary_storage_serial_no: 123457
+  tasks:
+    - hv_resourcegroup:
+        state: present
+        primary_storage_serial_no: '{{ primary_storage_serial_no | default(None) }}'
+        data:
+          port: '{{ port }}'
+          secondary_storage_serial_no: '{{ secondary_storage_serial_no }}'
+      register: result
+    - debug: var=result.resourceGroup

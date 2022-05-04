@@ -1,0 +1,21 @@
+-
+  name: Add Host Group to resource group
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - primary_storage_serial_no: 123456
+    - host_group:
+        - name: test-ansible-hg-tc
+        - port: CL1-A
+    - secondary_storage_serial_no: 123457
+  tasks:
+    - hv_resourcegroup:
+        state: present
+        primary_storage_serial_no: '{{ primary_storage_serial_no | default(None) }}'
+        data:
+          host_group: '{{ host_group }}'
+          secondary_storage_serial_no: '{{ secondary_storage_serial_no }}'
+      register: result
+    - debug: var=result.resourceGroup
