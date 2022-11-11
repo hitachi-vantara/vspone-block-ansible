@@ -47,11 +47,10 @@ function buildDoLogin
  	echo "Start building doLogin"
  	echo "======================================================================================"
 	cd ${Ansible_ROOT}/GO_WORKSPACE/src/doLogin
-	go get -u github.com/BurntSushi/toml
-	go get -u github.com/magiconair/properties
-	go get -u gitlab.com/c0b/go-ordered-json
-	
-	/usr/local/go/bin/go build
+	go get github.com/BurntSushi/toml
+	go get github.com/magiconair/properties
+	go get gitlab.com/c0b/go-ordered-json
+	go build
 	
 	 response=`echo $?`
 		  if [ $response -ne 0 ]; then
