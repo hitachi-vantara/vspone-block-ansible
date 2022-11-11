@@ -118,7 +118,7 @@ ifeq (, $(shell which controller-gen))
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen
@@ -133,7 +133,7 @@ ifeq (, $(shell which kustomize))
 	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
+	go install sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
 	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
 	}
 KUSTOMIZE=$(GOBIN)/kustomize
@@ -146,13 +146,13 @@ code/sec: $GOPATH/bin/gosec ## Run gosec
 	gosec -severity medium --confidence medium -quiet $(PACKAGES)
 
 $GOPATH/bin/gosec:
-	go get -u github.com/securego/gosec/cmd/gosec
+	go install github.com/securego/gosec/cmd/gosec@latest
 
 $GOPATH/bin/gotestsum:
-	go get gotest.tools/gotestsum	
+	go install gotest.tools/gotestsum@latest
 
 $GOPATH/bin/cover:
-	go get golang.org/x/tools/cmd/cover	
+	go install golang.org/x/tools/cmd/cover@latest
 
 # Generate bundle manifests and metadata, then validate generated files.
 .PHONY: bundle
