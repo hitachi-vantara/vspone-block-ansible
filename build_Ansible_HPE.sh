@@ -52,10 +52,10 @@ function buildDoLogin
 	go install github.com/magiconair/properties@latest
 	go install gitlab.com/c0b/go-ordered-json@latest
 	echo "======================================================================================"
- 	echo "Go build
+ 	echo "Go build"
  	echo "======================================================================================"
 	go build
-	if [[ $? -ne 0 ]]; then
+	if [[ $? -ne 0 ]]; then:
 	    echo "go build command failed. please see the log file for details."
 	    exit 1
 `	fi
