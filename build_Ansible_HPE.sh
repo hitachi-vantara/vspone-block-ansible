@@ -47,6 +47,7 @@ function buildDoLogin
  	echo "Start building doLogin"
  	echo "======================================================================================"
 	cd ${Ansible_ROOT}/GO_WORKSPACE/src/doLogin
+`	go mod init
 	go install github.com/BurntSushi/toml@latest
 	go install github.com/magiconair/properties@latest
 	go install gitlab.com/c0b/go-ordered-json@latest
