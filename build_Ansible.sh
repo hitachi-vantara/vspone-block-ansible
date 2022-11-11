@@ -47,20 +47,18 @@ function buildDoLogin
  	echo "Start building doLogin"
  	echo "======================================================================================"
 	cd ${Ansible_ROOT}/GO_WORKSPACE/src/doLogin
+	go mod init tmp
 	go install github.com/BurntSushi/toml@latest
 	go install github.com/magiconair/properties@latest
 	go install gitlab.com/c0b/go-ordered-json@latest
-	go get github.com/BurntSushi/toml@latest
-	go get github.com/magiconair/properties@latest
-	go get gitlab.com/c0b/go-ordered-json@latest
-	go mod init
+	echo "======================================================================================"
+ 	echo "Start building doLogin"
+ 	echo "======================================================================================"
 	go build
-	
-	 response=`echo $?`
-		  if [ $response -ne 0 ]; then
-		    echo "go build command failed. please see the log file for details."
-		    exit 1
-		 fi
+	if [[ $ -ne 0 ]]; then
+		echo "go build command failed. please see the log file for details."
+		exit 1
+	fi
 
         echo "======================================================================================"
  	echo "Copy to addLoginToConfigurations, .grains, and .checkLoginConfigurations"
