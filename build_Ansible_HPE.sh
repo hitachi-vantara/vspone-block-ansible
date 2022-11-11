@@ -51,9 +51,6 @@ function buildDoLogin
 	go install github.com/BurntSushi/toml@latest
 	go install github.com/magiconair/properties@latest
 	go install gitlab.com/c0b/go-ordered-json@latest
-	go get github.com/BurntSushi/toml@latest
-	go get github.com/magiconair/properties@latest
-	go get gitlab.com/c0b/go-ordered-json@latest
 	go build
 	
 	 response=`echo $?`
