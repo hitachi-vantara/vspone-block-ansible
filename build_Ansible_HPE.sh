@@ -55,7 +55,7 @@ function buildDoLogin
  	echo "Go build"
  	echo "======================================================================================"
 	go build
-	if [[ $? -ne 0 ]]; then:
+	if [[ $? -ne 0 ]]; then
 	    echo "go build command failed. please see the log file for details."
 	    exit 1
 `	fi
