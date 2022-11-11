@@ -50,6 +50,7 @@ function buildDoLogin
 	go install github.com/BurntSushi/toml@latest
 	go install github.com/magiconair/properties@latest
 	go install gitlab.com/c0b/go-ordered-json@latest
+	go mod init
 	go build
 	
 	 response=`echo $?`
