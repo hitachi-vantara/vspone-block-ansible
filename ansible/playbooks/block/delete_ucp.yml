@@ -1,0 +1,15 @@
+-
+  name: Deleting UcpSystem
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - serial_number: UCP-CI-12345
+  tasks:
+    - hv_ucpsystem:
+        state: absent
+        serialNumber: '{{ serial_number | default(None) }}'
+      register: result
+    - debug: var=result
+
