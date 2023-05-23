@@ -1,5 +1,5 @@
 #!/bin/bash
-# Make sure these two variables are correct
+# Make sure these two variables are correct - May 22
 Ansible_ROOT=$(pwd)
 Ansible_VER=HV_Storage_Ansible-02.3.0.7
 
