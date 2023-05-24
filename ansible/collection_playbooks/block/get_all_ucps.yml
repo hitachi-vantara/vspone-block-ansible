@@ -1,0 +1,11 @@
+-
+  name: Get All UcpSystems
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars_files:
+  tasks:
+    - hv_ucp_facts:
+      register: result
+    - debug: var=result.ucps

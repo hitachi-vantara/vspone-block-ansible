@@ -1,0 +1,29 @@
+-
+  name: Adding UcpSystem
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  vars:
+    - serial_number: UCP-CI-12335
+    - gateway_address: 172.25.20.35
+    - model: UCP CI
+    - name: ucp-23-25
+    - region: AMERICA
+    - country: 'United States'
+    - zipcode: 95054
+    - zone: zone
+  tasks:
+    - hv_ucp:
+        state: present
+        serial_number: '{{ serial_number | default(None) }}'
+        gateway_address: '{{ gateway_address | default(None) }}'
+        model: '{{ model | default(None) }}'
+        name: '{{ name | default(None) }}'
+        region: '{{ region | default(None) }}' 
+        country: '{{ country | default(None) }}' 
+        zipcode: '{{ zipcode | default(None) }}'
+        zone: '{{ zone | default(None) }}'
+      register: result
+    - debug: var=result
+
