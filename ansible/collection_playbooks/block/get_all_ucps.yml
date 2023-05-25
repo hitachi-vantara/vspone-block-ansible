@@ -4,8 +4,13 @@
   collections:
     - hitachi.storage
   gather_facts: false
+  pre_tasks:
+    - include_vars: vars.yml
   vars_files:
   tasks:
     - hv_ucp_facts:
+        ucpadvisor_address: "{{ucpadvisor_address}}"
+        ucpadvisor_username: "{{ucpadvisor_username}}"
+        ucpadvisor_key: "{{ucpadvisor_password}}"
       register: result
     - debug: var=result.ucps

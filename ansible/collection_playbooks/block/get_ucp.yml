@@ -4,11 +4,16 @@
   collections:
     - hitachi.storage
   gather_facts: false
+  pre_tasks:
+    - include_vars: vars.yml
   vars:
     - serial_number: UCP-CI-12035
   tasks:
     - hv_ucp_facts:
         serial_number: '{{ serial_number | default(None) }}'
+        ucpadvisor_address: "{{ucpadvisor_address}}"
+        ucpadvisor_username: "{{ucpadvisor_username}}"
+        ucpadvisor_key: "{{ucpadvisor_password}}"
       register: result
     - debug: var=result
 
