@@ -1,14 +1,16 @@
 -
-  name: Adding UcpSystem
+  name: Adding UCP System
   hosts: localhost
   collections:
     - hitachi.storage
   gather_facts: false
+  pre_tasks:
+    - include_vars: vars.yml
   vars:
-    - serial_number: UCP-CI-12335
+    - serial_number: UCP-CI-12435
     - gateway_address: 172.25.20.35
     - model: UCP CI
-    - name: ucp-23-25
+    - name: ucp-24-35
     - region: AMERICA
     - country: 'United States'
     - zipcode: 95054
@@ -16,6 +18,9 @@
   tasks:
     - hv_ucp:
         state: present
+        ucpadvisor_address: "{{ucpadvisor_address}}"
+        ucpadvisor_username: "{{ucpadvisor_username}}"
+        ucpadvisor_key: "{{ucpadvisor_password}}"
         serial_number: '{{ serial_number | default(None) }}'
         gateway_address: '{{ gateway_address | default(None) }}'
         model: '{{ model | default(None) }}'

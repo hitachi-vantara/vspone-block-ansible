@@ -1,5 +1,5 @@
 -
-  name: Delete UCP System
+  name: Updating UcpSystem
   hosts: localhost
   collections:
     - hitachi.storage
@@ -8,13 +8,21 @@
     - include_vars: vars.yml
   vars:
     - serial_number: UCP-CI-12345
+    - gateway_address: 172.25.20.35
+    - region: AMERICA
+    - country: Mexico
+    - zipcode: 4728
   tasks:
     - hv_ucpsystem:
-        state: absent
+        state: present
         serialNumber: '{{ serial_number | default(None) }}'
         ucpadvisor_address: "{{ucpadvisor_address}}"
         ucpadvisor_username: "{{ucpadvisor_username}}"
         ucpadvisor_key: "{{ucpadvisor_password}}"
+        gatewayAddress: '{{ gateway_address | default(None) }}'
+        region: '{{ region | default(None) }}' 
+        country: '{{ country | default(None) }}' 
+        zipcode: '{{ zipcode | default(None) }}'
       register: result
     - debug: var=result
 
