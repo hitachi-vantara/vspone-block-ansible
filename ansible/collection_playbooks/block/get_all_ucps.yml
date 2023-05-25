@@ -1,5 +1,5 @@
 -
-  name: Get All UcpSystems
+  name: Get All UCP Systems
   hosts: localhost
   collections:
     - hitachi.storage
