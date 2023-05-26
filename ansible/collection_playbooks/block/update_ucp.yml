@@ -1,5 +1,5 @@
 -
-  name: Updating Ucp System
+  name: Updating UCP System
   hosts: localhost
   collections:
     - hitachi.storage
