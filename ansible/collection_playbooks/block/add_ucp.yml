@@ -1,5 +1,5 @@
 -
-  name: Adding Ucp System
+  name: Adding UCP System
   hosts: localhost
   collections:
     - hitachi.storage
