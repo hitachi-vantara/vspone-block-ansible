@@ -1,5 +1,5 @@
 -
-  name: Adding UCP System
+  name: Adding Ucp System
   hosts: localhost
   collections:
     - hitachi.storage
@@ -21,13 +21,13 @@
         ucpadvisor_address: "{{ucpadvisor_address}}"
         ucpadvisor_username: "{{ucpadvisor_username}}"
         ucpadvisor_key: "{{ucpadvisor_password}}"
-        serial_number: '{{ serial_number | default(None) }}'
-        gateway_address: '{{ gateway_address | default(None) }}'
-        model: '{{ model | default(None) }}'
-        name: '{{ name | default(None) }}'
-        region: '{{ region | default(None) }}' 
-        country: '{{ country | default(None) }}' 
-        zipcode: '{{ zipcode | default(None) }}'
+        serial_number: '{{ serial_number }}'
+        gateway_address: '{{ gateway_address }}'
+        model: '{{ model }}'
+        name: '{{ name }}'
+        region: '{{ region }}' 
+        country: '{{ country }}' 
+        zipcode: '{{ zipcode }}'
         zone: '{{ zone | default(None) }}'
       register: result
     - debug: var=result

@@ -1,5 +1,5 @@
 -
-  name: Delete UCP System
+  name: Deleting Ucp System
   hosts: localhost
   collections:
     - hitachi.storage
@@ -7,11 +7,11 @@
   pre_tasks:
     - include_vars: vars.yml
   vars:
-    - serial_number: UCP-CI-12345
+    - serial_number: UCP-CI-12435
   tasks:
-    - hv_ucpsystem:
+    - hv_ucp:
         state: absent
-        serialNumber: '{{ serial_number | default(None) }}'
+        serial_number: '{{ serial_number }}'
         ucpadvisor_address: "{{ucpadvisor_address}}"
         ucpadvisor_username: "{{ucpadvisor_username}}"
         ucpadvisor_key: "{{ucpadvisor_password}}"

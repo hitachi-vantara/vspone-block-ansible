@@ -1,5 +1,5 @@
 -
-  name: Get UCP System
+  name: Get Ucp System
   hosts: localhost
   collections:
     - hitachi.storage
@@ -10,7 +10,7 @@
     - serial_number: UCP-CI-12035
   tasks:
     - hv_ucp_facts:
-        serial_number: '{{ serial_number | default(None) }}'
+        serial_number: '{{ serial_number }}'
         ucpadvisor_address: "{{ucpadvisor_address}}"
         ucpadvisor_username: "{{ucpadvisor_username}}"
         ucpadvisor_key: "{{ucpadvisor_password}}"
