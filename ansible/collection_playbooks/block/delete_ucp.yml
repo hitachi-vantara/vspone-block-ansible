@@ -1,5 +1,5 @@
 -
-  name: Deleting Ucp System
+  name: Deleting UCP System
   hosts: localhost
   collections:
     - hitachi.storage
