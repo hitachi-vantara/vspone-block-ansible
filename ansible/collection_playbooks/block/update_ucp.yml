@@ -1,5 +1,5 @@
 -
-  name: Updating UcpSystem
+  name: Updating UCP System
   hosts: localhost
   collections:
     - hitachi.storage
@@ -7,22 +7,22 @@
   pre_tasks:
     - include_vars: vars.yml
   vars:
-    - serial_number: UCP-CI-12345
+    - serial_number: UCP-CI-12335
     - gateway_address: 172.25.20.35
     - region: AMERICA
     - country: Mexico
     - zipcode: 4728
   tasks:
-    - hv_ucpsystem:
+    - hv_ucp:
         state: present
-        serialNumber: '{{ serial_number | default(None) }}'
+        serial_number: '{{ serial_number }}'
         ucpadvisor_address: "{{ucpadvisor_address}}"
         ucpadvisor_username: "{{ucpadvisor_username}}"
         ucpadvisor_key: "{{ucpadvisor_password}}"
-        gatewayAddress: '{{ gateway_address | default(None) }}'
-        region: '{{ region | default(None) }}' 
-        country: '{{ country | default(None) }}' 
-        zipcode: '{{ zipcode | default(None) }}'
+        gateway_address: '{{ gateway_address  }}'
+        region: '{{ region }}' 
+        country: '{{ country  }}' 
+        zipcode: '{{ zipcode  }}'
       register: result
     - debug: var=result
 
