@@ -14,7 +14,6 @@
     - region: AMERICA
     - country: 'United States'
     - zipcode: 95054
-    - zone: zone
   tasks:
     - hv_ucp:
         state: present
@@ -22,13 +21,12 @@
         ucpadvisor_username: "{{ucpadvisor_username}}"
         ucpadvisor_key: "{{ucpadvisor_password}}"
         serial_number: '{{ serial_number }}'
-        gateway_address: '{{ gateway_address }}'
+        gateway_address: '{{ gateway_address}}'
         model: '{{ model }}'
         name: '{{ name }}'
         region: '{{ region }}' 
         country: '{{ country }}' 
         zipcode: '{{ zipcode }}'
-        zone: '{{ zone | default(None) }}'
       register: result
     - debug: var=result
 
