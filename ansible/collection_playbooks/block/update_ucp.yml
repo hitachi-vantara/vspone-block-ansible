@@ -9,9 +9,9 @@
   vars:
     - serial_number: UCP-CI-12435
     - gateway_address: 172.25.20.35
-    - region: AMERICA
-    - country: Mexico
-    - zipcode: 4728
+    - region: APAC
+    - country: India
+    - zipcode: '560087'
   tasks:
     - hv_ucp:
         state: present

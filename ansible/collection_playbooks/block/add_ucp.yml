@@ -13,7 +13,7 @@
     - name: ucp-24-35
     - region: AMERICA
     - country: 'United States'
-    - zipcode: 95054
+    - zipcode: '95054'
   tasks:
     - hv_ucp:
         state: present
