@@ -7,11 +7,13 @@
   pre_tasks:
     - include_vars: vars.yml
   vars:
-    - serial_number: UCP-CI-12435
+    - serial_number: "12435"
+    - model: UCP CI
   tasks:
     - hv_ucp:
         state: absent
         serial_number: '{{ serial_number }}'
+        model: '{{ model }}'
         ucpadvisor_address: "{{ucpadvisor_address}}"
         ucpadvisor_username: "{{ucpadvisor_username}}"
         ucpadvisor_key: "{{ucpadvisor_password}}"
