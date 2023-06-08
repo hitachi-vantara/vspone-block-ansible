@@ -4,13 +4,16 @@
   collections:
     - hitachi.storage
   gather_facts: false
+  pre_tasks:
+    - include_vars: vars.yml
   vars:
-    - storage_serial: 123456
-    - query:
-      - pools
+    - storage_serial: 611032
   tasks:
     - hv_storagesystem_facts:
         storage_serial: '{{ storage_serial }}'
+        ucpadvisor_address: "{{ucpadvisor_address}}"
+        ucpadvisor_username: "{{ucpadvisor_username}}"
+        ucpadvisor_key: "{{ucpadvisor_password}}"
         query: '{{ query | default(None) }}'
       register: result
     - debug: var=result.storageSystem

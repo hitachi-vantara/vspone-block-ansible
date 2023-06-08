@@ -4,11 +4,18 @@
   collections:
     - hitachi.storage
   gather_facts: false
+  pre_tasks:
+    - include_vars: vars.yml
   vars:
-    - storage_profile: /opt/hitachi/ansible/storage.json
+    - storage_profile: /opt/hitachi/ansible/storage.json.611032
+    - ucp_serial: UCP-CI-12435
   tasks:
     - hv_storagesystem:
         storage_profile: '{{ storage_profile | default(omit) }}'
+        ucp_serial: '{{ ucp_serial }}'
+        ucpadvisor_address: "{{ucpadvisor_address}}"
+        ucpadvisor_username: "{{ucpadvisor_username}}"
+        ucpadvisor_key: "{{ucpadvisor_password}}"
         state: present
       register: result
     - debug: var=result
