@@ -1,17 +1,31 @@
 -
-  name: Get LUN using naa across a number of storage systems
+  name: Testing Get LUN
   hosts: localhost
   collections:
     - hitachi.storage
   gather_facts: false
+  pre_tasks:
+    - include_vars: vars.yml
   vars:
-    - lun: naa.60060e8008758100005075810000010c
+    - storage_serial: "611032"
+    - ucp_serial: "UCP-CI-12144"
+    - lun: "naa.60060e80212b180050602b180000056f"
   tasks:
     - hv_lun_facts:
-        storage_serial: '{{ storage_serial | default(omit) }}'
-        data:
+
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          ucp_serial: '{{ ucp_serial }}'
+          
+        ucp_advisor_info:
+          address: "{{ucpadvisor_address}}"
+          username: "{{ucpadvisor_username}}"
+          password: "{{ucpadvisor_password}}"
+
+        lun_info:
           lun: '{{ lun | default(omit) }}'
           name: '{{ name | default(omit) }}'
           max_count: '{{ max_count | default(omit) }}'
+
       register: result
     - debug: var=result.luns

@@ -4,16 +4,29 @@
   collections:
     - hitachi.storage
   gather_facts: false
+  pre_tasks:
+    - include_vars: vars.yml
   vars:
-    - storage_serial: 12345
-    - lun: 800
-    - max_count: 2
+    - storage_serial: "611032"
+    - ucp_serial: "UCP-CI-12144"
+    - lun: 1000
+    - max_count: 4
   tasks:
     - hv_lun_facts:
-        storage_serial: '{{ storage_serial | default(None) }}'
-        data:
-          lun: '{{ lun | default(None) }}'
-          name: '{{ name | default(None) }}'
-          max_count: '{{ max_count | default(None) }}'
+
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          ucp_serial: '{{ ucp_serial }}'
+          
+        ucp_advisor_info:
+          address: "{{ucpadvisor_address}}"
+          username: "{{ucpadvisor_username}}"
+          password: "{{ucpadvisor_password}}"
+
+        lun_info:
+          lun: '{{ lun | default(omit) }}'
+          name: '{{ name | default(omit) }}'
+          max_count: '{{ max_count | default(omit) }}'
+
       register: result
     - debug: var=result.luns
