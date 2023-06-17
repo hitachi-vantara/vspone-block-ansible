@@ -4,26 +4,34 @@
   collections:
     - hitachi.storage
   gather_facts: false
+  pre_tasks:
+    - include_vars: vars.ucpa.yml
   vars:
-    - pool_id: 6
-    - size: 0.07GB
-    - storage_serial: 123456
-    - lun: 1391
-    - lun_name: testsn
-    - cap_saving:
-       - compression
-       - deduplication
+    - storage_serial: 446039
+    - ucp_serial: UCP-CI-52918
+    - pool_id: 27
+    - size: 1.07GB
+    - lun: 1416
+    - name: halbAns1
+    - capacity_saving: compression
   tasks:
     - hv_lun:
         state: present
-        sku: P1_Gen12_2DC
-        storage_serial: '{{ storage_serial }}'
-        data:
-          storage_pool:
-            id: '{{ pool_id | default(None) }}'
-          name: '{{ lun_name  | default(None) }}'
-          size: '{{ size | default(None) }}'
-          lun: '{{ lun | default(None) }}'
-          cap_saving: '{{ cap_saving | default(None) }}'
+
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          ucp_serial: '{{ ucp_serial }}'
+          
+        ucp_advisor_info:
+          address: "{{ucpadvisor_address}}"
+          username: "{{ucpadvisor_username}}"
+          password: "{{ucpadvisor_password}}"
+
+        lun_info:
+          pool_id: '{{ pool_id  | default(None) }}'
+          size: '{{ size | default(None)}}'
+          name: '{{ name  | default(None) }}'
+
       register: result
     - debug: var=result
+

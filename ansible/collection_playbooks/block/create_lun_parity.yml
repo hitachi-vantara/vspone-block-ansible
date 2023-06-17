@@ -4,19 +4,32 @@
   collections:
     - hitachi.storage
   gather_facts: false
+  pre_tasks:
+    - include_vars: vars.ucpa.yml
   vars:
+    - ucp_serial: UCP-CI-52918
     - parity_group: 1-1
     - size: 3GB
     - lun: 800
-    - storage_serial: 12345
+    - storage_serial: 446039
   tasks:
     - hv_lun:
         state: present
-        storage_serial: '{{ storage_serial }}'
-        data:
+
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          ucp_serial: '{{ ucp_serial }}'
+
+        ucp_advisor_info:
+          address: "{{ucpadvisor_address}}"
+          username: "{{ucpadvisor_username}}"
+          password: "{{ucpadvisor_password}}"
+
+        lun_info:
           parity_group: '{{ parity_group | default(None) }}'
-          size: '{{ size | default(None) }}'
+          size: '{{ size }}'
           name: '{{ name  | default(None) }}'
-          lun: '{{ lun | default(None) }}'
+          cap_saving: '{{ cap_saving | default(None) }}'
+
       register: result
     - debug: var=result

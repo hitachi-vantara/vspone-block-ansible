@@ -5,12 +5,11 @@
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.yml
+    - include_vars: vars.ucpa.yml
   vars:
-    - istorage_serial: "446039"
-    - storage_serial: "611032"
-    - ucp_serial: "UCP-CI-12144"
-    - ixxxxmax_count: 10
+    - storage_serial: "446039"
+    - ucp_serial: "UCP-CI-52918"
+    - max_count: 10
   tasks:
     - hv_lun_facts:
 
