@@ -8,8 +8,8 @@
     - include_vars: vars.ucpa.yml
   vars:
     - luns:
-      - 377
-      - 378
+      - 386
+      - 390
     - storage_serial: 446039
     - ucp_serial: UCP-CI-52918
   tasks:
