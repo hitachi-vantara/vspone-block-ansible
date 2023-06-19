@@ -10,7 +10,6 @@
     - ucp_serial: UCP-CI-52918
     - parity_group: 1-4
     - size: 3GB
-    - lun: 390
     - storage_serial: 446039
   tasks:
     - hv_lun:

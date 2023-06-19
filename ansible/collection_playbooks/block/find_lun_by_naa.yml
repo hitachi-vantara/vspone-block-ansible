@@ -5,11 +5,11 @@
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.yml
+    - include_vars: vars.ucpa.yml
   vars:
-    - storage_serial: "611032"
-    - ucp_serial: "UCP-CI-12144"
-    - lun: "naa.60060e80212b180050602b180000056f"
+    - storage_serial: "446039"
+    - ucp_serial: "UCP-CI-52918"
+    - lun: "naa.60060e8012b3d7005040b3d7000007cf"
   tasks:
     - hv_lun_facts:
 

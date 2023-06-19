@@ -11,8 +11,7 @@
     - ucp_serial: UCP-CI-52918
     - pool_id: 27
     - size: 1.07GB
-    - lun: 1416
-    - name: halbAns1
+    - lun: 980
     - capacity_saving: compression
   tasks:
     - hv_lun:
