@@ -29,7 +29,9 @@
         lun_info:
           pool_id: '{{ pool_id  | default(None) }}'
           size: '{{ size | default(None)}}'
+          lun: '{{ lun | default(omit) }}'
           name: '{{ name  | default(None) }}'
+          capacity_saving: '{{ capacity_saving | default(None) }}'
 
       register: result
     - debug: var=result

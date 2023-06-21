@@ -29,7 +29,7 @@
           pool_id: '{{ pool_id | default(None) }}'
           size: '{{ size }}'
           name: '{{ name  | default(None) }}'
-          cap_saving: '{{ cap_saving | default(None) }}'
+          capacity_saving: '{{ capacity_saving | default(None) }}'
 
       with_sequence:  end={{count}} start=1
       register: result

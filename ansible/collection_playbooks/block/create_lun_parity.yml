@@ -28,7 +28,7 @@
           parity_group: '{{ parity_group | default(None) }}'
           size: '{{ size }}'
           name: '{{ name  | default(None) }}'
-          cap_saving: '{{ cap_saving | default(None) }}'
+          capacity_saving: '{{ capacity_saving | default(None) }}'
 
       register: result
     - debug: var=result

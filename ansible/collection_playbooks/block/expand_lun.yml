@@ -27,7 +27,7 @@
         lun_info:
           luns: '{{ luns }}'
           size: '{{size_gb}}'
-          cap_saving: '{{ cap_saving | default(None) }}'
+          capacity_saving: '{{ capacity_saving | default(None) }}'
 
       register: result
     - debug: var=result.lun
