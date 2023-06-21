@@ -1,0 +1,36 @@
+-
+  name: Testing Create Multiple LUN With Count In DP
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  pre_tasks:
+    - include_vars: vars.ucpa.yml
+  vars:
+    - ucp_serial: UCP-CI-52918
+    - pool_id: 6
+    - size: 0.08GB
+    - storage_serial: 446039
+    - count: 2
+  tasks:
+    - hv_lun:
+        state: present
+
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          ucp_serial: '{{ ucp_serial }}'
+
+        ucp_advisor_info:
+          address: "{{ucpadvisor_address}}"
+          username: "{{ucpadvisor_username}}"
+          password: "{{ucpadvisor_password}}"
+
+        lun_info:
+          pool_id: '{{ pool_id | default(None) }}'
+          size: '{{ size }}'
+          name: '{{ name  | default(None) }}'
+          capacity_saving: '{{ capacity_saving | default(None) }}'
+
+      with_sequence:  end={{count}} start=1
+      register: result
+    - debug: var=result

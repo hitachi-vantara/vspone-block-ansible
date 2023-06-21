@@ -1,0 +1,35 @@
+-
+  name: Testing Delete LUN
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  pre_tasks:
+    - include_vars: vars.ucpa.yml
+  vars:
+    - luns:
+      - 386
+      - 390
+    - storage_serial: 446039
+    - ucp_serial: UCP-CI-52918
+  tasks:
+    - hv_lun:
+        state: absent
+
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          ucp_serial: '{{ ucp_serial }}'
+
+        ucp_advisor_info:
+          address: "{{ucpadvisor_address}}"
+          username: "{{ucpadvisor_username}}"
+          password: "{{ucpadvisor_password}}"
+
+        lun_info:
+          luns: '{{ item }}'
+          name: '{{ name | default(None) }}'
+
+      with_items: '{{ luns }}'
+      register: result
+    - debug: var=result
+

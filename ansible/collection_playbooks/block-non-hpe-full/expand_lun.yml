@@ -1,0 +1,34 @@
+-
+  name: Testing Expand LUN
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  pre_tasks:
+    - include_vars: vars.ucpa.yml
+  vars:
+    - storage_serial: 446039
+    - ucp_serial: UCP-CI-52918
+    - luns: 380
+    - size_gb: 2
+  tasks:
+    - hv_lun:
+        state: present
+
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          ucp_serial: '{{ ucp_serial }}'
+
+        ucp_advisor_info:
+          address: "{{ucpadvisor_address}}"
+          username: "{{ucpadvisor_username}}"
+          password: "{{ucpadvisor_password}}"
+
+        lun_info:
+          luns: '{{ luns }}'
+          size: '{{size_gb}}'
+          capacity_saving: '{{ capacity_saving | default(None) }}'
+
+      register: result
+    - debug: var=result.lun
+

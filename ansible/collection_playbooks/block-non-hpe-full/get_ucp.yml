@@ -1,0 +1,21 @@
+-
+  name: Get UCP System
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  pre_tasks:
+    - include_vars: vars.yml
+  vars:
+    - serial_number: "12435"
+    - model: UCP CI
+  tasks:
+    - hv_ucp_facts:
+        serial_number: '{{ serial_number }}'
+        model: '{{ model }}'
+        ucpadvisor_address: "{{ucpadvisor_address}}"
+        ucpadvisor_username: "{{ucpadvisor_username}}"
+        ucpadvisor_key: "{{ucpadvisor_password}}"
+      register: result
+    - debug: var=result
+

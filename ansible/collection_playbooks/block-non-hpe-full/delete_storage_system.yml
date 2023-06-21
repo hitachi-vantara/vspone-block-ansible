@@ -1,0 +1,23 @@
+-
+  name: Deleting Storage System from storage.json
+  hosts: localhost
+  collections:
+    - hitachi.storage
+  gather_facts: false
+  pre_tasks:
+    - include_vars: vars.ucpa.yml
+  vars:
+    - storage_serial: "446039"
+    - ucp_serial: "UCP-CI-20105"
+  tasks:
+    - hv_storagesystem:
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          ucp_serial: '{{ ucp_serial }}'
+        ucp_advisor_info:
+          address: "{{ucpadvisor_address}}"
+          username: "{{ucpadvisor_username}}"
+          password: "{{ucpadvisor_password}}"
+        state: absent
+      register: result
+    - debug: var=result
