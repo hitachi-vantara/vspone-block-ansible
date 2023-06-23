@@ -1,0 +1,164 @@
+{
+	"files": [
+		{
+			"path": "ansible/collection_playbooks/block/add_storagesystems.yml",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 9,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "hi_python_sdk/modules/collections/block/hv_storagesystem.py",
+			"bookmarks": [
+				{
+					"line": 201,
+					"column": 31,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "hi_python_sdk/sdk_package/collections/block/hv_ucpmanager.py",
+			"bookmarks": [
+				{
+					"line": 283,
+					"column": 32,
+					"label": ""
+				},
+				{
+					"line": 332,
+					"column": 14,
+					"label": ""
+				},
+				{
+					"line": 464,
+					"column": 15,
+					"label": ""
+				},
+				{
+					"line": 646,
+					"column": 15,
+					"label": ""
+				},
+				{
+					"line": 876,
+					"column": 21,
+					"label": ""
+				},
+				{
+					"line": 892,
+					"column": 29,
+					"label": ""
+				},
+				{
+					"line": 989,
+					"column": 23,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "hi_python_sdk/sdk_package/collections/block/hv_lun_runner.py",
+			"bookmarks": [
+				{
+					"line": 163,
+					"column": 11,
+					"label": ""
+				},
+				{
+					"line": 246,
+					"column": 12,
+					"label": ""
+				},
+				{
+					"line": 291,
+					"column": 17,
+					"label": ""
+				},
+				{
+					"line": 494,
+					"column": 38,
+					"label": ""
+				},
+				{
+					"line": 572,
+					"column": 34,
+					"label": ""
+				},
+				{
+					"line": 599,
+					"column": 28,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "hi_python_sdk/sdk_package/collections/block/hv_storagemanager.py",
+			"bookmarks": [
+				{
+					"line": 193,
+					"column": 15,
+					"label": ""
+				},
+				{
+					"line": 233,
+					"column": 52,
+					"label": ""
+				},
+				{
+					"line": 253,
+					"column": 18,
+					"label": ""
+				},
+				{
+					"line": 549,
+					"column": 18,
+					"label": ""
+				},
+				{
+					"line": 609,
+					"column": 16,
+					"label": ""
+				},
+				{
+					"line": 643,
+					"column": 41,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "hi_python_sdk/modules/collections/block/hv_lun.py",
+			"bookmarks": [
+				{
+					"line": 114,
+					"column": 6,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "ansible/collection_playbooks/block/version.txt",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 30,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "hi_python_sdk/sdk_package/collections/block/hv_storagepool_facts_runner.py",
+			"bookmarks": [
+				{
+					"line": 30,
+					"column": 24,
+					"label": ""
+				}
+			]
+		}
+	]
+}
