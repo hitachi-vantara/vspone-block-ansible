@@ -4,22 +4,33 @@
   collections:
     - hitachi.storage
   gather_facts: false
+  pre_tasks:
+    - include_vars: vars.ucpa.yml.20.61
   vars:
  #  - name: Testluns
-    - pool_id: 2
+    - pool_id: 8
     - size: 0.1GB
-    - storage_serial: 123456
-    - host_group_name: xyz
+    - storage_serial: 611039
+    - ucp_serial: UCP-CI-12035
+    - host_group_name: test-ansible-hg-1
     - count: 2
     - ports:
       - CL1-A
   tasks:
     - hv_lun:
         state: present
-        storage_serial: '{{ storage_serial }}'
-        data:
-          storage_pool:
-            id: '{{ pool_id }}'
+
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          ucp_serial: '{{ ucp_serial }}'
+          
+        ucp_advisor_info:
+          address: "{{ucpadvisor_address}}"
+          username: "{{ucpadvisor_username}}"
+          password: "{{ucpadvisor_password}}"
+
+        lun_info:
+          pool_id: '{{ pool_id  | default(None) }}'
           size: '{{ size | default(omit) }}'
       with_sequence:  end={{count}} start=1
 #     with_items: '{{ luns }}'
@@ -28,8 +39,17 @@
     
     - hv_hg:
         state: '{{ state | default(omit) }}'
-        storage_serial: '{{ storage_serial }}'
-        data:
+
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          ucp_serial: '{{ ucp_serial }}'
+          
+        ucp_advisor_info:
+          address: "{{ucpadvisor_address}}"
+          username: "{{ucpadvisor_username}}"
+          password: "{{ucpadvisor_password}}"
+
+        spec:
           state: present
           name: '{{ host_group_name }}'
           ports: '{{ ports | default(omit) }}'

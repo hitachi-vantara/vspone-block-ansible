@@ -26,7 +26,7 @@
           username: "{{ucpadvisor_username}}"
           password: "{{ucpadvisor_password}}"
 
-        host_group_info:
+        spec:
           name: '{{ host_group_name }}'
           ports: '{{ ports | default(None) }}'
           

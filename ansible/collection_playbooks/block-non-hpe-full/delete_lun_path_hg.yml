@@ -4,18 +4,28 @@
   collections:
     - hitachi.storage
   gather_facts: false
+  pre_tasks:
+    - include_vars: vars.ucpa.yml.20.61
   vars:
-    - host_group_name: hg_xyz
-    - ports:
-      - CL1-A
-    - storage_serial: 123456
+    - storage_serial: 611039
+    - ucp_serial: UCP-CI-12035
+    - host_group_name: test-ansible-hg-1
     - luns: 
-      - 333
+      - 94
   tasks:
     - hv_hg:
         state: present
-        storage_serial: '{{ storage_serial }}'
-        data:
+
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          ucp_serial: '{{ ucp_serial }}'
+          
+        ucp_advisor_info:
+          address: "{{ucpadvisor_address}}"
+          username: "{{ucpadvisor_username}}"
+          password: "{{ucpadvisor_password}}"
+
+        spec:
           state: absent
           name: '{{ host_group_name }}'
           ports: '{{ ports | default(omit) }}'

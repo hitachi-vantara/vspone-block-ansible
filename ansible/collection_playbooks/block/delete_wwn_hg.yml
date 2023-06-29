@@ -1,18 +1,20 @@
 -
-  name:  Query/return luns for all hostgroups
+  name: Remove WWNs from Host Group
   hosts: localhost
   collections:
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml.20.90
+    - include_vars: vars.ucpa.yml.20.61
   vars:
-    - ucp_serial: UCP-CI-71366
-    - storage_serial: 446039
-    - query:
-      - luns
+    - storage_serial: 611039
+    - ucp_serial: UCP-CI-12035
+    - host_group_name: test-ansible-hg-1
+    - wwns:
+      - 100000109B3C0FD3
   tasks:
-    - hv_hg_facts:
+    - hv_hg:
+        state: present
 
         storage_system_info:
           serial: '{{ storage_serial }}'
@@ -24,9 +26,12 @@
           password: "{{ucpadvisor_password}}"
 
         spec:
-          query: '{{ query | default(omit) }}'
-          lun: '{{ lun | default(omit) }}'
-          name: '{{ hgName | default(omit) }}'
-          ports: '{{ ports | default(omit) }}'
+          state: absent
+          name: '{{ host_group_name }}'
+          ports: '{{ ports  | default(None)  }}'
+          wwns: '{{ wwns | default(None) }}'
+          luns: '{{ luns | default(None) }}'
+
       register: result
     - debug: var=result.hostGroups
+

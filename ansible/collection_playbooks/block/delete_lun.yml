@@ -27,7 +27,6 @@
 
         lun_info:
           luns: '{{ item }}'
-          name: '{{ name | default(None) }}'
 
       with_items: '{{ luns }}'
       register: result

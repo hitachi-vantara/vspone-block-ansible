@@ -8,7 +8,7 @@
     - include_vars: vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
-    - ucp_serial: UCP-CI-71366
+    - ucp_serial: UCP-CI-26261
     - host_group_name: test-ansible-hg-1
     - ports:
       - CL1-A
@@ -25,7 +25,7 @@
           username: "{{ucpadvisor_username}}"
           password: "{{ucpadvisor_password}}"
 
-        host_group_info:
+        spec:
           name: '{{ host_group_name }}'
           ports: '{{ ports | default(None) }}'
           
