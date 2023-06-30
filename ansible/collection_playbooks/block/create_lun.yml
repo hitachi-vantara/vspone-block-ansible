@@ -5,14 +5,15 @@
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml
+    - include_vars: vars.ucpa.yml.20.61
   vars:
-    - storage_serial: 446039
-    - ucp_serial: UCP-CI-52918
+    - storage_serial: 611032
+    - ucp_serial: UCP-CI-11111
     - pool_id: 27
     - size: 1.07GB
-    - lun: 980
-    - capacity_saving: compression
+    - ilun: 980
+    - iname: 1234567890123456789012345678901234567890
+    - icapacity_saving: compression
   tasks:
     - hv_lun:
         state: present

@@ -5,14 +5,15 @@
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml.20.90
+    - include_vars: vars.ucpa.yml.20.61
   vars:
-    - storage_serial: 446039
-    - ucp_serial: UCP-CI-71366
+    - storage_serial: 611032
+    - ucp_serial: UCP-CI-11111
     - host_group_name: test-ansible-hg-1
+    - ports:
+      - CL2-B
     - luns:
-      - 800
-      - 801
+      - 1091
   tasks:
     - hv_hg:
         state: present

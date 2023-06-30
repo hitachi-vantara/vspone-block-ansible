@@ -7,11 +7,13 @@
   pre_tasks:
     - include_vars: vars.ucpa.yml.20.61
   vars:
-    - storage_serial: 611039
-    - ucp_serial: UCP-CI-12035
+    - storage_serial: 611032
+    - ucp_serial: UCP-CI-11111
     - host_group_name: test-ansible-hg-1
+    - ports:
+      - CL2-B
     - luns:
-      - 94
+      - 1091
     - state: absent
   tasks:
     - hv_hg:

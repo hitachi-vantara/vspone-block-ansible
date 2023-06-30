@@ -7,11 +7,13 @@
   pre_tasks:
     - include_vars: vars.ucpa.yml.20.61
   vars:
-    - storage_serial: 611039
-    - ucp_serial: UCP-CI-12035
+    - storage_serial: 611032
+    - ucp_serial: UCP-CI-11111
     - host_group_name: test-ansible-hg-1
+    - ports:
+      - CL2-B
     - wwns:
-      - 100000109B3C0FD3
+      - 200000109B3C0FD3
   tasks:
     - hv_hg:
         state: present
@@ -30,7 +32,6 @@
           name: '{{ host_group_name }}'
           ports: '{{ ports  | default(None)  }}'
           wwns: '{{ wwns | default(None) }}'
-          luns: '{{ luns | default(None) }}'
 
       register: result
     - debug: var=result.hostGroups
