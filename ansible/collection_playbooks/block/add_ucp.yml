@@ -5,7 +5,7 @@
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.yml
+    - include_vars: vars.ucpa.yml
   vars:
     - serial_number: "12435"
     - gateway_address: 172.25.20.35

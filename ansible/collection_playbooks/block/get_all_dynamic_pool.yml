@@ -6,9 +6,9 @@
   gather_facts: false
   pre_tasks:
     - include_vars: vars.ucpa.yml
-    - include_vars: vars.storage.yml
   vars:
-    - ucp_serial: UCP-CI-20105
+    - ucp_serial: UCP-CI-11111
+    - storage_serial: 611032
   tasks:
     - hv_storagepool_facts:
         storage_system_info:

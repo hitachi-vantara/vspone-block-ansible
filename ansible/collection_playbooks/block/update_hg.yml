@@ -1,5 +1,5 @@
 -
-  name: Testing Delete Host Group
+  name: Update Host Group
   hosts: localhost
   collections:
     - hitachi.storage
@@ -10,11 +10,17 @@
     - storage_serial: 611032
     - ucp_serial: UCP-CI-11111
     - host_group_name: test-ansible-hg-1
+    - wwns:
+      - 200000109B3C0FD3
     - ports:
       - CL2-B
+    - host_mode: VMWARE_EXTENSION
+    - host_mode_options:
+      - 54
+      - 63
   tasks:
     - hv_hg:
-        state: absent
+        state: present
 
         storage_system_info:
           serial: '{{ storage_serial }}'
@@ -27,7 +33,12 @@
 
         spec:
           name: '{{ host_group_name }}'
-          ports: '{{ ports | default(None) }}'
-          
+          ports: '{{ ports }}'
+          host_mode: '{{ host_mode | default(None)}}'
+          host_mode_options: '{{ host_mode_options | default(None)}}'
+          wwns: '{{ wwns | default(None) }}'
+          luns: '{{ luns | default(None) }}'
+          state: '{{ state | default(None) }}'
       register: result
-    - debug: var=result
+    - debug: var=result.hostGroups
+

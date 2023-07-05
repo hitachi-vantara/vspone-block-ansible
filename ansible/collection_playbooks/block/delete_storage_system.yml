@@ -1,5 +1,5 @@
 -
-  name: Deleting Storage System from storage.json
+  name: Deleting Storage System
   hosts: localhost
   collections:
     - hitachi.storage

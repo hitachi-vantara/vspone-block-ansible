@@ -9,6 +9,7 @@
   vars:
     - storage_serial: "446039"
     - ucp_serial: "UCP-CI-52918"
+    - lun: 100
     - max_count: 10
   tasks:
     - hv_lun_facts:

@@ -1,5 +1,5 @@
 -
-  name: Adding Storage System from storage.json
+  name: Adding Storage System
   hosts: localhost
   collections:
     - hitachi.storage

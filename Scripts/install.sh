@@ -99,30 +99,6 @@ doAnsibleModule=1
 # Function to compare Java versions https://stackoverflow.com/a/24067243/9761984
 function version_gt() { test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"; }
 
-# Install Pip SCP library
-check_scp_install()
-{
-        if type -p pip && pip list | fgrep -w scp ; then
-            echo "Python SCP library is already installed."
-        else
-                read -p "Python SCP library is required. Do you want to install Python SCP library? [y/Y] " -n 1 -r
-                echo    # (optional) move to a new line
-                if [[ $REPLY =~ ^[Yy]$ ]]; then
-
-                        echo "Installing pip..."
-                        yum install -y  python-pip
-                        pip install scp
-                else
-                    echo "Please install Python SCP library and rerun install.sh."
-		            if [[ "$is_source_subshell" -eq 0 ]]; then
-		              exit 1
-		            else
-		              return 1
-		            fi
-                fi
-        fi
-}
-
 # Install Pip Requests library
 check_requests_install()
 {
@@ -132,7 +108,6 @@ check_requests_install()
                 read -p "Python Requests library is required. Do you want to install Python Requests library? [y/Y] " -n 1 -r
                 echo    # (optional) move to a new line
                 if [[ $REPLY =~ ^[Yy]$ ]]; then
-                		# check_scp_install should have already installed pip
                         pip install requests
                 else
                     echo "Please install Python Requests library and rerun install.sh."
@@ -183,15 +158,6 @@ if [[ "$ansible_modules_only" -eq 0 ]]; then
 	fi
 fi	
 
-if [[ "$ansible_modules_only" -eq 1 ]]; then
-	# Back up the storage.json config file
-	config_file="/opt/hitachi/ansible/storage.json"
-	if [ -f "$config_file" ]; then
-	   #ls -l "$config_file"
-	   cp -f "${config_file}" "${config_file}.bak"
-	fi
-fi	
-
 check_requests_install
 # Install C# storage gateway webservice RPM for all installation type,
 # since we need all the files to be installed
@@ -235,15 +201,6 @@ if [[ "$ansible_modules_only" -eq 1 ]]; then
 fi 
 
 if [[ "$doAnsibleModule" -eq 1 ]]; then	
-
-	# Replace the config file
-	config_file="/opt/hitachi/ansible/storage.json"
-	if [ -f "${config_file}.bak" ]; then
-	  echo "${config_file}.bak" is your most recently used storage.json.
-	  echo Do you want to overwrite the newly installed storage.json with it,
-	  cp -f "${config_file}.bak" "$config_file"
-	fi		
-	
 
     export PATH=$PATH:/opt/hitachi/ansible/bin
 	export HV_STORAGE_ANSIBLE_PROFILE=/opt/hitachi/ansible/storage.json
@@ -299,7 +256,7 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
 
        # support the ansible-doc
       mkdir -p /root/.ansible/plugins 
-      ln -s /root/.ansible/collections/ansible_collections/hitachi/storage/plugins/modules /root/.ansible/plugins/modules > /dev/null
+      ln -s /root/.ansible/collections/ansible_collections/hitachi/storage/plugins/modules /root/.ansible/plugins/modules > /dev/null 2>&1
 
 	ansible-galaxy collection install hitachi-storage-2.3.0.7.tar.gz -p ~/.ansible/collections --force
 			
