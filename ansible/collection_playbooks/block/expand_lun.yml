@@ -7,10 +7,10 @@
   pre_tasks:
     - include_vars: vars.ucpa.yml
   vars:
-    - storage_serial: 446039
-    - ucp_serial: UCP-CI-52918
+    - storage_serial: "715035"
+    - ucp_name: "20-253"
     - luns: 380
-    - size_gb: 2
+    - size: 2
   tasks:
     - hv_lun:
         state: present
@@ -26,7 +26,7 @@
 
         spec:
           luns: '{{ luns }}'
-          size: '{{size_gb}}'
+          size: '{{size}}'
           capacity_saving: '{{ capacity_saving | default(None) }}'
 
       register: result

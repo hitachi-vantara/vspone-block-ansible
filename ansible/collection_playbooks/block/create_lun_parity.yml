@@ -7,7 +7,8 @@
   pre_tasks:
     - include_vars: vars.ucpa.yml
   vars:
-    - ucp_serial: UCP-CI-52918
+    - storage_serial: "715035"
+    - ucp_name: "20-253"
     - parity_group: 1-4
     - size: 3GB
     - storage_serial: 446039
@@ -17,7 +18,7 @@
 
         storage_system_info:
           serial: '{{ storage_serial }}'
-          ucp_serial: '{{ ucp_serial }}'
+          ucp_name: '{{ ucp_name }}'
 
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"

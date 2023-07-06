@@ -10,15 +10,15 @@
     - luns:
       - 386
       - 390
-    - storage_serial: 446039
-    - ucp_serial: UCP-CI-52918
+    - storage_serial: "715035"
+    - ucp_name: "20-253"
   tasks:
     - hv_lun:
         state: absent
 
         storage_system_info:
           serial: '{{ storage_serial }}'
-          ucp_serial: '{{ ucp_serial }}'
+          ucp_name: '{{ ucp_name }}'
 
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"

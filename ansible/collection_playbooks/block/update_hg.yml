@@ -7,8 +7,8 @@
   pre_tasks:
     - include_vars: vars.ucpa.yml
   vars:
-    - storage_serial: 611032
-    - ucp_serial: UCP-CI-11111
+    - storage_serial: "715035"
+    - ucp_name: "20-253"
     - host_group_name: test-ansible-hg-1
     - wwns:
       - 200000109B3C0FD3
@@ -24,7 +24,7 @@
 
         storage_system_info:
           serial: '{{ storage_serial }}'
-          ucp_serial: '{{ ucp_serial }}'
+          ucp_name: '{{ ucp_name }}'
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"

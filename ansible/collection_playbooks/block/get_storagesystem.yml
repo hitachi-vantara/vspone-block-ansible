@@ -8,7 +8,7 @@
     - include_vars: vars.ucpa.yml
   vars:
     - storage_serial: "715035"
-    - ucp_serial: "20-253"
+    - ucp_name: "20-253"
     - query:
       - pools
       - ports
@@ -20,7 +20,7 @@
     
         storage_system_info:
           serial: '{{ storage_serial }}'
-          ucp_serial: '{{ ucp_serial }}'
+          ucp_name: '{{ ucp_name }}'
           query: '{{ query | default(None) }}'
           
         ucp_advisor_info:

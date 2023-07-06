@@ -8,7 +8,7 @@
     - include_vars: vars.ucpa.yml
     - include_vars: vars.storage.yml
   vars:
-    - ucp_serial: UCP-CI-20105
+    - ucp_name: ucp-202532
   tasks:
     - hv_storagesystem:
         storage_system_info:
@@ -16,7 +16,7 @@
           address: "{{storage_address}}"
           username: "{{storage_user}}"
           password: "{{storage_password}}"
-          ucp_serial: '{{ ucp_serial }}'
+          ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
           username: "{{ucpadvisor_username}}"

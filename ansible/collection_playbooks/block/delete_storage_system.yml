@@ -7,13 +7,13 @@
   pre_tasks:
     - include_vars: vars.ucpa.yml
   vars:
-    - storage_serial: "446039"
-    - ucp_serial: "UCP-CI-20105"
+    - storage_serial: "715035"
+    - ucp_name: "ucp-202532"
   tasks:
     - hv_storagesystem:
         storage_system_info:
           serial: '{{ storage_serial }}'
-          ucp_serial: '{{ ucp_serial }}'
+          ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
           username: "{{ucpadvisor_username}}"

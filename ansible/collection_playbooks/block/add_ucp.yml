@@ -7,10 +7,10 @@
   pre_tasks:
     - include_vars: vars.ucpa.yml
   vars:
-    - serial_number: "45678"
-    - gateway_address: 172.25.20.61
+    - serial_number: "202532"
+    - gateway_address: 172.25.20.253
     - model: UCP CI
-    - name: ucp-45678
+    - name: ucp-202532
     - region: AMERICA
     - country: 'United States'
     - zipcode: '95054'
