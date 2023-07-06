@@ -22,7 +22,7 @@
           username: "{{ucpadvisor_username}}"
           password: "{{ucpadvisor_password}}"
 
-        lun_info:
+        spec:
           lun: '{{ lun | default(omit) }}'
           name: '{{ name | default(omit) }}'
           max_count: '{{ max_count | default(omit) }}'

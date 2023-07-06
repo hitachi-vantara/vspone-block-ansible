@@ -7,8 +7,8 @@
   pre_tasks:
     - include_vars: vars.ucpa.yml
   vars:
-    - storage_serial: "446039"
-    - ucp_serial: "UCP-CI-52918"
+    - storage_serial: "715035"
+    - ucp_serial: "20-253"
     - max_count: 10
     - lun: 1999
   tasks:
@@ -23,7 +23,7 @@
           username: "{{ucpadvisor_username}}"
           password: "{{ucpadvisor_password}}"
 
-        lun_info:
+        spec:
           lun: '{{ lun | default(omit) }}'
           name: '{{ name | default(omit) }}'
           max_count: '{{ max_count | default(omit) }}'

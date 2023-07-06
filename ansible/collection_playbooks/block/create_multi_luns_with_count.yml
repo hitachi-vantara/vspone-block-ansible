@@ -25,7 +25,7 @@
           username: "{{ucpadvisor_username}}"
           password: "{{ucpadvisor_password}}"
 
-        lun_info:
+        spec:
           pool_id: '{{ pool_id | default(None) }}'
           size: '{{ size }}'
           name: '{{ name  | default(None) }}'

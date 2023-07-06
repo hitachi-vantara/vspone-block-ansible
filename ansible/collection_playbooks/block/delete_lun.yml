@@ -25,7 +25,7 @@
           username: "{{ucpadvisor_username}}"
           password: "{{ucpadvisor_password}}"
 
-        lun_info:
+        spec:
           luns: '{{ item }}'
 
       with_items: '{{ luns }}'

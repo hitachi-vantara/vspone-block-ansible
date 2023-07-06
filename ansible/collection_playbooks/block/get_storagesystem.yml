@@ -7,8 +7,8 @@
   pre_tasks:
     - include_vars: vars.ucpa.yml
   vars:
-    - storage_serial: 446039
-    - ucp_serial: UCP-CI-12345
+    - storage_serial: "715035"
+    - ucp_serial: "20-253"
     - query:
       - pools
       - ports
@@ -21,12 +21,12 @@
         storage_system_info:
           serial: '{{ storage_serial }}'
           ucp_serial: '{{ ucp_serial }}'
+          query: '{{ query | default(None) }}'
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
           username: "{{ucpadvisor_username}}"
           password: "{{ucpadvisor_password}}"
 
-        query: '{{ query | default(None) }}'
       register: result
     - debug: var=result.storageSystem

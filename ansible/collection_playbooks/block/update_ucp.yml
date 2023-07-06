@@ -7,17 +7,15 @@
   pre_tasks:
     - include_vars: vars.ucpa.yml
   vars:
-    - serial_number: "12435"
-    - model: UCP CI
-    - gateway_address: 172.25.20.35
+    - name: ucp-45678
+    - gateway_address: 172.25.20.61
     - region: APAC
     - country: India
     - zipcode: '560087'
   tasks:
     - hv_ucp:
         state: present
-        serial_number: '{{ serial_number }}'
-        model: '{{ model }}'
+        name: '{{ name }}'
         ucpadvisor_address: "{{ucpadvisor_address}}"
         ucpadvisor_username: "{{ucpadvisor_username}}"
         ucpadvisor_key: "{{ucpadvisor_password}}"
