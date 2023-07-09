@@ -72,6 +72,10 @@ while [ "$1" != "" ]; do
     shift
 done
 
+# starting with 02.03, installing Ansible Modules only
+ansible_modules_only=1
+full_install=0
+
 #echo $gateway_server_install_only
 #echo $gateway_server_install_exclude
 #echo $storage_mgmt_server_install_exclude
