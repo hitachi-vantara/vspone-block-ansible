@@ -151,12 +151,12 @@ if rpm -qa | grep -qw '\(HV_Storage_\)\?Ansible'; then
 	yes | ./uninstall.sh -q
 fi
 
-if [[ "$ansible_modules_only" -eq 0 ]]; then
-	# check if net-tools package is installed on the system
-	if ! rpm -qa | grep -qw net-tools; then
-	    yum install -y net-tools
-	fi
-fi	
+# if [[ "$ansible_modules_only" -eq 0 ]]; then
+# 	# check if net-tools package is installed on the system
+# 	if ! rpm -qa | grep -qw net-tools; then
+# 	    yum install -y net-tools
+# 	fi
+# fi	
 
 check_requests_install
 # Install C# storage gateway webservice RPM for all installation type,
