@@ -1,5 +1,5 @@
 -
-  name:  Query/return luns for all hostgroups
+  name:  Show luns/wwns for hostgroups
   hosts: localhost
   collections:
     - hitachi.storage
@@ -9,6 +9,7 @@
   vars:
     - storage_serial: "715035"
     - ucp_name: "20-253"
+    - host_group_name: test-ansible-hg-1
     - query:
       - luns
       - wwns
@@ -27,7 +28,7 @@
         spec:
           query: '{{ query | default(omit) }}'
           lun: '{{ lun | default(omit) }}'
-          name: '{{ hgName | default(omit) }}'
+          name: '{{ host_group_name | default(omit) }}'
           ports: '{{ ports | default(omit) }}'
       register: result
     - debug: var=result.hostGroups
