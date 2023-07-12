@@ -72,9 +72,11 @@ while [ "$1" != "" ]; do
     shift
 done
 
-# starting with 02.03, installing Ansible Modules only
-ansible_modules_only=1
-full_install=0
+# starting with 02.03, we just need installing Ansible Modules only
+# but the uninstall is done via rpm, so we cannot do it yet
+#
+# ansible_modules_only=1
+# full_install=0
 
 #echo $gateway_server_install_only
 #echo $gateway_server_install_exclude
