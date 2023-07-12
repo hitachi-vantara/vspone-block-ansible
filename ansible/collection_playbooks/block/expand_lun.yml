@@ -17,7 +17,7 @@
 
         storage_system_info:
           serial: '{{ storage_serial }}'
-          ucp_serial: '{{ ucp_serial }}'
+          ucp_name: '{{ ucp_name }}'
 
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"

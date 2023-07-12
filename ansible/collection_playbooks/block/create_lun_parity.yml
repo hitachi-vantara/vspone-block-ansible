@@ -11,7 +11,6 @@
     - ucp_name: "20-253"
     - parity_group: 1-4
     - size: 3GB
-    - storage_serial: 446039
   tasks:
     - hv_lun:
         state: present
