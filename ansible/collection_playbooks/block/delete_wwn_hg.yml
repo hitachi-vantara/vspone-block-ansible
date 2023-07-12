@@ -28,11 +28,11 @@
           password: "{{ucpadvisor_password}}"
 
         spec:
-          state: absent
+          state: remove_wwn
           name: '{{ host_group_name }}'
           ports: '{{ ports  | default(None)  }}'
           wwns: '{{ wwns | default(None) }}'
 
       register: result
-    - debug: var=result.hostGroups
+    - debug: var=result
 

@@ -11,10 +11,9 @@
     - ucp_name: "20-253"
     - host_group_name: test-ansible-hg-1
     - ports:
-      - CL2-B
+      - CL2-A
     - luns:
       - 1091
-    - state: absent
   tasks:
     - hv_hg:
         state: present
@@ -29,7 +28,7 @@
           password: "{{ucpadvisor_password}}"
 
         spec:
-          state: '{{ state | default(None) }}'
+          state: 'unpresent_lun'
           name: '{{ host_group_name }}'
           ports: '{{ ports | default(None) }}'
           luns: '{{ luns }}'

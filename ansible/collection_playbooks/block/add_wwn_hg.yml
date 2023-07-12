@@ -1,5 +1,5 @@
 -
-  name: Testing Get LUN
+  name: Update Host Group
   hosts: localhost
   collections:
     - hitachi.storage
@@ -9,8 +9,14 @@
   vars:
     - storage_serial: "715035"
     - ucp_name: "20-253"
+    - host_group_name: test-ansible-hg-1
+    - wwns:
+      - 200000109B3C0FD3
+    - ports:
+      - CL2-B
   tasks:
-    - hv_lun_facts:
+    - hv_hg:
+        state: present
 
         storage_system_info:
           serial: '{{ storage_serial }}'
@@ -22,9 +28,10 @@
           password: "{{ucpadvisor_password}}"
 
         spec:
-          lun: '{{ lun | default(omit) }}'
-          name: '{{ name | default(omit) }}'
-          max_count: '{{ max_count | default(omit) }}'
-
+          state: add_wwn
+          name: '{{ host_group_name }}'
+          ports: '{{ ports }}'
+          wwns: '{{ wwns | default(None) }}'
       register: result
-    - debug: var=result.luns
+    - debug: var=result
+
