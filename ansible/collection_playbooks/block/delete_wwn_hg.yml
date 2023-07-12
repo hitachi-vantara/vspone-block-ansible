@@ -30,8 +30,8 @@
         spec:
           state: remove_wwn
           name: '{{ host_group_name }}'
-          ports: '{{ ports  | default(None)  }}'
-          wwns: '{{ wwns | default(None) }}'
+          ports: '{{ ports }}'
+          wwns: '{{ wwns }}'
 
       register: result
     - debug: var=result

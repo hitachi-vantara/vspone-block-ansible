@@ -10,10 +10,6 @@
     - storage_serial: "715035"
     - ucp_name: "20-253"
     - host_group_name: test-ansible-hg-1
-    - luns:
-      - 200
-    - wwns:
-      - 200000109B3C0FD3
     - ports:
       - CL2-A
     - host_mode: VMWARE_EXTENSION
@@ -39,8 +35,6 @@
           ports: '{{ ports }}'
           host_mode: '{{ host_mode | default(None)}}'
           host_mode_options: '{{ host_mode_options | default(None)}}'
-          wwns: '{{ wwns | default(None) }}'
-          luns: '{{ luns | default(None) }}'
       register: result
     - debug: var=result
 

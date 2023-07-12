@@ -27,7 +27,7 @@
 
         spec:
           name: '{{ host_group_name }}'
-          ports: '{{ ports | default(None) }}'
+          ports: '{{ ports }}'
           
       register: result
     - debug: var=result

@@ -30,8 +30,8 @@
         spec:
           state: 'present_lun'
           name: '{{ host_group_name }}'
-          ports: '{{ ports | default(None) }}'
-          luns: '{{ luns | default(None) }}'
+          ports: '{{ ports }}'
+          luns: '{{ luns }}'
 
       register: result
     - debug: var=result

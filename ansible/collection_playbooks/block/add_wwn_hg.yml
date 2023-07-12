@@ -31,7 +31,7 @@
           state: add_wwn
           name: '{{ host_group_name }}'
           ports: '{{ ports }}'
-          wwns: '{{ wwns | default(None) }}'
+          wwns: '{{ wwns }}'
       register: result
     - debug: var=result
 
