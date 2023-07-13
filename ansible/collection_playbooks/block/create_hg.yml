@@ -12,10 +12,6 @@
     - host_group_name: test-ansible-hg-1
     - ports:
       - CL2-A
-    - host_mode: VMWARE_EXTENSION
-    - host_mode_options:
-      - 54
-      - 63
   tasks:
     - hv_hg:
         state: present
@@ -32,11 +28,7 @@
         spec:
           name: '{{ host_group_name }}'
           ports: '{{ ports }}'
-          host_mode: '{{ host_mode | default(None)}}'
-          host_mode_options: '{{ host_mode_options | default(None)}}'
-          wwns: '{{ wwns | default(None) }}'
-          luns: '{{ luns | default(None) }}'
-          state: '{{ state | default(None) }}'
+
       register: result
     - debug: var=result.hostGroups
 
