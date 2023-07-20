@@ -4,11 +4,15 @@
   collections:
     - hitachi.storage
   gather_facts: false
-  vars_files:
-    - /opt/hitachi/ansible/storage.json
+  pre_tasks:
+    - include_vars: vars.ucpa.yml
   tasks:
     - hv_troubleshooting_facts:
-        sanStorageSystems: '{{ sanStorageSystems }}'
-        hitachiAPIGatewayService: '{{ hitachiAPIGatewayService }}'
+          
+        ucp_advisor_info:
+          address: "{{ucpadvisor_address}}"
+          username: "{{ucpadvisor_username}}"
+          password: "{{ucpadvisor_password}}"
+
       register: result
     - debug: var=result
