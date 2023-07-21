@@ -111,18 +111,8 @@ check_requests_install()
         if type -p pip && pip list | fgrep -w requests ; then
             echo "Python Requests library is already installed."
         else
-                read -p "Python Requests library is required. Do you want to install Python Requests library? [y/Y] " -n 1 -r
-                echo    # (optional) move to a new line
-                if [[ $REPLY =~ ^[Yy]$ ]]; then
-                        pip install requests
-                else
-                    echo "Please install Python Requests library and rerun install.sh."
-		            if [[ "$is_source_subshell" -eq 0 ]]; then
-		              exit 1
-		            else
-		              return 1
-		            fi  
-                fi
+            echo "Installing Python Requests library from local requests_package folder."
+            pip download -d requests_package/ requests 
         fi
 }
 

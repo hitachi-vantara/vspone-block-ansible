@@ -5,7 +5,7 @@
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml
+    - include_vars: /opt/hitachi/ansible/playbooks/vars.ucpa.yml
   tasks:
     - hv_troubleshooting_facts:
           
