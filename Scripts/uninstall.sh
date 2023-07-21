@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Back up the config file
-config_file="/opt/hitachi/ansible/storage.json"
-if [ -f "$config_file" ]; then
-   cp -f "${config_file}" "${config_file}.bak"
-fi
+# config_file="/opt/hitachi/ansible/storage.json"
+# if [ -f "$config_file" ]; then
+#    cp -f "${config_file}" "${config_file}.bak"
+# fi
 
 rm -rf /opt/hitachi/ansible/support/library > /dev/null
 rm -rf /opt/hitachi/ansible/support/module_utils > /dev/null

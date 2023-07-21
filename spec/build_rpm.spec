@@ -95,7 +95,7 @@ install -d $RPM_BUILD_ROOT%{ansible_root_dir}/ansible
 # Copy the whole previous directory
 #cp -f -a %{previous_sub_dir} $RPM_BUILD_ROOT%{ansible_root_dir}
 #cp -f -a /root/rpmbuild/Ansible/*  $RPM_BUILD_ROOT/opt/hitachi/ansible/storage_management_services
-cp -f -a /root/rpmbuild/ansible/storage.json $RPM_BUILD_ROOT/opt/hitachi/ansible/storage.json
+#cp -f -a /root/rpmbuild/ansible/storage.json $RPM_BUILD_ROOT/opt/hitachi/ansible/storage.json
 cp -f -a /root/rpmbuild/ansible/collection_playbooks/block/* $RPM_BUILD_ROOT/opt/hitachi/ansible/playbooks
 rm -f                                             $RPM_BUILD_ROOT/opt/hitachi/ansible/playbooks/get_support_logs.yml
 cp -f -a /root/rpmbuild/ansible/collection_playbooks/block/get_support_logs.yml $RPM_BUILD_ROOT/opt/hitachi/ansible/support
