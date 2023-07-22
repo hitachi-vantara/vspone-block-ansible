@@ -48,3 +48,4 @@ fi
 # PROCESS_NUM=$(ps -ef | grep "VIService" | grep -v "grep" |  awk '{print $2}')
 # #echo $PROCESS_NUM
 # kill -9 $PROCESS_NUM
+echo "The uninstall is successful"

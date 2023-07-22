@@ -1,5 +1,5 @@
 -
-  name: Update Host Group
+  name: Update Host Group WWN
   hosts: localhost
   collections:
     - hitachi.storage
@@ -7,13 +7,16 @@
   pre_tasks:
     - include_vars: vars.ucpa.yml
   vars:
-    - storage_serial: "715035"
-    - ucp_name: "20-253"
-    - host_group_name: test-ansible-hg-1
-    - wwns:
-      - 200000109B3C0FD3
+    - storage_serial: "40014"
+    - ucp_name: "94-245"
     - ports:
-      - CL2-B
+      - CL1-E
+    - host_group_name: "demo-host-group"
+    - wwns:
+        - "1100000091AACCDD"
+        - "1100000095AACCDE"
+        - "1100000096AACCDF"
+        - "1100000069AACCDA"
   tasks:
     - hv_hg:
         state: present

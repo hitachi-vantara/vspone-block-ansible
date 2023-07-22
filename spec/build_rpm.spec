@@ -72,7 +72,7 @@ install -d $RPM_BUILD_ROOT/opt/hitachi/ansible/playbooks
 #install -d $RPM_BUILD_ROOT/opt/hitachi/ansible/playbooks/file
 #install -d $RPM_BUILD_ROOT/opt/hitachi/ansible/modules/block
 #install -d $RPM_BUILD_ROOT/opt/hitachi/ansible/modules/file
-install -d $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
+#install -d $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
 install -d $RPM_BUILD_ROOT%{ansible_root_dir}
 #install -d /root/rpmbuild/VIService-ApacheLicense $RPM_BUILD_ROOT/opt/hitachi/ansible/vi_service 
 
@@ -102,12 +102,12 @@ cp -f -a /root/rpmbuild/ansible/collection_playbooks/block/get_support_logs.yml 
 cp -f -a /root/rpmbuild/uninstall.sh                                 $RPM_BUILD_ROOT/opt/hitachi/ansible/support
 #cp -f -a /root/rpmbuild/crdetails.sh                                 $RPM_BUILD_ROOT/opt/hitachi/ansible/support
 
-cp -f -a /root/rpmbuild/goDoLogin/.grains.sh $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
-cp -f -a /root/rpmbuild/goDoLogin/checkLoginConfigurations.sh $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
-cp -f -a /root/rpmbuild/goDoLogin/.grains    $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
-cp -f -a /root/rpmbuild/goDoLogin/addLoginToConfigurations $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
-cp -f -a /root/rpmbuild/goDoLogin/storagejson.properties $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
-cp -f -a /root/rpmbuild/goDoLogin/storagejson.properties $RPM_BUILD_ROOT/opt/hitachi/ansible/
+#cp -f -a /root/rpmbuild/goDoLogin/.grains.sh $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
+#cp -f -a /root/rpmbuild/goDoLogin/checkLoginConfigurations.sh $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
+#cp -f -a /root/rpmbuild/goDoLogin/.grains    $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
+#cp -f -a /root/rpmbuild/goDoLogin/addLoginToConfigurations $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
+#cp -f -a /root/rpmbuild/goDoLogin/storagejson.properties $RPM_BUILD_ROOT/opt/hitachi/ansible/bin
+#cp -f -a /root/rpmbuild/goDoLogin/storagejson.properties $RPM_BUILD_ROOT/opt/hitachi/ansible/
         
 #cp -f -a /root/rpmbuild/sdk_package/* $RPM_BUILD_ROOT/opt/hitachi/ansible/module_utils
 #rm -f                                 $RPM_BUILD_ROOT/opt/hitachi/ansible/module_utils/basic.py
@@ -144,7 +144,7 @@ cp -f -a /root/rpmbuild/messages.properties $RPM_BUILD_ROOT/opt/hitachi/ansible/
 #chmod 755 $RPM_BUILD_ROOT/opt/hitachi/ansible/storage_management_services/hv-infra-gateway_service_restart.sh
 #chmod 755 $RPM_BUILD_ROOT/opt/hitachi/ansible/storage_management_services/open_firewall_ports.sh
 #chmod 755 $RPM_BUILD_ROOT/opt/hitachi/ansible/storage_management_services/puma_external.sh
-chmod 755 $RPM_BUILD_ROOT/opt/hitachi/ansible/bin/checkLoginConfigurations.sh
+#chmod 755 $RPM_BUILD_ROOT/opt/hitachi/ansible/bin/checkLoginConfigurations.sh
 
 %clean
 rm -rf $RPM_BUILD_ROOT

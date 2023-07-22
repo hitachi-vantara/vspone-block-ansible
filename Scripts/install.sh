@@ -220,7 +220,7 @@ fi
 
 if [[ "$doAnsibleModule" -eq 1 ]]; then	
 
-    export PATH=$PATH:/opt/hitachi/ansible/bin
+    # export PATH=$PATH:/opt/hitachi/ansible/bin
 	# export HV_STORAGE_ANSIBLE_PROFILE=/opt/hitachi/ansible/storage.json
 	export HV_STORAGE_ANSIBLE_LOG_PATH=/var/log
 	export HV_STORAGE_ANSIBLE_PATH=/opt/hitachi/ansible
@@ -261,7 +261,7 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
 	    echo "export HV_STORAGE_ANSIBLE_PATH=/opt/hitachi/ansible"  >>/etc/profile.d/custom.sh		
 	    echo "export HV_STORAGE_ANSIBLE_LOG_PATH=/var/log"  >>/etc/profile.d/custom.sh		
 	    # echo "export HV_STORAGE_ANSIBLE_PROFILE=/opt/hitachi/ansible/storage.json"  >>/etc/profile.d/custom.sh		
-	    echo 'export PATH=$PATH:/opt/hitachi/ansible/bin' >>/etc/profile.d/custom.sh
+	    # echo 'export PATH=$PATH:/opt/hitachi/ansible/bin' >>/etc/profile.d/custom.sh
         echo "export HV_STORAGE_MGMT_PATH=/opt/hitachi/ansible"  >>/etc/profile.d/custom.sh		
 	    echo "export HV_STORAGE_MGMT_VAR_LOG_PATH=/var/log"  >>/etc/profile.d/custom.sh	
 		  # echo "export HV_STORAGE_JSON_PROPERTIES_FILE=/opt/hitachi/ansible/storagejson.properties"  >>/etc/profile.d/custom.sh			
@@ -277,6 +277,7 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
       ln -s /root/.ansible/collections/ansible_collections/hitachi/storage/plugins/modules /root/.ansible/plugins/modules > /dev/null 2>&1
 
 	ansible-galaxy collection install hitachi-storage-2.3.0.7.tar.gz -p ~/.ansible/collections --force
+  echo "Installation is successful"
 			
 fi
 

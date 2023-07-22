@@ -9,11 +9,14 @@
   vars:
     - storage_serial: "715035"
     - ucp_name: "20-253"
-    - host_group_name: test-ansible-hg-1
     - ports:
-      - CL2-B
+      - CL2-A
+    - host_group_name: "AutoUI_Test_12589"
     - wwns:
-      - 200000109B3C0FD3
+        - "1100000091AACCDD"
+        - "1100000095AACCDE"
+        - "1100000096AACCDF"
+        - "1100000069AACCDA"
   tasks:
     - hv_hg:
         state: present
