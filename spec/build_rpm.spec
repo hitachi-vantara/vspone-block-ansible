@@ -135,6 +135,7 @@ cp -f -a /root/rpmbuild/messages.properties $RPM_BUILD_ROOT/opt/hitachi/ansible/
 #rm -rf $rpm_build_root/opt/hitachi/ansible/storage_management_services/hpe_version*
 #rm -rf $rpm_build_root/opt/hitachi/ansible/storage_management_services/version.txt
 
+## chmod would not work here, do it in install.sh
 #chmod 644 $RPM_BUILD_ROOT/etc/systemd/system/hv-infra-gateway.service
 #chmod 644 $RPM_BUILD_ROOT/lib/systemd/system/hv-infra-gateway.service
 #chmod 644 $RPM_BUILD_ROOT/etc/systemd/system/vi.service

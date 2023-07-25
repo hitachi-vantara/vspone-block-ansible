@@ -291,6 +291,7 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
       ln -s /root/.ansible/collections/ansible_collections/hitachi/storage/plugins/modules /root/.ansible/plugins/modules > /dev/null 2>&1
 
 	ansible-galaxy collection install hitachi-storage-2.3.0.7.tar.gz -p ~/.ansible/collections --force
+  chmod 755 /opt/hitachi/ansible/support/uninstall.sh
   echo "Installation is successful"
 			
 fi
