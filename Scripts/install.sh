@@ -126,7 +126,7 @@ check_requests_install_old()
         fi
 }
 check_requests_install()
-{
+{  
         if type -p pip && pip list | fgrep -w requests ; then
             echo "Python Requests library is already installed."
         else
@@ -175,6 +175,20 @@ fi
 # 	    yum install -y net-tools
 # 	fi
 # fi	
+
+if type -p pip ; then
+    echo "The package installer for Python (pip) is installed."
+else
+    echo "The package installer for Python (pip) is one of the prerequisites and it is not found."
+    return 1
+fi
+
+if type -p ansible-galaxy ; then
+    echo "The ansible-galaxy is installed."
+else
+    echo "Ansible is one of the prerequisites and it is not found."
+    return 1
+fi
 
 check_requests_install
 # Install C# storage gateway webservice RPM for all installation type,

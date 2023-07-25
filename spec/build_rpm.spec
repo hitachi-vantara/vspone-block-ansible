@@ -145,6 +145,7 @@ cp -f -a /root/rpmbuild/messages.properties $RPM_BUILD_ROOT/opt/hitachi/ansible/
 #chmod 755 $RPM_BUILD_ROOT/opt/hitachi/ansible/storage_management_services/open_firewall_ports.sh
 #chmod 755 $RPM_BUILD_ROOT/opt/hitachi/ansible/storage_management_services/puma_external.sh
 #chmod 755 $RPM_BUILD_ROOT/opt/hitachi/ansible/bin/checkLoginConfigurations.sh
+chmod 755 $RPM_BUILD_ROOT/opt/hitachi/support/uninstall.sh
 
 %clean
 rm -rf $RPM_BUILD_ROOT
