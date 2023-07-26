@@ -10,8 +10,6 @@
     - storage_serial: "715035"
     - ucp_name: "20-253"
     - host_group_name: AutoUI_Test_12589
-    - query:
-      - wwns
     - ports:
       - CL2-A
   tasks:
