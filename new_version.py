@@ -151,7 +151,7 @@ class build_versioning():
             version_str = self.version_tag + '=' + self.version_prefix
 
         version_str += str(version[0]) + '.' + str(version[1]) + '.' + \
-                       str(version[2]) + '-' + str(version[3]) + '\n'
+                       str(version[2]) + '.' + str(version[3]) + '\n'
 
         with open(build_file, 'r') as istream:
             data = istream.readlines()
@@ -189,7 +189,7 @@ class build_versioning():
                     if len(fields) == 2:
                         foundVersion = True
                         line = (fields[0] + '       ' + str(version[0]) + '.' +
-                                str(version[1]) + '.' + str(version[2]) + '.' +
+                                str(version[1]) + '.' + str(version[2]) + '-' +
                                 str(version[3]) + '\n')
 
                 # Update tarball version.

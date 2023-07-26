@@ -55,11 +55,9 @@ function buildDoLogin
 function Clean
 {
 	echo "+++++++++++++++++++Cleaned Deployment folder+++++++++++++++++++++++"
-	#for now clean is not done by pulbish we have to do manually.
-	ex="`rm -rf $Ansible_ROOT/Ansible/*`"
-	ex="`rm -f $Ansible_ROOT/Ansible.tar`"
-	response=`echo $?`
-	if [ $response -ne 0 ]; then
+	#for now clean is not done by publish we have to do manually.
+	rm -rf $Ansible_ROOT/Ansible/* $Ansible_ROOT/Ansible.tar
+	if [[ $? -ne 0 ]]; then
 	   echo "cleanup command failed. please see the log file for details."
            exit 1
         fi
@@ -72,10 +70,9 @@ function GenerateTar
 	echo "++++++++++++++++++++++++++Generating Package for export+++++++++++++++++"
 	#will add version no later
 	#ex="`tar cvfz $ProductionOutDir/vRO.tar.gz $ProductionOutDir/vRO-1.6.0`"
-	ex="`tar cvf $Ansible_ROOT/Ansible.tar $Ansible_ROOT/ansible`"
-        
-        response=`echo $?`
-        if [ $response -ne 0 ]; then
+	ex=$(tar cvf $Ansible_ROOT/Ansible.tar $Ansible_ROOT/ansible)
+        response=$?
+        if [[ $response -ne 0 ]]; then
            echo "tar command failed. please see the log file for details."
            exit 1
         fi
@@ -86,6 +83,7 @@ function GenerateTar
 function CreateCollection
 {
   echo "++++++++++++++++++++++++++creating collection+++++++++++++++++"
+  rm -rf ${Ansible_ROOT}/collections/ansible_collections
   mkdir -p ${Ansible_ROOT}/collections/ansible_collections/
   
   cd ${Ansible_ROOT}/collections/ansible_collections/
@@ -109,7 +107,7 @@ function CreateCollection
 # function InstallPuma
 # {
 	# for file in ${Ansible_ROOT}/puma-* ; do
-            # if [ -f "$file" ]; then
+            # if [[ -f "$file" ]]; then
                	# echo "File exists...".
 		# cp -f $file /root/rpmbuild/60EB41E9-71D5-4D5C-85E9-7E0BB76698ED.rpm
                 # break;
