@@ -58,7 +58,7 @@ function Clean
 {
 	echo "+++++++++++++++++++Cleaned Deployment folder+++++++++++++++++++++++"
 	#for now clean is not done by pulbish we have to do manually.
-	rm -rf $Ansible_ROOT/Ansible/* $Ansible_ROOT/Ansible.tar) 
+	rm -rf ${Ansible_ROOT}/Ansible/* ${Ansible_ROOT}/Ansible.tar
 	if [[ $? -ne 0 ]]; then
 	   echo "cleanup command failed. please see the log file for details."
            exit 1
