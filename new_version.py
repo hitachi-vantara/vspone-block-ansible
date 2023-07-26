@@ -73,13 +73,13 @@ class build_versioning():
     version_prefix = 'HV_Storage_Ansible-'
     version_hpe_prefix = 'HPE_Storage_Ansible-'
 
-    build_file     = 'build_Ansible.sh'
-    build_hpe_file = 'build_Ansible_HPE.sh'
+    build_file      = 'build_Ansible.sh'
+    build_hpe_file  = 'build_Ansible_HPE.sh'
 
-    rpm_file     = 'spec/build_rpm.spec'
-    rpm_hpe_file = 'spec/build_rpm-hpe.spec'
+    rpm_file        = 'spec/build_rpm.spec'
+    rpm_hpe_file    = 'spec/build_rpm-hpe.spec'
 
-    script_file = 'Scripts/create_log_bundle.sh'
+    script_file     = 'Scripts/create_log_bundle.sh'
     script_hpe_file = 'Scripts-HPE/create_log_bundle.sh'
 
 
@@ -232,7 +232,7 @@ class build_versioning():
         with open(script_file, 'w') as ostream:
             for line in data:
                 if not foundVersion and line.startswith('ADAPTER_VERSION'):
-                    lin = "ADAPTER_VERSION=" + version_str
+                    line = "ADAPTER_VERSION=" + version_str + '\n'
                     foundVersion = True
 
                 ostream.write(line)
@@ -251,7 +251,7 @@ class build_versioning():
         self._generate_spec_version(self.vendorType.Hitachi, self.rpm_file, newversion)
         self._generate_spec_version(self.vendorType.HPE, self.rpm_hpe_file, newversion)
 
-        # Update version information in RPM spec files.
+        # Update version information in Scripts files.
         self._generate_script_version(self.vendorType.Hitachi, self.script_file, newversion)
         self._generate_script_version(self.vendorType.HPE, self.script_hpe_file, newversion)
 
