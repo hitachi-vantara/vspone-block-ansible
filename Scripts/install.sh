@@ -12,7 +12,7 @@ is_source_subshell=0
 control_c () {
   echo -e "Caught Ctrl+C\n Exiting program. \n Your Hitachi Ansible installation may be in an unstable state.\n".
   /bin/rm -rf $rpm_file
-  if [[ "$is_source_subshell" -eq 1 ]]; then
+  if [[ $is_source_subshell -eq 1 ]]; then
     trap - SIGINT
     return 1
   else
@@ -26,7 +26,7 @@ function my_function() {
 }
 
 function is_subshell() {
-  if [[ "$1" = "-bash" ]]; then
+  if [[ $1 = -bash ]]; then
     return 0
   fi
   return 1
@@ -63,7 +63,7 @@ while [ "$1" != "" ]; do
         -ngs | --ansible_modules_only ) configAMOnly
                                 ;;
         * )                     usage
-                                if [[ "$is_source_subshell" -eq 0 ]]; then
+                                if [[ $is_source_subshell -eq 0 ]]; then
                                   exit 1
                                 else
                                   return 1
@@ -86,14 +86,14 @@ done
 trap control_c SIGINT
 
 # doPuma=1
-# if [[ "$gateway_server_install_exclude" -eq 1 ]]; then
+# if [[ $gateway_server_install_exclude -eq 1 ]]; then
   # #echo exclude the Gateway Server 
   # doPuma=0
 # fi
 
 #doMgmtService=1
 doAnsibleModule=1
-# if [[ "$gateway_server_install_only" -eq 1 ]]; then
+# if [[ $gateway_server_install_only -eq 1 ]]; then
   # #echo installing the Gateway Server only
   # doAnsibleModule=0
   # doMgmtService=0
@@ -117,7 +117,7 @@ check_requests_install_old()
                         pip install requests
                 else
                     echo "Please install Python Requests library and rerun install.sh."
-		            if [[ "$is_source_subshell" -eq 0 ]]; then
+		            if [[ $is_source_subshell -eq 0 ]]; then
 		              exit 1
 		            else
 		              return 1
@@ -143,12 +143,12 @@ check_requests_install()
 ## Installation execution starts here
 ###################################################################################33
 
-if [[ "$is_source_subshell" -eq 0 ]]; then
+if [[ $is_source_subshell -eq 0 ]]; then
               echo Please use \"source install.sh\"
               exit 1
 fi
 
-if [[ "$ansible_modules_only" -eq 0 ]]; then	
+if [[ $ansible_modules_only -eq 0 ]]; then	
 	# check if Java is installed
 	# no need to check if ansible_modules_only (AMO)
     response=`echo $?`
@@ -160,7 +160,7 @@ fi
 # check for previous version of the management service
 if rpm -qa | grep -qw '\(HV_Storage_\)\?Ansible'; then
 
-    if [[ "$ansible_modules_only" -eq 1 ]]; then
+    if [[ $ansible_modules_only -eq 1 ]]; then
       echo "please uninstall management service first before installing Ansible Modules only"
       return 1	
     fi
@@ -169,7 +169,7 @@ if rpm -qa | grep -qw '\(HV_Storage_\)\?Ansible'; then
 	yes | ./uninstall.sh -q
 fi
 
-# if [[ "$ansible_modules_only" -eq 0 ]]; then
+# if [[ $ansible_modules_only -eq 0 ]]; then
 # 	# check if net-tools package is installed on the system
 # 	if ! rpm -qa | grep -qw net-tools; then
 # 	    yum install -y net-tools
@@ -193,24 +193,25 @@ fi
 check_requests_install
 # Install C# storage gateway webservice RPM for all installation type,
 # since we need all the files to be installed
-# if [[ "$storage_mgmt_server_install_exclude" -eq 1 ]]; then
+# if [[ $storage_mgmt_server_install_exclude -eq 1 ]]; then
     # ## for ams/puma only, don't show that we extracting everything
   	# /usr/bin/rpm -Uvh HV_Storage_Ansible-02.1.0-1.el7.x86_64.rpm > /dev/null 2>&1
 # else
-  	/usr/bin/rpm -Uvh HV_Storage_Ansible-02.3.0.7-1.el7.x86_64.rpm 
+  	RPM=$(ls *.rpm)
+  	/usr/bin/rpm -Uvh ${RPM}
 # fi
 
 response=`echo $?`
 if [ $response -ne 0 ]; then
         echo "Ansible RPM installation failed."
-	    if [[ "$is_source_subshell" -eq 0 ]]; then
+	    if [[ $is_source_subshell -eq 0 ]]; then
 	      exit 1
 	    else
 	      return 1
 	    fi
 fi
 
-if [[ "$ansible_modules_only" -eq 1 ]]; then
+if [[ $ansible_modules_only -eq 1 ]]; then
 	# abort if puma is installed
 	PROCESS_NUM=$(ps -ef | grep "puma" | grep -v "grep" | wc -l)
 	#echo $PROCESS_NUM
@@ -223,16 +224,16 @@ if [[ "$ansible_modules_only" -eq 1 ]]; then
 	fi
 fi	
 
-if [[ "$full_install" -eq 1 ]]; then
+if [[ $full_install -eq 1 ]]; then
 	echo "Installation: Full" >> /opt/hitachi/ansible/playbooks/version.txt
 fi 
 
-if [[ "$ansible_modules_only" -eq 1 ]]; then
+if [[ $ansible_modules_only -eq 1 ]]; then
 	echo "Installation: Ansible Modules only" >> /opt/hitachi/ansible/playbooks/version.txt
 	yes | ./.cleanup4amo.sh -q >> /dev/null
 fi 
 
-if [[ "$doAnsibleModule" -eq 1 ]]; then	
+if [[ $doAnsibleModule -eq 1 ]]; then	
 
     # export PATH=$PATH:/opt/hitachi/ansible/bin
 	# export HV_STORAGE_ANSIBLE_PROFILE=/opt/hitachi/ansible/storage.json
@@ -281,22 +282,23 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
 		  # echo "export HV_STORAGE_JSON_PROPERTIES_FILE=/opt/hitachi/ansible/storagejson.properties"  >>/etc/profile.d/custom.sh			
 	fi
 	
-	   #need to mkdir for the -ngs case
-       mkdir -p /var/log/hitachi
-       mkdir -p /var/log/hitachi/ansible
-       mkdir -p /var/log/hitachi/ansible/support
+    #need to mkdir for the -ngs case
+    mkdir -p /var/log/hitachi
+    mkdir -p /var/log/hitachi/ansible
+    mkdir -p /var/log/hitachi/ansible/support
 
-       # support the ansible-doc
-      mkdir -p /root/.ansible/plugins 
-      ln -s /root/.ansible/collections/ansible_collections/hitachi/storage/plugins/modules /root/.ansible/plugins/modules > /dev/null 2>&1
+    # support the ansible-doc
+    mkdir -p /root/.ansible/plugins
+    ln -s /root/.ansible/collections/ansible_collections/hitachi/storage/plugins/modules /root/.ansible/plugins/modules > /dev/null 2>&1
 
-	ansible-galaxy collection install hitachi-storage-2.3.0.7.tar.gz -p ~/.ansible/collections --force
-  chmod 755 /opt/hitachi/ansible/support/uninstall.sh
-  echo "Installation is successful"
+    fileTar=$(ls hitachi-storage*.tar.gz)
+    ansible-galaxy collection install ${fileTar} -p ~/.ansible/collections --force
+    chmod 755 /opt/hitachi/ansible/support/uninstall.sh
+    echo "Installation is successful"
 			
 fi
 
-if [[ "$is_source_subshell" -eq 1 ]]; then
+if [[ $is_source_subshell -eq 1 ]]; then
     trap - SIGINT
     return 0
 fi

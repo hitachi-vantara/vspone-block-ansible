@@ -12,7 +12,7 @@ is_source_subshell=0
 control_c () {
   echo -e "Caught Ctrl+C\n Exiting program. \n Your Hitachi Ansible installation may be in an unstable state.\n".
   /bin/rm -rf $rpm_file
-  if [[ "$is_source_subshell" -eq 1 ]]; then
+  if [[ $is_source_subshell -eq 1 ]]; then
     trap - SIGINT
     return 1
   else
@@ -26,7 +26,7 @@ function my_function() {
 }
 
 function is_subshell() {
-  if [[ "$1" = "-bash" ]]; then
+  if [[ $1 = -bash ]]; then
     return 0
   fi
   return 1
@@ -63,7 +63,7 @@ while [ "$1" != "" ]; do
         -ngs | --ansible_modules_only ) configAMOnly
                                 ;;
         * )                     usage
-                                if [[ "$is_source_subshell" -eq 0 ]]; then
+                                if [[ $is_source_subshell -eq 0 ]]; then
                                   exit 1
                                 else
                                   return 1
@@ -80,14 +80,14 @@ done
 trap control_c SIGINT
 
 # doPuma=1
-# if [[ "$gateway_server_install_exclude" -eq 1 ]]; then
+# if [[ $gateway_server_install_exclude -eq 1 ]]; then
   # #echo exclude the Gateway Server 
   # doPuma=0
 # fi
 
 # doMgmtService=1
   doAnsibleModule=1
-# if [[ "$gateway_server_install_only" -eq 1 ]]; then
+# if [[ $gateway_server_install_only -eq 1 ]]; then
   # #echo installing the Gateway Server only
   # doAnsibleModule=0
   # doMgmtService=0
@@ -115,7 +115,7 @@ check_scp_install()
                         pip install scp
                 else
                     echo "Please install Python SCP library and rerun install.sh."
-		            if [[ "$is_source_subshell" -eq 0 ]]; then
+		            if [[ $is_source_subshell -eq 0 ]]; then
 		              exit 1
 		            else
 		              return 1
@@ -137,7 +137,7 @@ check_requests_install()
                         pip install requests
                 else
                     echo "Please install Python Requests library and rerun install.sh."
-		            if [[ "$is_source_subshell" -eq 0 ]]; then
+		            if [[ $is_source_subshell -eq 0 ]]; then
 		              exit 1
 		            else
 		              return 1
@@ -152,12 +152,12 @@ check_requests_install()
 ## Installation execution starts here
 ###################################################################################33
 
-if [[ "$is_source_subshell" -eq 0 ]]; then
+if [[ $is_source_subshell -eq 0 ]]; then
               echo Please use \"source install.sh\"
               exit 1
 fi
 
-if [[ "$ansible_modules_only" -eq 0 ]]; then	
+if [[ $ansible_modules_only -eq 0 ]]; then	
 	# check if Java is installed
 	# no need to check if ansible_modules_only (AMO)
     #check_java_install
@@ -171,7 +171,7 @@ fi
 # check for previous version of the management service
 if rpm -qa | grep -qw '\(HPE_Storage_\)\?Ansible'; then
 
-    if [[ "$ansible_modules_only" -eq 1 ]]; then
+    if [[ $ansible_modules_only -eq 1 ]]; then
       echo "please uninstall management service first before installing Ansible Modules only"
       return 1	
     fi
@@ -180,14 +180,14 @@ if rpm -qa | grep -qw '\(HPE_Storage_\)\?Ansible'; then
 	yes | ./uninstall.sh -q
 fi
 
-if [[ "$ansible_modules_only" -eq 0 ]]; then
+if [[ $ansible_modules_only -eq 0 ]]; then
 	# check if net-tools package is installed on the system
 	if ! rpm -qa | grep -qw net-tools; then
 	    yum install -y net-tools
 	fi
 fi	
 
-if [[ "$ansible_modules_only" -eq 1 ]]; then
+if [[ $ansible_modules_only -eq 1 ]]; then
 	# Back up the storage.json config file
 	config_file="/opt/hpe/ansible/storage.json"
 	if [ -f "$config_file" ]; then
@@ -200,24 +200,25 @@ check_requests_install
 
 # Install C# storage gateway webservice RPM for all installation type,
 # since we need all the files to be installed
-# if [[ "$storage_mgmt_server_install_exclude" -eq 1 ]]; then
+# if [[ $storage_mgmt_server_install_exclude -eq 1 ]]; then
     # ## for ams/puma only, don't show that we extracting everything
   	# /usr/bin/rpm -Uvh HPE_Storage_Ansible-2.0.0-1.el7.x86_64.rpm > /dev/null 2>&1
 # else
-  	/usr/bin/rpm -Uvh HPE_Storage_Ansible-2.3.0.7-1.el7.x86_64.rpm 
+    RPM=$(ls *.rpm)
+    /usr/bin/rpm -Uvh ${RPM}
 # fi
 
-response=`echo $?`
+response=$?
 if [ $response -ne 0 ]; then
         echo "Ansible RPM installation failed."
-	    if [[ "$is_source_subshell" -eq 0 ]]; then
+	    if [[ $is_source_subshell -eq 0 ]]; then
 	      exit 1
 	    else
 	      return 1
 	    fi
 fi
 
-if [[ "$ansible_modules_only" -eq 1 ]]; then
+if [[ $ansible_modules_only -eq 1 ]]; then
 	# abort if puma is installed
 	PROCESS_NUM=$(ps -ef | grep "puma" | grep -v "grep" | wc -l)
 	#echo $PROCESS_NUM
@@ -232,21 +233,21 @@ fi
 
 
 
-if [[ "$full_install" -eq 1 ]]; then
+if [[ $full_install -eq 1 ]]; then
 	echo "Installation: Full" >> /opt/hpe/ansible/playbooks/version.txt
 fi 
 
-if [[ "$gateway_server_install_only" -eq 1 ]]; then
+if [[ $gateway_server_install_only -eq 1 ]]; then
 	echo "Installation: Gateway Server only" >> /opt/hpe/ansible/playbooks/version.txt
 	yes | ./.cleanup.sh -q >> /dev/null
 fi 
 
-if [[ "$ansible_modules_only" -eq 1 ]]; then
+if [[ $ansible_modules_only -eq 1 ]]; then
 	echo "Installation: Ansible Modules only" >> /opt/hpe/ansible/playbooks/version.txt
 	yes | ./.cleanup4amo.sh -q >> /dev/null
 fi 
 
-if [[ "$doAnsibleModule" -eq 1 ]]; then	
+if [[ $doAnsibleModule -eq 1 ]]; then	
 
 	# Replace the config file
 	config_file="/opt/hpe/ansible/storage.json"
@@ -311,7 +312,7 @@ if [[ "$doAnsibleModule" -eq 1 ]]; then
        mkdir -p /var/log/hpe/ansible/support
 fi	
 
-if [[ "$is_source_subshell" -eq 1 ]]; then
+if [[ $is_source_subshell -eq 1 ]]; then
     trap - SIGINT
     return 0
 fi
