@@ -189,7 +189,7 @@ class build_versioning():
                     if len(fields) == 2:
                         foundVersion = True
                         line = (fields[0] + '       ' + str(version[0]) + '.' +
-                                str(version[1]) + '.' + str(version[2]) + '-' +
+                                str(version[1]) + '.' + str(version[2]) + '^.' +
                                 str(version[3]) + '\n')
 
                 # Update tarball version.
