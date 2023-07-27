@@ -1,3 +1,1 @@
-version 02.3.0.15
-svn branch: Ansible-02.3.0.15
-
+Hitachi Ansible Storage Modules

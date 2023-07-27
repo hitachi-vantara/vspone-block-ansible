@@ -13,6 +13,8 @@ BuildArch="x64"
 BUILD_MODE=$1
 echo "Build Mode: $BUILD_MODE"
 
+source /opt/Jenkins212/workspace/Ansible-UCP/master/version.sh
+echo "ANSIBLE_VERSION: $ANSIBLE_VERSION"
 
 function buildDoLogin
 {
@@ -241,5 +243,6 @@ chmod +x  HV_Storage_Ansible/install.sh
 chmod +x  HV_Storage_Ansible/uninstall.sh
 chmod +x  HV_Storage_Ansible/.cleanup.sh
 chmod +x  HV_Storage_Ansible/.cleanup4amo.sh
+echo "Version: $ANSIBLE_VERSION" > HV_Storage_Ansible/.version.txt
 
 tar -czvf  ${Ansible_VER}.tar.gz  HV_Storage_Ansible 

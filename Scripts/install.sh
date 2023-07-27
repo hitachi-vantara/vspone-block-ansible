@@ -225,6 +225,7 @@ if [[ $ansible_modules_only -eq 1 ]]; then
 fi	
 
 if [[ $full_install -eq 1 ]]; then
+	cat ./version.txt >> /opt/hitachi/ansible/playbooks/version.txt
 	echo "Installation: Full" >> /opt/hitachi/ansible/playbooks/version.txt
 fi 
 
