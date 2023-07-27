@@ -38,6 +38,8 @@ Version 1.2 07/26/23 by J. Kahn
   Renamed version.inc to version.sh. Rename bash_file* to build_file*.
   Spec file build version does not allow "-" in version string.  Use ".".
   Added Scripts/create_log_bundle.sh to update version collection.
+  Added ansible galaxy files to update version collection.
+l
 
 '''
 
@@ -82,6 +84,8 @@ class build_versioning():
     script_file     = 'Scripts/create_log_bundle.sh'
     script_hpe_file = 'Scripts-HPE/create_log_bundle.sh'
 
+    galaxy_file     = 'ansible/collection_playbooks/galaxy-hitachi.yml'
+    galaxy_hpe_file = 'ansible/collection_playbooks/galaxy-hpe.yml'
 
     class vendorType():
         Hitachi = 0
@@ -239,6 +243,31 @@ class build_versioning():
         ostream.close()
 
 
+    def _generate_galaxy_version(self, vendor, galaxy_file, version):
+        """
+        Update Script files with version
+        """
+        with open(galaxy_file, 'r') as istream:
+            data = istream.readlines()
+        istream.close()
+        #print (data)
+
+        version_str = ( str(version[0]).rjust(2,'0') + '.' +
+                        str(version[1]) + '.' +
+                        str(version[2]) + '.' +
+                        str(version[3]) )
+
+        foundVersion = False
+        with open(galaxy_file, 'w') as ostream:
+            for line in data:
+                if not foundVersion and line.startswith('version:'):
+                    line = "version: " + version_str + '\n'
+                    foundVersion = True
+
+                ostream.write(line)
+        ostream.close()
+
+
     def write_version(self, newversion):
         """
         Update versioning files.
@@ -254,6 +283,10 @@ class build_versioning():
         # Update version information in Scripts files.
         self._generate_script_version(self.vendorType.Hitachi, self.script_file, newversion)
         self._generate_script_version(self.vendorType.HPE, self.script_hpe_file, newversion)
+
+        # Update version information in ansible galaxy files.
+        self._generate_galaxy_version(self.vendorType.Hitachi, self.galaxy_file, newversion)
+        self._generate_galaxy_version(self.vendorType.HPE, self.galaxy_hpe_file, newversion)
 
         # Save new version
         self._generate_sh_version(self.sh_file, newversion)
