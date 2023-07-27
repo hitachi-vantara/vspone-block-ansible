@@ -39,7 +39,9 @@ Version 1.2 07/26/23 by J. Kahn
   Spec file build version does not allow "-" in version string.  Use ".".
   Added Scripts/create_log_bundle.sh to update version collection.
   Added ansible galaxy files to update version collection.
-l
+Version 1.3 07/26/23 by J. Kahn
+  Updated version.sh fields. Added full version to version.sh
+
 
 '''
 
@@ -54,7 +56,7 @@ import errno
 
 # Program name and version
 utilName = 'new_version.py'
-utilVersion = '1.2'
+utilVersion = '1.3'
 
 
 class build_versioning():
@@ -65,10 +67,11 @@ class build_versioning():
                    '# BUILD is a placeholder. It is updated during the build process.\n',
                    '#\n',
                  ]
-    sh_version = [ 'RELEASE_MAJOR',
-                    'RELEASE_MINOR',
-                    'RELEASE_PATCH',
-                    'RELEASE_BUILD',
+    sh_version = [ 'ANSIBLE_RELEASE_MAJOR',
+                   'ANSIBLE_RELEASE_MINOR',
+                   'ANSIBLE_RELEASE_PATCH',
+                   'ANSIBLE_RELEASE_BUILD',
+                   'ANSIBLE_VERSION',
                   ]
 
     version_tag = 'Ansible_VER'
@@ -129,21 +132,30 @@ class build_versioning():
 
     def _generate_sh_version(self, ofile, version):
         """
-        Generate makefile version.inc file.
+        Generate bash version file.
         """
-        versionLen = len(version) -1
+        version_str = ( '"' + str(version[0]).rjust(2,'0') + '.' + 
+                        str(version[1]) + '.' + 
+                        str(version[2]) + '.' + 
+                        str(version[3]) + '"')
+
+        versionLen = len(version) - 1
         with open(ofile, 'w') as ostream:
             for line in self.sh_header:
                 ostream.write(line)
             for i in range(0, versionLen):
                 line = self.sh_version[i] + '=' + str(version[i]) + '\n'
                 ostream.write(line)
+
             # If build number is 7 (typical), ensure it's '007'
             if version[-1] == 7:
                 buildno = '00' + str(version[-1])
             else:
                 buildno = str(version[-1])
-            line = self.sh_version[-1] + '=' + buildno + '\n'
+            line = self.sh_version[-2] + '=' + buildno + '\n'
+            ostream.write(line)
+
+            line = self.sh_version[-1] + '=' + version_str + '\n'
             ostream.write(line)
         ostream.close()
 
