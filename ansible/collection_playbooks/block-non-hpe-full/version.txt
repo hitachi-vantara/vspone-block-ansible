@@ -1,3 +1,0 @@
-version 02.3.0.324
-svn branch: Ansible-02.3.0.324
-
