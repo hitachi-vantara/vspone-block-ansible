@@ -9,12 +9,12 @@ MasterProject="HivROMultiPlatformWebService/HivROMultiPlatformWebService.Ans.csp
 #ProductionOutDir=${Ansible_ROOT}/HivROMultiPlatformWebService/HivROMultiPlatformWebService
 # Build Arch
 BuildArch="x64"
+
 # Build mode: release or debug
 BUILD_MODE=$1
 echo "Build Mode: $BUILD_MODE"
+echo "ANSIBLE_VERSION: ${Ansible_VER##*-}"
 
-source /opt/Jenkins212/workspace/Ansible-UCP/master/version.sh
-echo "ANSIBLE_VERSION: $ANSIBLE_VERSION"
 
 function buildDoLogin
 {

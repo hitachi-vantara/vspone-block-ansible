@@ -224,13 +224,13 @@ if [[ $ansible_modules_only -eq 1 ]]; then
 	fi
 fi	
 
-if [[ $full_install -eq 1 ]]; then
-	cat ./.version.txt >> /opt/hitachi/ansible/playbooks/version.txt
+#if [[ $full_install -eq 1 ]]; then
+	#cat ./version.txt >> /opt/hitachi/ansible/playbooks/version.txt
 	#echo "Installation: Full" >> /opt/hitachi/ansible/playbooks/version.txt
-fi 
+#fi 
 
 if [[ $ansible_modules_only -eq 1 ]]; then
-	echo "Installation: Ansible Modules only" >> /opt/hitachi/ansible/playbooks/version.txt
+	#echo "Installation: Ansible Modules only" >> /opt/hitachi/ansible/playbooks/version.txt
 	yes | ./.cleanup4amo.sh -q >> /dev/null
 fi 
 
