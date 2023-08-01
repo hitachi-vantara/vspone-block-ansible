@@ -27,7 +27,6 @@
 
         spec:
           query: '{{ query | default(omit) }}'
-          lun: '{{ lun | default(omit) }}'
           name: '{{ host_group_name | default(omit) }}'
           ports: '{{ ports | default(omit) }}'
       register: result
