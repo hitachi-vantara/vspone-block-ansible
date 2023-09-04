@@ -388,7 +388,7 @@ class Utils:
                 command = command.format( ipaddress )
 #                 Utils.logger.writeInfo("command={}",command)
                 
-                commandOutStr = subprocess.check_output(command, shell=True)
+                commandOutStr = subprocess.check_output(command, shell=False)
                 commandOutStr = commandOutStr.replace("\n","")
 #                 Utils.logger.writeInfo("the password is={}",commandOutStr)
                 
