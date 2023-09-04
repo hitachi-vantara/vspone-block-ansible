@@ -8,7 +8,7 @@ file_name = Path('keycloak-service.yaml')
 ip_address = sys.argv[1]
 
 yaml = YAML()
-data = yaml.load(file_name)
+data = yaml.safe_load(file_name)
 data['spec']['externalIPs'] = [ip_address]
 yaml.dump(data, sys.stdout)
 yaml.dump(data, Path('keycloak-service.yaml'))
