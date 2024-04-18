@@ -401,18 +401,18 @@ def Main(argv):
         else:
             fields = arg.split('.')
             if len(fields) == 0:
-                print(('*** ERROR: Invalid option:', arg, '\n'))
+                print('*** ERROR: Invalid option:', arg, '\n')
                 sys.exit(errno.EINVAL)
             if len(fields) == 1:
                 try:
                     version[3] = int( fields[0] )
                     optionBuildNumber = 1
                 except:
-                    print(('*** ERROR: Invalid build number:', arg, '\n'))
+                    print ('*** ERROR: Invalid build number:', arg, '\n')
                     sys.exit(errno.EINVAL)
             elif len(fields) != versionLen:
-                print((len(fields)))
-                print(('*** ERROR: Invalid version number:', arg, '\n'))
+                print(len(fields))
+                print('*** ERROR: Invalid version number:', arg, '\n')
                 sys.exit(errno.EINVAL)
             else:
                 try:
@@ -421,16 +421,16 @@ def Main(argv):
                     version[3] = 7
                     optionManual = 1
                 except:
-                    print(('*** ERROR: Invalid version number:', arg, '\n'))
+                    print ('*** ERROR: Invalid version number:', arg, '\n')
                     sys.exit(errno.EINVAL)
 
     if optionVersion:
-        print(('%s %s' % (utilName, utilVersion)))
+        print ('%s %s' % (utilName, utilVersion))
         sys.exit(0)
 
     if optionHelp:
-        print(('Autogenerate Usage:', 'new_version.py --minor'))
-        print(('Manual Usage:', 'new_version.py 8.5.1'))
+        print ('Autogenerate Usage:', 'new_version.py --minor')
+        print ('Manual Usage:', 'new_version.py 8.5.1')
         print ('\nArguments:')
         print ('\tmm.nn.pp   - Manually set version to mm.nn.pp.')
         print ('\t--major    - Autogenerate next major version.')
@@ -469,7 +469,7 @@ def Main(argv):
     # Pretty print the version.
     #verStr = '0' + str(version[0]) + '.' + str(version[1]) + '.' + str(version[2]) + '.00' + str(version[3])
     verStr = '0' + str(version[0]) + '.' + str(version[1]) + '.' + str(version[2])
-    print(('Current version:', verStr))
+    print('Current version:', verStr)
     sys.exit(0)
 
 
