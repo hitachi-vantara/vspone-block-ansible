@@ -1,8 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: UnpresentLunFromMultipleHosts
-metadata:
-  name: example-unpresentlunfrommultiplehosts
-spec:
-  serialNumber: "415056"
-  serverBmcIPs: ["172.25.11.11"]
-  lun: 1544

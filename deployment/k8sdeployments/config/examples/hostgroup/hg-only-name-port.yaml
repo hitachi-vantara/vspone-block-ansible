@@ -1,8 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: HostGroup
-metadata:
-  name: hg-name-port-only
-spec:
-  serialNumber: "415056"
-  name: "hg-name-port"
-  port: "CL1-A"

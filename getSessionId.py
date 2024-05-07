@@ -8,7 +8,7 @@ USAGE = sys.argv[0] + " json_file"
 def main():
 	if len(sys.argv) < 2:
 		print(USAGE, file=sys.stderr)
-		exit(1);
+		exit(1)
 	with open(sys.argv[1], 'r') as config:
 		data = json.load(config)
 		url = "https://{0}:{1}/HitachiStorageManagementWebServices/StorageManager/StorageManager/AddRAID".format(

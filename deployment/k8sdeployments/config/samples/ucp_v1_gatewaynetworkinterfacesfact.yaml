@@ -1,6 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: GatewayNetworkInterfacesFact
-metadata:
-  name: gatewaynetworkinterfacesfact-sample
-spec:
-  ucpSystemGatewayIP: 172.25.11.63

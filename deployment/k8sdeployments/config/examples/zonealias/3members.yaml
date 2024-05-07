@@ -1,8 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: ZoneAlias
-metadata:
-  name: zonealias1
-spec:
-  fcSwitch: "172.25.63.33"
-  name: "zonealias1"
-  members:  ["10:00:00:90:fa:b4:aa:20","10:00:00:90:fa:b4:aa:12","10:00:00:90:fa:b4:aa:ff"]

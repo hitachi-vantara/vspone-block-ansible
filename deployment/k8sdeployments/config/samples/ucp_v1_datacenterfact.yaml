@@ -1,7 +1,0 @@
----
-apiVersion: ucp.hitachivantara.com/v1
-kind: DatacenterFact
-metadata:
-  name: datacenterfact-sample
-spec:
-  vCenter: 172.25.20.34

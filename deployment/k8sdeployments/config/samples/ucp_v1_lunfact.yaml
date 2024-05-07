@@ -1,8 +1,0 @@
-apiVersion: ucp.hitachivantara.com/v1
-kind: LunFact
-metadata:
-  name: lunfact
-spec:
-  serialNumber: "415056"
-  startLunId: 5
-  endLunId: 100
