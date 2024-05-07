@@ -34,23 +34,22 @@ and Hitachi Virtual Storage Platform One SDS Block storage systems
 
 - Python requests module should be installed before running any ansible module
 
-To install the requests module for Python, you can use pip, the package manager for Python. Here are the steps to install it:
+    - To install the requests module for Python, you can use pip, the package manager for Python. Here are the steps to install it:
 
- -- Installation Guide for Python Requests Module
 
-To install the `requests` module for Python, you can use pip, the package manager for Python. Here are the steps to install it:
+    - To install the `requests` module for Python, you can use pip, the package manager for Python. Here are the steps to install it:
 
-## Step 1: Open Terminal or Command Prompt
+        ## Step 1: Open Terminal or Command Prompt
 
-Open a terminal or command prompt on your system.
+        Open a terminal or command prompt on your system.
 
-## Step 2: Run the Installation Command
+        ## Step 2: Run the Installation Command
 
-Use the following command to install the `requests` module:
+        Use the following command to install the `requests` module:
 
-```bash
-pip install requests
-
+        ```bash
+        pip install requests
+        ```
 
 ## Idempotency
 - Idempotency is not supported for this release
