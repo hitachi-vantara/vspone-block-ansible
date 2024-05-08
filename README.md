@@ -17,6 +17,10 @@ The Hitachi Storage Modules for Red Hat Ansible consists of the latest versions 
     - Microcode version - 83-05-45-40/00 or later
     - Firmware version - SVOS 7.4.0 or later
 
+- VSP Fx00 (x=4/6)
+    - Microcode version - 83-05-45-40/00 or later
+    - Firmware version - SVOS 7.4.0 or later
+
 - VSP G800
     - Microcode version - 83-05-45-40/00 or later
     - Firmware version - SVOS 7.4.0 or later
