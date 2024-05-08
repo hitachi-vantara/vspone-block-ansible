@@ -77,13 +77,15 @@ The Red Hat® Ansible® Infrastructure Provider for Hitachi Storage consists of 
 - Go to the path "ansible-infra-provider-hitachi"
 - Run below command to install it using "ansible-collection"
     - Run below command to build the ansible modules
-    ''' bash
+    
+    ``` bash
     ansible-galaxy collection build 
-    '''
+    ```
     - once build is done run below command to install
-    ''' bash
+
+    ```bash
     ansible-galaxy collection install hitachi-storage-02.3.0.7.tar.gz
-    '''
+    ```
 
 ## License
 [GPL-3.0-or-later](https://www.gnu.org/licenses/gpl-3.0.en.html)
