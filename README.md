@@ -22,18 +22,18 @@ The Hitachi Storage Modules for Red Hat Ansible consists of the latest versions 
     - Firmware version - SVOS 7.4.0 or later
 
 - VSP G800
-    - Microcode version - 83-05-45-40/00 or later
+    - Microcode version - 83-05-45-60/00 or later
     - Firmware version - SVOS 7.4.0 or later
       
 - VSP F800
-    - Microcode version - 83-05-45-40/00 or later
+    - Microcode version - 83-05-45-60/00 or later
     - Firmware version - SVOS 7.4.0 or later
       
 - VSP G350
     - Microcode version - 88-08-07-20/00 or later
     - Firmware version - SVOS 9.6.0 or later
       
-- VSP Virtual Storage Platform F350/VSP F370/VSP F700/VSP F900
+- VSP F350/VSP F370/VSP F700/VSP F900
     - Microcode version - 88-08-06-20/00 or later
     - Firmware version - SVOS 9.6.0 or later
  
@@ -41,11 +41,11 @@ The Hitachi Storage Modules for Red Hat Ansible consists of the latest versions 
     - Microcode version - 88-08-06-20/00 or later
     - Firmware version - SVOS 9.6.0 or later
  
-- Virtual Storage Platform 5100, 5500, 5100H, 5500H/VSP 5200, 5600, 5200H, 5600H (SAS)
+- VSP 5100, 5500, 5100H, 5500H/VSP 5200, 5600, 5200H, 5600H (SAS)
     - Microcode version - 90-08-42-00/00 or later
     - Firmware version - SVOS 9.8.2 or later
 
-- Virtual Storage Platform 5100, 5500, 5100H, 5500H/VSP 5200, 5600, 5200H, 5600H (SAS)
+- VSP 5100, 5500, 5100H, 5500H/VSP 5200, 5600, 5200H, 5600H (NVMe)
     - Microcode version - 90-08-42-00/00 or later
     - Firmware version - SVOS 9.8.2 or later
 
