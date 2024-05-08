@@ -73,10 +73,20 @@ The Hitachi Storage Modules for Red Hat Ansible consists of the latest versions 
 - Oracle Enterprise Linux 8.9 or higher
 - Red Hat Enterprise Linux 8.9 or higher
 
-### Recommended Host configuration
+### Recommended Host for Hitachi Storage Ansible Modules configuration
 - CPU/vCPU - 2
 - Memory - 4 GB
 - HardDisk - 30 GB
+
+### Recommended Host for Hitachi Unified API Infrastructure Gateway
+4.3.0 configuration
+- CPU/vCPU - 4
+- Memory - 15 GB
+- HardDisk - 150 GB
+
+
+### See Installing the Hitachi Unified API Infrastructure Gateway 4.3.0 using OVA
+in https://docs.hitachivantara.com/v/u/en-us/adapters-and-drivers/2.3.x/mk-92adptr149
 
 ### Pre-requisites
 
@@ -95,6 +105,10 @@ The Hitachi Storage Modules for Red Hat Ansible consists of the latest versions 
         ```bash
         pip install requests
         ```
+-  Hitachi Unified API Infrastructure Gateway
+    
+    - Refer to "See Installing the Hitachi Unified API Infrastructure Gateway 4.3.0 using OVA"
+
 
 ## Idempotent
 - Idempotent is supported for this release
