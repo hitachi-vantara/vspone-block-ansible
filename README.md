@@ -1,6 +1,6 @@
-# Red Hat® Ansible® Infrastructure Provider for Hitachi Storage
+# Hitachi Storage Modules for Red Hat Ansible
 
-The Red Hat® Ansible® Infrastructure Provider for Hitachi Storage consists of the latest versions of the ansible modules for managing Hitachi VSP storage systems 
+The Hitachi Storage Modules for Red Hat Ansible consists of the latest versions of the ansible modules for managing Hitachi VSP storage systems 
 
 ## Supported Platforms
 
