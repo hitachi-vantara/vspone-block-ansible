@@ -47,13 +47,13 @@ tags: []
 dependencies: {}
 
 # The URL of the originating SCM repository
-repository: https://github.com/hitachi-vantara/ansible-infra-provider-hitachi
+repository: https://github.com/hitachi-vantara/vspone-ansible-modules
 
 # The URL to any online docs
 documentation: https://knowledge.hitachivantara.com/Documents/Adapters_and_Drivers/Storage_Adapters_and_Drivers
 
 # The URL to the homepage of the collection/project
-homepage: https://github.com/hitachi-vantara/ansible-infra-provider-hitachi
+homepage: https://github.com/hitachi-vantara/vspone-ansible-modules
 
 # The URL to the collection issue tracker
-issues: https://github.com/hitachi-vantara/ansible-infra-provider-hitachi
+issues: https://github.com/hitachi-vantara/vspone-ansible-modules/issues

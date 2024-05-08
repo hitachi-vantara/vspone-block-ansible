@@ -92,12 +92,12 @@ The Red Hat® Ansible® Infrastructure Provider for Hitachi Storage consists of 
 
 
 ## Troubleshooting
-- Copy the file generate_log_bundle.sh from https://github.com/hitachi-vantara/ansible-collections/storage/scripts to the machine where you are running Red Hat Ansible Provider for Hitachi
-Storage
+- locate the log bundle script path inside the /script path of the ansible collection directory
+    i.e. $HOME//.ansible/collections/ansible_collections/hitachi/storage
 
 - Run your ansible playbook and look at the hitachi-ansible.log file in the /var/log/hitachi/ansible-storage directory for self troubleshooting.
 - For further troubleshooting from Hitachi, run generate_log_bundle.sh,  it will generate a log bundle called Ansible_Log_Bundle_yyyymmdd_ hh_mm_ss.zip under /var/log/hitachi/ansible-storage/log_bundles
-      - Create an issue at https://github.com/hitachi-vantara/ansible-infra-provider-hitachi/issues and attach the generated log bundle to the issue.
+      - Create an issue at https://github.com/hitachi-vantara/vspone-ansible-modules/issues and attach the generated log bundle to the issue.
       
 ## Author
 
