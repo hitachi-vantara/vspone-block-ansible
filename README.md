@@ -77,10 +77,7 @@ The Red Hat® Ansible® Infrastructure Provider for Hitachi Storage consists of 
 ### Pre-requisites
 
 - Python requests module should be installed before running any ansible module
-
-    - To install the requests module for Python, you can use pip, the package manager for Python. Here are the steps to install it:
-
-
+    
     - To install the `requests` module for Python, you can use pip, the package manager for Python. Here are the steps to install it:
 
         # Step 1: Open Terminal or Command Prompt
@@ -107,7 +104,6 @@ The Red Hat® Ansible® Infrastructure Provider for Hitachi Storage consists of 
         hv_lun.py
         hv_paritygroup_facts.py
         hv_storagepool_facts.py
-        hv_storagepool.py
         hv_storagesystem_facts.py
         hv_storagesystem.py
         hv_troubleshooting_facts.py
@@ -126,7 +122,7 @@ The Red Hat® Ansible® Infrastructure Provider for Hitachi Storage consists of 
     - once build is done run below command to install
 
     ```bash
-    ansible-galaxy collection install hitachi-storage-02.3.0.7.tar.gz
+    ansible-galaxy collection install hitachi-storage-02.3.0.tar.gz
     ```
 
 ## License
