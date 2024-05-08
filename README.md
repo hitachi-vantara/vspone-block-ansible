@@ -116,17 +116,18 @@ in https://docs.hitachivantara.com/v/u/en-us/adapters-and-drivers/2.3.x/mk-92adp
 ## Available Modules
 ### VSP Ansible modules:
 
-        hv_hg_facts.py
-        hv_hg.py
-        hv_lun_facts.py
-        hv_lun.py
-        hv_paritygroup_facts.py
-        hv_storagepool_facts.py
-        hv_storagesystem_facts.py
-        hv_storagesystem.py
-        hv_troubleshooting_facts.py
-        hv_ucp_facts.py
-        hv_ucp.py
+hitachi_block_createhg - Creates an iSCSI target
+- hv_hg_facts.py - Provides host group details
+- hv_hg.py - Manages host group
+- hv_lun_facts.py - Provides logical unit details
+- hv_lun.py - Manages logical unit
+- hv_paritygroup_facts.py - Provides parity group details
+- hv_storagepool_facts.py - Provides storage pool details
+- hv_storagesystem_facts.py - Provides storage system details
+- hv_storagesystem.py - Manages storage system
+- hv_troubleshooting_facts.py - Provides troubleshooting details
+- hv_ucp_facts.py - Provides System details
+- hv_ucp.py - Manages System
 
 ## Instructions
 - Clone the repository
