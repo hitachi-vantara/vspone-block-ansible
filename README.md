@@ -115,8 +115,6 @@ in https://docs.hitachivantara.com/v/u/en-us/adapters-and-drivers/2.3.x/mk-92adp
 
 ## Available Modules
 ### VSP Ansible modules:
-
-hitachi_block_createhg - Creates an iSCSI target
 - hv_hg_facts.py - Provides host group details
 - hv_hg.py - Manages host group
 - hv_lun_facts.py - Provides logical unit details
@@ -126,8 +124,8 @@ hitachi_block_createhg - Creates an iSCSI target
 - hv_storagesystem_facts.py - Provides storage system details
 - hv_storagesystem.py - Manages storage system
 - hv_troubleshooting_facts.py - Provides troubleshooting details
-- hv_ucp_facts.py - Provides System details
-- hv_ucp.py - Manages System
+- hv_ucp_facts.py - Provides system details
+- hv_ucp.py - Manages system
 
 ## Instructions
 - Clone the repository
