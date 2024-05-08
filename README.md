@@ -1,7 +1,6 @@
-# Red Hat® Ansible® Provider for Hitachi Storage
+# Red Hat® Ansible® Infrastructure Provider for Hitachi Storage
 
-The Red Hat® Ansible® Provider for Hitachi Storage consists of the latest versions of the ansible modules for managing Hitachi VSP storage systems 
-and Hitachi Virtual Storage Platform One SDS Block storage systems
+The Red Hat® Ansible® Infrastructure Provider for Hitachi Storage consists of the latest versions of the ansible modules for managing Hitachi VSP storage systems 
 
 ## Supported Platforms
 
@@ -13,8 +12,6 @@ and Hitachi Virtual Storage Platform One SDS Block storage systems
 - Virtual Storage Platform E1090
     - Microcode version - 93-06-42-80/00 or later
     - Frimware version - SVOS 9.8.2 or later
-
-- Hitachi Virtual Storage Platform One SDS Block - v1.13
 
 ### Software requirements
 - Red Hat Ansible - 2.9.27 or higher
@@ -61,8 +58,8 @@ and Hitachi Virtual Storage Platform One SDS Block storage systems
 
 ## Instructions
 - Create a folder /opt/hitachi/ansible-storage
-- Copy the content of https://github.com/hitachi-vantara/ansible-collections/storage-direct/plugins/modules to  /opt/hitachi/ansible-storage/modules
-- Copy the content of https://github.com/hitachi-vantara/ansible-collections/storage-direct/plugins/module_utils to  /opt/hitachi/ansible-storage/module_utils
+- Copy the content of https://github.com/hitachi-vantara/ansible-collections/storage/plugins/modules to  /opt/hitachi/ansible-storage/modules
+- Copy the content of https://github.com/hitachi-vantara/ansible-collections/storage/plugins/module_utils to  /opt/hitachi/ansible-storage/module_utils
 - Add the following two lines to .bashrc files which is in user home directory:
     export ANSIBLE_LIBRARY=/opt/hitachi/ansible-storage/modules
     export ANSIBLE_MODULE_UTILS=/opt/hitachi/ansible-storage/module_utils
@@ -73,13 +70,13 @@ and Hitachi Virtual Storage Platform One SDS Block storage systems
 
 
 ## Troubleshotting
-- Copy the file generate_log_bundle.sh from https://github.com/hitachi-vantara/ansible-collections/storage-direct/scripts to the machine where you are running Red Hat Ansible Provider for Hitachi
+- Copy the file generate_log_bundle.sh from https://github.com/hitachi-vantara/ansible-collections/storage/scripts to the machine where you are running Red Hat Ansible Provider for Hitachi
 Storage
 - Enable debug mode by running the following command:
   - export ANSIBLE_LOG_LEVEL=”DEBUG”
 - Run your ansible playbook and look at the hitachi-ansible.log file in the /var/log/hitachi/ansible-storage directory for self troubleshooting.
 - For further troubleshooting from Hitachi, run generate_log_bundle.sh,  it will generate a log bundle called Ansible_Log_Bundle_yyyymmdd_ hh_mm_ss.zip under /var/log/hitachi/ansible-storage/log_bundles
-      - Create an issue at https://github.com/hitachi-vantara/ansible-collections/storage-direct/issues and attach the genareted log bundle to the issue.
+      - Create an issue at https://github.com/hitachi-vantara/ansible-collections/storage/issues and attach the genareted log bundle to the issue.
       
 ## Author
 
