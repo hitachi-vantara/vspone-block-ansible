@@ -30,6 +30,9 @@ The Red Hat® Ansible® Infrastructure Provider for Hitachi Storage consists of 
     - Firmware version - SVOS 9.6.0 or later
       
 - VSP Virtual Storage Platform F350/VSP F370/VSP F700/VSP F900
+    - Microcode version - 88-08-06-20/00 or later
+    - Firmware version - SVOS 9.6.0 or later
+ 
 - VSP G370/VSP G700/VSP G900
     - Microcode version - 88-08-06-20/00 or later
     - Firmware version - SVOS 9.6.0 or later
