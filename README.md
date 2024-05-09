@@ -1,6 +1,6 @@
-# Hitachi Storage Modules for Red Hat Ansible
+# Hitachi Storage Modules for Red Hat® Ansible®
 
-The Hitachi Storage Modules for Red Hat Ansible consists of the latest versions of the ansible modules for managing Hitachi VSP storage systems 
+The Hitachi Storage Modules for Red Hat® Ansible® consists of the latest versions of the ansible modules for managing Hitachi VSP storage systems 
 
 ## Supported Platforms
 
