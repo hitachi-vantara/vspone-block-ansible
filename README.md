@@ -147,11 +147,10 @@ in https://docs.hitachivantara.com/v/u/en-us/adapters-and-drivers/2.3.x/mk-92adp
 
 
 ## Troubleshooting
-- locate the log bundle script path inside the /script path of the ansible collection directory
-    i.e. $HOME//.ansible/collections/ansible_collections/hitachi/storage
-
-- Run your ansible playbook and look at the hitachi-ansible.log file in the ll  directory for self troubleshooting.
-- For further troubleshooting from Hitachi, run generate_log_bundle.sh,  it will generate a log bundle called Ansible_Log_Bundle_yyyymmdd_ hh_mm_ss.zip under /var/log/hitachi/ansible-storage/log_bundles
+- Run your ansible playbook and look at the hv_storage_modules.log file in the directory /var/log/hitachi/ansible/ for self troubleshooting.
+  
+- For further troubleshooting from Hitachi,lLocate the log bundle script path inside the /script path of the ansible collection directory ($HOME//.ansible/collections/ansible_collections/hitachi/storage)
+      - then run generate_log_bundle.sh, it will generate a log bundle called Ansible_Log_Bundle_yyyymmdd_hh_mm_ss.zip under /var/log/hitachi/ansible-storage/log_bundles
       - Create an issue at https://github.com/hitachi-vantara/vspone-ansible-modules/issues and attach the generated log bundle to the issue.
       
 ## Author
