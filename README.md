@@ -5,61 +5,61 @@ The Hitachi Storage Modules for Red Hat® Ansible® consists of the latest versi
 ## Supported Platforms
 
 ### Hardware requirements
-- Virtual Storage Platform F1500/VSP G1000/VSP G1500
-    - Microcode version - 80-06-90_00/00 or later
-    - Firmware version - SVOS 8.3 or later
-
-- VSP G200
-    - Microcode version - 83-05-44-60/00 or later
-    - Firmware version - SVOS 7.4.0 or later
-
-- VSP Gx00 (x=4/6)
-    - Microcode version - 83-05-45-40/00 or later
-    - Firmware version - SVOS 7.4.0 or later
-
-- VSP Fx00 (x=4/6)
-    - Microcode version - 83-05-45-40/00 or later
-    - Firmware version - SVOS 7.4.0 or later
-
-- VSP G800
-    - Microcode version - 83-05-45-60/00 or later
-    - Firmware version - SVOS 7.4.0 or later
-      
-- VSP F800
-    - Microcode version - 83-05-45-60/00 or later
-    - Firmware version - SVOS 7.4.0 or later
-      
-- VSP G350
-    - Microcode version - 88-08-07-20/00 or later
-    - Firmware version - SVOS 9.6.0 or later
-      
-- VSP F350/VSP F370/VSP F700/VSP F900
-    - Microcode version - 88-08-06-20/00 or later
-    - Firmware version - SVOS 9.6.0 or later
- 
-- VSP G370/VSP G700/VSP G900
-    - Microcode version - 88-08-06-20/00 or later
-    - Firmware version - SVOS 9.6.0 or later
- 
-- VSP 5100, 5500, 5100H, 5500H/VSP 5200, 5600, 5200H, 5600H (SAS)
-    - Microcode version - 90-08-42-00/00 or later
-    - Firmware version - SVOS 9.8.2 or later
-
-- VSP 5100, 5500, 5100H, 5500H/VSP 5200, 5600, 5200H, 5600H (NVMe)
-    - Microcode version - 90-08-42-00/00 or later
-    - Firmware version - SVOS 9.8.2 or later
-
-- VSP E590/VSP E790
-    - Microcode version - 93-06-42-40/00 or later
+- VSP E1090
+    - Microcode version - 93-06-42-80/00 or later
     - Firmware version - SVOS 9.8.2 or later
 
 - VSP E990
     - Microcode version - 93-06-42-60/00 or later
     - Firmware version - SVOS 9.8.2 or later
 
-- VSP E1090
-    - Microcode version - 93-06-42-80/00 or later
+- VSP E590/VSP E790
+    - Microcode version - 93-06-42-40/00 or later
     - Firmware version - SVOS 9.8.2 or later
+
+- VSP 5100, 5500, 5100H, 5500H/VSP 5200, 5600, 5200H, 5600H (NVMe)
+    - Microcode version - 90-08-42-00/00 or later
+    - Firmware version - SVOS 9.8.2 or later
+
+- VSP 5100, 5500, 5100H, 5500H/VSP 5200, 5600, 5200H, 5600H (SAS)
+    - Microcode version - 90-08-42-00/00 or later
+    - Firmware version - SVOS 9.8.2 or later
+
+- VSP G370/VSP G700/VSP G900
+    - Microcode version - 88-08-06-20/00 or later
+    - Firmware version - SVOS 9.6.0 or later
+
+- VSP F350/VSP F370/VSP F700/VSP F900
+    - Microcode version - 88-08-06-20/00 or later
+    - Firmware version - SVOS 9.6.0 or later
+
+- VSP G350
+    - Microcode version - 88-08-07-20/00 or later
+    - Firmware version - SVOS 9.6.0 or later
+
+- VSP F800
+    - Microcode version - 83-05-45-60/00 or later
+    - Firmware version - SVOS 7.4.0 or later
+
+- VSP G800
+    - Microcode version - 83-05-45-60/00 or later
+    - Firmware version - SVOS 7.4.0 or later
+
+- VSP Fx00 (x=4/6)
+    - Microcode version - 83-05-45-40/00 or later
+    - Firmware version - SVOS 7.4.0 or later
+
+- VSP Gx00 (x=4/6)
+    - Microcode version - 83-05-45-40/00 or later
+    - Firmware version - SVOS 7.4.0 or later
+
+- VSP G200
+    - Microcode version - 83-05-44-60/00 or later
+    - Firmware version - SVOS 7.4.0 or later
+
+- Virtual Storage Platform F1500/VSP G1000/VSP G1500
+    - Microcode version - 80-06-90_00/00 or later
+    - Firmware version - SVOS 8.3 or later
 
 ### Software requirements
 - Red Hat Ansible - 2.9.27 or higher
