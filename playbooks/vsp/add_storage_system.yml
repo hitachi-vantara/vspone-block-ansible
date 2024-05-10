@@ -5,8 +5,8 @@
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml
-    - include_vars: vars.storage.yml
+    - include_vars: ../var/vars.ucpa.yml
+    - include_vars: ../var/vars.storage.yml
   vars:
     - ucp_name: ucp-202532
   tasks:

@@ -58,8 +58,8 @@ EXAMPLES = \
   hosts: localhost
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml
-    - include_vars: vars.storage.yml
+    - include_vars: ../var/vars.ucpa.yml
+    - include_vars: ../var/vars.storage.yml
   vars:
     - ucp_name: UCP-CI-12144
   tasks:
@@ -88,7 +88,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml
+    - include_vars: ../var/vars.ucpa.yml
   vars:
     - storage_serial: "715035"
     - ucp_name: "ucp-202532"

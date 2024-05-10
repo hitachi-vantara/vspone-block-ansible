@@ -76,7 +76,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml
+    - include_vars: ../var/vars.ucpa.yml
   vars:
     - storage_serial: "715035"
     - ucp_name: "20-253"
@@ -111,7 +111,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml.20.90
+    - include_vars: ../var/vars.ucpa.yml.20.90
   vars:
     - ucp_name: UCP-CI-71366
     - storage_serial: 446039

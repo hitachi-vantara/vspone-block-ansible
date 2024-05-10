@@ -170,7 +170,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml.20.90
+    - include_vars: ../var/vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
     - ucp_name: UCP-CI-71366
@@ -219,7 +219,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml.20.90
+    - include_vars: ../var/vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
     - host_group_name: nest99
@@ -265,7 +265,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml
+    - include_vars: ../var/vars.ucpa.yml
   vars:
     - storage_serial: "715035"
     - ucp_name: "20-253"
@@ -299,7 +299,7 @@ EXAMPLES = \
   collections:
     - hitachi.storage
   pre_tasks:
-    - include_vars: vars.ucpa.yml.20.90
+    - include_vars: ../var/vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
     - host_group_name: test-ansible-hg-1
@@ -333,7 +333,7 @@ EXAMPLES = \
   collections:
     - hitachi.storage
   pre_tasks:
-    - include_vars: vars.ucpa.yml.20.90
+    - include_vars: ../var/vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
     - host_group_name: test-ansible-hg-1
@@ -368,7 +368,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml.20.90
+    - include_vars: ../var/vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
     - host_group_name: delta1
@@ -405,7 +405,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml.20.90
+    - include_vars: ../var/vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
     - host_group_name: snewar-ansible-hg-111
@@ -441,7 +441,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml
+    - include_vars: ../var/vars.ucpa.yml
   vars:
     - storage_serial: "715035"
     - ucp_name: "20-253"
@@ -478,7 +478,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml
+    - include_vars: ../var/vars.ucpa.yml
   vars:
     - storage_serial: "715035"
     - ucp_name: "20-253"

@@ -51,7 +51,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: vars.ucpa.yml
+    - include_vars: ../var/vars.ucpa.yml
   tasks:
     - hv_troubleshooting_facts:
           
