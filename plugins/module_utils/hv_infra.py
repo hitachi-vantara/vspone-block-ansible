@@ -712,7 +712,7 @@ class Utils:
         if lun.get('naaId') is not None:
             lun['canonicalName'] = lun['naaId']
             del lun['naaId']
-        if lun.get('poolId') is -1:
+        if lun.get('poolId') == -1:
             del lun['poolId']
         if lun.get('parityGroupId') == "":
             del lun['parityGroupId'] 

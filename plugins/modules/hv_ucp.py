@@ -189,7 +189,7 @@ def main(module=None):
             logger.writeAMException(MessageID.ERR_OPERATION_HOSTGROUP)
         else:
             logger.writeAMException("0X0000")
-        module.fail_json(msg=ex.message)
+        module.fail_json(msg=str(ex))
 
 
 if __name__ == '__main__':

@@ -34,8 +34,8 @@ class Log:
         path = os.getenv('HV_STORAGE_MGMT_PATH')
 
         if HAS_MESSAGE_ID and path is None:
-            raise Exception("Improper environment home configuration, please execute the 'bash' command and try again."
-                            )
+            path = '/opt/hitachi/ansible/storage'
+            #raise Exception("Improper environment home configuration, please execute the 'bash' command and try again.")
 
         if Log.logger:
             msg = 'getHomePath={0}'.format(path)
@@ -48,8 +48,8 @@ class Log:
         path = os.getenv('HV_STORAGE_MGMT_VAR_LOG_PATH')  # example: "/var/log"
 
         if HAS_MESSAGE_ID and path is None:
-            raise Exception("Improper environment configuration, please execute the 'bash' command and try again."
-                            )
+            path = '/var/log/hitachi/ansible/storage'
+            #raise Exception("Improper environment configuration, please execute the 'bash' command and try again.")
 
         if Log.logger:
             msg = 'getHomePath={0}'.format(path)

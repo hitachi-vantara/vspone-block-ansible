@@ -557,7 +557,7 @@ def main(module=None):
             logger.writeAMException("0x000000")
         module.fail_json(msg=ex.format())
     except Exception as ex:
-        module.fail_json(msg=ex.message)
+        module.fail_json(msg=str(ex))
 
 
 if __name__ == '__main__':

@@ -161,7 +161,7 @@ def main(module=None):
                 StorageSystemManager.addStorgeSystemByJson()
                 runner.runPlaybook(module)
             else:
-                module.fail_json(msg=ex.message)
+                module.fail_json(msg=str(ex))
         except Exception as ex2:
             module.fail_json(msg=ex.message + '. ' + ex2.message)
 
