@@ -1,5 +1,5 @@
 -
-  name: Create LUN In PG
+  name: Create LUN In Parity Group
   hosts: localhost
   collections:
     - hitachi.storage
