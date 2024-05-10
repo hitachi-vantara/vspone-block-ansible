@@ -5,8 +5,8 @@
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml
-    - include_vars: ../var/vars.storage.yml
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.storage.yml
   vars:
     - ucp_name: ucp-202532
   tasks:
@@ -14,13 +14,13 @@
         storage_system_info:
           serial: '{{ storage_serial }}'
           address: "{{storage_address}}"
-          username: "{{storage_user}}"
-          password: "{{storage_password}}"
+          username: "{{storage_ansible_vault_user}}"
+          password: "{{storage_ansible_vault_secret}}"
           ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
         state: present
       register: result
     - debug: var=result

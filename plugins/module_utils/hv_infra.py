@@ -209,8 +209,8 @@ class StorageSystemManager:
                     useOutOfBandConnection = True
             StorageSystemManager.addStorgeSystem(
                 ucpadvisor_address,
-                ucpadvisor_username,
-                ucpadvisor_password,
+                ucpadvisor_ansible_vault_user,
+                ucpadvisor_ansible_vault_secret,
                 ucpSystemSerial,
                 hitachiAPIGatewayService,
                 hitachiAPIGatewayServicePort, storagesystems,
@@ -341,8 +341,8 @@ class StorageSystemManager:
     ## main entry from the playbook
     def addStorgeSystem(
         ucpadvisor_address,
-        ucpadvisor_username,
-        ucpadvisor_password,
+        ucpadvisor_ansible_vault_user,
+        ucpadvisor_ansible_vault_secret,
         ucpSystemSerial,
         hitachiAPIGatewayService,
         hitachiAPIGatewayServicePort,
@@ -402,8 +402,8 @@ class StorageSystemManager:
             serial = systemInfo['serialNumber']
             gateway = StorageSystem(serial, 
                                     ucpadvisor_address,
-                                    ucpadvisor_username,
-                                    ucpadvisor_password,
+                                    ucpadvisor_ansible_vault_user,
+                                    ucpadvisor_ansible_vault_secret,
                                     serviceIP, 23015,
                                     sessionIds.get(serviceIP, ''))
             username = systemInfo.get('username', None)
@@ -461,8 +461,8 @@ class StorageSystemManager:
     @staticmethod
     def removeStorageSystems(
         ucpadvisor_address,
-        ucpadvisor_username,
-        ucpadvisor_password,
+        ucpadvisor_ansible_vault_user,
+        ucpadvisor_ansible_vault_secret,
         ucp_serial,
         hitachiAPIGatewayService,
         hitachiAPIGatewayServicePort,
@@ -502,8 +502,8 @@ class StorageSystemManager:
             serial = systemInfo['serialNumber']
             gateway = StorageSystem(serial, 
                                     ucpadvisor_address,
-                                    ucpadvisor_username,
-                                    ucpadvisor_password,
+                                    ucpadvisor_ansible_vault_user,
+                                    ucpadvisor_ansible_vault_secret,
                                     serviceIP)
             
             ## if ucp is in the ss fact then do remove
@@ -939,8 +939,8 @@ class StorageSystem:
         self,
         serial,
         ucpadvisor_address,
-        ucpadvisor_username,
-        ucpadvisor_password,
+        ucpadvisor_ansible_vault_user,
+        ucpadvisor_ansible_vault_secret,
         webServiceIp=None,
         webServicePort=None,
         sessionId=None,
@@ -953,15 +953,15 @@ class StorageSystem:
         self.isVirtualSerial = False
 
         self.ucpadvisor_address = ucpadvisor_address
-        self.ucpadvisor_username = ucpadvisor_username
-        self.ucpadvisor_password = ucpadvisor_password
+        self.ucpadvisor_ansible_vault_user = ucpadvisor_ansible_vault_user
+        self.ucpadvisor_ansible_vault_secret = ucpadvisor_ansible_vault_secret
         self.basedUrl = 'https://{0}'.format(ucpadvisor_address)
 
-        if ucpadvisor_username is None or \
-           ucpadvisor_password is None or \
+        if ucpadvisor_ansible_vault_user is None or \
+           ucpadvisor_ansible_vault_secret is None or \
            ucpadvisor_address is None or \
-           ucpadvisor_username == '' or \
-           ucpadvisor_password == '' or \
+           ucpadvisor_ansible_vault_user == '' or \
+           ucpadvisor_ansible_vault_secret == '' or \
            ucpadvisor_address == '' :
             raise Exception(self.sessionId, "UCPA is not configured.")
 
@@ -1466,8 +1466,8 @@ class StorageSystem:
         ucp_serial = ucpID
         ucpManager = UcpManager(
             self.ucpadvisor_address,
-            self.ucpadvisor_username,
-            self.ucpadvisor_password)
+            self.ucpadvisor_ansible_vault_user,
+            self.ucpadvisor_ansible_vault_secret)
         theUCP = ucpManager.getUcpSystem(ucp_serial)
         if theUCP is None:
             raise Exception('The UCP is not found')
@@ -1547,8 +1547,8 @@ class StorageSystem:
                 # get the puma gatewayAddress from UCP
                 ucpManager = UcpManager(
                     self.ucpadvisor_address,
-                    self.ucpadvisor_username,
-                    self.ucpadvisor_password)
+                    self.ucpadvisor_ansible_vault_user,
+                    self.ucpadvisor_ansible_vault_secret)
                 theUCP = ucpManager.getUcpSystem(ucp_serial)
 
                 self.logger.writeDebug('20230523 username={}', username)
@@ -1816,8 +1816,8 @@ class StorageSystem:
         # get the ucp resourceId from ucp
         ucpManager = UcpManager(
             self.ucpadvisor_address,
-            self.ucpadvisor_username,
-            self.ucpadvisor_password)
+            self.ucpadvisor_ansible_vault_user,
+            self.ucpadvisor_ansible_vault_secret)
         theUCP = ucpManager.getUcpSystem(ucp_serial)
         if theUCP is None:
             raise Exception('The UCP is not found')
@@ -2057,8 +2057,8 @@ class StorageSystem:
 
         body = {'username': 'ucpadmin', 'password': 'ucpadmin'}
         body = {
-            'username': self.ucpadvisor_username, 
-            'password': self.ucpadvisor_password
+            'username': self.ucpadvisor_ansible_vault_user, 
+            'password': self.ucpadvisor_ansible_vault_secret
             }
 
         urlPath = 'v2/auth/login'

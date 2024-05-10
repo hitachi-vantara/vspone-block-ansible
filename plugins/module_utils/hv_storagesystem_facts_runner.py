@@ -38,15 +38,15 @@ def runPlaybook(module):
 
     ucp_advisor_info = json.loads(module.params['ucp_advisor_info'])
     ucpadvisor_address = ucp_advisor_info.get('address', None)
-    ucpadvisor_username = ucp_advisor_info.get('username', None)
-    ucpadvisor_password = ucp_advisor_info.get('password', None)
+    ucpadvisor_ansible_vault_user = ucp_advisor_info.get('username', None)
+    ucpadvisor_ansible_vault_secret = ucp_advisor_info.get('password', None)
     logger.writeDebug('ucpadvisor_address={}', ucpadvisor_address)
-    logger.writeDebug('ucpadvisor_username={}', ucpadvisor_username)
+    logger.writeDebug('ucpadvisor_ansible_vault_user={}', ucpadvisor_ansible_vault_user)
     
     ucpManager = UcpManager(
         ucpadvisor_address,
-        ucpadvisor_username,
-        ucpadvisor_password,
+        ucpadvisor_ansible_vault_user,
+        ucpadvisor_ansible_vault_secret,
         storage_serial,
         )
     if ucpManager.isOnboarding():

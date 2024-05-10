@@ -36,8 +36,8 @@ options:
         - UCP Advisor information
         - =================================================================
         - C(ucpadvisor_address:) Mandatory input. String type. UCPA address.
-        - C(ucpadvisor_username:) Mandatory input. String type. UCPA user name.
-        - C(ucpadvisor_password:) Mandatory input. String type. UCPA password in clear text.
+        - C(ucpadvisor_ansible_vault_user:) Mandatory input. String type. UCPA user name.
+        - C(ucpadvisor_ansible_vault_secret:) Mandatory input. String type. UCPA password in clear text.
         - =================================================================
         default: n/a
 
@@ -51,14 +51,14 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml
   tasks:
     - hv_troubleshooting_facts:
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
       register: result
     - debug: var=result
@@ -101,8 +101,8 @@ except ImportError as error:
 logger = Log()
 moduleName = 'hv_troubleshooting_facts'
 gucpadvisor_address = ''
-gucpadvisor_username = ''
-gucpadvisor_password = ''
+gucpadvisor_ansible_vault_user = ''
+gucpadvisor_ansible_vault_secret = ''
 
 def writeLog(*args):
     logger.writeInfo(*args)
@@ -162,7 +162,7 @@ def getFailedTaskStatusDescription( taskId, hitachiAPIGatewayService):
 
 def getAuthToken(hitachiAPIGatewayService):
     funcName = 'hv_infra:getAuthToken'
-    body = {'username': gucpadvisor_username, 'password': gucpadvisor_password}
+    body = {'username': gucpadvisor_ansible_vault_user, 'password': gucpadvisor_ansible_vault_secret}
     urlPath = 'v2/auth/login'
     baseUrl = 'https://{0}'.format(hitachiAPIGatewayService)
     url = '{0}/porcelain/{1}'.format(baseUrl, urlPath)
@@ -262,25 +262,25 @@ def main(module=None):
         
     ucp_advisor_info = json.loads(module.params['ucp_advisor_info'])
     ucpadvisor_address = ucp_advisor_info.get('address', None)
-    ucpadvisor_username = ucp_advisor_info.get('username', None)
-    ucpadvisor_password = ucp_advisor_info.get('password', None)
+    ucpadvisor_ansible_vault_user = ucp_advisor_info.get('username', None)
+    ucpadvisor_ansible_vault_secret = ucp_advisor_info.get('password', None)
     logger.writeDebug('ucpadvisor_address={}', ucpadvisor_address)
-    logger.writeDebug('ucpadvisor_username={}', ucpadvisor_username)
+    logger.writeDebug('ucpadvisor_ansible_vault_user={}', ucpadvisor_ansible_vault_user)
 
-    if ucpadvisor_username is None or \
-        ucpadvisor_password is None or \
+    if ucpadvisor_ansible_vault_user is None or \
+        ucpadvisor_ansible_vault_secret is None or \
         ucpadvisor_address is None or \
-        ucpadvisor_username == '' or \
-        ucpadvisor_password == '' or \
+        ucpadvisor_ansible_vault_user == '' or \
+        ucpadvisor_ansible_vault_secret == '' or \
         ucpadvisor_address == '' :
         raise Exception("UCPA is not configured.")
     
     global gucpadvisor_address
-    global gucpadvisor_username
-    global gucpadvisor_password
+    global gucpadvisor_ansible_vault_user
+    global gucpadvisor_ansible_vault_secret
     gucpadvisor_address = ucpadvisor_address
-    gucpadvisor_username = ucpadvisor_username
-    gucpadvisor_password = ucpadvisor_password
+    gucpadvisor_ansible_vault_user = ucpadvisor_ansible_vault_user
+    gucpadvisor_ansible_vault_secret = ucpadvisor_ansible_vault_secret
 
     tempdir = \
         datetime.now().strftime('hitachi_ansible_02.3.0_support_artifacts_%Y_%m_%d_%H_%M_%S'

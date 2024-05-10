@@ -61,8 +61,8 @@ options:
       - UCP Advisor information
       - =================================================================
       - C(ucpadvisor_address:) Mandatory input. String type. UCPA address.
-      - C(ucpadvisor_username:) Mandatory input. String type. UCPA user name.
-      - C(ucpadvisor_password:) Mandatory input. String type. UCPA password in clear text.
+      - C(ucpadvisor_ansible_vault_user:) Mandatory input. String type. UCPA user name.
+      - C(ucpadvisor_ansible_vault_secret:) Mandatory input. String type. UCPA password in clear text.
       - =================================================================
     default: n/a
   spec:
@@ -158,8 +158,8 @@ EXAMPLES = \
           ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: '{{ ucpadvisor_address }}'
-          username: '{{ ucpadvisor_username }}'
-          password: '{{ ucpadvisor_password }}'
+          username: '{{ ucpadvisor_ansible_vault_user }}'
+          password: '{{ ucpadvisor_ansible_vault_secret }}'
         spec:
           pool_id: '{{ pool_id  | default(None) }}'
           name: '{{ name  | default(None) }}'
@@ -191,8 +191,8 @@ EXAMPLES = \
           ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: '{{ ucpadvisor_address }}'
-          username: '{{ ucpadvisor_username }}'
-          password: '{{ ucpadvisor_password }}'
+          username: '{{ ucpadvisor_ansible_vault_user }}'
+          password: '{{ ucpadvisor_ansible_vault_secret }}'
         spec:
           pool_id: '{{ pool_id  | default(None) }}'
           name: '{{ name  | default(None) }}'
@@ -225,8 +225,8 @@ EXAMPLES = \
           ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: '{{ ucpadvisor_address }}'
-          username: '{{ ucpadvisor_username }}'
-          password: '{{ ucpadvisor_password }}'
+          username: '{{ ucpadvisor_ansible_vault_user }}'
+          password: '{{ ucpadvisor_ansible_vault_secret }}'
         spec:
           parity_group: '{{ parity_group | default(None)}}'
           size: '{{ size | default(None) }}'
@@ -258,8 +258,8 @@ EXAMPLES = \
           ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: '{{ ucpadvisor_address }}'
-          username: '{{ ucpadvisor_username }}'
-          password: '{{ ucpadvisor_password }}'
+          username: '{{ ucpadvisor_ansible_vault_user }}'
+          password: '{{ ucpadvisor_ansible_vault_secret }}'
         spec:
           pool_id: '{{ pool_id  | default(None) }}'
           luns: '{{ item }}'
@@ -290,8 +290,8 @@ EXAMPLES = \
           ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: '{{ ucpadvisor_address }}'
-          username: '{{ ucpadvisor_username }}'
-          password: '{{ ucpadvisor_password }}'
+          username: '{{ ucpadvisor_ansible_vault_user }}'
+          password: '{{ ucpadvisor_ansible_vault_secret }}'
         spec:
           luns: '{{ item }}'
           name: '{{ name | default(None) }}'
@@ -320,8 +320,8 @@ EXAMPLES = \
           ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: '{{ ucpadvisor_address }}'
-          username: '{{ ucpadvisor_username }}'
-          password: '{{ ucpadvisor_password }}'
+          username: '{{ ucpadvisor_ansible_vault_user }}'
+          password: '{{ ucpadvisor_ansible_vault_secret }}'
         spec:
           pool_id: '{{ pool_id  | default(None) }}'
           size: '{{ size }}'
@@ -348,8 +348,8 @@ EXAMPLES = \
           ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: '{{ ucpadvisor_address }}'
-          username: '{{ ucpadvisor_username }}'
-          password: '{{ ucpadvisor_password }}'
+          username: '{{ ucpadvisor_ansible_vault_user }}'
+          password: '{{ ucpadvisor_ansible_vault_secret }}'
         spec:
          luns: '{{ luns }}'
          size: '{{size_gb}}'
@@ -377,8 +377,8 @@ EXAMPLES = \
           ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: '{{ ucpadvisor_address }}'
-          username: '{{ ucpadvisor_username }}'
-          password: '{{ ucpadvisor_password }}'
+          username: '{{ ucpadvisor_ansible_vault_user }}'
+          password: '{{ ucpadvisor_ansible_vault_secret }}'
         spec:
           luns: '{{ luns }}'
           size: '{{size_gb}}'
@@ -410,8 +410,8 @@ EXAMPLES = \
           ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: '{{ ucpadvisor_address }}'
-          username: '{{ ucpadvisor_username }}'
-          password: '{{ ucpadvisor_password }}'
+          username: '{{ ucpadvisor_ansible_vault_user }}'
+          password: '{{ ucpadvisor_ansible_vault_secret }}'
         spec:
           pool_id: '{{ pool_id  | default(None) }}'
           luns: '{{ item }}'

@@ -46,8 +46,8 @@ options:
       - UCP Advisor information
       - =================================================================
       - C(ucpadvisor_address:) Mandatory input. String type. UCPA address.
-      - C(ucpadvisor_username:) Mandatory input. String type. UCPA user name.
-      - C(ucpadvisor_password:) Mandatory input. String type. UCPA password in clear text.
+      - C(ucpadvisor_ansible_vault_user:) Mandatory input. String type. UCPA user name.
+      - C(ucpadvisor_ansible_vault_secret:) Mandatory input. String type. UCPA password in clear text.
       - =================================================================
     default: n/a
   spec:
@@ -76,7 +76,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml
   vars:
     - storage_serial: "715035"
     - ucp_name: "20-253"
@@ -93,8 +93,8 @@ EXAMPLES = \
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
         spec:
           query: '{{ query | default(omit) }}'
@@ -111,7 +111,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml.20.90
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml.20.90
   vars:
     - ucp_name: UCP-CI-71366
     - storage_serial: 446039
@@ -128,8 +128,8 @@ EXAMPLES = \
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
         spec:
           query: '{{ query | default(None) }}'

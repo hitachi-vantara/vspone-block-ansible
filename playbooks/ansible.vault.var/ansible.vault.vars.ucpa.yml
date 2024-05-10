@@ -1,0 +1,6 @@
+#User will use Ansible Vault to encrypt this file.
+#Ansible will decrypt this file when it executes the playbook.
+
+ucpadvisor_address: 172.25.20.105
+ucpadvisor_ansible_vault_user: ucpadmin
+ucpadvisor_ansible_vault_secret: changeMe

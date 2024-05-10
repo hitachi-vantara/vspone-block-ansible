@@ -35,8 +35,8 @@ options:
       - Getting UCP information Facts
       - =================================================================
       - C(ucpadvisor_address:) Mandatory input. String type. UCPA address.
-      - C(ucpadvisor_username:) Mandatory input. String type. UCPA user name.
-      - C(ucpadvisor_password:) Mandatory input. String type. UCPA password in clear text.
+      - C(ucpadvisor_ansible_vault_user:) Mandatory input. String type. UCPA user name.
+      - C(ucpadvisor_ansible_vault_secret:) Mandatory input. String type. UCPA password in clear text.
       - C(name:) Optional input. String type. Get one UCP by name, case sensitive.
       - =================================================================
 '''
@@ -55,8 +55,8 @@ EXAMPLES = \
   tasks:
     - hv_ucp_facts:
         ucpadvisor_address: "{{ucpadvisor_address}}"
-        ucpadvisor_username: "{{ucpadvisor_username}}"
-        ucpadvisor_key: "{{ucpadvisor_password}}"
+        ucpadvisor_ansible_vault_user: "{{ucpadvisor_ansible_vault_user}}"
+        ucpadvisor_key: "{{ucpadvisor_ansible_vault_secret}}"
         name: "{{ name | default(None) }}"
       register: result
     - debug: var=result.ucps
@@ -88,7 +88,7 @@ def main(module=None):
               'model': {'required': False, 'type': 'str'},
               'name': {'required': False, 'type': 'str'},
               'ucpadvisor_address': {'required': True, 'type': 'str'},
-              'ucpadvisor_username': {'required': True, 'type': 'str'},
+              'ucpadvisor_ansible_vault_user': {'required': True, 'type': 'str'},
               'ucpadvisor_key': {'required': True, 'type': 'str'},
               }
 

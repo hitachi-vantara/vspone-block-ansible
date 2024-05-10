@@ -34,8 +34,8 @@ options:
       - =================================================================
       - C(storage_serial:) Mandatory input. String type. Storage system serial number.
       - C(storage_address:) Mandatory input for add storage. String type. Storage system address used to add storage.
-      - C(storage_user:) Mandatory input for add storage. String type. Storage system user name used to add storage.
-      - C(storage_password:) Mandatory input for add storage. String type. Storage system password used to add storage.
+      - C(storage_ansible_vault_user:) Mandatory input for add storage. String type. Storage system user name used to add storage.
+      - C(storage_ansible_vault_secret:) Mandatory input for add storage. String type. Storage system password used to add storage.
       - C(ucp_name:) Mandatory input. String type. UCP system name.
       - =================================================================
     default: n/a
@@ -47,8 +47,8 @@ options:
       - UCP Advisor information
       - =================================================================
       - C(ucpadvisor_address:) Mandatory input. String type. UCPA address.
-      - C(ucpadvisor_username:) Mandatory input. String type. UCPA user name.
-      - C(ucpadvisor_password:) Mandatory input. String type. UCPA password in clear text.
+      - C(ucpadvisor_ansible_vault_user:) Mandatory input. String type. UCPA user name.
+      - C(ucpadvisor_ansible_vault_secret:) Mandatory input. String type. UCPA password in clear text.
       - =================================================================
     default: n/a
 '''
@@ -58,8 +58,8 @@ EXAMPLES = \
   hosts: localhost
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml
-    - include_vars: ../var/vars.storage.yml
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.storage.yml
   vars:
     - ucp_name: UCP-CI-12144
   tasks:
@@ -68,14 +68,14 @@ EXAMPLES = \
         storage_system_info:
           serial: '{{ storage_serial }}'
           address: "{{storage_address}}"
-          username: "{{storage_user}}"
-          password: "{{storage_password}}"
+          username: "{{storage_ansible_vault_user}}"
+          password: "{{storage_ansible_vault_secret}}"
           ucp_name: '{{ ucp_name }}'
 
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
         state: present
       register: result
@@ -88,7 +88,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml
   vars:
     - storage_serial: "715035"
     - ucp_name: "ucp-202532"
@@ -99,8 +99,8 @@ EXAMPLES = \
           ucp_name: '{{ ucp_name }}'
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
         state: absent
       register: result
     - debug: var=result
@@ -195,15 +195,15 @@ def main(module=None):
     
         ucp_advisor_info = json.loads(module.params['ucp_advisor_info'])
         ucpadvisor_address = ucp_advisor_info.get('address', None)
-        ucpadvisor_username = ucp_advisor_info.get('username', None)
-        ucpadvisor_password = ucp_advisor_info.get('password', None)
+        ucpadvisor_ansible_vault_user = ucp_advisor_info.get('username', None)
+        ucpadvisor_ansible_vault_secret = ucp_advisor_info.get('password', None)
         logger.writeDebug('ucpadvisor_address={}', ucpadvisor_address)
-        logger.writeDebug('ucpadvisor_username={}', ucpadvisor_username)
+        logger.writeDebug('ucpadvisor_ansible_vault_user={}', ucpadvisor_ansible_vault_user)
 
         ucpManager = UcpManager(
             ucpadvisor_address,
-            ucpadvisor_username,
-            ucpadvisor_password)
+            ucpadvisor_ansible_vault_user,
+            ucpadvisor_ansible_vault_secret)
         
         # theUCP = ucpManager.getUcpSystem( ucp_serial )
         # logger.writeDebug('theUCP={}', theUCP)
@@ -213,10 +213,10 @@ def main(module=None):
 
         storage_serial = storage_system_info.get('serial', None)
         storage_address = storage_system_info.get('address', None)
-        storage_user = storage_system_info.get('username', None)
-        storage_password = storage_system_info.get('password', None)
+        storage_ansible_vault_user = storage_system_info.get('username', None)
+        storage_ansible_vault_secret = storage_system_info.get('password', None)
         logger.writeDebug('storage_serial={}', storage_serial)
-        logger.writeDebug('20230620 storage_user={}', storage_user)
+        logger.writeDebug('20230620 storage_ansible_vault_user={}', storage_ansible_vault_user)
 
         # ucp is mantatory input
         # get the puma getway info out of it
@@ -239,8 +239,8 @@ def main(module=None):
                     storage_address,
                     gatewayIP,
                     8444,
-                    storage_user,
-                    storage_password,
+                    storage_ansible_vault_user,
+                    storage_ansible_vault_secret,
                     False,
                     ucp_serial
                 )

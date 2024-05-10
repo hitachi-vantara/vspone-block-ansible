@@ -35,18 +35,18 @@ def runPlaybook(module):
     zipcode = module.params['zipcode']
     zone = ""
     ucpadvisor_address = module.params['ucpadvisor_address']
-    ucpadvisor_username = module.params['ucpadvisor_username']
-    ucpadvisor_password = module.params['ucpadvisor_key']
+    ucpadvisor_ansible_vault_user = module.params['ucpadvisor_ansible_vault_user']
+    ucpadvisor_ansible_vault_secret = module.params['ucpadvisor_key']
 
     logger.writeDebug('20230505 ucpadvisor_address={}',ucpadvisor_address)
-    logger.writeDebug('20230505 ucpadvisor_username={}',ucpadvisor_username)
+    logger.writeDebug('20230505 ucpadvisor_ansible_vault_user={}',ucpadvisor_ansible_vault_user)
     logger.writeDebug('serial_number={}'.format(serial_number))
     logger.writeDebug('gateway_address={0}'.format(gateway_address))
 
     ucpManager = UcpManager(
         ucpadvisor_address,
-        ucpadvisor_username,
-        ucpadvisor_password)
+        ucpadvisor_ansible_vault_user,
+        ucpadvisor_ansible_vault_secret)
     
     # first try to get UCP by name,
     # if exist, it is update ucp,

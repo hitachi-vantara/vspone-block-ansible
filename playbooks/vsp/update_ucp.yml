@@ -5,7 +5,7 @@
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml
   vars:
     - name: ucp-45678
     - gateway_address: 172.25.20.61
@@ -17,8 +17,8 @@
         state: present
         name: '{{ name }}'
         ucpadvisor_address: "{{ucpadvisor_address}}"
-        ucpadvisor_username: "{{ucpadvisor_username}}"
-        ucpadvisor_key: "{{ucpadvisor_password}}"
+        ucpadvisor_ansible_vault_user: "{{ucpadvisor_ansible_vault_user}}"
+        ucpadvisor_key: "{{ucpadvisor_ansible_vault_secret}}"
         gateway_address: '{{ gateway_address  }}'
         region: '{{ region }}' 
         country: '{{ country  }}' 

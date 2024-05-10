@@ -5,12 +5,12 @@
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml
   vars_files:
   tasks:
     - hv_ucp_facts:
         ucpadvisor_address: "{{ucpadvisor_address}}"
-        ucpadvisor_username: "{{ucpadvisor_username}}"
-        ucpadvisor_key: "{{ucpadvisor_password}}"
+        ucpadvisor_ansible_vault_user: "{{ucpadvisor_ansible_vault_user}}"
+        ucpadvisor_key: "{{ucpadvisor_ansible_vault_secret}}"
       register: result
     - debug: var=result.ucps

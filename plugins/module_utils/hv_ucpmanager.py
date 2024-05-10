@@ -27,8 +27,8 @@ class UcpManager:
     def __init__(
         self,
         ucpadvisor_address,
-        ucpadvisor_username,
-        ucpadvisor_password,
+        ucpadvisor_ansible_vault_user,
+        ucpadvisor_ansible_vault_secret,
         serial=None,
         webServicePort=None,
         sessionId=None,
@@ -42,15 +42,15 @@ class UcpManager:
         self.webServicePort = webServicePort
         self.shouldVerifySslCertification = False
         self.ucpadvisor_address = ucpadvisor_address
-        self.ucpadvisor_username = ucpadvisor_username
-        self.ucpadvisor_password = ucpadvisor_password
+        self.ucpadvisor_ansible_vault_user = ucpadvisor_ansible_vault_user
+        self.ucpadvisor_ansible_vault_secret = ucpadvisor_ansible_vault_secret
         self.basedUrl = 'https://{0}'.format(ucpadvisor_address)
 
-        if ucpadvisor_username is None or \
-           ucpadvisor_password is None or \
+        if ucpadvisor_ansible_vault_user is None or \
+           ucpadvisor_ansible_vault_secret is None or \
            ucpadvisor_address is None or \
-           ucpadvisor_username == '' or \
-           ucpadvisor_password == '' or \
+           ucpadvisor_ansible_vault_user == '' or \
+           ucpadvisor_ansible_vault_secret == '' or \
            ucpadvisor_address == '' :
             raise Exception(self.sessionId, "UCPA is not configured.")
 
@@ -60,8 +60,8 @@ class UcpManager:
         # self.logger.writeEnterSDK(funcName)
 
         body = {
-            'username': self.ucpadvisor_username, 
-            'password': self.ucpadvisor_password
+            'username': self.ucpadvisor_ansible_vault_user, 
+            'password': self.ucpadvisor_ansible_vault_secret
             }
 
         urlPath = 'v2/auth/login'
@@ -669,8 +669,8 @@ class UcpManager:
         ucp_serial = ucpID
         ucpManager = UcpManager(
             self.ucpadvisor_address,
-            self.ucpadvisor_username,
-            self.ucpadvisor_password)
+            self.ucpadvisor_ansible_vault_user,
+            self.ucpadvisor_ansible_vault_secret)
         theUCP = ucpManager.getUcpSystem(ucp_serial)
         self.logger.writeDebug('674 ucp_serial={}', ucp_serial)
         # self.logger.writeDebug('674 theUCP={}', theUCP)
@@ -729,8 +729,8 @@ class UcpManager:
         if system is not None and not isInThisUCP:
             # ucpManager = UcpManager(
             #     self.ucpadvisor_address,
-            #     self.ucpadvisor_username,
-            #     self.ucpadvisor_password)
+            #     self.ucpadvisor_ansible_vault_user,
+            #     self.ucpadvisor_ansible_vault_secret)
             # ucpManager.serial = self.serial
             
             # attach ss to this UCP
@@ -751,8 +751,8 @@ class UcpManager:
                 # get the puma gatewayAddress from UCP
                 ucpManager = UcpManager(
                     self.ucpadvisor_address,
-                    self.ucpadvisor_username,
-                    self.ucpadvisor_password)
+                    self.ucpadvisor_ansible_vault_user,
+                    self.ucpadvisor_ansible_vault_secret)
                 theUCP = ucpManager.getUcpSystem(ucp_serial)
 
                 # raise Exception("WIP3, continue here for add ss to isp")
@@ -982,8 +982,8 @@ class UcpManager:
         # get the ucp resourceId from ucp
         ucpManager = UcpManager(
             self.ucpadvisor_address,
-            self.ucpadvisor_username,
-            self.ucpadvisor_password)
+            self.ucpadvisor_ansible_vault_user,
+            self.ucpadvisor_ansible_vault_secret)
         theUCP = ucpManager.getUcpSystem(ucp_serial)
         if theUCP is None:
             raise Exception('The UCP is not found')

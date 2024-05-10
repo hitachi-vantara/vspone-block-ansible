@@ -26,8 +26,8 @@ class StorageManager:
     def __init__(
         self,
         ucpadvisor_address,
-        ucpadvisor_username,
-        ucpadvisor_password,
+        ucpadvisor_ansible_vault_user,
+        ucpadvisor_ansible_vault_secret,
         storage_serial,
         ucp_serial,
         webServicePort=None,
@@ -42,17 +42,17 @@ class StorageManager:
         self.webServicePort = webServicePort
         self.shouldVerifySslCertification = False
         self.ucpadvisor_address = ucpadvisor_address
-        self.ucpadvisor_username = ucpadvisor_username
-        self.ucpadvisor_password = ucpadvisor_password
+        self.ucpadvisor_ansible_vault_user = ucpadvisor_ansible_vault_user
+        self.ucpadvisor_ansible_vault_secret = ucpadvisor_ansible_vault_secret
         self.storage_serial = storage_serial
         self.ucp_serial = ucp_serial
         self.basedUrl = 'https://{0}'.format(ucpadvisor_address)
 
-        if ucpadvisor_username is None or \
-           ucpadvisor_password is None or \
+        if ucpadvisor_ansible_vault_user is None or \
+           ucpadvisor_ansible_vault_secret is None or \
            ucpadvisor_address is None or \
-           ucpadvisor_username == '' or \
-           ucpadvisor_password == '' or \
+           ucpadvisor_ansible_vault_user == '' or \
+           ucpadvisor_ansible_vault_secret == '' or \
            ucpadvisor_address == '' :
             raise Exception( "UCPA is not configured.")
 
@@ -69,8 +69,8 @@ class StorageManager:
         try:
             self.ucpManager = UcpManager(
                 self.ucpadvisor_address,
-                self.ucpadvisor_username,
-                self.ucpadvisor_password
+                self.ucpadvisor_ansible_vault_user,
+                self.ucpadvisor_ansible_vault_secret
                 )
         except Exception as ex:
             raise Exception( "UCPA is not configured.")

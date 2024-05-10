@@ -27,13 +27,13 @@ def runPlaybook(module):
     model = module.params['model']
     name = module.params['name']
     ucpadvisor_address = module.params['ucpadvisor_address']
-    ucpadvisor_username = module.params['ucpadvisor_username']
-    ucpadvisor_password = module.params['ucpadvisor_key']
+    ucpadvisor_ansible_vault_user = module.params['ucpadvisor_ansible_vault_user']
+    ucpadvisor_ansible_vault_secret = module.params['ucpadvisor_key']
 
     ucpManager = UcpManager(
         ucpadvisor_address,
-        ucpadvisor_username,
-        ucpadvisor_password)
+        ucpadvisor_ansible_vault_user,
+        ucpadvisor_ansible_vault_secret)
 
     if serial == '':
         serial = None

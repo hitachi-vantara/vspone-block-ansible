@@ -175,8 +175,8 @@ def runPlaybook(module):
 
     ucp_advisor_info = json.loads(module.params['ucp_advisor_info'])
     ucpadvisor_address = ucp_advisor_info.get('address')
-    ucpadvisor_username = ucp_advisor_info.get('username')
-    ucpadvisor_password = ucp_advisor_info.get('password')
+    ucpadvisor_ansible_vault_user = ucp_advisor_info.get('username')
+    ucpadvisor_ansible_vault_secret = ucp_advisor_info.get('password')
 
     ucp_advisor_info['password'] = '******'
     module.params['ucp_advisor_info'] = json.dumps(ucp_advisor_info)
@@ -189,14 +189,14 @@ def runPlaybook(module):
     logger.writeParam('storage_serial={}', storage_serial)
     logger.writeParam('ucp_serial={}', ucp_serial)
     logger.writeParam('ucpadvisor_address={}', ucpadvisor_address)
-    logger.writeParam('ucpadvisor_username={}', ucpadvisor_username)
+    logger.writeParam('ucpadvisor_ansible_vault_user={}', ucpadvisor_ansible_vault_user)
 
     storageSystem = None
     try:
         storageSystem = StorageManager(
             ucpadvisor_address,
-            ucpadvisor_username,
-            ucpadvisor_password,
+            ucpadvisor_ansible_vault_user,
+            ucpadvisor_ansible_vault_secret,
             storage_serial,
             ucp_serial
         )
@@ -209,8 +209,8 @@ def runPlaybook(module):
     ## check the healthStatus=onboarding
     ucpManager = UcpManager(
         ucpadvisor_address,
-        ucpadvisor_username,
-        ucpadvisor_password,
+        ucpadvisor_ansible_vault_user,
+        ucpadvisor_ansible_vault_secret,
         storage_serial,
         )
     if ucpManager.isOnboarding():

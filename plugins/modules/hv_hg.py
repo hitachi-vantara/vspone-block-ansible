@@ -58,8 +58,8 @@ options:
       - UCP Advisor information
       - =================================================================
       - C(ucpadvisor_address:) Mandatory input. String type. UCPA address.
-      - C(ucpadvisor_username:) Mandatory input. String type. UCPA user name.
-      - C(ucpadvisor_password:) Mandatory input. String type. UCPA password in clear text.
+      - C(ucpadvisor_ansible_vault_user:) Mandatory input. String type. UCPA user name.
+      - C(ucpadvisor_ansible_vault_secret:) Mandatory input. String type. UCPA password in clear text.
       - =================================================================
     default: n/a
   hg_info:
@@ -170,7 +170,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml.20.90
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
     - ucp_name: UCP-CI-71366
@@ -198,8 +198,8 @@ EXAMPLES = \
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
         host_group_info:
          state: '{{ state | default(omit)}}'
@@ -219,7 +219,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml.20.90
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
     - host_group_name: nest99
@@ -245,8 +245,8 @@ EXAMPLES = \
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
         host_group_info:
           name: '{{ host_group_name }}'
@@ -265,7 +265,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml
   vars:
     - storage_serial: "715035"
     - ucp_name: "20-253"
@@ -282,8 +282,8 @@ EXAMPLES = \
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
         spec:
           name: '{{ host_group_name }}'
@@ -299,7 +299,7 @@ EXAMPLES = \
   collections:
     - hitachi.storage
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml.20.90
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
     - host_group_name: test-ansible-hg-1
@@ -317,8 +317,8 @@ EXAMPLES = \
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
         host_group_info:
           state: unpresent_lun
@@ -333,7 +333,7 @@ EXAMPLES = \
   collections:
     - hitachi.storage
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml.20.90
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
     - host_group_name: test-ansible-hg-1
@@ -351,8 +351,8 @@ EXAMPLES = \
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
         host_group_info:
           state: unpresent_lun
@@ -368,7 +368,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml.20.90
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
     - host_group_name: delta1
@@ -388,8 +388,8 @@ EXAMPLES = \
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
         host_group_info:
           state: present_lun
@@ -405,7 +405,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml.20.90
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml.20.90
   vars:
     - storage_serial: 446039
     - host_group_name: snewar-ansible-hg-111
@@ -424,8 +424,8 @@ EXAMPLES = \
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
         spec:
           state: present_lun
@@ -441,7 +441,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml
   vars:
     - storage_serial: "715035"
     - ucp_name: "20-253"
@@ -460,8 +460,8 @@ EXAMPLES = \
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
         spec:
           state: add_wwn
@@ -478,7 +478,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../var/vars.ucpa.yml
+    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml
   vars:
     - storage_serial: "715035"
     - ucp_name: "20-253"
@@ -499,8 +499,8 @@ EXAMPLES = \
           
         ucp_advisor_info:
           address: "{{ucpadvisor_address}}"
-          username: "{{ucpadvisor_username}}"
-          password: "{{ucpadvisor_password}}"
+          username: "{{ucpadvisor_ansible_vault_user}}"
+          password: "{{ucpadvisor_ansible_vault_secret}}"
 
         spec:
           state: set_host_mode_and_hmo

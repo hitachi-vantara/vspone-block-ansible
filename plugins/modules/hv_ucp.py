@@ -35,8 +35,8 @@ options:
       - Add UCP System
       - =================================================================
       - C(ucpadvisor_address:) Mandatory input. String type. UCPA system address.
-      - C(ucpadvisor_username:) Mandatory input. String type. UCPA system user name.
-      - C(ucpadvisor_password:) Mandatory input. String type. UCPA system password in clear text.
+      - C(ucpadvisor_ansible_vault_user:) Mandatory input. String type. UCPA system user name.
+      - C(ucpadvisor_ansible_vault_secret:) Mandatory input. String type. UCPA system password in clear text.
       - C(serial_number:) Mandatory input. String type. UCP system serial number, must be minimum 5 digits and max 10 digits.
       - C(gateway_address:) Mandatory input. String type. Hitachi API geteway service address.
       - C(model:) Mandatory input. String type. UCP system model, must be "UCP CI" or "UCP HC" or "UCP RS" or "Logical UCP".
@@ -69,8 +69,8 @@ EXAMPLES = \
     - hv_ucp:
         state: present
         ucpadvisor_address: "{{ucpadvisor_address}}"
-        ucpadvisor_username: "{{ucpadvisor_username}}"
-        ucpadvisor_key: "{{ucpadvisor_password}}"
+        ucpadvisor_ansible_vault_user: "{{ucpadvisor_ansible_vault_user}}"
+        ucpadvisor_key: "{{ucpadvisor_ansible_vault_secret}}"
         serial_number: '{{ serial_number }}'
         gateway_address: '{{ gateway_address}}'
         model: '{{ model }}'
@@ -96,8 +96,8 @@ EXAMPLES = \
         state: absent
         name: '{{ name }}'
         ucpadvisor_address: "{{ucpadvisor_address}}"
-        ucpadvisor_username: "{{ucpadvisor_username}}"
-        ucpadvisor_key: "{{ucpadvisor_password}}"
+        ucpadvisor_ansible_vault_user: "{{ucpadvisor_ansible_vault_user}}"
+        ucpadvisor_key: "{{ucpadvisor_ansible_vault_secret}}"
       register: result
     - debug: var=result
 -
@@ -120,8 +120,8 @@ EXAMPLES = \
         state: present
         name: '{{ name }}'
         ucpadvisor_address: "{{ucpadvisor_address}}"
-        ucpadvisor_username: "{{ucpadvisor_username}}"
-        ucpadvisor_key: "{{ucpadvisor_password}}"
+        ucpadvisor_ansible_vault_user: "{{ucpadvisor_ansible_vault_user}}"
+        ucpadvisor_key: "{{ucpadvisor_ansible_vault_secret}}"
         gateway_address: '{{ gateway_address  }}'
         region: '{{ region }}' 
         country: '{{ country  }}' 
@@ -156,7 +156,7 @@ def main(module=None):
               'state': {'default': 'present', 'choices': ['present', 'absent']},
               # 'state': {'required': True, 'type': 'str'},
               'ucpadvisor_address': {'required': True, 'type': 'str'},
-              'ucpadvisor_username': {'required': True, 'type': 'str'},
+              'ucpadvisor_ansible_vault_user': {'required': True, 'type': 'str'},
               'ucpadvisor_key': {'required': True, 'type': 'str'},
 
               # two ways to deal with these params, 
