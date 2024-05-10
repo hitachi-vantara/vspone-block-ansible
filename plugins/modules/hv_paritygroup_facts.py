@@ -61,7 +61,7 @@ EXAMPLES = \
     - hitachi.storage
   gather_facts: false
   pre_tasks:
-    - include_vars: ../ansible.vault.var/ansible.vault.vars.ucpa.yml
+    - include_vars: ../ansible_vault_var/ansible.vault.vars.ucpa.yml
   vars:
     - storage_serial: "715035"
     - ucp_name: "20-253"
