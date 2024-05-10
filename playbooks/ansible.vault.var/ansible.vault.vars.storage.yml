@@ -5,4 +5,4 @@
 storage_serial: 446039
 storage_address: 172.25.47.20
 storage_ansible_vault_user: user
-storage_ansible_vault_secret: password
+storage_ansible_vault_secret: secret

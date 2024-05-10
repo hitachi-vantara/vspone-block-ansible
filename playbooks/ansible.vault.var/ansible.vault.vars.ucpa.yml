@@ -3,4 +3,4 @@
 
 ucpadvisor_address: 172.25.20.105
 ucpadvisor_ansible_vault_user: ucpadmin
-ucpadvisor_ansible_vault_secret: changeMe
+ucpadvisor_ansible_vault_secret: scret
