@@ -59,7 +59,7 @@ EXAMPLES = \
   gather_facts: false
   pre_tasks:
     - include_vars: ../ansible_vault_vars/ansible_vault_ucpa_var.yml
-    - include_vars: ../ansible_vault_vars/ansible.vault.vars.storage.yml
+    - include_vars: ../ansible_vault_vars/ansible_vault_storage_var.yml
   vars:
     - ucp_name: UCP-CI-12144
   tasks:
