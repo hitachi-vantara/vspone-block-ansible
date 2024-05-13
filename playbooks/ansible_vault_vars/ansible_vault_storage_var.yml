@@ -2,7 +2,7 @@
 #Ansible will decrypt this file when it executes the playbook.
 
 
-storage_serial: 446039
-storage_address: 172.25.47.20
+storage_serial: 440123
+storage_address: 10.1.1.1
 storage_ansible_vault_user: user
 storage_ansible_vault_secret: secret
