@@ -68,6 +68,6 @@ jobs:
 
     - name: Publish to Ansible Galaxy
       env:
-        ANSIBLE_GALAXY_API_KEY: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
+        ANSIBLE_COLLECTIONS_TOKEN: ${{ secrets.ANSIBLE_COLLECTIONS_TOKEN }}
       run: |
-        ansible-galaxy collection publish *.tar.gz --api-key $ANSIBLE_GALAXY_API_KEY
+        ansible-galaxy collection publish *.tar.gz --api-key $ANSIBLE_COLLECTIONS_TOKEN
