@@ -1,0 +1,73 @@
+name: Publish Ansible Collection
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install ansible and ansible-lint
+      run: |
+        pip install ansible ansible-lint
+
+    - name: Lint Ansible Collection
+      run: |
+        ansible-lint .
+
+  build:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install ansible
+      run: |
+        pip install ansible
+
+    - name: Build Ansible Collection
+      run: |
+        ansible-galaxy collection build
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: collection-tarball
+        path: |
+          *.tar.gz
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Download build artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: collection-tarball
+        path: .
+
+    - name: Publish to Ansible Galaxy
+      env:
+        ANSIBLE_GALAXY_API_KEY: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
+      run: |
+        ansible-galaxy collection publish *.tar.gz --api-key $ANSIBLE_GALAXY_API_KEY
