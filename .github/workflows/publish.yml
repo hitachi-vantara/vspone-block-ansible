@@ -54,4 +54,4 @@ jobs:
     - name: Publish to Ansible Galaxy
       env:
         ANSIBLE_COLLECTIONS_TOKEN: ${{ secrets.ANSIBLE_COLLECTIONS_TOKEN }}
-      run: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ghcr.io/${{ github.repository_owner }}/ansible-image:latest ansible-galaxy collection publish *.tar.gz --api-key $ANSIBLE_COLLECTIONS_TOKEN --force
+      run: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ghcr.io/${{ github.repository_owner }}/ansible-image:latest ansible-galaxy collection publish *.tar.gz --api-key $ANSIBLE_COLLECTIONS_TOKEN
