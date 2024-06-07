@@ -1,0 +1,21 @@
+---
+- version: 1.0.0
+  date: 2022-01-01
+  changes:
+    - Added new module: `example_module`
+    - Updated `existing_module` to support additional parameters
+    - Fixed a bug in `another_module` that caused incorrect output
+
+- version: 0.2.0
+  date: 2021-12-15
+  changes:
+    - Added support for Ansible 2.12
+    - Deprecated `old_module` in favor of `new_module`
+    - Improved performance of `some_module`
+
+- version: 0.1.0
+  date: 2021-11-30
+  changes:
+    - Initial release of the Ansible collection
+    - Included modules: `module1`, `module2`, `module3`
+    - Added support for Ubuntu 20.04
