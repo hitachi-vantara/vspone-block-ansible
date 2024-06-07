@@ -1,12 +1,7 @@
 # Red Hat® Ansible® Provider for Hitachi Storage
 
-<<<<<<< HEAD
 The Red Hat® Ansible® Provider for Hitachi Storage consists of ansible modules for managing iSCSI-based Hitachi Virtual 
 Storage Platform One SDS Block and Hitachi VSP storage systems.
-=======
-# Getting started:
-# To get started you will need to run these commands in your terminal:
->>>>>>> d189422 (Update README.md)
 
 
 ## Supported Platforms
