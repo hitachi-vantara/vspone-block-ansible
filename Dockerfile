@@ -2,7 +2,7 @@
 FROM python:3.10-slim
 
 # Install dependencies
-RUN pip install --no-cache-dir ansible-core==2.16
+RUN pip install --no-cache-dir ansible
 
 # Set the default command to run Ansible
 CMD ["ansible"]
