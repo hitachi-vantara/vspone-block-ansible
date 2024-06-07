@@ -13,11 +13,17 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Log in to GitHub Container Registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
     - name: Build Docker image
-      run: docker build -t ansible-image .
+      run: docker build -t ghcr.io/${{ github.repository_owner }}/ansible-image:latest .
+
+    - name: Push Docker image to GitHub Container Registry
+      run: docker push ghcr.io/${{ github.repository_owner }}/ansible-image:latest
 
     - name: Build Ansible Collection
-      run: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ansible-image ansible-galaxy collection build
+      run: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ghcr.io/${{ github.repository_owner }}/ansible-image:latest ansible-galaxy collection build
 
     - name: Upload build artifact
       uses: actions/upload-artifact@v2
@@ -33,13 +39,19 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Log in to GitHub Container Registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
     - name: Download build artifact
       uses: actions/download-artifact@v2
       with:
         name: collection-tarball
         path: .
 
+    - name: Pull Docker image from GitHub Container Registry
+      run: docker pull ghcr.io/${{ github.repository_owner }}/ansible-image:latest
+
     - name: Publish to Ansible Galaxy
       env:
         ANSIBLE_COLLECTIONS_TOKEN: ${{ secrets.ANSIBLE_COLLECTIONS_TOKEN }}
-      run: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ansible-image ansible-galaxy collection publish *.tar.gz --api-key $ANSIBLE_COLLECTIONS_TOKEN
+      run: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ghcr.io/${{ github.repository_owner }}/ansible-image:latest ansible-galaxy collection publish *.tar.gz --api-key $ANSIBLE_COLLECTIONS_TOKEN
