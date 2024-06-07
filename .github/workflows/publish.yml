@@ -17,7 +17,7 @@ jobs:
       run: docker build -t ansible-image .
 
     - name: Build Ansible Collection
-      run: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ansible-galaxy collection build
+      run: docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ansible-image ansible-galaxy collection build
 
     - name: Upload build artifact
       uses: actions/upload-artifact@v2
