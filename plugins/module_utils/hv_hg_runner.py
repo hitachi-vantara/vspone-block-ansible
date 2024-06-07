@@ -4,15 +4,37 @@
 __metaclass__ = type
 import json
 import time
+import hashlib
+import concurrent.futures
 
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_storagemanager import StorageManager
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_infra import StorageSystem, \
-    HostMode, Utils
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_log import Log
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_ucpmanager import UcpManager
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_storagemanager import (
+    StorageManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
+    StorageSystem,
+    HostMode,
+    Utils,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ucpmanager import (
+    UcpManager,
+)
+
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
+    CommonConstants,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
+    camel_to_snake_case_dict_array,
+)
+try:
+    from .message.vsp_host_group_msgs import *
+except ImportError:
+    from message.vsp_host_group_msgs import *
 
 logger = Log()
-moduleName = 'Host Group'
+moduleName = "Host Group"
 dryRun = False
 
 
@@ -23,30 +45,58 @@ def writeNameValue(name, value):
 #     name=name.replace("{}","{0}")
 #     logging.debug(name.format(value))
 
+
 def writeMsg(msg):
     logger.writeDebug(msg)
 
 
 #     logging.debug(msg)
 
-def preDeleteHostGroup(
-    storageSystem,
-    hostGroups,
-    hgName,
-    port,
-):
-    hgs = [hostGroup for hostGroup in hostGroups if hostGroup['HgName']
-           == hgName and hostGroup['Port'] == port]
 
-    # only expecting one
+def delete_volume_with_no_path(storage_system, ldev_id):
+    vol_info = storage_system.get_one_lun_by_id_v3(ldev_id)
+    if vol_info is not None:
+        if vol_info["pathCount"] == 0:
+            # Delete the volume
+            storage_system.deleteLun(vol_info["resourceId"])
 
-    hg = hgs[0]
 
-    # unpresent all luns
+def pre_delete_host_groups(storage_system, host_groups, is_delete_all_luns):
+    okToDelete = True
+    if is_delete_all_luns is not None and is_delete_all_luns == True:
+        ldev_ids = []
+        for hg in host_groups:
+            writeNameValue("Paths={}", hg["lunPaths"])
+            if hg["lunPaths"] is None:
+                continue
+            lun_paths = hg["lunPaths"]
+            if len(lun_paths) > 0:
+                for lun_path in lun_paths:
+                    ldev_ids.append(lun_path["ldevId"])
+                storage_system.unpresentLun(ldev_ids, hg["hostGroupName"], hg["port"])
+                with concurrent.futures.ThreadPoolExecutor(
+                    max_workers=4
+                ) as executor:
+                    future_tasks = [
+                        executor.submit(
+                            delete_volume_with_no_path, storage_system, ldev_id
+                        )
+                        for ldev_id in ldev_ids
+                    ]
+                # Re-raise exceptions if they occured in the threads
+                for future in concurrent.futures.as_completed(future_tasks):
+                    future.result()
+    else:
+        for hg in host_groups:
+            writeNameValue("Paths={}", hg["lunPaths"])
+            if hg["lunPaths"] is None:
+                continue
+            if len(hg["lunPaths"]) > 0:
+                writeNameValue("Paths={}", hg["lunPaths"][0])
+                # hg has presented lun
+                okToDelete = False
 
-    hgLuns = set(path['ldevId'] for path in hg.get('lunPaths', None)
-                 or [])
-    storageSystem.unpresentLun(hgLuns, hgName, port)
+    return okToDelete
 
 
 def createHostGroup(
@@ -69,7 +119,7 @@ def createHostGroup(
 
     # Load temporary filler data for now
 
-    hg = {'HgName': hgName, 'Port': port}
+    hg = {"HgName": hgName, "Port": port}
 
 
 # hostGroups is input/output, input is not none and is not always empty
@@ -78,107 +128,154 @@ def createHostGroup(
 # this is to handle the case in which
 # the user given only one port to create, we then sync up the hg in all other ports
 
+
 def getHostGroupsByScanAllPorts(
     storageSystem,
     hgName,
     knownPortSet,
     hostGroups,
 ):
-    logger.writeDebug('Enter getHostGroupsByScanAllPorts')
+    logger.writeDebug("Enter getHostGroupsByScanAllPorts")
     hgs = storageSystem.getAllHostGroups()
     for hg in hgs:
-        if hg.get('hostGroupName') == hgName:
+        if hg.get("hostGroupName") == hgName:
             hostGroups.append(hg)
 
     logger.writeDebug(
-        '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+        "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    )
     logger.writeDebug(hostGroups)
 
 
 def runPlaybook(module):
     logger.writeEnterModule(moduleName)
 
-    result = {'changed': False}
-    state = module.params['state']
+    result = {"changed": False}
+    state = module.params["state"]
 
-    ucp_advisor_info = json.loads(module.params['ucp_advisor_info'])
-    ucpadvisor_address = ucp_advisor_info.get('address', None)
-    ucpadvisor_ansible_vault_user = ucp_advisor_info.get('username', None)
-    ucpadvisor_ansible_vault_secret = ucp_advisor_info.get('password', None)
+    connection_info = module.params["connection_info"]
+    management_address = connection_info.get("address", None)
+    management_username = connection_info.get("username", None)
+    management_password = connection_info.get("password", None)
+    subscriberId = connection_info.get("subscriber_id", None)
+    auth_token = connection_info.get("api_token", None)
 
-    ucp_advisor_info['password'] = '******'
-    module.params['ucp_advisor_info'] = json.dumps(ucp_advisor_info)
+    connection_info["password"] = "******"
+    module.params["connection_info"] = json.dumps(connection_info)
 
-    storage_system_info = json.loads(module.params['storage_system_info'])
-    storage_serial = storage_system_info.get('serial', None)
-    ucp_serial = storage_system_info.get('ucp_name', None)
+    storage_system_info = module.params["storage_system_info"]
+    storage_serial = storage_system_info.get("serial", None)
+    ucp_serial = CommonConstants.UCP_NAME
+    partnerId = CommonConstants.PARTNER_ID
 
-    logger.writeDebug('20230606 storage_serial={}',storage_serial)
+    logger.writeDebug("122 storage_serial={}", storage_serial)
+    logger.writeDebug("122 subscriberId={}", subscriberId)
 
-    if storage_serial == '' or storage_serial is None:
-        raise Exception('The storage_serial input parameter is required.')
+    if storage_serial == "" or storage_serial is None:
+        raise Exception("The storage_serial input parameter is required.")
+
+    ########################################################
+    # True: test the rest of the module using api_token
+
+    if False:
+        ucpManager = UcpManager(
+            management_address,
+            management_username,
+            management_password,
+            auth_token,
+            partnerId,
+            subscriberId,
+            storage_serial,
+        )
+        auth_token = ucpManager.getAuthTokenOnly()
+        management_username = ""
+    ########################################################
 
     storageSystem = None
     try:
         storageSystem = StorageManager(
-            ucpadvisor_address,
-            ucpadvisor_ansible_vault_user,
-            ucpadvisor_ansible_vault_secret,
+            management_address,
+            management_username,
+            management_password,
+            auth_token,
             storage_serial,
-            ucp_serial
+            ucp_serial,
+            partnerId,
+            subscriberId,
         )
     except Exception as ex:
-        module.fail_json(msg=ex.message)
+        module.fail_json(msg=str(ex))
 
     if not storageSystem.isStorageSystemInUcpSystem():
-        raise Exception("Storage system is not under the ucp system.")
+        raise Exception("Storage system is not under the management system.")
 
     ## check the healthStatus=onboarding
     ucpManager = UcpManager(
-        ucpadvisor_address,
-        ucpadvisor_ansible_vault_user,
-        ucpadvisor_ansible_vault_secret,
+        management_address,
+        management_username,
+        management_password,
+        auth_token,
+        partnerId,
+        subscriberId,
         storage_serial,
-        )
+    )
     if ucpManager.isOnboarding():
         raise Exception("Storage system is onboarding, please try again later.")
 
-    data = json.loads(module.params['spec'])
+    data = module.params["spec"]
 
-    subobjState = data.get('state', 'present')
-    if subobjState == '':
-        subobjState = 'present'
-    if subobjState not in ('present', 'absent', 'present_lun', 'unpresent_lun', 'set_host_mode_and_hmo', 'add_wwn', 'remove_wwn'):
-        raise Exception('The state parameter is invalid.')
+    subobjState = data.get("state", "present")
+    if subobjState == "":
+        subobjState = "present"
+    if subobjState not in (
+        "present",
+        "absent",
+        "present_lun",
+        "unpresent_lun",
+        "set_host_mode_and_hmo",
+        "add_wwn",
+        "remove_wwn",
+    ):
+        raise Exception("The state parameter is invalid.")
 
-    ports = data.get('ports', None)
-    hgName = data.get('name', None)
-    if not hgName:
-        raise Exception('name is required.')
-    hostmodename = data.get('host_mode', None)
-    hostoptlist = data.get('host_mode_options', None)
-    logger.writeDebug(hostoptlist)
-    wwns = data.get('wwns', None)
-    luns = data.get('luns')
-
-    if ports == '':
+    # change the input spec to port instead of ports
+    # ports = data.get('ports', None)
+    specPort = data.get("port", None)
+    ports = []
+    ports.append(specPort)
+    if specPort is None:
         ports = None
-    if hostmodename == '':
+
+    hgName = data.get("name", None)
+    if not hgName:
+        raise Exception("name is required.")
+    hostmodename = data.get("host_mode", None)
+    hostoptlist = data.get("host_mode_options", None)
+    logger.writeDebug(hostoptlist)
+    wwns = data.get("wwns", None)
+    luns = data.get("luns")
+    is_delete_all_luns = data.get("should_delete_all_luns", None)
+
+    logger.writeDebug("2133 ports", ports)
+
+    if ports == "":
+        ports = None
+    if hostmodename == "":
         hostmodename = None
-    if hostoptlist == '':
+    if hostoptlist == "":
         hostoptlist = None
-    if wwns == '':
+    if wwns == "":
         wwns = None
-    if luns == '':
+    if luns == "":
         luns = []
 
     if wwns is not None:
-        logger.writeDebug('wwns={}',wwns)
-        logger.writeDebug('wwns={}',wwns[0])
-        logger.writeDebug('wwns={}',len(wwns))
+        logger.writeDebug("wwns={}", wwns)
+        logger.writeDebug("wwns={}", wwns[0])
+        logger.writeDebug("wwns={}", len(wwns))
 
         if len(wwns[0]) == 1:
-            raise Exception('Input wwns is invalid, it needs to be an array.')
+            raise Exception("Input wwns is invalid, it needs to be an array.")
 
     ############# support the new subobjState keywords ###########
 
@@ -191,39 +288,51 @@ def runPlaybook(module):
         # so we can add comments properly
         sports = storageSystem.getAllStoragePorts()
         for port in ports:
-            found = [x for x in sports if x['portId'] == port]
-            logger.writeDebug('210found={}',found)
-            if found is None or len(found) == 0 :
-                raise Exception('Port {} is not in the storage system.'.format(port))            
+            found = [x for x in sports if x["portId"] == port]
+            logger.writeDebug("210found={}", found)
+            if found is None or len(found) == 0:
+                raise Exception("Port {} is not in the storage system.".format(port))
 
-    logger.writeDebug('subobjState={}',subobjState)
+    logger.writeDebug("subobjState={}", subobjState)
     comments = []
-    if subobjState == 'present_lun' or subobjState == 'unpresent_lun' or subobjState == 'set_host_mode_and_hmo' :
+    if (
+        subobjState == "present_lun"
+        or subobjState == "unpresent_lun"
+        or subobjState == "set_host_mode_and_hmo"
+    ):
         # if hg with given port is not found, we have to ignore
         if wwns is not None:
             wwns = None
-            comments.append('The parameter wwns is ignored.')
-    if subobjState == 'add_wwn' or subobjState == 'remove_wwn' or subobjState == 'set_host_mode_and_hmo' :
+            comments.append("The parameter wwns is ignored.")
+    if (
+        subobjState == "add_wwn"
+        or subobjState == "remove_wwn"
+        or subobjState == "set_host_mode_and_hmo"
+    ):
         # if hg with given port is not found, we have to ignore
         if luns is not None:
             luns = None
-            comments.append('The parameter luns is ignored.')
+            comments.append("The parameter luns is ignored.")
 
-    if subobjState == 'add_wwn' and ( len(ports) > 1 or len(ports) == 0 ) :
-        raise Exception('Unable to add WWN to more than one port.')
+    if subobjState == "add_wwn" and (len(ports) > 1 or len(ports) == 0):
+        raise Exception("Unable to add WWN to more than one port.")
 
-    if subobjState == 'add_wwn' or subobjState == 'present_lun' or subobjState == 'set_host_mode_and_hmo' :
-        subobjState = 'present'
+    if (
+        subobjState == "add_wwn"
+        or subobjState == "present_lun"
+        or subobjState == "set_host_mode_and_hmo"
+    ):
+        subobjState = "present"
 
-    if subobjState == 'remove_wwn' or subobjState == 'unpresent_lun' :
-        subobjState = 'absent'
+    if subobjState == "remove_wwn" or subobjState == "unpresent_lun":
+        subobjState = "absent"
 
     #################################################################
 
-    # result['comments'] = comments    
+    # result['comments'] = comments
     # logger.writeDebug('subobjState={}',subobjState)
     # if len(comments)>0:
-    #     result['comments'] = comments    
+    #     result['comments'] = comments
     # module.exit_json(**result)
     # raise Exception('WIP.')
 
@@ -244,28 +353,28 @@ def runPlaybook(module):
 
     parsedLuns = []
     if luns:
-        for (_, lun) in enumerate(luns):
+        for _, lun in enumerate(luns):
             logger.writeDebug(lun)
-            if lun is not None and ':' in str(lun):
+            if lun is not None and ":" in str(lun):
                 logger.writeDebug(lun)
                 lun = Utils.getlunFromHex(lun)
-                logger.writeDebug('Hex converted lun={0}'.format(lun))
+                logger.writeDebug("Hex converted lun={0}".format(lun))
                 parsedLuns.append(lun)
             else:
                 parsedLuns.append(lun)
     logger.writeDebug(parsedLuns)
     luns = parsedLuns
-    logger.writeDebug('LUN Parsing')
+    logger.writeDebug("LUN Parsing")
     newLun = set(map(int, luns))
 
-    logger.writeParam('state={}', state)
-    logger.writeParam('subobjState={}', subobjState)
-    logger.writeParam('ports={}', ports)
-    logger.writeParam('hgName={}', hgName)
-    logger.writeParam('hostmodename={}', hostmodename)
-    logger.writeParam('hostoptlist={}', hostoptlist)
-    logger.writeParam('newWWN={}', newWWN)
-    logger.writeParam('luns={}', newLun)
+    logger.writeParam("state={}", state)
+    logger.writeParam("subobjState={}", subobjState)
+    logger.writeParam("ports={}", ports)
+    logger.writeParam("hgName={}", hgName)
+    logger.writeParam("hostmodename={}", hostmodename)
+    logger.writeParam("hostoptlist={}", hostoptlist)
+    logger.writeParam("newWWN={}", newWWN)
+    logger.writeParam("luns={}", newLun)
 
     hostGroups = []
 
@@ -274,20 +383,20 @@ def runPlaybook(module):
         # make sure all the ports are defined in the storage
         sports = storageSystem.getAllStoragePorts()
         for port in ports:
-            found = [x for x in sports if x['portId'] == port]
-            logger.writeDebug('210found={}',found)
-            if found is None or len(found) == 0 :
-                raise Exception('Port {} is not in the storage system.'.format(port))
+            found = [x for x in sports if x["portId"] == port]
+            logger.writeDebug("210found={}", found)
+            if found is None or len(found) == 0:
+                raise Exception("Port {} is not in the storage system.".format(port))
 
         # get hostGroups= get all hgs by ports
         for port in ports:
-            writeNameValue('hgName={}', hgName)
-            writeNameValue('port{}=', port)
+            writeNameValue("hgName={}", hgName)
+            writeNameValue("port{}=", port)
             hg1 = storageSystem.getHostGroup(hgName, port)
-            writeNameValue('hg1={}', hg1)
+            writeNameValue("hg1={}", hg1)
 
-            if subobjState == 'absent' and hg1 is None:
-                raise Exception('Host group does not exist.')
+            if subobjState == "absent" and hg1 is None:
+                raise Exception("Host group does not exist.")
 
             if hg1 is not None:
                 hostGroups.append(hg1)
@@ -299,61 +408,100 @@ def runPlaybook(module):
 
         # getHostGroup list by name so we will know this is create or modify
 
-        getHostGroupsByScanAllPorts(storageSystem, hgName, None,
-                                    hostGroups)
+        getHostGroupsByScanAllPorts(storageSystem, hgName, None, hostGroups)
 
+    logger.writeDebug("366 hostGroups={}", hostGroups)
     changed = False
+
+    isExisting = False
+    isAssigned = False
+    if len(hostGroups) == 0 and subscriberId:
+
+        ## the hg is not found with the current subscriber
+        ## see if we can tag it
+
+        # call with v3 to get entitlement info
+        v3Info = storageSystem.getV3HostGroup(hgName, ports[0])
+        logger.writeDebug("380 v3Info={}", v3Info)
+        if v3Info:
+            isExisting = True
+
+            # check v3Info for isAssigned
+            entitlementStatus = v3Info[0].get("entitlementStatus", None)
+            if entitlementStatus:
+                if entitlementStatus == "assigned":
+                    isAssigned = True
+
+            if isAssigned:
+                raise Exception(
+                    "This hostgroup is already assigned to another subscriber."
+                )
+            else:
+                ## not assigned, we can tag it
+                logger.writeDebug("380 tag={}", v3Info)
+                s_resourceId, _ = storageSystem.getStorageSystemResourceId()
+                hg_resourceId = get_storage_hostgroup_md5_hash(
+                    storage_serial, hgName, ports[0]
+                )
+                storageSystem.tagPort(s_resourceId, ports[0])
+                storageSystem.tagResource(s_resourceId, hg_resourceId, "HostGroup")
+
+            hostGroups = []
+            hostGroups.append(v3Info[0].get("hostGroupInfo", None))
+
+    logger.writeDebug("402 hostGroups={}", hostGroups)
 
     if len(hostGroups) == 0:
 
-        # No host groups found
-        # Enter create mode
-        # In this case, if state is absent, we do nothing.
+        if state == "absent":
+            logger.writeInfo("No host groups found, state is absent, no change")
+            result["comment"] = (
+                "Host group not found. (Perhaps it has already been deleted)"
+            )
 
-        if state == 'absent':
-            logger.writeInfo('No host groups found, state is absent, no change')
-            result['comment'] = \
-                'Host group not found. (Perhaps it has already been deleted)'
+        if state != "absent":
 
-        if state != 'absent':
-
-            writeMsg('Create Mode =========== ')
+            writeMsg("Create Mode =========== ")
 
             if not ports:
-                raise Exception('Host group does not exist; cannot create host groups without ports parameter.'
-                                )
+                raise Exception(
+                    "Host group does not exist; cannot create host groups without ports parameter."
+                )
             else:
                 for port in ports:
 
-                    writeNameValue('createHostGroup={}', hgName)
-                    writeNameValue('port={}', port)
-                    writeNameValue('newWWN={}', newWWN)
+                    writeNameValue("createHostGroup={}", hgName)
+                    writeNameValue("port={}", port)
+                    writeNameValue("newWWN={}", newWWN)
 
-                    if hostmodename == '' or hostmodename is None:
-                        hostmodename = 'LINUX'
+                    if hostmodename == "" or hostmodename is None:
+                        hostmodename = "LINUX"
                     # hostmode = HostMode.getHostModeNum(hostmodename)
 
                     # if hostoptlist is None:
                     # hostoptlist = [47, 51]
                     if hostoptlist is None:
                         hostoptlist = []
-                    writeNameValue('hostoptlist={}', hostoptlist)
+                    writeNameValue("hostoptlist={}", hostoptlist)
 
+                    logger.writeDebug("345 createHostGroup")
                     storageSystem.createHostGroup(
-                        hgName, port, newWWN, hostmodename, hostoptlist)
-                   
+                        hgName, port, newWWN, hostmodename, hostoptlist
+                    )
+                    logger.writeDebug("345 {}", newLun)
+
                     if newLun:
                         for lun in newLun:
-                            writeNameValue('presentLun={}', lun)
+                            writeNameValue("presentLun={}", lun)
                             storageSystem.presentLun(newLun, hgName, port)
 
                     # Load temporary filler data for now
 
-                    hg = {'HgName': hgName, 'Port': port}
+                    hg = {"HgName": hgName, "Port": port}
                     hostGroups.append(hg)
                     changed = True
                     time.sleep(30)
-    elif state == 'absent':
+    elif state == "absent":
 
         # if we want to support the case:
         # the user given one lun, one port to create hg,
@@ -362,43 +510,41 @@ def runPlaybook(module):
 
         # Delete mode.
 
-        writeMsg('Delete hgs from the list  =========== ')
+        writeMsg("Delete hgs from the list  =========== ")
 
-        okToDelete = True
-        for hg in hostGroups:
-            writeNameValue('Paths={}', hg['lunPaths'])
-            if hg['lunPaths'] is None:
-                continue
-            if len(hg['lunPaths']) > 0:
-                writeNameValue('Paths={}', hg['lunPaths'][0])
-                # hg has presented lun
-                okToDelete = False
+        okToDelete = pre_delete_host_groups(
+            storageSystem, hostGroups, is_delete_all_luns
+        )
 
         if okToDelete:
             for hg in hostGroups:
-                writeNameValue('del hg={}', hg)
-                writeNameValue('del HgName={}', hg['hostGroupName'])
-                writeNameValue('del Port={}', hg['port'])
-                writeNameValue('calling deleteHostGroup, dryRun={}',
-                               dryRun)
+                writeNameValue("del hg={}", hg)
+                writeNameValue("del HgName={}", hg["hostGroupName"])
+                writeNameValue("del Port={}", hg["port"])
+                writeNameValue("calling deleteHostGroup, dryRun={}", dryRun)
                 if not dryRun:
-                    storageSystem.deleteHostGroup(hg['hostGroupName'],
-                                                  hg['port'])
+                    storageSystem.deleteHostGroup(hg["hostGroupName"], hg["port"])
                     changed = True
+                    result["comment"] = VSPHostGroupMessage.DELETE_SUCCESSFULLY.value.format(hg["hostGroupName"])
         else:
 
-            result['comment'] = \
-                'Hostgroup has luns presented. Please make sure to unpresent all lun prior deleting hostgroup.'
-            writeMsg('NO Delete with comment')
+            result["comment"] = (
+                "Hostgroup has luns presented. Please make sure to unpresent all lun prior deleting hostgroup."
+            )
+            writeMsg("NO Delete with comment")
     else:
 
         # Modify mode. Certain operations only occur if state is overwrite.
 
-        writeMsg('Update Mode =========== ')
+        writeMsg("Update Mode =========== ")
 
         # check for add/remove hostgroup for each given port
 
-        oldports = [hostGroup['port'] for hostGroup in hostGroups if hostGroup['hostGroupName'] == hgName]
+        oldports = [
+            hostGroup["port"]
+            for hostGroup in hostGroups
+            if hostGroup["hostGroupName"] == hgName
+        ]
         oldports = set(oldports)
 
         if ports is not None:
@@ -407,22 +553,22 @@ def runPlaybook(module):
 
             # ports is not given in the playbook, we will apply the change to all existing ports (SIEAN 281 282)
 
-            writeMsg('apply update to all existing ports')
+            writeMsg("apply update to all existing ports")
             newports = set(oldports)
 
         addPort = newports - oldports
         delPort = oldports & newports
 
-        writeNameValue('oldports={}', oldports)
-        writeNameValue('newports={}', newports)
-        writeNameValue('addPort={}', addPort)
-        writeNameValue('delPort={}', delPort)
+        writeNameValue("oldports={}", oldports)
+        writeNameValue("newports={}", newports)
+        writeNameValue("addPort={}", addPort)
+        writeNameValue("delPort={}", delPort)
 
         newports = None
 
-        if addPort and subobjState == 'present':
-            writeMsg('create hg by addPort')
-            writeNameValue('hostGroups={}', hostGroups)
+        if addPort and subobjState == "present":
+            writeMsg("create hg by addPort")
+            writeNameValue("hostGroups={}", hostGroups)
 
             # use the first element in the hostgroup list for cloning
 
@@ -432,11 +578,10 @@ def runPlaybook(module):
 
             # get hostoptlist from the existing hg
 
-            writeNameValue('hostModeOptions={}', hg['hostModeOptions'])
-            hgHMO = [opt['hostModeOptionNumber'] for opt in
-                     hg['hostModeOptions'] or []]
-            hmName = hg['hostMode']
-            writeNameValue('hmName={}', hmName)
+            writeNameValue("hostModeOptions={}", hg["hostModeOptions"])
+            hgHMO = [opt["hostModeOptionNumber"] for opt in hg["hostModeOptions"] or []]
+            hmName = hg["hostMode"]
+            writeNameValue("hmName={}", hmName)
 
             # to create hg, you must have a list of ports to add
 
@@ -446,18 +591,19 @@ def runPlaybook(module):
                 # then add it to the existing hg list
                 # then let it go thru the add/remove process below
 
-                writeNameValue('Paths={}', hg.get('lunPaths', None))
-                hgLun = set(path['ldevId']
-                            for path in hg.get('lunPaths', None) or [])
+                writeNameValue("Paths={}", hg.get("lunPaths", None))
+                hgLun = set(path["ldevId"] for path in hg.get("lunPaths", None) or [])
 
                 if dryRun:
-                    writeMsg('DRYRUN = TRUE')
+                    writeMsg("DRYRUN = TRUE")
                     continue
 
                 # update mode subobjState create
 
+                logger.writeDebug("464 createHostGroup")
                 storageSystem.createHostGroup(hgName, port, newWWN, hmName, hostoptlist)
 
+                logger.writeDebug("464 getHostGroup")
                 hgtmp = storageSystem.getHostGroup(hgName, port)
                 if hgtmp is not None:
 
@@ -484,31 +630,33 @@ def runPlaybook(module):
 
         # process each existing group, check for add/remove hg attributes
 
-        writeMsg('walk thru each host group, check for update ======================'
-                 )
+        writeMsg("walk thru each host group, check for update ======================")
 
-        oldports = [hostGroup['port'] for hostGroup in hostGroups
-                    if hostGroup['hostGroupName'] == hgName]
+        oldports = [
+            hostGroup["port"]
+            for hostGroup in hostGroups
+            if hostGroup["hostGroupName"] == hgName
+        ]
         oldports = set(oldports)
 
         if ports is not None:
             newports = set(map(str, ports))
         else:
-            writeMsg('apply update to all existing ports')
+            writeMsg("apply update to all existing ports")
             newports = set(oldports)
 
         addPort = newports - oldports
         delPort = oldports & newports
 
-        writeNameValue('oldports={}', oldports)
-        writeNameValue('newports={}', newports)
-        writeNameValue('addPort={}', addPort)
-        writeNameValue('delPort={}', delPort)
+        writeNameValue("oldports={}", oldports)
+        writeNameValue("newports={}", newports)
+        writeNameValue("addPort={}", addPort)
+        writeNameValue("delPort={}", delPort)
 
-        writeNameValue('state={}', state)
-        writeNameValue('subobjState={}', subobjState)
+        writeNameValue("state={}", state)
+        writeNameValue("subobjState={}", subobjState)
 
-        if subobjState == 'present':
+        if subobjState == "present":
 
             # update per the list provided, if new port,
             # it would have been created above
@@ -516,43 +664,43 @@ def runPlaybook(module):
             portsToUpdate = newports
         else:
 
-            logger.writeDebug('remove attributes from list, only if it exists')
+            logger.writeDebug("remove attributes from list, only if it exists")
 
             portsToUpdate = delPort
 
         for hgPort in portsToUpdate:
 
-            hg = [hostGroup for hostGroup in hostGroups
-                  if hostGroup['port'] == hgPort]
-            writeNameValue('update hg={}', hg)
+            hg = [hostGroup for hostGroup in hostGroups if hostGroup["port"] == hgPort]
+            writeNameValue("update hg={}", hg)
             if hg is None or len(hg) == 0:
                 continue
             hg = hg[0]
-            if 'port' not in hg:
+            if "port" not in hg:
                 continue
-            writeNameValue('update HgName={}', hg['hostGroupName'])
-            writeNameValue('update Port={}', hg['port'])
+            writeNameValue("update HgName={}", hg["hostGroupName"])
+            writeNameValue("update Port={}", hg["port"])
 
-            port = hg['port']
-            writeNameValue('processing port={}', port)
+            port = hg["port"]
+            writeNameValue("processing port={}", port)
 
             if dryRun:
-                writeMsg('DRYRUN = TRUE')
+                writeMsg("DRYRUN = TRUE")
                 continue
 
-            writeMsg('check hostmode and hostoptlist for update')
+            writeMsg("check hostmode and hostoptlist for update")
             if hostmodename is not None or hostoptlist is not None:
                 if hostmodename is not None:
                     hostmode = hostmodename
                 else:
-                    hostmode = hg['hostMode']
+                    hostmode = hg["hostMode"]
 
                 # for hostmode, you can only update, no delete
 
-                writeNameValue('update hostmode={}', hostmode)
+                writeNameValue("update hostmode={}", hostmode)
 
-                hgHMO = [opt['hostModeOptionNumber'] for opt in
-                         hg['hostModeOptions'] or []]
+                hgHMO = [
+                    opt["hostModeOptionNumber"] for opt in hg["hostModeOptions"] or []
+                ]
                 if hostoptlist is not None:
 
                     # hostoptlist is the user input
@@ -562,7 +710,7 @@ def runPlaybook(module):
                     addlist = newlist - oldlist
                     dellist = oldlist & newlist
 
-                    if subobjState == 'present':
+                    if subobjState == "present":
                         # # add = new - old
                         hostopt = hgHMO + list(addlist)
                     else:
@@ -570,69 +718,76 @@ def runPlaybook(module):
                         hostopt = list(set(hgHMO) - set(hostoptlist))
                 else:
                     hostopt = hgHMO
-                writeNameValue('update hostopt={}', hostopt)
+                writeNameValue("update hostopt={}", hostopt)
 
-                if hostmode != hg['hostMode'] or set(hostopt) \
-                        != set(hgHMO):
-                    writeMsg('call setHostMode()')
+                if hostmode != hg["hostMode"] or set(hostopt) != set(hgHMO):
+                    writeMsg("call setHostMode()")
                     storageSystem.setHostMode(hgName, port, hostmode, hostopt)
-                    hgLun = set(path['ldevId'] for path in hg.get('lunPaths', None) or [])                 
+                    hgLun = set(
+                        path["ldevId"] for path in hg.get("lunPaths", None) or []
+                    )
                     changed = True
 
-            writeMsg('check wwns for update')
-            if newWWN: # If newWWN is present,  update wwns
-                wwns = (str(path['id']) for path in hg.get('wwns', None) or [])
+            writeMsg("check wwns for update")
+            if newWWN:  # If newWWN is present,  update wwns
+                wwns = (str(path["id"]) for path in hg.get("wwns", None) or [])
                 hgWWN = set(wwns)
                 addWWN = newWWN - hgWWN
                 delWWN = hgWWN.intersection(newWWN)
 
-                writeNameValue('old hgWWN={}', hgWWN)
-                writeNameValue('newWWN={}', newWWN)
-                writeNameValue('addWWN={}', addWWN)
-                writeNameValue('delWWN={}', delWWN)
+                writeNameValue("old hgWWN={}", hgWWN)
+                writeNameValue("newWWN={}", newWWN)
+                writeNameValue("addWWN={}", addWWN)
+                writeNameValue("delWWN={}", delWWN)
 
-                if addWWN and subobjState == 'present':
-                    if len(addWWN) > 0 :
+                if addWWN and subobjState == "present":
+                    if len(addWWN) > 0:
                         storageSystem.addWWN(hgName, port, addWWN)
                         changed = True
-                if delWWN and subobjState == 'absent':
-                    if len(delWWN) > 0 :
-                        storageSystem.removeWWN(hgName, port, delWWN)
-                        changed = True
+                if subobjState == "absent":
+                    if delWWN:
+                        writeNameValue("removeWWN delWWN={0}", delWWN)
+                        if len(delWWN) > 0:
+                            storageSystem.removeWWN(hgName, port, delWWN)
+                            changed = True
+                    else:
+                        result["comments"] = "WWN(s) are not in the host group."
 
-            writeMsg('532 check luns for update')
+
+            writeMsg("532 check luns for update")
             if luns:  # If luns is present, present or overwrite luns
-                hgLun = set(path.get('ldevId')
-                            for path in hg.get('lunPaths', None) or [])
-                writeNameValue('newLun={0}', newLun)
+                hgLun = set(
+                    path.get("ldevId") for path in hg.get("lunPaths", None) or []
+                )
+                writeNameValue("newLun={0}", newLun)
                 addLun = newLun - hgLun
                 # delLun = list(set(hgLun) - set(newLun))
                 delLun = hgLun.intersection(newLun)
-                writeNameValue('hgLun={0}', hgLun)
-                writeNameValue('541 addLun={0}', addLun)
-                writeNameValue('542 delLun={0}', delLun)
+                writeNameValue("hgLun={0}", hgLun)
+                writeNameValue("541 addLun={0}", addLun)
+                writeNameValue("542 delLun={0}", delLun)
 
-                if subobjState == 'present' and addLun:
-                    if len(addLun) > 0 :
+                if subobjState == "present" and addLun:
+                    if len(addLun) > 0:
                         storageSystem.presentLun(addLun, hgName, port)
                         changed = True
 
-                if subobjState == 'absent':
+                if subobjState == "absent":
                     if delLun:
-                        writeNameValue('unpresentLun delLun={0}', delLun)
-                        if len(delLun) > 0 :
+                        writeNameValue("unpresentLun delLun={0}", delLun)
+                        if len(delLun) > 0:
                             storageSystem.unpresentLun(delLun, hgName, port)
                             changed = True
                     else:
-                        result['comments'] = 'The LUN is not in the host group.'
+                        result["comments"] = "LUN(s) are not in the host group."
 
                 # hg = {'HgName': hgName, 'Port': port}
                 # hostGroups.append(hg)
 
-    writeNameValue('20230606 615 changed={}',changed)
-    logger.writeDebug('20230606 615 changed={}',changed)
-    logger.writeDebug('20230606 615 state={}',state)
-    if changed and state != 'absent':
+    writeNameValue("20230606 615 changed={}", changed)
+    logger.writeDebug("20230606 615 changed={}", changed)
+    logger.writeDebug("20230606 615 state={}", state)
+    if changed and state != "absent":
         hostGroups = refreshHostGroups(storageSystem, hostGroups)
         # for hg in hostGroups:
         #     hg['hostMode'] = HostMode.getHostModeName(str(hg['hostMode']))
@@ -644,12 +799,14 @@ def runPlaybook(module):
     #             hg["luns"] = set(path["lupathID"] for path in hg.get("Paths",None) or [])
     #             del hg["Paths"]
 
-    if state != 'absent':
+    if state != "absent":
         formatHgs(hostGroups)
-        result['hostGroups'] = hostGroups
-    result['changed'] = changed
+        logger.writeDebug("656 hostGroups={}", hostGroups)
+        result["hostGroups"] = camel_to_snake_case_dict_array(hostGroups)
+
+    result["changed"] = changed
     if comments:
-        result['comments'] = comments
+        result["comments"] = comments
     logger.writeExitModule(moduleName)
 
     module.exit_json(**result)
@@ -659,16 +816,20 @@ def formatHgs(hostGroups):
     if hostGroups is None:
         return
 
-    writeNameValue('hostGroups={}', hostGroups)
+    writeNameValue("670 formatHgs hostGroups={}", hostGroups)
     for hg in hostGroups:
-        del hg['resourceId']  
-        writeNameValue('HostMode={}', hg.get('hostMode'))
+        writeNameValue("670 formatHgs hg={}", hg)
+        if not hg:
+            continue
+        if hg.get("resourceId"):
+            del hg["resourceId"]
+        writeNameValue("HostMode={}", hg.get("hostMode"))
         # hg['hostModeOptions'] = [opt['hostModeOptionNumber'] for opt in
         #                          hg['hostModeOptions'] or []]
-        if hg.get('hostModeOptions', None) is None:
-            hg['hostModeOptions'] = []
-        if hg.get('hostModeOptions', None) is not None:
-            writeNameValue('hostModeOptions={}', hg['hostModeOptions'])
+        if hg.get("hostModeOptions", None) is None:
+            hg["hostModeOptions"] = []
+        if hg.get("hostModeOptions", None) is not None:
+            writeNameValue("hostModeOptions={}", hg["hostModeOptions"])
 
         #         hg["luns"] = set(path["lupathID"] for path in hg.get("Paths",None) or [])
 
@@ -694,8 +855,8 @@ def formatHgs(hostGroups):
         # else:
         #     hg['lunPaths'] = []
 
-        if hg.get('ResourceGroupId') == -1:
-            hg['ResourceGroupId'] = ''
+        if hg.get("ResourceGroupId") == -1:
+            hg["ResourceGroupId"] = ""
 
 
 #         hg["luns"] = [path["lupathID"] for path in hg["Paths"] or []]
@@ -712,29 +873,41 @@ def formatHgs(hostGroups):
 
 # given the hostGroups list, refresh in hg in the list
 
+
 def refreshHostGroups(storageSystem, hostGroups):
     if hostGroups is None:
         return
-    
-    logger.writeDebug('20230606 715 refreshHostGroups hostGroups={}',hostGroups)
+
+    logger.writeDebug("20230606 715 refreshHostGroups hostGroups={}", hostGroups)
 
     hgs = []
     for hostGroup in hostGroups:
         hgName = None
         port = None
-        if 'HgName' not in hostGroup:
-            hgName = hostGroup['hostGroupName']
+        if "HgName" not in hostGroup:
+            hgName = hostGroup["hostGroupName"]
         else:
-            hgName = hostGroup['HgName']
+            hgName = hostGroup["HgName"]
 
-        if 'Port' not in hostGroup:
-            port = hostGroup['port']
+        if "Port" not in hostGroup:
+            port = hostGroup["port"]
         else:
-            port = hostGroup['Port']
+            port = hostGroup["Port"]
 
-        logger.writeDebug('20230606 715 refreshHostGroups hgName={}',hgName)
-        logger.writeDebug('20230606 715 refreshHostGroups port={}',port)
+        logger.writeDebug("20230606 715 refreshHostGroups hgName={}", hgName)
+        logger.writeDebug("20230606 715 refreshHostGroups port={}", port)
         hg = storageSystem.getHostGroup(hgName, port)
         hgs.append(hg)
 
     return hgs
+
+
+def get_storage_hostgroup_md5_hash(storage_system_serial_number, hgname, hgport):
+    key = f"{storage_system_serial_number}:{hgname.lower()}:{hgport.lower()}"
+    return f"hostgroup-{get_md5_hash(key)}"
+
+
+def get_md5_hash(data):
+    md5_hash = hashlib.md5()
+    md5_hash.update(data.encode("utf-8"))
+    return md5_hash.hexdigest()

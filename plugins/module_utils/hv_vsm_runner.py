@@ -8,11 +8,21 @@ __metaclass__ = type
 import json
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_infra import StorageSystem, \
-    HostMode, StorageSystemManager, Utils
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_log import Log, \
-    HiException
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_log import Log, HiException
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
+    StorageSystem,
+    HostMode,
+    StorageSystemManager,
+    Utils,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
+    HiException,
+)
+
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+    HiException,
+)
 
 logger = Log()
 moduleName = "VSM facts"
@@ -31,17 +41,14 @@ def mockGetVSM():
     vsms = []
     resourceGroups = []
 
-    vsm = {
-        "Serial": 411223,
-        "Type": 7
-    }
+    vsm = {"Serial": 411223, "Type": 7}
 
     resourceGroup = {
         "MetaResourceSerial": 415056,
         "ResourceGroupId": 9,
         "ResourceGroupName": "ansible-11223",
         "VirtualDeviceId": 411223,
-        "VirtualDeviceType": 7
+        "VirtualDeviceType": 7,
     }
     resourceGroups.append(resourceGroup)
     vsm["ResourceGroups"] = resourceGroups
@@ -51,16 +58,15 @@ def mockGetVSM():
     # return vsms
     return vsm
 
+
 # FIXME: doesn't look like we need the storage_serial (physical), clean it up
 
 
 def getVSM(storage_serial, virtual_storage_serial):
     writeMsg("================================================================")
     writeMsg("enter getVSM")
-    writeNameValue("storage_serial={}",
-                   storage_serial)
-    writeNameValue("virtual_storage_serial={}",
-                   virtual_storage_serial)
+    writeNameValue("storage_serial={}", storage_serial)
+    writeNameValue("virtual_storage_serial={}", virtual_storage_serial)
 
     writeMsg("call getVSMBySerial")
 
@@ -90,8 +96,11 @@ def validateMS(meta_resources):
     resource_groups = []
     for resource in meta_resources:
         if "serial" not in resource:
-            raise Exception("Meta Resource object must include a serial number!! (Error at index {0})".format(
-                len(resource_groups)))
+            raise Exception(
+                "Meta Resource object must include a serial number!! (Error at index {0})".format(
+                    len(resource_groups)
+                )
+            )
         resource_groups.append(resource)
 
 
@@ -109,14 +118,18 @@ def getResourceGroup(vsm, storage_serial, virtual_storage_serial, name):
     found = False
     rgs = []
     for rsrc in ResourceGroups:
-        writeNameValue("getResourceGroup.MetaResourceSerial={}",
-                       rsrc["MetaResourceSerial"])
-        writeNameValue("getResourceGroup.VirtualDeviceId={}",
-                       rsrc["VirtualDeviceId"])
-        writeNameValue("getResourceGroup.ResourceGroupName={}",
-                       rsrc["ResourceGroupName"])
-        if str(rsrc["MetaResourceSerial"]) == str(storage_serial) and str(rsrc["VirtualDeviceId"]) == str(virtual_storage_serial)\
-                and rsrc["ResourceGroupName"] == name:
+        writeNameValue(
+            "getResourceGroup.MetaResourceSerial={}", rsrc["MetaResourceSerial"]
+        )
+        writeNameValue("getResourceGroup.VirtualDeviceId={}", rsrc["VirtualDeviceId"])
+        writeNameValue(
+            "getResourceGroup.ResourceGroupName={}", rsrc["ResourceGroupName"]
+        )
+        if (
+            str(rsrc["MetaResourceSerial"]) == str(storage_serial)
+            and str(rsrc["VirtualDeviceId"]) == str(virtual_storage_serial)
+            and rsrc["ResourceGroupName"] == name
+        ):
             rgs.append(rsrc)
             found = True
 
@@ -204,10 +217,8 @@ def handleHostGroupsInSamePort(hgPort, old, new, doAdd, storage, rgId):
             writeMsg("nothing to add")
         else:
             for hgName in toAdd:
-                writeNameValue(
-                    "addHostGroupToResourceGroup, hgName={}", hgName)
-                writeNameValue(
-                    "addHostGroupToResourceGroup, hgPort={}", hgPort)
+                writeNameValue("addHostGroupToResourceGroup, hgName={}", hgName)
+                writeNameValue("addHostGroupToResourceGroup, hgPort={}", hgPort)
                 storage.addHostGroupToResourceGroup(rgId, hgName, hgPort)
     else:
         writeNameValue("toDel={}", toDel)
@@ -215,12 +226,9 @@ def handleHostGroupsInSamePort(hgPort, old, new, doAdd, storage, rgId):
             writeMsg("nothing toDel")
         else:
             for hgName in toDel:
-                writeNameValue(
-                    "removeHostGroupFromResourceGroup, rgId={}", rgId)
-                writeNameValue(
-                    "removeHostGroupFromResourceGroup, hgName={}", hgName)
-                writeNameValue(
-                    "removeHostGroupFromResourceGroup, hgPort={}", hgPort)
+                writeNameValue("removeHostGroupFromResourceGroup, rgId={}", rgId)
+                writeNameValue("removeHostGroupFromResourceGroup, hgName={}", hgName)
+                writeNameValue("removeHostGroupFromResourceGroup, hgPort={}", hgPort)
                 storage.removeHostGroupFromResourceGroup(rgId, hgName, hgPort)
 
 
@@ -314,10 +322,8 @@ def handleHostGroups(old, new, doAdd, storage, rgId):
                 hgNames = hgMapNew[hgPort]
                 writeNameValue("add hgs in hgNames={}", hgNames)
                 for hgName in hgNames:
-                    writeNameValue(
-                        "addHostGroupToResourceGroup, hgName={}", hgName)
-                    writeNameValue(
-                        "addHostGroupToResourceGroup, hgPort={}", hgPort)
+                    writeNameValue("addHostGroupToResourceGroup, hgName={}", hgName)
+                    writeNameValue("addHostGroupToResourceGroup, hgPort={}", hgPort)
                     storage.addHostGroupToResourceGroup(rgId, hgName, hgPort)
                 # remove this port from the playbook port list for the phase 2 processing
                 new.remove(hgPort)
@@ -327,7 +333,8 @@ def handleHostGroups(old, new, doAdd, storage, rgId):
         # need to do that whether toAdd is empty or not
         for hgPort in new:
             handleHostGroupsInSamePort(
-                hgPort, hgMapOld[hgPort], hgMapNew[hgPort], doAdd, storage, rgId)
+                hgPort, hgMapOld[hgPort], hgMapNew[hgPort], doAdd, storage, rgId
+            )
     else:
         writeNameValue("ports toDel={}", toDel)
         if len(toDel) == 0:
@@ -336,15 +343,13 @@ def handleHostGroups(old, new, doAdd, storage, rgId):
             # del hg in the port
             for hgPort in old:
                 handleHostGroupsInSamePort(
-                    hgPort, hgMapOld[hgPort], hgMapNew[hgPort], doAdd, storage, rgId)
+                    hgPort, hgMapOld[hgPort], hgMapNew[hgPort], doAdd, storage, rgId
+                )
         else:
             for hgName in hgNamesArrInValue:
-                writeNameValue(
-                    "removeHostGroupFromResourceGroup, rgId={}", rgId)
-                writeNameValue(
-                    "removeHostGroupFromResourceGroup, hgName={}", hgName)
-                writeNameValue(
-                    "removeHostGroupFromResourceGroup, hgPort={}", hgPort)
+                writeNameValue("removeHostGroupFromResourceGroup, rgId={}", rgId)
+                writeNameValue("removeHostGroupFromResourceGroup, hgName={}", hgName)
+                writeNameValue("removeHostGroupFromResourceGroup, hgPort={}", hgPort)
                 storage.removeHostGroupFromResourceGroup(rgId, hgName, hgPort)
 
 
@@ -361,7 +366,7 @@ def handleLogicalUnits(unDefinedLuns, old, new, doAdd, storage, rgId):
         logger.writeDebug("luns count={0}".format(len(new)))
         for lun in new:
             logger.writeDebug(lun)
-            if lun is not None and ':' in str(lun):
+            if lun is not None and ":" in str(lun):
                 logger.writeDebug(lun)
                 lun = Utils.getlunFromHex(lun)
                 logger.writeDebug("Hex converted lun={0}".format(lun))
@@ -494,11 +499,14 @@ def doDeleteResourceGroup(storageSystem, storage_serial, rgId):
     writeMsg("call DeleteResourceGroup")
     storageSystem.deleteResourceGroup(rgId)
 
+
 # walk thru the getVSM and see if any of the resource group
 # is not in the playbook, if so remove it
 
 
-def handleRemoveResourceGroup(vsms, playbook_meta_resources, playbook_virtual_storage_serial):
+def handleRemoveResourceGroup(
+    vsms, playbook_meta_resources, playbook_virtual_storage_serial
+):
     writeMsg("Enter handleRemoveResourceGroup-------------------")
 
     # see getResourceGroup
@@ -520,10 +528,12 @@ def handleRemoveResourceGroup(vsms, playbook_meta_resources, playbook_virtual_st
             writeNameValue("storage_serial={}", storage_serial)
             writeNameValue("name={}", name)
             rg = getResourceGroupInPlayBook(
-                playbook_meta_resources, storage_serial, name)
+                playbook_meta_resources, storage_serial, name
+            )
             if rg is None:
                 writeMsg(
-                    "sub.state=absent, ResourceGroup exists but not in playbook, doDelete")
+                    "sub.state=absent, ResourceGroup exists but not in playbook, doDelete"
+                )
                 writeNameValue("call doDeleteResourceGroup={}", rsrc)
                 doDeleteResourceGroup(storage_serial, rgId)
                 changed = True
@@ -532,10 +542,13 @@ def handleRemoveResourceGroup(vsms, playbook_meta_resources, playbook_virtual_st
 
     writeNameValue("handleRemoveResourceGroup.changed={}", changed)
 
+
 # this is called for each resource group under playbook.meta_resources
 
 
-def doUpdate(vsm, virtual_storage_serial, resource, resource_groups, doAdd, storageSystem, model):
+def doUpdate(
+    vsm, virtual_storage_serial, resource, resource_groups, doAdd, storageSystem, model
+):
     writeMsg("enter doUpdate")
     writeNameValue("doUpdate:resource={}", resource)
     writeNameValue("doUpdate:doAdd={}", doAdd)
@@ -559,12 +572,11 @@ def doUpdate(vsm, virtual_storage_serial, resource, resource_groups, doAdd, stor
     if rgs is None:
         if doAdd:
             writeMsg(
-                "no old resource, we need to add new resource group specified in the playbook")
-            doAddResourceGroup(
-                storageSystem, virtual_storage_serial, model, name)
+                "no old resource, we need to add new resource group specified in the playbook"
+            )
+            doAddResourceGroup(storageSystem, virtual_storage_serial, model, name)
             vsm = getVSM(None, virtual_storage_serial)
-            rgs = getResourceGroup(vsm, storage_serial,
-                                   virtual_storage_serial, name)
+            rgs = getResourceGroup(vsm, storage_serial, virtual_storage_serial, name)
             for rsrc in rgs:
                 writeMsg("add resources to the newly added rg")
                 writeNameValue("rsrc={}", rsrc)
@@ -578,8 +590,7 @@ def doUpdate(vsm, virtual_storage_serial, resource, resource_groups, doAdd, stor
                 item = resource.get("host_groups", None)
                 handleHostGroups(None, item, doAdd, storageSystem, rgId)
                 item = resource.get("luns", None)
-                handleLogicalUnits(None, None, item, doAdd,
-                                   storageSystem, rgId)
+                handleLogicalUnits(None, None, item, doAdd, storageSystem, rgId)
                 item = resource.get("ports", None)
                 handlePorts(None, item, doAdd, storageSystem, rgId)
 
@@ -593,18 +604,22 @@ def doUpdate(vsm, virtual_storage_serial, resource, resource_groups, doAdd, stor
             writeNameValue("rgId={}", rgId)
             item = resource.get("luns", None)
             writeNameValue("luns={}", item)
-            handleLogicalUnits(getUnDefinedLuns(
-                rsrc), rsrc["LogicalUnits"], item, doAdd, storageSystem, rgId)
+            handleLogicalUnits(
+                getUnDefinedLuns(rsrc),
+                rsrc["LogicalUnits"],
+                item,
+                doAdd,
+                storageSystem,
+                rgId,
+            )
 
             item = resource.get("parity_groups", None)
             writeNameValue("parity_groups={}", item)
-            handleDriveGroups(rsrc["ParityGroups"], item,
-                              doAdd, storageSystem, rgId)
+            handleDriveGroups(rsrc["ParityGroups"], item, doAdd, storageSystem, rgId)
 
             item = resource.get("host_groups", None)
             writeNameValue("host_groups={}", item)
-            handleHostGroups(rsrc["HostGroups"], item,
-                             doAdd, storageSystem, rgId)
+            handleHostGroups(rsrc["HostGroups"], item, doAdd, storageSystem, rgId)
 
             item = resource.get("ports", None)
             writeNameValue("ports={}", item)
@@ -628,9 +643,13 @@ def doCreateRGsForVsmCreate(resource, resource_groups):
     for hg in resource.get("host_groups", []):
         if "port" not in hg:
             raise Exception(
-                "Host Group object must include the port!! (Error at index {0})".format(len(host_groups)))
-        host_groups.append({"hostgroupIds": hg.get(
-            "host_group_names", []), "port": hg["port"]})
+                "Host Group object must include the port!! (Error at index {0})".format(
+                    len(host_groups)
+                )
+            )
+        host_groups.append(
+            {"hostgroupIds": hg.get("host_group_names", []), "port": hg["port"]}
+        )
 
     luns = resource.get("luns", [])
     logger.writeDebug("luns={0}".format(luns))
@@ -639,7 +658,7 @@ def doCreateRGsForVsmCreate(resource, resource_groups):
         logger.writeDebug("luns count={0}".format(len(luns)))
         for lun in luns:
             logger.writeDebug(lun)
-            if lun is not None and ':' in str(lun):
+            if lun is not None and ":" in str(lun):
                 logger.writeDebug(lun)
                 lun = Utils.getlunFromHex(lun)
                 logger.writeDebug("Hex converted lun={0}".format(lun))
@@ -654,7 +673,7 @@ def doCreateRGsForVsmCreate(resource, resource_groups):
         "logicalUnits": luns,
         "ports": resource.get("ports", []),
         "parityGroups": resource.get("parity_groups", []),
-        "hostGroups": host_groups
+        "hostGroups": host_groups,
     }
     resource_groups.append(new_resource)
 
@@ -700,7 +719,8 @@ def runPlaybook(module):
         subobjState = data.get("state", "present")
         if subobjState not in ("present", "absent"):
             raise Exception(
-                "Subobject state is neither present nor absent. Please set it to a valid value.")
+                "Subobject state is neither present nor absent. Please set it to a valid value."
+            )
 
         model = data.get("model")
         if not model:
@@ -756,8 +776,15 @@ def runPlaybook(module):
                 isCreate = True
             else:
                 writeMsg("do update")
-                vsm = doUpdate(vsm, virtual_storage_serial, resource, resource_groups,
-                               subobjState != "absent", physicalStorageSystem, model)
+                vsm = doUpdate(
+                    vsm,
+                    virtual_storage_serial,
+                    resource,
+                    resource_groups,
+                    subobjState != "absent",
+                    physicalStorageSystem,
+                    model,
+                )
                 isCreate = False
 
         if isCreate is False:
@@ -770,13 +797,13 @@ def runPlaybook(module):
             # walk thru the getVSM and see if any of the resource group
             # is not in the playbook, if so remove it
             handleRemoveResourceGroup(
-                result["vsm"], meta_resources, virtual_storage_serial)
+                result["vsm"], meta_resources, virtual_storage_serial
+            )
 
         if isCreate:
             writeMsg("call createVirtualStorageSystem")
             # DEBUG disable for debugging
-            result = storageSystem.createVirtualStorageSystem(
-                model, resource_groups)
+            result = storageSystem.createVirtualStorageSystem(model, resource_groups)
 
             # it's incomplete without re-discovery, so no point to show it
             result = {}

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-from requests.api import get
+# from requests.api import get
 __metaclass__ = type
 
 import json
@@ -10,9 +10,14 @@ import os
 import re
 import subprocess
 import time
-import requests
-import urllib3
+
+# import urllib3
 from enum import Enum
+
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_http_client import (
+    HTTPClient as requests,
+)
+
 
 class SNAPSHOT_OPTION(Enum):
 
@@ -23,7 +28,7 @@ class SNAPSHOT_OPTION(Enum):
     @classmethod
     def fromValue(cls, value):
         enums = [e for e in cls if e.value == value]
-        return (enums[0] if enums else None)
+        return enums[0] if enums else None
 
     @classmethod
     def fromString(cls, value):
@@ -41,20 +46,42 @@ class SNAPSHOT_OPTION(Enum):
         return model
 
 
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_htimanager import HTIManager
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_remotemanager import RemoteManager
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_htimanager import LunStatus
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_htimanager import LunType
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_htimanager import PoolType
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_htimanager import ReplicationStatus
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_storage_enum import PoolCreateType, \
-    StorageType, StorageModel, PoolStatus
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_htimanager import (
+    HTIManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_remotemanager import (
+    RemoteManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_htimanager import (
+    LunStatus,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_htimanager import (
+    LunType,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_htimanager import (
+    PoolType,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_htimanager import (
+    ReplicationStatus,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_storage_enum import (
+    PoolCreateType,
+    StorageType,
+    StorageModel,
+    PoolStatus,
+)
 
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_ucpmanager import UcpManager
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_vsm_manager import VirtualStorageSystem
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ucpmanager import (
+    UcpManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_vsm_manager import (
+    VirtualStorageSystem,
+)
 
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_log import Log, \
-    HiException
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
+    HiException,
+)
 
 
 class StorageSystemManager:
@@ -70,27 +97,26 @@ class StorageSystemManager:
         esxiIP,
     ):
 
-        funcName = 'hv_infra:getHostWWNs'
+        funcName = "hv_infra:getHostWWNs"
         StorageSystemManager.logger.writeEnterSDK(funcName)
-        url = 'http://localhost:2030/getHostWWN'
-        body = {'vcip': vcip, 'user': user, 'hostIp': esxiIP}
-        StorageSystemManager.logger.writeInfo(' url= {}', url)
-        StorageSystemManager.logger.writeInfo(' body= {}', body)
-        body['pwd'] = pword
+        url = "http://localhost:2030/getHostWWN"
+        body = {"vcip": vcip, "user": user, "hostIp": esxiIP}
+        StorageSystemManager.logger.writeInfo(" url= {}", url)
+        StorageSystemManager.logger.writeInfo(" body= {}", body)
+        body["pwd"] = pword
 
         response = requests.post(url, json=body, verify=False)
         StorageSystemManager.logger.writeExitSDK(funcName)
         if response.ok:
             commandOutJson = response.json()
-            StorageSystemManager.logger.writeInfo(' response= {}',
-                                                  commandOutJson)
+            StorageSystemManager.logger.writeInfo(" response= {}", commandOutJson)
 
             # return is a string
             # commandOutJson = json.loads(commandOut)
 
             return commandOutJson
-        elif 'HIJSONFAULT' in response.headers:
-            ex = Exception(json.loads(response.headers['HIJSONFAULT']))
+        elif "HIJSONFAULT" in response.headers:
+            ex = Exception(json.loads(response.headers["HIJSONFAULT"]))
             hiex = HiException(ex)
             StorageSystemManager.logger.writeHiException(hiex)
             raise hiex
@@ -108,22 +134,21 @@ class StorageSystemManager:
         esxiIP,
     ):
 
-        funcName = 'hv_infra:reScanHostStorage'
+        funcName = "hv_infra:reScanHostStorage"
         StorageSystemManager.logger.writeEnterSDK(funcName)
-        url = 'http://localhost:2030/scanHostStorage'
-        body = {'vcip': vcip, 'user': user, 'hostIp': esxiIP}
-        StorageSystemManager.logger.writeInfo(' url= {}', url)
-        StorageSystemManager.logger.writeInfo(' body= {}', body)
-        body['pwd'] = pword
+        url = "http://localhost:2030/scanHostStorage"
+        body = {"vcip": vcip, "user": user, "hostIp": esxiIP}
+        StorageSystemManager.logger.writeInfo(" url= {}", url)
+        StorageSystemManager.logger.writeInfo(" body= {}", body)
+        body["pwd"] = pword
 
         StorageSystemManager.logger.writeExitSDK(funcName)
         response = requests.post(url, json=body, verify=False)
         if response.ok:
-            StorageSystemManager.logger.writeInfo(' response= {}',
-                                                  response)
+            StorageSystemManager.logger.writeInfo(" response= {}", response)
             return response
-        elif 'HIJSONFAULT' in response.headers:
-            ex = Exception(json.loads(response.headers['HIJSONFAULT']))
+        elif "HIJSONFAULT" in response.headers:
+            ex = Exception(json.loads(response.headers["HIJSONFAULT"]))
             hiex = HiException(ex)
             StorageSystemManager.logger.writeHiException(hiex)
             raise hiex
@@ -141,22 +166,21 @@ class StorageSystemManager:
         esxiIP,
     ):
 
-        funcName = 'hv_infra:reScanHostStorage'
+        funcName = "hv_infra:reScanHostStorage"
         StorageSystemManager.logger.writeEnterSDK(funcName)
-        url = 'http://localhost:2030/scanVMFS'
-        body = {'vcip': vcip, 'user': user, 'hostIp': esxiIP}
-        StorageSystemManager.logger.writeInfo(' url= {}', url)
-        StorageSystemManager.logger.writeInfo(' body= {}', body)
-        body['pwd'] = pword
+        url = "http://localhost:2030/scanVMFS"
+        body = {"vcip": vcip, "user": user, "hostIp": esxiIP}
+        StorageSystemManager.logger.writeInfo(" url= {}", url)
+        StorageSystemManager.logger.writeInfo(" body= {}", body)
+        body["pwd"] = pword
 
         StorageSystemManager.logger.writeExitSDK(funcName)
         response = requests.post(url, json=body, verify=False)
         if response.ok:
-            StorageSystemManager.logger.writeInfo(' response= {}',
-                                                  response)
+            StorageSystemManager.logger.writeInfo(" response= {}", response)
             return response
-        elif 'HIJSONFAULT' in response.headers:
-            ex = Exception(json.loads(response.headers['HIJSONFAULT']))
+        elif "HIJSONFAULT" in response.headers:
+            ex = Exception(json.loads(response.headers["HIJSONFAULT"]))
             hiex = HiException(ex)
             StorageSystemManager.logger.writeHiException(hiex)
             raise hiex
@@ -166,171 +190,11 @@ class StorageSystemManager:
             Utils.raiseException(None, response)
 
     @staticmethod
-    def addStorgeSystemByJson():
-
-        funcName = 'hv_infra:addStorgeSystemByJson'
-        StorageSystemManager.logger.writeEnterSDK(funcName)
-        connections = {}
-
-        try:
-
-            # storageJson = os.getenv('HV_STORAGE_ANSIBLE_PROFILE', "./storage.json")
-
-            if os.path.isfile('./storage.json'):
-                storageJson = os.path.realpath('storage.json')
-            else:
-                storageJson = os.getenv('HV_STORAGE_ANSIBLE_PROFILE')
-
-            StorageSystemManager.logger.writeInfo(storageJson)
-            with open(storageJson) as connectionFile:
-                connections = json.load(connectionFile)
-            storagesystems = connections.get('sanStorageSystems', None)
-            fileServers = connections.get('nasStorageSystems', None)
-
-            StorageSystemManager.logger.writeInfo(storagesystems)
-            StorageSystemManager.logger.writeInfo(fileServers)
-
-            if storagesystems is None and fileServers is None:
-                raise Exception('Both sanStorageSystems and nasStorageSystems are not specified.'
-                                )
-
-            hitachiAPIGatewayService = \
-                connections.get('hitachiAPIGatewayService', None)
-            hitachiAPIGatewayServicePort = \
-                connections.get('hitachiAPIGatewayServicePort', None)
-
-            isPhysicalServer = connections.get('useOutOfBandConnection', None)
-            if isPhysicalServer is None:
-                useOutOfBandConnection = False
-            else:
-                if isPhysicalServer.upper() == 'FALSE':
-                    useOutOfBandConnection = False
-                else:
-                    useOutOfBandConnection = True
-            StorageSystemManager.addStorgeSystem(
-                ucpadvisor_address,
-                ucpadvisor_ansible_vault_user,
-                ucpadvisor_ansible_vault_secret,
-                ucpSystemSerial,
-                hitachiAPIGatewayService,
-                hitachiAPIGatewayServicePort, storagesystems,
-                fileServers, useOutOfBandConnection)
-
-            StorageSystemManager.logger.writeExitSDK(funcName)
-        except Exception:
-            raise Exception('Failed to add StorgeSystem again')
-
-    @staticmethod
-    def addFileServers(
-        hitachiAPIGatewayService,
-        hitachiAPIGatewayServicePort,
-        fileServers,
-        sessionIds,
-        connectors,
-        serials,
-    ):
-
-        funcName = 'hv_infra:StorageSystemManager:addFileServers'
-        StorageSystemManager.logger.writeEnterSDK(funcName)
-        for systemInfo in fileServers:
-
-            # check for empty map
-
-            if not systemInfo:
-                continue
-
-            gatewayServer = systemInfo.get('hitachiPeerService',
-                                           hitachiAPIGatewayService)
-            gatewayServerPort = systemInfo.get(
-                'hitachiPeerServicePort', hitachiAPIGatewayServicePort)
-
-            if gatewayServer is None or gatewayServerPort is None:
-                raise Exception('Gateway Server and Port are required.')
-
-            if 'fileServerIP' not in systemInfo:
-                raise Exception('fileServerIP is required.')
-
-            fileServerIP = systemInfo['fileServerIP']
-
-            StorageSystemManager.logger.writeParam('fileServerIP={}',
-                                                   fileServerIP)
-
-            # StorageSystemManager.self.logger.writeInfo("pwd",
-            #            Utils.doGrains(systemInfo["fileServerIP"])
-            #            )
-
-            # hitachiAPIGatewayService is the one and only c# service
-            # the local var serviceIP = "storageGateway" also the c# service
-            # gatewayServer = puma server
-
-            serviceIP = systemInfo.get('storageGateway',
-                                       hitachiAPIGatewayService)
-            servicePort = gatewayServerPort
-
-            # for fileServer, there is no serial
-            # serial = systemInfo["serialNumber"]
-
-            # use the hitachiAPIGatewayService to add nas storage,
-            # and gatewayServer is the puma server if differ from hitachiAPIGatewayService
-
-            serial = 0
-
-            #             self.logger.writeInfo("serial={}", serial)
-
-            gateway = StorageSystem(serial, serviceIP, servicePort,
-                                    sessionIds.get(serviceIP, ''))
-
-            #             self.logger.writeInfo("gateway={}", gateway)
-
-            username = systemInfo.get('username', None)
-
-            # terraform provides the password as a parameter, but ansible reads it from encrypted storage.json
-
-            password = systemInfo.get('password', None)
-            if password is None:
-                password = Utils.doGrains(systemInfo['fileServerIP'])
-
-            storageSystem = gateway.addFileServer(gatewayServer,
-                                                  systemInfo['fileServerIP'], username, password)
-
-            if storageSystem is None:
-                raise Exception('Failed to add the storage system : {0}.{1}'.format(serviceIP,
-                                                                                    servicePort))
-
-            sessionIds[serviceIP] = storageSystem['GroupIdentifier']
-            serial = fileServerIP
-            connectors[serial] = {
-                'storageGatewayServer': gatewayServer,
-                'storageGateway': serviceIP,
-                'storageGatewayPort': servicePort,
-                'sessionId': storageSystem['GroupIdentifier'],
-            }
-            serials.add(serial)
-
-            connectors['hitachiAPIGatewayService'] = {
-                'storageGatewayServer': gatewayServer,
-                'storageGateway': serviceIP,
-                'storageGatewayPort': servicePort,
-                'sessionId': storageSystem['GroupIdentifier'],
-            }
-
-            connectors['HNASFileServer'] = {
-                'storageGatewayServer': gatewayServer,
-                'storageGateway': hitachiAPIGatewayService,
-                'storageGatewayPort': hitachiAPIGatewayServicePort,
-                'sessionId': storageSystem['GroupIdentifier'],
-            }
-
-        # done with looping thru the file servers, exit
-
-        StorageSystemManager.logger.writeExitSDK(funcName)
-
-    @staticmethod
     def isOOB(isPhysicalServer):
         if isPhysicalServer is None:
             useOutOfBandConnection = False
         else:
-            if isPhysicalServer.upper() == 'FALSE':
+            if isPhysicalServer.upper() == "FALSE":
                 useOutOfBandConnection = False
             else:
                 useOutOfBandConnection = True
@@ -338,137 +202,16 @@ class StorageSystemManager:
         return useOutOfBandConnection
 
     @staticmethod
-    ## main entry from the playbook
-    def addStorgeSystem(
-        ucpadvisor_address,
-        ucpadvisor_ansible_vault_user,
-        ucpadvisor_ansible_vault_secret,
-        ucpSystemSerial,
-        hitachiAPIGatewayService,
-        hitachiAPIGatewayServicePort,
-        storagesystems,
-        fileServers,
-        useOutOfBandConnection,
-    ):
-
-        funcName = 'hv_infra:StorageSystemManager:addStorgeSystem'
-        StorageSystemManager.logger.writeEnterSDK(funcName)
-        StorageSystemManager.logger.writeParam(
-            'useOutOfBandConnection={}', useOutOfBandConnection)
-
-        sessionIds = {}
-        connectors = {}
-        serials = set()
-        results = {}
-        ssDetails = {}
-
-        if storagesystems is None:
-            storagesystems = []
-        if fileServers is None:
-            fileServers = []
-
-        # process nasStorageSystems in storage.json
-
-        # StorageSystemManager.addFileServers(
-        #     hitachiAPIGatewayService,
-        #     hitachiAPIGatewayServicePort,
-        #     fileServers,
-        #     sessionIds,
-        #     connectors,
-        #     serials,
-        #     )
-
-        # process sanStorageSystems in storage.json
-
-        for systemInfo in storagesystems:
-
-            # check for empty map
-
-            if not systemInfo:
-                continue
-
-            gatewayServer = systemInfo.get('hitachiPeerService', hitachiAPIGatewayService)
-           
-
-            if gatewayServer is None:
-                raise Exception('Gateway Server is required.')
-
-            if 'svpIP' not in systemInfo:
-                raise Exception('svpIP (location) is required.')
-
-            serviceIP = systemInfo.get('storageGateway',
-                                       hitachiAPIGatewayService)
-
-            serial = systemInfo['serialNumber']
-            gateway = StorageSystem(serial, 
-                                    ucpadvisor_address,
-                                    ucpadvisor_ansible_vault_user,
-                                    ucpadvisor_ansible_vault_secret,
-                                    serviceIP, 23015,
-                                    sessionIds.get(serviceIP, ''))
-            username = systemInfo.get('username', None)
-            password = systemInfo.get('password', None)
-
-            StorageSystemManager.logger.writeParam('20230505 gateway={0}'.format(gateway))
-            StorageSystemManager.logger.writeParam('20230505 gateway={}',gateway)
-            StorageSystemManager.logger.writeDebug('20230505 username={0}'.format(username))
-            StorageSystemManager.logger.writeDebug('20230505 serialNumber={0}'.format(serial))
-            StorageSystemManager.logger.writeDebug('20230505 ucpSystemSerial={}',ucpSystemSerial)
-            #StorageSystemManager.logger.writeDebug('20230505 sessionIds={0}'.format(sessionIds))
-            #StorageSystemManager.logger.writeDebug('20230505 systemInfo['svpIP']={0}'.format(systemInfo['svpIP']))
-
-            if password is None:
-                password = Utils.doGrains(systemInfo['svpIP'])
-
-            storageSystem = gateway.addStorageSystem(
-                systemInfo['svpIP'],
-                gatewayServer,
-                8444,
-                username,
-                password,
-                False,
-                ucpSystemSerial,
-            )
-
-            if storageSystem is None:
-                raise Exception('Failed to add the storage system : {0}'.format(serviceIP))
-
-            connectors[serial] = \
-                {'storageGatewayServer': gatewayServer,
-                 'storageGateway': serviceIP}
-
-            serials.add(serial)
-
-            connectors['hitachiAPIGatewayService'] = {
-                'storageGatewayServer': gatewayServer,
-                'storageGateway': serviceIP
-            }
-
-            ssDetails[serial] = \
-                StorageSystemManager.formatStorageSystem(storageSystem)
-
-        with open(Log.getHomePath() + '/storage-connectors.json', 'w'
-                  ) as connectorFile:
-            json.dump(connectors, connectorFile)
-
-        results['storageSystems'] = list(serials)
-        results['sessionIds'] = sessionIds
-        results['details'] = ssDetails
-
-        StorageSystemManager.logger.writeExitSDK(funcName)
-        return results
-    
-    @staticmethod
     def removeStorageSystems(
-        ucpadvisor_address,
-        ucpadvisor_ansible_vault_user,
-        ucpadvisor_ansible_vault_secret,
+        management_address,
+        management_username,
+        management_password,
         ucp_serial,
         hitachiAPIGatewayService,
         hitachiAPIGatewayServicePort,
-        storagesystems
+        storagesystems,
     ):
-        funcName = 'hv_infra:StorageSystemManager:removeStorageSystems'
+        funcName = "hv_infra:StorageSystemManager:removeStorageSystems"
         StorageSystemManager.logger.writeEnterSDK(funcName)
 
         serials = set()
@@ -476,75 +219,84 @@ class StorageSystemManager:
 
         if storagesystems is None:
             storagesystems = []
-      
-        # do we need this 
+
+        # do we need this
         # results['comment'] = 'No change.'
 
         for systemInfo in storagesystems:
             if not systemInfo:
                 continue
 
-            gatewayServer = systemInfo.get('hitachiPeerService', hitachiAPIGatewayService)
-            gatewayServerPort = systemInfo.get('hitachiPeerServicePort', hitachiAPIGatewayServicePort)
+            gatewayServer = systemInfo.get(
+                "hitachiPeerService", hitachiAPIGatewayService
+            )
+            gatewayServerPort = systemInfo.get(
+                "hitachiPeerServicePort", hitachiAPIGatewayServicePort
+            )
 
             if gatewayServer is None:
-                raise Exception('Gateway Server is required.')
+                raise Exception("Gateway Server is required.")
 
             if hitachiAPIGatewayService is None:
                 hitachiAPIGatewayService = gatewayServer
                 hitachiAPIGatewayServicePort = gatewayServerPort
 
-            if 'svpIP' not in systemInfo:
-                raise Exception('svpIP (location) is required.')
+            if "svpIP" not in systemInfo:
+                raise Exception("svpIP (location) is required.")
 
-            serviceIP = systemInfo.get('storageGateway',
-                                       hitachiAPIGatewayService)
-            serial = systemInfo['serialNumber']
-            gateway = StorageSystem(serial, 
-                                    ucpadvisor_address,
-                                    ucpadvisor_ansible_vault_user,
-                                    ucpadvisor_ansible_vault_secret,
-                                    serviceIP)
-            
+            serviceIP = systemInfo.get("storageGateway", hitachiAPIGatewayService)
+            serial = systemInfo["serialNumber"]
+            gateway = StorageSystem(
+                serial,
+                management_address,
+                management_username,
+                management_password,
+                serviceIP,
+            )
+
             ## if ucp is in the ss fact then do remove
-            results['changed'] = False
+            results["changed"] = False
             ss = gateway.getStorageSystem()
 
             if ss is None:
-                raise Exception('The storage system {} is not found.'.format(serial))
+                raise Exception("The storage system {} is not found.".format(serial))
 
-            if ucp_serial in ss['ucpSystems']:
+            if ucp_serial in ss["ucpSystems"]:
                 gateway.removeStorageSystem(ucp_serial)
-                results['changed'] = True
+                results["changed"] = True
                 serials.add(str(serial))
-                results['comment'] = 'Storage serial {} unregistered.'.format(",".join(serials))
+                results["comment"] = "Storage serial {} unregistered.".format(
+                    ",".join(serials)
+                )
 
                 # operate on the matching ss serial only then exit
                 # revisit this for detach all from ucp
                 break
             else:
-                raise Exception('The storage is not attached to the UCP {}'.format(ucp_serial))
+                raise Exception(
+                    "The storage is not attached to the UCP {}".format(ucp_serial)
+                )
 
         StorageSystemManager.logger.writeExitSDK(funcName)
         return results
 
     @staticmethod
     def formatStorageSystem(storageSystem):
-        funcName = 'hv_infra:StorageSystemManager:formatStorageSystem'
+        funcName = "hv_infra:StorageSystemManager:formatStorageSystem"
         StorageSystemManager.logger.writeEnterSDK(funcName)
 
-        StorageSystemManager.logger.writeDebug('storageSystem={}',storageSystem)
+        StorageSystemManager.logger.writeDebug("storageSystem={}", storageSystem)
         if storageSystem is None:
             return
 
-        storageSystem.pop('resourceId', None)
-        storageSystem.pop('storageEfficiencyStat', None)
-        storageSystem.pop('storageDeviceLicenses', None)
-        storageSystem.pop('isUnified', None)
-        storageSystem.pop('tags', None)
-        storageSystem.pop('deviceType', None)
+        storageSystem.pop("resourceId", None)
+        storageSystem.pop("storageEfficiencyStat", None)
+        storageSystem.pop("storageDeviceLicenses", None)
+        storageSystem.pop("isUnified", None)
+        storageSystem.pop("tags", None)
+        storageSystem.pop("deviceType", None)
         # storageSystem.pop('ucpSystems', None)
-        storageSystem.pop('username', None)
+        storageSystem.pop("username", None)
 
         StorageSystemManager.logger.writeExitSDK(funcName)
         return storageSystem
@@ -564,77 +316,12 @@ class Utils:
 
     @staticmethod
     def getlunFromHex(lun):
-        if ':' in lun:
-            lun = lun.replace(':', '')
+        if ":" in lun:
+            lun = lun.replace(":", "")
         try:
             return int(lun, 16)
         except ValueError:
             return None
-
-    @staticmethod
-    def doGrains(ipaddress):
-
-        funcName = 'hv_infra:doGrains'
-        Utils.logger.writeEnterSDK(funcName)
-
-        try:
-
-            # dir_path = os.path.dirname(os.path.realpath("storage.json"))
-            # Utils.logger.writeInfo("dir_path={}", dir_path)
-            # storageJson = os.getenv('HV_STORAGE_ANSIBLE_PROFILE', "./storage.json")
-            # storageJson = dir_path + r"/storage.json"
-
-            if os.path.isfile('./storage.json'):
-                storageJson = os.path.realpath('storage.json')
-            else:
-                storageJson = os.getenv('HV_STORAGE_ANSIBLE_PROFILE')
-            # Utils.logger.writeInfo('storageJson={}', storageJson)
-            # Utils.logger.writeInfo('Log.getHomePath()={}',
-            #                        Log.getHomePath())
-
-            command = Log.getHomePath() + '/bin/.grains {} ' \
-                + storageJson + ' '
-            command = command.format(ipaddress)
-
-            # Utils.logger.writeInfo("command={}",command)
-            # Utils.logger.writeInfo("subprocess.check_output(command, shell=True)={}", subprocess.check_output(command, shell=True))
-
-            commandOutStr = subprocess.check_output(command, shell=True)
-            commandOutStr = commandOutStr.replace('\n', '')
-
-            # Utils.logger.writeInfo("the password is={}",commandOutStr)
-
-            Utils.logger.writeExitSDK(funcName)
-            return commandOutStr
-        except Exception:
-            raise Exception(
-                'Invalid password, please check password for {0}'.format(ipaddress))
-
-
-    @staticmethod
-    def doSeeds(key):
-
-        funcName = 'hv_infra:doSeeds'
-        Utils.logger.writeEnterSDK(funcName)
-
-        try:
-
-            command = Log.getHomePath() + '/bin/seeds.sh {} ' 
-            command = command.format(key)
-
-            # Utils.logger.writeInfo("command={}",command)
-
-            commandOutStr = subprocess.check_output(command, shell=True)
-            commandOutStr = commandOutStr.replace('\n', '')
-
-            # Utils.logger.writeInfo("the password is={}",commandOutStr)
-
-            Utils.logger.writeExitSDK(funcName)
-            return commandOutStr
-        except Exception:
-            raise Exception(
-                'Invalid key {0}'.format(key))
-
 
     @staticmethod
     def requestsPost_notused(url, json, verify):
@@ -645,20 +332,26 @@ class Utils:
             # note: exception thrown by requests is caught by ansible module
             # it will not be caught here
 
-            raise Exception('requests exception caught')
+            raise Exception("requests exception caught")
 
     @staticmethod
     def raiseException(sessionid, response, throwException=True):
-        jsonStr = json.loads(response.headers['HIJSONFAULT'])
-        if 'You need to re-initaite ADD STORAGE operation to create a new session' \
-                in str(jsonStr['ErrorMessage']):
+        jsonStr = json.loads(response.headers["HIJSONFAULT"])
+        if (
+            "You need to re-initaite ADD STORAGE operation to create a new session"
+            in str(jsonStr["ErrorMessage"])
+        ):
             if sessionid is None:
-                raise Exception('Session expired. You need to re-initiate session with add_storagesystem playbook to create a new session'
-                                )
+                raise Exception(
+                    "Session expired. You need to re-initiate session with add_storagesystem playbook to create a new session"
+                )
             else:
                 raise Exception(
-                    'Session {0} is not found or expired. You need to re-initiate session with add_storagesystem \
-                    playbook to create a new session'.format(sessionid))
+                    "Session {0} is not found or expired. You need to re-initiate session with add_storagesystem \
+                    playbook to create a new session".format(
+                        sessionid
+                    )
+                )
 
         ex = Exception(jsonStr)
         hiex = HiException(ex)
@@ -674,7 +367,7 @@ class Utils:
 
             # let's try to add storage again
 
-            raise Exception('foo:w')
+            raise Exception("foo:w")
 
     @staticmethod
     def formatCapacity(valueMB, round_digits=4):
@@ -682,13 +375,13 @@ class Utils:
         # expected valueMB (from puma):
         # 5120 is 5120MB
 
-        Utils.logger.writeDebug('formatCapacity, value={}', valueMB)
+        Utils.logger.writeDebug("formatCapacity, value={}", valueMB)
         oneK = 1024
 
         ivalue = float(valueMB)
         # Utils.logger.writeParam('formatCapacity, ivalue={}', ivalue)
         if ivalue == 0:
-            return '0'
+            return "0"
 
         ivalue = ivalue / 1024 / 1024
         # Utils.logger.writeParam('formatCapacity, ivalue={}', ivalue)
@@ -696,37 +389,39 @@ class Utils:
             divfrac = oneK * oneK
             v = ivalue / divfrac
             # Utils.logger.writeDebug('TB Section, v={}', v)
-            return str(round(v, round_digits)) + 'TB'
+            return str(round(v, round_digits)) + "TB"
         elif ivalue >= oneK:
             v = ivalue / oneK
-            return str(round(v, round_digits)) + 'GB'
+            return str(round(v, round_digits)) + "GB"
         else:
-            return str(round(ivalue, round_digits)) + 'MB'
+            return str(round(ivalue, round_digits)) + "MB"
 
     @staticmethod
     def formatLun(lun):
+
+        Utils.logger.writeInfo("enter formatLun")
+        # Utils.logger.writeDebug('enter formatLun, lun={}', lun)
+
         if lun is None:
             return
-        if lun.get('resourceId') is not None:    
-            del lun['resourceId']     
-        if lun.get('naaId') is not None:
-            lun['canonicalName'] = lun['naaId']
-            del lun['naaId']
-        if lun.get('poolId') == -1:
-            del lun['poolId']
-        if lun.get('parityGroupId') == "":
-            del lun['parityGroupId'] 
+        if lun.get("resourceId") is not None:
+            del lun["resourceId"]
+        if lun.get("naaId") is not None:
+            lun["canonicalName"] = lun["naaId"]
+            del lun["naaId"]
+        if lun.get("poolId") == -1:
+            del lun["poolId"]
+        if lun.get("parityGroupId") == "":
+            del lun["parityGroupId"]
         # if lun.get('ldevId') is not None:
         #    lun['Lun'] = lun['ldevId']
         #    del lun['ldevId']
         # if lun.get('poolId') is not None:
         #    del lun['DynamicPool']
-        if lun.get('totalCapacity') is not None:
-            lun['totalCapacity'] = \
-                Utils.formatCapacity(lun['totalCapacity'])
-        if lun.get('usedCapacity') is not None:
-            lun['usedCapacity'] = \
-                Utils.formatCapacity(lun['usedCapacity'])
+        if lun.get("totalCapacity") is not None:
+            lun["totalCapacity"] = Utils.formatCapacity(lun["totalCapacity"])
+        if lun.get("usedCapacity") is not None:
+            lun["usedCapacity"] = Utils.formatCapacity(lun["usedCapacity"])
         # if HAS_ENUM and lun.get('Status') is not None:
         #    lun['Status'] = LunStatus.fromValue(lun.get('Status',
         #            0)).name
@@ -744,43 +439,46 @@ class Utils:
         # if lun.get('FreeCapacityInString') is not None:
         #    del lun['FreeCapacityInString']
 
+        # Utils.logger.writeDebug('exit formatLun, lun={}', lun)
+
     @staticmethod
     def formatLuns(luns):
+        Utils.logger.writeDebug("752 formatLuns")
         for lun in luns:
             Utils.formatLun(lun)
 
     @staticmethod
     def formatGadPair(pair):
-        pair['Status'] = ReplicationStatus.fromValue(pair.get('Status', 0)).name
-        pair['Type'] = 'GAD'
-        if pair.get('FenceLevel') is not None:
-            del pair['FenceLevel']
-        if pair.get('ManagementPoolId') is not None:
-            del pair['ManagementPoolId']
-        if pair.get('JournalPoolId') is not None:
-            del pair['JournalPoolId']
-        if pair.get('ReplicationPoolId') is not None:
-            del pair['ReplicationPoolId']
-        if pair.get('DataPoolId') is not None:
-            del pair['DataPoolId']
-        if pair.get('MirrorId') is not None:
-            del pair['MirrorId']
-        if pair.get('SplitTime') is not None:
-            del pair['SplitTime']
-        if pair.get('PairName') is not None:
-            del pair['PairName']
-        if pair.get('VirtualDeviceId') is not None:
-            pair['VSMSerial'] = pair['VirtualDeviceId']
-            del pair['VirtualDeviceId']
-        if pair.get('ConsistencyGroupId') is not None:
-            if str(pair['ConsistencyGroupId']) == str(-1):
-                pair['ConsistencyGroupId'] = ''
+        pair["Status"] = ReplicationStatus.fromValue(pair.get("Status", 0)).name
+        pair["Type"] = "GAD"
+        if pair.get("FenceLevel") is not None:
+            del pair["FenceLevel"]
+        if pair.get("ManagementPoolId") is not None:
+            del pair["ManagementPoolId"]
+        if pair.get("JournalPoolId") is not None:
+            del pair["JournalPoolId"]
+        if pair.get("ReplicationPoolId") is not None:
+            del pair["ReplicationPoolId"]
+        if pair.get("DataPoolId") is not None:
+            del pair["DataPoolId"]
+        if pair.get("MirrorId") is not None:
+            del pair["MirrorId"]
+        if pair.get("SplitTime") is not None:
+            del pair["SplitTime"]
+        if pair.get("PairName") is not None:
+            del pair["PairName"]
+        if pair.get("VirtualDeviceId") is not None:
+            pair["VSMSerial"] = pair["VirtualDeviceId"]
+            del pair["VirtualDeviceId"]
+        if pair.get("ConsistencyGroupId") is not None:
+            if str(pair["ConsistencyGroupId"]) == str(-1):
+                pair["ConsistencyGroupId"] = ""
         return pair
 
     @staticmethod
     def formatPool(pool):
-        pool['Status'] = PoolStatus.getName(pool.get('Status', 0))
-        pool['Type'] = PoolType.parse(pool.get('Type', 0)).name
+        pool["Status"] = PoolStatus.getName(pool.get("Status", 0))
+        pool["Type"] = PoolType.parse(pool.get("Type", 0)).name
 
         return pool
 
@@ -792,72 +490,46 @@ class Utils:
     @staticmethod
     def isStorageOOB(ip_address):
         Utils.logger.writeInfo(ip_address)
-        Utils.logger.writeInfo(os.path.realpath('storage.json'))
-        if os.path.isfile('./storage.json'):
-            storageJson = os.path.realpath('storage.json')
+        Utils.logger.writeInfo(os.path.realpath("storage.json"))
+        if os.path.isfile("./storage.json"):
+            storageJson = os.path.realpath("storage.json")
         else:
-            storageJson = os.getenv('HV_STORAGE_ANSIBLE_PROFILE')
+            storageJson = os.getenv("HV_STORAGE_ANSIBLE_PROFILE")
         with open(storageJson) as connectionFile:
             connections = json.load(connectionFile)
 
-        storagesystems = connections.get('sanStorageSystems', None)
-        isOBB = connections.get('useOutOfBandConnection', None)
+        storagesystems = connections.get("sanStorageSystems", None)
+        isOBB = connections.get("useOutOfBandConnection", None)
 
         for sysinfo in storagesystems:
-            serial = sysinfo.get('serialNumber', None)
+            serial = sysinfo.get("serialNumber", None)
             if str(serial) == str(ip_address):
-                isOBB = sysinfo.get('useOutOfBandConnection', None)
+                isOBB = sysinfo.get("useOutOfBandConnection", None)
                 break
         return str(isOBB).upper()
-
-
-    @staticmethod
-    def getConfigUCPA():
-        Utils.logger.writeDebug("Enter getConfigUCPA")
-        Utils.logger.writeInfo(os.path.realpath('storage.json'))
-        if os.path.isfile('./storage.json'):
-            storageJson = os.path.realpath('storage.json')
-        else:
-            storageJson = os.getenv('HV_STORAGE_ANSIBLE_PROFILE')
-        with open(storageJson) as connectionFile:
-            connections = json.load(connectionFile)
-
-        Utils.logger.writeDebug("connections={}",connections)
-
-        ucpadvisor = connections.get('ucpadvisor', None)
-        if ucpadvisor is None:
-                raise Exception('UCP Advisor configuration is missing.'
-                                )  
-              
-        address = ucpadvisor.get('address', None)
-        user = ucpadvisor.get('user', None)
-        key = ucpadvisor.get('key', None)
-        password = Utils.doSeeds(key)
-
-        Utils.logger.writeDebug("Exit getConfigUCPA")
-        return address, user, password
 
     @staticmethod
     def isGivenValidSerial(serial):
 
         if serial is None:
-            raise Exception('Storage systems have not been registered. Please run add_storagesystems.yml first.'
-                            )
+            raise Exception(
+                "Storage systems have not been registered. Please run add_storagesystems.yml first."
+            )
 
         Utils.logger.writeInfo(serial)
-        Utils.logger.writeInfo(os.path.realpath('storage.json'))
-        if os.path.isfile('./storage.json'):
-            storageJson = os.path.realpath('storage.json')
+        Utils.logger.writeInfo(os.path.realpath("storage.json"))
+        if os.path.isfile("./storage.json"):
+            storageJson = os.path.realpath("storage.json")
         else:
-            storageJson = os.getenv('HV_STORAGE_ANSIBLE_PROFILE')
+            storageJson = os.getenv("HV_STORAGE_ANSIBLE_PROFILE")
         with open(storageJson) as connectionFile:
             connections = json.load(connectionFile)
 
-        storagesystems = connections.get('sanStorageSystems', None)
+        storagesystems = connections.get("sanStorageSystems", None)
         isfound = False
 
         for sysinfo in storagesystems:
-            sysserial = sysinfo.get('serialNumber', None)
+            sysserial = sysinfo.get("serialNumber", None)
             if str(serial) == str(sysserial):
                 isfound = True
                 break
@@ -866,20 +538,20 @@ class Utils:
     @staticmethod
     def isGivenValidFileServerIp(ip_address):
         if ip_address is None:
-            raise Exception('The fileServerIP is missing.')
+            raise Exception("The fileServerIP is missing.")
         Utils.logger.writeInfo(ip_address)
-        Utils.logger.writeInfo(os.path.realpath('storage.json'))
-        if os.path.isfile('./storage.json'):
-            storageJson = os.path.realpath('storage.json')
+        Utils.logger.writeInfo(os.path.realpath("storage.json"))
+        if os.path.isfile("./storage.json"):
+            storageJson = os.path.realpath("storage.json")
         else:
-            storageJson = os.getenv('HV_STORAGE_ANSIBLE_PROFILE')
+            storageJson = os.getenv("HV_STORAGE_ANSIBLE_PROFILE")
         with open(storageJson) as connectionFile:
             connections = json.load(connectionFile)
-        nasStoragesystems = connections.get('nasStorageSystems', None)
+        nasStoragesystems = connections.get("nasStorageSystems", None)
         isfound = False
 
         for sysinfo in nasStoragesystems:
-            fileServerIP = sysinfo.get('fileServerIP', None)
+            fileServerIP = sysinfo.get("fileServerIP", None)
             if str(fileServerIP) == str(ip_address):
                 isfound = True
                 break
@@ -889,18 +561,18 @@ class Utils:
     def getSerialByNaa(naa):
         naa = str(naa)
         modelString = naa[20:23]
-        if modelString == '502':
-            subsytemModel = 'HUS-VM'
-        elif modelString == '003':
-            subsytemModel = 'VSP G-1000'
-        elif modelString == '000':
-            subsytemModel = 'VSP'
-        elif modelString == '504':
-            subsytemModel = 'VSP Gx00'
-        elif modelString == '502':
-            subsytemModel = 'HM700'
+        if modelString == "502":
+            subsytemModel = "HUS-VM"
+        elif modelString == "003":
+            subsytemModel = "VSP G-1000"
+        elif modelString == "000":
+            subsytemModel = "VSP"
+        elif modelString == "504":
+            subsytemModel = "VSP Gx00"
+        elif modelString == "502":
+            subsytemModel = "HM700"
         else:
-            subsytemModel = 'Other'
+            subsytemModel = "Other"
 
         serial = naa[23:28]
 
@@ -908,10 +580,10 @@ class Utils:
 
         serialNum1 = int(serial, 16)
         serialNum = str(serialNum1)
-        if subsytemModel == 'VSP Gx00':
-            serialNum = '4' + serialNum
-        elif subsytemModel == 'HM700':
-            serialNum = '2' + serialNum
+        if subsytemModel == "VSP Gx00":
+            serialNum = "4" + serialNum
+        elif subsytemModel == "HM700":
+            serialNum = "2" + serialNum
         return serialNum
 
 
@@ -923,24 +595,25 @@ class StorageSystem:
 
         # StorageSystem.slogger.writeEnterSDK("slogger: StorageSystem.setDryRun")
 
-        funcName = 'StorageSystem:setDryRun'
+        funcName = "StorageSystem:setDryRun"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('dryRun={}', flag)
+        self.logger.writeParam("dryRun={}", flag)
 
         # StorageSystem.slogger.writeEnterSDK("slogger: StorageSystem.setDryRun")
 
-        funcName = 'StorageSystem:setDryRun'
+        funcName = "StorageSystem:setDryRun"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('dryRun={}', flag)
+        self.logger.writeParam("dryRun={}", flag)
         self.dryRun = flag
         self.logger.writeExitSDK(funcName)
 
     def __init__(
         self,
         serial,
-        ucpadvisor_address,
-        ucpadvisor_ansible_vault_user,
-        ucpadvisor_ansible_vault_secret,
+        management_address,
+        management_username,
+        management_password,
+        api_token,
         webServiceIp=None,
         webServicePort=None,
         sessionId=None,
@@ -952,52 +625,60 @@ class StorageSystem:
         self.sessionId = sessionId
         self.isVirtualSerial = False
 
-        self.ucpadvisor_address = ucpadvisor_address
-        self.ucpadvisor_ansible_vault_user = ucpadvisor_ansible_vault_user
-        self.ucpadvisor_ansible_vault_secret = ucpadvisor_ansible_vault_secret
-        self.basedUrl = 'https://{0}'.format(ucpadvisor_address)
+        self.management_address = management_address
+        self.management_username = management_username
+        self.management_password = management_password
+        self.api_token = api_token
+        self.basedUrl = "https://{0}".format(management_address)
 
-        if ucpadvisor_ansible_vault_user is None or \
-           ucpadvisor_ansible_vault_secret is None or \
-           ucpadvisor_address is None or \
-           ucpadvisor_ansible_vault_user == '' or \
-           ucpadvisor_ansible_vault_secret == '' or \
-           ucpadvisor_address == '' :
-            raise Exception(self.sessionId, "UCPA is not configured.")
+        if (
+            management_username is None
+            or management_password is None
+            or management_address is None
+            or management_username == ""
+            or management_password == ""
+            or management_address == ""
+        ):
+            raise Exception(self.sessionId, "Management System is not configured.")
 
         if not webServiceIp:
             try:
-                with open(Log.getHomePath() + '/storage-connectors.json'
-                          ) as connectionFile:
+                with open(
+                    Log.getHomePath() + "/storage-connectors.json"
+                ) as connectionFile:
                     connections = json.load(connectionFile)
                 system = connections.get(str(serial))
 
                 if system is None:
-                    system = connections['hitachiAPIGatewayService']
+                    system = connections["hitachiAPIGatewayService"]
                     self.isVirtualSerial = True
 
                 self.sessionId = None
-                webServiceIp = system['storageGateway']
+                webServiceIp = system["storageGateway"]
                 # webServicePort = system['storageGatewayPort']
             except IOError as ex:
-                raise Exception('Storage systems have not been registered. Please run add_storagesystems.yml first.'
-                                )
+                raise Exception(
+                    "Storage systems have not been registered. Please run add_storagesystems.yml first."
+                )
 
         self.webServiceIp = webServiceIp
         self.webServicePort = webServicePort
-        #self.basedUrl = 'https://{0}:{1}'.format(webServiceIp, webServicePort)
+        # self.basedUrl = 'https://{0}:{1}'.format(webServiceIp, webServicePort)
         # self.basedUrl = 'https://{0}'.format(webServiceIp)
         self.shouldVerifySslCertification = False
 
-        self.htiManager = HTIManager(self.serial, self.webServiceIp,
-                                     self.webServicePort, self.sessionId)
-        self.remoteManager = RemoteManager(self.serial,
-                                           self.webServiceIp, self.webServicePort, self.sessionId)
-        self.vsmManager = VirtualStorageSystem(self.serial,
-                                               self.webServiceIp, self.webServicePort, self.sessionId)
+        self.htiManager = HTIManager(
+            self.serial, self.webServiceIp, self.webServicePort, self.sessionId
+        )
+        self.remoteManager = RemoteManager(
+            self.serial, self.webServiceIp, self.webServicePort, self.sessionId
+        )
+        self.vsmManager = VirtualStorageSystem(
+            self.serial, self.webServiceIp, self.webServicePort, self.sessionId
+        )
 
     def isSessionNotFound(self, exMsg):
-        strToMatch = 'Session is not found'
+        strToMatch = "Session is not found"
         if strToMatch in str(exMsg):
             return True
         else:
@@ -1005,173 +686,139 @@ class StorageSystem:
 
     def removeLogicalUnitFromResourceGroup(self, rgId, id):
 
-        funcName = 'hv_infra:removeLogicalUnitFromResourceGroup'
+        funcName = "hv_infra:removeLogicalUnitFromResourceGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('rgId={}', rgId)
-        self.logger.writeParam('id={}', id)
+        self.logger.writeParam("rgId={}", rgId)
+        self.logger.writeParam("id={}", id)
 
-        urlPath = 'ResourceGroup/RemoveLogicalUnitFromResourceGroup'
+        urlPath = "ResourceGroup/RemoveLogicalUnitFromResourceGroup"
         url = self.getUrl(urlPath)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'luId': id,
-            'rgId': rgId,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "luId": id,
+            "rgId": rgId,
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def addLogicalUnitToResourceGroup(self, rgId, id):
 
-        funcName = 'hv_infra:addLogicalUnitToResourceGroup'
+        funcName = "hv_infra:addLogicalUnitToResourceGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('rgId={}', rgId)
-        self.logger.writeParam('id={}', id)
+        self.logger.writeParam("rgId={}", rgId)
+        self.logger.writeParam("id={}", id)
 
-        funcName = 'hv_infra:addLogicalUnitToResourceGroup'
+        funcName = "hv_infra:addLogicalUnitToResourceGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('rgId={}', rgId)
-        self.logger.writeParam('id={}', id)
+        self.logger.writeParam("rgId={}", rgId)
+        self.logger.writeParam("id={}", id)
 
-        urlPath = 'ResourceGroup/AddLogicalUnitToResourceGroup'
+        urlPath = "ResourceGroup/AddLogicalUnitToResourceGroup"
         url = self.getUrl(urlPath)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'luId': id,
-            'rgId': rgId,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "luId": id,
+            "rgId": rgId,
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def deleteResourceGroup(self, rgId):
 
-        funcName = 'hv_infra:deleteResourceGroup'
+        funcName = "hv_infra:deleteResourceGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('rgId={}', rgId)
+        self.logger.writeParam("rgId={}", rgId)
 
-        urlPath = 'ResourceGroup/DeleteResourceGroup'
+        urlPath = "ResourceGroup/DeleteResourceGroup"
         url = self.getUrl(urlPath)
-        body = {'sessionId': self.sessionId,
-                'serialNumber': self.serial, 'rgId': rgId}
+        body = {"sessionId": self.sessionId, "serialNumber": self.serial, "rgId": rgId}
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def removeDriveGroupFromResourceGroup(self, rgId, parityGroupId):
 
-        funcName = 'hv_infra:removeDriveGroupFromResourceGroup'
+        funcName = "hv_infra:removeDriveGroupFromResourceGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('rgId={}', rgId)
-        self.logger.writeParam('parityGroupId={}', parityGroupId)
+        self.logger.writeParam("rgId={}", rgId)
+        self.logger.writeParam("parityGroupId={}", parityGroupId)
 
-        urlPath = 'ResourceGroup/RemoveDriveGroupFromResourceGroup'
+        urlPath = "ResourceGroup/RemoveDriveGroupFromResourceGroup"
         url = self.getUrl(urlPath)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'parityGroupId': parityGroupId,
-            'rgId': rgId,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "parityGroupId": parityGroupId,
+            "rgId": rgId,
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response
-        elif 'HIJSONFAULT' in response.headers:
-            Utils.raiseException(self.sessionId, response)
-        else:
-            self.throwException(response)
-
-    def addFileServer(
-        self,
-        gatewayServer,
-        fileServerIP,
-        username,
-        password,
-    ):
-
-        funcName = 'hv_infra:StorageSystem:addFileServer'
-        self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('gatewayServer={}', gatewayServer)
-        self.logger.writeParam('fileServerIP={}', fileServerIP)
-        self.logger.writeParam('username={}', username)
-
-        urlPath = 'NAS/StorageManager/AddFileServer'
-        url = self.getUrl(urlPath)
-        self.logger.writeInfo('url={}', url)
-        body = {  # "gatewayServer": self.webServiceIp,
-            'sessionId': self.sessionId,
-            'fileServer': fileServerIP,
-            'userID': username,
-            'password': password,
-            'gatewayServer': gatewayServer,
-            'gatewayServerPort': 8444,
-            'forceReinitialize': False,
-        }
-
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
-
-        self.logger.writeExitSDK(funcName)
-        if response.ok:
-            return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def addDriveGroupToResourceGroup(self, rgId, parityGroupId):
 
-        funcName = 'hv_infra:addDriveGroupToResourceGroup'
+        funcName = "hv_infra:addDriveGroupToResourceGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('rgId={}', rgId)
-        self.logger.writeParam('parityGroupId={}', parityGroupId)
+        self.logger.writeParam("rgId={}", rgId)
+        self.logger.writeParam("parityGroupId={}", parityGroupId)
 
-        urlPath = 'ResourceGroup/AddDriveGroupToResourceGroup'
+        urlPath = "ResourceGroup/AddDriveGroupToResourceGroup"
         url = self.getUrl(urlPath)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'parityGroupId': parityGroupId,
-            'rgId': rgId,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "parityGroupId": parityGroupId,
+            "rgId": rgId,
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -1183,24 +830,25 @@ class StorageSystem:
         portId,
     ):
 
-        funcName = 'hv_infra:removeHostGroupFromResourceGroup'
+        funcName = "hv_infra:removeHostGroupFromResourceGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('rgId={}', rgId)
-        self.logger.writeParam('hostGroupName={}', hostGroupName)
-        self.logger.writeParam('portId={}', portId)
+        self.logger.writeParam("rgId={}", rgId)
+        self.logger.writeParam("hostGroupName={}", hostGroupName)
+        self.logger.writeParam("portId={}", portId)
 
-        urlPath = 'ResourceGroup/RemoveHostGroupFromResourceGroup'
+        urlPath = "ResourceGroup/RemoveHostGroupFromResourceGroup"
         url = self.getUrl(urlPath)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'hostGroupName': hostGroupName,
-            'portId': portId,
-            'rgId': rgId,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "hostGroupName": hostGroupName,
+            "portId": portId,
+            "rgId": rgId,
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -1208,7 +856,7 @@ class StorageSystem:
             # return response.json()
 
             return response
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -1220,71 +868,73 @@ class StorageSystem:
         portId,
     ):
 
-        funcName = 'hv_infra:addHostGroupToResourceGroup'
+        funcName = "hv_infra:addHostGroupToResourceGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('rgId={}', rgId)
-        self.logger.writeParam('hostGroupName={}', hostGroupName)
-        self.logger.writeParam('portId={}', portId)
+        self.logger.writeParam("rgId={}", rgId)
+        self.logger.writeParam("hostGroupName={}", hostGroupName)
+        self.logger.writeParam("portId={}", portId)
 
-        urlPath = 'ResourceGroup/AddHostGroupToResourceGroup'
+        urlPath = "ResourceGroup/AddHostGroupToResourceGroup"
         url = self.getUrl(urlPath)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'hostGroupName': hostGroupName,
-            'portId': portId,
-            'rgId': rgId,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "hostGroupName": hostGroupName,
+            "portId": portId,
+            "rgId": rgId,
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def removePortFromResourceGroup(self, rgId, id):
 
-        funcName = 'hv_infra:removePortFromResourceGroup'
+        funcName = "hv_infra:removePortFromResourceGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('rgId={}', rgId)
-        self.logger.writeParam('id={}', id)
+        self.logger.writeParam("rgId={}", rgId)
+        self.logger.writeParam("id={}", id)
 
-        urlPath = 'ResourceGroup/RemovePortFromResourceGroup'
+        urlPath = "ResourceGroup/RemovePortFromResourceGroup"
         url = self.getUrl(urlPath)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'portId': id,
-            'rgId': rgId,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "portId": id,
+            "rgId": rgId,
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getTypeFromModel(self, model):
-        if 'VSP_G' in model:
-            return 'VSP_GX00'
-        if 'VSP_F' in model:
-            return 'VSP_FX00'
-        if 'VSP_N' in model:
-            return 'VSP_NX00'
-        if '00H' in model:
-            return 'VSP_5X00H'
-        if 'VSP_5' in model:
-            return 'VSP_5X00'
+        if "VSP_G" in model:
+            return "VSP_GX00"
+        if "VSP_F" in model:
+            return "VSP_FX00"
+        if "VSP_N" in model:
+            return "VSP_NX00"
+        if "00H" in model:
+            return "VSP_5X00H"
+        if "VSP_5" in model:
+            return "VSP_5X00"
 
     def createVirtualBoxResourceGroup(
         self,
@@ -1293,67 +943,68 @@ class StorageSystem:
         rgName,
     ):
 
-        funcName = 'hv_infra:createVirtualBoxResourceGroup'
+        funcName = "hv_infra:createVirtualBoxResourceGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('remoteStorageId={}', remoteStorageId)
-        self.logger.writeParam('model={}', model)
-        self.logger.writeParam('rgName={}', rgName)
+        self.logger.writeParam("remoteStorageId={}", remoteStorageId)
+        self.logger.writeParam("model={}", model)
+        self.logger.writeParam("rgName={}", rgName)
 
-        funcName = 'hv_infra:createVirtualBoxResourceGroup'
+        funcName = "hv_infra:createVirtualBoxResourceGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('remoteStorageId={}', remoteStorageId)
-        self.logger.writeParam('model={}', model)
-        self.logger.writeParam('rgName={}', rgName)
+        self.logger.writeParam("remoteStorageId={}", remoteStorageId)
+        self.logger.writeParam("model={}", model)
+        self.logger.writeParam("rgName={}", rgName)
 
-        urlPath = 'ResourceGroup/CreateVirtualBoxResourceGroup'
+        urlPath = "ResourceGroup/CreateVirtualBoxResourceGroup"
         url = self.getUrl(urlPath)
-        storage_type = \
-            StorageType.fromString(self.getTypeFromModel(model))
+        storage_type = StorageType.fromString(self.getTypeFromModel(model))
         storage_model = StorageModel.fromString(model)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'remoteStorageId': remoteStorageId,
-            'type': storage_type.value,
-            'model': storage_model.value,
-            'rgName': rgName,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "remoteStorageId": remoteStorageId,
+            "type": storage_type.value,
+            "model": storage_model.value,
+            "rgName": rgName,
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
 
             return response
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def addPortToResourceGroup(self, rgId, id):
 
-        funcName = 'hv_infra:addPortToResourceGroup'
+        funcName = "hv_infra:addPortToResourceGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('rgId={}', rgId)
-        self.logger.writeParam('id={}', id)
+        self.logger.writeParam("rgId={}", rgId)
+        self.logger.writeParam("id={}", id)
 
-        urlPath = 'ResourceGroup/AddPortToResourceGroup'
+        urlPath = "ResourceGroup/AddPortToResourceGroup"
         url = self.getUrl(urlPath)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'portId': id,
-            'rgId': rgId,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "portId": id,
+            "rgId": rgId,
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -1362,82 +1013,84 @@ class StorageSystem:
         return self.isVirtualSerial
 
     def getUrl(self, urlPath):
-        return '{0}/porcelain/{1}'.format(self.basedUrl, urlPath)
+        return "{0}/porcelain/{1}".format(self.basedUrl, urlPath)
 
     def addStorageSystemToISP(
-        self,
-        location,
-        gatewayIP,
-        gatewayPort,
-        username,
-        password
+        self, location, gatewayIP, gatewayPort, username, password
     ):
 
-        funcName = 'hv_infra:addStorageSystemToISP'
+        funcName = "hv_infra:addStorageSystemToISP"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('location={}', location)
-        self.logger.writeParam('gatewayIP={}', gatewayIP)
-        self.logger.writeParam('gatewayPort={}', gatewayPort)
-        self.logger.writeParam('username={}', username)
+        self.logger.writeParam("location={}", location)
+        self.logger.writeParam("gatewayIP={}", gatewayIP)
+        self.logger.writeParam("gatewayPort={}", gatewayPort)
+        self.logger.writeParam("username={}", username)
 
         headers = self.getAuthToken()
-        self.logger.writeParam('headers={}', headers)
+        self.logger.writeParam("headers={}", headers)
 
-        urlPath = 'v2/storage/devices'
+        urlPath = "v2/storage/devices"
         url = self.getUrl(urlPath)
-        self.logger.writeParam('url={}', url)
+        self.logger.writeParam("url={}", url)
         systems = self.getAllISPStorageSystems()
-        self.logger.writeDebug('systems={}', systems)
+        self.logger.writeDebug("systems={}", systems)
         system = None
         for x in systems:
-            self.logger.writeInfo('int(x[serialNumber]) == self.serial={}', int(x['serialNumber'])
-                                   == self.serial)
-            if int(x['serialNumber']) == self.serial:
+            self.logger.writeInfo(
+                "int(x[serialNumber]) == self.serial={}",
+                int(x["serialNumber"]) == self.serial,
+            )
+            if int(x["serialNumber"]) == self.serial:
                 system = x
                 break
-        self.logger.writeInfo('system={}', system)
+        self.logger.writeInfo("system={}", system)
 
         if system is None:
             if system is None:
                 body = {
-                    'managementAddress': location,
-                    'password': password,
-                    'serialNumber': self.serial,
-                    'username': username,
+                    "managementAddress": location,
+                    "password": password,
+                    "serialNumber": self.serial,
+                    "username": username,
                 }
-                self.logger.writeInfo('body={}', body)
-                response = requests.post(url, json=body, headers=headers,
-                                         verify=self.shouldVerifySslCertification)
+                self.logger.writeInfo("body={}", body)
+                response = requests.post(
+                    url,
+                    json=body,
+                    headers=headers,
+                    verify=self.shouldVerifySslCertification,
+                )
         else:
             return StorageSystemManager.formatStorageSystem(system)
 
         if response.ok:
             if system is None:
                 resJson = response.json()
-                self.logger.writeInfo('response={}', resJson)
-                resourceId = resJson['data'].get('resourceId')
-                self.logger.writeInfo('resourceId={}', resourceId)
-                taskId = response.json()['data'].get('taskId')
-                self.logger.writeInfo('taskId={}', taskId)
+                self.logger.writeInfo("response={}", resJson)
+                resourceId = resJson["data"].get("resourceId")
+                self.logger.writeInfo("resourceId={}", resourceId)
+                taskId = response.json()["data"].get("taskId")
+                self.logger.writeInfo("taskId={}", taskId)
                 self.checkTaskStatus(taskId)
                 time.sleep(10)
                 systems = self.getAllISPStorageSystems()
-                self.logger.writeDebug('systems={}', systems)
+                self.logger.writeDebug("systems={}", systems)
                 system = None
                 for x in systems:
-                    self.logger.writeInfo('int(x[serialNumber]) == self.serial={}', int(x['serialNumber'])
-                                        == self.serial)
-                    if int(x['serialNumber']) == self.serial:
+                    self.logger.writeInfo(
+                        "int(x[serialNumber]) == self.serial={}",
+                        int(x["serialNumber"]) == self.serial,
+                    )
+                    if int(x["serialNumber"]) == self.serial:
                         system = x
                         break
-            self.logger.writeInfo('system={}', system)
+            self.logger.writeInfo("system={}", system)
             return system
-        elif 'HIJSONFAULT' in response.headers:
-            self.logger.writeInfo('HIJSONFAULT response={}', response)
+        elif "HIJSONFAULT" in response.headers:
+            self.logger.writeInfo("HIJSONFAULT response={}", response)
             Utils.raiseException(self.sessionId, response)
         else:
-            self.logger.writeInfo('Unknown Exception response={}',
-                                   response.json())
+            self.logger.writeInfo("Unknown Exception response={}", response.json())
             self.throwException(response)
 
     def addStorageSystem(
@@ -1448,15 +1101,15 @@ class StorageSystem:
         username,
         password,
         useOutOfBandConnection,
-        ucpID
+        ucpID,
     ):
 
-        funcName = 'hv_infra:addStorageSystem'
+        funcName = "hv_infra:addStorageSystem"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('location={}', location)
-        self.logger.writeParam('gatewayIP={}', gatewayIP)
-        self.logger.writeParam('gatewayPort={}', gatewayPort)
-        self.logger.writeParam('username={}', username)
+        self.logger.writeParam("location={}", location)
+        self.logger.writeParam("gatewayIP={}", gatewayIP)
+        self.logger.writeParam("gatewayPort={}", gatewayPort)
+        self.logger.writeParam("username={}", username)
         # self.logger.writeParam('password={}', password)
 
         # ucp_name = "ucp-21-25"
@@ -1465,26 +1118,25 @@ class StorageSystem:
         # ucp_serial = "UCP-CI-12035"
         ucp_serial = ucpID
         ucpManager = UcpManager(
-            self.ucpadvisor_address,
-            self.ucpadvisor_ansible_vault_user,
-            self.ucpadvisor_ansible_vault_secret)
+            self.management_address, self.management_username, self.management_password
+        )
         theUCP = ucpManager.getUcpSystem(ucp_serial)
         if theUCP is None:
-            raise Exception('The UCP is not found')
-        ucp_name = theUCP['name']
-        pumaGatewayAddress = theUCP['gatewayAddress']
+            raise Exception("The System is not found")
+        ucp_name = theUCP["name"]
+        pumaGatewayAddress = theUCP["gatewayAddress"]
         if pumaGatewayAddress is None:
-            raise Exception('The UCP gatewayAddress is not found')
+            raise Exception("The UCP gatewayAddress is not found")
 
-        self.logger.writeInfo('ucp_name={}', ucp_name)
-        self.logger.writeInfo('ucp_serial={}', ucp_serial)
+        self.logger.writeInfo("ucp_name={}", ucp_name)
+        self.logger.writeInfo("ucp_serial={}", ucp_serial)
 
         headers = self.getAuthToken()
-        self.logger.writeParam('headers={}', headers)
+        self.logger.writeParam("headers={}", headers)
 
         # systems = self.getAllStorageSystems()
         systems = self.getAllISPStorageSystems()
-        self.logger.writeDebug('systems={}', systems)
+        self.logger.writeDebug("systems={}", systems)
 
         # use cases: SS is
         # in this UCP, return
@@ -1497,20 +1149,20 @@ class StorageSystem:
         system = None
         for x in systems:
 
-            if str(x['serialNumber']) != str(self.serial):
+            if str(x["serialNumber"]) != str(self.serial):
                 continue
 
             system = x
-            ucpSerials = x['ucpSystems']
-            self.logger.writeInfo('20230523 ucpSerials={}', ucpSerials)
+            ucpSerials = x["ucpSystems"]
+            self.logger.writeInfo("20230523 ucpSerials={}", ucpSerials)
 
             # 'unicode' object has no attribute 'get'
             # ucpSerial = next((x for x in ucpSerials if x.get('ucpSystems')
             #             == ucp_serial), None)
-            
+
             # isInThisUCP = [ele for ele in ucpSerials if(str(ele) in ucp_serial)]
-            for y in ucpSerials: 
-                self.logger.writeInfo('20230523 y={}', str(y))
+            for y in ucpSerials:
+                self.logger.writeInfo("20230523 y={}", str(y))
                 isInUCP = True
                 if str(y) == ucp_serial:
                     isInThisUCP = True
@@ -1518,13 +1170,13 @@ class StorageSystem:
 
             break
 
-        self.logger.writeInfo('20230523 system={}', system)
-        self.logger.writeInfo('20230523 isInUCP={}', isInUCP)
-        self.logger.writeInfo('20230523 isInThisUCP={}', isInThisUCP)
+        self.logger.writeInfo("20230523 system={}", system)
+        self.logger.writeInfo("20230523 isInUCP={}", isInUCP)
+        self.logger.writeInfo("20230523 isInThisUCP={}", isInThisUCP)
 
         if system is not None and not isInThisUCP:
             # attach ss to this UCP
-            self.logger.writeDebug('20230523 attachSystemToUCP={}', isInUCP)
+            self.logger.writeDebug("20230523 attachSystemToUCP={}", isInUCP)
             response = self.attachSystemToUCP(
                 location,
                 gatewayIP,
@@ -1538,42 +1190,47 @@ class StorageSystem:
 
         elif system is None:
 
-                # ss is not in the system, add ss (ucp must be added already)
-                # operator will add to isp (this needs the puma gatewayAddress)
-                # then ucp, then we have to wait for the facts to finish
-                # this will take time, how to let the user know the progress? (FIXME.sng)
-                # we can print to the log file, that's about it?
+            # ss is not in the system, add ss (ucp must be added already)
+            # operator will add to isp (this needs the puma gatewayAddress)
+            # then ucp, then we have to wait for the facts to finish
+            # this will take time, how to let the user know the progress? (FIXME.sng)
+            # we can print to the log file, that's about it?
 
-                # get the puma gatewayAddress from UCP
-                ucpManager = UcpManager(
-                    self.ucpadvisor_address,
-                    self.ucpadvisor_ansible_vault_user,
-                    self.ucpadvisor_ansible_vault_secret)
-                theUCP = ucpManager.getUcpSystem(ucp_serial)
+            # get the puma gatewayAddress from UCP
+            ucpManager = UcpManager(
+                self.management_address,
+                self.management_username,
+                self.management_password,
+            )
+            theUCP = ucpManager.getUcpSystem(ucp_serial)
 
-                self.logger.writeDebug('20230523 username={}', username)
-                self.logger.writeDebug('20230523 password={}', password)
-                self.logger.writeDebug('20230523 location={}', location)
-                self.logger.writeDebug('20230523 self.serial={}', self.serial)
-                self.logger.writeDebug('20230523 ucp_name={}', ucp_name)
-                self.logger.writeDebug('20230523 pumaGatewayAddress={}', pumaGatewayAddress)
-                body = {
-                    'username': username,
-                    'password': password,
-                    'managementAddress': location,
-                    'serialNumber': self.serial,
-                    'ucpSystem': ucp_name,
-                    'gatewayAddress': pumaGatewayAddress,
-                }
-                # self.logger.writeInfo('body={}', body)
+            self.logger.writeDebug("20230523 username={}", username)
+            self.logger.writeDebug("20230523 password={}", password)
+            self.logger.writeDebug("20230523 location={}", location)
+            self.logger.writeDebug("20230523 self.serial={}", self.serial)
+            self.logger.writeDebug("20230523 ucp_name={}", ucp_name)
+            self.logger.writeDebug("20230523 pumaGatewayAddress={}", pumaGatewayAddress)
+            body = {
+                "username": username,
+                "password": password,
+                "managementAddress": location,
+                "serialNumber": self.serial,
+                "ucpSystem": ucp_name,
+                "gatewayAddress": pumaGatewayAddress,
+            }
+            # self.logger.writeInfo('body={}', body)
 
-                # addStorageSystem (first to ISP then UCP)
-                urlPath = 'v2/storage/devices'
-                url = self.getUrl(urlPath)
-                self.logger.writeDebug('20230523 url={}', url)                
-                response = requests.post(url, json=body, headers=headers,
-                                         verify=self.shouldVerifySslCertification)
-                self.logger.writeDebug('20230523 response={}', response) 
+            # addStorageSystem (first to ISP then UCP)
+            urlPath = "v2/storage/devices"
+            url = self.getUrl(urlPath)
+            self.logger.writeDebug("20230523 url={}", url)
+            response = requests.post(
+                url,
+                json=body,
+                headers=headers,
+                verify=self.shouldVerifySslCertification,
+            )
+            self.logger.writeDebug("20230523 response={}", response)
 
         else:
             # ss is already in thisUCP
@@ -1586,44 +1243,43 @@ class StorageSystem:
             # FIXME.sng - works for system is None, needs work for attachSystemToUCP
             if system is None or True:
                 resJson = response.json()
-                self.logger.writeInfo('response={}', resJson)
-                resourceId = resJson['data'].get('resourceId')
-                self.logger.writeInfo('resourceId={}', resourceId)
-                taskId = response.json()['data'].get('taskId')
-                self.logger.writeInfo('taskId={}', taskId)
+                self.logger.writeInfo("response={}", resJson)
+                resourceId = resJson["data"].get("resourceId")
+                self.logger.writeInfo("resourceId={}", resourceId)
+                taskId = response.json()["data"].get("taskId")
+                self.logger.writeInfo("taskId={}", taskId)
                 self.checkTaskStatus(taskId)
                 time.sleep(5)
                 # FIXME.sng - change it to waitForUCPinSS(ucp_serial)
                 # system = self.checkAndGetStorageInfoByResourceId(resourceId)
                 system = self.waitForUCPinSS(ucp_serial)
 
-            self.logger.writeInfo('system={}', system)
+            self.logger.writeInfo("system={}", system)
             # system['webServiceIp'] = self.webServiceIp
             # system['webServicePort'] = self.webServicePort
             return StorageSystemManager.formatStorageSystem(system)
-        elif 'HIJSONFAULT' in response.headers:
-            self.logger.writeInfo('HIJSONFAULT response={}', response)
+        elif "HIJSONFAULT" in response.headers:
+            self.logger.writeInfo("HIJSONFAULT response={}", response)
             Utils.raiseException(self.sessionId, response)
         else:
-            self.logger.writeInfo('Unknown Exception response={}',
-                                   response.json())
+            self.logger.writeInfo("Unknown Exception response={}", response.json())
             self.throwException(response)
 
     # wait until the ucp_serial is in the ssfact CR status
     def waitForUCPinSS(self, ucp_serial):
-        funcName = 'hv_infra:waitForUCPinSS'
+        funcName = "hv_infra:waitForUCPinSS"
         self.logger.writeEnterSDK(funcName)
 
-        self.logger.writeDebug('looking for ucp_serial={}', ucp_serial)
+        self.logger.writeDebug("looking for ucp_serial={}", ucp_serial)
         notFound = True
         while notFound:
             time.sleep(2)
-            self.logger.writeInfo('onboarding in progress ...')
+            self.logger.writeInfo("onboarding in progress ...")
             system = self.getStorageSystem()
-            ucps = system.get("ucpSystems",None)
+            ucps = system.get("ucpSystems", None)
             if ucps is None:
                 continue
-            self.logger.writeDebug('in ucps={}', ucps)
+            self.logger.writeDebug("in ucps={}", ucps)
             if ucp_serial in ucps:
                 notFound = False
 
@@ -1634,11 +1290,11 @@ class StorageSystem:
     # monitor the ucp_serial in the ISP.ss.ucpsystems list,
     # expect to find ss_serial in ISP
     def waitForUCPnotInSS(self, ucp_serial):
-        funcName = 'hv_infra:waitForUCPnotInSS'
+        funcName = "hv_infra:waitForUCPnotInSS"
         self.logger.writeEnterSDK(funcName)
 
-        self.logger.writeDebug('ucp_serial={}', ucp_serial)
-        self.logger.writeDebug('self.serial={}', self.serial)
+        self.logger.writeDebug("ucp_serial={}", ucp_serial)
+        self.logger.writeDebug("self.serial={}", self.serial)
 
         system = None
         found = True
@@ -1650,24 +1306,25 @@ class StorageSystem:
             systems = self.getAllISPStorageSystems()
             for x in systems:
 
-                if str(x['serialNumber']) != str(self.serial):
+                if str(x["serialNumber"]) != str(self.serial):
                     continue
 
                 system = x
-                ucps = x.get("ucpSystems",None)
+                ucps = x.get("ucpSystems", None)
                 if ucps is None:
-                    raise Exception('UCP system list is not found in the storage system.')
+                    raise Exception(
+                        "UCP system list is not found in the storage system."
+                    )
 
-                self.logger.writeDebug('in ucps={}', ucps)
+                self.logger.writeDebug("in ucps={}", ucps)
                 if ucp_serial in ucps:
                     found = True
 
         self.logger.writeExitSDK(funcName)
         return system
 
-
     def removeStorageSystem(self, ucp_serial):
-        funcName = 'hv_infra:removeStorageSystem'
+        funcName = "hv_infra:removeStorageSystem"
         self.logger.writeEnterSDK(funcName)
 
         # FIXME.sng, if ucp_serial is none, we need to remove it from all ucps and ISP
@@ -1683,59 +1340,60 @@ class StorageSystem:
         attached = True
         while found:
             system = self.getStorageSystem()
-            if system is None:                
+            if system is None:
                 ## FIXME.sng - the SS is in ISP, the getStorageSystem returns none!!
                 # we may have to take a look at getStorageSystem for this case,
                 # we want it to return something so we can go delete ss from isp
                 return
-            ucps = system['ucpSystems']
+            ucps = system["ucpSystems"]
             if not ucp_serial in ucps:
                 found = False
                 if len(ucps) == 0:
                     attached = False
-            self.logger.writeInfo('Storage system is updating ...')
+            self.logger.writeInfo("Storage system is updating ...")
 
-        if attached :
-            self.logger.writeDebug('no removeStorageDevice')
+        if attached:
+            self.logger.writeDebug("no removeStorageDevice")
             return
-            
+
         # removeStorageDevice
-        self.logger.writeDebug('removeStorageDevice')
+        self.logger.writeDebug("removeStorageDevice")
         resourceId = self.getStorageSystemResourceIdInISP()
 
         headers = self.getAuthToken()
         # self.logger.writeParam('headers={}', headers)
 
-        urlPath = 'v2/storage/devices/{0}'.format(resourceId)
+        urlPath = "v2/storage/devices/{0}".format(resourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeParam('url={}', url)
-        self.logger.writeInfo('ss GRID={}', resourceId)
+        self.logger.writeParam("url={}", url)
+        self.logger.writeInfo("ss GRID={}", resourceId)
 
-        response = requests.delete(url, headers=headers, verify=self.shouldVerifySslCertification)
+        response = requests.delete(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         if response.ok:
             resJson = response.json()
-            self.logger.writeInfo('response={}', resJson)
-            resourceId = resJson['data'].get('resourceId')
-            self.logger.writeInfo('resourceId={}', resourceId)
-            taskId = response.json()['data'].get('taskId')
-            self.logger.writeInfo('taskId={}', taskId)
+            self.logger.writeInfo("response={}", resJson)
+            resourceId = resJson["data"].get("resourceId")
+            self.logger.writeInfo("resourceId={}", resourceId)
+            taskId = response.json()["data"].get("taskId")
+            self.logger.writeInfo("taskId={}", taskId)
             self.checkTaskStatus(taskId)
             time.sleep(5)
-        elif 'HIJSONFAULT' in response.headers:
-            self.logger.writeInfo('HIJSONFAULT response={}', response)
+        elif "HIJSONFAULT" in response.headers:
+            self.logger.writeInfo("HIJSONFAULT response={}", response)
             Utils.raiseException(self.sessionId, response)
         else:
-            self.logger.writeInfo('Unknown Exception response={}',
-                                   response.json())
+            self.logger.writeInfo("Unknown Exception response={}", response.json())
             self.throwException(response)
 
     # this version uses waitForUCPnotInSS,
     # if we are deleting the last ucp from the system, then this can be fast,
     # problem is we need the details for the get storage yml, and that needs the fact to finish,
     # in general, we have to check the fact, so it has to wait for the fact to finish refreshing,
-    # save this for reviewing the design   
+    # save this for reviewing the design
     def removeStorageSystem2(self, ucp_serial):
-        funcName = 'hv_infra:removeStorageSystem'
+        funcName = "hv_infra:removeStorageSystem"
         self.logger.writeEnterSDK(funcName)
 
         if ucp_serial is not None:
@@ -1749,106 +1407,106 @@ class StorageSystem:
 
         self.waitForUCPnotInSS(ucp_serial)
 
-        if attached :
-            self.logger.writeDebug('no removeStorageDevice')
+        if attached:
+            self.logger.writeDebug("no removeStorageDevice")
             return
-            
+
         # removeStorageDevice
-        self.logger.writeDebug('removeStorageDevice')
+        self.logger.writeDebug("removeStorageDevice")
         resourceId = self.getStorageSystemResourceIdInISP()
 
         headers = self.getAuthToken()
         # self.logger.writeParam('headers={}', headers)
 
-        urlPath = 'v2/storage/devices/{0}'.format(resourceId)
+        urlPath = "v2/storage/devices/{0}".format(resourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeParam('url={}', url)
-        self.logger.writeInfo('ss GRID={}', resourceId)
+        self.logger.writeParam("url={}", url)
+        self.logger.writeInfo("ss GRID={}", resourceId)
 
-        response = requests.delete(url, headers=headers, verify=self.shouldVerifySslCertification)
+        response = requests.delete(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         if response.ok:
             resJson = response.json()
-            self.logger.writeInfo('response={}', resJson)
-            resourceId = resJson['data'].get('resourceId')
-            self.logger.writeInfo('resourceId={}', resourceId)
-            taskId = response.json()['data'].get('taskId')
-            self.logger.writeInfo('taskId={}', taskId)
+            self.logger.writeInfo("response={}", resJson)
+            resourceId = resJson["data"].get("resourceId")
+            self.logger.writeInfo("resourceId={}", resourceId)
+            taskId = response.json()["data"].get("taskId")
+            self.logger.writeInfo("taskId={}", taskId)
             self.checkTaskStatus(taskId)
             time.sleep(5)
-        elif 'HIJSONFAULT' in response.headers:
-            self.logger.writeInfo('HIJSONFAULT response={}', response)
+        elif "HIJSONFAULT" in response.headers:
+            self.logger.writeInfo("HIJSONFAULT response={}", response)
             Utils.raiseException(self.sessionId, response)
         else:
-            self.logger.writeInfo('Unknown Exception response={}',
-                                   response.json())
+            self.logger.writeInfo("Unknown Exception response={}", response.json())
             self.throwException(response)
 
     def removeStorageSystemFromUCP(self, ucp_serial):
-        funcName = 'hv_infra:removeStorageSystemFromUCP'
+        funcName = "hv_infra:removeStorageSystemFromUCP"
         self.logger.writeEnterSDK(funcName)
         systems = self.getAllStorageSystems()
 
-        self.logger.writeDebug('systems={}', systems)
+        self.logger.writeDebug("systems={}", systems)
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x['serialNumber']))
+            self.logger.writeInfo(int(x["serialNumber"]))
             self.logger.writeInfo(self.serial)
-            self.logger.writeInfo(int(x['serialNumber'])
-                                   == self.serial)
+            self.logger.writeInfo(int(x["serialNumber"]) == self.serial)
 
-            if str(x['serialNumber']) == str(self.serial):
+            if str(x["serialNumber"]) == str(self.serial):
                 system = x
                 break
-        
+
         if system is None:
             return
-        
-        resourceId= str(system.get('resourceId'))
+
+        resourceId = str(system.get("resourceId"))
 
         # ensure the ucp is in the ss
-        ucps = system.get("ucpSystems",None) 
-        self.logger.writeDebug('ucps={}', ucps)
-        self.logger.writeDebug('ucp_serial={}', ucp_serial)
+        ucps = system.get("ucpSystems", None)
+        self.logger.writeDebug("ucps={}", ucps)
+        self.logger.writeDebug("ucp_serial={}", ucp_serial)
         if ucps is None or ucp_serial not in ucps:
-            self.throwException('The storage system is not attached to the UCP.')
+            self.throwException("The storage system is not attached to the UCP.")
 
         # get the ucp resourceId from ucp
         ucpManager = UcpManager(
-            self.ucpadvisor_address,
-            self.ucpadvisor_ansible_vault_user,
-            self.ucpadvisor_ansible_vault_secret)
+            self.management_address, self.management_username, self.management_password
+        )
         theUCP = ucpManager.getUcpSystem(ucp_serial)
         if theUCP is None:
-            raise Exception('The UCP is not found')
-        resourceIdUCP = theUCP.get('resourceId')
+            raise Exception("The System is not found")
+        resourceIdUCP = theUCP.get("resourceId")
 
-        urlPath = 'v2/systems/{0}/device/{1}'.format(resourceIdUCP, resourceId)
+        urlPath = "v2/systems/{0}/device/{1}".format(resourceIdUCP, resourceId)
         url = self.getUrl(urlPath)
 
-        self.logger.writeParam('url={}', url)
-        self.logger.writeInfo('resourceId={}', resourceId)
-        self.logger.writeInfo('ucp_resource_id={}', resourceIdUCP)
+        self.logger.writeParam("url={}", url)
+        self.logger.writeInfo("resourceId={}", resourceId)
+        self.logger.writeInfo("ucp_resource_id={}", resourceIdUCP)
 
         headers = self.getAuthToken()
-        self.logger.writeInfo('0608 headers={}', headers)
-        response = requests.delete(url, headers=headers, verify=self.shouldVerifySslCertification)
-        self.logger.writeInfo('0608 response={}', response)
+        self.logger.writeInfo("0608 headers={}", headers)
+        response = requests.delete(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
+        self.logger.writeInfo("0608 response={}", response)
         if response.ok:
             resJson = response.json()
-            self.logger.writeInfo('response={}', resJson)
-            resourceId = resJson['data'].get('resourceId')
-            self.logger.writeInfo('resourceId={}', resourceId)
-            taskId = response.json()['data'].get('taskId')
-            self.logger.writeInfo('taskId={}', taskId)
+            self.logger.writeInfo("response={}", resJson)
+            resourceId = resJson["data"].get("resourceId")
+            self.logger.writeInfo("resourceId={}", resourceId)
+            taskId = response.json()["data"].get("taskId")
+            self.logger.writeInfo("taskId={}", taskId)
             self.checkTaskStatus(taskId)
             time.sleep(5)
-        elif 'HIJSONFAULT' in response.headers:
-            self.logger.writeInfo('HIJSONFAULT response={}', response)
+        elif "HIJSONFAULT" in response.headers:
+            self.logger.writeInfo("HIJSONFAULT response={}", response)
             Utils.raiseException(self.sessionId, response)
         else:
-            self.logger.writeInfo('Unknown Exception response={}',
-                                   response.json())
+            self.logger.writeInfo("Unknown Exception response={}", response.json())
             self.throwException(response)
 
     # only name the ucp_name to attach
@@ -1863,70 +1521,69 @@ class StorageSystem:
         ucp_name,
     ):
 
-        funcName = 'hv_infra:attachSystemToUCP'
+        funcName = "hv_infra:attachSystemToUCP"
         self.logger.writeEnterSDK(funcName)
 
         systems = self.getAllISPStorageSystems()
 
         # self.logger.writeDebug('systems={}', systems)
-        self.logger.writeDebug('self.serial={}',self.serial)
-        self.logger.writeDebug('20230523 ucp_name={}', ucp_name)                
+        self.logger.writeDebug("self.serial={}", self.serial)
+        self.logger.writeDebug("20230523 ucp_name={}", ucp_name)
 
         system = None
         resourceId = None
         for x in systems:
-            self.logger.writeInfo(int(x['serialNumber']))
-            self.logger.writeInfo(int(x['serialNumber'])
-                                   == self.serial)
+            self.logger.writeInfo(int(x["serialNumber"]))
+            self.logger.writeInfo(int(x["serialNumber"]) == self.serial)
 
-            if str(x['serialNumber']) == str(self.serial):
+            if str(x["serialNumber"]) == str(self.serial):
                 system = x
-                resourceId = str(x['resourceId'])
-                self.logger.writeDebug('20230523 resourceId={}', resourceId)                
+                resourceId = str(x["resourceId"])
+                self.logger.writeDebug("20230523 resourceId={}", resourceId)
                 break
-        
+
         if system is None:
-            self.logger.writeDebug('StorageSystem not found')
+            self.logger.writeDebug("StorageSystem not found")
             return
-        
+
         ucpsystem = self.getUcpSystemByName(ucp_name)
-        self.logger.writeDebug('20230523 ucpsystem={}', ucpsystem)                
-        resourceIdUCP = str(ucpsystem['resourceId'])
-        self.logger.writeDebug('20230523 resourceId={}', resourceId)                
-        self.logger.writeDebug('20230523 resourceIdUCP={}', resourceIdUCP)                
+        self.logger.writeDebug("20230523 ucpsystem={}", ucpsystem)
+        resourceIdUCP = str(ucpsystem["resourceId"])
+        self.logger.writeDebug("20230523 resourceId={}", resourceId)
+        self.logger.writeDebug("20230523 resourceIdUCP={}", resourceIdUCP)
 
         headers = self.getAuthToken()
-        self.logger.writeParam('headers={}', headers)
+        self.logger.writeParam("headers={}", headers)
 
-        urlPath = 'v2/systems/{0}/device/{1}'.format(resourceIdUCP, resourceId)
+        urlPath = "v2/systems/{0}/device/{1}".format(resourceIdUCP, resourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeParam('20230523 url={}', url)
-        self.logger.writeInfo('system={}', resourceId)
-        self.logger.writeInfo('ucp_name={}', ucp_name)
-        self.logger.writeInfo('ucp_resource_id={}', resourceIdUCP)
+        self.logger.writeParam("20230523 url={}", url)
+        self.logger.writeInfo("system={}", resourceId)
+        self.logger.writeInfo("ucp_name={}", ucp_name)
+        self.logger.writeInfo("ucp_resource_id={}", resourceIdUCP)
 
-        response = requests.patch(url, headers=headers,
-                                  verify=self.shouldVerifySslCertification)
+        response = requests.patch(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         # self.logger.writeDebug('20230523 response={}', response)
 
         if response.ok:
             resJson = response.json()
-            self.logger.writeInfo('response={}', resJson)
-            resourceId = resJson['data'].get('resourceId')
-            self.logger.writeInfo('resourceId={}', resourceId)
-            taskId = response.json()['data'].get('taskId')
-            self.logger.writeInfo('taskId={}', taskId)
+            self.logger.writeInfo("response={}", resJson)
+            resourceId = resJson["data"].get("resourceId")
+            self.logger.writeInfo("resourceId={}", resourceId)
+            taskId = response.json()["data"].get("taskId")
+            self.logger.writeInfo("taskId={}", taskId)
             self.checkTaskStatus(taskId)
             # it is "REFRESHING"
             time.sleep(5)
             self.logger.writeExitSDK(funcName)
             return response
-        elif 'HIJSONFAULT' in response.headers:
-            self.logger.writeInfo('HIJSONFAULT response={}', response)
+        elif "HIJSONFAULT" in response.headers:
+            self.logger.writeInfo("HIJSONFAULT response={}", response)
             Utils.raiseException(self.sessionId, response)
         else:
-            self.logger.writeInfo('Unknown Exception response={}',
-                                   response.json())
+            self.logger.writeInfo("Unknown Exception response={}", response.json())
             self.throwException(response)
 
     # returns ss and ucp grid if ss is found
@@ -1936,90 +1593,98 @@ class StorageSystem:
         docstring
         """
 
-        funcName = 'hv_infra:getStorageSystemResourceId'
+        funcName = "hv_infra:getStorageSystemResourceId"
         self.logger.writeEnterSDK(funcName)
         headers = self.getAuthToken()
-        self.logger.writeParam('headers={}', headers)
+        self.logger.writeParam("headers={}", headers)
 
-        urlPath = 'v2/storage/devices'
+        urlPath = "v2/storage/devices"
         url = self.getUrl(urlPath)
-        self.logger.writeParam('url={}', url)
+        self.logger.writeParam("url={}", url)
 
         systems = self.getAllStorageSystems()
 
-        self.logger.writeDebug('systems={}', systems)
+        self.logger.writeDebug("systems={}", systems)
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x['serialNumber']))
+            self.logger.writeInfo(int(x["serialNumber"]))
             self.logger.writeInfo(self.serial)
-            self.logger.writeInfo(int(x['serialNumber'])
-                                   == self.serial)
+            self.logger.writeInfo(int(x["serialNumber"]) == self.serial)
 
-            if str(x['serialNumber']) == str(self.serial):
+            if str(x["serialNumber"]) == str(self.serial):
                 system = x
                 break
         if system is None:
-            raise Exception('Invalid serial = {0}, please check once and try again.'.format(self.serial))
+            raise Exception(
+                "Invalid serial = {0}, please check once and try again.".format(
+                    self.serial
+                )
+            )
 
-        ucp = system.get('ucpSystems')[0]
+        ucp = system.get("ucpSystems")[0]
         self.logger.writeExitSDK(funcName)
-        return (str(system.get('resourceId')), str(ucp))
+        return (str(system.get("resourceId")), str(ucp))
 
     def getStorageSystemResourceIdInISP(self):
         """
         docstring
         """
 
-        funcName = 'hv_infra:getStorageSystemResourceIdInISP'
+        funcName = "hv_infra:getStorageSystemResourceIdInISP"
         self.logger.writeEnterSDK(funcName)
         headers = self.getAuthToken()
-        self.logger.writeParam('headers={}', headers)
+        self.logger.writeParam("headers={}", headers)
 
-        urlPath = 'v2/storage/devices'
+        urlPath = "v2/storage/devices"
         url = self.getUrl(urlPath)
-        self.logger.writeParam('url={}', url)
+        self.logger.writeParam("url={}", url)
 
         systems = self.getAllISPStorageSystems()
 
-        self.logger.writeDebug('systems={}', systems)
+        self.logger.writeDebug("systems={}", systems)
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x['serialNumber']))
+            self.logger.writeInfo(int(x["serialNumber"]))
             self.logger.writeInfo(self.serial)
-            self.logger.writeInfo(int(x['serialNumber'])
-                                   == self.serial)
-            if str(x['serialNumber']) == str(self.serial):
+            self.logger.writeInfo(int(x["serialNumber"]) == self.serial)
+            if str(x["serialNumber"]) == str(self.serial):
                 system = x
                 break
         if system is None:
-            raise Exception('Invalid serial = {0}, please check once and try again.'.format(self.serial))
+            raise Exception(
+                "Invalid serial = {0}, please check once and try again.".format(
+                    self.serial
+                )
+            )
 
         self.logger.writeExitSDK(funcName)
-        return (str(system.get('resourceId')))    
+        return str(system.get("resourceId"))
 
     # fetch the SS CRs
     def fetchStorageSystems(self):
-        funcName = 'hv_infra:fetchStorageSystems'
+        funcName = "hv_infra:fetchStorageSystems"
         self.logger.writeEnterSDK(funcName)
 
         headers = self.getAuthToken()
-        urlPath = 'v2/storage/devices'
+        urlPath = "v2/storage/devices"
         url = self.getUrl(urlPath)
-        self.logger.writeParam('url={}', url)
-        response = requests.get(url, headers=headers, verify=self.shouldVerifySslCertification)
-        self.logger.writeDebug('response={}', response)
+        self.logger.writeParam("url={}", url)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
+        self.logger.writeDebug("response={}", response)
 
         storage_systems = []
         if response.ok:
             authResponse = response.json()
-            self.logger.writeDebug('ISP response Json={}', authResponse)
-            data = authResponse.get('data')
+            self.logger.writeDebug("ISP response Json={}", authResponse)
+            data = authResponse.get("data")
             # storage_systems.extend(data.get('storageDevices'))
             storage_systems = data
-            
-        elif 'HIJSONFAULT' in response.headers:
+
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -2031,333 +1696,351 @@ class StorageSystem:
         """
         docstring
         """
-        funcName = 'hv_infra:getStorageSystem'
+        funcName = "hv_infra:getStorageSystem"
         self.logger.writeEnterSDK(funcName)
 
         systems = self.fetchStorageSystems()
-        self.logger.writeDebug('systems={}', systems)
+        self.logger.writeDebug("systems={}", systems)
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x['serialNumber']))
+            self.logger.writeInfo(int(x["serialNumber"]))
             self.logger.writeInfo(self.serial)
-            if str(x['serialNumber']) == str(self.serial):
+            if str(x["serialNumber"]) == str(self.serial):
                 system = x
                 break
-            
-        self.logger.writeInfo('system={}', system)
+
+        self.logger.writeInfo("system={}", system)
         result = StorageSystemManager.formatStorageSystem(system)
 
         self.logger.writeExitSDK(funcName)
         return result
 
     def getAuthToken(self):
-        funcName = 'hv_infra:getAuthToken'
+        funcName = "hv_infra:getAuthToken"
         self.logger.writeEnterSDK(funcName)
 
-        body = {'username': 'ucpadmin', 'password': 'ucpadmin'}
         body = {
-            'username': self.ucpadvisor_ansible_vault_user, 
-            'password': self.ucpadvisor_ansible_vault_secret
-            }
+            "username": self.management_username,
+            "password": self.management_password,
+        }
 
-        urlPath = 'v2/auth/login'
-        url = '{0}/porcelain/{1}'.format(self.basedUrl, urlPath)
+        urlPath = "v2/auth/login"
+        url = "{0}/porcelain/{1}".format(self.basedUrl, urlPath)
 
-        self.logger.writeDebug('20230505 username={}',body['username'])
-        self.logger.writeDebug('20230505 url={}',url)
+        self.logger.writeDebug("20230505 username={}", body["username"])
+        self.logger.writeDebug("20230505 url={}", url)
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         token = None
         if response.ok:
             authResponse = response.json()
-            data = authResponse['data']
-            token = data.get('token')
-        elif 'HIJSONFAULT' in response.headers:
-            self.logger.writeInfo('HIJSONFAULT response={}', response)
+            data = authResponse["data"]
+            token = data.get("token")
+        elif "HIJSONFAULT" in response.headers:
+            self.logger.writeInfo("HIJSONFAULT response={}", response)
             Utils.raiseException(self.sessionId, response)
         else:
-            self.logger.writeInfo('Unknown Exception response={}',
-                                   response)
+            self.logger.writeInfo("Unknown Exception response={}", response)
             self.throwException(response)
 
-        headers = {'Authorization': 'Bearer {0}'.format(token)}
+        headers = {"Authorization": "Bearer {0}".format(token)}
 
         return headers
 
     def createUcpSystem(self, gatewayIp):
-        funcName = 'hv_infra:createUcpSystem'
+        funcName = "hv_infra:createUcpSystem"
         self.logger.writeEnterSDK(funcName)
 
-        gatewayLast5 = gatewayIp.replace('.', '')[-5:]
-        ucp_name = 'ucp-{0}'.format(gatewayLast5)
-        ucp_serial = 'Logical-UCP-{0}'.format(gatewayLast5)
+        gatewayLast5 = gatewayIp.replace(".", "")[-5:]
+        ucp_name = "ucp-{0}".format(gatewayLast5)
+        ucp_serial = "Logical-UCP-{0}".format(gatewayLast5)
         system = self.getUcpSystem(gatewayIp)
-        self.logger.writeInfo('ucpsystem={}', system)
+        self.logger.writeInfo("ucpsystem={}", system)
         if system is None:
             body = {
-                'gatewayAddress': gatewayIp,
-                'model': 'Logical UCP',
-                'name': ucp_name,
-                'region': 'EMEA',
-                'serialNumber': ucp_serial,
+                "gatewayAddress": gatewayIp,
+                "model": "Logical UCP",
+                "name": ucp_name,
+                "region": "EMEA",
+                "serialNumber": ucp_serial,
                 "country": "Belgium",
                 "zipcode": 1020,
-                "zone": "zone"
+                "zone": "zone",
             }
-            urlPath = 'v2/systems'
-            url = '{0}/porcelain/{1}'.format(self.basedUrl, urlPath)
+            urlPath = "v2/systems"
+            url = "{0}/porcelain/{1}".format(self.basedUrl, urlPath)
 
-            response = requests.post(url, headers=self.getAuthToken(),
-                                     json=body, verify=self.shouldVerifySslCertification)
+            response = requests.post(
+                url,
+                headers=self.getAuthToken(),
+                json=body,
+                verify=self.shouldVerifySslCertification,
+            )
             self.logger.writeExitSDK(funcName)
 
             if response.ok:
                 resposeJson = response.json()
-                data = resposeJson['data']
-                self.logger.writeInfo('resposeJson={}', resposeJson)
-                taskId = resposeJson['data'].get('taskId')
+                data = resposeJson["data"]
+                self.logger.writeInfo("resposeJson={}", resposeJson)
+                taskId = resposeJson["data"].get("taskId")
                 self.checkTaskStatus(taskId)
                 time.sleep(10)
-            elif 'HIJSONFAULT' in response.headers:
-                self.logger.writeInfo('HIJSONFAULT response={}',
-                                       response)
+            elif "HIJSONFAULT" in response.headers:
+                self.logger.writeInfo("HIJSONFAULT response={}", response)
                 Utils.raiseException(self.sessionId, response)
             else:
-                self.logger.writeInfo('Unknown Exception response={}',
-                                       response)
-                raise Exception('Unknown error HTTP {0}'.format(response.status_code + response.message))
+                self.logger.writeInfo("Unknown Exception response={}", response)
+                raise Exception(
+                    "Unknown error HTTP {0}".format(
+                        response.status_code + response.message
+                    )
+                )
         return ucp_name, ucp_serial
 
     def updateUcpSystem(self, gatewayIp):
-        funcName = 'hv_infra:updateUcpSystem'
+        funcName = "hv_infra:updateUcpSystem"
         self.logger.writeEnterSDK(funcName)
 
-        gatewayLast5 = gatewayIp.replace('.', '')[-5:]
-        ucp_name = 'ucp-{0}'.format(gatewayLast5)
-        ucp_serial = 'Logical-UCP-{0}'.format(gatewayLast5)
+        gatewayLast5 = gatewayIp.replace(".", "")[-5:]
+        ucp_name = "ucp-{0}".format(gatewayLast5)
+        ucp_serial = "Logical-UCP-{0}".format(gatewayLast5)
         system = self.getUcpSystem(gatewayIp)
-        self.logger.writeInfo('ucpsystem={}', system)
+        self.logger.writeInfo("ucpsystem={}", system)
         if system is not None:
             body = {
-                'gatewayAddress': gatewayIp,
-                'model': 'Logical UCP',
-                'name': ucp_name,
-                'region': 'EMEA',
-                'serialNumber': ucp_serial,
+                "gatewayAddress": gatewayIp,
+                "model": "Logical UCP",
+                "name": ucp_name,
+                "region": "EMEA",
+                "serialNumber": ucp_serial,
                 "country": "Belgium",
                 "zipcode": 1020,
-                "zone": "zone"
+                "zone": "zone",
             }
-            urlPath = 'v2/systems'
-            url = '{0}/porcelain/{1}'.format(self.basedUrl, urlPath)
+            urlPath = "v2/systems"
+            url = "{0}/porcelain/{1}".format(self.basedUrl, urlPath)
 
-            response = requests.post(url, headers=self.getAuthToken(),
-                                     json=body, verify=self.shouldVerifySslCertification)
+            response = requests.post(
+                url,
+                headers=self.getAuthToken(),
+                json=body,
+                verify=self.shouldVerifySslCertification,
+            )
             self.logger.writeExitSDK(funcName)
 
             if response.ok:
                 resposeJson = response.json()
-                data = resposeJson['data']
-                self.logger.writeInfo('resposeJson={}', resposeJson)
-                taskId = resposeJson['data'].get('taskId')
+                data = resposeJson["data"]
+                self.logger.writeInfo("resposeJson={}", resposeJson)
+                taskId = resposeJson["data"].get("taskId")
                 self.checkTaskStatus(taskId)
-            elif 'HIJSONFAULT' in response.headers:
-                self.logger.writeInfo('HIJSONFAULT response={}',
-                                       response)
+            elif "HIJSONFAULT" in response.headers:
+                self.logger.writeInfo("HIJSONFAULT response={}", response)
                 Utils.raiseException(self.sessionId, response)
             else:
-                self.logger.writeInfo('Unknown Exception response={}',
-                                       response)
-                raise Exception('Unknown error HTTP {0}'.format(response.status_code + response.message))
+                self.logger.writeInfo("Unknown Exception response={}", response)
+                raise Exception(
+                    "Unknown error HTTP {0}".format(
+                        response.status_code + response.message
+                    )
+                )
         return ucp_name
 
     # old obselete helper func
     def getUcpSystem(self, gatewayIp):
-        funcName = 'hv_infra:getUcpSystem'
+        funcName = "hv_infra:getUcpSystem"
         self.logger.writeEnterSDK(funcName)
 
-        gatewayLast5 = gatewayIp.replace('.', '')[-5:]
-        ucp_name = 'ucp-{0}'.format(gatewayLast5)
-        ucp_serial = 'Logical-UCP-{0}'.format(gatewayLast5)
-   
+        gatewayLast5 = gatewayIp.replace(".", "")[-5:]
+        ucp_name = "ucp-{0}".format(gatewayLast5)
+        ucp_serial = "Logical-UCP-{0}".format(gatewayLast5)
+
         systems = self.getAllUcpSystem()
-        system = next((x for x in systems if x.get('name')
-                       == ucp_name), None)
+        system = next((x for x in systems if x.get("name") == ucp_name), None)
         self.logger.writeExitSDK(funcName)
         return system
 
     def getUcpSystemByName(self, ucpname):
-        funcName = 'hv_infra:getUcpSystemByName'
+        funcName = "hv_infra:getUcpSystemByName"
         self.logger.writeEnterSDK(funcName)
 
         systems = self.getAllUcpSystem()
-        # self.logger.writeDebug('20230523 systems={}', systems) 
+        # self.logger.writeDebug('20230523 systems={}', systems)
 
         # system = next((x for x in systems if str(x['serialNumber'])
         #                 == ucpSerial), None)
 
-        self.logger.writeDebug('20230523 systems={}', ucpname) 
-        system = next((x for x in systems if str(x['name'])
-                        == ucpname), None)
-        self.logger.writeDebug('20230523 system={}', system) 
+        self.logger.writeDebug("20230523 systems={}", ucpname)
+        system = next((x for x in systems if str(x["name"]) == ucpname), None)
+        self.logger.writeDebug("20230523 system={}", system)
         # system = None
         # for x in systems:
-        #     self.logger.writeDebug('20230523 ucp={}', x)  
-        #     self.logger.writeDebug('20230523 serialNumber={}', x['serialNumber'])  
+        #     self.logger.writeDebug('20230523 ucp={}', x)
+        #     self.logger.writeDebug('20230523 serialNumber={}', x['serialNumber'])
         #     if str(x['serialNumber']) == ucpname:
         #         system = x
         #         break
 
         self.logger.writeExitSDK(funcName)
-        return system    
+        return system
 
     def getAllUcpSystem(self):
-        funcName = 'hv_infra:getAllUcpSystem'
+        funcName = "hv_infra:getAllUcpSystem"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'v2/systems'
+        urlPath = "v2/systems"
         url = self.getUrl(urlPath)
 
         headers = self.getAuthToken()
-        response = requests.get(url, headers=headers,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             authResponse = response.json()
-            self.logger.writeInfo('AllUcpSystem={}', authResponse)
-            systems = authResponse.get('data')
+            self.logger.writeInfo("AllUcpSystem={}", authResponse)
+            systems = authResponse.get("data")
             return systems
-        elif 'HIJSONFAULT' in response.headers:
-            self.logger.writeInfo('raiseException={}', response)
+        elif "HIJSONFAULT" in response.headers:
+            self.logger.writeInfo("raiseException={}", response)
             Utils.raiseException(self.sessionId, response)
         else:
-            self.logger.writeInfo('throwException={}', response)
+            self.logger.writeInfo("throwException={}", response)
             self.throwException(response)
-   
+
     def getvCenter(self, vcip):
-        funcName = 'hv_infra:getvCenter'
+        funcName = "hv_infra:getvCenter"
         self.logger.writeEnterSDK(funcName)
         vCenters = self.getAllvCenter()
-        vCenter = next((x for x in vCenters if x.get('vcenterAddress')
-                       == vcip), None)
+        vCenter = next((x for x in vCenters if x.get("vcenterAddress") == vcip), None)
         self.logger.writeExitSDK(funcName)
         return vCenter
 
     def getAllvCenter(self):
-        funcName = 'hv_infra:getAllvCenter'
+        funcName = "hv_infra:getAllvCenter"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'v2/virtualization/vcenters'
+        urlPath = "v2/virtualization/vcenters"
         url = self.getUrl(urlPath)
 
         headers = self.getAuthToken()
-        response = requests.get(url, headers=headers,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             authResponse = response.json()
-            self.logger.writeInfo('vcenters={}', authResponse)
-            systems = authResponse.get('data')
+            self.logger.writeInfo("vcenters={}", authResponse)
+            systems = authResponse.get("data")
             return systems
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
-            self.throwException(response)        
+            self.throwException(response)
 
     def addvCenter(self, vcip, user, password, ucpname):
-        funcName = 'hv_infra:addvCenter'
+        funcName = "hv_infra:addvCenter"
         self.logger.writeEnterSDK(funcName)
         vCenter = self.getvCenter(vcip)
-        self.logger.writeInfo('vCenter={}', vCenter)
+        self.logger.writeInfo("vCenter={}", vCenter)
         if vCenter is None:
             body = {
-                'vcenterAddress': vcip,
-                'username': user,
-                'password': password,
-                'ucpSystem': ucpname,
+                "vcenterAddress": vcip,
+                "username": user,
+                "password": password,
+                "ucpSystem": ucpname,
             }
-            urlPath = 'v2/virtualization/vcenters'
-            url = '{0}/porcelain/{1}'.format(self.basedUrl, urlPath)
-            self.logger.writeInfo('url={}', url)
-            self.logger.writeInfo('body={}', body)
-            response = requests.post(url, headers=self.getAuthToken(),
-                                        json=body, verify=self.shouldVerifySslCertification)
+            urlPath = "v2/virtualization/vcenters"
+            url = "{0}/porcelain/{1}".format(self.basedUrl, urlPath)
+            self.logger.writeInfo("url={}", url)
+            self.logger.writeInfo("body={}", body)
+            response = requests.post(
+                url,
+                headers=self.getAuthToken(),
+                json=body,
+                verify=self.shouldVerifySslCertification,
+            )
             self.logger.writeExitSDK(funcName)
 
             if response.ok:
                 resposeJson = response.json()
-                data = resposeJson['data']
-                self.logger.writeInfo('resposeJson={}', resposeJson)
-                taskId = resposeJson['data'].get('taskId')
+                data = resposeJson["data"]
+                self.logger.writeInfo("resposeJson={}", resposeJson)
+                taskId = resposeJson["data"].get("taskId")
                 self.checkTaskStatus(taskId)
                 vCenter = self.getvCenter(vcip)
                 time.sleep(10)
-            elif 'HIJSONFAULT' in response.headers:
-                self.logger.writeInfo('HIJSONFAULT response={}',
-                                        response)
+            elif "HIJSONFAULT" in response.headers:
+                self.logger.writeInfo("HIJSONFAULT response={}", response)
                 Utils.raiseException(self.sessionId, response)
             else:
-                self.logger.writeInfo('Unknown Exception response={}',
-                                        response)
-                raise Exception('Unknown error HTTP {0}'.format(response.status_code))
-        
+                self.logger.writeInfo("Unknown Exception response={}", response)
+                raise Exception("Unknown error HTTP {0}".format(response.status_code))
+
     # this old function only getAllStorageSystems from the first ucp,
-    # it assume there is only one ucp    
+    # it assume there is only one ucp
     def getAllStorageSystems(self):
-        funcName = 'hv_infra:getAllStorageSystems'
+        funcName = "hv_infra:getAllStorageSystems"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'v2/storage/devices'
+        urlPath = "v2/storage/devices"
         url = self.getUrl(urlPath)
 
         ucp_systems = self.getAllUcpSystem()
         storage_systems = []
         for ucp in ucp_systems:
-            sn = str(ucp.get('serialNumber'))
+            sn = str(ucp.get("serialNumber"))
             self.logger.writeInfo(sn)
-            body = {'ucpSystem': sn}
-            self.logger.writeInfo('body={}', body)
+            body = {"ucpSystem": sn}
+            self.logger.writeInfo("body={}", body)
             headers = self.getAuthToken()
 
-            response = requests.get(url, headers=headers, params=body,
-                                    verify=self.shouldVerifySslCertification)
+            response = requests.get(
+                url,
+                headers=headers,
+                params=body,
+                verify=self.shouldVerifySslCertification,
+            )
 
             if response.ok:
                 authResponse = response.json()
-                systems = authResponse.get('data')
+                systems = authResponse.get("data")
                 storage_systems.extend(systems)
-            elif 'HIJSONFAULT' in response.headers:
+            elif "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
         return storage_systems
 
     def getAllISPStorageSystems(self):
-        funcName = 'hv_infra:getAllISPStorageSystems'
+        funcName = "hv_infra:getAllISPStorageSystems"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'v2/systems/default'
+        urlPath = "v2/systems/default"
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
 
-        self.logger.writeDebug('url={}', url)
-        self.logger.writeDebug('headers={}', headers)
-        response = requests.get(url, headers=headers, verify=self.shouldVerifySslCertification)
-        self.logger.writeDebug('response={}', response)
+        self.logger.writeDebug("url={}", url)
+        self.logger.writeDebug("headers={}", headers)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
+        self.logger.writeDebug("response={}", response)
 
         storage_systems = []
         if response.ok:
             authResponse = response.json()
-            self.logger.writeDebug('ISP response Json={}', authResponse)
-            data = authResponse.get('data')
-            storage_systems.extend(data.get('storageDevices'))
-        elif 'HIJSONFAULT' in response.headers:
+            self.logger.writeDebug("ISP response Json={}", authResponse)
+            data = authResponse.get("data")
+            storage_systems.extend(data.get("storageDevices"))
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -2365,53 +2048,63 @@ class StorageSystem:
 
     def getStorageInfoByResourceId(self, resourceId):
 
-        funcName = 'hv_infra:getStorageInfoByResourceId'
+        funcName = "hv_infra:getStorageInfoByResourceId"
 
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('resourceId={}', resourceId)
+        self.logger.writeParam("resourceId={}", resourceId)
         # FIXME.SNG this may not be the intended API
-        urlPath = 'v2/storage/devices/{0}'.format(resourceId)
+        urlPath = "v2/storage/devices/{0}".format(resourceId)
         url = self.getUrl(urlPath)
 
         # body = {'id': resourceId}
 
         headers = self.getAuthToken()
-        response = requests.get(url, headers=headers,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeDebug("parse the response")
         if response.ok:
             authResponse = response.json()
-            system = authResponse['data']
-            self.logger.writeDebug("system={}",system)
-            system['StorageDeviceType'] = \
-                StorageType.parse(system.get('deviceType')).name
-            system['StorageDeviceModel'] = \
-                StorageModel.parse(system.get('model')).name
+            system = authResponse["data"]
+            self.logger.writeDebug("system={}", system)
+            system["StorageDeviceType"] = StorageType.parse(
+                system.get("deviceType")
+            ).name
+            system["StorageDeviceModel"] = StorageModel.parse(system.get("model")).name
 
-            #del system['model']
-            #del system['deviceType']
+            # del system['model']
+            # del system['deviceType']
             self.logger.writeExitSDK(funcName)
             return system
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def checkAndGetStorageInfoByResourceId(self, resourceId):
-        funcName = 'hv_infra:checkAndGetStorageInfoByResourceId'
+        funcName = "hv_infra:checkAndGetStorageInfoByResourceId"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('resourceId={}', resourceId)
+        self.logger.writeParam("resourceId={}", resourceId)
         system = self.getStorageInfoByResourceId(resourceId)
-        self.logger.writeDebug('system={}',system)
-        while system['operationalStatus'] == 'Running' or  system['operationalStatus'] == 'Processing':
-            self.logger.writeDebug('system[operationalStatus]={}',system['operationalStatus'])
-            self.logger.writeInfo('storage system with resource {0} resource state is onboarding'.format(resourceId))
+        self.logger.writeDebug("system={}", system)
+        while (
+            system["operationalStatus"] == "Running"
+            or system["operationalStatus"] == "Processing"
+        ):
+            self.logger.writeDebug(
+                "system[operationalStatus]={}", system["operationalStatus"]
+            )
+            self.logger.writeInfo(
+                "storage system with resource {0} resource state is onboarding".format(
+                    resourceId
+                )
+            )
             time.sleep(5)
             system = self.getStorageInfoByResourceId(resourceId)
 
         self.logger.writeExitSDK(funcName)
-        return system           
+        return system
 
     # def createLunInDP(
     #     self,
@@ -2461,56 +2154,49 @@ class StorageSystem:
     #         raise Exception(
     #            self.throwException(response)
     # createCommandDevice(poolId, vcip, user, pword, vmName)
-    
-    def createCommandDevice(
-        self,
-        poolId,
-        vcip,
-        user,
-        pword,
-        vmName,
-        ucp_serial
-    ):
-        funcName = 'hv_infra:createCommandDevice'
+
+    def createCommandDevice(self, poolId, vcip, user, pword, vmName, ucp_serial):
+        funcName = "hv_infra:createCommandDevice"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('poolId={}', poolId)
-        self.logger.writeParam('vcip={}', vcip)
-        self.logger.writeParam('user={}', user)
-        self.logger.writeParam('pword={}', pword)
-        self.logger.writeParam('vmName={}', vmName)
+        self.logger.writeParam("poolId={}", poolId)
+        self.logger.writeParam("vcip={}", vcip)
+        self.logger.writeParam("user={}", user)
+        self.logger.writeParam("pword={}", pword)
+        self.logger.writeParam("vmName={}", vmName)
 
         resourceId = self.getStorageSystemResourceIdInISP()
 
-        self.logger.writeParam('resourceId={}', resourceId)
-        self.logger.writeParam('ucp={}', ucp_serial)
-        urlPath = 'v2/storage/devices/storage/command/device'
+        self.logger.writeParam("resourceId={}", resourceId)
+        self.logger.writeParam("ucp={}", ucp_serial)
+        urlPath = "v2/storage/devices/storage/command/device"
         url = self.getUrl(urlPath)
-        self.logger.writeInfo('url={}', url)
+        self.logger.writeInfo("url={}", url)
 
         body = {
-            'poolId': poolId,
-            'vmName': vmName,
-            'size': '50MB',
-            'resourceGroupId': 0,
-            'ucpSystem': ucp_serial,
-            'serialNumber': self.serial
+            "poolId": poolId,
+            "vmName": vmName,
+            "size": "50MB",
+            "resourceGroupId": 0,
+            "ucpSystem": ucp_serial,
+            "serialNumber": self.serial,
         }
-     
-        self.logger.writeInfo('body={}', body)
+
+        self.logger.writeInfo("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo('headers={}', headers)
-        response = requests.post(url, json=body, headers=headers,
-                                 verify=self.shouldVerifySslCertification)
-        self.logger.writeInfo('response={}', response.json())
+        self.logger.writeInfo("headers={}", headers)
+        response = requests.post(
+            url, json=body, headers=headers, verify=self.shouldVerifySslCertification
+        )
+        self.logger.writeInfo("response={}", response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            resourceId = response.json()['data']['resourceId']
-            self.logger.writeInfo('resourceId={}', resourceId)
-            taskId = response.json()['data'].get('taskId')
+            resourceId = response.json()["data"]["resourceId"]
+            self.logger.writeInfo("resourceId={}", resourceId)
+            taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(5)
             return self.getCommandDeviceEvents(taskId)
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -2521,50 +2207,51 @@ class StorageSystem:
         pool,
         size,
         dedup,
-        name='',
+        name="",
     ):
-        funcName = 'hv_infra:createLunInDP'
+        funcName = "hv_infra:createLunInDP"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lun={}', lun)
-        self.logger.writeParam('pool={}', pool)
-        self.logger.writeParam('sizeInGB={}', size)
-        self.logger.writeParam('luName={}', name)
+        self.logger.writeParam("lun={}", lun)
+        self.logger.writeParam("pool={}", pool)
+        self.logger.writeParam("sizeInGB={}", size)
+        self.logger.writeParam("luName={}", name)
 
         (resourceId, ucp) = self.getStorageSystemResourceId()
 
-        self.logger.writeParam('resourceId={}', resourceId)
-        self.logger.writeParam('ucp={}', ucp)
+        self.logger.writeParam("resourceId={}", resourceId)
+        self.logger.writeParam("ucp={}", ucp)
 
-        urlPath = 'v2/storage/devices/{0}/volumes'.format(resourceId)
+        urlPath = "v2/storage/devices/{0}/volumes".format(resourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeInfo('url={}', url)
+        self.logger.writeInfo("url={}", url)
         body = {
-            'deduplicationCompressionMode': dedup,
-            'poolId': pool,
-            'name': name,
-            'capacity': size,
-            'resourceGroupId': 0,
-            'ucpSystem': ucp,
+            "deduplicationCompressionMode": dedup,
+            "poolId": pool,
+            "name": name,
+            "capacity": size,
+            "resourceGroupId": 0,
+            "ucpSystem": ucp,
         }
         if lun is not None:
-            body['lunId'] = lun
-        self.logger.writeInfo('body={}', body)
+            body["lunId"] = lun
+        self.logger.writeInfo("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo('headers={}', headers)
-        response = requests.post(url, json=body, headers=headers,
-                                 verify=self.shouldVerifySslCertification)
-        self.logger.writeInfo('response={}', response.json())
+        self.logger.writeInfo("headers={}", headers)
+        response = requests.post(
+            url, json=body, headers=headers, verify=self.shouldVerifySslCertification
+        )
+        self.logger.writeInfo("response={}", response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            resourceId = response.json()['data']['resourceId']
-            self.logger.writeInfo('resourceId={}', resourceId)
-            taskId = response.json()['data'].get('taskId')
+            resourceId = response.json()["data"]["resourceId"]
+            self.logger.writeInfo("resourceId={}", resourceId)
+            taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(5)
             if lun is None:
                 lun = self.getLunIdFromTaskStatusEvents(taskId)
             return lun
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
 
             # return self.getLunByResourceId1(resourceId)
 
@@ -2572,43 +2259,37 @@ class StorageSystem:
         else:
             self.throwException(response)
 
-    def updateLunInDP(
-        self,
-        lunResourceId,
-        size
-    ):
-        funcName = 'hv_infra:updateLunInDP'
+    def updateLunInDP(self, lunResourceId, size):
+        funcName = "hv_infra:updateLunInDP"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lunResourceId={}', lunResourceId)
-        self.logger.writeParam('sizeInGB={}', size)
+        self.logger.writeParam("lunResourceId={}", lunResourceId)
+        self.logger.writeParam("sizeInGB={}", size)
 
         (resourceId, ucp) = self.getStorageSystemResourceId()
 
-        self.logger.writeParam('resourceId={}', resourceId)
-        self.logger.writeParam('lunResourceId={}', lunResourceId)
-        self.logger.writeParam('ucp={}', ucp)
+        self.logger.writeParam("resourceId={}", resourceId)
+        self.logger.writeParam("lunResourceId={}", lunResourceId)
+        self.logger.writeParam("ucp={}", ucp)
 
-        urlPath = 'v2/storage/devices/{0}/volumes/{1}'.format(
-            resourceId, lunResourceId)
+        urlPath = "v2/storage/devices/{0}/volumes/{1}".format(resourceId, lunResourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeInfo('url={}', url)
-        body = {
-            'capacity': size
-        }
-        self.logger.writeInfo('body={}', body)
+        self.logger.writeInfo("url={}", url)
+        body = {"capacity": size}
+        self.logger.writeInfo("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo('headers={}', headers)
-        response = requests.patch(url, json=body, headers=headers,
-                                  verify=self.shouldVerifySslCertification)
-        self.logger.writeInfo('response={}', response.json())
+        self.logger.writeInfo("headers={}", headers)
+        response = requests.patch(
+            url, json=body, headers=headers, verify=self.shouldVerifySslCertification
+        )
+        self.logger.writeInfo("response={}", response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            resourceId = response.json()['data']['resourceId']
-            self.logger.writeInfo('resourceId={}', resourceId)
-            taskId = response.json()['data'].get('taskId')
+            resourceId = response.json()["data"]["resourceId"]
+            self.logger.writeInfo("resourceId={}", resourceId)
+            taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(10)
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
 
             # return self.getLunByResourceId1(resourceId)
 
@@ -2633,151 +2314,146 @@ class StorageSystem:
         # self.logger.writeParam('sizeInGB={}', sizeInGB)
         # self.logger.writeParam('stripeSize={}', stripeSize)
         # self.logger.writeParam('metaResourceSerial={}',
-                               # metaResourceSerial)
+        # metaResourceSerial)
         # self.logger.writeParam('luName={}', luName)
 
         # urlPath = 'LogicalUnit/LogicalUnit/CreateInPGLite'
         # url = self.getUrl(urlPath)
         # self.logger.writeInfo('url={}', url)
         # body = {
-            # 'sessionId': self.sessionId,
-            # 'serialNumber': self.serial,
-            # 'lun': lun or -1,
-            # 'pg': parityGroup,
-            # 'sizeInGB': sizeInGB,
-            # 'stripeSize': stripeSize,
-            # 'metaResourceSerial': metaResourceSerial or -1,
-            # 'luName': luName or '',
+        # 'sessionId': self.sessionId,
+        # 'serialNumber': self.serial,
+        # 'lun': lun or -1,
+        # 'pg': parityGroup,
+        # 'sizeInGB': sizeInGB,
+        # 'stripeSize': stripeSize,
+        # 'metaResourceSerial': metaResourceSerial or -1,
+        # 'luName': luName or '',
         # }
 
         # response = requests.post(url, json=body,
-                                 # verify=self.shouldVerifySslCertification)
+        # verify=self.shouldVerifySslCertification)
 
         # self.logger.writeExitSDK(funcName)
         # if response.ok:
-            # return response.json()
+        # return response.json()
         # elif 'HIJSONFAULT' in response.headers:
-            # Utils.raiseException(self.sessionId, response)
+        # Utils.raiseException(self.sessionId, response)
         # else:
-            # self.throwException(response)
-        funcName = 'hv_infra:createLunInPG'
+        # self.throwException(response)
+        funcName = "hv_infra:createLunInPG"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lun={}', lun)
-        self.logger.writeParam('parityGroupId={}', parityGroup)
-        self.logger.writeParam('sizeInGB={}', size)
-        self.logger.writeParam('luName={}', luName)
+        self.logger.writeParam("lun={}", lun)
+        self.logger.writeParam("parityGroupId={}", parityGroup)
+        self.logger.writeParam("sizeInGB={}", size)
+        self.logger.writeParam("luName={}", luName)
 
         (resourceId, ucp) = self.getStorageSystemResourceId()
 
-        self.logger.writeParam('resourceId={}', resourceId)
-        self.logger.writeParam('ucp={}', ucp)
+        self.logger.writeParam("resourceId={}", resourceId)
+        self.logger.writeParam("ucp={}", ucp)
 
-        urlPath = 'v2/storage/devices/{0}/volumes'.format(resourceId)
+        urlPath = "v2/storage/devices/{0}/volumes".format(resourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeInfo('url={}', url)
+        self.logger.writeInfo("url={}", url)
         body = {
-            'parityGroupId': parityGroup,
-            'name': luName,
-            'capacity': size,
-            'resourceGroupId': 0,
-            'ucpSystem': ucp,
+            "parityGroupId": parityGroup,
+            "name": luName,
+            "capacity": size,
+            "resourceGroupId": 0,
+            "ucpSystem": ucp,
         }
         if lun is not None:
-            body['lunId'] = lun
-        self.logger.writeInfo('body={}', body)
+            body["lunId"] = lun
+        self.logger.writeInfo("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo('headers={}', headers)
-        response = requests.post(url, json=body, headers=headers,
-                                 verify=self.shouldVerifySslCertification)
-        self.logger.writeInfo('response={}', response.json())
+        self.logger.writeInfo("headers={}", headers)
+        response = requests.post(
+            url, json=body, headers=headers, verify=self.shouldVerifySslCertification
+        )
+        self.logger.writeInfo("response={}", response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            resourceId = response.json()['data']['resourceId']
-            self.logger.writeInfo('resourceId={}', resourceId)
-            taskId = response.json()['data'].get('taskId')
+            resourceId = response.json()["data"]["resourceId"]
+            self.logger.writeInfo("resourceId={}", resourceId)
+            taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(5)
             if lun is None:
                 lun = self.getLunIdFromTaskStatusEvents(taskId)
             return lun
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
 
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
-    def updateLunName(self,
-        lunResourceId,
-        lunName):
-        funcName = 'hpe_infra:updateLunInDP'
+    def updateLunName(self, lunResourceId, lunName):
+        funcName = "hpe_infra:updateLunInDP"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lunResourceId={}', lunResourceId)
-        self.logger.writeParam('sizeInGB={}', lunName)
+        self.logger.writeParam("lunResourceId={}", lunResourceId)
+        self.logger.writeParam("sizeInGB={}", lunName)
 
         (resourceId, ucp) = self.getStorageSystemResourceId()
 
-        self.logger.writeParam('resourceId={}', resourceId)
-        self.logger.writeParam('lunResourceId={}', lunResourceId)
-        self.logger.writeParam('ucp={}', ucp)
+        self.logger.writeParam("resourceId={}", resourceId)
+        self.logger.writeParam("lunResourceId={}", lunResourceId)
+        self.logger.writeParam("ucp={}", ucp)
 
-        urlPath = 'v2/storage/devices/{0}/volumes/{1}'.format(
-            resourceId, lunResourceId)
+        urlPath = "v2/storage/devices/{0}/volumes/{1}".format(resourceId, lunResourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeInfo('url={}', url)
-        body = {
-            'lunName': lunName
-        }
-        self.logger.writeInfo('body={}', body)
+        self.logger.writeInfo("url={}", url)
+        body = {"lunName": lunName}
+        self.logger.writeInfo("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo('headers={}', headers)
-        response = requests.patch(url, json=body, headers=headers,
-                                  verify=self.shouldVerifySslCertification)
-        self.logger.writeInfo('response={}', response.json())
+        self.logger.writeInfo("headers={}", headers)
+        response = requests.patch(
+            url, json=body, headers=headers, verify=self.shouldVerifySslCertification
+        )
+        self.logger.writeInfo("response={}", response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            resourceId = response.json()['data']['resourceId']
-            self.logger.writeInfo('resourceId={}', resourceId)
-            taskId = response.json()['data'].get('taskId')
+            resourceId = response.json()["data"]["resourceId"]
+            self.logger.writeInfo("resourceId={}", resourceId)
+            taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(10)
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def setDedupCompression(self, lunResourceId, dedupMode):
-        funcName = 'hv_infra:setDedupCompression'
+        funcName = "hv_infra:setDedupCompression"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lunResourceId={}', lunResourceId)
-        self.logger.writeParam('dedupMode={}', dedupMode)
+        self.logger.writeParam("lunResourceId={}", lunResourceId)
+        self.logger.writeParam("dedupMode={}", dedupMode)
 
         (resourceId, ucp) = self.getStorageSystemResourceId()
 
-        self.logger.writeParam('resourceId={}', resourceId)
-        self.logger.writeParam('lunResourceId={}', lunResourceId)
-        self.logger.writeParam('ucp={}', ucp)
+        self.logger.writeParam("resourceId={}", resourceId)
+        self.logger.writeParam("lunResourceId={}", lunResourceId)
+        self.logger.writeParam("ucp={}", ucp)
 
-        urlPath = 'v2/storage/devices/{0}/volumes/{1}'.format(
-            resourceId, lunResourceId)
+        urlPath = "v2/storage/devices/{0}/volumes/{1}".format(resourceId, lunResourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeInfo('url={}', url)
-        body = {
-            'deduplicationCompressionMode': dedupMode
-        }
-        self.logger.writeInfo('body={}', body)
+        self.logger.writeInfo("url={}", url)
+        body = {"deduplicationCompressionMode": dedupMode}
+        self.logger.writeInfo("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo('headers={}', headers)
-        response = requests.patch(url, json=body, headers=headers,
-                                  verify=self.shouldVerifySslCertification)
-        self.logger.writeInfo('response={}', response.json())
+        self.logger.writeInfo("headers={}", headers)
+        response = requests.patch(
+            url, json=body, headers=headers, verify=self.shouldVerifySslCertification
+        )
+        self.logger.writeInfo("response={}", response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            resourceId = response.json()['data']['resourceId']
-            self.logger.writeInfo('resourceId={}', resourceId)
-            taskId = response.json()['data'].get('taskId')
+            resourceId = response.json()["data"]["resourceId"]
+            self.logger.writeInfo("resourceId={}", resourceId)
+            taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(10)
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -2789,30 +2465,31 @@ class StorageSystem:
         clonedLunName,
     ):
 
-        funcName = 'hv_infra:cloneLunInDP'
+        funcName = "hv_infra:cloneLunInDP"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('sourceLun={}', sourceLun)
-        self.logger.writeParam('pool={}', pool)
-        self.logger.writeParam('clonedLunName={}', clonedLunName)
+        self.logger.writeParam("sourceLun={}", sourceLun)
+        self.logger.writeParam("pool={}", pool)
+        self.logger.writeParam("clonedLunName={}", clonedLunName)
 
-        urlPath = 'LogicalUnit/LogicalUnit/CloneInDP'
+        urlPath = "LogicalUnit/LogicalUnit/CloneInDP"
         url = self.getUrl(urlPath)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'lun': sourceLun,
-            'pool': pool,
-            'lunName': clonedLunName,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "lun": sourceLun,
+            "pool": pool,
+            "lunName": clonedLunName,
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            taskId = response.json()['data'].get('taskId')
+            taskId = response.json()["data"].get("taskId")
             return self.checkTaskStatus(taskId)
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -2829,141 +2506,145 @@ class StorageSystem:
         luName,
     ):
 
-        funcName = 'hv_infra:createPresentedVolume'
+        funcName = "hv_infra:createPresentedVolume"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lun={}', lun)
-        self.logger.writeParam('pool={}', pool)
-        self.logger.writeParam('resourceGroupId={}', resourceGroupId)
+        self.logger.writeParam("lun={}", lun)
+        self.logger.writeParam("pool={}", pool)
+        self.logger.writeParam("resourceGroupId={}", resourceGroupId)
 
-        urlPath = 'LogicalUnit/LogicalUnit/CreatePresentedVolume'
+        urlPath = "LogicalUnit/LogicalUnit/CreatePresentedVolume"
         url = self.getUrl(urlPath)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'lun': lun or -1,
-            'resourceGroupId': resourceGroupId,
-            'hostGroupName': hostGroupName or '',
-            'port': port or '',
-            'pool': pool,
-            'sizeInMB': sizeInMB,
-            'stripeSize': stripeSize or 0,
-            'luName': luName or '',
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "lun": lun or -1,
+            "resourceGroupId": resourceGroupId,
+            "hostGroupName": hostGroupName or "",
+            "port": port or "",
+            "pool": pool,
+            "sizeInMB": sizeInMB,
+            "stripeSize": stripeSize or 0,
+            "luName": luName or "",
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def expandLun(self, lun, sizeInGB):
 
-        funcName = 'hv_infra:expandLun'
+        funcName = "hv_infra:expandLun"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lun={}', lun)
-        self.logger.writeParam('sizeInGB={}', sizeInGB)
-        self.logger.writeParam('dryRun={}', self.dryRun)
+        self.logger.writeParam("lun={}", lun)
+        self.logger.writeParam("sizeInGB={}", sizeInGB)
+        self.logger.writeParam("dryRun={}", self.dryRun)
         if self.dryRun:
             return
 
-        urlPath = 'LogicalUnit/LogicalUnit/Expand'
+        urlPath = "LogicalUnit/LogicalUnit/Expand"
         url = self.getUrl(urlPath)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'lun': lun,
-            'expandSizeInGB': sizeInGB,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "lun": lun,
+            "expandSizeInGB": sizeInGB,
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if not response.ok:
-            if 'HIJSONFAULT' in response.headers:
+            if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
 
     def expandLunInBytes(self, lun, sizeInBytes):
 
-        funcName = 'hv_infra:expandLun'
+        funcName = "hv_infra:expandLun"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lun={}', lun)
-        self.logger.writeParam('sizeInBytes={}', sizeInBytes)
-        self.logger.writeParam('dryRun={}', self.dryRun)
+        self.logger.writeParam("lun={}", lun)
+        self.logger.writeParam("sizeInBytes={}", sizeInBytes)
+        self.logger.writeParam("dryRun={}", self.dryRun)
         if self.dryRun:
             return
 
-        urlPath = 'LogicalUnit/LogicalUnit/ExpandInBytes'
+        urlPath = "LogicalUnit/LogicalUnit/ExpandInBytes"
         url = self.getUrl(urlPath)
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'lun': lun,
-            'expandSize': sizeInBytes,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "lun": lun,
+            "expandSize": sizeInBytes,
         }
 
-        response = RequestsUtils.post(url, json=body,
-                                      verify=self.shouldVerifySslCertification)
+        response = RequestsUtils.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if not response.ok:
-            if 'HIJSONFAULT' in response.headers:
+            if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
 
     def deleteLun(self, lunResourceId):
-        funcName = 'hv_infra:deleteLun'
+        funcName = "hv_infra:deleteLun"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lunResourceId={}', lunResourceId)
+        self.logger.writeParam("lunResourceId={}", lunResourceId)
         (storageResourceId, ucp) = self.getStorageSystemResourceId()
-        urlPath = \
-            'v2/storage/devices/{0}/volumes/{1}'.format(storageResourceId,
-                                                        lunResourceId)
+        urlPath = "v2/storage/devices/{0}/volumes/{1}".format(
+            storageResourceId, lunResourceId
+        )
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        self.logger.writeParam('url={}', url)
-        response = requests.delete(url, headers=headers,
-                                   verify=self.shouldVerifySslCertification)
+        self.logger.writeParam("url={}", url)
+        response = requests.delete(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         self.logger.writeInfo(response.status_code)
         if response.ok:
-            resourceId = response.json()['data']['resourceId']
-            self.logger.writeInfo('resourceId={}', resourceId)
-            taskId = response.json()['data'].get('taskId')
+            resourceId = response.json()["data"]["resourceId"]
+            self.logger.writeInfo("resourceId={}", resourceId)
+            taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(10)
             return True
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
         self.logger.writeExitSDK(funcName)
         if not response.ok:
-            if 'HIJSONFAULT' in response.headers:
+            if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
 
     def getLun(self, lun, doRetry=True):
 
-        funcName = 'hv_infra:getLun'
+        funcName = "hv_infra:getLun"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lun={}', lun)
+        self.logger.writeParam("lun={}", lun)
         luns = self.getAllLuns()
         foundlun = None
         for item in luns:
             try:
-                if str(item['ldevId']) == str(lun):
+                if str(item["ldevId"]) == str(lun):
                     foundlun = item
                     self.logger.writeInfo(foundlun)
                     break
@@ -2975,25 +2656,27 @@ class StorageSystem:
 
     def getLunByResourceId(self, lunResourceId, doRetry=True):
 
-        funcName = 'hv_infra:getLunByResourceId'
+        funcName = "hv_infra:getLunByResourceId"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lunResourceId={}', lunResourceId)
+        self.logger.writeParam("lunResourceId={}", lunResourceId)
         (storageResourceId, ucp) = self.getStorageSystemResourceId()
-        urlPath = 'v2/storage/devices/{0}/volumes/{1}'.format(storageResourceId,
-                                                              lunResourceId)
+        urlPath = "v2/storage/devices/{0}/volumes/{1}".format(
+            storageResourceId, lunResourceId
+        )
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        self.logger.writeParam('url={}', url)
-        response = requests.get(url, headers=headers,
-                                verify=self.shouldVerifySslCertification)
+        self.logger.writeParam("url={}", url)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         self.logger.writeInfo(response.status_code)
         if response.ok:
-            return response.json()['data']
-        elif 'HIJSONFAULT' in response.headers:
+            return response.json()["data"]
+        elif "HIJSONFAULT" in response.headers:
             if doRetry:
-                self.logger.writeInfo(funcName + ':{}', 'retry once')
+                self.logger.writeInfo(funcName + ":{}", "retry once")
                 return self.getLunByResourceId(lunResourceId, False)
             else:
                 Utils.raiseException(self.sessionId, response, False)
@@ -3002,15 +2685,15 @@ class StorageSystem:
 
     def getLunByResourceId1(self, lunResourceId, doRetry=True):
 
-        funcName = 'hv_infra:getLunByResourceId1'
+        funcName = "hv_infra:getLunByResourceId1"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lunResourceId={}', lunResourceId)
+        self.logger.writeParam("lunResourceId={}", lunResourceId)
 
         luns = self.getAllLuns()
         foundlun = None
         for item in luns:
             try:
-                if str(item['resourceId']) == str(lunResourceId):
+                if str(item["resourceId"]) == str(lunResourceId):
                     foundlun = item
                     break
             except Exception as e:
@@ -3020,16 +2703,22 @@ class StorageSystem:
         return foundlun
 
     def throwException(self, response):
-        raise Exception('{0}:{1}'.format(response.status_code, response.json().get('error')))
+        raise Exception(
+            "{0}:{1}".format(response.status_code, response.json().get("error"))
+        )
 
     def getLunByNaa(self, canonicalName):
 
-        funcName = 'hv_infra:getLunByNaa'
+        funcName = "hv_infra:getLunByNaa"
         self.logger.writeEnterSDK(funcName)
 
         canonicalName = str(canonicalName).upper()
         manufacturerCode = "60060"
-        if len(canonicalName) == 36 and canonicalName.find("NAA") == 0 and canonicalName.find(manufacturerCode) > 0:
+        if (
+            len(canonicalName) == 36
+            and canonicalName.find("NAA") == 0
+            and canonicalName.find(manufacturerCode) > 0
+        ):
             lunCode = canonicalName[28:36]
             self.logger.writeInfo("lunCode={0}".format(lunCode))
             modelCode = canonicalName[20:23]
@@ -3054,105 +2743,113 @@ class StorageSystem:
 
     def getLunByCountByNaa(self, lunCanonicalName, maxCount):
 
-        funcName = 'hv_infra:getLunByCountByNaa'
+        funcName = "hv_infra:getLunByCountByNaa"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'LogicalUnit/LogicalUnit/GetListByCountByCanonicalName'
+        urlPath = "LogicalUnit/LogicalUnit/GetListByCountByCanonicalName"
         url = self.getUrl(urlPath)
-        params = {'sessionId': self.sessionId,
-                  'canonicalName': lunCanonicalName,
-                  'maxCount': maxCount}
+        params = {
+            "sessionId": self.sessionId,
+            "canonicalName": lunCanonicalName,
+            "maxCount": maxCount,
+        }
 
-        self.logger.writeParam('url={}', url)
-        self.logger.writeParam('params={}', params)
+        self.logger.writeParam("url={}", url)
+        self.logger.writeParam("params={}", params)
 
-        response = requests.get(url, params=params,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, params=params, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getLunsByCount(self, startLDev, maxCount):
 
-        funcName = 'hv_infra:getLunsByCount'
+        funcName = "hv_infra:getLunsByCount"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'LogicalUnit/LogicalUnit/GetListByCount'
+        urlPath = "LogicalUnit/LogicalUnit/GetListByCount"
         url = self.getUrl(urlPath)
         params = {
-            'sessionId': self.sessionId,
-            'serial': self.serial,
-            'startLDev': startLDev,
-            'maxCount': maxCount,
+            "sessionId": self.sessionId,
+            "serial": self.serial,
+            "startLDev": startLDev,
+            "maxCount": maxCount,
         }
 
-        self.logger.writeParam('url={}', url)
-        self.logger.writeParam('params={}', params)
+        self.logger.writeParam("url={}", url)
+        self.logger.writeParam("params={}", params)
 
-        response = requests.get(url, params=params,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, params=params, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getLunsByRange(self, beginLDev, endLDev):
 
-        funcName = 'hv_infra:getLunsByRange'
+        funcName = "hv_infra:getLunsByRange"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'LogicalUnit/LogicalUnit/GetListByRange'
+        urlPath = "LogicalUnit/LogicalUnit/GetListByRange"
         url = self.getUrl(urlPath)
         params = {
-            'sessionId': self.sessionId,
-            'serial': self.serial,
-            'beginLDev': beginLDev,
-            'endLDev': endLDev,
+            "sessionId": self.sessionId,
+            "serial": self.serial,
+            "beginLDev": beginLDev,
+            "endLDev": endLDev,
         }
 
-        self.logger.writeParam('url={}', url)
-        self.logger.writeParam('params={}', params)
+        self.logger.writeParam("url={}", url)
+        self.logger.writeParam("params={}", params)
 
-        response = requests.get(url, params=params,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, params=params, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getAllLuns(self):
 
-        funcName = 'hv_infra:getAllLuns'
+        funcName = "hv_infra:getAllLuns"
         self.logger.writeEnterSDK(funcName)
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        self.logger.writeInfo('Storage_resource_id={0}'.format(resourceId))
+        self.logger.writeInfo("Storage_resource_id={0}".format(resourceId))
         # urlPath = 'v2/storage/devices/{0}/volumes?refresh=false'.format(resourceId)
-        urlPath = 'v2/storage/devices/{0}/volumes?fromLdevId=1000&toLdevId=1100&refresh=false'.format(resourceId)
+        urlPath = "v2/storage/devices/{0}/volumes?fromLdevId=1000&toLdevId=1100&refresh=false".format(
+            resourceId
+        )
         url = self.getUrl(urlPath)
-        self.logger.writeParam('url={}', url)
+        self.logger.writeParam("url={}", url)
         headers = self.getAuthToken()
-        response = requests.get(url, headers=headers,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
 
         # self.logger.writeInfo('response.json()={}', response.json())
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            return response.json()['data']
-        elif 'HIJSONFAULT' in response.headers:
+            return response.json()["data"]
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -3164,12 +2861,12 @@ class StorageSystem:
         port,
     ):
 
-        funcName = 'hv_infra:presentLun'
+        funcName = "hv_infra:presentLun"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lun={}', luns)
-        self.logger.writeParam('hgName={}', hgName)
-        self.logger.writeParam('port={}', port)
-        self.logger.writeParam('dryRun={}', self.dryRun)
+        self.logger.writeParam("lun={}", luns)
+        self.logger.writeParam("hgName={}", hgName)
+        self.logger.writeParam("port={}", port)
+        self.logger.writeParam("dryRun={}", self.dryRun)
         if self.dryRun:
             return
         (resourceId, ucp) = self.getStorageSystemResourceId()
@@ -3179,135 +2876,149 @@ class StorageSystem:
 
         hostgroup = None
         for x in hostgroups:
-            if x.get('hostGroupName') == hgName and x.get('port') == port:
+            if x.get("hostGroupName") == hgName and x.get("port") == port:
                 hostgroup = x
                 break
 
-        hgResourceId = hostgroup.get('resourceId')
-        urlPath = '/v2/storage/devices/{0}/hostGroups/{1}/volumes'.format(resourceId,
-                                                                          hgResourceId)
+        hgResourceId = hostgroup.get("resourceId")
+        urlPath = "/v2/storage/devices/{0}/hostGroups/{1}/volumes".format(
+            resourceId, hgResourceId
+        )
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        body = {'ldevIds': list(map(int, luns))}
+        body = {"ldevIds": list(map(int, luns))}
 
-        response = requests.post(url, headers=headers, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, headers=headers, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
 
         if not response.ok:
-            if 'HIJSONFAULT' in response.headers:
+            if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
         else:
-            taskId = response.json()['data'].get('taskId')
+            taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
 
     def checkTaskStatus(self, taskId):
-        funcName = 'hv_infra:checkTaskStatus'
+        funcName = "hv_infra:checkTaskStatus"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('taskId={}', taskId)
+        self.logger.writeParam("taskId={}", taskId)
         (status, name) = self.getTaskStatus(taskId)
-        while status == 'Running':
-            self.logger.writeInfo('{0} task with id {1} status is Running'.format(name,
-                                                                                  taskId))
+        while status == "Running":
+            self.logger.writeInfo(
+                "{0} task with id {1} status is Running".format(name, taskId)
+            )
             time.sleep(5)
             (status, name) = self.getTaskStatus(taskId)
 
-        if status.lower() == 'failed':
+        if status.lower() == "failed":
             description = self.getTaskStatusDescription(taskId)
-            self.logger.writeInfo('{0} task with id {1} is failed.'.format(name, taskId))
-            raise Exception('Operation failed. {0}'.format(description))
+            self.logger.writeInfo(
+                "{0} task with id {1} is failed.".format(name, taskId)
+            )
+            raise Exception("Operation failed. {0}".format(description))
 
         self.logger.writeExitSDK(funcName)
         return status
 
     def getLunIdFromTaskStatusEvents(self, taskId):
-        funcName = 'hv_infra:getLunIdFromTaskStatusEvents'
+        funcName = "hv_infra:getLunIdFromTaskStatusEvents"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('taskId={}', taskId)
+        self.logger.writeParam("taskId={}", taskId)
         headers = self.getAuthToken()
-        urlPath = '/v2/tasks/{0}'.format(taskId)
+        urlPath = "/v2/tasks/{0}".format(taskId)
         url = self.getUrl(urlPath)
-        response = requests.get(url, headers=headers,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         status = None
         name = None
         lun = None
         if response.ok:
-            status = response.json()['data'].get('status')
-            name = response.json()['data'].get('name')
+            status = response.json()["data"].get("status")
+            name = response.json()["data"].get("name")
 
-        if status.lower() == 'success':
-            events = response.json()['data'].get('events')
-            description = events[1].get('description')
+        if status.lower() == "success":
+            events = response.json()["data"].get("events")
+            description = events[1].get("description")
             self.logger.writeInfo(description)
             # start = description.find("Created logical Unit") + len("Created logical Unit")
             # end = description. find("in")
             # lun = description[start:end]
             # parsedLun = 'parsedLun={0}'.format(lun)
-            start = description.find("Successfully created Volume [") + len("Successfully created volume [")
-            end = description. find("] for")
+            start = description.find("Successfully created Volume [") + len(
+                "Successfully created volume ["
+            )
+            end = description.find("] for")
             lun = description[start:end]
-            parsedLun = 'parsedLun={0}'.format(lun)
+            parsedLun = "parsedLun={0}".format(lun)
             self.logger.writeInfo(parsedLun)
         self.logger.writeExitSDK(funcName)
         return lun.strip()
 
     def getTaskStatus(self, taskId):
-        funcName = 'hv_infra: getTaskStatus'
+        funcName = "hv_infra: getTaskStatus"
         self.logger.writeEnterSDK(funcName)
         headers = self.getAuthToken()
-        urlPath = '/v2/tasks/{0}'.format(taskId)
+        urlPath = "/v2/tasks/{0}".format(taskId)
         url = self.getUrl(urlPath)
-        response = requests.get(url, headers=headers, verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         status = None
         name = None
         if response.ok:
-            status = response.json()['data'].get('status')
-            name = response.json()['data'].get('name')
+            status = response.json()["data"].get("status")
+            name = response.json()["data"].get("name")
 
         self.logger.writeExitSDK(funcName)
         return (status, name)
-        
+
     def getTaskStatusDescription(self, taskId):
-        funcName = 'hv_infra: getTaskStatusDescription'
+        funcName = "hv_infra: getTaskStatusDescription"
         self.logger.writeEnterSDK(funcName)
         headers = self.getAuthToken()
-        urlPath = '/v2/tasks/{0}'.format(taskId)
+        urlPath = "/v2/tasks/{0}".format(taskId)
         url = self.getUrl(urlPath)
-        response = requests.get(url, headers=headers, verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         description = None
         if response.ok:
-            self.logger.writeInfo('getFailedTaskResponse={}', response.json())
-            status = response.json()['data'].get('status')
-            name = response.json()['data'].get('name')
-            events = response.json()['data'].get('events')
+            self.logger.writeInfo("getFailedTaskResponse={}", response.json())
+            status = response.json()["data"].get("status")
+            name = response.json()["data"].get("name")
+            events = response.json()["data"].get("events")
             if len(events):
-                descriptions = [element.get('description') for element in events]
-                self.logger.writeInfo('-'.join(descriptions))
-                description = events[-1].get('description')
+                descriptions = [element.get("description") for element in events]
+                self.logger.writeInfo("-".join(descriptions))
+                description = events[-1].get("description")
                 self.logger.writeInfo(description)
-                return ('-'.join(descriptions))
+                return "-".join(descriptions)
             else:
                 return "{} failed".format(name)
 
     def getCommandDeviceEvents(self, taskId):
-        funcName = 'hv_infra: getCommandDeviceEvents'
+        funcName = "hv_infra: getCommandDeviceEvents"
         self.logger.writeEnterSDK(funcName)
         headers = self.getAuthToken()
-        urlPath = '/v2/tasks/{0}'.format(taskId)
+        urlPath = "/v2/tasks/{0}".format(taskId)
         url = self.getUrl(urlPath)
-        response = requests.get(url, headers=headers, verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         description = None
         if response.ok:
-            self.logger.writeInfo('getFailedTaskResponse={}', response.json())
-            status = response.json()['data'].get('status')
-            name = response.json()['data'].get('name')
-            events = response.json()['data'].get('events')
+            self.logger.writeInfo("getFailedTaskResponse={}", response.json())
+            status = response.json()["data"].get("status")
+            name = response.json()["data"].get("name")
+            events = response.json()["data"].get("events")
             if len(events):
-                descriptions = [element.get('description') for element in events]
+                descriptions = [element.get("description") for element in events]
                 # self.logger.writeInfo('-'.join(descriptions))
                 # description = events[-1].get('description')
                 # self.logger.writeInfo(description)
@@ -3322,12 +3033,12 @@ class StorageSystem:
         port,
     ):
 
-        funcName = 'hv_infra:UnpresentLun'
+        funcName = "hv_infra:UnpresentLun"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lun={}', luns)
-        self.logger.writeParam('hgName={}', hgName)
-        self.logger.writeParam('port={}', port)
-        self.logger.writeParam('dryRun={}', self.dryRun)
+        self.logger.writeParam("lun={}", luns)
+        self.logger.writeParam("hgName={}", hgName)
+        self.logger.writeParam("port={}", port)
+        self.logger.writeParam("dryRun={}", self.dryRun)
         if self.dryRun:
             return
         (resourceId, ucp) = self.getStorageSystemResourceId()
@@ -3337,113 +3048,109 @@ class StorageSystem:
 
         hostgroup = None
         for x in hostgroups:
-            if x.get('hostGroupName') == hgName and x.get('port') == port:
+            if x.get("hostGroupName") == hgName and x.get("port") == port:
                 hostgroup = x
                 break
 
-        hgResourceId = hostgroup.get('resourceId')
-        urlPath = '/v2/storage/devices/{0}/hostGroups/{1}/volumes'.format(resourceId,
-                                                                          hgResourceId)
+        hgResourceId = hostgroup.get("resourceId")
+        urlPath = "/v2/storage/devices/{0}/hostGroups/{1}/volumes".format(
+            resourceId, hgResourceId
+        )
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        body = {'ldevIds': list(map(int, luns))}
+        body = {"ldevIds": list(map(int, luns))}
 
-        response = requests.delete(url, headers=headers, json=body,
-                                   verify=self.shouldVerifySslCertification)
+        response = requests.delete(
+            url, headers=headers, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
 
         self.logger.writeExitSDK(funcName)
         if not response.ok:
-            if 'HIJSONFAULT' in response.headers:
+            if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
         else:
-            taskId = response.json()['data'].get('taskId')
+            taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
 
-    def createHostGroup(
-        self,
-        hgName,
-        port,
-        wwnList,
-        hostmode,
-        hostModeOptions
-    ):
+    def createHostGroup(self, hgName, port, wwnList, hostmode, hostModeOptions):
 
-        funcName = 'hv_infra:createHostGroup'
+        funcName = "hv_infra:createHostGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('wwnList={}', wwnList)
-        self.logger.writeParam('hgName={}', hgName)
-        self.logger.writeParam('port={}', port)
-        self.logger.writeParam('dryRun={}', self.dryRun)
+        self.logger.writeParam("wwnList={}", wwnList)
+        self.logger.writeParam("hgName={}", hgName)
+        self.logger.writeParam("port={}", port)
+        self.logger.writeParam("dryRun={}", self.dryRun)
         if self.dryRun:
             return
 
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        self.logger.writeParam('resourceId={}', resourceId)
-        self.logger.writeParam('ucp={}', ucp)
-        wwns=[]
+        self.logger.writeParam("resourceId={}", resourceId)
+        self.logger.writeParam("ucp={}", ucp)
+        wwns = []
         for x in list(wwnList):
-           wwns.append( {
-                "id": x
-            })
+            wwns.append({"id": x})
         body = {
-            'hostGroupName': str(hgName),
-            'port': str(port),
-            'ucpSystem': ucp,
-            'hostMode': hostmode,
-            'hostModeOptions': list(hostModeOptions)
+            "hostGroupName": str(hgName),
+            "port": str(port),
+            "ucpSystem": ucp,
+            "hostMode": hostmode,
+            "hostModeOptions": list(hostModeOptions),
         }
 
-        if len(wwns) >0 :
-            body['wwns']=wwns
+        if len(wwns) > 0:
+            body["wwns"] = wwns
 
-        self.logger.writeParam('body={}', body)
-        urlPath = 'v2/storage/devices/{0}/hostGroups'.format(resourceId)
+        self.logger.writeParam("body={}", body)
+        urlPath = "v2/storage/devices/{0}/hostGroups".format(resourceId)
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        response = requests.post(url, headers=headers, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, headers=headers, json=body, verify=self.shouldVerifySslCertification
+        )
         self.logger.writeInfo(url)
         self.logger.writeInfo(body)
         if not response.ok:
-            if 'HIJSONFAULT' in response.headers:
+            if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
         else:
-            taskId = response.json()['data'].get('taskId')
+            taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
 
         self.logger.writeExitSDK(funcName)
 
     def deleteHostGroup(self, hgName, port):
 
-        funcName = 'hv_infra:deleteHostGroup'
+        funcName = "hv_infra:deleteHostGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('hgName={}', hgName)
-        self.logger.writeParam('port={}', port)
-        self.logger.writeParam('dryRun={}', self.dryRun)
+        self.logger.writeParam("hgName={}", hgName)
+        self.logger.writeParam("port={}", port)
+        self.logger.writeParam("dryRun={}", self.dryRun)
         if self.dryRun:
             return
         (resourceId, ucp) = self.getStorageSystemResourceId()
         hostgroups = self.getAllHostGroups()
         hostgroup = None
         for x in hostgroups:
-            if x.get('hostGroupName') == hgName and x.get('port') == port:
+            if x.get("hostGroupName") == hgName and x.get("port") == port:
                 hostgroup = x
                 break
-        hgResourceId = hostgroup.get('resourceId')
-        urlPath = 'v2/storage/devices/{0}/hostGroups/{1}'.format(
-            resourceId, hgResourceId)
+        hgResourceId = hostgroup.get("resourceId")
+        urlPath = "v2/storage/devices/{0}/hostGroups/{1}".format(
+            resourceId, hgResourceId
+        )
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        response = requests.delete(url, headers=headers,
-                                   verify=self.shouldVerifySslCertification)
+        response = requests.delete(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         if not response.ok:
-            if 'HIJSONFAULT' in response.headers:
+            if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
@@ -3460,59 +3167,59 @@ class StorageSystem:
         doRetry=True,
     ):
 
-        funcName = 'hv_infra:getHostGroup'
+        funcName = "hv_infra:getHostGroup"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('hgName={}', hgName)
-        self.logger.writeParam('port={}', port)
+        self.logger.writeParam("hgName={}", hgName)
+        self.logger.writeParam("port={}", port)
         (resourceId, ucp) = self.getStorageSystemResourceId()
         hostgroups = self.getAllHostGroups()
 
         hostgroup = None
         for x in hostgroups:
-            if x.get('hostGroupName') == hgName and x.get('port') \
-                    == port:
+            if x.get("hostGroupName") == hgName and x.get("port") == port:
                 hostgroup = x
                 break
         return hostgroup
 
     def getVSM(self):
 
-        funcName = 'hv_infra:getVSM'
+        funcName = "hv_infra:getVSM"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'StorageManager/StorageManager/GetVirtualStorageSystems'
+        urlPath = "StorageManager/StorageManager/GetVirtualStorageSystems"
         url = self.getUrl(urlPath)
-        body = {'sessionId': self.sessionId}
+        body = {"sessionId": self.sessionId}
 
-        response = requests.get(url, params=body,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, params=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getAllHostGroups(self):
 
-        funcName = 'hv_infra:getAllHostGroups'
+        funcName = "hv_infra:getAllHostGroups"
         self.logger.writeEnterSDK(funcName)
 
-      
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        urlPath = 'v2/storage/devices/{0}/hostGroups?refresh=false'.format(resourceId)
+        urlPath = "v2/storage/devices/{0}/hostGroups?refresh=false".format(resourceId)
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        response = requests.get(url, headers=headers,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         self.logger.writeExitSDK(funcName)
         if response.ok:
             # self.logger.writeInfo('response.json()={}',
             #                        response.json())
-            return response.json()['data']
-        elif 'HIJSONFAULT' in response.headers:
+            return response.json()["data"]
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -3540,22 +3247,22 @@ class StorageSystem:
 
     def getHostGroupsForLU(self, lun):
 
-        funcName = 'hv_infra:getHostGroupsForLU'
+        funcName = "hv_infra:getHostGroupsForLU"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('lun={}', lun)
+        self.logger.writeParam("lun={}", lun)
 
-        urlPath = 'HostGroup/HostGroup/GetHostGroupsForLU'
+        urlPath = "HostGroup/HostGroup/GetHostGroupsForLU"
         url = self.getUrl(urlPath)
-        body = {'sessionId': self.sessionId,
-                'serialNumber': self.serial, 'lu': lun}
+        body = {"sessionId": self.sessionId, "serialNumber": self.serial, "lu": lun}
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -3568,45 +3275,48 @@ class StorageSystem:
         hostopt,
     ):
 
-        funcName = 'hv_infra:setHostMode'
+        funcName = "hv_infra:setHostMode"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('hgName={}', hgName)
-        self.logger.writeParam('port={}', port)
-        self.logger.writeParam('hostmode={}', hostmode)
-        self.logger.writeParam('hostopt={}', hostopt)
-        self.logger.writeParam('dryRun={}', self.dryRun)
+        self.logger.writeParam("hgName={}", hgName)
+        self.logger.writeParam("port={}", port)
+        self.logger.writeParam("hostmode={}", hostmode)
+        self.logger.writeParam("hostopt={}", hostopt)
+        self.logger.writeParam("dryRun={}", self.dryRun)
         if self.dryRun:
             return
 
         # urlPath = 'HostGroup/HostGroup/SetHostMode'
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        
-        self.logger.writeParam('storageresourceId={}', resourceId)
+
+        self.logger.writeParam("storageresourceId={}", resourceId)
         hostgroup = self.getHostGroup(hgName, port)
-        hgResourceId = hostgroup.get('resourceId')
-        self.logger.writeParam('hgResourceId={}', hgResourceId)
-        self.logger.writeParam('ucp={}', ucp)
-        urlPath = 'v2/storage/devices/{0}/hostgroups/{1}'.format(resourceId, hgResourceId)
+        hgResourceId = hostgroup.get("resourceId")
+        self.logger.writeParam("hgResourceId={}", hgResourceId)
+        self.logger.writeParam("ucp={}", ucp)
+        urlPath = "v2/storage/devices/{0}/hostgroups/{1}".format(
+            resourceId, hgResourceId
+        )
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
         body = {
-            'hostMode': hostmode,
-            'hostModeOptions': list(map(int, hostopt)),
+            "hostMode": hostmode,
+            "hostModeOptions": list(map(int, hostopt)),
         }
 
         self.logger.writeInfo(url)
         self.logger.writeInfo(body)
-        response = requests.patch(url, json=body, headers=headers,
-                                 verify=self.shouldVerifySslCertification)
-        self.logger.writeInfo('response={}', response)
-     
+        response = requests.patch(
+            url, json=body, headers=headers, verify=self.shouldVerifySslCertification
+        )
+        self.logger.writeInfo("response={}", response)
+
         if not response.ok:
-            if 'HIJSONFAULT' in response.headers:
+            if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
         else:
-            taskId = response.json()['data'].get('taskId')
+            taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(5)
 
@@ -3619,44 +3329,45 @@ class StorageSystem:
         wwnList,
     ):
 
-        funcName = 'hv_infra:addWWN'
+        funcName = "hv_infra:addWWN"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('hgName={}', hgName)
-        self.logger.writeParam('port={}', port)
-        self.logger.writeParam('wwnList={}', wwnList)
-        self.logger.writeParam('dryRun={}', self.dryRun)
+        self.logger.writeParam("hgName={}", hgName)
+        self.logger.writeParam("port={}", port)
+        self.logger.writeParam("wwnList={}", wwnList)
+        self.logger.writeParam("dryRun={}", self.dryRun)
         if self.dryRun:
             return
- 
+
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        self.logger.writeParam('storageresourceId={}', resourceId)
+        self.logger.writeParam("storageresourceId={}", resourceId)
         hostgroup = self.getHostGroup(hgName, port)
-        hgResourceId = hostgroup.get('resourceId')
-        self.logger.writeParam('hgResourceIdresourceId={}', hgResourceId)
-        self.logger.writeParam('ucp={}', ucp)
-        wwns=[]
+        hgResourceId = hostgroup.get("resourceId")
+        self.logger.writeParam("hgResourceIdresourceId={}", hgResourceId)
+        self.logger.writeParam("ucp={}", ucp)
+        wwns = []
         for x in list(wwnList):
-           wwns.append( {
-                "id": x
-            })
+            wwns.append({"id": x})
         body = {
-            'wwns': wwns,
+            "wwns": wwns,
         }
-        self.logger.writeParam('body={}', body)
-        urlPath = 'v2/storage/devices/{0}/hostGroups/{1}/wwns'.format(resourceId, hgResourceId)
+        self.logger.writeParam("body={}", body)
+        urlPath = "v2/storage/devices/{0}/hostGroups/{1}/wwns".format(
+            resourceId, hgResourceId
+        )
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        response = requests.post(url, headers=headers, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, headers=headers, json=body, verify=self.shouldVerifySslCertification
+        )
         self.logger.writeInfo(url)
         self.logger.writeInfo(body)
         if not response.ok:
-            if 'HIJSONFAULT' in response.headers:
+            if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
         else:
-            taskId = response.json()['data'].get('taskId')
+            taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
         self.logger.writeExitSDK(funcName)
 
@@ -3666,283 +3377,292 @@ class StorageSystem:
         port,
         wwnList,
     ):
-        funcName = 'hv_infra:removeWWN'
+        funcName = "hv_infra:removeWWN"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('hgName={}', hgName)
-        self.logger.writeParam('port={}', port)
-        self.logger.writeParam('wwnList={}', wwnList)
-        self.logger.writeParam('dryRun={}', self.dryRun)
+        self.logger.writeParam("hgName={}", hgName)
+        self.logger.writeParam("port={}", port)
+        self.logger.writeParam("wwnList={}", wwnList)
+        self.logger.writeParam("dryRun={}", self.dryRun)
         if self.dryRun:
             return
- 
+
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        self.logger.writeParam('storageresourceId={}', resourceId)
+        self.logger.writeParam("storageresourceId={}", resourceId)
         hostgroup = self.getHostGroup(hgName, port)
-        hgResourceId = hostgroup.get('resourceId')
-        self.logger.writeParam('hgResourceIdresourceId={}', hgResourceId)
-        self.logger.writeParam('ucp={}', ucp)
-        wwns=[]
+        hgResourceId = hostgroup.get("resourceId")
+        self.logger.writeParam("hgResourceIdresourceId={}", hgResourceId)
+        self.logger.writeParam("ucp={}", ucp)
+        wwns = []
         for x in list(wwnList):
-           wwns.append( {
-                "id": x
-            })
-        
+            wwns.append({"id": x})
+
         body = {
-            'wwns': wwns,
+            "wwns": wwns,
         }
-        self.logger.writeParam('body={}', body)
-        urlPath = 'v2/storage/devices/{0}/hostGroups/{1}/wwns'.format(resourceId, hgResourceId)
+        self.logger.writeParam("body={}", body)
+        urlPath = "v2/storage/devices/{0}/hostGroups/{1}/wwns".format(
+            resourceId, hgResourceId
+        )
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        response = requests.delete(url, headers=headers, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.delete(
+            url, headers=headers, json=body, verify=self.shouldVerifySslCertification
+        )
         self.logger.writeInfo(url)
         self.logger.writeInfo(body)
         if not response.ok:
-            if 'HIJSONFAULT' in response.headers:
+            if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
         else:
-            self.logger.writeInfo('response.json()={}',
-                                response.json())
+            self.logger.writeInfo("response.json()={}", response.json())
             # taskId = response.json()['data'].get('taskId')
             # self.checkTaskStatus(taskId)
             time.sleep(5)
 
         self.logger.writeExitSDK(funcName)
-        
+
     def getPorts(self):
-        funcName = 'hv_infra:getPorts'
+        funcName = "hv_infra:getPorts"
         self.logger.writeEnterSDK(funcName)
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        urlPath = 'v2/storage/devices/{0}/ports?refresh={1}'.format(resourceId, True)
+        urlPath = "v2/storage/devices/{0}/ports?refresh={1}".format(resourceId, True)
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        response = requests.get(url, headers=headers,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            self.logger.writeInfo('ports={}',
-                                   response.json())
-            return response.json()['data']
-        elif 'HIJSONFAULT' in response.headers:
+            self.logger.writeInfo("ports={}", response.json())
+            return response.json()["data"]
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getStoragePools(self):
 
-        funcName = 'hv_infra:getStoragePools'
+        funcName = "hv_infra:getStoragePools"
         self.logger.writeEnterSDK(funcName)
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        urlPath = 'v2/storage/devices/{0}/pools'.format(resourceId)
+        urlPath = "v2/storage/devices/{0}/pools".format(resourceId)
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        response = requests.get(url, headers=headers,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            self.logger.writeInfo('pools={}',
-                                   response.json())
-            return response.json()['data']
+            self.logger.writeInfo("pools={}", response.json())
+            return response.json()["data"]
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getJournalPools(self):
-        funcName = 'hv_infra:getJournalPools'
+        funcName = "hv_infra:getJournalPools"
         self.logger.writeEnterSDK(funcName)
 
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        urlPath = 'v2/storage/devices/{0}/journalpool?ucpSystem={1}'.format(resourceId, "UCP-CI-12035")
+        urlPath = "v2/storage/devices/{0}/journalpool?ucpSystem={1}".format(
+            resourceId, "UCP-CI-12035"
+        )
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        response = requests.get(url, headers=headers,
-                                verify=self.shouldVerifySslCertification)
-        
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
+
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            self.logger.writeInfo('getJournalPools={}',
-                                   response.json())
-            return response.json()['data']
-        elif 'HIJSONFAULT' in response.headers:
+            self.logger.writeInfo("getJournalPools={}", response.json())
+            return response.json()["data"]
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getFreeLUList(self):
 
-        funcName = 'hv_infra:getFreeLUList'
+        funcName = "hv_infra:getFreeLUList"
         self.logger.writeEnterSDK(funcName)
 
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        urlPath = 'v2/storage/devices/{0}/freeVolumes?count={1}&ucpSystem={2}'.format(resourceId, 100, ucp)
+        urlPath = "v2/storage/devices/{0}/freeVolumes?count={1}&ucpSystem={2}".format(
+            resourceId, 100, ucp
+        )
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        response = requests.get(url, headers=headers,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            self.logger.writeInfo('pools={}',
-                                   response.json())
-            return response.json()['data']
-        elif 'HIJSONFAULT' in response.headers:
+            self.logger.writeInfo("pools={}", response.json())
+            return response.json()["data"]
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getFreeGADConsistencyGroupId(self):
 
-        funcName = 'hv_infra:getFreeGADConsistencyGroupId'
+        funcName = "hv_infra:getFreeGADConsistencyGroupId"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'TrueCopy/GetFreeGADConsistencyGroupId'
+        urlPath = "TrueCopy/GetFreeGADConsistencyGroupId"
         url = self.getUrl(urlPath)
 
-        body = {'sessionId': self.sessionId, 'serial': self.serial}
+        body = {"sessionId": self.sessionId, "serial": self.serial}
 
-        response = requests.get(url, params=body,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, params=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getFreeHTIConsistencyGroupId(self):
 
-        funcName = 'hv_infra:getFreeHTIConsistencyGroupId'
+        funcName = "hv_infra:getFreeHTIConsistencyGroupId"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'TrueCopy/GetFreeLocalConsistencyGroupId'
+        urlPath = "TrueCopy/GetFreeLocalConsistencyGroupId"
         url = self.getUrl(urlPath)
 
-        body = {'sessionId': self.sessionId, 'serial': self.serial}
+        body = {"sessionId": self.sessionId, "serial": self.serial}
 
-        response = requests.get(url, params=body,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, params=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getFreeTCConsistencyGroupId(self):
 
-        funcName = 'hv_infra:getFreeTCConsistencyGroupId'
+        funcName = "hv_infra:getFreeTCConsistencyGroupId"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'TrueCopy/GetFreeRemoteConsistencyGroup'
+        urlPath = "TrueCopy/GetFreeRemoteConsistencyGroup"
         url = self.getUrl(urlPath)
 
-        body = {'sessionId': self.sessionId, 'serial': self.serial}
+        body = {"sessionId": self.sessionId, "serial": self.serial}
 
-        response = requests.get(url, params=body,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, params=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getFreeURConsistencyGroupId(self):
 
-        funcName = 'hv_infra:getFreeURConsistencyGroupId'
+        funcName = "hv_infra:getFreeURConsistencyGroupId"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'TrueCopy/GetFreeUniversalReplicatorConsistencyGroup'
+        urlPath = "TrueCopy/GetFreeUniversalReplicatorConsistencyGroup"
         url = self.getUrl(urlPath)
 
-        body = {'sessionId': self.sessionId, 'serial': self.serial}
+        body = {"sessionId": self.sessionId, "serial": self.serial}
 
-        response = requests.get(url, params=body,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, params=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getQuorumDisks(self):
 
-        funcName = 'hv_infra:getQuorumDisks'
+        funcName = "hv_infra:getQuorumDisks"
         self.logger.writeEnterSDK(funcName)
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        urlPath = 'v2/storage/devices/{0}/quorum/disks'.format(resourceId)
+        urlPath = "v2/storage/devices/{0}/quorum/disks".format(resourceId)
         url = self.getUrl(urlPath)
         headers = self.getAuthToken()
-        response = requests.get(url, headers=headers,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, headers=headers, verify=self.shouldVerifySslCertification
+        )
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            self.logger.writeInfo('pools={}',
-                                   response.json())
-            return response.json()['data']
+            self.logger.writeInfo("pools={}", response.json())
+            return response.json()["data"]
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getResourceGroups(self):
 
-        funcName = 'hv_infra:getResourceGroups'
+        funcName = "hv_infra:getResourceGroups"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'ResourceGroup/GetList'
+        urlPath = "ResourceGroup/GetList"
         url = self.getUrl(urlPath)
 
-        body = {'sessionId': self.sessionId, 'serial': self.serial}
+        body = {"sessionId": self.sessionId, "serial": self.serial}
 
-        response = requests.get(url, params=body,
-                                verify=self.shouldVerifySslCertification)
+        response = requests.get(
+            url, params=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def getDynamicPools(self):
 
-        funcName = 'hv_infra:getDynamicPools'
+        funcName = "hv_infra:getDynamicPools"
         self.logger.writeEnterSDK(funcName)
 
-        urlPath = 'StoragePool/GetStoragePools'
+        urlPath = "StoragePool/GetStoragePools"
         url = self.getUrl(urlPath)
 
-        body = {'sessionId': self.sessionId,
-                'serialNumber': self.serial}
+        body = {"sessionId": self.sessionId, "serialNumber": self.serial}
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -3954,86 +3674,89 @@ class StorageSystem:
         poolType,
     ):
 
-        funcName = 'hv_infra:createDynamicPool'
+        funcName = "hv_infra:createDynamicPool"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('name={}', name)
-        self.logger.writeParam('luns={}', luns)
-        self.logger.writeParam('poolType={}', poolType)
+        self.logger.writeParam("name={}", name)
+        self.logger.writeParam("luns={}", luns)
+        self.logger.writeParam("poolType={}", poolType)
 
-        urlPath = 'StoragePool/CreateDynamicPool'
+        urlPath = "StoragePool/CreateDynamicPool"
         url = self.getUrl(urlPath)
 
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'poolName': name,
-            'luList': ','.join(map(str, luns)),
-            'poolType': PoolCreateType.fromString(poolType),
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "poolName": name,
+            "luList": ",".join(map(str, luns)),
+            "poolType": PoolCreateType.fromString(poolType),
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def expandDynamicPool(self, poolId, luns):
 
-        funcName = 'hv_infra:expandDynamicPool'
+        funcName = "hv_infra:expandDynamicPool"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('luns={}', luns)
-        self.logger.writeParam('poolId={}', poolId)
+        self.logger.writeParam("luns={}", luns)
+        self.logger.writeParam("poolId={}", poolId)
 
-        urlPath = 'StoragePool/ExpandDynamicPool'
+        urlPath = "StoragePool/ExpandDynamicPool"
         url = self.getUrl(urlPath)
 
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'poolId': poolId,
-            'ldevList': ','.join(map(str, luns)),
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "poolId": poolId,
+            "ldevList": ",".join(map(str, luns)),
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def shrinkDynamicPool(self, poolId, luns):
 
-        funcName = 'hv_infra:shrinkDynamicPool'
+        funcName = "hv_infra:shrinkDynamicPool"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('luns={}', luns)
-        self.logger.writeParam('poolId={}', poolId)
+        self.logger.writeParam("luns={}", luns)
+        self.logger.writeParam("poolId={}", poolId)
 
-        urlPath = 'StoragePool/ShrinkDynamicPoolUsingPoolID'
+        urlPath = "StoragePool/ShrinkDynamicPoolUsingPoolID"
         url = self.getUrl(urlPath)
 
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'poolId': poolId,
-            'ldevList': ','.join(map(str, luns)),
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "poolId": poolId,
+            "ldevList": ",".join(map(str, luns)),
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -4045,48 +3768,52 @@ class StorageSystem:
         returnJson=False,
     ):
 
-        funcName = 'hv_infra:doPost'
+        funcName = "hv_infra:doPost"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('urlPath={}', urlPath)
-        self.logger.writeParam('body={}', body)
+        self.logger.writeParam("urlPath={}", urlPath)
+        self.logger.writeParam("body={}", body)
         url = self.getUrl(urlPath)
-        self.logger.writeParam('url={}', url)
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
-        self.logger.writeInfo('response={}', response)
+        self.logger.writeParam("url={}", url)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
+        self.logger.writeInfo("response={}", response)
 
         if response.ok:
             self.logger.writeExitSDK(funcName)
             if returnJson:
-                self.logger.writeInfo('response.json()={}',
-                                       response.json())
+                self.logger.writeInfo("response.json()={}", response.json())
                 return response.json()
             else:
                 return
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
     def deleteDynamicPool(self, poolId):
 
-        funcName = 'hv_infra:deleteDynamicPool'
+        funcName = "hv_infra:deleteDynamicPool"
         self.logger.writeEnterSDK(funcName)
-        self.logger.writeParam('poolId={}', poolId)
+        self.logger.writeParam("poolId={}", poolId)
 
-        urlPath = 'StoragePool/DeleteDynamicPool'
+        urlPath = "StoragePool/DeleteDynamicPool"
         url = self.getUrl(urlPath)
 
-        body = {'sessionId': self.sessionId,
-                'serialNumber': self.serial, 'poolId': poolId}
+        body = {
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "poolId": poolId,
+        }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return
-        elif 'HIJSONFAULT' in response.headers:
+        elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
@@ -4099,25 +3826,26 @@ class StorageSystem:
         enableNotification,
     ):
 
-        urlPath = 'StoragePool/SetDynamicPoolCapacityThreshold'
+        urlPath = "StoragePool/SetDynamicPoolCapacityThreshold"
         url = self.getUrl(urlPath)
 
         body = {
-            'sessionId': self.sessionId,
-            'serialNumber': self.serial,
-            'poolId': poolId,
-            'warningRate': warningRate,
-            'depletionRate': depletionRate,
-            'enableNotification': enableNotification,
+            "sessionId": self.sessionId,
+            "serialNumber": self.serial,
+            "poolId": poolId,
+            "warningRate": warningRate,
+            "depletionRate": depletionRate,
+            "enableNotification": enableNotification,
         }
 
-        response = requests.post(url, json=body,
-                                 verify=self.shouldVerifySslCertification)
+        response = requests.post(
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         if response.ok:
             return
-        elif 'HIJSONFAULT' in response.headers:
-            raise Exception(json.loads(response.headers['HIJSONFAULT']))
+        elif "HIJSONFAULT" in response.headers:
+            raise Exception(json.loads(response.headers["HIJSONFAULT"]))
         else:
             self.throwException(response)
 
@@ -4129,54 +3857,54 @@ class HostMode:
         # 2
         # 3
         # 4
-               # 5
-               # 6
-               # 7
-               # 8
-               # 9
-               # 10
-               # 11
-               # 12
-               # 13
-               # 14
-               # 15
-               # 16
-               # 17
-        'UNKNOWN',
-        'NOT_SPECIFIED',
-        'RESERVED',
-        'LINUX',
-        'VMWARE',
-        'HP',
-        'OPEN_VMS',
-        'TRU64',
-        'SOLARIS',
-        'NETWARE',
-        'WINDOWS',
-        'HI_UX',
-        'AIX',
-        'VMWARE_EXTENSION',
-        'WINDOWS_EXTENSION',
-        'UVM',
-        'HP_XP',
-        'DYNIX',
+        # 5
+        # 6
+        # 7
+        # 8
+        # 9
+        # 10
+        # 11
+        # 12
+        # 13
+        # 14
+        # 15
+        # 16
+        # 17
+        "UNKNOWN",
+        "NOT_SPECIFIED",
+        "RESERVED",
+        "LINUX",
+        "VMWARE",
+        "HP",
+        "OPEN_VMS",
+        "TRU64",
+        "SOLARIS",
+        "NETWARE",
+        "WINDOWS",
+        "HI_UX",
+        "AIX",
+        "VMWARE_EXTENSION",
+        "WINDOWS_EXTENSION",
+        "UVM",
+        "HP_XP",
+        "DYNIX",
     ]
 
-    @ staticmethod
+    @staticmethod
     def getHostModeNum(hm):
         hostmode = hm.upper()
 
-        if hostmode == 'STANDARD':
-            hostmode = 'LINUX'
+        if hostmode == "STANDARD":
+            hostmode = "LINUX"
         hostmode = re.sub(r"WIN($|_)", r"WINDOWS\1", hostmode)
-        hostmode = re.sub(r"EXT?$", 'EXTENSION', hostmode)
+        hostmode = re.sub(r"EXT?$", "EXTENSION", hostmode)
 
         if hostmode not in HostMode.modes:
             raise Exception("Invalid host mode: '{0}'".format(hm))
 
         return HostMode.modes.index(hostmode)
 
-    @ staticmethod
+    @staticmethod
     def getHostModeName(hostmode):
         if isinstance(hostmode, str):
             return hostmode
@@ -4185,35 +3913,41 @@ class HostMode:
 
 class DedupMode:
 
-    modes = ['DISABLED', 'COMPRESSION', 'COMPRESSION_DEDUPLICATION']
+    modes = ["DISABLED", "COMPRESSION", "COMPRESSION_DEDUPLICATION"]
 
 
 class RequestsUtils:
 
-    @ staticmethod
+    @staticmethod
     def get(url, params, verify):
         try:
             return requests.get(url, params=params, verify=verify)
         except requests.exceptions.Timeout:
-            raise Exception(' Timeout exception. Perhaps webserivce is not reachable or down ? '
-                            )
+            raise Exception(
+                " Timeout exception. Perhaps webserivce is not reachable or down ? "
+            )
         except requests.exceptions.TooManyRedirects:
-            raise Exception('Mas retry error. Perhaps webserivce is not reachable or down ?'
-                            )
+            raise Exception(
+                "Mas retry error. Perhaps webserivce is not reachable or down ?"
+            )
         except requests.exceptions.RequestException as e:
-            raise Exception(' Connection Error. Perhaps web serivce is not reachable is down ? '
-                            )
+            raise Exception(
+                " Connection Error. Perhaps web serivce is not reachable is down ? "
+            )
 
-    @ staticmethod
+    @staticmethod
     def post(url, json, verify):
         try:
             return requests.post(url, json=json, verify=verify)
         except requests.exceptions.Timeout:
-            raise Exception(' Timeout exc Hi Adaeption. Perhaps webserivce is not reachable or down ? '
-                            )
+            raise Exception(
+                " Timeout exc Hi Adaeption. Perhaps webserivce is not reachable or down ? "
+            )
         except requests.exceptions.TooManyRedirects:
-            raise Exception('Mas retry error. Perhaps webserivce is not reachable or down ?'
-                            )
+            raise Exception(
+                "Mas retry error. Perhaps webserivce is not reachable or down ?"
+            )
         except requests.exceptions.RequestException as e:
-            raise Exception(' Connection Error. Perhaps web serivce is not reachable is down ? '
-                            )
+            raise Exception(
+                " Connection Error. Perhaps web serivce is not reachable is down ? "
+            )

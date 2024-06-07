@@ -1,0 +1,141 @@
+- name: Compute Node Module
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.sds_block
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    - name: Create compute node
+      hv_sds_block_compute_node:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          name: computenode1
+          os_type: VMWare
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Update compute node name
+      hv_sds_block_compute_node:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          id: 3d971bb3-40fd-4cb5-bf68-2010b30aa74d
+          name: computenode1a
+          os_type: Linux
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Add iqn initiators to compute node
+      hv_sds_block_compute_node:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          state: add_iscsi_initiator
+          name: computenode1
+          iscsi_initiators: ["iqn.1991-05.com.hitachi:test-iscsi-iqn3", "iqn.1991-05.com.hitachi:test-iscsi-iqn4"]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Remove iqn initiators from compute node
+      hv_sds_block_compute_node:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          state: remove_iscsi_initiator
+          name: computenode1
+          iscsi_initiators: ["iqn.1991-05.com.hitachi:test-iscsi-iqn3", "iqn.1991-05.com.hitachi:test-iscsi-iqn4"]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Attach volumes to compute node
+      hv_sds_block_compute_node:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          state: attach_volume
+          name: computenode1
+          volumes: ["test-volume3", "test-volume4"]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Detach volumes from compute node
+      hv_sds_block_compute_node:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          state: detach_volume
+          name: computenode1
+          volumes: ["test-volume3", "test-volume4"]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Delete compute node by name
+      hv_sds_block_compute_node:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: absent
+        spec:
+          name: computenode1
+          should_delete_all_volumes: true
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Delete compute node by id
+      hv_sds_block_compute_node:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: absent
+        spec:
+          id: 3d971bb3-40fd-4cb5-bf68-2010b30aa74d
+      register: result
+
+    - debug:
+        var: result

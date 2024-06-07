@@ -1,0 +1,42 @@
+- name: Delete lun from host
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    - name: Unpresent lun from hostgroup with direct connection
+      hv_hg:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          state: 'unpresent_lun'
+          name: 'hostgroup-server1'
+          port: 'CL1-A'
+          luns: [345]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Delete lun with direct connection
+      hv_lun:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: absent
+        spec:
+          lun: 345
+      register: result
+
+    - debug:
+        var: result

@@ -1,0 +1,144 @@
+- name: Volume Module
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.sds_block
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    - name: Create volume
+      hv_sds_block_volume:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          name: test-volume1
+          nickname: volume1-nickname
+          capacity: 100MB
+          pool_name: sp01
+          saving_setting: Compression
+          compute_nodes: ["computenode1", "computenode2"]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Update volume
+      hv_sds_block_volume:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          id: df63a5d9-32ea-4ae1-879a-7c23fbc574db
+          name: new-test-volume1
+          nickname: new-nickname1
+          saving_setting: Compression
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Expand volume by name
+      hv_sds_block_volume:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          name: test-volume1
+          capacity: 500MB
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Expand volume by id
+      hv_sds_block_volume:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          id: df63a5d9-32ea-4ae1-879a-7c23fbc574db
+          capacity: 500MB
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Add volume to compute nodes
+      hv_sds_block_volume:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          state: add_compute_node
+          name: test-volume1
+          compute_nodes: ["computenode1", "computenode2"]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Remove volume from compute nodes
+      hv_sds_block_volume:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          state: remove_compute_node
+          name: test-volume1
+          compute_nodes: ["computenode1", "computenode2"]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Delete volume by name
+      hv_sds_block_volume:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: absent
+        spec:
+          name: test-volume1
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Delete volume by id
+      hv_sds_block_volume:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: absent
+        spec:
+          id: df63a5d9-32ea-4ae1-879a-7c23fbc574db
+      register: result
+
+    - debug:
+        var: result
+

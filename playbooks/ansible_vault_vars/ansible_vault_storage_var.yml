@@ -1,8 +1,7 @@
 #User will use Ansible Vault to encrypt this file.
 #Ansible will decrypt this file when it executes the playbook.
 
-
-storage_serial: 440123
-storage_address: 10.1.1.1
-storage_ansible_vault_user: user
-storage_ansible_vault_secret: secret
+storage_serial: YOUR_STORAGE_SERIAL_NUMBER
+storage_address: YOUR_STORAGE_IP_ADDRESS
+ansible_vault_storage_username: YOUR_STORAGE_USERNAME
+ansible_vault_storage_secret: YOUR_STORAGE_PASSWORD

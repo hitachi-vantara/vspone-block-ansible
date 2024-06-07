@@ -24,7 +24,7 @@ try:
         @classmethod
         def fromString(cls, value):
             for storage_type in cls:
-                if match(storage_type.name.replace('X', '.') + '$', value.upper()):
+                if match(storage_type.name.replace("X", ".") + "$", value.upper()):
                     return storage_type
             return cls.UNKNOWN
 
@@ -131,7 +131,7 @@ try:
                 model = cls.UNKNOWN
             return model
 
-    class SNAPSHOT_OPTION_ENUM():
+    class SNAPSHOT_OPTION_ENUM:
         nameValues = [
             "SSOPTION_HIDE_AND_DISABLE_ACCESS",  # 0
             "SSOPTION_HIDE_AND_ALLOW_ACCESS",  # 1
@@ -178,7 +178,7 @@ try:
                 model = cls.UNKNOWN
             return model
 
-    class NODE_STATUS_ENUM():
+    class NODE_STATUS_ENUM:
         nameValues = [
             "INVALID",  # 0
             "UNKNOWN",  # 1
@@ -200,7 +200,7 @@ try:
         def getName(num):
             return NODE_STATUS_ENUM.nameValues[num]
 
-    class CLUSTER_HEALTH_ENUM():
+    class CLUSTER_HEALTH_ENUM:
         nameValues = [
             "ROBUST",  # 0
             "DEGRADED",  # 1
@@ -218,7 +218,7 @@ try:
         def getName(num):
             return CLUSTER_HEALTH_ENUM.nameValues[num]
 
-    class LOCAL_READ_CACHE_OPTION_ENUM():
+    class LOCAL_READ_CACHE_OPTION_ENUM:
         nameValues = [
             "DISABLED",  # 0
             "ENABLEDFORALLFILES",  # 1
@@ -237,7 +237,7 @@ try:
         def getName(num):
             return LOCAL_READ_CACHE_OPTION_ENUM.nameValues[num]
 
-    class TRANSFER_TO_REPLICATION_TARGET_SETTING_ENUM():
+    class TRANSFER_TO_REPLICATION_TARGET_SETTING_ENUM:
         nameValues = [
             "DONOTTRANSFER",  # 0
             "TRANSFER",  # 1
@@ -272,8 +272,9 @@ try:
             if value.upper() in cls.types:
                 return cls.types[value.upper()]
             else:
-                raise Exception("Invalid {0} type: {1}".format(
-                    cls.__name__, value.upper()))
+                raise Exception(
+                    "Invalid {0} type: {1}".format(cls.__name__, value.upper())
+                )
 
     class PoolType(Enum):
         UNKNOWN = 0
@@ -317,7 +318,7 @@ try:
             "FAILURE",  # 4
             "SHRINKING",  # 5
             "REGRESSED",  # 6
-            "DETACHED"  # 7
+            "DETACHED",  # 7
         ]
 
         @classmethod
@@ -330,7 +331,6 @@ try:
         @classmethod
         def getName(cls, num):
             return cls.values[num]
-
 
 except ImportError as error:
 

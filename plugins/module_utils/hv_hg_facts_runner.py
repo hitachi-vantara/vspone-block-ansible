@@ -5,16 +5,30 @@ __metaclass__ = type
 
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_infra import StorageSystem, \
-    HostMode, StorageSystemManager, Utils
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
+    StorageSystem,
+    HostMode,
+    StorageSystemManager,
+    Utils,
+)
 
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_storagemanager import StorageManager
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_ucpmanager import UcpManager
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_log import Log, \
-    HiException
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_storagemanager import (
+    StorageManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ucpmanager import (
+    UcpManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
+    CommonConstants,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
+    camel_to_snake_case_dict_array,
+)
 
 logger = Log()
-moduleName = 'Host Group facts'
+moduleName = "Host Group facts"
 
 
 def writeNameValue(name, value):
@@ -25,94 +39,141 @@ def runPlaybook(module):
 
     logger.writeEnterModule(moduleName)
 
-    ucp_advisor_info = json.loads(module.params['ucp_advisor_info'])
-    ucpadvisor_address = ucp_advisor_info.get('address', None)
-    ucpadvisor_ansible_vault_user = ucp_advisor_info.get('username', None)
-    ucpadvisor_ansible_vault_secret = ucp_advisor_info.get('password', None)
+    connection_info = module.params["connection_info"]
+    management_address = connection_info.get("address", None)
+    management_username = connection_info.get("username", None)
+    management_password = connection_info.get("password", None)
+    subscriberId = connection_info.get("subscriber_id", None)
+    auth_token = connection_info.get('api_token', None)
+    result = {}
 
-    storage_system_info = json.loads(module.params['storage_system_info'])
-    storage_serial = storage_system_info.get('serial', None)
-    ucp_serial = storage_system_info.get('ucp_name', None)
+    storage_system_info = module.params["storage_system_info"]
+    storage_serial = storage_system_info.get("serial", None)
+    ucp_serial = CommonConstants.UCP_NAME
+    partnerId = CommonConstants.PARTNER_ID
 
-    logger.writeDebug('20230606 storage_serial={}',storage_serial)
+    logger.writeDebug("40 storage_serial={}", storage_serial)
+    logger.writeDebug("40 subscriberId={}", subscriberId)
+    
+    ########################################################
+    # True: test the rest of the module using api_token
+    
+    if False:
+        ucpManager = UcpManager(
+            management_address,
+            management_username,
+            management_password,
+            auth_token,
+            partnerId,
+            subscriberId,
+            storage_serial,
+        )    
+        auth_token = ucpManager.getAuthTokenOnly()
+        management_username = ''
+    ########################################################    
 
     storageSystem = None
     try:
         storageSystem = StorageManager(
-            ucpadvisor_address,
-            ucpadvisor_ansible_vault_user,
-            ucpadvisor_ansible_vault_secret,
+            management_address,
+            management_username,
+            management_password,
+            auth_token,
             storage_serial,
-            ucp_serial
+            ucp_serial,
+            partnerId,
+            subscriberId,
         )
     except Exception as ex:
-        module.fail_json(msg=ex.message)
+        module.fail_json(msg=str(ex))
 
     if not storageSystem.isStorageSystemInUcpSystem():
-        raise Exception("Storage system is not under the ucp system.")
+        raise Exception("Storage system is not under the management system.")
 
     ## check the healthStatus=onboarding
     ucpManager = UcpManager(
-        ucpadvisor_address,
-        ucpadvisor_ansible_vault_user,
-        ucpadvisor_ansible_vault_secret,
+        management_address,
+        management_username,
+        management_password,
+        auth_token,
+        partnerId,
+        subscriberId,
         storage_serial,
-        )
+    )
     if ucpManager.isOnboarding():
         raise Exception("Storage system is onboarding, please try again later.")
 
-    data = json.loads(module.params['spec'])
-    options = data.get('query', [])
+    data = module.params["spec"]
+    if data is None:
+        data = {}
+
+    options = data.get("query", [])
 
     hostGroups = []
-    ports = data.get('ports')
-    name = data.get('name')
-    if name == '':
+    ports = data.get("ports")
+    name = data.get("name")
+    if name == "":
         name = None
 
-    lun = data.get('lun')
-    if lun is not None and ':' in str(lun):
+    lun = data.get("lun")
+    if lun is not None and ":" in str(lun):
         lun = Utils.getlunFromHex(lun)
-        logger.writeDebug('Hex converted lun={0}'.format(lun))
-    if lun == '':
+        logger.writeDebug("Hex converted lun={0}".format(lun))
+    if lun == "":
         lun = None
 
-    logger.writeDebug('data={0}'.format(data))
-    logger.writeDebug('Ports={0}'.format(ports))
-    logger.writeDebug('name={0}'.format(name))
-    logger.writeDebug('lun={0}'.format(lun))
+    logger.writeDebug("data={0}".format(data))
+    logger.writeDebug("Ports={0}".format(ports))
+    logger.writeDebug("name={0}".format(name))
+    logger.writeDebug("lun={0}".format(lun))
 
     hostGroups = storageSystem.getAllHostGroups()
-    
+    logger.writeDebug("88 hostGroups={}", hostGroups)
+
+    if hostGroups:
+        hostGroups2 = []
+        for hh in hostGroups:
+            hhp = hh.get("port", None)
+            if hhp is None:
+                continue
+            hostGroups2.append(hh)
+        hostGroups = hostGroups2
+
     if ports:
         ## apply port filter
         portSet = set(ports)
-        hostGroups = [group for group in hostGroups if group['port'] in portSet]
+        hostGroups = [group for group in hostGroups if group["port"] in portSet]
+        if len(hostGroups) == 0:
+            result["comment"] = "No hostgroup is found with the given ports"
 
     if name is not None:
         ## apply name filter
-        logger.writeParam('name={}', data['name'])
+        logger.writeParam("name={}", data["name"])
         # hostGroups = [group for group in hostGroups if group['hostGroupName'] == name]
         logger.writeDebug(hostGroups)
-        hostGroups = [x for x in hostGroups if x['hostGroupName'] == name]
+        hostGroups = [x for x in hostGroups if x["hostGroupName"] == name]
+        if len(hostGroups) == 0:
+            result["comment"] = "No hostgroup is found by name " + name
         logger.writeDebug(hostGroups)
 
     if lun is not None:
         ## apply lun filter
-        logger.writeParam('apply filter, lun={}', data['lun'])
+        logger.writeParam("apply filter, lun={}", data["lun"])
         hostGroupsNew = []
         for hg in hostGroups:
-            lunPaths = hg.get('lunPaths', None)
+            lunPaths = hg.get("lunPaths", None)
             if lunPaths:
                 # logger.writeDebug('Paths={}', hg['lunPaths'])
                 for lunPath in lunPaths:
-                    if 'ldevId' in lunPath:
+                    if "ldevId" in lunPath:
                         # logger.writeDebug('lunPath[ldevId]={}', lunPath['ldevId'])
-                        if lun == str(lunPath['ldevId']) :
+                        if lun == str(lunPath["ldevId"]):
                             ## found the lun in the lunPaths, return the whole lunPaths,
                             ## if you only want to return the matching lun instead of the whole list,
                             ## then you need to add more code here
-                            logger.writeDebug('found lun in lunPaths={}', hg['lunPaths'])
+                            logger.writeDebug(
+                                "found lun in lunPaths={}", hg["lunPaths"]
+                            )
                             hostGroupsNew.append(hg)
                             break
         hostGroups = hostGroupsNew
@@ -131,10 +192,10 @@ def runPlaybook(module):
     ## prepare output, apply filters
     for hg in hostGroups:
 
-        if hg.get('hostModeOptions', None) is None:
-            hg['hostModeOptions'] = []
+        if hg.get("hostModeOptions", None) is None:
+            hg["hostModeOptions"] = []
 
-        del hg['resourceId']
+        del hg["resourceId"]
 
         # if not options or 'luns' in options:
         #     paths = hg.get('lunPaths', None)
@@ -162,18 +223,19 @@ def runPlaybook(module):
         #     del hg['Paths']
 
         if options:
-            if 'wwns' not in options:
-                del hg['wwns']
-            if 'luns' not in options and lun is None:
-                del hg['lunPaths']
+            if "wwns" not in options:
+                del hg["wwns"]
+            if "luns" not in options and lun is None:
+                del hg["lunPaths"]
 
             # if hg.get("hostModeOptions", None):
 
         # writeNameValue('hostModeOptions={}', hg['hostModeOptions'])
         # del hg['hostModeOptions']
 
-        if hg.get('ResourceGroupId') == -1:
-            hg['ResourceGroupId'] = ''
+        if hg.get("ResourceGroupId") == -1:
+            hg["ResourceGroupId"] = ""
 
+    result["hostGroups"] = camel_to_snake_case_dict_array(hostGroups)
     logger.writeExitModule(moduleName)
-    module.exit_json(hostGroups=hostGroups)
+    module.exit_json(**result)

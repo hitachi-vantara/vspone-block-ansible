@@ -1,0 +1,43 @@
+- name: StorageSystem Module
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    - name: Add storage system
+      hv_storagesystem:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+          subscriber_id: 12345
+        storage_system_info:
+          serial: 40014
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Delete storage system
+      hv_storagesystem:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+          subscriber_id: 12345
+        storage_system_info:
+          serial: 40014
+        state: absent
+      register: result
+
+    - debug:
+        var: result

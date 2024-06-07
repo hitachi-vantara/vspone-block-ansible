@@ -1,0 +1,59 @@
+- name: Subscriber Module
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+
+  tasks:
+    - name: Create subscriber
+      hv_gateway_subscriber:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+        state: present
+        spec:
+          subscriber_id: '789'
+          name: 'subscriber1'
+          soft_limit: '65'
+          hard_limit: '75'
+          quota_limit: '700'
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Update subscriber
+      hv_gateway_subscriber:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+        state: present
+        spec:
+          subscriber_id: '789'
+          name: 'newsubscriber1'
+          soft_limit: '85'
+          hard_limit: '90'
+          quota_limit: '500'
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Delete subscriber
+      hv_gateway_subscriber:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+        state: absent
+        spec:
+          subscriber_id: '789'
+      register: result
+
+    - debug:
+        var: result

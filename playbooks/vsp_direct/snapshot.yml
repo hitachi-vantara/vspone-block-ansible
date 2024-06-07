@@ -1,0 +1,148 @@
+- name: Snapshot Pair Module
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    - name: Create snapshot pair
+      hv_snapshot:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: present
+        spec:
+          pvol: 176
+          pool_id: 15
+          allocate_consistency_group: true
+          enable_quick_mode: false
+          snapshot_group_name: "SampleName"
+          auto_split: true
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Split snapshot pair 
+      hv_snapshot:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: split
+        spec:
+          pvol: 176
+          mirror_unit_id: 3
+          enable_quick_mode: true
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Resync snapshot pair
+      hv_snapshot:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: sync
+        spec:
+          pvol: 176
+          mirror_unit_id: 3
+          enable_quick_mode: false
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Create and Auto-Split snapshot pair
+      hv_snapshot:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: split
+        spec:
+          pvol: 176
+          pool_id: 15
+          allocate_consistency_group: false
+          consistency_group_id: 2
+          enable_quick_mode: true
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Restore snapshot pair
+      hv_snapshot:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: restore
+        spec:
+          pvol: 176
+          mirror_unit_id: 3
+          enable_quick_mode: false
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Create snapshot pair using existing consistency group
+      hv_snapshot:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: present
+        spec:
+          pvol: 176
+          pool_id: 15
+          allocate_consistency_group: false
+          consistency_group_id: 1
+          snapshot_group_name: "SampleName"
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Delete snapshot pair
+      hv_snapshot:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: absent
+        spec:
+          pvol: 176
+          mirror_unit_id: 3
+      register: result
+
+    - debug:
+        var: result

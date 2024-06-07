@@ -6,24 +6,31 @@ __metaclass__ = type
 
 from re import match
 
-try:
-    import requests
-except ImportError:
-    pass
-
 import json
 
 try:
-    from ansible_collections.hitachi.storage.plugins.module_utils.hv_storage_enum import StorageType, \
-        StorageModel, RG_StorageModel, RG_StorageType
+    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_storage_enum import (
+        StorageType,
+        StorageModel,
+        RG_StorageModel,
+        RG_StorageType,
+    )
+
     HAS_ENUM = True
 except ImportError as error:
     HAS_ENUM = False
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_log import Log, \
-    HiException
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
+    HiException,
+)
 
 
-class VirtualStorageSystem():
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_http_client import (
+    HTTPClient as requests,
+)
+
+
+class VirtualStorageSystem:
     def __init__(self, serial, webServiceIp, webServicePort, sessionId):
         self.serial = serial
         self.sessionId = sessionId
@@ -34,7 +41,9 @@ class VirtualStorageSystem():
         self.logger = Log()
 
     def getUrl(self, urlPath):
-        return "{0}/HitachiStorageManagementWebServices/{1}".format(self.basedUrl, urlPath)
+        return "{0}/HitachiStorageManagementWebServices/{1}".format(
+            self.basedUrl, urlPath
+        )
 
     # get All VSM
     def getVSM(self):
@@ -49,11 +58,12 @@ class VirtualStorageSystem():
             "luns": True,
             "parityGroups": True,
             "hostGroups": True,
-            "fcPorts": True
+            "fcPorts": True,
         }
 
         response = requests.get(
-            url, params=body, verify=self.shouldVerifySslCertification)
+            url, params=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -64,8 +74,7 @@ class VirtualStorageSystem():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def getVSMBySerial(self, serialId):
 
@@ -81,11 +90,12 @@ class VirtualStorageSystem():
             "luns": True,
             "parityGroups": True,
             "hostGroups": True,
-            "fcPorts": True
+            "fcPorts": True,
         }
 
         response = requests.get(
-            url, params=body, verify=self.shouldVerifySslCertification)
+            url, params=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -96,8 +106,7 @@ class VirtualStorageSystem():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def getResourceGroupDriveGroups(self, rgId):
 
@@ -107,14 +116,11 @@ class VirtualStorageSystem():
 
         urlPath = "ResourceGroup/GetResourceGroupDriveGroups"
         url = self.getUrl(urlPath)
-        body = {
-            "sessionId": self.sessionId,
-            "serialNumber": self.serial,
-            "rgId": rgId
-        }
+        body = {"sessionId": self.sessionId, "serialNumber": self.serial, "rgId": rgId}
 
         response = requests.post(
-            url, json=body, verify=self.shouldVerifySslCertification)
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -125,8 +131,7 @@ class VirtualStorageSystem():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def getResourceGroupHostGroups(self, rgId):
 
@@ -136,14 +141,11 @@ class VirtualStorageSystem():
 
         urlPath = "ResourceGroup/GetResourceGroupHostGroups"
         url = self.getUrl(urlPath)
-        body = {
-            "sessionId": self.sessionId,
-            "serialNumber": self.serial,
-            "rgId": rgId
-        }
+        body = {"sessionId": self.sessionId, "serialNumber": self.serial, "rgId": rgId}
 
         response = requests.post(
-            url, json=body, verify=self.shouldVerifySslCertification)
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -154,8 +156,7 @@ class VirtualStorageSystem():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def getResourceGroupLogicalUnits(self, rgId):
 
@@ -165,14 +166,11 @@ class VirtualStorageSystem():
 
         urlPath = "ResourceGroup/GetResourceGroupLogicalUnits"
         url = self.getUrl(urlPath)
-        body = {
-            "sessionId": self.sessionId,
-            "serialNumber": self.serial,
-            "rgId": rgId
-        }
+        body = {"sessionId": self.sessionId, "serialNumber": self.serial, "rgId": rgId}
 
         response = requests.post(
-            url, json=body, verify=self.shouldVerifySslCertification)
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -183,8 +181,7 @@ class VirtualStorageSystem():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def getResourceGroupPorts(self, rgId):
 
@@ -194,14 +191,11 @@ class VirtualStorageSystem():
 
         urlPath = "ResourceGroup/GetResourceGroupPorts"
         url = self.getUrl(urlPath)
-        body = {
-            "sessionId": self.sessionId,
-            "serialNumber": self.serial,
-            "rgId": rgId
-        }
+        body = {"sessionId": self.sessionId, "serialNumber": self.serial, "rgId": rgId}
 
         response = requests.post(
-            url, json=body, verify=self.shouldVerifySslCertification)
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -212,27 +206,26 @@ class VirtualStorageSystem():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def rediscoverVirtualStorages(self):
 
         funcName = "hv_vsm_manager.rediscoverVirtualStorages"
         self.logger.writeEnterSDK(funcName)
 
-        url = self.getUrl(
-            "StorageManager/StorageManager/DiscoverVirtualStorageSystems")
+        url = self.getUrl("StorageManager/StorageManager/DiscoverVirtualStorageSystems")
 
         body = {
             "sessionId": self.sessionId,
             "luns": True,
             "parityGroups": True,
             "hostGroups": True,
-            "fcPorts": True
+            "fcPorts": True,
         }
 
         response = requests.get(
-            url, params=body, verify=self.shouldVerifySslCertification)
+            url, params=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -243,8 +236,7 @@ class VirtualStorageSystem():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def getTypeFromModel(self, model):
         if "VSP" == model:
@@ -276,8 +268,7 @@ class VirtualStorageSystem():
         self.logger.writeParam("model={}", model)
         self.logger.writeParam("meta_resources={}", meta_resources)
 
-        url = self.getUrl(
-            "StorageManager/StorageManager/CreateVirtualStorageSystem")
+        url = self.getUrl("StorageManager/StorageManager/CreateVirtualStorageSystem")
         storage_type = RG_StorageType.fromString(self.getTypeFromModel(model))
         storage_model = RG_StorageModel.fromString(model)
         self.logger.writeParam("storage_type={}", storage_type.value)
@@ -287,11 +278,12 @@ class VirtualStorageSystem():
             "sessionId": self.sessionId,
             "type": storage_type.value,
             "model": storage_model.value,
-            "metaResources": meta_resources
+            "metaResources": meta_resources,
         }
 
         response = requests.post(
-            url, json=body, verify=self.shouldVerifySslCertification)
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -302,8 +294,7 @@ class VirtualStorageSystem():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def deleteResourceGroup(self, rgId):
 
@@ -314,14 +305,11 @@ class VirtualStorageSystem():
         # if True: return
         urlPath = "ResourceGroup/DeleteResourceGroup"
         url = self.getUrl(urlPath)
-        body = {
-            "sessionId": self.sessionId,
-            "serialNumber": self.serial,
-            "rgId": rgId
-        }
+        body = {"sessionId": self.sessionId, "serialNumber": self.serial, "rgId": rgId}
 
         response = requests.post(
-            url, json=body, verify=self.shouldVerifySslCertification)
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -332,8 +320,7 @@ class VirtualStorageSystem():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def createVirtualBoxResourceGroup(self, remoteStorageId, model, rgName):
 
@@ -353,11 +340,12 @@ class VirtualStorageSystem():
             "remoteStorageId": remoteStorageId,
             "type": storage_type.value,
             "model": storage_model.value,
-            "rgName": rgName
+            "rgName": rgName,
         }
 
         response = requests.post(
-            url, json=body, verify=self.shouldVerifySslCertification)
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -368,8 +356,7 @@ class VirtualStorageSystem():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def deleteVirtualStorageSystem(self, physicalSerialNumber=None):
 
@@ -377,19 +364,16 @@ class VirtualStorageSystem():
         self.logger.writeEnterSDK(funcName)
         self.logger.writeParam("physicalSerialNumber={}", physicalSerialNumber)
 
-        url = self.getUrl(
-            "StorageManager/StorageManager/DeleteVirtualStorageSystem")
+        url = self.getUrl("StorageManager/StorageManager/DeleteVirtualStorageSystem")
 
-        body = {
-            "virtualSerialNumber": self.serial,
-            "sessionId": self.sessionId
-        }
+        body = {"virtualSerialNumber": self.serial, "sessionId": self.sessionId}
 
         if physicalSerialNumber is not None:
             body["physicalSerialNumber"] = physicalSerialNumber
 
         response = requests.post(
-            url, json=body, verify=self.shouldVerifySslCertification)
+            url, json=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -400,5 +384,4 @@ class VirtualStorageSystem():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))

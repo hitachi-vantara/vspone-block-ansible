@@ -1,0 +1,33 @@
+- name: Subscriber Fact
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+
+  tasks:
+    - name: Get all subscribers
+      hv_gateway_subscriber_fact:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get one subscriber
+      hv_gateway_subscriber_fact:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+        spec:
+          subscriber_id: '12345'
+      register: result
+
+    - debug:
+        var: result

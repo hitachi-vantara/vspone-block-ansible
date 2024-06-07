@@ -1,0 +1,26 @@
+- name: Compute Port Facts
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.sds_block
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    - name: Set port authentication mode
+      hv_sds_block_compute_port_authentication:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          port_name: iqn.1994-04.jp.co.hitachi:rsd.sph.t.0a85a.000
+          authentication_mode: CHAP
+          target_chap_users: [ 'chapuser1' ]
+      register: result
+
+    - debug:
+        var: result
