@@ -1,0 +1,89 @@
+- name: Lun Facts
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    - name: Get all luns
+      hv_lun_facts:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get luns within range
+      hv_lun_facts:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        spec:
+          lun: 1000
+          end_ldev_id: 2000
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get luns from start id up to max count
+      hv_lun_facts:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        spec:
+          lun: 500
+          count: 10
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get luns with same name
+      hv_lun_facts:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        spec:
+          name: "database_volume1"
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get one lun
+      hv_lun_facts:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        spec:
+          lun: 176
+      register: result
+
+    - debug:
+        var: result

@@ -1,0 +1,9 @@
+# User will use Ansible Vault to encrypt this file.
+# Ansible will decrypt this file when it executes the playbook.
+
+uai_gateway_address: YOUR_GATEWAY_IP_ADDRESS
+ansible_vault_gateway_api_token: YOUR_GATEWAY_TOKEN
+ansible_vault_gateway_username: YOUR_GATEWAY_USERNAME
+ansible_vault_gateway_secret: YOUR_GATEWAY_PASSWORD
+subscriber_id: YOUR_GATEWAY_SUBSCRIBER_ID
+connection_type: gateway 

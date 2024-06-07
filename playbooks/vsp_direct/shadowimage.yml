@@ -1,0 +1,131 @@
+- name: Shadow Image Pair Module
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    - name: Create shadow image pair
+      hv_shadow_image_pair:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: present
+        spec:
+          pvol: 274
+          svol: 277
+          new_consistency_group: true
+          copy_pace_track_size: 'MEDIUM'
+          auto_split: False
+          enable_quick_mode: False
+          is_data_reduction_force_copy: False
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Split shadow image pair 
+      hv_shadow_image_pair:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: split
+        spec:
+          pvol: 274
+          svol: 277
+          enable_quick_mode: true
+          enable_read_write: false
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Resync shadow image pair
+      hv_shadow_image_pair:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: sync
+        spec:
+          pvol: 274
+          svol: 277
+          enable_quick_mode: false
+          copy_pace: 'MEDIUM'
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Create and Auto-Split shadow image pair
+      hv_shadow_image_pair:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: split
+        spec:
+          pvol: 274
+          svol: 277
+          new_consistency_group: false
+          consistency_group_id: 2
+          copy_pace_track_size: 'MEDIUM'          
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Restore shadow image pair
+      hv_shadow_image_pair:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: restore
+        spec:
+          pvol: 274
+          svol: 277
+          enable_quick_mode: false
+          copy_pace: 'MEDIUM'
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Delete shadow image pair 
+      hv_shadow_image_pair:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: absent
+        spec:
+          pvol: 274
+          svol: 277
+      register: result
+
+    - debug:
+        var: result

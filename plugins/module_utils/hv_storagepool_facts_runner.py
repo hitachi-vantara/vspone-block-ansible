@@ -5,16 +5,33 @@ __metaclass__ = type
 import json
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_infra import StorageSystem, \
-    StorageSystemManager
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_log import Log, \
-    HiException
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_infra import Utils
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_storagemanager import StorageManager
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_ucpmanager import UcpManager
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
+    StorageSystem,
+    StorageSystemManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
+    HiException,
+)
+
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import Utils
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_storagemanager import (
+    StorageManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ucpmanager import (
+    UcpManager,
+)
+
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
+    CommonConstants,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
+    camel_to_snake_case_dict_array,
+    camel_to_snake_case_dict,
+)
 
 logger = Log()
-moduleName = 'Storage Pool facts'
+moduleName = "Storage Pool facts"
 
 
 def writeNameValue(name, value):
@@ -24,70 +41,105 @@ def writeNameValue(name, value):
 def writeMsg(msg):
     logger.writeInfo(msg)
 
+
 def formatPools(pools):
 
     if pools is None:
         return
-    
+
     for pool in pools:
         if pool is None:
-            continue        
+            continue
         for key in list(pool.keys()):
             if pool.get(key) is not None:
                 if str(pool[key]) == str(-1):
-                    pool[key] = ''
+                    pool[key] = ""
 
 
 def runPlaybook(module):
 
     logger.writeEnterModule(moduleName)
 
-    ucp_advisor_info = json.loads(module.params['ucp_advisor_info'])
-    ucpadvisor_address = ucp_advisor_info.get('address', None)
-    ucpadvisor_ansible_vault_user = ucp_advisor_info.get('username', None)
-    ucpadvisor_ansible_vault_secret = ucp_advisor_info.get('password', None)
+    connection_info = module.params["connection_info"]
+    management_address = connection_info.get("address", None)
+    management_username = connection_info.get("username", None)
+    management_password = connection_info.get("password", None)
+    api_token = connection_info.get("api_token", None)
+    subscriberId = connection_info.get("subscriber_id", None)
 
-    storage_system_info = json.loads(module.params['storage_system_info'])
-    storage_serial = storage_system_info.get('serial', None)
-    ucp_serial = storage_system_info.get('ucp_name', None)
+    storage_system_info = module.params["storage_system_info"]
+    storage_serial = storage_system_info.get("serial", None)
+    ucp_serial = CommonConstants.UCP_NAME
 
-    logger.writeDebug('20230606 storage_serial={}',storage_serial)
-    logger.writeDebug('20230606 ucp_name={}',ucp_serial)    
+    logger.writeDebug("20230606 storage_serial={}", storage_serial)
+    logger.writeDebug("20230606 ucp_name={}", ucp_serial)
 
+    partnerId = CommonConstants.PARTNER_ID
+   
+    ########################################################
+    # True: test the rest of the module using api_token
+    
+    if False:
+        ucpManager = UcpManager(
+            management_address,
+            management_username,
+            management_password,
+            api_token,
+            partnerId,
+            subscriberId,
+            storage_serial,
+        )    
+        api_token = ucpManager.getAuthTokenOnly()
+        management_username = ''
+    ########################################################
+    
     storageSystem = None
     try:
         storageSystem = StorageManager(
-            ucpadvisor_address,
-            ucpadvisor_ansible_vault_user,
-            ucpadvisor_ansible_vault_secret,
+            management_address,
+            management_username,
+            management_password,
+            api_token,
             storage_serial,
-            ucp_serial
+            ucp_serial,
+            partnerId,
+            subscriberId,
         )
     except Exception as ex:
-        module.fail_json(msg=ex.message)
+        module.fail_json(msg=str(ex))
 
     if not storageSystem.isStorageSystemInUcpSystem():
-        raise Exception("Storage system is not under the ucp system.")
+        raise Exception("Storage system is not under the management system.")
 
+    partnerId = CommonConstants.PARTNER_ID
+    subscriberId = CommonConstants.SUBSCRIBER_ID
     ## check the healthStatus=onboarding
     ucpManager = UcpManager(
-        ucpadvisor_address,
-        ucpadvisor_ansible_vault_user,
-        ucpadvisor_ansible_vault_secret,
+        management_address,
+        management_username,
+        management_password,
+        api_token,
+        partnerId,
+        subscriberId,
         storage_serial,
-        )
+    )
     if ucpManager.isOnboarding():
         raise Exception("Storage system is onboarding, please try again later.")
 
     poolId = None
-    if module.params.get('data', None):
-        data = json.loads(module.params['data'])
-        poolId = data.get('pool_id', None)
+    if module.params.get("spec", None):
+        data = module.params["spec"]
+        poolId = data.get("pool_id", None)
     if poolId:
-            storage_pool_details = storageSystem.getStoragePoolDetails(poolId)      
+        storage_pool_details = storageSystem.getStoragePoolDetails(poolId)
+        formatPools([storage_pool_details])
+        storage_pool_details = camel_to_snake_case_dict(storage_pool_details)
     else:
-        storage_pool_details = storageSystem.getAllStoragePoolDetails() 
+        storage_pool_details = storageSystem.getAllStoragePoolDetails()
+        formatPools(storage_pool_details)
+        storage_pool_details = camel_to_snake_case_dict_array(storage_pool_details)
 
-    formatPools(storage_pool_details)
-
+    # formatPools(storage_pool_details)
+    # storage_pool_details = camel_to_snake_case_dict_array(storage_pool_details)
     module.exit_json(storagePool=storage_pool_details)
+    # return storage_pool_details

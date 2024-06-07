@@ -5,8 +5,11 @@
 __metaclass__ = type
 import json
 import logging
-import requests
 from enum import Enum
+
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_http_client import (
+    HTTPClient as requests,
+)
 
 
 class HtiPairType(Enum):
@@ -22,7 +25,7 @@ class HtiPairType(Enum):
     @classmethod
     def fromValue(cls, value):
         enums = [e for e in cls if e.value == value]
-        return (enums[0] if enums else None)
+        return enums[0] if enums else None
 
 
 class LunStatus(Enum):
@@ -43,7 +46,7 @@ class LunStatus(Enum):
     @classmethod
     def fromValue(cls, value):
         enums = [e for e in cls if e.value == value]
-        return (enums[0] if enums else None)
+        return enums[0] if enums else None
 
 
 class LunType(Enum):
@@ -55,7 +58,7 @@ class LunType(Enum):
     @classmethod
     def fromValue(cls, value):
         enums = [e for e in cls if e.value == value]
-        return (enums[0] if enums else None)
+        return enums[0] if enums else None
 
 
 class PoolStatus(Enum):
@@ -73,7 +76,7 @@ class PoolStatus(Enum):
     @classmethod
     def fromValue(cls, value):
         enums = [e for e in cls if e.value == value]
-        return (enums[0] if enums else None)
+        return enums[0] if enums else None
 
 
 class PoolType(Enum):
@@ -93,7 +96,7 @@ class PoolType(Enum):
     @classmethod
     def fromValue(cls, value):
         enums = [e for e in cls if e.value == value]
-        return (enums[0] if enums else None)
+        return enums[0] if enums else None
 
 
 class HPEPoolType(Enum):
@@ -132,14 +135,16 @@ class ReplicationStatus(Enum):
     @classmethod
     def fromValue(cls, value):
         enums = [e for e in cls if e.value == value]
-        return (enums[0] if enums else None)
+        return enums[0] if enums else None
 
 
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_log import Log, \
-    HiException
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
+    HiException,
+)
 
 
-class HTIManager():
+class HTIManager:
     def __init__(self, serial, webServiceIp, webServicePort, sessionId):
         self.serial = serial
         self.sessionId = sessionId
@@ -150,9 +155,20 @@ class HTIManager():
         self.logger = Log()
 
     def getUrl(self, urlPath):
-        return "{0}/HitachiStorageManagementWebServices/{1}".format(self.basedUrl, urlPath)
+        return "{0}/HitachiStorageManagementWebServices/{1}".format(
+            self.basedUrl, urlPath
+        )
 
-    def createHTIPair(self, lun, target_lun, dataPool, groupName, ctgID, autoSplit, allocateConsistencyGroup):
+    def createHTIPair(
+        self,
+        lun,
+        target_lun,
+        dataPool,
+        groupName,
+        ctgID,
+        autoSplit,
+        allocateConsistencyGroup,
+    ):
 
         funcName = "hv_htimanager.createHTIPair"
         self.logger.writeEnterSDK(funcName)
@@ -162,8 +178,7 @@ class HTIManager():
         self.logger.writeParam("groupName={}", groupName)
         self.logger.writeParam("ctgID={}", ctgID)
         self.logger.writeParam("autoSplit={}", autoSplit)
-        self.logger.writeParam(
-            "allocateConsistencyGroup={}", allocateConsistencyGroup)
+        self.logger.writeParam("allocateConsistencyGroup={}", allocateConsistencyGroup)
 
         if ctgID is not None and ctgID > 0:
             urlPath = "Snapshot/Snapshot/CreateSnapshotPairWithGroupNameAndCTGId"
@@ -175,7 +190,7 @@ class HTIManager():
                 "dataPool": dataPool,
                 # "groupName": groupName, see SIEAN-85
                 "ctgId": ctgID,
-                "autoSplit": autoSplit
+                "autoSplit": autoSplit,
             }
             if target_lun is not None:
                 body["vVol"] = target_lun
@@ -188,7 +203,7 @@ class HTIManager():
                 "serialNumber": self.serial,
                 "pVol": lun,
                 "dataPool": dataPool,
-                "groupName": groupName
+                "groupName": groupName,
             }
 
             if target_lun is not None:
@@ -205,7 +220,7 @@ class HTIManager():
                 "serialNumber": self.serial,
                 "pVol": lun,
                 "vVol": target_lun,
-                "dataPool": dataPool
+                "dataPool": dataPool,
             }
 
         response = self.doPost(url, body)
@@ -219,8 +234,7 @@ class HTIManager():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def getHTIPairs(self, lun):
         funcName = "hv_htimanager.getHTIPairs"
@@ -229,14 +243,11 @@ class HTIManager():
 
         urlPath = "Snapshot/Snapshot/GetPairList"
         url = self.getUrl(urlPath)
-        body = {
-            "sessionId": self.sessionId,
-            "serial": self.serial,
-            "pVol": lun
-        }
+        body = {"sessionId": self.sessionId, "serial": self.serial, "pVol": lun}
 
         response = requests.get(
-            url, params=body, verify=self.shouldVerifySslCertification)
+            url, params=body, verify=self.shouldVerifySslCertification
+        )
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -250,11 +261,17 @@ class HTIManager():
         mess = "mirror_id={0}".format(mirror_id)
         logging.debug(mess)
         if mirror_id is None:
-            pairs = [pair for pair in self.getHTIPairs(
-                lun) if str(pair.get("SVol")) == str(target_lun)]
+            pairs = [
+                pair
+                for pair in self.getHTIPairs(lun)
+                if str(pair.get("SVol")) == str(target_lun)
+            ]
         else:
-            pairs = [pair for pair in self.getHTIPairs(lun) if str(
-                pair.get("MirrorId")) == str(mirror_id)]
+            pairs = [
+                pair
+                for pair in self.getHTIPairs(lun)
+                if str(pair.get("MirrorId")) == str(mirror_id)
+            ]
         return pairs[0] if len(pairs) > 0 else None
 
     def splitHTIPair(self, lun, target_lun, enable_quick_mode):
@@ -271,7 +288,7 @@ class HTIManager():
             "sessionId": self.sessionId,
             "serialNumber": self.serial,
             "pVol": lun,
-            "vVol": target_lun
+            "vVol": target_lun,
         }
 
         response = self.doPost(url, body)
@@ -300,7 +317,7 @@ class HTIManager():
             "sessionId": self.sessionId,
             "serialNumber": self.serial,
             "groupName": groupName,
-            "enableQuickMode": enableQuickMode
+            "enableQuickMode": enableQuickMode,
         }
 
         response = self.doPost(url, body)
@@ -314,8 +331,7 @@ class HTIManager():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def doPost(self, url, body, returnResponse=True):
         try:
@@ -324,14 +340,14 @@ class HTIManager():
             self.logger.writeParam("urlPath={}", url)
             self.logger.writeParam("body={}", body)
             response = requests.post(
-                url, json=body, verify=self.shouldVerifySslCertification)
+                url, json=body, verify=self.shouldVerifySslCertification
+            )
             self.logger.writeDebug("response={}", response)
 
             if response.ok:
                 self.logger.writeExitSDK(funcName)
                 if returnResponse:
-                    self.logger.writeDebug(
-                        "response.json()={}", response.json())
+                    self.logger.writeDebug("response.json()={}", response.json())
                     return response
                 else:
                     return
@@ -341,17 +357,19 @@ class HTIManager():
                 self.logger.writeHiException(hiex)
                 raise hiex
             else:
-                raise Exception(
-                    "Unknown error HTTP {0}".format(response.status_code))
+                raise Exception("Unknown error HTTP {0}".format(response.status_code))
         except requests.exceptions.Timeout:
             raise Exception(
-                " Timeout exception. Perhaps webserivce is not reachable or down ? ")
+                " Timeout exception. Perhaps webserivce is not reachable or down ? "
+            )
         except requests.exceptions.TooManyRedirects:
             raise Exception(
-                "Mas retry error. Perhaps webserivce is not reachable or down ?")
+                "Mas retry error. Perhaps webserivce is not reachable or down ?"
+            )
         except requests.exceptions.RequestException as e:
             raise Exception(
-                " Connection Error. Perhaps web serivce is not reachable or down ? ")
+                " Connection Error. Perhaps web serivce is not reachable or down ? "
+            )
 
     def doGet(self, url, body, returnJson=True):
         try:
@@ -360,14 +378,14 @@ class HTIManager():
             self.logger.writeParam("url={}", url)
             self.logger.writeParam("body={}", body)
             response = requests.get(
-                url, json=body, verify=self.shouldVerifySslCertification)
+                url, json=body, verify=self.shouldVerifySslCertification
+            )
             self.logger.writeDebug("response={}", response)
 
             if response.ok:
                 self.logger.writeExitSDK(funcName)
                 if returnJson:
-                    self.logger.writeDebug(
-                        "response.json()={}", response.json())
+                    self.logger.writeDebug("response.json()={}", response.json())
                     return response
                 else:
                     return
@@ -377,17 +395,19 @@ class HTIManager():
                 self.logger.writeHiException(hiex)
                 raise hiex
             else:
-                raise Exception(
-                    "Unknown error HTTP {0}".format(response.status_code))
+                raise Exception("Unknown error HTTP {0}".format(response.status_code))
         except requests.exceptions.Timeout:
             raise Exception(
-                " Timeout exception. Perhaps webserivce is not reachable or down ? ")
+                " Timeout exception. Perhaps webserivce is not reachable or down ? "
+            )
         except requests.exceptions.TooManyRedirects:
             raise Exception(
-                "Mas retry error. Perhaps webserivce is not reachable or down ? ")
+                "Mas retry error. Perhaps webserivce is not reachable or down ? "
+            )
         except requests.exceptions.RequestException as e:
             raise Exception(
-                " Connection Error. Perhaps web serivce is not reachable or down ? ")
+                " Connection Error. Perhaps web serivce is not reachable or down ? "
+            )
 
     def manageSnapshotGroup(self, task, groupName, enableQuickMode=True, dryRun=False):
 
@@ -398,13 +418,13 @@ class HTIManager():
         self.logger.writeParam("enableQuickMode={}", enableQuickMode)
 
         urlPath = "Snapshot/SnapshotGroup/"
-        if task == 'split':
+        if task == "split":
             urlPath += "SplitReplicationPairGroupUsingGroupname"
-        elif task == 'resync':
+        elif task == "resync":
             urlPath += "ResyncReplicationPairGroupUsingGroupname"
-        elif task == 'restore':
+        elif task == "restore":
             urlPath += "RestoreReplicationPairGroupUsingGroupname"
-        elif task == 'delete':
+        elif task == "delete":
             urlPath += "DeleteReplicationPairGroupUsingGroupname"
         else:
             raise Exception("SnapshotGroup task not implemented: " + task)
@@ -415,7 +435,7 @@ class HTIManager():
             "groupName": groupName,
         }
 
-        if task == 'split':
+        if task == "split":
             body["enableQuickMode"] = enableQuickMode
 
         if dryRun:
@@ -443,7 +463,7 @@ class HTIManager():
                 "sessionId": self.sessionId,
                 "serialNumber": self.serial,
                 "replicationType": replicationType,
-                "ctgID": ctgID
+                "ctgID": ctgID,
             }
             self.doPost(urlPath, body)
 
@@ -462,7 +482,7 @@ class HTIManager():
             "sessionId": self.sessionId,
             "serialNumber": self.serial,
             "replicationType": replicationType,
-            "ctgID": ctgID
+            "ctgID": ctgID,
         }
 
         self.doPost(urlPath, body)
@@ -482,7 +502,7 @@ class HTIManager():
             "sessionId": self.sessionId,
             "serialNumber": self.serial,
             "replicationType": replicationType,
-            "ctgID": ctgID
+            "ctgID": ctgID,
         }
 
         self.doPost(urlPath, body)
@@ -500,7 +520,7 @@ class HTIManager():
         body = {
             "sessionId": self.sessionId,
             "serialNumber": self.serial,
-            "ctgID": ctgID
+            "ctgID": ctgID,
         }
 
         response = self.doPost(url, body)
@@ -514,8 +534,7 @@ class HTIManager():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def resyncHTIPair(self, lun, target_lun, enable_quick_mode):
 
@@ -531,7 +550,7 @@ class HTIManager():
             "sessionId": self.sessionId,
             "serialNumber": self.serial,
             "pVol": lun,
-            "vVol": target_lun
+            "vVol": target_lun,
         }
 
         response = self.doPost(url, body)
@@ -545,8 +564,7 @@ class HTIManager():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def restoreHTIPair(self, lun, target_lun, enable_quick_mode):
 
@@ -562,7 +580,7 @@ class HTIManager():
             "sessionId": self.sessionId,
             "serialNumber": self.serial,
             "pVol": lun,
-            "vVol": target_lun
+            "vVol": target_lun,
         }
 
         response = self.doPost(url, body)
@@ -576,8 +594,7 @@ class HTIManager():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def deleteHTIPair(self, lun, target_lun, delete_target_lun):
 
@@ -594,7 +611,7 @@ class HTIManager():
             "serialNumber": self.serial,
             "pVol": lun,
             "deleteTargetLun": delete_target_lun,
-            "vVol": target_lun
+            "vVol": target_lun,
         }
 
         response = self.doPost(url, body)
@@ -608,8 +625,7 @@ class HTIManager():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def createVVOL(self, lun, target_lun):
 
@@ -624,7 +640,7 @@ class HTIManager():
             "sessionId": self.sessionId,
             "serialNumber": self.serial,
             "pVol": lun,
-            "vVol": target_lun
+            "vVol": target_lun,
         }
 
         response = self.doPost(url, body)
@@ -638,8 +654,7 @@ class HTIManager():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     def createVVOLAutoNum(self, lun):
 
@@ -649,11 +664,7 @@ class HTIManager():
 
         urlPath = "Snapshot/Snapshot/CreateVVolWithAutoVVolNumberGeneration"
         url = self.getUrl(urlPath)
-        body = {
-            "sessionId": self.sessionId,
-            "serialNumber": self.serial,
-            "pVol": lun
-        }
+        body = {"sessionId": self.sessionId, "serialNumber": self.serial, "pVol": lun}
 
         response = self.doPost(url, body)
         self.logger.writeExitSDK(funcName)
@@ -665,5 +676,4 @@ class HTIManager():
             self.logger.writeHiException(hiex)
             raise hiex
         else:
-            raise Exception(
-                "Unknown error HTTP {0}".format(response.status_code))
+            raise Exception("Unknown error HTTP {0}".format(response.status_code))

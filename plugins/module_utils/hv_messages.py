@@ -8,7 +8,7 @@ try:
     from enum import Enum
 
     class MessageID(Enum):
-        
+
         ERR_AddRAIDStorageDevice = 0xA004
         ERR_CreateCommandDevice = 0xA076
         ERR_AddHNASStorageDevice = 0xA19B

@@ -1,0 +1,171 @@
+- name: Hostgroup Module
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    - name: Create hostgroup
+      hv_hg:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: present
+        spec:
+          name: 'hostgroup-server1'
+          port: 'CL1-C'
+          host_mode: 'VMWARE_EXTENSION'
+          host_mode_options: [ 54, 63 ]
+          luns: [ 100, 200 ]
+          wwns: [ '9876543210ABCDE0', '9876543210ABCDE1' ]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Update host mode and host mode options
+      hv_hg:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: present
+        spec:
+          state: set_host_mode_and_hmo
+          name: 'hostgroup-server1'
+          port: 'CL1-C'
+          host_mode: 'STANDARD'
+          host_mode_options: [ 13 ]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Remove host mode options
+      hv_hg:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: present
+        spec:
+          state: absent
+          name: 'hostgroup-server1'
+          port: 'CL1-C'
+          host_mode_options: [ 13 ]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Add wwns to hostgroup
+      hv_hg:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: present
+        spec:
+          state: add_wwn
+          name: 'hostgroup-server1'
+          port: 'CL1-C'
+          wwns: [ '9876543210ABCDED', '9876543210ABCDEE' ]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Remove wwns from hostgroup
+      hv_hg:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: present
+        spec:
+          state: remove_wwn
+          name: 'hostgroup-server1'
+          port: 'CL1-C'
+          wwns: [ '9876543210ABCDED', '9876543210ABCDEE' ]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Present luns to hostgroup
+      hv_hg:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: present
+        spec:
+          state: 'present_lun'
+          name: 'hostgroup-server1'
+          port: 'CL1-C'
+          luns: [ 300, 400 ]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Unpresent luns from hostgroup
+      hv_hg:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: present
+        spec:
+          state: 'unpresent_lun'
+          name: 'hostgroup-server1'
+          port: 'CL1-C'
+          luns: [ 300, 400 ]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Delete hostgroup
+      hv_hg:
+        connection_info:
+          connection_type: "direct"
+          address: storage1.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        storage_system_info:
+          serial: 40014
+        state: absent
+        spec:
+          name: 'hostgroup-server1'
+          port: 'CL1-C'
+          should_delete_all_luns: true
+      register: result
+
+    - debug:
+        var: result

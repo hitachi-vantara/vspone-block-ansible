@@ -1,0 +1,21 @@
+- name: StorageSystem Facts
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.sds_block
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    - name: Get storage system facts
+      hv_sds_block_storage_system_fact:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+      register: result
+
+    - debug:
+        var: result

@@ -8,12 +8,17 @@ import json
 import logging
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_infra import StorageSystem, \
-    StorageSystemManager
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_infra import Utils
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
+    StorageSystem,
+    StorageSystemManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import Utils
 
-from ansible_collections.hitachi.storage.plugins.module_utils.hv_log import Log, \
-    HiException
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
+    HiException,
+)
+
 
 logger = Log()
 moduleName = "VSM facts"

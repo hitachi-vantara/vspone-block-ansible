@@ -1,0 +1,327 @@
+try:
+    from ..provisioner.vsp_shadow_image_pair_provisioner import (
+        VSPShadowImagePairProvisioner,
+    )
+    from ..common.ansible_common import (
+        snake_to_camel_case,
+        log_entry_exit,
+    )
+    from ..common.hv_constants import (
+        CommonConstants, StateValue,
+    )
+    from ..common.hv_log import Log
+    from ..common.hv_constants import ConnectionTypes
+except ImportError:
+    from provisioner.vsp_shadow_image_pair_provisioner import (
+        VSPShadowImagePairProvisioner,
+    )
+    from common.ansible_common import (
+        snake_to_camel_case,
+        log_entry_exit,
+    )
+    from common.hv_constants import (
+        CommonConstants, StateValue
+    )
+    from common.hv_log import Log
+    from common.hv_constants import ConnectionTypes
+logger = Log()
+
+class VSPShadowImagePairReconciler:
+
+    def __init__(self, connectionInfo, serial, shadowImagePairSpec=None):
+        self.connectionInfo = connectionInfo
+        self.serial = serial
+        self.shadowImagePairSpec = shadowImagePairSpec
+        self.provisioner = VSPShadowImagePairProvisioner(self.connectionInfo)
+
+    @log_entry_exit
+    def shadow_image_pair_facts(self, shadowImagePairSpec):
+        if shadowImagePairSpec is None:
+            data = self.provisioner.get_all_shadow_image_pairs(self.serial)
+        else:
+            data = self.provisioner.get_all_shadow_image_pairs(
+                self.serial, shadowImagePairSpec.pvol
+            )
+        return ShadowImagePairPropertyExtractor(self.serial).extract(data)
+
+    @log_entry_exit
+    def shadow_image_pair_module(self, state):
+
+        shadow_image_response = None
+        
+        shadow_image_data = None
+        try:
+            shadow_image_data = self.shadow_image_pair_get_by_pvol_and_svol(
+                self.shadowImagePairSpec.pvol, self.shadowImagePairSpec.svol
+            )
+        except Exception as e:
+            logger.writeError(f"An error occurred: {str(e)}")
+        pairId = None
+        if shadow_image_data is not None:
+            pairId = shadow_image_data.get("resource_id")
+        print(f"Pair Id: {pairId}")
+        if pairId is not None:
+            self.shadowImagePairSpec.pair_id = pairId
+        try:
+
+            if state == StateValue.PRESENT:
+                if pairId is not None:
+                    shadow_image_response = shadow_image_data
+                    self.connectionInfo.changed = False
+                else:
+                    shadow_image_response = self.shadow_image_pair_create(
+                        self.shadowImagePairSpec
+                    )
+                    self.connectionInfo.changed = True
+            elif state == StateValue.SPLIT:
+                if pairId is not None:
+                    if shadow_image_data.get("status") == "PSUS":
+                        shadow_image_response = shadow_image_data
+                        self.connectionInfo.changed = False
+                    else:
+                        print(f"---spec-- {self.shadowImagePairSpec}")
+                        shadow_image_response = self.shadow_image_pair_split(
+                            self.shadowImagePairSpec
+                        )
+                        self.connectionInfo.changed = True
+                else:
+                    self.shadowImagePairSpec.auto_split = True
+                    shadow_image_response = self.shadow_image_pair_create(
+                        self.shadowImagePairSpec
+                    )
+                    self.connectionInfo.changed = True
+            elif state == StateValue.SYNC:
+                if pairId is not None:
+                    if shadow_image_data.get("status") == "PAIR":
+                        shadow_image_response = shadow_image_data
+                        self.connectionInfo.changed = False
+                    else:
+                        shadow_image_response = self.shadow_image_pair_resync(
+                            self.shadowImagePairSpec
+                        )
+                        self.connectionInfo.changed = True
+                else:
+                    shadow_image_response = "Shadow image pair is not available."
+                    self.connectionInfo.changed = False
+            elif state == StateValue.RESTORE:
+                if pairId is not None:
+                    if shadow_image_data.get("status") == "PAIR":
+                        shadow_image_response = shadow_image_data
+                        self.connectionInfo.changed = False
+                    else:
+                        shadow_image_response = self.shadow_image_pair_restore(
+                            self.shadowImagePairSpec
+                        )
+                        self.connectionInfo.changed = True
+                else:
+                    shadow_image_response = "Shadow image pair is not available."
+                    self.connectionInfo.changed = False
+            elif state == StateValue.ABSENT:
+                if pairId is not None:
+                    shadow_image_response = self.shadow_image_pair_delete(
+                        self.shadowImagePairSpec
+                    )
+                    self.connectionInfo.changed = True
+                else:
+                    shadow_image_response = "Shadow image pair is not available."
+                    self.connectionInfo.changed = False
+
+        except Exception as e:            
+            logger.writeError(f"An error occurred: {str(e)}")
+            if self.connectionInfo.connection_type is None or self.connectionInfo.connection_type == ConnectionTypes.DIRECT:
+                if e.args is not list:
+                    for elm in e.args[0]:
+                        if 'message' == elm:
+                            raise Exception(e.args[0]['message'])
+                    raise Exception(e.args[0])
+                    # if e.args[0]['message'] is not None:
+                    #     raise Exception(e.args[0]['message'])
+                    # else:
+                    #     raise Exception(e.args[0])
+                    # try:
+                    #     if e.args[0]['message'] is not None:
+                    #         raise Exception(e.args[0]['message'])
+                    # except Exception as ex:
+                    #     raise Exception(ex.args)
+                elif 'message' in e.args[0]:
+                    raise Exception(e.args[0].get('message'))
+                
+                else:
+                    raise Exception(e)
+            raise Exception(e)
+            
+            #self.module.fail_json(msg=str(e))
+
+        return shadow_image_response
+    
+    @log_entry_exit
+    def shadow_image_pair_create(self, shadowImagePairSpec):
+        data = self.provisioner.create_shadow_image_pair(
+            self.serial, shadowImagePairSpec
+        )
+        return ShadowImagePairPropertyExtractor(self.serial).extract_object(data)
+
+    @log_entry_exit
+    def shadow_image_pair_split(self, shadowImagePairSpec):
+        data = self.provisioner.split_shadow_image_pair(
+            self.serial, shadowImagePairSpec
+        )
+        return ShadowImagePairPropertyExtractor(self.serial).extract_object(data)
+
+    @log_entry_exit
+    def shadow_image_pair_resync(self, shadowImagePairSpec):
+        data = self.provisioner.resync_shadow_image_pair(
+            self.serial, shadowImagePairSpec
+        )
+        return ShadowImagePairPropertyExtractor(self.serial).extract_object(data)
+
+    @log_entry_exit
+    def shadow_image_pair_restore(self, shadowImagePairSpec):
+        data = self.provisioner.restore_shadow_image_pair(
+            self.serial, shadowImagePairSpec
+        )
+        return ShadowImagePairPropertyExtractor(self.serial).extract_object(data)
+
+    @log_entry_exit
+    def shadow_image_pair_get_by_pvol_and_svol(self, pvol, svol):
+        data = self.provisioner.get_shadow_image_pair_by_pvol_and_svol(
+            self.serial, pvol, svol
+        )
+        return ShadowImagePairPropertyExtractor(self.serial).extract_object(data)
+
+    @log_entry_exit
+    def shadow_image_pair_delete(self, shadowImagePairSpec):
+        data = self.provisioner.delete_shadow_image_pair(
+            self.serial, shadowImagePairSpec
+        )
+        return data
+
+
+class ShadowImagePairPropertyExtractor:
+    def __init__(self, serial):
+        self.entitlement_properties = {
+            "partner_id": str,
+            "subscriber_id": str,
+            "entitlement_status": str,
+        }
+        self.common_properties = {
+            "resource_id": str,
+            "consistency_group_id": int,
+            "copy_pace_track_size": str,
+            "copy_rate": int,
+            "mirror_unitId": int,
+            "primary_hex_volume_id": str,
+            "primary_volume_id": int,
+            "storage_serial_number": str,
+            "secondary_hex_volumeId": str,
+            "secondary_volume_id": int,
+            "status": str,
+            "svol_access_mode": str,
+            "type": str,
+        }
+        self.serial = serial
+
+    def extract(self, responses):
+        new_items = []
+        for response in responses:
+            # new_dict = {"storage_serial_number": self.serial}
+            new_dict = {}
+            for key, value_type in self.entitlement_properties.items():
+                # Assign the value based on the response key and its data type
+                cased_key = snake_to_camel_case(key)
+                # Get the corresponding key from the response or its mapped key
+                response_key = response.get(cased_key)
+
+                if response_key is not None:
+                    new_dict[key] = value_type(response_key)
+                else:
+                    # Handle missing keys by assigning default values
+                    default_value = (
+                        "" if value_type == str else -1 if value_type == int else False
+                    )
+                    new_dict[key] = default_value
+            for key, value_type in self.common_properties.items():
+                # Assign the value based on the response key and its data type
+                cased_key = snake_to_camel_case(key)
+                # Get the corresponding key from the response or its mapped key
+
+                response_key = response.get(cased_key)
+
+                if response_key is not None:
+                    if key != "type":
+                        new_dict[key] = value_type(response_key)
+                else:
+                    if key == "storage_serial_number":
+                        new_dict[key] = self.serial
+                    else:
+                        # Handle missing keys by assigning default values
+                        default_value = (
+                            ""
+                            if value_type == str
+                            else -1 if value_type == int else False
+                        )
+                        new_dict[key] = default_value
+            if new_dict.get("primary_hex_volume_id") == "":
+                new_dict["primary_hex_volume_id"] = self.volume_id_to_hex_format(new_dict.get("primary_volume_id"))
+            if new_dict.get("secondary_hex_volumeId") == "":
+                new_dict["secondary_hex_volumeId"] = self.volume_id_to_hex_format(new_dict.get("secondary_volume_id"))
+            new_items.append(new_dict)
+        return new_items
+
+    def extract_object(self, response):
+
+        # new_dict = {"storage_serial_number": self.serial}
+        new_dict = {}
+        for key, value_type in self.entitlement_properties.items():
+            # Assign the value based on the response key and its data type
+            cased_key = snake_to_camel_case(key)
+            # Get the corresponding key from the response or its mapped key
+            response_key = response.get(cased_key)
+
+            if response_key is not None:
+                    new_dict[key] = value_type(response_key)
+            else:
+                # Handle missing keys by assigning default values
+                default_value = (
+                    "" if value_type == str else -1 if value_type == int else False
+                )
+                new_dict[key] = default_value
+        for key, value_type in self.common_properties.items():
+            # Assign the value based on the response key and its data type
+            cased_key = snake_to_camel_case(key)
+            # Get the corresponding key from the response or its mapped key
+            response_key = response.get(cased_key)
+
+            if response_key is not None:
+                if key != "type":
+                    new_dict[key] = value_type(response_key)
+            else:
+                if key == "storage_serial_number":
+                    new_dict[key] = self.serial
+                else:
+                    # Handle missing keys by assigning default values
+                    default_value = (
+                        "" if value_type == str else -1 if value_type == int else False
+                    )
+                    new_dict[key] = default_value
+
+        if new_dict.get("primary_hex_volume_id") == "":
+            new_dict["primary_hex_volume_id"] = self.volume_id_to_hex_format(new_dict.get("primary_volume_id"))
+        if new_dict.get("secondary_hex_volumeId") == "":
+            new_dict["secondary_hex_volumeId"] = self.volume_id_to_hex_format(new_dict.get("secondary_volume_id"))
+        return new_dict
+
+    def volume_id_to_hex_format(self,vol_id):
+        hex_format = None
+        
+        # Split the hex value to string 
+        hex_value = format(vol_id, '06x') 
+        # Convert hexadecimal to 00:00:00 format
+        part1_hex = hex_value[:2]
+        part2_hex = hex_value[2:4]
+        part3_hex = hex_value[4:6]
+
+        # Combine the hexadecimal values into the desired format
+        hex_format = f"{part1_hex}:{part2_hex}:{part3_hex}"
+        
+        return hex_format

@@ -1,0 +1,49 @@
+- name: Chap User Facts
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.sds_block
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    - name: Get all chap users
+      hv_sds_block_CHAP_user_facts:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get one chap user by id
+      hv_sds_block_CHAP_user_facts:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        spec:
+          id: 464e1fd1-9892-4134-866c-6964ce786676
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get one chap user by name
+      hv_sds_block_CHAP_user_facts:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_gateway_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        spec:
+          target_chap_user_name: chapuser1
+      register: result
+
+    - debug:
+        var: result

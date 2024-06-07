@@ -1,0 +1,74 @@
+- name: Hostgroup Facts
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+
+  tasks:
+    - name: Get all hostgroups
+      hv_hg_facts:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+          subscriber_id: 12345
+        storage_system_info:
+          serial: 40014
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get hostgroups of specific ports
+      hv_hg_facts:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+          subscriber_id: 12345
+        storage_system_info:
+          serial: 40014
+        spec:
+          ports: [ 'CL1-A' ]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get hostgroups of specific ports with same hg name
+      hv_hg_facts:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+          subscriber_id: 12345
+        storage_system_info:
+          serial: 40014
+        spec:
+          ports: [ 'CL1-A', 'CL2-A' ]
+          name: "hatestdummy5"
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get hostgroups of specific ports, include wwns and luns
+      hv_hg_facts:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+          subscriber_id: 12345
+        storage_system_info:
+          serial: 40014
+        spec:
+          ports: [ 'CL2-B' ]
+          query: [ 'wwns', 'luns']
+      register: result
+
+    - debug:
+        var: result
+

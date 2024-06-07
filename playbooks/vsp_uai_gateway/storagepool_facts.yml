@@ -1,0 +1,39 @@
+- name: Storage Pool Facts
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+
+  tasks:
+    - name: Get all storage pools
+      hv_storagepool_facts:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+          subscriber_id: 12345
+        storage_system_info:
+          serial: 40014
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get one storage pool
+      hv_storagepool_facts:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+          subscriber_id: 12345
+        storage_system_info:
+          serial: 40014
+        spec:
+          pool_id: 1
+      register: result
+
+    - debug:
+        var: result

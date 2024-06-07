@@ -1,0 +1,20 @@
+- name: UAIG Token
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+
+  tasks:
+    - name: Get UAI gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          address: gateway.company.com
+          username: "{{ ansible_vault_gateway_username }}"
+          password: "{{ ansible_vault_gateway_secret }}"
+      register: result
+
+    - debug:
+        var: result

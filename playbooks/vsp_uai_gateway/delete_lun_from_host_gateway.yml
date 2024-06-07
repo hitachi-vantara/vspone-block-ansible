@@ -1,0 +1,59 @@
+- name: Provision lun to host
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+
+  vars:
+    - luns:
+      - 360
+
+  tasks:
+    - name: Delete luns from hostgroup with gateway connection
+
+      hv_hg:
+
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+          subscriber_id: '{{ subscriber_id | default(omit) }}'
+
+        state: present
+        spec:
+          state: 'unpresent_lun'
+          name: 'test-ansible-mt-23456-8b'
+          port: 'CL8-B'
+          luns: '{{ luns }}'
+
+      register: result
+      
+    - name: Delete lun with gateway connection
+      hv_lun:
+
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+          
+        connection_info:
+          address: gateway.company.com
+          api_token: "{{ ansible_vault_gateway_api_token }}"
+          subscriber_id: '{{ subscriber_id | default(omit) }}'
+          connection_type: "gateway"
+
+        state: absent
+
+        spec:
+          lun: '{{ item }}'
+
+      with_items: '{{ luns }}'
+          
+      register: result
+
+
+

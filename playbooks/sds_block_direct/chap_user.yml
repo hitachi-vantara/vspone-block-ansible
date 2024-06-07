@@ -1,0 +1,74 @@
+- name: Chap User
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.sds_block
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_username.yml
+
+  tasks:
+    - name: Create chap user
+      hv_sds_block_CHAP_user:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          target_chap_user_name: chapuser2
+          target_chap_secret: chapuser2_secret
+          initiator_chap_user_name: chapuser1
+          initiator_chap_secret: chapuser1_secret
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Update chap user name
+      hv_sds_block_CHAP_user:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          id: 464e1fd1-9892-4134-866c-6964ce786676
+          target_chap_user_name: newchapuser2
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Update chap user secret
+      hv_sds_block_CHAP_user:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: present
+        spec:
+          target_chap_user_name: chapuser2
+          target_chap_secret: chapuser2_new_secret
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Delete chap user
+      hv_sds_block_CHAP_user:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        state: absent
+        spec:
+          id: 464e1fd1-9892-4134-866c-6964ce786676
+      register: result
+
+    - debug:
+        var: result

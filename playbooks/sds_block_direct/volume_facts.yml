@@ -1,0 +1,78 @@
+- name: Volume Facts
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.sds_block
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    - name: Get volumes by default count
+      hv_sds_block_volume_facts:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get volumes by count
+      hv_sds_block_volume_facts:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        spec:
+          count: 200
+      register: result
+
+    - debug:
+        var: result
+        
+    - name: Get volumes by names
+      hv_sds_block_volume_facts:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        spec:
+          names: [ 'test-volume1', 'test-volume2' ]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get volumes by nicknames
+      hv_sds_block_volume_facts:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        spec:
+          nicknames: [ 'nickname1', 'nickname2' ]
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Get volumes by other filters
+      hv_sds_block_volume_facts:
+        connection_info:
+          connection_type: "direct"
+          address: vssb.company.com
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        spec:
+          count: 200
+          saving_setting:   Disabled
+      register: result
+
+    - debug:
+        var: result
