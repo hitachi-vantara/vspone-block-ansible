@@ -16,3 +16,4 @@ class SDSBComputeNodeValidationMsg(Enum):
     NO_NAME_ID = "Either compute node ID or compute node name must be provided"
     INVALID_OS_TYPE = "Invalid os_type {0} specified, valid values are Linux, VMware, and Windows."
     CN_NAME_NOT_FOUND = "Could not find compute node with name {0}."
+    STRING_VALUE_HBA = "Provide a string for hba_name."
