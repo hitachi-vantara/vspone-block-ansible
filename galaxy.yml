@@ -13,10 +13,10 @@ license:
 tags:
   - hitachi
   - hv
-  - hitachi_vantara
-  - sds_block
+  - hitachiVantara
+  - sdsBlock
   - vsp
-  - vsp_one
+  - vspOne
   - storage
   - pegasus
 dependencies: {}
