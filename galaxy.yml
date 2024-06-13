@@ -13,10 +13,12 @@ license:
 tags:
   - hitachi
   - hv
-  - hitachivantara
-  - sdsblock
-  - vsp  
+  - hitachi vantara
+  - sds block
+  - vsp
+  - vsp one
   - storage
+  - pegasus
 dependencies: {}
 repository: https://github.com/hitachi-vantara/vsp-one-ansible
 documentation: https://github.com/hitachi-vantara/vsp-one-ansible
