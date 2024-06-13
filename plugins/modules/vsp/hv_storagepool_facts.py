@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_storagepool_facts
-short_description: This module provides information about the  storage pool.
+short_description: Retrieves storage pool information from Hitachi VSP storage systems.
 description:
-     - This module gathers facts about storage pools from a specified storage system.
+     - This module retrieves information about storage pools from Hitachi VSP storage systems.
 version_added: '3.0.0'
 requirements:
 options:

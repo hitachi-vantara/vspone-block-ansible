@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_lun_facts
-short_description: Retrieve information about logical units (LUNs) from Hitachi VSP storage systems.
+short_description: Retrieves information about logical units (LUNs) from Hitachi VSP storage systems.
 description:
   - This module retrieves information about logical units (LUNs) from Hitachi VSP storage systems.
   - It provides details such as LUN IDs, names, and other relevant information.

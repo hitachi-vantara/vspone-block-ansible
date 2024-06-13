@@ -1,0 +1,27 @@
+- name: Support Log Bundle
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  tasks:
+    - name: Get gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          connection_type: "gateway"
+          address: gateway.company.com
+          username: username
+          password: password
+      register: result_token
+      ignore_errors: True
+
+    - debug:
+        var: result_token
+
+    - name: Collect LogBundle including UAI gateway logs
+      hv_troubleshooting_facts:
+        uai_gateway_address: gateway.company.com
+        api_token: "{{ result_token.api_token.token | default(omit) }}"
+      register: result
+
+    - debug: var=result

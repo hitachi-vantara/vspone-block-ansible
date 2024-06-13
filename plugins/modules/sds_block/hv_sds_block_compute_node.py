@@ -5,7 +5,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_sds_block_compute_node
-short_description: Manage Hitachi sds block storage system compute nodes.
+short_description: Manages Hitachi SDS block storage system compute nodes.
 description:
   - This module allows for the creation, updation and deletion of compute node, 
     adding iqn initiators to compute node, remove iqn initiators from compute node,
@@ -41,7 +41,8 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['direct']
+        default: 'direct'
   spec:
     description: Specification for the compute node task.
     type: dict

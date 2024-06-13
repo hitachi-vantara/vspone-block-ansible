@@ -151,7 +151,7 @@ class TestVSPHtiSnapshotUai(unittest.TestCase):
     #     snapshots = conn.create_snapshot(serial, spec)
     #     print(f"test_prov_create_snapshot: {snapshots}")
     #     self.assertIsNotNone(snapshots)
-    def test_rec_create_snapshot_gateway(self):
+    def xtest_rec_create_snapshot_gateway(self):
         # conn = VSPHtiSnapshotReconciler(self.ConnectionInfo)
         params = {
              "connection_info": {
@@ -185,19 +185,26 @@ class TestVSPHtiSnapshotUai(unittest.TestCase):
         print(f"test_rec_create_snapshot: {snapshots}")
         self.assertIsNotNone(snapshots)
 
-    def xtest_rec_create_snapshot(self):
+    def test_rec_create_snapshot(self):
         # conn = VSPHtiSnapshotReconciler(self.ConnectionInfo)
         params = {
              "connection_info": {
-                "address": "172.25.45.102",
-                "username": "ucpa",
-                "password": "Hitachi1",
+                "address": "172.25.47.115",
+                "username": "maintenance",
+                "password": "raid-maintenance",
                 "connection_type": "direct",
             },
+            #  "connection_info": {
+            #     "address": "172.25.45.102",
+            #     "username": "ucpa",
+            #     "password": "Hitachi1",
+            #     "connection_type": "direct",
+            # },
             "storage_system_info": {"serial": 810050},
             "spec": {
-                "pvol": 74,
-                "pool_id": 0,
+                # "pvol": 681,
+                "pvol": 546,
+                "pool_id": 15,
                 # "allocate_consistency_group": False,
                 # "consistency_group_id": -1,
                 "snapshot_group_name": "newGrpName",

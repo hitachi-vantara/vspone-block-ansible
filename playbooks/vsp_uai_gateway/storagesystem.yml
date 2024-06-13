@@ -12,13 +12,13 @@
     - name: Add storage system
       hv_storagesystem:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
-          address: storage1.company.com
+          serial: "{{ storage_serial }}"
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present
@@ -30,12 +30,12 @@
     - name: Delete storage system
       hv_storagesystem:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: absent
       register: result
 

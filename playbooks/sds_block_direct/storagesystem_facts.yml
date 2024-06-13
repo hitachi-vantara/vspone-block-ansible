@@ -11,8 +11,7 @@
     - name: Get storage system facts
       hv_sds_block_storage_system_fact:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
       register: result

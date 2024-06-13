@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_storagesystem_facts
-short_description: This module provides information about the a specific VSP/Pegasus storage system.
+short_description:  Retrives storage system information from Hitachi VSP storage systems.
 description:
   - This module gathers facts about a specific storage system.
 version_added: '3.0.0'

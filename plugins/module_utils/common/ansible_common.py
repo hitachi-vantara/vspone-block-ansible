@@ -9,7 +9,7 @@ from typing import List
 
 try:
     from .ansible_common_constants import LoggingConstants
-
+    from .vsp_constants import PEGASUS_MODELS
 except ImportError:
     from ansible_common_constants import LoggingConstants
 
@@ -233,3 +233,9 @@ def volume_id_to_hex_format(vol_id):
     hex_format = f"{part1_hex}:{part2_hex}:{part3_hex}"
 
     return hex_format
+
+
+def is_pegasus_model(storage_info) -> bool:
+    return any(sub in storage_info.model for sub in PEGASUS_MODELS)
+
+

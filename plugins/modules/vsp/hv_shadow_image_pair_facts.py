@@ -5,7 +5,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_shadow_image_pair_facts
-short_description: Retrieve information about shadow image pairs from Hitachi VSP storage systems.
+short_description: Retrieves information about shadow image pairs from Hitachi VSP storage systems.
 description:
   - This module retrieves information about shadow image pairs from Hitachi VSP storage systems.
   - It provides details about shadow image pair such as ID, status and other relevant information.
@@ -74,7 +74,7 @@ EXAMPLES = '''
       connection_type: "direct"
 
     storage_system_info:
-      serial: 40014
+      serial: 123456
 
 - name: Retrieve information about a specific shadow image pair
   hv_shadow_image_pair_facts:       
@@ -85,7 +85,7 @@ EXAMPLES = '''
       connection_type: "direct"
 
     storage_system_info:
-      serial: 40014
+      serial: 123456
 
     spec:
       pvol: 274
@@ -104,15 +104,15 @@ data:
         "copy_rate": 100,
         "entitlement_status": "assigned",
         "mirror_unitId": -1,
-        "partner_id": "apiadmin",
+        "partner_id": "partner123",
         "primary_hex_volume_id": "00:01:12",
         "primary_volume_id": 274,
         "resource_id": "localpair-2749fed78e8d23a61ed17a8af71c85f8",
         "secondary_hex_volumeId": "00:01:17",
         "secondary_volume_id": 279,
         "status": "PAIR",
-        "storage_serial_number": "40014",
-        "subscriber_id": "12345",
+        "storage_serial_number": "123456",
+        "subscriber_id": "subscriber123",
         "svol_access_mode": "READONLY"
     }
   ]

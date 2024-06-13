@@ -11,12 +11,11 @@
     - name: Create shadow image pair
       hv_shadow_image_pair:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           pvol: 274
@@ -25,7 +24,6 @@
           copy_pace_track_size: 'MEDIUM'
           auto_split: False
           enable_quick_mode: False
-          is_data_reduction_force_copy: False
       register: result
 
     - debug:
@@ -34,12 +32,11 @@
     - name: Split shadow image pair 
       hv_shadow_image_pair:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: split
         spec:
           pvol: 274
@@ -54,12 +51,11 @@
     - name: Resync shadow image pair
       hv_shadow_image_pair:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: sync
         spec:
           pvol: 274
@@ -74,12 +70,11 @@
     - name: Create and Auto-Split shadow image pair
       hv_shadow_image_pair:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: split
         spec:
           pvol: 274
@@ -95,12 +90,11 @@
     - name: Restore shadow image pair
       hv_shadow_image_pair:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: restore
         spec:
           pvol: 274
@@ -115,12 +109,11 @@
     - name: Delete shadow image pair 
       hv_shadow_image_pair:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: absent
         spec:
           pvol: 274

@@ -14,11 +14,13 @@ class Endpoints(object):
     # Volumes
     POST_LDEVS = "v1/objects/ldevs"
     LDEVS_ONE = "v1/objects/ldevs/{}"
+    PEGA_LDEVS_ONE = "simple/v1/objects/volumes/{}"
     GET_LDEVS = "v1/objects/ldevs{}"
     PUT_LDEVS_CHANGE_STATUS = "v1/objects/ldevs/{}/actions/change-status/invoke"
     PUT_LDEVS_SHRED = "v1/objects/ldevs/{}/actions/shred/invoke"
     DELETE_LDEVS = "v1/objects/ldevs/{}"
     POST_EXPAND_LDEV = "v1/objects/ldevs/{}/actions/expand/invoke"
+    POST_FORMAT_LDEV = "v1/objects/ldevs/{}/actions/format/invoke"
     UAIG_GET_VOLUMES = "v3/storage/{}/volumes/details{}"
     UAIG_DELETE_ONE_VOLUME = "v3/storage/{}/volumes/{}?isDelete=true"
 
@@ -314,6 +316,11 @@ class VolumePayloadConst:
     PARITY_GROUP = "parityGroupId"
     LABEL = "label"
     ADDITIONAL_BLOCK_CAPACITY = "additionalBlockCapacity"
+    IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED = "isDataReductionSharedVolumeEnabled"
+    FORCE_FORMAT = "isDataReductionForceFormat"
+    OPERATION_TYPE = "operationType"
+    ENHANCED_EXPANSION = "enhancedExpansion"
+
 
     # URL PARAMS
     HEAD_LDEV_ID = "?headLdevId={}"
@@ -322,6 +329,17 @@ class VolumePayloadConst:
 
     # volume emulation type
     NOT_DEFINED = "NOT DEFINED"
+    
+    IS_DATA_REDUCTION_SHARE_ENABLED="isDataReductionShareEnabled"
+    IS_DATA_REDUCTION_DELETE_FORCE_EXECUTE = "isDataReductionDeleteForceExecute"
+
+
+    DISABLED = "disabled"
+    BLOCK = "BLK"
+
+    # Volume operation type
+    FMT= "FMT"
+    QFMT = "QFMT"
 
 
 class VSPSnapShotReq:
@@ -330,6 +348,8 @@ class VSPSnapShotReq:
     pvolLdevId = "pvolLdevId"
     isConsistencyGroup = "isConsistencyGroup"
     autoSplit = "autoSplit"
+    isDataReductionForceCopy = "isDataReductionForceCopy"
+    canCascade = "canCascade"
 
 class PairStatus:
     PSUS = "PSUS"

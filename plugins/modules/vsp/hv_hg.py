@@ -9,7 +9,7 @@ DOCUMENTATION = '''
 ---
 module: hv_hg
 author: Hitachi Vantara, LTD. VERSION 3.0.0
-short_description: This module manages host group on Hitachi Storage System.
+short_description: Manages host group on Hitachi VSP storage system.
 description:
      - This module provides the following host group management operations
      - 1. create host group.

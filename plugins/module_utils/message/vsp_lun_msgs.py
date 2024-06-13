@@ -24,3 +24,5 @@ class VSPVolValidationMsg(Enum):
     DIRECT_API_TOKEN_ERROR = "api_token should not be present when connection type is 'direct'"
     VOLUME_NOT_FOUND = "Volume not found for the given lun id {}"
     VOLUME_NOT_FOUND_BY_NAME = "Volume not found for the given lun name {}"
+    POOL_ID_PARITY_GROUP = "Either pool id or parity group is required for volume creation. Please provide one of them not both"
+    POOL_ID_OR_PARITY_GROUP = "Either pool id or parity group is required for volume creation."

@@ -28,7 +28,9 @@ class SnapshotReconcileSpec:
     mirror_unit_id: Optional[int] = None
     state: Optional[str] = "present"
     snapshot_group_name: Optional[str] = None
-    auto_split: Optional[bool] = False
+    auto_split: Optional[bool] = None
+    is_data_reduction_force_copy: Optional[bool] = None
+    can_cascade: Optional[bool] = None
 
 
 @dataclass

@@ -5,7 +5,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_snapshot
-short_description: Manage snapshots on Hitachi VSP storage systems.
+short_description: Manages snapshots on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, deletion, splitting, syncing, and restoring of snapshots on Hitachi VSP storage systems.
   - It supports various snapshot operations based on the specified task level.
@@ -33,7 +33,7 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
@@ -48,16 +48,9 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for 'gateway' connection type).
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
-        type: str
-        required: false
+      
   spec:
     description: Specification for the snapshot task.
     type: dict
@@ -71,25 +64,15 @@ options:
         description: ID of the pool where the snapshot will be allocated.
         type: int
         required: true
-      allocate_consistency_group:
-        description: Whether to allocate a consistency group. Default is false.
-        type: bool
-        required: false
-      consistency_group_id:
-        description: ID of the consistency group (required for 'gateway' connection type).
-        type: int
-        required: false
-      enable_quick_mode:
-        description: Whether to enable quick mode for snapshot creation.(required for 'gateway' connection type), Default is false.
-        type: bool
-        required: false
       snapshot_group_name:
         description: Name of the snapshot group (required for 'direct' connection type).
         type: str
         required: false
-      auto_split:
-        description: Specify whether the Thin Image pair is to be split after it is created or after a restore(applicable only for 'direct' connect 'present','restore' state).
-        type: str
+      is_data_reduction_force_copy:
+        description: Specify whether to forcibly create a pair for a volume for which the capacity saving function is enabled (Required for 'direct' connection type, Default is True when capacity savings is not 'disabled').
+        required: false
+      can_cascade:
+        description: Specify whether the pair can be cascaded. (Required for 'direct' connection type, Default is True when capacity savings is not 'disabled', Lun may not required to add to any host group when is it true). 
         required: false
 """
 
@@ -101,15 +84,13 @@ EXAMPLES = """
       serial: "ABC123"
       connection_info:
         address: gateway.company.com
-        api_token: "api_token_value"
-        connection_type: "gateway"
-        subscriber_id: "sub123"
+        username: "username"
+        password: "password"
+        connection_type: "direct"
     spec:
       pvol: "pvol123"
       pool_id: 1
-      allocate_consistency_group: true
-      consistency_group_id: 123
-      enable_quick_mode: true
+      snapshot_group_name: "snap_group"
 
 - name: Delete a snapshot
   hv_snapshot:
@@ -118,11 +99,12 @@ EXAMPLES = """
       serial: "ABC123"
       connection_info:
         address: gateway.company.com
-        api_token: "api_token_value"
-        connection_type: "gateway"
-        subscriber_id: "sub123"
+        username: "username"
+        password: "password"
+        connection_type: "direct"
     spec:
-      pvol: "pvol123"
+      pvol: 565
+      mirror_unit: 10
 
 - name: Split a snapshot
   hv_snapshot:
@@ -131,13 +113,12 @@ EXAMPLES = """
       serial: "ABC123"
       connection_info:
         address: gateway.company.com
-        api_token: "api_token_value"
-        connection_type: "gateway"
-        subscriber_id: "sub123"
+        username: "username"
+        password: "password"
+        connection_type: "direct"
     spec:
-      pvol: "pvol123"
-      pool_id: 1
-      consistency_group_id: 123
+      pvol: 565
+      mirror_unit: 10
 
 - name: Resync a snapshot
   hv_snapshot:
@@ -146,13 +127,12 @@ EXAMPLES = """
       serial: "ABC123"
       connection_info:
         address: gateway.company.com
-        api_token: "api_token_value"
-        connection_type: "gateway"
-        subscriber_id: "sub123"
+        username: "username"
+        password: "password"
+        connection_type: "direct"
     spec:
-      pvol: "pvol123"
-      pool_id: 1
-      consistency_group_id: 123
+      pvol: 565
+      mirror_unit: 10
 
 - name: Restore a snapshot
   hv_snapshot:
@@ -161,13 +141,12 @@ EXAMPLES = """
       serial: "ABC123"
       connection_info:
         address: gateway.company.com
-        api_token: "api_token_value"
-        connection_type: "gateway"
-        subscriber_id: "sub123"
+        username: "username"
+        password: "password"
+        connection_type: "direct"
     spec:
-      pvol: "pvol123"
-      pool_id: 1
-      consistency_group_id: 123
+      pvol: 566
+      mirror_unit: 3
 """
 
 RETURN = """

@@ -5,7 +5,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_shadow_image_pair
-short_description: Manage shadow image pairs on Hitachi VSP storage systems.
+short_description: Manages shadow image pairs on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, deletion, splitting, syncing and restoring of shadow image pairs on Hitachi VSP storage systems.
   - It supports various shadow image pairs operations based on the specified task level.
@@ -87,6 +87,7 @@ options:
         description: Copy pace track size.
         type: str
         required: false
+        choices: ['SLOW', 'MEDIUM', 'FAST']
       enable_quick_mode:
         description: Enable quick mode.
         type: bool
@@ -99,6 +100,7 @@ options:
         description: Copy pace.
         type: str
         required: false
+        choices: ['SLOW', 'MEDIUM', 'FAST']
       pair_id:
         description: Pair Id.
         type: str
@@ -111,7 +113,7 @@ EXAMPLES = '''
   hv_shadow_image_pair:
     state: "present"
     storage_system_info:
-      serial: 40014
+      serial: 123456
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
@@ -127,7 +129,7 @@ EXAMPLES = '''
   hv_shadow_image_pair:
     state: "split"
     storage_system_info:
-      serial: 40014
+      serial: 123456
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
@@ -143,7 +145,7 @@ EXAMPLES = '''
   hv_shadow_image_pair:
     state: "sync"
     storage_system_info:
-      serial: 40014
+      serial: 123456
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
@@ -152,13 +154,14 @@ EXAMPLES = '''
     spec:
       pvol: 274
       svol: 277
-      enable_quick_mode: false
+      enable_quick_mode: true
+      copy_pace: "FAST"
 
 - name: Create and Auto-Split shadow image pair
   hv_shadow_image_pair:
     state: "split"
     storage_system_info:
-      serial: 40014
+      serial: 123456
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
@@ -167,15 +170,13 @@ EXAMPLES = '''
     spec:
       pvol: 274
       svol: 277
-      new_consistency_group: false
-      consistency_group_id: 2
       copy_pace_track_size: "MEDIUM"
 
 - name: Restore shadow image pair
   hv_shadow_image_pair:
     state: "restore"
     storage_system_info:
-      serial: 40014
+      serial: 123456
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
@@ -184,13 +185,14 @@ EXAMPLES = '''
     spec:
       pvol: 274
       svol: 277
-      enable_quick_mode: false
+      enable_quick_mode: true
+      copy_pace: "FAST"
 
 - name: Delete shadow image pair
   hv_shadow_image_pair:
     state: "absent"
     storage_system_info:
-      serial: 40014
+      serial: 123456
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
@@ -214,15 +216,15 @@ data:
         "copy_rate": 100,
         "entitlement_status": "assigned",
         "mirror_unitId": -1,
-        "partner_id": "apiadmin",
+        "partner_id": "partner123",
         "primary_hex_volume_id": "00:01:12",
         "primary_volume_id": 274,
         "resource_id": "localpair-2749fed78e8d23a61ed17a8af71c85f8",
         "secondary_hex_volumeId": "00:01:17",
         "secondary_volume_id": 279,
         "status": "PAIR",
-        "storage_serial_number": "40014",
-        "subscriber_id": "12345",
+        "storage_serial_number": "123456",
+        "subscriber_id": "subscriber123",
         "svol_access_mode": "READONLY"
     }
 '''

@@ -9,9 +9,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_storagesystem
-short_description: This module manages Hitachi storage system.
+short_description: Manages Hitachi VSP storage systems.
 description:
-     - This module manages Hitachi storage system.
+     - This module manages Hitachi VSP storage systems.
 
 version_added: '3.0.0'
 author:
@@ -67,7 +67,7 @@ options:
         type: str
         required: false
         choices: ['gateway', 'direct']
-        default: 'direct'
+        default: 'gateway'
       subscriber_id:
         description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
         type: str

@@ -5,7 +5,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_gateway_admin_password
-short_description: Update password of gateway admin on Hitachi VSP storage systems.
+short_description: Updates password of gateway admin on Hitachi VSP storage systems.
 description:
   - This module updates the password of gateway admin.
 version_added: '3.0.0'

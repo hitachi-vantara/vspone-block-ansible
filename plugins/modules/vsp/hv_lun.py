@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_lun
-short_description: Manage logical units (LUNs) on Hitachi VSP storage systems.
+short_description: Manages logical units (LUNs) on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, modification, or deletion of logical units (LUNs) on Hitachi VSP storage systems.
   - It supports operations such as creating a new LUN, updating an existing LUN, or deleting a LUN.
@@ -74,7 +74,7 @@ options:
         description: ID of the pool where the LUN will be created. Options pool_id and parity_group_id are mutually exclusive.
         type: int
         required: false
-      parity_group_id:
+      parity_group:
         description: ID of the parity_group where the LUN will be created. Options pool_id and parity_group_id are mutually exclusive.
         type: int
         required: false
@@ -94,6 +94,10 @@ options:
         description: Whether capacity saving is (compression, compression_deduplication or disabled). Default is disabled.
         type: str
         required: false
+      data_reduction_share:
+        description: Specify whether to create a data reduction shared volume( Default =True for thin image advance direct connect).
+        type: bool
+        required: false
 """
 
 EXAMPLES = """
@@ -112,6 +116,7 @@ EXAMPLES = """
       size: "10GB"
       name: "New LUN"
       capacity_saving: "compression_deduplication"
+      data_reduction_share: True
 
 - name: Update an existing LUN
   hv_lun:
@@ -164,7 +169,8 @@ luns:
     "naa_id": "naa.123456789ABCDEF",
     "dedup_compression_progress": 100,
     "dedup_compression_status": "Completed",
-    "is_alua": true
+    "is_alua": true,
+    "is_data_reduction_share_enabled": true
   }
 """
 

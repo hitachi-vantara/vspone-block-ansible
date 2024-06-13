@@ -15,9 +15,9 @@ ANSIBLE_METADATA = {
 DOCUMENTATION = '''
 ---
 module: hv_hg_facts
-short_description: Retrieves Host Group information from a specified Hitachi storage system.
+short_description: Retrieves host group information from a specified Hitachi VSP storage system.
 description:
-     - This module fetches detailed information about Host Groups configured within a given Hitachi storage system.
+     - This module fetches detailed information about host groups configured within a given Hitachi VSP storage system.
 version_added: '3.0.0'
 author:
   - Hitachi Vantara, LTD. VERSION 3.0.0

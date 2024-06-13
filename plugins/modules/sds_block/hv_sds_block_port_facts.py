@@ -5,7 +5,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_sds_block_port_facts
-short_description: Retrieve information about Hitachi sds block storage system compute ports.
+short_description: Retrieves information about Hitachi SDS block storage system compute ports.
 description:
   - This module retrieves information about compute ports.
   - It provides details about a compute port such as ID, lun and other details.
@@ -35,7 +35,8 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['direct']
+        default: 'direct'
   spec:
     description: Specification for retrieving compute port information.
     suboptions:

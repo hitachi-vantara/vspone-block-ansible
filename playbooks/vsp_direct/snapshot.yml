@@ -11,20 +11,17 @@
     - name: Create snapshot pair
       hv_snapshot:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           pvol: 176
           pool_id: 15
-          allocate_consistency_group: true
-          enable_quick_mode: false
           snapshot_group_name: "SampleName"
-          auto_split: true
+   
       register: result
 
     - debug:
@@ -33,17 +30,15 @@
     - name: Split snapshot pair 
       hv_snapshot:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: split
         spec:
           pvol: 176
           mirror_unit_id: 3
-          enable_quick_mode: true
       register: result
 
     - debug:
@@ -52,17 +47,15 @@
     - name: Resync snapshot pair
       hv_snapshot:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: sync
         spec:
           pvol: 176
           mirror_unit_id: 3
-          enable_quick_mode: false
       register: result
 
     - debug:
@@ -71,19 +64,15 @@
     - name: Create and Auto-Split snapshot pair
       hv_snapshot:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: split
         spec:
           pvol: 176
           pool_id: 15
-          allocate_consistency_group: false
-          consistency_group_id: 2
-          enable_quick_mode: true
       register: result
 
     - debug:
@@ -92,17 +81,15 @@
     - name: Restore snapshot pair
       hv_snapshot:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: restore
         spec:
           pvol: 176
           mirror_unit_id: 3
-          enable_quick_mode: false
       register: result
 
     - debug:
@@ -111,19 +98,17 @@
     - name: Create snapshot pair using existing consistency group
       hv_snapshot:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           pvol: 176
           pool_id: 15
-          allocate_consistency_group: false
-          consistency_group_id: 1
           snapshot_group_name: "SampleName"
+          is_data_reduction_force_copy: true
       register: result
 
     - debug:
@@ -132,12 +117,11 @@
     - name: Delete snapshot pair
       hv_snapshot:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: absent
         spec:
           pvol: 176

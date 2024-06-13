@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_snapshot_facts
-short_description: Gather snapshot facts from a storage system.
+short_description: Retrieves snapshot information from from Hitachi VSP storage systems.
 description:
-  - This module gathers facts about snapshots from a specified storage system.
+  - This module retrives information about snapshots from from Hitachi VSP storage systems.
 version_added: '3.0.0'
 author:
   - Hitachi Vantara, LTD. VERSION 3.0.0
@@ -52,16 +52,8 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
-        type: str
-        required: false
   spec:
     description:
       - Specification for the snapshot facts to be gathered.
@@ -91,20 +83,8 @@ EXAMPLES = """
         password: "secret"
         connection_type: "direct"
       spec:
-        pvol: 'volume1'
-        mirror_unit_id: 'mu001'
-  - name: Gather snapshot facts with primary volume and mirror unit ID using gateway and subscriber id
-    hv_snapshot_facts:
-      storage_system_info:
-        serial: '1234567890'
-      connection_info:
-        address: gateway.company.com
-        api_token: "api_token_value"
-        connection_type: "gateway"
-        subscriber_id: "apiadmin"
-      spec:
-        pvol: 'volume1'
-        mirror_unit_id: 'mu001'
+        pvol: 525
+        mirror_unit_id: 10
   - name: Gather snapshot facts with only primary volume
     hv_snapshot_facts:
       storage_system_info:
@@ -116,14 +96,16 @@ EXAMPLES = """
         connection_type: "direct"
       spec:
         pvol: 'volume1'
+        
   - name: Gather snapshot facts without specific volume or mirror unit ID
     hv_snapshot_facts:
       storage_system_info:
         serial: '1234567890'
       connection_info:
-        address: gateway.company.com
-        api_token: "api_token_value"
-        connection_type: "gateway"
+        address: storage1.company.com
+        username: "admin"
+        password: "secret"
+        connection_type: "direct"
 """
 
 RETURN = """

@@ -5,7 +5,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_gateway_subscriber
-short_description: Manage subscribers of a partner on Hitachi VSP storage systems.
+short_description: Manages subscribers of a partner on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, updation and deletion of subscribers.
   - It supports various subscriber operations based on the specified task level.

@@ -9,7 +9,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_iscsi_target_facts
-short_description: Retrieve information about iscsi targets from Hitachi VSP storage systems.
+short_description: Retrieves information about iscsi targets from Hitachi VSP storage systems.
 description:
   - This module retrieves information about iscsi targets from Hitachi VSP storage systems.
 version_added: '3.0.0'

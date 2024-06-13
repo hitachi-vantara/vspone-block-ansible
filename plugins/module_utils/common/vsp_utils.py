@@ -392,6 +392,10 @@ class VSPVolumeArguments:
                 "required": False,
                 "type": "str",
             },
+            "data_reduction_share": {
+                "required": False,
+                "type": "bool",
+            },
         }
 
         cls.common_arguments["spec"]["options"] = spec_options
@@ -633,10 +637,10 @@ class VSPSnapshotArguments:
                 "required": False,
                 "type": "bool",
             },
-            "auto_split": {
-                "required": False,
-                "type": "bool",
-            },
+            # "auto_split": {
+            #     "required": False,
+            #     "type": "bool",
+            # },
             "mirror_unit_id": {
                 "required": False,
                 "type": "int",
@@ -645,6 +649,15 @@ class VSPSnapshotArguments:
                 "required": False,
                 "type": "str",
             },
+            "is_data_reduction_force_copy": {
+                "required": False,
+                "type": "bool",
+            },
+            "can_cascade": {
+                "required": False,
+                "type": "bool",
+            }
+            
         }
 
         cls.common_arguments["spec"]["options"] = spec_options
@@ -883,7 +896,9 @@ class VSPSpecValidators:
             # it also defines spec.luns as str (not list) for other business logics, it's a mess
             if not input_spec.lun:
                 raise ValueError(VSPVolValidationMsg.LUN_REQUIRED.value)
-
+        
+            
+        
     @staticmethod
     def validate_snapshot_fact(input_spec: SnapshotFactSpec):
         if isinstance(input_spec.pvol, int) and input_spec.pvol < 0:

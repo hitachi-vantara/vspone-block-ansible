@@ -11,12 +11,11 @@
     - name: Get all hostgroups
       hv_hg_facts:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
       register: result
 
     - debug:
@@ -25,12 +24,11 @@
     - name: Get hostgroups of specific ports
       hv_hg_facts:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         spec:
           ports: [ 'CL1-A' ]
       register: result
@@ -41,12 +39,11 @@
     - name: Get hostgroups of specific ports with same hg name
       hv_hg_facts:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         spec:
           ports: [ 'CL1-A', 'CL2-A' ]
           name: "hatestdummy5"
@@ -58,12 +55,11 @@
     - name: Get hostgroups of specific ports, include wwns and luns
       hv_hg_facts:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         spec:
           ports: [ 'CL2-B' ]
           query: [ 'wwns', 'luns']

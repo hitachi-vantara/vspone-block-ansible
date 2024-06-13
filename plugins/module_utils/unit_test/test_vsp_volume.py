@@ -21,7 +21,7 @@ class TestVssbVolume(unittest.TestCase):
 
     def setUp(self):
         self.raw_connection_info = {
-            "address": "172.25.45.102",
+            "address": "172.25.45.105",
             "username": "ucpa",
             "password": "Hitachi1",
             "connection_type": "direct",
@@ -46,7 +46,7 @@ class TestVssbVolume(unittest.TestCase):
             # }
         }
 
-    def test_get_volume(self):
+    def xtest_get_volume(self):
 
         spec = {
             # "count":100,
@@ -70,8 +70,8 @@ class TestVssbVolume(unittest.TestCase):
         print(new_data)
         self.assertIsNotNone(volume)
 
-    def xtest_create_volume(self):
-        spec = {"pool_id": 1, "size": "32GB", "lun": 390}
+    def test_create_volume(self):
+        spec = {"pool_id": 20, "size": "100MB", "capacity_saving": "compression_deduplication"}
         serial = {"serial": 810050}
         state = "present"
         params = {

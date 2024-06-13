@@ -11,8 +11,7 @@
     - name: Create compute node
       hv_sds_block_compute_node:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present
@@ -27,8 +26,7 @@
     - name: Update compute node name
       hv_sds_block_compute_node:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present
@@ -44,8 +42,7 @@
     - name: Add iqn initiators to compute node
       hv_sds_block_compute_node:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present
@@ -61,8 +58,7 @@
     - name: Remove iqn initiators from compute node
       hv_sds_block_compute_node:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present
@@ -78,8 +74,7 @@
     - name: Attach volumes to compute node
       hv_sds_block_compute_node:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present
@@ -95,8 +90,7 @@
     - name: Detach volumes from compute node
       hv_sds_block_compute_node:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present
@@ -112,8 +106,7 @@
     - name: Delete compute node by name
       hv_sds_block_compute_node:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: absent
@@ -128,8 +121,7 @@
     - name: Delete compute node by id
       hv_sds_block_compute_node:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: absent

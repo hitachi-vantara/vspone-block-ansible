@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_troubleshooting_facts
-short_description: This module provides log collection for Hitachi Ansible Modules host and Hitachi Gateway Service host.
+short_description: Collects the log bundles for Hitachi ansible modules host and Hitachi gateway service host.
 description:
      - This module collects all logs from the different services and all the relevant configuration files
        for further troubleshooting. The logbundle is a zip archive that contains this information.
@@ -379,7 +379,10 @@ def main(module=None):
 
         for file in glob.glob(Log.getHomePath() + "/support/*.yml"):
             shutil.copy(file, playb_dest)
-
+        try:
+            shutil.copy(os.path.join(Log.getHomePath(), "MANIFEST.json"), tempdir)
+        except Exception as e:
+            logger.writeInfo(e)
         if uai_flag == True:
             try:
                 hitachiAPIGatewayService = gmanagement_address

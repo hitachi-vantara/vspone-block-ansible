@@ -6,13 +6,14 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
 
   tasks:
     - name: Create subscriber
       hv_gateway_subscriber:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
         state: present
         spec:
@@ -29,8 +30,8 @@
     - name: Update subscriber
       hv_gateway_subscriber:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
         state: present
         spec:
@@ -47,8 +48,8 @@
     - name: Delete subscriber
       hv_gateway_subscriber:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
         state: absent
         spec:

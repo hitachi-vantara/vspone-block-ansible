@@ -62,6 +62,7 @@ class VSPHtiSnapshotReconciler:
                     enable_quick_mode=spec.enable_quick_mode,
                 )
             else:  # Create then split
+                
                 resp_data = self.provisioner.auto_split_snapshot(spec=spec)
         elif state == StateValue.SYNC:
             resp_data = self.provisioner.resync_snapshot(
@@ -107,10 +108,10 @@ class SnapshotCommonPropertiesExtractor:
             "copyPaceTrackSize": str,
             "status": str,
             "type": str,
-            "entitlementStatus": str,
+            # "entitlementStatus": str,
             "snapshotId": str,
-            "partnerId": str,
-            "subscriberId": str,
+            # "partnerId": str,
+            # "subscriberId": str,
         }
 
         self.parameter_mapping = {

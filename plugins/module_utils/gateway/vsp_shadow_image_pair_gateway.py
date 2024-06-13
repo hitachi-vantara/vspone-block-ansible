@@ -460,9 +460,7 @@ class VSPShadowImagePairUAIGateway:
                 sip['subscriberId'] = None
                 sip['entitlementStatus'] = "unassigned"
 
-            sip['entitlementStatus'] = "assigned"
-            #shadow_image_pair_list.append(sip)
-
+            
         return VSPShadowImagePairsInfo(
             dicts_to_dataclass_list(response["data"], VSPShadowImagePairInfo)
         )
