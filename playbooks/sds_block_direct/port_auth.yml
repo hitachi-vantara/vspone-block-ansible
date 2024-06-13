@@ -11,8 +11,7 @@
     - name: Set port authentication mode
       hv_sds_block_compute_port_authentication:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present

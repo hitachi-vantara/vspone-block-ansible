@@ -9,10 +9,9 @@
 
   tasks:
     - name: Get all chap users
-      hv_sds_block_CHAP_user_facts:
+      hv_sds_block_chap_user_facts:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
       register: result
@@ -21,10 +20,9 @@
         var: result
 
     - name: Get one chap user by id
-      hv_sds_block_CHAP_user_facts:
+      hv_sds_block_chap_user_facts:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         spec:
@@ -35,11 +33,10 @@
         var: result
 
     - name: Get one chap user by name
-      hv_sds_block_CHAP_user_facts:
+      hv_sds_block_chap_user_facts:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
-          username: "{{ ansible_vault_gateway_username }}"
+          address: "{{ storage_address }}"
+          username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         spec:
           target_chap_user_name: chapuser1

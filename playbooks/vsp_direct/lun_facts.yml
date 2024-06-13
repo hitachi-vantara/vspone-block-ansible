@@ -11,12 +11,11 @@
     - name: Get all luns
       hv_lun_facts:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
       register: result
 
     - debug:
@@ -25,14 +24,13 @@
     - name: Get luns within range
       hv_lun_facts:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         spec:
-          lun: 1000
+          start_ldev_id: 1000
           end_ldev_id: 2000
       register: result
 
@@ -42,14 +40,13 @@
     - name: Get luns from start id up to max count
       hv_lun_facts:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         spec:
-          lun: 500
+          start_ldev_id: 500
           count: 10
       register: result
 
@@ -59,12 +56,11 @@
     - name: Get luns with same name
       hv_lun_facts:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         spec:
           name: "database_volume1"
       register: result
@@ -75,12 +71,11 @@
     - name: Get one lun
       hv_lun_facts:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         spec:
           lun: 176
       register: result

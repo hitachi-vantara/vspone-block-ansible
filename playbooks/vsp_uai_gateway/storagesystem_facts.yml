@@ -6,17 +6,18 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
 
   tasks:
     - name: Get storage system facts
       hv_storagesystem_facts:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
       register: result
 
     - debug:
@@ -25,12 +26,12 @@
     - name: Get storage system facts using query
       hv_storagesystem_facts:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         spec:
           query:
             - pools

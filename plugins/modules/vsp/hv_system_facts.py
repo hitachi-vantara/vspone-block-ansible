@@ -15,9 +15,9 @@ ANSIBLE_METADATA = {
 DOCUMENTATION = """
 ---
 module: hv_system_facts
-short_description: This module provides System information on the specified Hitachi Management system.
+short_description: Retrives system information from Hitachi VSP storage systems.
 description:
-     - This module provides the System information on the specified Hitachi Management system.
+     - This module retrives the system information from Hitachi VSP storage systems.
 version_added: '3.0.0'
 author:
   - Hitachi Vantara, LTD. VERSION 3.0.0

@@ -11,8 +11,7 @@
     - name: Create lun with direct connection
       hv_lun:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present
@@ -28,8 +27,7 @@
     - name: Present luns to hostgroup with direct connection
       hv_hg:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present

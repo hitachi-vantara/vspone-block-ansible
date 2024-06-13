@@ -11,12 +11,11 @@
     - name: Get all iscsi targets
       hv_iscsi_target_facts:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
       register: result
 
     - debug:
@@ -25,12 +24,11 @@
     - name: Get iscsi targets by ports
       hv_iscsi_target_facts:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         spec:
           ports: ['CL4-C']
       register: result
@@ -41,12 +39,11 @@
     - name: Get iscsi targets by ports and name
       hv_iscsi_target_facts:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         spec:
           name: 'iscsi-target-server-1'
           ports: ['CL4-C']

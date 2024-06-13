@@ -5,14 +5,13 @@
     - hitachivantara.vspone_block.sds_block
 
   vars_files:
-    - ../ansible_vault_vars/ansible_vault_storage_username.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
 
   tasks:
     - name: Create chap user
-      hv_sds_block_CHAP_user:
+      hv_sds_block_chap_user:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present
@@ -27,10 +26,9 @@
         var: result
 
     - name: Update chap user name
-      hv_sds_block_CHAP_user:
+      hv_sds_block_chap_user:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present
@@ -43,10 +41,9 @@
         var: result
 
     - name: Update chap user secret
-      hv_sds_block_CHAP_user:
+      hv_sds_block_chap_user:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: present
@@ -59,10 +56,9 @@
         var: result
 
     - name: Delete chap user
-      hv_sds_block_CHAP_user:
+      hv_sds_block_chap_user:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         state: absent

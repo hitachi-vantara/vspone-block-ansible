@@ -6,17 +6,18 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
 
   tasks:
     - name: Create hostgroup
       hv_hg:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           name: 'hostgroup-server1'
@@ -33,18 +34,18 @@
     - name: Update host mode and host mode options
       hv_hg:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           state: set_host_mode_and_hmo
           name: 'hostgroup-server1'
           port: 'CL1-C'
-          host_mode: 'STANDARD'
+          host_mode: 'LINUX'
           host_mode_options: [ 13 ]
       register: result
 
@@ -54,12 +55,12 @@
     - name: Remove host mode options
       hv_hg:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           state: absent
@@ -74,12 +75,12 @@
     - name: Add wwns to hostgroup
       hv_hg:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           state: add_wwn
@@ -94,12 +95,12 @@
     - name: Remove wwns from hostgroup
       hv_hg:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           state: remove_wwn
@@ -114,12 +115,12 @@
     - name: Present luns to hostgroup
       hv_hg:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           state: 'present_lun'
@@ -134,12 +135,12 @@
     - name: Unpresent luns from hostgroup
       hv_hg:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           state: 'unpresent_lun'
@@ -154,12 +155,12 @@
     - name: Delete hostgroup
       hv_hg:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: absent
         spec:
           name: 'hostgroup-server1'

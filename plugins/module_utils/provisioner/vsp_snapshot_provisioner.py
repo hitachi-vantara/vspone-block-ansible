@@ -7,12 +7,18 @@ try:
     from ..common.hv_log import Log
     from ..common.hv_log_decorator import LogDecorator
     from ..common.vsp_constants import PairStatus
+    from ..common.ansible_common import is_pegasus_model
+    from ..message.vsp_snapshot_msgs import VSPSnapShotValidateMsg
+    from ..common.vsp_constants import VolumePayloadConst
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes, ConnectionTypes
     from common.hv_log import Log
     from common.hv_log_decorator import LogDecorator
     from common.vsp_constants import PairStatus
+    from common.ansible_common import is_pegasus_model
+    from message.vsp_snapshot_msgs import VSPSnapShotValidateMsg
+    from common.vsp_constants import VolumePayloadConst
 
 
 from typing import Optional, List, Dict, Any
@@ -85,7 +91,7 @@ class VSPHtiSnapshotProvisioner:
             return self.create_direct_snapshot(spec)
 
     def create_direct_snapshot(self, spec) -> Dict[str, Any]:
-
+        self.get_validate_direct_pvol_information(spec.pvol, spec.pool_id, spec)
         allocate_consistency_group = spec.allocate_consistency_group or False
         result = self.gateway.create_snapshot(
             spec.pvol,
@@ -93,12 +99,37 @@ class VSPHtiSnapshotProvisioner:
             allocate_consistency_group,
             spec.snapshot_group_name,
             spec.auto_split,
+            spec.is_data_reduction_force_copy,
+            spec.can_cascade,
         )
         self.logger.writeDebug(f"mirror_unit_id and pvol_id: {result}")
         mu_id = result.split(",")[1]
         ssp = self.get_one_snapshot(spec.pvol, mu_id)
         self.connection_info.changed = True
         return ssp
+
+    def get_validate_direct_pvol_information(self, pvol: int, pool_id: int, spec):
+
+        self.vol_gateway = GatewayFactory.get_gateway(
+            self.connection_info, GatewayClassTypes.VSP_VOLUME
+        )
+        storage_info = self.gateway.get_storage_details()
+
+        pegasus_model = is_pegasus_model(storage_info)
+        pvol_info = self.vol_gateway.get_volume_by_id(pvol)
+        if pegasus_model:
+            if not pvol_info.isDataReductionShareEnabled:
+                raise ValueError(VSPSnapShotValidateMsg.DATA_REDUCTION_SHARE.value)
+            if not pvol_info.poolId == pool_id:
+                raise ValueError(VSPSnapShotValidateMsg.PROVIDE_SAME_POOL_ID.value)
+
+        if (
+            pvol_info.dataReductionMode != VolumePayloadConst.DISABLED
+            and ( spec.is_data_reduction_force_copy is None or spec.is_data_reduction_force_copy is True)
+        ):
+            spec.is_data_reduction_force_copy = True
+            if spec.can_cascade is None:
+                spec.can_cascade = True
 
     def create_gateway_snapshot(self, spec) -> Dict[str, Any]:
 
@@ -125,6 +156,7 @@ class VSPHtiSnapshotProvisioner:
         raise ValueError("Mirror Unit ID not found in task info")
 
     def auto_split_snapshot(self, spec) -> Dict[str, Any]:
+        spec.auto_split = True
         ssp = self.create_snapshot(spec)
         mirror_unit_id = (
             ssp.get("mirrorUnitId") if ssp.get("mirrorUnitId") else ssp.get("muNumber")
@@ -169,7 +201,7 @@ class VSPHtiSnapshotProvisioner:
         self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool, auto_split: bool
     ) -> Dict[str, Any]:
         ssp = self.get_one_snapshot(pvol, mirror_unit_id)
-        if ssp.get("status") == PairStatus.PAIR:
+        if ssp.get("status") == PairStatus.PAIR and auto_split is not True:
             return ssp
         enable_quick_mode = enable_quick_mode or False
         _ = self.gateway.restore_snapshot(

@@ -11,12 +11,11 @@
     - name: Create lun
       hv_lun:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           lun: 345
@@ -31,12 +30,11 @@
     - name: Expand size of lun
       hv_lun:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           lun: 345
@@ -49,12 +47,11 @@
     - name: Delete lun just created
       hv_lun:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: absent
         spec:
           lun: 345
@@ -66,12 +63,11 @@
     - name: Create lun using parity group and auto free lun id selection
       hv_lun:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           parity_group: '1-1'
@@ -85,17 +81,17 @@
     - name: Create lun with capacity saving and auto free lun id selection
       hv_lun:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           pool_id: 15
           size: 1GB
-          capacity_saving: deduplication
+          capacity_saving: compression_deduplication
+          data_reduction_share: true
       register: result
 
     - debug:
@@ -104,12 +100,11 @@
     - name: Delete lun
       hv_lun:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: absent
         spec:
           lun: 345

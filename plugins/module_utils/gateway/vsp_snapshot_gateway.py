@@ -47,22 +47,27 @@ class VSPHtiSnapshotDirectGateway:
 
         pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
         self.logger.writeDebug(f"Storage Model: {storage_info.model}")
-        if pegasus_model and not pvol :
+        if pegasus_model and not pvol:
             return self._get_pegasus_snapshots()
         else:
             return self._get_all_snapshots_pf_rest(pvol, mirror_unit_id)
-    
+
     def _get_pegasus_snapshots(self):
         groups = self.rest_api.get(self.end_points.GET_SNAPSHOT_GROUPS)
         snapshots_lists = []
-        for grp in groups['data']:
-            snapshots = self.rest_api.get(self.end_points.GET_SNAPSHOTS_BY_GROUP.format(grp['snapshotGroupId']))['snapshots']
+        for grp in groups["data"]:
+            snapshots = self.rest_api.get(
+                self.end_points.GET_SNAPSHOTS_BY_GROUP.format(grp["snapshotGroupId"])
+            )["snapshots"]
             snapshots_lists.extend(snapshots)
 
         return DirectSnapshotsInfo(
             dicts_to_dataclass_list(snapshots_lists, DirectSnapshotInfo)
         )
-    def _get_all_snapshots_pf_rest(self, pvol: Optional[int] = None, mirror_unit_id: Optional[int] = None) -> DirectSnapshotsInfo:
+
+    def _get_all_snapshots_pf_rest(
+        self, pvol: Optional[int] = None, mirror_unit_id: Optional[int] = None
+    ) -> DirectSnapshotsInfo:
         if pvol and mirror_unit_id:
             object_id = f"pvolLdevId={pvol}&muNumber={mirror_unit_id}"
         elif pvol:
@@ -111,9 +116,14 @@ class VSPHtiSnapshotDirectGateway:
             pvol, mirror_unit_id, self.end_points.POST_SNAPSHOTS_RESYNC
         )
 
-    def restore_snapshot(self, pvol: int, mirror_unit_id: int, auto_split:bool = False, **args) -> Dict[str, Any]:
+    def restore_snapshot(
+        self, pvol: int, mirror_unit_id: int, auto_split: bool = False, **args
+    ) -> Dict[str, Any]:
         return self._snapshot_action(
-            pvol, mirror_unit_id, self.end_points.POST_SNAPSHOTS_RESTORE, auto_split=auto_split
+            pvol,
+            mirror_unit_id,
+            self.end_points.POST_SNAPSHOTS_RESTORE,
+            auto_split=auto_split,
         )
 
     def get_storage_details(self) -> VSPStorageDevice:
@@ -129,10 +139,18 @@ class VSPHtiSnapshotDirectGateway:
         allocate_consistency_group: bool,
         snapshot_group_name: str,
         auto_split: bool,
+        is_data_reduction_force_copy: bool,
+        can_cascade: bool,
     ) -> Dict[str, Any]:
 
         end_point, payload, pegasus_model = self._get_snapshot_payload(
-            pvol, poolId, allocate_consistency_group, snapshot_group_name,auto_split
+            pvol,
+            poolId,
+            allocate_consistency_group,
+            snapshot_group_name,
+            auto_split,
+            is_data_reduction_force_copy,
+            can_cascade,
         )
 
         if pegasus_model:
@@ -142,12 +160,16 @@ class VSPHtiSnapshotDirectGateway:
         return self.rest_api.post(end_point, payload)
 
     def _snapshot_action(
-        self, pvol: int, mirror_unit_id: int, end_point_template: str , auto_split:bool = False
+        self,
+        pvol: int,
+        mirror_unit_id: int,
+        end_point_template: str,
+        auto_split: bool = False,
     ) -> Dict[str, Any]:
-        payload = None if not auto_split else { "parameters": {"autoSplit": auto_split}}
+        # payload = None if not auto_split else {"parameters": {"autoSplit": auto_split}}
         object_id = f"{pvol},{mirror_unit_id}"
         end_point = end_point_template.format(object_id)
-        return self.rest_api.post(end_point, payload)
+        return self.rest_api.post(end_point, None)
 
     def _get_snapshot_payload(
         self,
@@ -156,22 +178,37 @@ class VSPHtiSnapshotDirectGateway:
         allocate_consistency_group: bool,
         snapshot_group_name: str,
         auto_split: bool,
+        is_data_reduction_force_copy: bool,
+        can_cascade: bool,
     ):
 
-        storage_info = self.get_storage_details()
+        # storage_info = self.get_storage_details()
 
-        pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
-        self.logger.writeDebug(f"Storage Model: {storage_info.model}")
+        pegasus_model = (
+            False  # any(sub in storage_info.model for sub in PEGASUS_MODELS)
+        )
+        # self.logger.writeDebug(f"Storage Model: {storage_info.model}")
+
+        """ToDo: will update the logic on the next version"""
+
         if not pegasus_model:
             end_point = self.end_points.SNAPSHOTS
             payload = {
                 VSPSnapShotReq.pvolLdevId: pvol,
                 VSPSnapShotReq.snapshotPoolId: poolId,
-                VSPSnapShotReq.isConsistencyGroup: allocate_consistency_group,
                 VSPSnapShotReq.snapshotGroupName: snapshot_group_name,
-                VSPSnapShotReq.autoSplit: auto_split,
-
             }
+            """ToDo: will update the logic on the next version"""
+            # if auto_split is not None:
+            #     payload[VSPSnapShotReq.autoSplit] = auto_split
+            
+            if is_data_reduction_force_copy is not None:
+                payload[VSPSnapShotReq.isDataReductionForceCopy] = (
+                    is_data_reduction_force_copy
+                )
+
+            if can_cascade is not None:
+                payload[VSPSnapShotReq.canCascade] = can_cascade
 
         else:
             end_point = self.end_points.PEGASUS_SNAPSHOTS
@@ -185,7 +222,7 @@ class VSPHtiSnapshotDirectGateway:
                     }
                 ]
             }
-        return end_point, payload , pegasus_model
+        return end_point, payload, pegasus_model
 
 
 @LogDecorator.debug_methods

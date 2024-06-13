@@ -11,10 +11,9 @@
     - name: Get all compute nodes
       hv_sds_block_compute_node_facts:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_gateway_secret }}"
+          password: "{{ ansible_vault_storage_secret }}"
       register: result
 
     - debug:
@@ -23,8 +22,7 @@
     - name: Get compute nodes by names
       hv_sds_block_compute_node_facts:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         spec:
@@ -37,8 +35,7 @@
     - name: Get compute nodes by hba_name
       hv_sds_block_compute_node_facts:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         spec:

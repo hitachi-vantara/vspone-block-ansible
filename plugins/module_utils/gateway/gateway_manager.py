@@ -49,7 +49,7 @@ class ConnectionManager(ABC):
 
     def get_job(self):
         """get job method"""
-        return 
+        return
 
     @log_entry_exit
     def _load_response(self, response):
@@ -108,9 +108,15 @@ class ConnectionManager(ABC):
             if error_resp.get("errorSource"):
                 msg = {}
                 msg[API.CODE] = err.code
-                msg[API.CAUSE] = error_resp[API.CAUSE] if error_resp.get(API.CAUSE) else ""
-                msg[API.SOLUTION] = error_resp[API.SOLUTION] if error_resp.get(API.SOLUTION) else ""
-                msg[API.MESSAGE] = error_resp[API.MESSAGE] if error_resp.get(API.MESSAGE) else ""
+                msg[API.CAUSE] = (
+                    error_resp[API.CAUSE] if error_resp.get(API.CAUSE) else ""
+                )
+                msg[API.SOLUTION] = (
+                    error_resp[API.SOLUTION] if error_resp.get(API.SOLUTION) else ""
+                )
+                msg[API.MESSAGE] = (
+                    error_resp[API.MESSAGE] if error_resp.get(API.MESSAGE) else ""
+                )
                 raise Exception(msg)
             else:
                 msg = {"code": err.code, "msg": err.msg}
@@ -150,7 +156,7 @@ class ConnectionManager(ABC):
                     if len(job_response[API.AFFECTED_RESOURCES]) > 0:
                         response = job_response[API.AFFECTED_RESOURCES][0]
                     else:
-                        response = job_response['self']
+                        response = job_response["self"]
                 else:
                     raise Exception(self.job_exception_text(job_response))
             else:
@@ -185,7 +191,7 @@ class ConnectionManager(ABC):
                     if len(job_response[API.AFFECTED_RESOURCES]) > 0:
                         response = job_response[API.AFFECTED_RESOURCES][0]
                     else:
-                        response = job_response['self']
+                        response = job_response["self"]
                 else:
                     raise Exception(self.job_exception_text(job_response))
             else:
@@ -214,7 +220,7 @@ class ConnectionManager(ABC):
             result_text += job_response[API.ERROR][API.CAUSE] + " "
         if API.SOLUTION in keys:
             result_text += job_response[API.ERROR][API.SOLUTION] + " "
-        
+
         return result_text
 
     @log_entry_exit
@@ -230,8 +236,10 @@ class ConnectionManager(ABC):
         return self._make_request("PUT", endpoint, data)
 
     @log_entry_exit
-    def delete(self, endpoint):
-        delete_response = self._make_request(method="DELETE", end_point=endpoint)
+    def delete(self, endpoint, data=None):
+        delete_response = self._make_request(
+            method="DELETE", end_point=endpoint, data=data
+        )
         job_id = delete_response[API.JOB_ID]
         response = None
         retryCount = 0
@@ -247,7 +255,7 @@ class ConnectionManager(ABC):
                     if len(job_response[API.AFFECTED_RESOURCES]) > 0:
                         response = job_response[API.AFFECTED_RESOURCES][0]
                     else:
-                        response = job_response['self']
+                        response = job_response["self"]
                 else:
                     raise Exception(self.job_exception_text(job_response))
             else:
@@ -265,7 +273,7 @@ class ConnectionManager(ABC):
 
 class UAIGConnectionManager:
     def __init__(self, address, username=None, password=None, token=None):
-        
+
         self.address = address
         self.username = username
         self.password = password
@@ -582,13 +590,13 @@ class SDSBConnectionManager(ConnectionManager):
 
 class VSPConnectionManager(ConnectionManager):
     session = None
+
     @log_entry_exit
     def getAuthToken(self):
         # TODO : Implement cache ... how long this token is valid for?
         funcName = "VSPConnectionManager:getAuthToken"
         logger.writeDebug(funcName)
         # self.logger.writeEnterSDK(funcName)
-
 
         end_point = Endpoints.SESSIONS
         try:
@@ -605,7 +613,7 @@ class VSPConnectionManager(ConnectionManager):
 
         headers = {"Authorization": "Session {0}".format(token)}
         # self.logger.writeExitSDK(funcName)
-        self.session =  headers
+        self.session = headers
 
     @log_entry_exit
     def form_base_url(self):
@@ -615,6 +623,11 @@ class VSPConnectionManager(ConnectionManager):
     def get_job(self, job_id):
         end_point = "v1/objects/jobs/{}".format(job_id)
         return self._make_request("GET", end_point)
+
+    @log_entry_exit
+    def pegasus_get(self, endpoint):
+        self.getAuthToken()
+        return self._make_pegasus_request("GET", endpoint)
 
     @log_entry_exit
     def pegasus_post(self, endpoint, data):
@@ -628,11 +641,10 @@ class VSPConnectionManager(ConnectionManager):
                     "statusResource": "/ConfigurationManager/simple/v1/objects/command-status/3"
                 }
                 ]
-        """ 
+        """
 
-        job_id = post_response[0].get('statusResource').split('/')[-1]
-            
-        
+        job_id = post_response[0].get("statusResource").split("/")[-1]
+
         response = None
         retryCount = 0
         while response is None and retryCount < 60:
@@ -645,7 +657,7 @@ class VSPConnectionManager(ConnectionManager):
                 if job_status == API.PEGASUS_NORMAL:
                     # For PATCH port-auth-settings, affected resource is empty
                     response = job_response.get(API.AFFECTED_RESOURCES)[0]
-                   
+
                 else:
                     raise Exception(job_response.get(API.ERROR_MESSAGE))
             else:
@@ -660,7 +672,6 @@ class VSPConnectionManager(ConnectionManager):
         logger.writeDebug("resourceId = {}", resourceId)
         return resourceId
 
-        
     def get_pegasus_job(self, job_id):
         url = Endpoints.PEGASUS_JOB
         return self._make_pegasus_request("GET", url.format(job_id))

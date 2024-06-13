@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, field
 from typing import Optional, List
 
 try:
@@ -18,12 +18,14 @@ class VolumeFactSpec:
 
 @dataclass
 class CreateVolumeSpec:
+    data_reduction_share: Optional[bool] = None
     name: Optional[str] = None
     size: Optional[str] = None
     lun: Optional[str] = None
     pool_id: Optional[int] = None
     capacity_saving: Optional[str] = None
     parity_group: Optional[str] = None
+    
 
 
 @dataclass
@@ -56,6 +58,7 @@ class VSPVolumeInfo(SingleBaseClass):
     dataReductionMode: Optional[str] = None
     dataReductionStatus: Optional[str] = None
     dataReductionProcessMode: Optional[str] = None
+    isDataReductionShareEnabled: Optional[bool] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

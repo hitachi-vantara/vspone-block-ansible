@@ -11,12 +11,11 @@
     - name: Create hostgroup
       hv_hg:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           name: 'hostgroup-server1'
@@ -33,18 +32,17 @@
     - name: Update host mode and host mode options
       hv_hg:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           state: set_host_mode_and_hmo
           name: 'hostgroup-server1'
           port: 'CL1-C'
-          host_mode: 'STANDARD'
+          host_mode: 'LINUX'
           host_mode_options: [ 13 ]
       register: result
 
@@ -54,12 +52,11 @@
     - name: Remove host mode options
       hv_hg:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           state: absent
@@ -74,12 +71,11 @@
     - name: Add wwns to hostgroup
       hv_hg:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           state: add_wwn
@@ -94,12 +90,11 @@
     - name: Remove wwns from hostgroup
       hv_hg:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           state: remove_wwn
@@ -114,12 +109,11 @@
     - name: Present luns to hostgroup
       hv_hg:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           state: 'present_lun'
@@ -134,12 +128,11 @@
     - name: Unpresent luns from hostgroup
       hv_hg:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: present
         spec:
           state: 'unpresent_lun'
@@ -154,12 +147,11 @@
     - name: Delete hostgroup
       hv_hg:
         connection_info:
-          connection_type: "direct"
-          address: storage1.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         state: absent
         spec:
           name: 'hostgroup-server1'

@@ -5,7 +5,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_sds_block_volume_facts
-short_description: Retrieve information about Hitachi sds block storage system volumes.
+short_description: Retrieves information about Hitachi SDS block storage system volumes.
 description:
   - This module retrieves information about storage volumes.
   - It provides details about a storage volume such as name, type and other details.
@@ -35,7 +35,8 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['direct']
+        default: 'direct'
 
   spec:
     description: Specification for retrieving volume information.

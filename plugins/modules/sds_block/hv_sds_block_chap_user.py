@@ -4,8 +4,8 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 ---
-module: hv_sds_block_CHAP_user
-short_description: Manage Hitachi sds block storage system CHAP users.
+module: hv_sds_block_chap_user
+short_description: Manages Hitachi SDS block storage system CHAP users.
 description:
   - This module allows for the creation, deletion and updation of CHAP users.
   - It supports various CHAP user operations based on the specified task level.
@@ -39,7 +39,8 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: true
-        choices: ['direct', 'gateway']
+        choices: ['direct']
+        default: 'direct'
   spec:
     description: Specification for the CHAP user task.
     type: dict
@@ -69,7 +70,7 @@ options:
 
 EXAMPLES = '''
 - name: Create a CHAP user
-  hv_sds_block_CHAP_user:
+  hv_sds_block_chap_user:
     state: present
     connection_info:
       address: vssb.company.com
@@ -83,7 +84,7 @@ EXAMPLES = '''
       initiator_chap_secret: "chapuser1_secret"
 
 - name: Delete a CHAP user
-  hv_sds_block_CHAP_user:
+  hv_sds_block_chap_user:
     state: present
     connection_info:
       address: vssb.company.com
@@ -94,7 +95,7 @@ EXAMPLES = '''
       id: "464e1fd1-9892-4134-866c-6964ce786676"
 
 - name: Update chap user name
-  hv_sds_block_CHAP_user:
+  hv_sds_block_chap_user:
     state:
     connection_info:
       address: vssb.company.com
@@ -106,7 +107,7 @@ EXAMPLES = '''
       target_chap_user_name: "newchapuser2"
 
 - name: Update chap user secret
-  hv_sds_block_CHAP_user:
+  hv_sds_block_chap_user:
     state:
     connection_info:
       address: vssb.company.com
@@ -156,7 +157,7 @@ class SDSBChapUserManager:
 
         self.argument_spec = SDSBChapUserArguments().chap_user()
         logger.writeDebug(
-            f"MOD:hv_sds_block_CHAP_user:argument_spec= {self.argument_spec}"
+            f"MOD:hv_sds_block_chap_user:argument_spec= {self.argument_spec}"
         )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
@@ -167,9 +168,9 @@ class SDSBChapUserManager:
         parameter_manager = SDSBParametersManager(self.module.params)
         self.state = parameter_manager.get_state()
         self.connection_info = parameter_manager.get_connection_info()
-        # logger.writeDebug(f"MOD:hv_sds_block_CHAP_user_facts:argument_spec= {self.connection_info}")
+        # logger.writeDebug(f"MOD:hv_sds_block_chap_user_facts:argument_spec= {self.connection_info}")
         self.spec = parameter_manager.get_chap_user_spec()
-        # logger.writeDebug(f"MOD:hv_sds_block_CHAP_user_facts:spec= {self.spec}")
+        # logger.writeDebug(f"MOD:hv_sds_block_chap_user_facts:spec= {self.spec}")
 
     def apply(self):
         chap_users = None
@@ -181,7 +182,7 @@ class SDSBChapUserManager:
             chap_users = sdsb_reconciler.reconcile_chap_user(self.state, self.spec)
 
             logger.writeDebug(
-                f"MOD:hv_sds_block_CHAP_user_facts:chap_users= {chap_users}"
+                f"MOD:hv_sds_block_chap_user_facts:chap_users= {chap_users}"
             )
             if self.state.lower() == StateValue.ABSENT:
                 chap_user_data_extracted = chap_users

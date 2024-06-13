@@ -4,8 +4,8 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 ---
-module: hv_sds_block_CHAP_user_facts
-short_description: Retrieve information about Hitachi sds block storage system CHAP users.
+module: hv_sds_block_chap_user_facts
+short_description: Retrieves information about Hitachi SDS block storage system CHAP users.
 description:
   - This module retrieves information about CHAP users.
   - It provides details about a CHAP user such as initiator CHAP user name, target CHAP user name and ID.
@@ -35,7 +35,8 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['direct']
+        default: 'direct'
   spec:
     description: Specification for retrieving CHAP user information.
     suboptions:
@@ -51,7 +52,7 @@ options:
 
 EXAMPLES = '''
 - name: Retrieve information about all CHAP users
-  hv_sds_block_CHAP_user_facts:
+  hv_sds_block_chap_user_facts:
     connection_info:
       address: vssb.company.com
       username: "admin"
@@ -59,7 +60,7 @@ EXAMPLES = '''
       connection_type: "direct"
 
 - name: Retrieve information about a specific CHAP user by ID
-  hv_sds_block_CHAP_user_facts:        
+  hv_sds_block_chap_user_facts:        
     connection_info:
       address: vssb.company.com
       username: "admin"
@@ -70,7 +71,7 @@ EXAMPLES = '''
       id: "464e1fd1-9892-4134-866c-6964ce786676"
 
 - name: Retrieve information about a specific CHAP user by name
-  hv_sds_block_CHAP_user_facts:       
+  hv_sds_block_chap_user_facts:       
     connection_info:
       address: vssb.company.com
       username: "admin"
@@ -118,7 +119,7 @@ class SDSBChapUserFactsManager:
 
         self.argument_spec = SDSBChapUserArguments().chap_user_facts()
         logger.writeDebug(
-            f"MOD:hv_sds_block_CHAP_user_facts:argument_spec= {self.argument_spec}"
+            f"MOD:hv_sds_block_chap_user_facts:argument_spec= {self.argument_spec}"
         )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
@@ -129,7 +130,7 @@ class SDSBChapUserFactsManager:
         parameter_manager = SDSBParametersManager(self.module.params)
         self.connection_info = parameter_manager.get_connection_info()
         self.spec = parameter_manager.get_chap_user_fact_spec()
-        logger.writeDebug(f"MOD:hv_sds_block_CHAP_user_facts:spec= {self.spec}")
+        logger.writeDebug(f"MOD:hv_sds_block_chap_user_facts:spec= {self.spec}")
 
     def apply(self):
         chap_users = None
@@ -141,7 +142,7 @@ class SDSBChapUserFactsManager:
             chap_users = sdsb_reconciler.get_chap_users(self.spec)
 
             logger.writeDebug(
-                f"MOD:hv_sds_block_CHAP_user_facts:chap_users= {chap_users}"
+                f"MOD:hv_sds_block_chap_user_facts:chap_users= {chap_users}"
             )
             output_dict = chap_users.data_to_list()
             chap_users_data_extracted = ChapUserPropertiesExtractor().extract(

@@ -5,9 +5,9 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_sds_block_compute_port_authentication
-short_description: Setting Hitachi sds block storage system compute port authentication mode.
+short_description: Manages Hitachi SDS block storage system compute port authentication mode settings.
 description:
-  - This module allows for setting compute port authentication mode.
+  - This module manages compute port authentication mode settings.
 version_added: '3.0.0'
 author:
   - Hitachi Vantara, LTD. VERSION 3.0.0
@@ -38,7 +38,8 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['direct']
+        default: 'direct'
   spec:
     description: Specification for the compute port authentication task.
     type: dict
@@ -188,7 +189,7 @@ class SDSBPortAuthManager:
         parameter_manager = SDSBParametersManager(self.module.params)
         self.state = parameter_manager.get_state()
         self.connection_info = parameter_manager.get_connection_info()
-        # logger.writeDebug(f"MOD:hv_sds_block_CHAP_user_facts:argument_spec= {self.connection_info}")
+        # logger.writeDebug(f"MOD:hv_sds_block_chap_user_facts:argument_spec= {self.connection_info}")
         self.spec = parameter_manager.get_port_auth_spec()
         logger.writeDebug(f"MOD:hv_sds_block_port_authentication:spec= {self.spec}")
 

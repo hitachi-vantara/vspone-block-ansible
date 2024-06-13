@@ -11,8 +11,7 @@
     - name: Get all compute ports
       hv_sds_block_compute_port_facts:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
       register: result
@@ -23,8 +22,7 @@
     - name: Get compute port by name
       hv_sds_block_compute_port_facts:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         spec:
@@ -37,8 +35,7 @@
     - name: Get compute port by nickname
       hv_sds_block_compute_port_facts:
         connection_info:
-          connection_type: "direct"
-          address: vssb.company.com
+          address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         spec:

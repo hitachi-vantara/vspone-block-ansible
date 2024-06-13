@@ -11,7 +11,7 @@
     - name: Get UAI gateway token
       hv_uaig_token_fact:
         connection_info:
-          address: gateway.company.com
+          address: "{{ uai_gateway_address }}"
           username: "{{ ansible_vault_gateway_username }}"
           password: "{{ ansible_vault_gateway_secret }}"
       register: result

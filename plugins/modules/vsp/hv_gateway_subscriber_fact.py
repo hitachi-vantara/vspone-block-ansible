@@ -5,7 +5,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_gateway_subscriber_fact
-short_description: Retrieve information about subscriber on Hitachi VSP storage systems.
+short_description: Retrieves information about subscriber on Hitachi VSP storage systems.
 description:
   - This module retrieves information about subscriber.
   - It provides details about a subscriber such as name, ID and other relevant information.

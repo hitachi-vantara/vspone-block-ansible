@@ -5,7 +5,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_sds_block_volume
-short_description: Manage Hitachi sds block storage system volumes.
+short_description: Manages Hitachi SDS block storage system volumes.
 description:
   - This module allows the creation, updation and deletion of volume, adding and removing compute code.
   - It supports various volume operations based on the specified state.
@@ -39,7 +39,8 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['direct']
+        default: 'direct'
 
   spec:
     description: Specification for the volume task.

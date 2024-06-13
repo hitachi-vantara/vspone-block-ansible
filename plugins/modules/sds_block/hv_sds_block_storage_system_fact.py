@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_sds_block_storage_system_fact
-short_description: This module provides information about a specific Hitachi sds block storage system.
+short_description: Retrives information about a specific Hitachi SDS block storage system.
 description:
      - This module gathers facts about a specific storage system.
 
@@ -40,15 +40,9 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: true
-        choices: ['direct', 'gateway']
-      subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
-        type: str
-        required: false
+        choices: ['direct']
+        default: 'direct'
+
 '''
 
 EXAMPLES = '''
