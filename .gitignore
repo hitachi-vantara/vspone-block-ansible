@@ -14,4 +14,4 @@ pylipylint_run_report.txt
 new_version.py
 get_session_id.py
 collection_build.sh
-scripts
+scripts/
