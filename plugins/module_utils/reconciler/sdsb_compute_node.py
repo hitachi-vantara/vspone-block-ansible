@@ -54,7 +54,11 @@ class SDSBComputeNodeReconciler:
 
     @log_entry_exit
     def get_compute_nodes(self, spec=None):
-        
+
+        if spec is not None and spec.hba_name is not None:
+            if '[' in spec.hba_name or ']' in spec.hba_name:
+                raise ValueError(SDSBComputeNodeValidationMsg.STRING_VALUE_HBA.value)
+
         cnodes = self.provisioner.get_compute_nodes(spec)
         logger.writeDebug('RC:get_compute_nodes:cnodes={}', cnodes)
 
