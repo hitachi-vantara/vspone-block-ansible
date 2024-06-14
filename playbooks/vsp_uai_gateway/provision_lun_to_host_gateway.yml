@@ -29,7 +29,7 @@
       register: result_create_lun
     - debug: var=result_create_lun
 
-    - name: Present luns to hostgroup with gateway connection
+    - name: Present lun to hostgroup with gateway connection
 
       hv_hg:
 

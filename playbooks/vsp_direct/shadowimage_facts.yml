@@ -21,7 +21,7 @@
     - debug:
         var: result
 
-    - name: Get one shadow image pair
+    - name: Get shadow image pairs by pvol
       hv_shadow_image_pair_facts:
         connection_info:
           address: "{{ storage_address }}"
