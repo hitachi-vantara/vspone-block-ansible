@@ -13,7 +13,7 @@
       - 360
 
   tasks:
-    - name: Delete luns from hostgroup with gateway connection
+    - name: Detach luns from hostgroup with gateway connection
 
       hv_hg:
 

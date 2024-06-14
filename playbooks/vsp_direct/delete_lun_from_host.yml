@@ -8,7 +8,7 @@
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
 
   tasks:
-    - name: Unpresent lun from hostgroup with direct connection
+    - name: Detach lun from host group with direct connection
       hv_hg:
         connection_info:
           address: "{{ storage_address }}"

@@ -17,14 +17,14 @@
         state: present
         spec:
           pool_id: 15
-          size: 1.07GB
+          size: 1GB
           name: database_volume1
       register: result_create_lun
 
     - debug:
         var: result_create_lun
 
-    - name: Present luns to hostgroup with direct connection
+    - name: Present lun to host group with direct connection
       hv_hg:
         connection_info:
           address: "{{ storage_address }}"
