@@ -68,11 +68,11 @@ jobs:
         # Attempt to delete the existing collection (if supported)
         # Note: This step requires API support for deletion
         # Uncomment the line below if your Galaxy server supports API deletion
-        curl -X DELETE "https://galaxy.ansible.com/api/v3/plugin/ansible/content/published/collections/index/hitachivantara/vspone_block/" -H "Authorization: Token $API_KEY"
+        #curl -X DELETE "https://galaxy.ansible.com/api/v3/plugin/ansible/content/published/collections/index/hitachivantara/vspone_block/" -H "Authorization: Token $API_KEY"
         
         # Sleep for 60 seconds to ensure the deletion is processed
-        sleep 60
-        ehco $API_KEY
+        #sleep 60
+        echo $API_KEY
 
         # Publish the collection
         docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ghcr.io/${{ github.repository_owner }}/ansible-image:latest ansible-galaxy collection publish *.tar.gz --api-key $API_KEY
