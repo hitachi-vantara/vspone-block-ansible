@@ -66,4 +66,4 @@ jobs:
         #sleep 60
 
         # Publish the collection
-        #docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ghcr.io/${{ github.repository_owner }}/ansible-image:latest ansible-galaxy collection publish *.tar.gz --api-key $API_KEY
+        docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ghcr.io/${{ github.repository_owner }}/ansible-image:latest ansible-galaxy collection publish *.tar.gz --api-key $API_KEY
