@@ -15,7 +15,15 @@ jobs:
 
     - name: Log in to GitHub Container Registry
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      
+
+    - name: List Docker images
+      run: docker images
+
+    - name: Cleanup old Docker images
+      run: |
+        # List all images and filter by the repository and tag, then remove them
+        docker images ghcr.io/${{ github.repository_owner }}/ansible-image --format "{{.ID}}" | xargs -r docker rmi
+
     - name: Build Docker image
       run: docker build -t ghcr.io/${{ github.repository_owner }}/ansible-image:latest .
 
@@ -54,7 +62,7 @@ jobs:
     - name: Publish to Ansible Galaxy
       env:
         COLLECTION_NAME: "hitachivantara.vspone_block"
-        VERSION: "3.0.0"
+        VERSION: "3.0.1"
         API_KEY: ${{ secrets.ANSIBLE_COLLECTIONS_TOKEN }}
       run: |
         # Attempt to delete the existing collection (if supported)
@@ -64,7 +72,6 @@ jobs:
         
         # Sleep for 60 seconds to ensure the deletion is processed
         #sleep 60
-        #echo $API_KEY
 
         # Publish the collection
         docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ghcr.io/${{ github.repository_owner }}/ansible-image:latest ansible-galaxy collection publish *.tar.gz --api-key $API_KEY
