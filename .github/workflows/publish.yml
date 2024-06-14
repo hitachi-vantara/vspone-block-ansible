@@ -15,15 +15,7 @@ jobs:
 
     - name: Log in to GitHub Container Registry
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-    - name: List Docker images
-      run: docker images
-
-    - name: Cleanup old Docker images
-      run: |
-        # List all images and filter by the repository and tag, then remove them
-        docker images ghcr.io/${{ github.repository_owner }}/ansible-image --format "{{.ID}}" | xargs -r docker rmi
-
+      
     - name: Build Docker image
       run: docker build -t ghcr.io/${{ github.repository_owner }}/ansible-image:latest .
 
