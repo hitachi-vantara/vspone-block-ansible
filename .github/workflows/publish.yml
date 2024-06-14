@@ -72,7 +72,7 @@ jobs:
         
         # Sleep for 60 seconds to ensure the deletion is processed
         #sleep 60
-        echo $API_KEY
+        #echo $API_KEY
 
         # Publish the collection
         docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ghcr.io/${{ github.repository_owner }}/ansible-image:latest ansible-galaxy collection publish *.tar.gz --api-key $API_KEY
