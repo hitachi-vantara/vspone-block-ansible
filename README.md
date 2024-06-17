@@ -3,7 +3,7 @@
 The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of Ansible modules for managing Hitachi VSP One SDS Block and Hitachi VSP One series systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
 ### Hardware requirements
-- VSP One SDS Block v1.14
+- VSP One SDS Block - v1.13, v1.14
 - VSP One Block 20
 - VSP One Block 24
 - VSP One Block 26
@@ -17,18 +17,13 @@ The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of
 ### Software requirements
 - Red Hat Ansible Core - 2.14 to 2.16
 - Python - 3.8 or higher
+- Hitachi UAI Gateway 4.6 for using Gateway Connection
 
-### Supported operating systems
-- Oracle Enterprise Linux 8.9 or higher
-- Red Hat Enterprise Linux 8.9 or higher
-
-### Recommended Host configuration
-- CPU/vCPU - 2
-- Memory - 4 GB
-- HardDisk - 30 GB
+## Hitachi UAI Gateway 4.6
+- For installation, see [Hitachi Vantara VSP One Block Storage Modules for Red Hat Ansible user guide](https://docs.hitachivantara.com).
 
 ## Idempotence
-- Idempotence is supported for this release
+- Idempotence is supported for this release.
 
 ## Available Modules
 ### VSP One SDS Block Ansible Modules:
