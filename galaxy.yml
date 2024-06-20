@@ -20,9 +20,9 @@ tags:
   - storage
   - pegasus
 dependencies: {}
-repository: https://github.com/hitachi-vantara/vsp-one-ansible
-documentation: https://github.com/hitachi-vantara/vsp-one-ansible
-issues: https://github.com/hitachi-vantara/vsp-one-ansible/issues
+repository: https://github.com/hitachi-vantara/vspone-block-ansible
+documentation: https://github.com/hitachi-vantara/vspone-block-ansible
+issues: https://github.com/hitachi-vantara/vspone-block-ansible/issues
 build_ignore:
   - tests/integration/  # Example: Ignore integration tests
   - .git
