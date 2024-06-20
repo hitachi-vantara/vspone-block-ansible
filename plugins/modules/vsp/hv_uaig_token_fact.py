@@ -5,7 +5,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_uaig_token_fact
-short_description: Retrieves an API token for the Histachi gateway service host.
+short_description: Retrieves an API token for the Hitachi gateway service host.
 description:
   - This module retrieves an API token for the gateway.
   - The API token is valid for 10 hours.
