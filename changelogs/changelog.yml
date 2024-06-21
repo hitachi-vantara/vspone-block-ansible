@@ -1,6 +1,13 @@
 ---
 ancestor: 2.3
 releases:
+  3.0.1:
+    changes:
+      bugfixes:
+        - hv_lun_facts: Modified the parameter name from naa_id to canonical_name.
+        - hv_storagesystem: Storage system remains in spare pool after user off-board the storage from UAI Gateway.
+        - hv_sds_block_compute_node_facts: Fixed the issue where the module was not returning the correct compute node information.
+        - hv_sds_block_chap_user: Updated the playbook file with the correct parameter name.
   3.0.0:
     modules:
     # The following modules are for Hitachi SDS Block storage systems
@@ -91,7 +98,7 @@ releases:
       description: Collects the log bundles for Hitachi ansible modules host and Hitachi gateway service host.
       namespace: 'hitachivantara'
     - name: hv_uaig_token_fact
-      description: Retrieves an API token for the Histachi gateway service host.
+      description: Retrieves an API token for the Hitachi gateway service host.
       namespace: 'hitachivantara'
 
     release_date: '2024-06-17'

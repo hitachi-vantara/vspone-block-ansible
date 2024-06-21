@@ -166,14 +166,13 @@ luns:
     "path_count": 2,
     "provision_type": "Thin Provisioning",
     "logical_unit_id_hex_format": "0x123456789ABCDEF",
-    "naa_id": "naa.123456789ABCDEF"
+    "canonical_name": "naa.123456789ABCDEF"
     "dedup_compression_progress": 100,
     "dedup_compression_status": "Completed",
     "is_alua": true,
     "is_data_reduction_share_enabled": true
   }
 """
-
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (

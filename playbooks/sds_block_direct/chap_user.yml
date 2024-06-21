@@ -48,7 +48,8 @@
           password: "{{ ansible_vault_storage_secret }}"
         state: present
         spec:
-          target_chap_user_name: chapuser2
+          id: 464e1fd1-9892-4134-866c-6964ce786676
+          target_chap_user_name: newchapuser2
           target_chap_secret: chapuser2_new_secret
       register: result
 
