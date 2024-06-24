@@ -3,6 +3,7 @@ try:
     from ..common.ansible_common import dicts_to_dataclass_list
     from ..model.sdsb_port_auth_models import *
     from ..model.sdsb_compute_node_models import *
+    from ..model.sdsb_port_models import *
     from ..model.sdsb_chap_user_models import *
     from ..common.ansible_common import log_entry_exit
     from .gateway_manager import SDSBConnectionManager
@@ -13,6 +14,7 @@ except ImportError:
     from common.ansible_common import dicts_to_dataclass_list
     from model.sdsb_port_auth_models import *
     from model.sdsb_compute_node_models import *
+    from model.sdsb_port_models import *
     from model.sdsb_chap_user_models import *
     from common.ansible_common import log_entry_exit
     from .gateway_manager import SDSBConnectionManager

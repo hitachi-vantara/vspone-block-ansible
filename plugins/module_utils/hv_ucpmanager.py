@@ -1388,12 +1388,12 @@ class UcpManager:
         self.logger.writeEnterSDK(funcName)
 
         ## skip delete from isp for now, takes too long
-        if True:
+        if False:
             return
 
         urlPath = "v2/storage/devices/{0}".format(resourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeParam("url={}", url)
+        self.logger.writeParam("1396 del ss from isp, url={}", url)
         self.logger.writeInfo("ss GRID={}", resourceId)
 
         response = requests.delete(

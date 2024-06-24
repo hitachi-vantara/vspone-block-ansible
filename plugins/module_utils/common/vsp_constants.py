@@ -314,6 +314,7 @@ class VolumePayloadConst:
     LDEV = "ldevId"
     ADR_SETTING = "dataReductionMode"
     PARITY_GROUP = "parityGroupId"
+    PARALLEL_EXECUTION = "isParallelExecutionEnabled"
     LABEL = "label"
     ADDITIONAL_BLOCK_CAPACITY = "additionalBlockCapacity"
     IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED = "isDataReductionSharedVolumeEnabled"

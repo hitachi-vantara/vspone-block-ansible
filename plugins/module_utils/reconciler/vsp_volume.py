@@ -6,7 +6,7 @@ try:
         snake_to_camel_case,
         process_size_string,
         get_response_key,
-        volume_id_to_hex_format
+        volume_id_to_hex_format,
     )
     from ..common.hv_constants import StateValue
     from ..common.vsp_constants import VolumePayloadConst
@@ -27,7 +27,7 @@ except ImportError:
         snake_to_camel_case,
         process_size_string,
         get_response_key,
-        volume_id_to_hex_format
+        volume_id_to_hex_format,
     )
     from common.vsp_constants import VolumePayloadConst
 
@@ -80,8 +80,14 @@ class VSPVolumeReconciler:
                 volume_data.blockCapacity if volume_data.blockCapacity else 0
             )
             if expand_val > 0:
-                enhanced_expansion = True if volume_data.isDataReductionShareEnabled is not None else False
-                self.provisioner.expand_volume_capacity(volume_data.ldevId, expand_val, enhanced_expansion)
+                enhanced_expansion = (
+                    True
+                    if volume_data.isDataReductionShareEnabled is not None
+                    else False
+                )
+                self.provisioner.expand_volume_capacity(
+                    volume_data.ldevId, expand_val, enhanced_expansion
+                )
                 self.connection_info.changed = True
             elif expand_val < 0:
                 raise ValueError(VSPVolValidationMsg.VALID_SIZE.value)
@@ -100,7 +106,7 @@ class VSPVolumeReconciler:
 
     @log_entry_exit
     def create_volume(self, spec: CreateVolumeSpec):
-        
+
         if isinstance(spec.pool_id, int) and spec.parity_group:
             raise ValueError(VSPVolValidationMsg.POOL_ID_PARITY_GROUP.value)
         if not isinstance(spec.pool_id, int) and not spec.parity_group:
@@ -117,8 +123,10 @@ class VSPVolumeReconciler:
     def get_volumes(self, get_volume_spec: VolumeFactSpec):
 
         if get_volume_spec.lun:
-            return VSPVolumesInfo(data=[self.provisioner.get_volume_by_ldev(get_volume_spec.lun)])
-     
+            return VSPVolumesInfo(
+                data=[self.provisioner.get_volume_by_ldev(get_volume_spec.lun)]
+            )
+
         volume_data = self.provisioner.get_volumes(
             get_volume_spec.start_ldev_id, get_volume_spec.count
         )
@@ -126,12 +134,14 @@ class VSPVolumeReconciler:
         if get_volume_spec.end_ldev_id:
             end_ldev_id = get_volume_spec.end_ldev_id
             volume_data.data = [
-                volume for volume in volume_data.data if volume.ldevId <= end_ldev_id 
+                volume for volume in volume_data.data if volume.ldevId <= end_ldev_id
             ]
 
         if get_volume_spec.name:
             volume_data.data = [
-                volume for volume in volume_data.data if volume.label == get_volume_spec.name
+                volume
+                for volume in volume_data.data
+                if volume.label == get_volume_spec.name
             ]
 
         return volume_data
@@ -148,7 +158,7 @@ class VSPVolumeReconciler:
         for volume in volumes.data:
             if volume.label == name:
                 return volume
-            
+
     @log_entry_exit
     def get_volume_by_id(self, id):
 
@@ -159,9 +169,14 @@ class VSPVolumeReconciler:
         raise ValueError(VSPVolValidationMsg.VOLUME_NOT_FOUND.value.format(id))
 
     @log_entry_exit
-    def delete_volume(self, volume:VSPVolumeInfo):
+    def delete_volume(self, volume: VSPVolumeInfo):
         ldev_id = volume.ldevId
-        force_execute = True if volume.dataReductionMode and volume.dataReductionMode.lower() != VolumePayloadConst.DISABLED else None
+        force_execute = (
+            True
+            if volume.dataReductionMode
+            and volume.dataReductionMode.lower() != VolumePayloadConst.DISABLED
+            else None
+        )
         self.provisioner.delete_volume(ldev_id, force_execute)
         self.connection_info.changed = True
 
@@ -176,7 +191,6 @@ class VolumeCommonPropertiesExtractor:
             "emulation_type": str,
             "name": str,
             "parity_group_id": str,
-            # "parity_group_ids": list,
             "pool_id": int,
             "resource_group_id": int,
             "status": str,
@@ -185,7 +199,7 @@ class VolumeCommonPropertiesExtractor:
             "path_count": int,
             "provision_type": str,
             "logical_unit_id_hex_format": str,
-            "naa_id": str,
+            "canonical_name": str,
             "dedup_compression_progress": int,
             "dedup_compression_status": str,
             "is_alua": bool,
@@ -195,7 +209,6 @@ class VolumeCommonPropertiesExtractor:
             "is_alua": "isAluaEnabled",
             "parity_group_id": "parityGroupIds",
             "path_count": "num_ports",
-            "naa_id": "canonicalName",
             "provision_type": "attributes",
             "total_capacity": "blockCapacity",
             "used_capacity": "numOfUsedBlock",
@@ -208,13 +221,16 @@ class VolumeCommonPropertiesExtractor:
         self.provision_type = "provision_type"
         self.hex_value = "logical_unit_id_hex_format"
         self.parity_group_id = "parity_group_id"
+
     @log_entry_exit
     def extract(self, responses):
         new_items = []
         for response in responses:
             new_dict = {"storage_serial_number": self.serial}
             if response.get("isDataReductionShareEnabled") is not None:
-                new_dict["is_data_reduction_share_enabled"] = response.get("isDataReductionShareEnabled")
+                new_dict["is_data_reduction_share_enabled"] = response.get(
+                    "isDataReductionShareEnabled"
+                )
             for key, value_type in self.common_properties.items():
 
                 cased_key = snake_to_camel_case(key)
@@ -231,13 +247,13 @@ class VolumeCommonPropertiesExtractor:
                 # Assign the value based on the response key and its data type
 
                 if response_key or isinstance(response_key, int):
-                    if key == self.provision_type or key ==  self.parity_group_id:
+                    if key == self.provision_type or key == self.parity_group_id:
                         new_dict[key] = value_type(
                             response_key
                             if isinstance(response_key, str)
                             else ",".join(response_key)
                         )
-                    
+
                     elif key in self.size_properties:
                         if type(response_key) == str:
                             new_dict[key] = value_type(response_key)
@@ -248,7 +264,11 @@ class VolumeCommonPropertiesExtractor:
                     else:
                         new_dict[key] = value_type(response_key)
                 elif key == self.hex_value:
-                        new_dict[key] = response_key if response_key else volume_id_to_hex_format(response.get("ldevId"))
+                    new_dict[key] = (
+                        response_key
+                        if response_key
+                        else volume_id_to_hex_format(response.get("ldevId"))
+                    )
                 else:
                     # Handle missing keys by assigning default values
                     default_value = (
