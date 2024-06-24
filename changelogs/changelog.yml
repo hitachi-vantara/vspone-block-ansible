@@ -8,6 +8,7 @@ releases:
         - hv_storagesystem: Storage system remains in spare pool after user off-board the storage from UAI Gateway.
         - hv_sds_block_compute_node_facts: Fixed the issue where the module was not returning the correct compute node information.
         - hv_sds_block_chap_user: Updated the playbook file with the correct parameter name.
+        - hv_sds_block_port_facts: Updated the sample playbook's module name to hv_sds_block_port_facts
   3.0.0:
     modules:
     # The following modules are for Hitachi SDS Block storage systems

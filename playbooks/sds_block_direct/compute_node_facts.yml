@@ -1,4 +1,4 @@
-- name: Compute Node Facts
+- name: Compute Port Facts
   hosts: localhost
   gather_facts: false
   collections:
@@ -8,8 +8,8 @@
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
 
   tasks:
-    - name: Get all compute nodes
-      hv_sds_block_compute_node_facts:
+    - name: Get all compute ports
+      hv_sds_block_port_facts:
         connection_info:
           address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
@@ -19,28 +19,29 @@
     - debug:
         var: result
 
-    - name: Get compute nodes by names
-      hv_sds_block_compute_node_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        spec:
-          names: [ 'computenode1', 'computenode2' ]
-      register: result
-
-    - debug:
-        var: result
-
-    - name: Get compute nodes by hba_name
-      hv_sds_block_compute_node_facts:
+    - name: Get compute port by name
+      hv_sds_block_port_facts:
         connection_info:
           address: "{{ storage_address }}"
           username: "{{ ansible_vault_storage_username }}"
           password: "{{ ansible_vault_storage_secret }}"
         spec:
-          hba_name: iqn.1991-05.com.hitachi:test-iscsi-iqn0002
+          name: iqn.1994-04.jp.co.hitachi:rsd.sph.t.0a85a.002
       register: result
 
     - debug:
         var: result
+
+    - name: Get compute port by nickname
+      hv_sds_block_port_facts:
+        connection_info:
+          address: "{{ storage_address }}"
+          username: "{{ ansible_vault_storage_username }}"
+          password: "{{ ansible_vault_storage_secret }}"
+        spec:
+          nicknames: ["000-iSCSI-000", "001-iSCSI-001"]
+      register: result
+
+    - debug:
+        var: result
+
