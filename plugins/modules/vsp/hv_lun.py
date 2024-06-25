@@ -152,26 +152,25 @@ luns:
   description: Info of a logical unit (LUN).
   returned: success
   type: dict
-  sample: {
-    "ldev_id": 123,
-    "deduplication_compression_mode": "Enabled",
-    "emulation_type": "Fibre Channel",
-    "name": "LUN1",
-    "parity_group_id": "PG1",
-    "pool_id": 1,
-    "resource_group_id": 1,
-    "status": "Online",
-    "total_capacity": "10 GB",
-    "used_capacity": "5 GB",
-    "path_count": 2,
-    "provision_type": "Thin Provisioning",
-    "logical_unit_id_hex_format": "0x123456789ABCDEF",
-    "canonical_name": "naa.123456789ABCDEF"
-    "dedup_compression_progress": 100,
-    "dedup_compression_status": "Completed",
-    "is_alua": true,
-    "is_data_reduction_share_enabled": true
-  }
+  sample: 
+    ldev_id: 123
+    deduplication_compression_mode: "Enabled"
+    emulation_type: "Fibre Channel"
+    name: "LUN1"
+    parity_group_id: "PG1"
+    pool_id: 1
+    resource_group_id: 1
+    status: "Online"
+    total_capacity: "10 GB"
+    used_capacity: "5 GB"
+    path_count: 2
+    provision_type: "Thin Provisioning"
+    logical_unit_id_hex_format: "0x123456789ABCDEF"
+    canonical_name: "naa.123456789ABCDEF"
+    dedup_compression_progress: 100
+    dedup_compression_status: "Completed"
+    is_alua: true
+    is_data_reduction_share_enabled: true
 """
 
 from ansible.module_utils.basic import AnsibleModule
