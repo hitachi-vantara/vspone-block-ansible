@@ -175,7 +175,6 @@ options:
           - 122 [TASK_SET_FULL_RESPONSE_AFTER_QOS_UPPER_LIMIT]
           - 124 [GUARANTEED_RESPONSE_DURING_CONTROLLER_FAILURE]
           - 131 [WCE_BIT_OFF_MODE]
-}
       should_delete_all_luns:
         description: If the value is true, destroy the logical units that are no longer attached to any host group or iSCSI target.
         required: false
@@ -197,7 +196,6 @@ EXAMPLES = '''
          name: 'testhg26dec'
          port: 'CL1-A'
          host_mode: 'VMWARE_EXTENSION'
-         host_mode_options: [ 40 ]
          wwns: [ '100000109B583B2D', '100000109B583B2C' ]
          luns: [ 393, 851 ]
       register: result
