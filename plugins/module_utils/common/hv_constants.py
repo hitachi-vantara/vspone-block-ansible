@@ -1,3 +1,6 @@
+
+TARGET_SUB_DIRECTORY = "ansible_collections/hitachivantara/vspone_block"
+
 class Http(object):
     GET = "GET"
     POST = "POST"

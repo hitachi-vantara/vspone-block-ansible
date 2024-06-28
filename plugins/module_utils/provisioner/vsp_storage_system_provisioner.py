@@ -86,17 +86,17 @@ class VSPStorageSystemProvisioner:
                 if pool.availableVolumeCapacity is not None
                 else ""
             )
-            match pool.poolStatus:
-                case "POLN":
-                    tmp_pool["status"] = "NORMAL"
-                case "POLF":
-                    tmp_pool["status"] = "OVER_THRESHOLD"
-                case "POLS":
-                    tmp_pool["status"] = "SUSPENDED"
-                case "POLE":
-                    tmp_pool["status"] = "FAILURE"
-                case _:
-                    tmp_pool["status"] = "UNKNOWN"
+            if pool.poolStatus == "POLN":
+                tmp_pool["status"] = "NORMAL"
+            elif pool.poolStatus == "POLF":
+                tmp_pool["status"] = "OVER_THRESHOLD"
+            elif pool.poolStatus == "POLS":
+                tmp_pool["status"] = "SUSPENDED"
+            elif pool.poolStatus == "POLE":
+                tmp_pool["status"] = "FAILURE"
+            else:
+                tmp_pool["status"] = "UNKNOWN"
+
             tmp_pool["subscription_limit_rate"] = (
                 pool.virtualVolumeCapacityRate
                 if pool.virtualVolumeCapacityRate is not None
@@ -152,23 +152,22 @@ class VSPStorageSystemProvisioner:
             tmp_port = {}
             tmp_port["port_id"] = port.portId if port.portId is not None else ""
             tmp_port["type"] = port.portType if port.portType is not None else ""
-            match port.portSpeed:
-                case "AUT":
-                    tmp_port["speed"] = "AUTO"
-                case "1G":
-                    tmp_port["speed"] = "1GBPS"
-                case "2G":
-                    tmp_port["speed"] = "2GBPS"
-                case "4G":
-                    tmp_port["speed"] = "4GBPS"
-                case "8G":
-                    tmp_port["speed"] = "8GBPS"
-                case "10G":
-                    tmp_port["speed"] = "10GBPS"
-                case "16G":
-                    tmp_port["speed"] = "16GBPS"
-                case _:
-                    tmp_port["speed"] = "UNKNOWN"
+            if port.portSpeed == "AUT":
+                tmp_port["speed"] = "AUTO"
+            elif port.portSpeed == "1G":
+                tmp_port["speed"] = "1GBPS"
+            elif port.portSpeed == "2G":
+                tmp_port["speed"] = "2GBPS"
+            elif port.portSpeed == "4G":
+                tmp_port["speed"] = "4GBPS"
+            elif port.portSpeed == "8G":
+                tmp_port["speed"] = "8GBPS"
+            elif port.portSpeed == "10G":
+                tmp_port["speed"] = "10GBPS"
+            elif port.portSpeed == "16G":
+                tmp_port["speed"] = "16GBPS"
+            else:
+                tmp_port["speed"] = "UNKNOWN"
 
             tmp_port["wwn"] = port.wwn if port.wwn is not None else ""
             if port.portConnection == "FCAL":
@@ -192,15 +191,14 @@ class VSPStorageSystemProvisioner:
                 else False
             )
             if len(port.portAttributes) == 1:
-                match port.portAttributes[0]:
-                    case "TAR":
-                        tmp_port["attribute"] = "TARGET"
-                    case "MCU":
-                        tmp_port["attribute"] = "INITIATOR"
-                    case "RCU":
-                        tmp_port["attribute"] = "RCU_TARGET"
-                    case "ELUN":
-                        tmp_port["attribute"] = "EXTERNAL"
+                if port.portAttributes[0] == "TAR":
+                    tmp_port["attribute"] = "TARGET"
+                elif port.portAttributes[0] == "MCU":
+                    tmp_port["attribute"] = "INITIATOR"
+                elif port.portAttributes[0] == "RCU":
+                    tmp_port["attribute"] = "RCU_TARGET"
+                elif port.portAttributes[0] == "ELUN":
+                    tmp_port["attribute"] = "EXTERNAL"
             elif len(port.portAttributes) > 1:
                 tmp_port["attribute"] = "BI_DIRECTIONAL"
             else:

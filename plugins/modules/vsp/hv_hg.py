@@ -137,6 +137,7 @@ options:
           - 15 [RAID_HACMP]
           - 22 [VERITAS_CLUSTER_SERVER]
           - 23 [REC_COMMAND_SUPPORT]
+          - 25 [SUPPORT_SPC_3_PERSISTENT_RESERVATION]
           - 33 [SET_REPORT_DEVICE_ID_ENABLE]
           - 39 [CHANGE_NEXUS_SPECIFIED_IN_SCSI_TARGET_RESET]
           - 40 [VVOL_EXPANSION]
@@ -161,6 +162,7 @@ options:
           - 72 [AIX_GPFS]
           - 73 [WS2012]
           - 78 [NON_PREFERRED_PATH]
+          - 91 [DISABLE_IO_WAIT_FOR_OPEN_STACK]
           - 95 [CHANGE_SCSI_LU_RESET_NEXUS_VSP_HUS_VM]
           - 96 [CHANGE_SCSI_LU_RESET_NEXUS]
           - 97 [PROPRIETARY_ANCHOR_COMMAND_SUPPORT]
@@ -170,6 +172,10 @@ options:
           - 110 [ODX Support for WS2012]
           - 113 [iSCSI CHAP Authentication Log]
           - 114 [Auto Asynchronous Reclamation on ESXi 6.5+]
+          - 122 [TASK_SET_FULL_RESPONSE_AFTER_QOS_UPPER_LIMIT]
+          - 124 [GUARANTEED_RESPONSE_DURING_CONTROLLER_FAILURE]
+          - 131 [WCE_BIT_OFF_MODE]
+}
       should_delete_all_luns:
         description: If the value is true, destroy the logical units that are no longer attached to any host group or iSCSI target.
         required: false

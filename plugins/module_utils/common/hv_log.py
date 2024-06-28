@@ -8,6 +8,8 @@ import os
 import sys
 import configparser
 import ast
+import inspect
+
 try:
     from enum import Enum
 except ImportError as error:
@@ -19,14 +21,75 @@ from time import gmtime, strftime
 try:
     from .hv_messages import MessageID
     from .ansible_common import get_ansible_home_dir
+    from .ansible_common_constants import (
+        ANSIBLE_LOG_PATH,
+        LOGFILE_NAME,
+        LOGGER_LEVEL,
+        ROOT_LEVEL,
+    )
 
     HAS_MESSAGE_ID = True
-    
-
 except ImportError as error:
     from .ansible_common import get_ansible_home_dir
 
     HAS_MESSAGE_ID = False
+
+import logging
+import logging.config
+import logging.handlers
+import os
+
+
+def setup_logging(logger):
+    # Define the log directory and ensure it exists
+    os.makedirs(ANSIBLE_LOG_PATH, exist_ok=True)
+
+    # Define the log file path
+    log_file = os.path.join(ANSIBLE_LOG_PATH, LOGFILE_NAME)
+
+    # Logging configuration dictionary
+    logging_config = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "logfileformatter": {"format": "%(asctime)s - %(levelname)s - %(message)s"},
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "level": "DEBUG",
+                "formatter": "logfileformatter",
+                "stream": "ext://sys.stdout",
+            },
+        },
+        "loggers": {
+            "": {"level": ROOT_LEVEL, "handlers": ["console"]},  # root logger
+            "hv_logger": {
+                "level": LOGGER_LEVEL,
+                "handlers": ["console"],
+                "propagate": False,
+            },
+        },
+    }
+
+    # Apply the logging configuration
+    logging.config.dictConfig(logging_config)
+
+    # Manually add RotatingFileHandler to the loggers
+    log_handler = logging.handlers.RotatingFileHandler(
+        log_file, mode="a", maxBytes=1000000, backupCount=20
+    )
+
+    # Use the existing formatter from the configuration
+    formatter = logging_config["formatters"]["logfileformatter"]["format"]
+    log_handler.setFormatter(logging.Formatter(formatter))
+
+    # Add the handler to the root logger
+    root_logger = logging.getLogger()
+    root_logger.addHandler(log_handler)
+
+    # Add the handler to the hv_logger
+    logger.addHandler(log_handler)
 
 
 class Log:
@@ -46,7 +109,7 @@ class Log:
 
         if Log.logger:
             msg = "getHomePath={0}".format(path)
-            #Log.logger.debug(msg)
+            # Log.logger.debug(msg)
 
         return path
 
@@ -67,46 +130,25 @@ class Log:
     def __init__(self):
 
         if not Log.logger:
-
-            # this is working, the urllib3 debug would show up
-            # ............logging.basicConfig(
-            # ............................filename='/var/log/hitachivantara/ansible/hv_storage_modules.log',
-            # ............................level=logging.INFO,
-            # ............................format='%(asctime)s %(name)-9s: %(levelname)s %(message)s'
-            # ............................)
-            # ............Log.logger = logging.getLogger("hv_logger")
-
-            # funcName is the caller of the logging member func, like writeError
-            # that is not what we want,
-            # we might have to look at the call stack
-            # ............logging.basicConfig(filename='/var/log/hitachivantara/ansible/hv_storage_modules.log',
-            # ............................level=logging.DEBUG,format='%(asctime)s - %(levelname)-10s - %(funcName)s - %(message)s'
-            # ............................)
-
-            config = None
-            if Log.getHomePath() is not None:
-                config = os.path.join(Log.getHomePath(), "logger.config")
-
-            if config is not None and os.path.exists(config):
-                self.ensure_log_dirs(config)
-                with open(config) as file:
-                    fileConfig(file)
-                Log.logger = logging.getLogger("hv_logger")
-            else:
-                logpath = "/var/log/hitachivantara/ansible/vspone_block"
-                if Log.getLogPath() is not None:
-                    logpath = Log.getLogPath()
-                logging.basicConfig(
-                    filename=logpath + "/hv_vspone_block_modules.log",
-                    level=logging.INFO,
-                    format="%(asctime)s: %(levelname)-6s %(message)s",
-                )
-
-                Log.logger = logging.getLogger("hv_logger")
+            Log.logger = logging.getLogger("hv_logger")
+            setup_logging(Log.logger)
 
             self.logger = Log.logger
         self.loadMessageIDs()
 
+    def get_previous_frame_info(self):
+        frame = inspect.currentframe()
+        outer_frames = inspect.getouterframes(frame)
+        if len(outer_frames) > 2:
+            # Get the previous frame (two levels up)
+            previous_frame = outer_frames[2]
+            frame_info = {
+                "filename": os.path.basename(previous_frame.filename),
+                "funcName": previous_frame.function,
+                "lineno": previous_frame.lineno,
+            }
+            return frame_info
+        return None
 
     def ensure_log_dirs(self, config_file):
         config = configparser.ConfigParser()
@@ -114,24 +156,28 @@ class Log:
 
         # Iterate through handlers to find FileHandlers
         for section in config.sections():
-            if section.startswith('handler_') and config[section]['class'] == 'handlers.RotatingFileHandler':
+            if (
+                section.startswith("handler_")
+                and config[section]["class"] == "handlers.RotatingFileHandler"
+            ):
                 # Extract the file path from the args parameter
-                args = config.get(section, 'args')
+                args = config.get(section, "args")
                 # args is expected to be a string representation of a tuple, e.g., "('logs/app.log', 'a')"
                 try:
-                    log_file_path = ast.literal_eval(args)[0]  # Use ast.literal_eval to safely parse the args tuple
+                    log_file_path = ast.literal_eval(args)[
+                        0
+                    ]  # Use ast.literal_eval to safely parse the args tuple
                     log_dir = os.path.dirname(log_file_path)
                     os.makedirs(log_dir, exist_ok=True)
                 except (ValueError, SyntaxError) as e:
                     raise ValueError(f"Error parsing log file path from args: {args}")
 
-
     def writeException(self, exception, messageID=None, *args):
         if isinstance(exception, Exception) is True and messageID is None:
-            message = str(exception) #if not isinstance(exception, AttributeError) else exception.message
-            message = "ErrorType={0}. Message={1}".format(
-                type(exception), message
-            )
+            message = str(
+                exception
+            )  # if not isinstance(exception, AttributeError) else exception.message
+            message = "ErrorType={0}. Message={1}".format(type(exception), message)
         else:
             messageID = self.getMessageIDString(messageID, "E", "ERROR")
             if args:
@@ -143,11 +189,7 @@ class Log:
 
     def writeAMException(self, messageID, *args):
 
-        # ........if isinstance(messageID, HiException):
-        # ............messageId = exception.messageId
-        # ............errorMessage = exception.errorMessage
-        # ............self.logger.error("ERROR ANS [{}] {}".format(messageId, errorMessage))
-
+ 
         messageID = self.getMessageIDString(messageID, "E", "ERROR")
         if args:
             messageID = messageID.format(*args)
@@ -156,7 +198,6 @@ class Log:
 
     def writeHiException(self, exception):
         from .hv_exceptions import HiException
-
 
         # ....................self.logger.debug("writeHiException")
 
@@ -214,14 +255,50 @@ class Log:
         self.logger.info(msg)
 
     def writeInfo(self, messageID, *args):
+        frame_info = self.get_previous_frame_info()
         if args:
             messageID = messageID.format(*args)
-        self.logger.info(messageID)
+        msg = (
+            f"{frame_info['filename']} - {frame_info['funcName']} - {frame_info['lineno']} - {messageID}"
+            if frame_info
+            else messageID
+        )
+        self.logger.info(msg)
 
     def writeDebug(self, messageID, *args):
+        frame_info = self.get_previous_frame_info()
         if args:
             messageID = messageID.format(*args)
-        self.logger.debug(messageID)
+        msg = (
+            f"{frame_info['filename']} - {frame_info['funcName']} - {frame_info['lineno']} - {messageID}"
+            if frame_info
+            else messageID
+        )
+        self.logger.debug(msg)
+
+    def writeError(self, messageID, *args):
+        frame_info = self.get_previous_frame_info()
+        messageID = self.getMessageIDString(messageID, "E", "ERROR")
+        if args:
+            messageID = messageID.format(*args)
+        msg = (
+            f"{frame_info['filename']} - {frame_info['funcName']} - {frame_info['lineno']} - {messageID}"
+            if frame_info
+            else messageID
+        )
+        self.logger.error(msg)
+
+    def writeWarning(self, messageID, *args):
+        frame_info = self.get_previous_frame_info()
+        messageID = self.getMessageIDString(messageID, "W", "WARN")
+        if args:
+            messageID = messageID.format(*args)
+        msg = (
+            f"{frame_info['filename']} - {frame_info['funcName']} - {frame_info['lineno']} - {messageID}"
+            if frame_info
+            else messageID
+        )
+        self.logger.warning(msg)
 
     def writeEnter(self, messageID, *args):
         if args:
@@ -258,25 +335,6 @@ class Log:
             messageID = messageID.format(*args)
         msg = "EXIT MODULE: " + messageID
         self.logger.info(msg)
-
-    def writeWarning(self, messageID, *args):
-        messageID = self.getMessageIDString(messageID, "W", "WARN")
-
-        if args:
-            messageID = messageID.format(*args)
-
-        message = strftime("%Y-%m-%d %H:%M:%S ", gmtime()) + messageID
-        self.logger.warning(messageID)
-
-    def writeError(self, messageID, *args):
-        messageID = self.getMessageIDString(messageID, "E", "ERROR")
-
-        if args:
-            messageID = messageID.format(*args)
-
-        message = strftime("%Y-%m-%d %H:%M:%S ", gmtime()) + messageID
-        message = messageID
-        self.logger.error(messageID)
 
     def writeErrorModule(self, messageID, *args):
         messageID = self.getMessageIDString(messageID, "E", "ERROR")

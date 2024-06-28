@@ -8,57 +8,19 @@ from typing import List
 
 
 try:
-    from .ansible_common_constants import LoggingConstants
     from .vsp_constants import PEGASUS_MODELS
+    from .hv_constants import TARGET_SUB_DIRECTORY
+    from .ansible_common_constants import ANSIBLE_LOG_PATH, LOGFILE_NAME
 except ImportError:
-    from ansible_common_constants import LoggingConstants
+    from hv_constants import TARGET_SUB_DIRECTORY
+    from vsp_constants import PEGASUS_MODELS
 
 
-def get_log_file():
-    # Extract directory path from log file
-    log_dir = os.path.dirname(LoggingConstants.RUN_LOG_FILE)
+def get_logger_file():
+    return os.path.join(ANSIBLE_LOG_PATH, LOGFILE_NAME)
 
-    # Check if directory exists
-    if not os.path.exists(log_dir):
-        # Create the directory if it doesn't exist
-        os.makedirs(log_dir)
-
-    return LoggingConstants.RUN_LOG_FILE
-
-
-def initialize_filehandler_logger(logger):
-
-    # Define log message format
-
-    log_format = LoggingConstants.RUN_LOG_FORMAT
-    formatter = logging.Formatter(log_format)
-    log_level = LoggingConstants.get_log_level()
-
-    file_handler = RotatingFileHandler(
-        get_log_file(),
-        maxBytes=LoggingConstants.MAX_BYTES,
-        backupCount=LoggingConstants.BACKUP_COUNT,
-    )  # Rotates after 10MB, keeps 5 backups
-    file_handler.setLevel(log_level)
-    file_handler.setFormatter(formatter)
-
-    logger.addHandler(file_handler)
-
-    if log_level > logging.DEBUG:
-        sys.tracebacklimit = 0
-
-    # Set the ANSIBLE_LOG_PATH
-
-    # command = f'export ANSIBLE_LOG_PATH={LoggingConstants.INTERNAL_LOG_FILE}'
-    # subprocess.run(command, shell=True)
-
-
-def init_common_logger(name=__name__):
-    logger = logging.getLogger(name)
-    logger.propagate = True
-    initialize_filehandler_logger(logger)
-    return logger
-
+def get_logger_dir():
+    return ANSIBLE_LOG_PATH
 
 def snake_to_camel_case(string):
     # Split the string into words using '_' as delimiter
@@ -161,11 +123,11 @@ def log_entry_exit(func):
         module_name = func.__module__
         func_name = func.__name__
 
-        logger.writeEnter(f"{module_name}.{func_name}")
+        logger.writeEnter(f"{module_name}:{func_name}")
 
         result = func(*args, **kwargs)
 
-        logger.writeExit(f"{module_name}.{func_name}")
+        logger.writeExit(f"{module_name}:{func_name}")
         return result
 
     return wrapper
@@ -190,24 +152,31 @@ def get_response_key(response, *keys):
 
 
 def get_ansible_home_dir():
+    # Define the base directories to check
     ansible_base_dirs = [
         os.path.expanduser("~/.ansible/collections"),
         "/usr/share/ansible/collections",
     ]
-    base_dir = os.path.expanduser(
-        "~/.ansible/collections/ansible_collections/hitachivantara/vspone_block"
-    )
 
-    if not os.path.exists(base_dir):
-        abs_path = os.path.dirname(os.path.abspath(__file__))
-        split_path = abs_path.split("plugins")[0]
+    # Define the target subdirectory to look for
 
-        for base in ansible_base_dirs:
-            target_dir = os.path.join(base, split_path)
-            if os.path.exists(os.path.join(target_dir)):
-                return target_dir
+    # Iterate over the base directories to find the target subdirectory
+    for base_dir in ansible_base_dirs:
+        target_dir = os.path.join(base_dir, TARGET_SUB_DIRECTORY)
+        if os.path.exists(target_dir):
+            return target_dir
 
-    return base_dir
+    # Fallback to determining the directory from the current file's location
+    abs_path = os.path.dirname(os.path.abspath(__file__))
+    split_path = abs_path.split("plugins")[0]
+
+    for base in ansible_base_dirs:
+        target_dir = os.path.join(base, split_path)
+        if os.path.exists(target_dir):
+            return target_dir
+
+    # If none of the directories exist, return the default user-specific directory
+    return os.path.join(ansible_base_dirs[0], TARGET_SUB_DIRECTORY)
 
 
 def operation_constants(state):
@@ -237,5 +206,3 @@ def volume_id_to_hex_format(vol_id):
 
 def is_pegasus_model(storage_info) -> bool:
     return any(sub in storage_info.model for sub in PEGASUS_MODELS)
-
-

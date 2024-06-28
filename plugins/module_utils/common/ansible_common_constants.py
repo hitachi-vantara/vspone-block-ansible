@@ -2,23 +2,17 @@ import os
 import logging
 
 
-class LoggingConstants:
-    RUN_LOG_FILE = "/var/log/hitachivantara/ansible/storage/hv_storage_modules.log"
-    # INTERNAL_LOG_FILE = "/var/log/hitachivantara/ansible/ansible_internal.log"
-    RUN_LOG_FORMAT = "%(asctime)s - %(filename)s - %(funcName)s %(lineno)d - %(levelname)s - %(message)s"
-    MAX_BYTES = 10 * 1024 * 1024
-    BACKUP_COUNT = 5
-    PROPAGATE = True
 
-    @staticmethod
-    def get_log_level():
-        """
-        Set the log level as per need in the env variable
-        export ANSIBLE_LOG_LEVEL="DEBUG"
+##PROJECT DETAILS
+NAMESPACE = "hitachivantara"
+PROJECT_NAME = "vspone_block"
 
-        """
-        level = os.environ.get("ANSIBLE_LOG_LEVEL")
-        if level is None:
-            return logging.INFO
-        # Convert the level string to a logging level constant
-        return getattr(logging, level.upper())
+
+
+#LOGGING CONSTANTS
+ANSIBLE_LOG_PATH = os.environ.get("HV_ANSIBLE_LOG_PATH", os.path.expanduser(f"~/logs/{NAMESPACE}/ansible/{PROJECT_NAME}"))
+LOGGER_LEVEL = os.getenv('HV_ANSIBLE_LOG_LEVEL', 'INFO').upper()
+LOGFILE_NAME =  os.getenv('HV_ANSIBLE_LOG_FILE', "hv_vspone_block_modules.log")
+ROOT_LEVEL =  os.getenv('HV_ANSIBLE_ROOT_LEVEL', "INFO").upper()
+
+

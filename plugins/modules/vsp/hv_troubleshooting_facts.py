@@ -60,11 +60,21 @@ filename:
   description: Path to the generated log bundle.
   returned: success
   type: str
-  sample: "/var/log/hitachivantara/ansible/vspone_block/log_bundles/ansible_log_bundle_2024_05_23_13_15_36.zip"
+  sample: "$HOME/logs/hitachivantara/ansible/vspone_block/log_bundles/ansible_log_bundle_2024_05_23_13_15_36.zip"
 """
 
 from zipfile import ZipFile
 from datetime import datetime
+from ansible.module_utils.basic import AnsibleModule
+import tempfile
+import subprocess
+import socket
+import shutil
+import os
+import time
+import json
+import glob
+
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
     HiException,
@@ -79,15 +89,10 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_inf
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ucpmanager import (
     UcpManager,
 )
-from ansible.module_utils.basic import AnsibleModule
-import tempfile
-import subprocess
-import socket
-import shutil
-import os
-import time
-import json
-import glob
+
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    get_logger_dir
+    )
 
 ANSIBLE_METADATA = {
     "metadata_version": "1.1",
@@ -341,7 +346,7 @@ def main(module=None):
     tempdir = datetime.now().strftime(
         "ansible_log_bundle_%Y_%m_%d_%H_%M_%S"
     )
-    zipdir = '/var/log/hitachivantara/ansible/vspone_block/log_bundles'
+    zipdir = get_logger_dir()
     zipPath = os.path.join(zipdir, "{0}.zip".format(tempdir))
 
     try:
@@ -402,7 +407,7 @@ def main(module=None):
                 # module.fail_json(msg=str(e))
 
         writeLog("Copying Ansible log files")
-        src = "/var/log/hitachivantara/ansible/vspone_block/"
+        src = get_logger_dir()
         src_files = os.listdir(src)
         for file_name in src_files:
             full_file_name = os.path.join(src, file_name)

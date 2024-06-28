@@ -14,9 +14,9 @@ class VSPVolValidationMsg(Enum):
     SIZE_REQUIRED = "size is mandatory for new lun creation."
     SIZE_INT_REQUIRED = "provide integer value for the size with unit. e.g. 5GB, 2TB, etc."
     VALID_SIZE = "size is less than actual volume size of the lun , Please provide with more than the actual size."
-    LDEV_ID_OUT_OF_RANGE = "lun id is out of range to create, Please specify within the range of 1 to 65535."
+    LDEV_ID_OUT_OF_RANGE = "lun id is out of range to create, Please specify within the range of 0 to 65535."
     MAX_LDEV_ID_OUT_OF_RANGE = (
-        "ldev id is out of range, Please specify within the range of 1 to 65535."
+        "ldev id is out of range, Please specify within the range of 0 to 65535."
     )
     START_LDEV_LESS_END = "end_ldev_id can't be less then start_ldev_id."
     BOTH_API_TOKEN_USER_DETAILS = "either api_token or user details (username, key) is required, both can't be provided"

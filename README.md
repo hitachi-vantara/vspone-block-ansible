@@ -102,7 +102,7 @@ See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guid
 - Logging and troubleshooting
 
     
-    - The log files are located at `/var/log/hitachivantara/ansible/vspone_block/hv_vspone_block_modules.log`.
+    - The log files are located at `$HOME/logs/hitachivantara/ansible/vspone_block/hv_vspone_block_modules.log`.
 
     - Hitachi Ansible Storage Log Collection
         In the Ansible Module installation directory, the playbooks are located at `/opt/hitachivantara/ansible/vspone_block/tools`. The name of the playbooks are:
@@ -110,9 +110,10 @@ See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guid
         - `logbundle_gateway_connection.yml`
 
         *There are two log bundle generation procedures each for gateway connect and direct connect.*
-        - After executing the script, the resulting ZIP archive is named: e.g.`ansible_log_bundle_2024_06_04_23_28_44.zip` This log bundle is created in the `/var/log/hitachivantara/ansible/vspone_block/log_bundles/` directory.
-
-
+        - After executing the script, the resulting ZIP archive is named: e.g.`ansible_log_bundle_2024_06_04_23_28_44.zip` This log bundle is created in the `$HOME/logs/hitachivantara/ansible/vspone_block/log_bundles/` directory.
+    - Set below environment variables to change the ansible log level, log directory and log file name
+        - `HV_ANSIBLE_LOG_PATH` `HV_ANSIBLE_LOG_LEVEL` `HV_ANSIBLE_LOG_FILE` 
+           
 ## Author
 
 *This collection was created by Hitachi Vantara® Ansible Team in 2024.*

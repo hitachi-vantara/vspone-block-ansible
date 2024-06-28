@@ -856,7 +856,7 @@ class VSPSpecValidators:
         if input_spec.lun:
             try:
                 lun_value = int(input_spec.lun)
-                if lun_value <= 0 or lun_value > AutomationConstants.LDEV_ID_MAX:
+                if lun_value < 0 or lun_value > AutomationConstants.LDEV_ID_MAX:
                     raise ValueError(VSPVolValidationMsg.LDEV_ID_OUT_OF_RANGE.value)
             except ValueError as e:
                 if "invalid literal" not in str(e):
@@ -867,7 +867,7 @@ class VSPSpecValidators:
                     pass
 
         if isinstance(input_spec.start_ldev_id, int) and (
-            input_spec.start_ldev_id <= 0
+            input_spec.start_ldev_id < 0
             or input_spec.start_ldev_id > AutomationConstants.LDEV_ID_MAX
         ):
             raise ValueError(VSPVolValidationMsg.MAX_LDEV_ID_OUT_OF_RANGE.value)
@@ -888,7 +888,7 @@ class VSPSpecValidators:
     def validate_volume_spec(state, input_spec: CreateVolumeSpec):
 
         if isinstance(input_spec.lun, int) and not (
-            0 <= int(input_spec.lun) < AutomationConstants.LDEV_MAX_NUMBER
+            0 < int(input_spec.lun) < AutomationConstants.LDEV_MAX_NUMBER
         ):
             raise ValueError(VSPVolValidationMsg.LDEV_ID_OUT_OF_RANGE.value)
         if state == StateValue.ABSENT:
