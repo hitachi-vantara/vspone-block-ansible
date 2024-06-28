@@ -42,20 +42,20 @@ class VSPStoragePoolProvisioner:
         storage_pool_dict["poolId"] = pool.poolId
         storage_pool_dict["poolName"] = pool.poolName
         storage_pool_dict["poolType"] = pool.poolType
-        if pool.isShrinking == True:
+        if pool.isShrinking:
             storage_pool_dict["status"] = "SHRINKING"
         else:
-            match pool.poolStatus:
-                case "POLN":
-                    storage_pool_dict["status"] = "NORMAL"
-                case "POLF":
-                    storage_pool_dict["status"] = "OVER_THRESHOLD"
-                case "POLS":
-                    storage_pool_dict["status"] = "SUSPENDED"
-                case "POLE":
-                    storage_pool_dict["status"] = "FAILURE"
-                case _:
-                    storage_pool_dict["status"] = "UNKNOWN"
+            if pool.poolStatus == "POLN":
+                storage_pool_dict["status"] = "NORMAL"
+            elif pool.poolStatus == "POLF":
+                storage_pool_dict["status"] = "OVER_THRESHOLD"
+            elif pool.poolStatus == "POLS":
+                storage_pool_dict["status"] = "SUSPENDED"
+            elif pool.poolStatus == "POLE":
+                storage_pool_dict["status"] = "FAILURE"
+            else:
+                storage_pool_dict["status"] = "UNKNOWN"
+                
         storage_pool_dict["utilizationRate"] = pool.usedCapacityRate
         storage_pool_dict["freeCapacity"] = pool.availableVolumeCapacity * 1024 * 1024
         storage_pool_dict["freeCapacityInUnits"] = convert_block_capacity(

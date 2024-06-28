@@ -192,7 +192,7 @@ def isExistingLun(storageSystem, lun):
         return None
 
 
-def isValidParityGroup(paritygroup):
+def isValidParityGroup(parity_group):
     try:
         pg = parity_group.replace("-", "")
         loggingInfo("isValidaParityGroup, pg={0}".format(pg))
@@ -343,7 +343,7 @@ def runPlaybook(module):
     def compare(x, y):
         return collections.Counter(x) == collections.Counter(y)
 
-    c_d_setting = ["compression", "deduplication"]
+    c_d_setting = ["compression", "compression_deduplication"]
     cap_saving_setting = lun_info.get("capacity_saving", None)
     loggingInfo("20230621 cap_saving_setting={0}".format(cap_saving_setting))
 
@@ -366,19 +366,20 @@ def runPlaybook(module):
         elif cap_saving_setting == "":
             cap_saving_setting = None
         else:
+            cap_saving_setting = cap_saving_setting.lower()
             if cap_saving_setting == "compression":
                 cap_saving_setting = "COMPRESSION"
-            elif cap_saving_setting == "deduplication":
+            elif cap_saving_setting == "compression_deduplication":
                 cap_saving_setting = "COMPRESSION_DEDUPLICATION"
-            elif cap_saving_setting == "disable":
+            elif cap_saving_setting == "disabled":
                 cap_saving_setting = "DISABLED"
             elif state != "absent":
                 raise Exception(
-                    "Possible values for capacity_saving are ['compression', 'deduplication', 'disable']"
+                    "Possible values for capacity_saving are ['compression', 'compression_deduplication', 'disabled']"
                 )
 
     loggingInfo("lunName={0}".format(lunName))
-    loggingInfo("cap_saving_setting={0}".format(cap_saving_setting))
+    loggingInfo("382 cap_saving_setting={0}".format(cap_saving_setting))
     lunNameMatch = []
 
     if lun is not None and ":" in str(lun):
@@ -635,6 +636,9 @@ def runPlaybook(module):
 
             loggingInfo("Expand mode, lun={0}".format(logicalUnit["ldevId"]))
             loggingInfo("Expand mode, name={0}".format(logicalUnit["name"]))
+            loggingInfo("Expand mode, storagePool={0}".format(storagePool))
+            loggingInfo("Expand mode, parity_group={0}".format(parity_group))
+            loggingInfo("Expand mode, name={0}".format(logicalUnit["name"]))
 
             # Expand mode. Only if logical unit was found.
 
@@ -643,6 +647,17 @@ def runPlaybook(module):
                     "Cannot expand logical unit. More than 1 LUN found with the given name. Use lun parameter instead."
                 )
             elif logicalUnit:
+                
+                if storagePool is None and parity_group:
+                    raise Exception(
+                        "Cannot expand logical unit which is in a parity group."
+                    )                    
+                
+                if storagePool is None:
+                    raise Exception(
+                        "Cannot expand logical unit, storage pool is not provided."
+                    )                    
+                
                 result["changed"] = False
                 logicalUnit = handleResizeInDP(
                     storageSystem,

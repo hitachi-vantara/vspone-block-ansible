@@ -4,11 +4,14 @@ releases:
   3.0.1:
     changes:
       bugfixes:
-        - hv_lun_facts: Modified the parameter name from naa_id to canonical_name.
+        - hv_lun_facts: Modified the parameter name from naa_id to canonical_name(This will only available for gateway connection type).
         - hv_storagesystem: Storage system remains in spare pool after user off-board the storage from UAI Gateway.
         - hv_sds_block_compute_node_facts: Fixed the issue where the module was not returning the correct compute node information.
         - hv_sds_block_chap_user: Updated the playbook file with the correct parameter name.
-        - hv_sds_block_port_facts: Updated the sample playbook's module name to hv_sds_block_port_facts
+        - hv_storagesystem_facts: fixed compatibility issue with python lower than 3.11
+        - hv_storagepool_facts: fixed compatibility issue with python lower than 3.11
+        - hv_lun_facts: Fixed ldev id was not being returned in the facts incase of 0 value.
+        - miscellaneous: Fixed python older version issue, no sudo user installation issue.
   3.0.0:
     modules:
     # The following modules are for Hitachi SDS Block storage systems
