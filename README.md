@@ -19,7 +19,7 @@ The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of
 - Python - 3.8 or higher
 - Hitachi UAI Gateway 4.6 for using Gateway Connection
 
-## Hitachi UAI Gateway 4.6
+## Installation Instructions
 - For installation, see [Hitachi Vantara VSP One Block Storage Modules for Red Hat Ansible user guide](https://docs.hitachivantara.com).
 
 ## Idempotence
