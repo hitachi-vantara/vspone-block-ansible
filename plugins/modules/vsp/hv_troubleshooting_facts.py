@@ -346,7 +346,7 @@ def main(module=None):
     tempdir = datetime.now().strftime(
         "ansible_log_bundle_%Y_%m_%d_%H_%M_%S"
     )
-    zipdir = get_logger_dir()
+    zipdir = get_logger_dir() + "/log_bundles"
     zipPath = os.path.join(zipdir, "{0}.zip".format(tempdir))
 
     try:
