@@ -7,3 +7,4 @@ class VSPShadowImagePairValidateMsg(Enum):
     MAX_3_PAIR_EXISTS = "Maximum 3 shadow image pairs are already present"
     AUTO_SPLIT_VALIDATION = "Creating shadow image pair with split or auto_split is true then new_consistency_group should not be true"
     ENABLE_QUICK_MODE_VALIDATION = "Creating shadow image pair with enable_quick_mode is true then auto_split should be true"
+    PVOL_NOT_FOUND = "Primary volume not found"
