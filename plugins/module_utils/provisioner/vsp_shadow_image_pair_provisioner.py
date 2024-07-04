@@ -7,6 +7,10 @@ try:
     from ..common.hv_constants import GatewayClassTypes
     from ..model.vsp_shadow_image_pair_models import *
     from ..common.ansible_common import dicts_to_dataclass_list
+    from ..common.vsp_constants import VolumePayloadConst
+    from .vsp_volume_prov import VSPVolumeProvisioner
+    from ..message.vsp_shadow_image_pair_msgs import VSPShadowImagePairValidateMsg
+
 except ImportError:
     from common.ansible_common import log_entry_exit
     from gateway.vsp_shadow_image_pair_gateway import VSPShadowImagePairUAIGateway
@@ -14,6 +18,11 @@ except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from model.vsp_shadow_image_pair_models import *
     from common.ansible_common import dicts_to_dataclass_list
+    from vsp_volume_prov import VSPVolumeProvisioner
+    from common.vsp_constants import VolumePayloadConst
+    from message.vsp_shadow_image_pair_msgs import VSPShadowImagePairValidateMsg
+
+
 
 
 class VSPShadowImagePairProvisioner:
@@ -22,6 +31,7 @@ class VSPShadowImagePairProvisioner:
         self.gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_SHADOW_IMAGE_PAIR
         )
+        self.vol_provisioner = VSPVolumeProvisioner(connection_info)
 
     @log_entry_exit
     def get_all_shadow_image_pairs(self, serial, pvol):
@@ -37,6 +47,13 @@ class VSPShadowImagePairProvisioner:
 
     @log_entry_exit
     def create_shadow_image_pair(self, serial, createShadowImagePairSpec):
+
+        pvol = self.vol_provisioner.get_volume_by_ldev(createShadowImagePairSpec.pvol)
+        
+        if pvol.emulationType == VolumePayloadConst.NOT_DEFINED:
+            raise ValueError(VSPShadowImagePairValidateMsg.PVOL_NOT_FOUND.value)
+
+        createShadowImagePairSpec.is_data_reduction_force_copy = True if pvol.dataReductionMode and pvol.dataReductionMode != VolumePayloadConst.DISABLED else False
         pairId = self.gateway.create_shadow_image_pair(
             serial, createShadowImagePairSpec
         )
