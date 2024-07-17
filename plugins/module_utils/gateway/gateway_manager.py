@@ -17,7 +17,6 @@ try:
     from ..common.hv_exceptions import *
     from ..common.vsp_constants import Endpoints
 except ImportError:
-    # created a soft link from the current directory to avoid import error
     from common.hv_api_constants import API
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
@@ -28,7 +27,12 @@ except ImportError:
 logger = Log()
 moduleName = "Gateway Manager"
 OPEN_URL_TIMEOUT = 600
-
+class SessionObject:
+    def __init__(self, session_id, token):
+        self.session_id = session_id
+        self.token = token
+        self.create_time = time.time()
+        self.expiry_time  = self.create_time +  240
 
 class ConnectionManager(ABC):
     def __init__(self, address, username, password):
@@ -137,22 +141,19 @@ class ConnectionManager(ABC):
         return self._make_request(method="POST", end_point=endpoint, data=data)
 
     @log_entry_exit
-    def post(self, endpoint, data):
-
-        post_response = self._make_request(method="POST", end_point=endpoint, data=data)
-        logger.writeDebug("post_response = {}", post_response)
-        job_id = post_response[API.JOB_ID]
+    def _process_job(self, job_id):
         response = None
         retryCount = 0
         while response is None and retryCount < 60:
             job_response = self.get_job(job_id)
-            logger.writeDebug("post: job_response = {}", job_response)
+            logger.writeDebug("_process_job: job_response = {}", job_response)
             job_status = job_response[API.STATUS]
             job_state = job_response[API.STATE]
             response = None
             if job_status == API.COMPLETED:
                 if job_state == API.SUCCEEDED:
                     # For POST call to add chap user to port, affected resource is empty
+                    # For PATCH port-auth-settings, affected resource is empty
                     if len(job_response[API.AFFECTED_RESOURCES]) > 0:
                         response = job_response[API.AFFECTED_RESOURCES][0]
                     else:
@@ -172,39 +173,21 @@ class ConnectionManager(ABC):
         return resourceId
 
     @log_entry_exit
+    def post(self, endpoint, data):
+
+        post_response = self._make_request(method="POST", end_point=endpoint, data=data)
+        logger.writeDebug("post_response = {}", post_response)
+        job_id = post_response[API.JOB_ID]
+        return self._process_job(job_id)
+
+
+    @log_entry_exit
     def patch(self, endpoint, data):
         patch_response = self._make_request(
             method="PATCH", end_point=endpoint, data=data
         )
         job_id = patch_response[API.JOB_ID]
-        response = None
-        retryCount = 0
-        while response is None and retryCount < 60:
-            job_response = self.get_job(job_id)
-            job_status = job_response[API.STATUS]
-            job_state = job_response[API.STATE]
-            logger.writeDebug("patch: job_response = {}", job_response)
-            response = None
-            if job_status == API.COMPLETED:
-                if job_state == API.SUCCEEDED:
-                    # For PATCH port-auth-settings, affected resource is empty
-                    if len(job_response[API.AFFECTED_RESOURCES]) > 0:
-                        response = job_response[API.AFFECTED_RESOURCES][0]
-                    else:
-                        response = job_response["self"]
-                else:
-                    raise Exception(self.job_exception_text(job_response))
-            else:
-                retryCount = retryCount + 1
-                time.sleep(10)
-
-        if response is None:
-            raise Exception("Timeout Error! The taks was not completed in 10 minutes")
-
-        resourceId = response.split("/")[-1]
-        logger.writeDebug("response = {}", response)
-        logger.writeDebug("resourceId = {}", resourceId)
-        return resourceId
+        return self._process_job(job_id)
 
     @log_entry_exit
     def job_exception_text(self, job_response):
@@ -241,23 +224,117 @@ class ConnectionManager(ABC):
             method="DELETE", end_point=endpoint, data=data
         )
         job_id = delete_response[API.JOB_ID]
+        return self._process_job(job_id)
+
+class SDSBConnectionManager(ConnectionManager):
+
+    @log_entry_exit
+    def form_base_url(self):
+        return f"https://{self.address}/ConfigurationManager/simple"
+
+    @log_entry_exit
+    def get_job(self, job_id):
+        end_point = "v1/objects/jobs/" + job_id
+        return self._make_request("GET", end_point)
+
+
+class VSPConnectionManager(ConnectionManager):
+    session = None
+
+    @log_entry_exit
+    def getAuthToken(self):
+        if self.session:
+            if self.session.expiry_time > time.time():
+                headers = {"Authorization": "Session {0}".format(self.session.token)}
+                return headers
+        else:
+            end_point = Endpoints.SESSIONS
+            try:
+                response = self._make_request(method="POST", end_point=end_point, data=None)
+
+            except Exception as e:
+                # can be due to wrong address or kong is not ready
+                logger.writeDebug(e)
+                raise Exception(
+                    "Failed to establish a connection, please check the Management System address or the credentials."
+                )
+            session_id = response.get(API.SESSION_ID)
+            token = response.get(API.TOKEN)
+            if self.session:
+                previous_session_id = self.session.session_id
+                try: 
+                    self.delete_session(previous_session_id)
+                except Exception:
+                    logger.writeDebug("could not delete previous session id = {}", previous_session_id)
+                    # do not throw exception as this session is not active 
+
+            self.session = SessionObject(session_id, token)
+            headers = {"Authorization": "Session {0}".format(token)}
+        return headers
+
+    @log_entry_exit
+    def form_base_url(self):
+        return f"https://{self.address}/ConfigurationManager"
+
+    @log_entry_exit
+    def get_job(self, job_id):
+        end_point = "v1/objects/jobs/{}".format(job_id)
+        return self._make_request("GET", end_point)
+
+    @log_entry_exit
+    def create(self, endpoint, data):
+        return self._make_vsp_request(method="POST", end_point=endpoint, data=data)
+    
+    @log_entry_exit
+    def read(self, endpoint):
+        return self._make_vsp_request("GET", endpoint)
+
+    @log_entry_exit
+    def update(self, endpoint, data):
+        return self._make_vsp_request("PUT", endpoint, data)
+    
+    @log_entry_exit
+    def get(self, endpoint):
+        return self._make_vsp_request("GET", endpoint)
+    
+    @log_entry_exit
+    def pegasus_get(self, endpoint):
+        return self._make_vsp_request("GET", endpoint)
+
+    @log_entry_exit
+    def pegasus_post(self, endpoint, data):
+        post_response = self._make_vsp_request("POST", endpoint, data)
+
+        """
+        Sample job response
+        [
+            {
+                "statusResource": "/ConfigurationManager/simple/v1/objects/command-status/3"
+            }
+        ]
+        """
+
+        job_id = post_response[0].get("statusResource").split("/")[-1]
+        return self._process_pegasus_job(job_id)
+
+
+    @log_entry_exit
+    def _process_pegasus_job(self, job_id):
         response = None
         retryCount = 0
         while response is None and retryCount < 60:
-            job_response = self.get_job(job_id)
-            job_status = job_response[API.STATUS]
-            job_state = job_response[API.STATE]
-            logger.writeDebug("job_response = {}", job_response)
+            job_response = self.get_pegasus_job(job_id)
+            job_status = job_response.get(API.STATUS)
+            job_progress = job_response.get(API.PEGASUS_PROGRESS)
+            logger.writeDebug("patch: job_response = {}", job_response)
             response = None
-            if job_status == API.COMPLETED:
-                if job_state == API.SUCCEEDED:
-                    # For DELETE CHAP user from  port, affected resource is empty
-                    if len(job_response[API.AFFECTED_RESOURCES]) > 0:
-                        response = job_response[API.AFFECTED_RESOURCES][0]
-                    else:
-                        response = job_response["self"]
+            if job_progress == API.PEGASUS_COMPLETED:
+                if job_status == API.PEGASUS_NORMAL:
+                    # For PATCH port-auth-settings, affected resource is empty
+                    response = job_response.get(API.AFFECTED_RESOURCES)[0]
+
                 else:
-                    raise Exception(self.job_exception_text(job_response))
+                    raise Exception(job_response.get(API.ERROR_MESSAGE))
             else:
                 retryCount = retryCount + 1
                 time.sleep(10)
@@ -269,6 +346,105 @@ class ConnectionManager(ABC):
         logger.writeDebug("response = {}", response)
         logger.writeDebug("resourceId = {}", resourceId)
         return resourceId
+
+    def get_pegasus_job(self, job_id):
+        url = Endpoints.PEGASUS_JOB
+        return self._make_vsp_request("GET", url.format(job_id))
+    
+    
+    @log_entry_exit
+    def delete(self, endpoint, data=None):
+        delete_response = self._make_vsp_request(
+            method="DELETE", end_point=endpoint, data=data
+        )
+        job_id = delete_response[API.JOB_ID]
+        return self._process_job(job_id)
+
+    @log_entry_exit
+    def post(self, endpoint, data):
+
+        post_response = self._make_vsp_request(method="POST", end_point=endpoint, data=data)
+        logger.writeDebug("post_response = {}", post_response)
+        job_id = post_response[API.JOB_ID]
+        return self._process_job(job_id)
+
+
+    @log_entry_exit
+    def patch(self, endpoint, data):
+        patch_response = self._make_vsp_request(
+            method="PATCH", end_point=endpoint, data=data
+        )
+        job_id = patch_response[API.JOB_ID]
+        return self._process_job(job_id)
+
+        
+    @log_entry_exit
+    def _make_vsp_request(self, method, end_point, data=None, headers_input=None):
+
+        logger.writeDebug("VSPConnectionManager._make_vsp_request")
+
+        url = self.base_url + "/" + end_point
+
+        headers = self.getAuthToken()
+        headers["Content-Type"] = "application/json"
+        if headers_input is not None:
+            headers.update(headers_input)
+
+        TIME_OUT = 300
+        if data is not None:
+            data = json.dumps(data)
+            logger.writeDebug("data = {}", data)
+        try:
+
+            response = open_url(
+                url=url,
+                method=method,
+                headers=headers,
+                data=data,
+                use_proxy=False,
+                url_username=None,
+                url_password=None,
+                force_basic_auth=False,
+                validate_certs=False,
+                timeout=TIME_OUT,
+            )
+        except (urllib_error.HTTPError, socket.timeout) as err:
+            error_resp = json.loads(err.read().decode())
+            error_dtls = (
+                error_resp.get("message")
+                if error_resp.get("message")
+                else error_resp.get("errorMessage")
+            )
+            raise Exception(error_dtls)
+        except Exception as err:
+            raise Exception(err)
+
+        if response.status not in (200, 201, 202):
+            raise Exception(
+                f"Failed to make {method} request to {url}: {response.read()}"
+            )
+        return self._load_response(response)
+
+    @log_entry_exit
+    def delete_current_session(self):
+        session_id = self.session.session_id
+        self.delete_session(session_id)
+
+    @log_entry_exit
+    def delete_session(self, session_id):
+        try: 
+            endpoint = Endpoints.DELETE_SESSION.format(session_id)
+            self.delete(endpoint)
+        except Exception:
+            raise Exception("Could not dicard the session.")
+        
+    def __del__(self):
+        logger.writeDebug("VSPConnectionManager - Destructor called.")    
+        if self.session:
+            try: 
+               self.delete_current_session()
+            except Exception:
+                raise Exception("Could not dicard the current session.")
 
 
 class UAIGConnectionManager:
@@ -439,18 +615,7 @@ class UAIGConnectionManager:
         return self._make_request(method="PUT", end_point=end_point, data=data)
 
     @log_entry_exit
-    def post(self, endpoint, data, headers_input=None):
-
-        post_response = self._make_request(
-            method="POST", end_point=endpoint, data=data, headers_input=headers_input
-        )
-        if post_response.get(API.DATA) is not None:
-            task_id = post_response[API.DATA].get(API.TASK_ID)
-            resource_id = post_response[API.DATA].get(API.RESOURCE_ID)
-        else:
-            task_id = post_response.get(API.TASK_ID)
-            resource_id = post_response.get(API.RESOURCE_ID)
-
+    def _process_task(self, task_id, resource_id):
         response = None
         retryCount = 0
         while response is None and retryCount < 60:
@@ -480,11 +645,26 @@ class UAIGConnectionManager:
         if response is None:
             raise Exception("Timeout Error! The tasks was not completed in 10 minutes")
 
-        return response
+        return response        
+
+    @log_entry_exit
+    def post(self, endpoint, data, headers_input=None):
+
+        post_response = self._make_request(
+            method="POST", end_point=endpoint, data=data, headers_input=headers_input
+        )
+        if post_response.get(API.DATA) is not None:
+            task_id = post_response[API.DATA].get(API.TASK_ID)
+            resource_id = post_response[API.DATA].get(API.RESOURCE_ID)
+        else:
+            task_id = post_response.get(API.TASK_ID)
+            resource_id = post_response.get(API.RESOURCE_ID)
+
+        return self._process_task(task_id, resource_id)
 
     @log_entry_exit
     def patch(self, endpoint, data=None):
-        print(f"Payload {data}")
+
         post_response = self._make_request(
             method="PATCH", end_point=endpoint, data=data
         )
@@ -496,35 +676,8 @@ class UAIGConnectionManager:
         else:
             task_id = post_response.get(API.TASK_ID)
             resource_id = post_response.get(API.RESOURCE_ID)
-
-        response = None
-        retryCount = 0
-        while response is None and retryCount < 60:
-            task_response = self.get_task(task_id)
-            task_status = task_response[API.DATA].get(API.STATUS)
-            logger.writeDebug("task_response = {}", task_response)
-            response = None
-            if task_status == API.SUCCESS:
-                if resource_id is not None:
-                    response = resource_id
-                else:
-                    response = task_response
-            elif task_status == API.FAILED:
-                task_name = task_response[API.DATA].get(API.NAME)
-                task_events = task_response[API.DATA].get("events")
-                if len(task_events):
-                    descriptions = [
-                        element.get("description") for element in task_events
-                    ]
-                raise Exception(task_name + " " + task_status + " " + descriptions[0])
-            else:
-                retryCount = retryCount + 1
-                time.sleep(10)
-
-        if response is None:
-            raise Exception("Timeout Error! The taks was not completed in 10 minutes")
-
-        return response
+        
+        return self._process_task(task_id, resource_id)
 
     @log_entry_exit
     def delete(self, endpoint, data=None, headers_input=None):
@@ -541,34 +694,8 @@ class UAIGConnectionManager:
             task_id = post_response.get(API.TASK_ID)
             resource_id = post_response.get(API.RESOURCE_ID)
 
-        response = None
-        retryCount = 0
-        while response is None and retryCount < 60:
-            task_response = self.get_task(task_id)
-            task_status = task_response[API.DATA].get(API.STATUS)
-            logger.writeDebug("task_response = {}", task_response)
-            response = None
-            if task_status == API.SUCCESS:
-                if resource_id is not None:
-                    response = resource_id
-                else:
-                    response = task_response
-            elif task_status == API.FAILED:
-                task_name = task_response[API.DATA].get(API.NAME)
-                task_events = task_response[API.DATA].get("events")
-                if len(task_events):
-                    descriptions = [
-                        element.get("description") for element in task_events
-                    ]
-                raise Exception(task_name + " " + task_status + " " + descriptions[0])
-            else:
-                retryCount = retryCount + 1
-                time.sleep(10)
+        return self._process_task(task_id, resource_id)
 
-        if response is None:
-            raise Exception("Timeout Error! The taks was not completed in 10 minutes")
-
-        return response
 
     @log_entry_exit
     def get_task(self, task_id):
@@ -576,149 +703,3 @@ class UAIGConnectionManager:
         return self._make_request("GET", end_point)
 
 
-class SDSBConnectionManager(ConnectionManager):
-
-    @log_entry_exit
-    def form_base_url(self):
-        return f"https://{self.address}/ConfigurationManager/simple"
-
-    @log_entry_exit
-    def get_job(self, job_id):
-        end_point = "v1/objects/jobs/" + job_id
-        return self._make_request("GET", end_point)
-
-
-class VSPConnectionManager(ConnectionManager):
-    session = None
-
-    @log_entry_exit
-    def getAuthToken(self):
-        # TODO : Implement cache ... how long this token is valid for?
-        funcName = "VSPConnectionManager:getAuthToken"
-        logger.writeDebug(funcName)
-        # self.logger.writeEnterSDK(funcName)
-
-        end_point = Endpoints.SESSIONS
-        try:
-            response = self._make_request(method="POST", end_point=end_point, data=None)
-
-        except Exception as e:
-            # can be due to wrong address or kong is not ready
-            logger.writeDebug(e)
-            raise Exception(
-                "Failed to establish a connection, please check the Management System address or the credentials."
-            )
-
-        token = response.get(API.TOKEN)
-
-        headers = {"Authorization": "Session {0}".format(token)}
-        # self.logger.writeExitSDK(funcName)
-        self.session = headers
-
-    @log_entry_exit
-    def form_base_url(self):
-        return f"https://{self.address}/ConfigurationManager"
-
-    @log_entry_exit
-    def get_job(self, job_id):
-        end_point = "v1/objects/jobs/{}".format(job_id)
-        return self._make_request("GET", end_point)
-
-    @log_entry_exit
-    def pegasus_get(self, endpoint):
-        self.getAuthToken()
-        return self._make_pegasus_request("GET", endpoint)
-
-    @log_entry_exit
-    def pegasus_post(self, endpoint, data):
-        self.getAuthToken()
-        post_response = self._make_pegasus_request("POST", endpoint, data)
-
-        """
-        Sample job response
-        [
-                {
-                    "statusResource": "/ConfigurationManager/simple/v1/objects/command-status/3"
-                }
-                ]
-        """
-
-        job_id = post_response[0].get("statusResource").split("/")[-1]
-
-        response = None
-        retryCount = 0
-        while response is None and retryCount < 60:
-            job_response = self.get_pegasus_job(job_id)
-            job_status = job_response.get(API.PEGASUS_STATUS)
-            job_progress = job_response.get(API.PEGASUS_PROGRESS)
-            logger.writeDebug("patch: job_response = {}", job_response)
-            response = None
-            if job_progress == API.PEGASUS_COMPLETED:
-                if job_status == API.PEGASUS_NORMAL:
-                    # For PATCH port-auth-settings, affected resource is empty
-                    response = job_response.get(API.AFFECTED_RESOURCES)[0]
-
-                else:
-                    raise Exception(job_response.get(API.ERROR_MESSAGE))
-            else:
-                retryCount = retryCount + 1
-                time.sleep(10)
-
-        if response is None:
-            raise Exception("Timeout Error! The taks was not completed in 10 minutes")
-
-        resourceId = response.split("/")[-1]
-        logger.writeDebug("response = {}", response)
-        logger.writeDebug("resourceId = {}", resourceId)
-        return resourceId
-
-    def get_pegasus_job(self, job_id):
-        url = Endpoints.PEGASUS_JOB
-        return self._make_pegasus_request("GET", url.format(job_id))
-
-    @log_entry_exit
-    def _make_pegasus_request(self, method, end_point, data=None, headers_input=None):
-
-        logger.writeDebug("VSPConnectionManager._make_pegasus_request")
-
-        url = self.base_url + "/" + end_point
-
-        headers = self.session
-        headers["Content-Type"] = "application/json"
-        if headers_input is not None:
-            headers.update(headers_input)
-
-        TIME_OUT = 300
-        if data is not None:
-            data = json.dumps(data)
-            logger.writeDebug("data = {}", data)
-        try:
-
-            response = open_url(
-                url=url,
-                method=method,
-                headers=headers,
-                data=data,
-                use_proxy=False,
-                url_username=None,
-                url_password=None,
-                force_basic_auth=False,
-                validate_certs=False,
-                timeout=TIME_OUT,
-            )
-        except (urllib_error.HTTPError, socket.timeout) as err:
-            error_resp = json.loads(err.read().decode())
-            error_dtls = (
-                error_resp.get("message")
-                if error_resp.get("message")
-                else error_resp.get("errorMessage")
-            )
-            raise Exception(error_dtls)
-        except Exception as err:
-            raise Exception(err)
-
-        if response.status not in (200, 201, 202):
-            raise Exception(
-                f"Failed to make {method} request to {url}: {response.read()}"
-            )
-        return self._load_response(response)

@@ -196,6 +196,7 @@ EXAMPLES = '''
          name: 'testhg26dec'
          port: 'CL1-A'
          host_mode: 'VMWARE_EXTENSION'
+         host_mode_options: [ 40 ]
          wwns: [ '100000109B583B2D', '100000109B583B2C' ]
          luns: [ 393, 851 ]
       register: result
