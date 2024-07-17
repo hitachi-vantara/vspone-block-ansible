@@ -11,6 +11,8 @@ class Endpoints(object):
     GET_STORAGE_INFO = "v1/objects/storages/instance"
     PEGASUS_JOB = "simple/v1/objects/command-status/{}"
     SESSIONS = "v1/objects/sessions"
+    DELETE_SESSION = "v1/objects/sessions/{}"
+    
     # Volumes
     POST_LDEVS = "v1/objects/ldevs"
     LDEVS_ONE = "v1/objects/ldevs/{}"

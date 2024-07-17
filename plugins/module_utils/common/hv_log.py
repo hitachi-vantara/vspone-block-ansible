@@ -59,7 +59,7 @@ def setup_logging(logger):
                 "class": "logging.StreamHandler",
                 "level": "DEBUG",
                 "formatter": "logfileformatter",
-                "stream": "ext://sys.stdout",
+                "stream": "ext://sys.stderr"
             },
         },
         "loggers": {

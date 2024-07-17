@@ -46,9 +46,6 @@ class API:
 
     FAILED = "Failed"
     PEGASUS_STATUS = "status"
-    PEGASUS_PROGRESS = "progress"
-    PEGASUS_COMPLETED = "completed"
-    PEGASUS_NORMAL = "normal"
 
     HBA_ID = "hbaId"
     HBA_NAME = "hbaName"
@@ -86,6 +83,9 @@ class API:
     OS_TYPE = "osType"
     OUTPUTS = "outputs"
 
+    PEGASUS_PROGRESS = "progress"
+    PEGASUS_COMPLETED = "completed"
+    PEGASUS_NORMAL = "normal"
     POOL_ID = "poolId"
     PORT_ID = "portId"
     PORT_NICKNAME = "portNickname"
@@ -102,6 +102,7 @@ class API:
     SERVER_ID = "serverId"
     SERVER_NICKNAME = "serverNickname"
     SERVER_PORT_DEFAULT = 443
+    SESSION_ID = "sessionId"
     SINGLE_QUOTE = "'"
     SNAPSHOT_GROUP_NAME = "snapshotGroupName"
     SNAPSHOT_POOL_ID = "snapshotPoolId"
