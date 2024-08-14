@@ -30,6 +30,9 @@ The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of
 ## Idempotence
 - Idempotence is supported for this release
 
+## Changelog
+View the changelog [here](CHANGELOG.md).
+
 ## Available Modules
 ### VSP One SDS Block Ansible Modules:
 - hv_sds_block_chap_user_facts - Retrieves information about Hitachi SDS block storage system CHAP users.
