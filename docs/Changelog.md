@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.0.1] - Release Date: *TBD*
+## [3.0.1] 
 ### Bugfixes
 - **Miscellaneous 1:** Fixed multiple session auth issue for 'direct connect' connection type.
 - **Miscellaneous 2:** Fixed Python older version issue, no sudo user installation issue.
