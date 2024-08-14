@@ -1,7 +1,8 @@
 namespace: hitachivantara
 name: vspone_block
-version: 3.0.128
+version: 3.0.129
 readme: README.md
+changes: CHANGELOG.md
 authors:
   - Hitachi Vantara Ansible Team 
 description: Ansible Modules to manage Hitachi Storage and Data Services (Block, File etc.)
