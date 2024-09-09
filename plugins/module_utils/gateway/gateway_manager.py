@@ -568,10 +568,7 @@ class UAIGConnectionManager:
 
     @log_entry_exit
     def get_auth_token(self):
-        # TODO : Implement cache ... how long this token is valid for?
-        funcName = "UAIGConnectionManager:get_auth_token"
-        # self.logger.writeEnterSDK(funcName)
-
+ 
         body = {"username": self.username, "password": self.password}
 
         end_point = "v2/auth/login"

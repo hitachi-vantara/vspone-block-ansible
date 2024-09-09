@@ -61,7 +61,6 @@ class VSPHtiSnapshotProvisioner:
         if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
             snapshots = self.gateway.get_snapshot_by_pvol(pvol)
             self.logger.writeDebug(f"snapshots={snapshots}")
-            # TODO: Use v3 api to get all the snapshots and filter using pvol and mu
             snapshot = [
                 ssp for ssp in snapshots.data if ssp.mirrorUnitId == mirror_unit_id
             ]

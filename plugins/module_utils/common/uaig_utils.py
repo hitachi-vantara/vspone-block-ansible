@@ -418,8 +418,6 @@ class UAIGResourceID:
 
 class GatewaySpecValidators:
 
-    def __init__(self):
-        """TODO: will be used for common validators"""
 
     @staticmethod
     def validate_subscriber(state, input_spec: SubscriberSpec):

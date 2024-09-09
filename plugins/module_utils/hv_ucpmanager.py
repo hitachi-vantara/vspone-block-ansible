@@ -925,7 +925,6 @@ class UcpManager:
             # ss is not in the system, add ss (ucp must be added already)
             # operator will add to isp (this needs the puma gatewayAddress)
             # then ucp, then we have to wait for the facts to finish
-            # this will take time, how to let the user know the progress? (FIXME.sng)
             # we can print to the log file, that's about it?
 
             # get the puma gatewayAddress from UCP
@@ -979,7 +978,6 @@ class UcpManager:
 
         else:
             # ss is already in thisUCP
-            # FIXME.sng, here system is output from all storage from ISP
             # we should show the ss from UCP so user can see which UCP this ss belongs to!!
             return self.formatStorageSystem(system)
 
@@ -1000,7 +998,6 @@ class UcpManager:
             self.logger.writeInfo("system={}", system)
             # system['webServiceIp'] = self.webServiceIp
             # system['webServicePort'] = self.webServicePort
-            # FIXME.sng
             return self.formatStorageSystem(system)
         else:
             self.logger.writeInfo("response err={}", response.json())

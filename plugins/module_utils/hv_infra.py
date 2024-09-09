@@ -1190,13 +1190,6 @@ class StorageSystem:
 
         elif system is None:
 
-            # ss is not in the system, add ss (ucp must be added already)
-            # operator will add to isp (this needs the puma gatewayAddress)
-            # then ucp, then we have to wait for the facts to finish
-            # this will take time, how to let the user know the progress? (FIXME.sng)
-            # we can print to the log file, that's about it?
-
-            # get the puma gatewayAddress from UCP
             ucpManager = UcpManager(
                 self.management_address,
                 self.management_username,
@@ -1233,14 +1226,11 @@ class StorageSystem:
             self.logger.writeDebug("20230523 response={}", response)
 
         else:
-            # ss is already in thisUCP
-            # FIXME.sng, here system is output from all storage from ISP
-            # we should show the ss from UCP so user can see which UCP this ss belongs to!!
+
             return StorageSystemManager.formatStorageSystem(system)
 
         if response.ok:
 
-            # FIXME.sng - works for system is None, needs work for attachSystemToUCP
             if system is None or True:
                 resJson = response.json()
                 self.logger.writeInfo("response={}", resJson)
@@ -1250,8 +1240,7 @@ class StorageSystem:
                 self.logger.writeInfo("taskId={}", taskId)
                 self.checkTaskStatus(taskId)
                 time.sleep(5)
-                # FIXME.sng - change it to waitForUCPinSS(ucp_serial)
-                # system = self.checkAndGetStorageInfoByResourceId(resourceId)
+
                 system = self.waitForUCPinSS(ucp_serial)
 
             self.logger.writeInfo("system={}", system)
@@ -1327,8 +1316,6 @@ class StorageSystem:
         funcName = "hv_infra:removeStorageSystem"
         self.logger.writeEnterSDK(funcName)
 
-        # FIXME.sng, if ucp_serial is none, we need to remove it from all ucps and ISP
-        # this is done in the caller? or check for none here
 
         if ucp_serial is not None:
             # detach from UCP
@@ -1341,7 +1328,6 @@ class StorageSystem:
         while found:
             system = self.getStorageSystem()
             if system is None:
-                ## FIXME.sng - the SS is in ISP, the getStorageSystem returns none!!
                 # we may have to take a look at getStorageSystem for this case,
                 # we want it to return something so we can go delete ss from isp
                 return
@@ -1400,8 +1386,6 @@ class StorageSystem:
             # detach from UCP
             self.removeStorageSystemFromUCP(ucp_serial)
 
-        # FIXME.sng, assume it is always attached for now,
-        # i.e. the ucp list in ss is not empty
         # revisit this later
         attached = True
 
@@ -2052,7 +2036,6 @@ class StorageSystem:
 
         self.logger.writeEnterSDK(funcName)
         self.logger.writeParam("resourceId={}", resourceId)
-        # FIXME.SNG this may not be the intended API
         urlPath = "v2/storage/devices/{0}".format(resourceId)
         url = self.getUrl(urlPath)
 

@@ -59,7 +59,6 @@ def mockGetVSM():
     return vsm
 
 
-# FIXME: doesn't look like we need the storage_serial (physical), clean it up
 
 
 def getVSM(storage_serial, virtual_storage_serial):
@@ -491,7 +490,6 @@ def doAddResourceGroup(storageSystem, serial, model, rgName):
 
     result = storageSystem.createVirtualBoxResourceGroup(serial, model, rgName)
     writeNameValue("result={}", result)
-    # TODO add the other resources after adding the RG
 
 
 def doDeleteResourceGroup(storageSystem, storage_serial, rgId):
@@ -788,7 +786,6 @@ def runPlaybook(module):
                 isCreate = False
 
         if isCreate is False:
-            # FIXME: for update, this is not the most updated vsm
             # we might want to getVSM again or just return a comment
             # so user don't have to wait for the getVSM, they might not care
             result["vsm"].append(vsm)
