@@ -514,14 +514,6 @@ def runPlaybook(module):
                 "Size is required. This module only accepts MB, GB or TB sizes."
             )
 
-        # TODO: find out what this is for?
-        # if size is not None and float(size * 1024) < 1024:
-        #     entered_size = str(float(int(size * 1024))) + 'MB'
-        # if lun is None and logicalUnit is not None and lunName \
-        #     == logicalUnit.get('name') and entered_size \
-        #     == Utils.formatCapacity(logicalUnit.get('totalCapacity'),
-        #                             2):
-        #     logicalUnit = None
 
         loggingInfo("state={0}".format(state))
 

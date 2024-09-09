@@ -186,7 +186,6 @@ def runPlaybook(module):
                     )  #
                 lunswithcount = None
                 logger.writeInfo("getLunByNaa getAllLuns")
-                # FIXME a2.4 - bug, lun is naa here!!
                 luns = storageSystem.getLunByID(lun)
                 logger.writeDebug("20230606 count={}", count)
                 lun = storageSystem.getLunByNaa(lun)

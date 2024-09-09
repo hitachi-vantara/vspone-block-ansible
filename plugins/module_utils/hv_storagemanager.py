@@ -1349,8 +1349,6 @@ class StorageManager:
                 taskId = response.json()["data"].get("taskId")
                 self.ucpManager.checkTaskStatus(taskId)
         except Exception as e:
-            # a2.4 MT - TODO : hostgroup is already present
-            # TODO - we need to check if hg is already belong to other subscriber?
             self.logger.writeDebug("1025 err:{}", e)
             self.logger.writeDebug(
                 "1025 The hostgroup is already present, but not for this subscriber."

@@ -833,8 +833,6 @@ class VSPParityGroupArguments:
 ### Validator functions ###
 class VSPSpecValidators:
 
-    def __init__(self):
-        """TODO: will be used for common validators"""
 
     @staticmethod
     def validate_connection_info(conn_info: ConnectionInfo):

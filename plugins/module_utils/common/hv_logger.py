@@ -38,7 +38,6 @@ class Logger:
     def __init__(self):
         if not self.logger:
 
-            # FIXME - remove hard coded path
 
             config = "/opt/hpe/ansible/logger.config"
             if os.path.exists(config):
@@ -55,7 +54,6 @@ class Logger:
                 )
                 self.logger.addHandler(handler)
 
-            # FIXME - remove hard coded path
 
             resources = "/opt/hitachivantara/ansible/messages.properties"
             self.messageIDs = {}

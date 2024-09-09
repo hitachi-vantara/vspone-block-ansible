@@ -161,7 +161,6 @@ def main(module=None):
         runner.runPlaybook(module)
     except HiException as ex:
         if HAS_MESSAGE_ID:
-            # FIXME
             logger.writeAMException(MessageID.ERR_OPERATION_HOSTGROUP)
         else:
             logger.writeAMException("0X0000")
@@ -169,7 +168,6 @@ def main(module=None):
         module.fail_json(msg=ex)
     except Exception as ex:
         if HAS_MESSAGE_ID:
-            # FIXME
             logger.writeAMException(MessageID.ERR_OPERATION_HOSTGROUP)
         else:
             logger.writeAMException("0X0000")

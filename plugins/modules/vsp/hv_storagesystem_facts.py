@@ -303,12 +303,7 @@ class VspStorageSystemFactManager:
                 storage_system_data = self.gateway_storage_system_read()
             else:
                 storage_system_data = asdict(self.direct_storage_system_read())
-
-            # FIXME - gateway has these option
-            # logger.writeDebug('150 storage_system_data={}', storage_system_data['StoragePools'])
-            # logger.writeDebug('150 storage_system_data={}', storage_system_data['Ports'])
-            # logger.writeDebug('150 storage_system_data={}', storage_system_data['QuorumDisks'])
-            # logger.writeDebug('150 storage_system_data={}', storage_system_data['JournalPools'])
+                
             if storage_system_data.get("StoragePools"):
                 storage_system_data["storage_pools"] = storage_system_data[
                     "StoragePools"

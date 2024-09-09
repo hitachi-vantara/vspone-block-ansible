@@ -189,7 +189,6 @@ class VSPHtiSnapshotDirectGateway:
         )
         # self.logger.writeDebug(f"Storage Model: {storage_info.model}")
 
-        """ToDo: will update the logic on the next version"""
 
         if not pegasus_model:
             end_point = self.end_points.SNAPSHOTS
@@ -198,7 +197,6 @@ class VSPHtiSnapshotDirectGateway:
                 VSPSnapShotReq.snapshotPoolId: poolId,
                 VSPSnapShotReq.snapshotGroupName: snapshot_group_name,
             }
-            """ToDo: will update the logic on the next version"""
             # if auto_split is not None:
             #     payload[VSPSnapShotReq.autoSplit] = auto_split
             

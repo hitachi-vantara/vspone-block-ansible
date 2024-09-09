@@ -638,9 +638,6 @@ class RemoteManager:
         self.logger.writeExitSDK(funcName)
         if response.ok:
 
-            # FIXME:  "No JSON object could be decoded"
-            # return response.json()
-
             return "OK"
         elif "HIJSONFAULT" in response.headers:
             ex = Exception(json.loads(response.headers["HIJSONFAULT"]))
@@ -695,9 +692,6 @@ class RemoteManager:
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
-
-            # FIXME:  "No JSON object could be decoded"
-            # return response.json()
 
             return "OK"
         elif "HIJSONFAULT" in response.headers:
@@ -854,8 +848,6 @@ class RemoteManager:
             return "OK"
         elif "HIJSONFAULT" in response.headers:
 
-            # FIXME: "No JSON object could be decoded"
-            # return response.json()
 
             jfault = json.loads(response.headers["HIJSONFAULT"])
             msg = jfault["ErrorMessage"]
@@ -904,8 +896,6 @@ class RemoteManager:
             return "OK"
         elif "HIJSONFAULT" in response.headers:
 
-            # FIXME: "No JSON object could be decoded"
-            # return response.json()
 
             jfault = json.loads(response.headers["HIJSONFAULT"])
             msg = jfault["ErrorMessage"]
@@ -1344,7 +1334,6 @@ class RemoteManager:
         else:
 
             # elif "HIJSONFAULT" in response.headers:
-            # FIXME: this logic does not work with certain exception, like
             # The given key '0' was not present in the dictionary
             # raise Exception(json.loads(response.headers["HIJSONFAULT"]))
 
@@ -1572,9 +1561,6 @@ class RemoteManager:
         if response.ok:
             return
         elif "HIJSONFAULT" in response.headers:
-
-            # TODO: do pos and neg test for this code
-            # return self.getErrorMessage(response)
 
             ex = Exception(json.loads(response.headers["HIJSONFAULT"]))
             hiex = HiException(ex)
