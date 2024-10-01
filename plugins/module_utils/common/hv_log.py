@@ -77,7 +77,7 @@ def setup_logging(logger):
 
     # Manually add RotatingFileHandler to the loggers
     log_handler = logging.handlers.RotatingFileHandler(
-        log_file, mode="a", maxBytes=1000000, backupCount=20
+        log_file, mode="a", maxBytes=5242880, backupCount=20
     )
 
     # Use the existing formatter from the configuration

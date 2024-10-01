@@ -1,4 +1,7 @@
-- name: Subscriber Fact
+####################################################################
+# Example :  Subscriber Facts Playbook
+####################################################################
+- name: Subscriber Facts
   hosts: localhost
   gather_facts: false
   collections:
@@ -6,28 +9,46 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
-    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_uai_gateway_variables.yml
 
   tasks:
+####################################################################
+# Task 0 : Get UAI gateway token
+####################################################################
+    - name: Get UAI gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
+      register: result_token
+      ignore_errors: False
+
+####################################################################
+# Task 1 : Get all subscribers
+####################################################################      
     - name: Get all subscribers
       hv_gateway_subscriber_fact:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
-          api_token: "{{ ansible_vault_gateway_api_token }}"
+          api_token: "{{ result_token.api_token.token }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 2 : Get one subscriber
+####################################################################
     - name: Get one subscriber
       hv_gateway_subscriber_fact:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
-          api_token: "{{ ansible_vault_gateway_api_token }}"
+          api_token: "{{ result_token.api_token.token }}"
         spec:
-          subscriber_id: '"{{ subscriber_id }}"'
+          subscriber_id: "{{ subscriber_facts_subscriber_id_2 }}"
       register: result
 
     - debug:

@@ -53,7 +53,7 @@ options:
         type: list
         description: The nickname of the volume.
         required: false
-      saving_setting:
+      capacity_saving:
         type: str
         description: Settings of the data reduction function for volumes. Choices are 'Disabled', 'Compression'.
         required: false
@@ -101,7 +101,7 @@ EXAMPLES = '''
 
     spec:
       count: 200
-      saving_setting: 'Disabled'
+      capacity_saving: 'Disabled'
 
 '''
 
@@ -144,7 +144,7 @@ volumes:
               "upper_limit_for_transfer_rate": -1
           },
           "saving_mode": false,
-          "saving_setting": "Disabled",
+          "capacity_saving": "Disabled",
           "snapshot_attribute": "-",
           "snapshot_status": false,
           "status": "Normal",
@@ -185,7 +185,7 @@ volumes:
               "upper_limit_for_transfer_rate": -1
           },
           "saving_mode": false,
-          "saving_setting": "Disabled",
+          "capacity_saving": "Disabled",
           "snapshot_attribute": "-",
           "snapshot_status": false,
           "status": "Normal",
@@ -248,7 +248,7 @@ class SDSBVolumeFactsManager:
 
             logger.writeDebug(f"MOD:hv_sds_volume_facts:volumes= {volumes}")
             output_dict = volumes.data_to_list()
-            volumes_data_extracted = VolumeAndComputeNodePropertiesExtractor().extract(output_dict)
+            volumes_data_extracted = VolumePropertiesExtractor().extract(output_dict)
             #volumes_data_extracted = VolumePropertiesExtractor().extract(output_dict)
 
         except Exception as e:

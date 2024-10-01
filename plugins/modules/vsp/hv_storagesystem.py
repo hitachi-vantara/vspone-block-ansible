@@ -45,13 +45,17 @@ options:
         description: Password for authentication.
         type: str
         required: true
+      remote_gateway_address:
+        description: Remote gateway address for the storage system.
+        type: str
+        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of either the UAI gateway.
         type: str
         required: true
       username:
@@ -65,9 +69,8 @@ options:
       connection_type:
         description: Type of connection to the storage system.
         type: str
-        required: false
-        choices: ['gateway', 'direct']
-        default: 'gateway'
+        required: True
+        choices: ['gateway']
       subscriber_id:
         description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
         type: str
@@ -118,63 +121,60 @@ storageSystems:
   returned: always
   type: dict
   sample: {
-    "controllerAddress": "192.168.0.126",
-    "deviceLimits": {
-      "externalGroupNumberRange": {
-        "isValid": true,
-        "maxValue": 16384,
-        "minValue": 1
+    "controller_address": "192.168.0.126",
+    "device_limits": {
+      "external_group_number_range": {
+        "is_valid": true,
+        "max_value": 16384,
+        "min_value": 1
       },
-      "externalGroupSubNumberRange": {
-        "isValid": true,
-        "maxValue": 4096,
-        "minValue": 1
+      "external_group_sub_number_range": {
+        "is_valid": true,
+        "max_value": 4096,
+        "min_value": 1
       },
-      "parityGroupNumberRange": {
-        "isValid": true,
-        "maxValue": 1,
-        "minValue": 1
+      "parity_group_number_range": {
+        "is_valid": true,
+        "max_value": 1,
+        "min_value": 1
       },
-      "parityGroupSubNumberRange": {
-        "isValid": true,
-        "maxValue": 32,
-        "minValue": 1
+      "parity_group_sub_number_range": {
+        "is_valid": true,
+        "max_value": 32,
+        "min_value": 1
       }
     },
-    "freeCapacity": "15.88 TB",
-    "freeCapacityInMb": 16655844,
-    "freePoolCapacity": "10.79 TB",
-    "freePoolCapacityInMb": 11314548,
-    "managementAddress": "192.168.0.126",
-    "microcodeVersion": "93-07-23-80/01",
+    "free_capacity": "15.88 TB",
+    "free_capacity_in_mb": 16655844,
+    "free_local_clone_consistency_group_id": -1,
+    "free_remote_clone_consistency_group_id": -1,
+    "management_address": "192.168.0.126",
+    "microcode_version": "93-07-23-80/01",
     "model": "VSP E1090H",
-    "operationalStatus": "Normal",
-    "serialNumber": "715036",
-    "syslogConfig": {
+    "operational_status": "Normal",
+    "serial_number": "715036",
+    "syslog_config": {
       "detailed": true,
-      "syslogServers": [
+      "syslog_servers": [
         {
           "id": 0,
-          "syslogServerAddress": "192.168.0.143",
-          "syslogServerPort": "514"
+          "syslog_server_address": "192.168.0.143",
+          "syslog_server_port": "514"
         },
         {
           "id": 1,
-          "syslogServerAddress": "192.168.0.188",
-          "syslogServerPort": "514"
+          "syslog_server_address": "192.168.0.188",
+          "syslog_server_port": "514"
         }
       ]
     },
-    "totalCapacity": "27.62 TB",
-    "totalCapacityInMb": 28958726,
-    "totalPoolCapacity": "10.90 TB",
-    "totalPoolCapacityInMb": 11424504
+    "total_capacity": "27.62 TB",
+    "total_capacity_in_mb": 28958726,
   }
 """
 
 import json
 import os
-import re
 
 try:
     from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_messages import (
@@ -184,6 +184,7 @@ try:
     HAS_MESSAGE_ID = True
 except ImportError as error:
     HAS_MESSAGE_ID = False
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.uaig_utils import UAIGResourceID
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
     HiException,
@@ -202,6 +203,9 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
     CommonConstants,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
+    camel_to_snake_case_dict,
 )
 
 ANSIBLE_METADATA = {
@@ -341,9 +345,12 @@ def main(module=None):
         storage_address = storage_system_info.get("address", None)
         storage_user = storage_system_info.get("username", None)
         storage_password = storage_system_info.get("password", None)
+        remote_gateway_address = storage_system_info.get("remote_gateway_address", None)
+        logger.writeDebug("management_address={}", management_address)
         logger.writeDebug("storage_serial={}", storage_serial)
         logger.writeDebug("20230620 storage_user={}", storage_user)
-
+        logger.writeDebug("20230620 remote_gateway_address={}", remote_gateway_address)
+        
         if storage_serial is None:
             raise Exception("Missing storage_serial, please correct it and try again.")
 
@@ -351,31 +358,42 @@ def main(module=None):
             raise Exception(
                 "Invalid storage serial number, please correct it and try again."
             )
-
+            
+        if remote_gateway_address == management_address:
+            raise Exception("The remote_gateway_address cannot be the same as the management_address.")
+          
+        ## get the ucp_serial by remote gateway, if given
+        conv_system_name, conv_system_serial, conv_mgmt_address = \
+          UAIGResourceID.getSystemSerial(management_address, remote_gateway_address)
+        logger.writeDebug("name={}", conv_system_name)
+        logger.writeDebug("serial={}", conv_system_serial)
+        logger.writeDebug("gateway={}", conv_mgmt_address)
+        
         # ucp is mantatory input
         # get the puma getway info out of it
-        theUCP = ucpManager.getUcpSystem(ucp_serial)
+        theUCP = ucpManager.getUcpSystem(conv_system_name)
         if theUCP is None:
           theUCP = ucpManager.createUcpSystem(
-              CommonConstants.UCP_SERIAL,
-              management_address,
+              conv_system_serial,
+              conv_mgmt_address,
               "UCP CI",
-              ucp_serial,
+              conv_system_name,
               "AMERICA",
               "United States",
               "95054",
               ""
               )            
-          theUCP = ucpManager.getUcpSystem( ucp_serial )
-          # raise Exception("UCP {} is not found.".format(ucp_serial))
+          theUCP = ucpManager.getUcpSystem( conv_system_name )
+          # raise Exception("UCP {} is not found.".format(conv_system_name))
         if theUCP is None:
             ## sng,a2.4 system is not ready
             raise Exception("Unable to perform basic setup, the system is not ready.")
 
-        logger.writeDebug("pcu={}", theUCP)
+        logger.writeDebug("the system={}", theUCP)
+        
         ## to work with StorageSystem, it needs the serial, not name
         ucp_serial = theUCP["serialNumber"]
-   
+        logger.writeDebug("system_serial={}", ucp_serial)
         
         state = module.params["state"]
         if state != "absent":
@@ -422,10 +440,11 @@ def main(module=None):
 
             ## sng,a2.4 - expect only one ss here
             results.pop("ucpSystems", None)
+            results = formatSS(results)
 
             logger.writeExitModule(moduleName)
-            module.exit_json(storageSystems=results)
-            # module.exit_json(storageSystems=results['storageSystems'],
+            module.exit_json(changed= True, storage_system=results)
+            # module.exit_json(storageSystems=results['storage_system'],
             # details=results['details'])
         else:
             results = ucpManager.removeStorageSystem(
@@ -435,7 +454,7 @@ def main(module=None):
             #    module.exit_json(**results)
             if results is not None and results:
                 module.exit_json(msg="Storage is no longer in the system.")
-            module.exit_json(msg=f"Storage with serial {storage_serial} successfully deleted.")
+            module.exit_json(changed= True, msg=f"Storage with serial {storage_serial} successfully deleted.")
 
     except EnvironmentError as ex:
         logger.writeDebug("EnvironmentError={}", ex)
@@ -454,6 +473,17 @@ def main(module=None):
             msg = str(ex)
         module.fail_json(msg=msg)
 
+def formatSS(storageSystem):
+    logger.writeDebug("storageSystem={}", storageSystem)
+    del storageSystem["freeCapacity"]
+    del storageSystem["freeCapacityInMb"]
+    del storageSystem["freePoolCapacity"]
+    del storageSystem["freePoolCapacityInMb"]
+    del storageSystem["totalCapacity"]
+    del storageSystem["totalCapacityInMb"]
+    del storageSystem["totalPoolCapacity"]
+    del storageSystem["totalPoolCapacityInMb"]
+    return camel_to_snake_case_dict(storageSystem)
 
 if __name__ == "__main__":
     main()

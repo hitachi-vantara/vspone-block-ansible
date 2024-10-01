@@ -1,3 +1,6 @@
+####################################################################
+# Example :  Storagesystem Facts Playbook
+####################################################################
 - name: StorageSystem Facts
   hosts: localhost
   gather_facts: false
@@ -7,13 +10,20 @@
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
 
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
   tasks:
+####################################################################
+# Task 1 : Get storage system facts
+####################################################################
     - name: Get storage system facts
       hv_storagesystem_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
       register: result
@@ -21,21 +31,16 @@
     - debug:
         var: result
 
+####################################################################
+# Task 2 : Get storage system facts using query
+####################################################################
     - name: Get storage system facts using query
       hv_storagesystem_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          query:
-            - pools
-            - ports
-            - quorumdisks
-            - journalPools
-            - freeLogicalUnitList
+          query: "{{ storagesystem_facts_query_2 }}"
       register: result
 
     - debug:

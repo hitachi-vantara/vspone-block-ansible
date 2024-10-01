@@ -1,3 +1,6 @@
+####################################################################
+# Example : Chap User Playbook
+####################################################################
 - name: Chap User
   hosts: localhost
   gather_facts: false
@@ -6,65 +9,73 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - sds_block_variables.yml
 
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+  
   tasks:
+####################################################################
+# Task 1 : Create chap user
+####################################################################
     - name: Create chap user
       hv_sds_block_chap_user:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          target_chap_user_name: chapuser2
-          target_chap_secret: chapuser2_secret
-          initiator_chap_user_name: chapuser1
-          initiator_chap_secret: chapuser1_secret
+          target_chap_user_name: "{{ chap_user_target_chap_user_name_1 }}"
+          target_chap_secret: "{{ chap_user_target_chap_secret_1 }}"
+          initiator_chap_user_name: "{{ chap_user_initiator_chap_user_name_1 }}"
+          initiator_chap_secret: "{{ chap_user_initiator_chap_secret_1 }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 2 : Update chap user name
+####################################################################
     - name: Update chap user name
       hv_sds_block_chap_user:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          id: 464e1fd1-9892-4134-866c-6964ce786676
-          target_chap_user_name: newchapuser2
+          id: "{{ chap_user_id_2 }}"
+          target_chap_user_name: "{{ chap_user_target_chap_user_name_2}}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 3 : Update chap user name and secret
+####################################################################
     - name: Update chap user secret
       hv_sds_block_chap_user:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          id: 464e1fd1-9892-4134-866c-6964ce786676
-          target_chap_user_name: newchapuser2
-          target_chap_secret: chapuser2_new_secret
+          id: "{{ chap_user_id_3 }}"
+          target_chap_user_name: "{{ chap_user_target_chap_user_name_3}}"
+          target_chap_secret: "{{ chap_user_target_chap_secret_3 }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 4 : Delete chap user
+####################################################################
     - name: Delete chap user
       hv_sds_block_chap_user:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: absent
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_absent }}"
         spec:
-          id: 464e1fd1-9892-4134-866c-6964ce786676
+          id: "{{ chap_user_id_4 }}"
       register: result
 
     - debug:

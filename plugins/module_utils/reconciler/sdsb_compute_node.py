@@ -30,6 +30,8 @@ class SDSBComputeNodeSubstates:
 
     ADD_ISCSI_INITIATOR = "add_iscsi_initiator"
     REMOVE_ISCSI_INITIATOR = "remove_iscsi_initiator"
+    ADD_HOST_NQN = "add_host_nqn"
+    REMOVE_HOST_NQN = "remove_host_nqn"
     ATTACH_VOLUME = "attach_volume"
     DETACH_VOLUME = "detach_volume"
 
@@ -39,7 +41,6 @@ class SDSBComputeNodeReconciler:
     def __init__(self, connection_info):
         self.connection_info = connection_info
         self.provisioner = SDSBComputeNodeProvisioner(self.connection_info)
-        # self._validate_parameters()
 
     @log_entry_exit
     def get_volume_summary(self, cn_id):
@@ -65,7 +66,7 @@ class SDSBComputeNodeReconciler:
         cn_list = []
         cn_with_vol_list = []
         for cn in cnodes.data:
-            cn_by_id = self.get_compute_node_by_id(cn.id)
+            cn_by_id = self.get_compute_node_details_by_id(cn.id)
             if cn_by_id.numberOfVolumes > 0:
                 vol_summary = self.get_volume_summary(cn.id)
             else:
@@ -83,6 +84,13 @@ class SDSBComputeNodeReconciler:
         compute_node = self.provisioner.get_compute_node_by_id(id)
         logger.writeDebug("RC:get_compute_node_by_id:compute_node={}", compute_node)
         return compute_node
+    
+    @log_entry_exit
+    def get_compute_node_details_by_id(self, id):
+        compute_node = self.provisioner.get_compute_node_details_by_id(id)
+        logger.writeDebug("RC:get_compute_node_details_by_id:compute_node={}", compute_node)
+        return compute_node
+    
 
     @log_entry_exit
     def delete_compute_node_by_id(self, id):
@@ -103,6 +111,21 @@ class SDSBComputeNodeReconciler:
         # logger.writeDebug('RC:add_iqn_to_compute_node:iqn_id={}', self.provisioner.add_iqn_to_compute_node(compute_node_id, iqn))
         self.connection_info.changed = True
         return self.provisioner.add_iqn_to_compute_node(compute_node_id, iqn)
+    
+    @log_entry_exit
+    def add_nqn_to_compute_node(self, compute_node_id, nqn):
+        response = self.provisioner.add_nqn_to_compute_node(compute_node_id, nqn)
+        return response
+
+    @log_entry_exit
+    def get_iqn_ids_to_add(self, compute_node_id, iqns):
+        iqn_pairs = self.get_compute_node_iscsi_pairs(compute_node_id)
+        iqn_ids_to_add = []
+        for iqn in iqns:
+            if iqn_pairs[iqn] :
+                iqn_ids_to_add.append(iqn_pairs[iqn])
+
+        return iqn_ids_to_add
 
     @log_entry_exit
     def add_iqns_to_compute_node(self, compute_node_id, iqns):
@@ -112,11 +135,39 @@ class SDSBComputeNodeReconciler:
 
         logger.writeDebug("iqns={}", iqns)
         port_ids = self.get_compute_port_ids()
-        hba_ids = self.get_compute_node_hba_ids(compute_node_id)
+        # hba_ids = self.get_compute_node_hba_ids(compute_node_id)
+        hba_ids = self.get_iqn_ids_to_add(compute_node_id, iqns)
 
         for hba_id in hba_ids:
             for port_id in port_ids:
                 self.add_compute_node_path(compute_node_id, hba_id, port_id)
+
+    @log_entry_exit
+    def get_nqn_ids_to_add(self, compute_node_id, nqns):
+        nqn_pairs = self.get_compute_node_nqn_pairs(compute_node_id)
+        nqn_ids_to_add = []
+        for nqn in nqns:
+            if nqn_pairs[nqn] :
+                nqn_ids_to_add.append(nqn_pairs[nqn])
+
+        return nqn_ids_to_add
+
+    @log_entry_exit
+    def add_nqns_to_compute_node(self, compute_node_id, nqns):
+
+        for nqn in nqns:
+            self.add_nqn_to_compute_node(compute_node_id, nqn)
+
+        logger.writeDebug("nqns={}", nqns)
+        port_ids = self.get_compute_port_ids()
+        #nqn_ids = self.get_compute_node_nqn_ids(compute_node_id)
+        nqn_ids = self.get_nqn_ids_to_add(compute_node_id, nqns)
+        logger.writeDebug("nqn_ids={}", nqn_ids)
+
+        for nqn_id in nqn_ids:
+            for port_id in port_ids:
+                self.add_compute_node_path(compute_node_id, nqn_id, port_id)
+        self.connection_info.changed = True
 
     @log_entry_exit
     def get_hba_paths(self, compute_node_id):
@@ -143,6 +194,29 @@ class SDSBComputeNodeReconciler:
 
         pairs = self.get_compute_node_hba_name_id_pairs(compute_node_id)
         for x in iqns_to_remove:
+            for p in pairs:
+                if p.name == x:
+                    self.delete_hba(compute_node_id, p.id)
+
+    @log_entry_exit
+    def remove_nqns_from_compute_node(self, compute_node_id, nqns_to_remove):
+        logger.writeDebug(
+            "RC:remove_nqns_from_compute_node:nqns_to_remove={}", nqns_to_remove
+        )
+
+        id_list = []
+        hba_paths = self.get_hba_paths(compute_node_id)
+        for x in nqns_to_remove:
+            for p in hba_paths:
+                if p.hbaName == x:
+                    n = HbaPortIdPair(p.hbaId, p.portId)
+                    id_list.append(n)
+
+        for x in id_list:
+            self.delete_hba_path(compute_node_id, x)
+
+        pairs = self.get_compute_node_nqn_name_id_pairs(compute_node_id)
+        for x in nqns_to_remove:
             for p in pairs:
                 if p.name == x:
                     self.delete_hba(compute_node_id, p.id)
@@ -190,9 +264,33 @@ class SDSBComputeNodeReconciler:
         return hba_ids
 
     @log_entry_exit
+    def get_compute_node_nqn_pairs(self, compute_node_id):
+        nqn_pairs = self.provisioner.get_compute_node_nqn_pairs(compute_node_id)
+        logger.writeDebug("RC:get_compute_node_nqn_pairs={}", nqn_pairs)
+        return nqn_pairs
+
+    @log_entry_exit
+    def get_compute_node_iscsi_pairs(self, compute_node_id):
+        iscsi_pairs = self.provisioner.get_compute_node_iscsi_pairs(compute_node_id)
+        logger.writeDebug("RC:get_compute_node_iscsi_pairs={}", iscsi_pairs)
+        return iscsi_pairs
+
+    @log_entry_exit
+    def get_compute_node_nqn_ids(self, compute_node_id):
+        nqn_ids = self.provisioner.get_compute_node_nqn_ids(compute_node_id)
+        logger.writeDebug("get_compute_node_nqn_ids={}", nqn_ids)
+        return nqn_ids
+
+    @log_entry_exit
     def get_compute_node_hba_name_id_pairs(self, compute_node_id):
         pairs = self.provisioner.get_compute_node_hba_name_id_pairs(compute_node_id)
         logger.writeDebug("compute_node_hba_ids={}", pairs)
+        return pairs
+    
+    @log_entry_exit
+    def get_compute_node_nqn_name_id_pairs(self, compute_node_id):
+        pairs = self.provisioner.get_compute_node_nqn_name_id_pairs(compute_node_id)
+        logger.writeDebug("compute_node_nqn_ids={}", pairs)
         return pairs
 
     @log_entry_exit
@@ -233,11 +331,10 @@ class SDSBComputeNodeReconciler:
     def create_sdsb_compute_node(self, spec):
         # this is a create
         logger.writeDebug("RC:=== Create Compute Node ===")
-        os_type = os_type_dict.get(spec.os_type.lower())
 
         # if the os_type is not provided throw error
-        if os_type is None:
-            raise ValueError(SDSBComputeNodeValidationMsg.INVALID_OS_TYPE.value.format(spec.os_type))
+        if spec.os_type is None:
+            raise ValueError(SDSBComputeNodeValidationMsg.OS_TYPE_REQUIRED.value.format(spec.os_type))
         else:
             os_type = os_type_dict.get(spec.os_type.lower())
             if os_type is None:
@@ -245,15 +342,34 @@ class SDSBComputeNodeReconciler:
             else:
                 spec.os_type = os_type
 
-        # if spec.state is None or empty during create, we don't need to do anything, 
-        # just create and returns the compute node info
+        # if spec.state is None or empty during create, we will try to attach volumes and 
+        # add iSCSI initiators or host NQNs, based on the information provided in the spec.
+        # Also note that either IQN or NQN will work depending on the compute port protocol setting.
         if spec.state == None or spec.state == "":
+            if spec.iscsi_initiators is not None and len(spec.iscsi_initiators) > 0 and spec.host_nqns is not None and len(spec.host_nqns) > 0:
+                logger.writeDebug(
+                    "RC:=== spec.state is None, and both iscsi_initiators and host nqns are provided ==="
+                )
+                raise ValueError(SDSBComputeNodeValidationMsg.ADD_BOTH_IQN_NQN_ERR.value)
+            vol_ids = []
+            if spec.volumes is not None and len(spec.volumes) > 0:
+                logger.writeDebug(
+                    "RC:substate = {}  volumes={}", spec.state, spec.volumes
+                )
+                vol_ids = self.pre_check_volumes(spec.volumes)
             compute_node_id = self.create_compute_node(spec.name, spec.os_type)
             logger.writeDebug("RC:compute_node_id={}", compute_node_id)
-            vol_summary = []
-            cn = self.get_compute_node_by_id(compute_node_id)
-            cn_with_vol = SDSBComputeNodeAndVolumeInfo(cn, vol_summary)
-            return cn_with_vol
+            if spec.iscsi_initiators is not None and len(spec.iscsi_initiators) > 0:
+                logger.writeDebug(
+                    "RC:substate = None  iqns={}", spec.iscsi_initiators,
+                )
+                self.add_iqns_to_compute_node(compute_node_id, spec.iscsi_initiators)
+            if spec.host_nqns is not None and len(spec.host_nqns) > 0:
+                logger.writeDebug(
+                    "RC:substate = None  nqns={}", spec.host_nqns,
+                )
+                self.add_nqns_to_compute_node(compute_node_id, spec.host_nqns)               
+            self.add_volumes_to_compute_node(compute_node_id, vol_ids)
         elif spec.state.lower() == SDSBComputeNodeSubstates.ADD_ISCSI_INITIATOR:
             if spec.iscsi_initiators is not None and len(spec.iscsi_initiators) > 0:
                 compute_node_id = self.create_compute_node(spec.name, spec.os_type)
@@ -270,6 +386,23 @@ class SDSBComputeNodeReconciler:
                     "RC:=== spec.state is add_iscsi_initiator, but iscsi_initiators not provided ==="
                 )
                 raise ValueError(SDSBComputeNodeValidationMsg.ADD_ISCSI_ERR.value)
+            
+        elif spec.state.lower() == SDSBComputeNodeSubstates.ADD_HOST_NQN:
+            if spec.host_nqns is not None and len(spec.host_nqns) > 0:
+                compute_node_id = self.create_compute_node(spec.name, spec.os_type)
+                logger.writeDebug("RC:add_host_nqn:compute_node_id={}", compute_node_id)
+                # nqns are present in the spec, so add them to the newly created compute node
+                logger.writeDebug(
+                    "RC:substate = {}  nqns={}",
+                    SDSBComputeNodeSubstates.ADD_HOST_NQN,
+                    spec.host_nqns,
+                )
+                self.add_nqns_to_compute_node(compute_node_id, spec.host_nqns)
+            else:
+                logger.writeDebug(
+                    "RC:=== spec.state is add_host_nqns, but host_nqns not provided ==="
+                )
+                raise ValueError(SDSBComputeNodeValidationMsg.ADD_NQNS_ERR.value)
 
         elif spec.state.lower() == SDSBComputeNodeSubstates.ATTACH_VOLUME:
             if spec.volumes is not None and len(spec.volumes) > 0:
@@ -288,9 +421,8 @@ class SDSBComputeNodeReconciler:
                 raise ValueError(SDSBComputeNodeValidationMsg.ATTACH_VOLUME_ERR.value)
 
         vol_summary = self.get_volume_summary(compute_node_id)
-        cn = self.get_compute_node_by_id(compute_node_id)
+        cn = self.get_compute_node_details_by_id(compute_node_id)
         cn_with_vol = SDSBComputeNodeAndVolumeInfo(cn, vol_summary)
-        # return self.get_compute_node_by_id(compute_node_id)
         return cn_with_vol
 
     @log_entry_exit
@@ -317,6 +449,19 @@ class SDSBComputeNodeReconciler:
                 iqns_to_add.append(x)
 
         self.add_iqns_to_compute_node(compute_node_id, iqns_to_add)
+
+    @log_entry_exit
+    def update_add_nqns(self, compute_node_id, host_nqns):
+
+        if host_nqns is None:
+            return
+
+        nqn_names = self.provisioner.get_compute_node_nqn_names(compute_node_id)
+        logger.writeDebug("RC:update_add_nqns:nqn_names={}", nqn_names)
+
+        nqns_to_add = [x for x in host_nqns if x not in nqn_names]
+        logger.writeDebug("RC:update_add_nqns:nqn_to_add={}", nqns_to_add)
+        self.add_nqns_to_compute_node(compute_node_id, nqns_to_add)
 
     @log_entry_exit
     def get_compute_node_volume_names(self, vol_ids):
@@ -346,32 +491,31 @@ class SDSBComputeNodeReconciler:
 
         vol_prov = SDSBVolumeProvisioner(self.connection_info)
         # get all the volume names present in the system
-        all_volume_names = vol_prov.get_all_volume_names()
+        all_volume = vol_prov.get_volumes()
         logger.writeDebug(
-            "RC:update_attach_volumes:all_volume_names={}", all_volume_names
+            "RC:update_attach_volumes:all_volume_names={}", all_volume
         )
 
         # valid volumes are the volumes which are common between all_volume_names and user supplied volume names
-        valid_volume_names = []
-        for v in volumes:
-            if v in all_volume_names:
-                valid_volume_names.append(v)
+        valid_volume_ids = []
+        for v in all_volume.data:
+            if v.name in volumes:
+                valid_volume_ids.append(v.id)
         logger.writeDebug(
-            "RC:update_attach_volumes:valid_volume_names={}", valid_volume_names
+            "RC:update_attach_volumes:valid_volume_ids={}", valid_volume_ids
         )
 
-        # now find the volumes names that are already attached to the compute node
+        # now find the volumes ids that are already attached to the compute node
         vol_ids = self.get_compute_node_volume_ids(compute_node_id)
-        vol_names_attached = self.get_compute_node_volume_names(vol_ids)
 
         logger.writeDebug(
-            "RC:update_attach_volumes:vol_names_attached={}", vol_names_attached
+            "RC:update_attach_volumes:vol_names_attached={}", vol_ids
         )
 
-        # create a list of volume names that need to be attached to a compute node.
+        # create a list of volume ids that need to be attached to a compute node.
         vol_to_attach = []
-        for v in valid_volume_names:
-            if v not in vol_names_attached:
+        for v in valid_volume_ids:
+            if v not in vol_ids:
                 vol_to_attach.append(v)
         logger.writeDebug("RC:update_attach_volumes:vol_to_attach={}", vol_to_attach)
 
@@ -392,6 +536,22 @@ class SDSBComputeNodeReconciler:
                 iqns_to_remove.append(x)
 
         self.remove_iqns_from_compute_node(compute_node_id, iqns_to_remove)
+
+    @log_entry_exit
+    def update_remove_nqns(self, compute_node_id, host_nqns):
+
+        if host_nqns is None:
+            return
+
+        nqn_names = self.provisioner.get_compute_node_nqn_names(compute_node_id)
+        logger.writeDebug("RC:update_remove_nqns:nqn_names={}", nqn_names)
+
+        nqns_to_remove = []
+        for x in host_nqns:
+            if x in nqn_names:
+                nqns_to_remove.append(x)
+
+        self.remove_nqns_from_compute_node(compute_node_id, nqns_to_remove)
 
     @log_entry_exit
     def update_detach_volumes(self, compute_node_id, volumes):
@@ -438,8 +598,12 @@ class SDSBComputeNodeReconciler:
         if spec.state is not None:
             if spec.state.lower() == SDSBComputeNodeSubstates.ADD_ISCSI_INITIATOR:
                 self.update_add_iqns(compute_node.id, spec.iscsi_initiators)
+            elif spec.state.lower() == SDSBComputeNodeSubstates.ADD_HOST_NQN:
+                self.update_add_nqns(compute_node.id, spec.host_nqns)
             elif spec.state.lower() == SDSBComputeNodeSubstates.REMOVE_ISCSI_INITIATOR:
                 self.update_remove_iqns(compute_node.id, spec.iscsi_initiators)
+            elif spec.state.lower() == SDSBComputeNodeSubstates.REMOVE_HOST_NQN:
+                self.update_remove_nqns(compute_node.id, spec.host_nqns)
             elif spec.state.lower() == SDSBComputeNodeSubstates.ATTACH_VOLUME:
                 self.update_attach_volumes(compute_node.id, spec.volumes)
             elif spec.state.lower() == SDSBComputeNodeSubstates.DETACH_VOLUME:
@@ -450,15 +614,15 @@ class SDSBComputeNodeReconciler:
                     SDSBComputeNodeSubstates.REMOVE_ISCSI_INITIATOR,
                     SDSBComputeNodeSubstates.ATTACH_VOLUME,
                     SDSBComputeNodeSubstates.DETACH_VOLUME,
+                    SDSBComputeNodeSubstates.ADD_HOST_NQN,
+                    SDSBComputeNodeSubstates.REMOVE_HOST_NQN
                 ))
 
         compute_node_id = compute_node.id
         vol_summary = self.get_volume_summary(compute_node_id)
-        cn = self.get_compute_node_by_id(compute_node_id)
+        cn = self.get_compute_node_details_by_id(compute_node_id)
         cn_with_vol = SDSBComputeNodeAndVolumeInfo(cn, vol_summary)
-        # return self.get_compute_node_by_id(compute_node_id)
         return cn_with_vol
-        # return self.get_compute_node_by_id(compute_node.id)
 
     @log_entry_exit
     def reconcile_compute_node(self, state, spec):

@@ -1,0 +1,165 @@
+####################################################################
+# Example :  Global-active device (GAD) Pair  playbook
+####################################################################
+- name: GAD - Global Active Device Pair
+  hosts: localhost
+  collections:
+    - hitachivantara.vspone_block.vsp
+  gather_facts: false
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_uai_gateway_variables.yml
+
+  tasks:
+####################################################################
+# Task 0 : Get UAI gateway token
+####################################################################
+    - name: Get UAI gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
+      register: result_token
+      ignore_errors: False
+
+#####################################################################
+# Task 1 : Create GAD pair with single server configuration
+#####################################################################
+    - name: Create GAD pair with single server configuration
+      hv_gad:
+        storage_system_info:
+          serial: '{{ storage_serial }}'      
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        spec:
+          primary_storage_serial_number: "{{ gad_primary_storage_serial_number_1 }}"
+          secondary_storage_serial_number: "{{ gad_secondary_storage_serial_number_1 }}"
+          primary_volume_id: "{{ gad_primary_volume_id_1 }}"
+          secondary_pool_id: "{{ gad_secondary_pool_id_1 }}"
+          secondary_hostgroups: "{{ gad_secondary_hostgroups_1 }}"
+          primary_resource_group_name: "{{ gad_primary_resource_group_name_1 }}"
+          quorum_disk_id: "{{ gad_quorum_disk_id_1 }}"
+          allocate_new_consistency_group: "{{ gad_allocate_new_consistency_group_1 }}"
+      register: result
+
+    - debug: 
+        var: result
+
+#####################################################################
+# Task 2 : Create GAD pair with  server cluster configuration
+#####################################################################
+    - name: Create GAD pair with  server cluster configuration
+      hv_gad:
+        storage_system_info:
+          serial: '{{ storage_serial }}'  
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        spec:
+          primary_storage_serial_number: "{{ gad_primary_storage_serial_number_2 }}"
+          secondary_storage_serial_number: "{{ gad_secondary_storage_serial_number_2 }}"
+          primary_volume_id: "{{ gad_primary_volume_id_2 }}"
+          secondary_pool_id: "{{ gad_secondary_pool_id_2 }}"
+          secondary_hostgroups: "{{ gad_secondary_hostgroups_2 }}"
+          primary_hostgroups: "{{ gad_primary_hostgroups_2 }}"
+          allocate_new_consistency_group: "{{ gad_allocate_new_consistency_group_2 }}"
+      register: result
+
+    - debug: 
+        var: result
+
+#####################################################################
+# Task 3 : Create GAD pair with cross path server configuration
+#####################################################################
+    - name: Create GAD pair with cross path server configuration
+      hv_gad:
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        spec:
+          primary_storage_serial_number: "{{ gad_primary_storage_serial_number_3 }}"
+          secondary_storage_serial_number: "{{ gad_secondary_storage_serial_number_3 }}"
+          primary_volume_id: "{{ gad_primary_volume_id_3 }}"
+          secondary_pool_id: "{{ gad_secondary_pool_id_3 }}"
+          secondary_hostgroups: "{{ gad_secondary_hostgroups_3 }}"
+          primary_hostgroups: "{{ gad_primary_hostgroups_3 }}"
+          primary_resource_group_name: "{{ gad_primary_resource_group_name_3 }}"
+          quorum_disk_id: "{{ gad_quorum_disk_id_3 }}"
+          set_alua_mode: "{{ gad_set_alua_mode_3 }}"
+          allocate_new_consistency_group: "{{ gad_allocate_new_consistency_group_3 }}"
+      register: result
+
+    - debug: 
+        var: result
+
+#####################################################################
+# Task 4 : Split GAD pair
+#####################################################################
+    - name: Split GAD pair 
+      hv_gad:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_split }}"
+        spec:
+          primary_volume_id: "{{ gad_primary_volume_id_4 }}"
+      register: result
+
+    - debug:
+        var: result
+
+#####################################################################
+# Task 5 : Resync GAD pair
+#####################################################################
+    - name: Resync GAD pair
+      hv_gad:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_resync }}"
+        spec:
+          primary_volume_id: "{{ gad_primary_volume_id_5 }}"
+      register: result
+
+    - debug:
+        var: result
+
+
+#####################################################################
+# Task 6 : Delete GAD pair
+#####################################################################
+    - name: Delete GAD pair
+      hv_gad:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_absent }}"
+        spec:
+          primary_volume_id: "{{ gad_primary_volume_id_6 }}"
+      register: result
+
+    - debug:
+        var: result

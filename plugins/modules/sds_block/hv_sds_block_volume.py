@@ -7,7 +7,7 @@ DOCUMENTATION = '''
 module: hv_sds_block_volume
 short_description: Manages Hitachi SDS block storage system volumes.
 description:
-  - This module allows the creation, updation and deletion of volume, adding and removing compute code.
+  - This module allows the creation, update and deletion of volume, adding and removing compute code.
   - It supports various volume operations based on the specified state.
 version_added: '3.0.0'
 author:
@@ -63,12 +63,12 @@ options:
         description: The capacity of the volume.
         type: str
         required: false
-      saving_setting:
+      capacity_saving:
         description: Settings of the data reduction function. Disabled or  Compression.
         type: str
         required: false
       pool_name:
-        description: he name of the storage pool where the volume is created.
+        description: The name of the storage pool where the volume is created.
         type: str
         required: false
       state:
@@ -79,6 +79,23 @@ options:
         description: The array of name of compute nodes to which the volume is attached.
         type: list
         required: false
+      qos_param:
+        description: The quality of service parameters for the volume.
+        type: dict
+        required: false
+        suboptions:
+          upper_limit_for_iops:
+            description: The upper limit for IOPS.
+            type: int
+            required: false
+          upper_limit_for_transfer_rate_mb_per_sec:
+            description: The upper limit for transfer rate (MB per Sec).
+            type: int
+            required: false
+          upper_alert_allowable_time_in_sec:
+            description: The upper alert allowable time(In seconds).
+            type: int
+            required: false
 
 '''
 
@@ -94,6 +111,23 @@ EXAMPLES = '''
       pool_name: "SP01"
       name: "RD-volume-4"
       capacity: 99
+      compute_nodes: ["CAPI123678", "ComputeNode-1"]
+
+- name: Create volume with QoS parameters
+  hv_sds_block_volume:
+    state: present
+    connection_info:
+      address: vssb.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      pool_name: "SP01"
+      name: "RD-volume-4"
+      capacity: 99
+      qos_param:
+        upper_limit_for_iops: 100
+        upper_limit_for_transfer_rate_mb_per_sec: 100
+        upper_alert_allowable_time_in_sec: 100
       compute_nodes: ["CAPI123678", "ComputeNode-1"]
 
 - name: Delete volume by ID
@@ -138,7 +172,21 @@ EXAMPLES = '''
     spec:
       name: "RD-volume-4"
       nickname: "RD-volume-0004"
-  
+      
+- name: Update volume QoS parameters
+  hv_sds_block_volume:
+    state: present
+    connection_info:
+      address: vssb.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      name: "RD-volume-4"
+      qos_param:
+        upper_limit_for_iops: 100
+        upper_limit_for_transfer_rate_mb_per_sec: 100
+        upper_alert_allowable_time_in_sec: 100
+
 - name: Update volume name
   hv_sds_block_volume:
     state: present
@@ -216,7 +264,7 @@ data:
               "upper_limit_for_transfer_rate": -1
           },
           "saving_mode": false,
-          "saving_setting": "Disabled",
+          "capacity_saving": "Disabled",
           "snapshot_attribute": "-",
           "snapshot_status": false,
           "status": "Normal",
@@ -265,14 +313,16 @@ class SDSBVolumeManager:
             supports_check_mode=True,
             # can be added mandotary , optional mandatory arguments
         )
-
-        params_manager = SDSBParametersManager(self.module.params)
-        self.state = params_manager.get_state()
-        self.connection_info = params_manager.get_connection_info()
-        # logger.writeDebug(f"MOD:hv_sds_block_volume:argument_spec= {self.connection_info}")
-        self.spec = params_manager.get_volume_spec()
-        logger.writeDebug(f"MOD:hv_sds_block_compute_node:argument_spec= {self.spec}")
-
+        try:
+          params_manager = SDSBParametersManager(self.module.params)
+          self.state = params_manager.get_state()
+          self.connection_info = params_manager.get_connection_info()
+          self.spec = params_manager.get_volume_spec()
+          logger.writeDebug(f"MOD:hv_sds_block_compute_node:argument_spec= {self.spec}")
+        except Exception as e:
+            logger.writeError(f"An error occurred during initialization: {str(e)}")
+            self.module.fail_json(msg=str(e))
+  
     def apply(self):
         volumes = None
         volumes_data_extracted = None
@@ -289,7 +339,7 @@ class SDSBVolumeManager:
                 volumes_data_extracted = volumes
             else:
                 output_dict = volumes.to_dict()
-                volumes_data_extracted =  VolumeAndComputeNodePropertiesExtractor().extract_dict(
+                volumes_data_extracted =  VolumePropertiesExtractor().extract_dict(
                     output_dict
                 )
 

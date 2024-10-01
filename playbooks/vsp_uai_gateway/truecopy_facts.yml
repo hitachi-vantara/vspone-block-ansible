@@ -1,0 +1,61 @@
+####################################################################
+# Example :  TrueCopy Facts Playbook
+####################################################################
+- name: TrueCopy Facts
+  hosts: localhost
+  collections:
+    - hitachivantara.vspone_block.vsp
+  gather_facts: false
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_uai_gateway_variables.yml
+  
+  tasks:
+####################################################################
+# Task 0 : Get UAI gateway token
+####################################################################
+    - name: Get UAI gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
+      register: result_token
+      ignore_errors: False
+
+####################################################################
+# Task 1 : Get all TrueCopy pairs
+####################################################################
+    - name : Get all TrueCopy pairs 
+      hv_truecopy_facts:
+        storage_system_info:
+          serial: '{{ storage_serial }}'        
+        connection_info:
+          address: "{{uai_gateway_address}}"
+          api_token: "{{ result_token.api_token.token }}"
+          connection_type: "{{connection_type}}"
+          subscriber_id: '{{ subscriber_id | default(omit) }}'
+      register: result
+
+    - debug: 
+        var: result
+
+####################################################################
+# Task 2 : Get TrueCopy pair by primary volume ID
+####################################################################
+    - name : Get TrueCopy pair by primary volume ID
+      hv_truecopy_facts:
+        storage_system_info:
+          serial: '{{ storage_serial }}' 
+        connection_info:
+          address: "{{uai_gateway_address}}"
+          api_token: "{{ result_token.api_token.token }}"
+          connection_type: "{{connection_type}}"
+          subscriber_id: '{{ subscriber_id | default(omit) }}'
+        spec:
+          primary_volume_id: "{{ truecopy_facts_primary_volume_id_2 }}"
+      register: result
+
+    - debug: 
+        var: result

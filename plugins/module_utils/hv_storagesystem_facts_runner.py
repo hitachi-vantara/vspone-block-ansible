@@ -4,6 +4,7 @@
 __metaclass__ = type
 import json
 import logging
+import concurrent.futures
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
@@ -44,9 +45,73 @@ def writeNameValue(name, value):
 def writeMsg(msg):
     logger.writeInfo(msg)
 
+def getQuorumDisks(ucpManager):
+    rresult={}
+    rresult['rresult'] = ucpManager.getQuorumDisks()
+    rresult['name'] ='getQuorumDisks'
+    return rresult
 
-#     logging.debug(msg)
+def getJournalPools(ucpManager):
+    rresult={}
+    rresult['rresult'] = ucpManager.getJournalPools()
+    rresult['name'] ='getJournalPools'
+    return rresult
 
+def getFreeLUList(ucpManager):
+    rresult={}
+    rresult['rresult'] = ucpManager.getFreeLUList()
+    rresult['name'] ='getFreeLUList'
+    return rresult
+
+def getPorts(ucpManager):
+    rresult={}
+    rresult['rresult'] = ucpManager.getPorts()
+    rresult['name'] ='getPorts'
+    return rresult
+
+def getStoragePools(ucpManager):
+    rresult={}
+    rresult['rresult'] = ucpManager.getStoragePools()
+    rresult['name'] ='getStoragePools'
+    return rresult
+
+def getQueryResults(storageInfo, ucpManager, query):
+    
+    choices= ['ports', 'quorumdisks', 'journalPools', 'freeLogicalUnitList']
+    for q in query:
+        if q not in choices:
+            raise Exception("The query"+str(query)+" must be one in: " + str(choices))
+     
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        logger.writeDebug("83 query={}", query)
+        futures = []
+        if "quorumdisks" in query:
+            futures.append(executor.submit(getQuorumDisks,ucpManager))
+        if "ports" in query:
+            futures.append(executor.submit(getPorts,ucpManager))
+        if "pools" in query:
+            ## pools are not supported anymore, just keeping it here for reference
+            futures.append(executor.submit(getStoragePools,ucpManager))
+        if 'journalPools' in query:
+            futures.append(executor.submit(getJournalPools,ucpManager))
+        if "freeLogicalUnitList" in query:
+            futures.append(executor.submit(getFreeLUList,ucpManager))
+            
+        for future in concurrent.futures.as_completed(futures):
+            rresult = future.result()
+            if rresult['name'] == 'getStoragePools':
+                storageInfo["StoragePools"] = rresult['rresult']
+            if rresult['name'] == 'getPorts':
+                storageInfo["Ports"] = rresult['rresult']
+            if rresult['name'] == 'getQuorumDisks':
+                storageInfo["QuorumDisks"] = rresult['rresult']
+            if rresult['name'] == 'getJournalPools':
+                storageInfo["JournalPools"] = rresult['rresult']
+            if rresult['name'] == 'getFreeLUList':
+                storageInfo["freeLogicalUnitList"] = rresult['rresult']
+                
+    return storageInfo
+                
 
 def runPlaybook(module):
 
@@ -105,45 +170,16 @@ def runPlaybook(module):
         query = spec.get("query", None)
 
     if query:
+        logger.writeParam("168 query={}", query)
+        storageInfo = getQueryResults(storageInfo, ucpManager, query)
 
-        logger.writeParam("query={}", query)
+    # else:
 
-        # for prop in ("MicroCodeVersion", "GroupIdentifier", "FreeCapacityInMB", "TotalCapacityInMB", "IsHUVMCapable", "IsEnterpriseStorageDevice",
-        #         "IsVirtual", "IsHM800Unified", "Controller0", "Controller1"):
-        #     del storageInfo[prop]
+    #     # default, when no query param is given
 
-        if "pools" in query:
-            storageInfo["StoragePools"] = ucpManager.getStoragePools()
-        if "ports" in query:
-            storageInfo["Ports"] = ucpManager.getPorts()
-        if "quorumdisks" in query:
-            storageInfo["QuorumDisks"] = ucpManager.getQuorumDisks()
-        if "journalPools" in query:
-            storageInfo["JournalPools"] = ucpManager.getJournalPools()
-        # if 'nextFreeGADConsistencyGroupId' in query:
-        #     storageInfo['nextFreeGADConsistencyGroupId'] = \
-        #         storageSystem.getFreeGADConsistencyGroupId()
-        # if 'nextFreeHTIConsistencyGroupId' in query:
-        #     storageInfo['nextFreeHTIConsistencyGroupId'] = \
-        #         storageSystem.getFreeHTIConsistencyGroupId()
-        # if 'nextFreeTCConsistencyGroupId' in query:
-        #     storageInfo['nextFreeTCConsistencyGroupId'] = \
-        #         storageSystem.getFreeTCConsistencyGroupId()
-        # if 'nextFreeURConsistencyGroupId' in query:
-        #     storageInfo['nextFreeURConsistencyGroupId'] = \
-        #         storageSystem.getFreeURConsistencyGroupId()
-        if "freeLogicalUnitList" in query:
-            flulist = ucpManager.getFreeLUList()
-            storageInfo["freeLogicalUnitList"] = flulist
-        #     if flulist is not None:
-        #         storageInfo['freeLogicalUnitCount'] = len(flulist)
-    else:
-
-        # default, when no query param is given
-
-        storageInfo["StoragePools"] = ucpManager.getStoragePools()
-        # storageInfo['Ports'] = storageSystem.getPorts()
-        # storageInfo['QuorumDisks'] = storageSystem.getQuorumDisks()
+    #     storageInfo["StoragePools"] = ucpManager.getStoragePools()
+    #     # storageInfo['Ports'] = storageSystem.getPorts()
+    #     # storageInfo['QuorumDisks'] = storageSystem.getQuorumDisks()
 
     ## sng,a2.4 - expect only one ss here
     storageInfo.pop("ucpSystems", None)

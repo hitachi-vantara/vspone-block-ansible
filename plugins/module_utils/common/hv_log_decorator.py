@@ -63,11 +63,11 @@ class LogDecorator:
                     if len(result) > max_chars:
                         result = LogDecorator.truncate_string(result, max_chars)
                         LogDecorator.log(
-                            self, f"EXIT: Result: {result}  .....truncated"
+                            self, f"EXIT: Result:   .....truncated"
                         )
-                    LogDecorator.log(self, f"EXIT: Result: {result}")
+                    LogDecorator.log(self, f"EXIT:")
                 else:
-                    LogDecorator.log(self, f"EXIT: Result: {result}")
+                    LogDecorator.log(self, f"EXIT: ")
                 return result
 
             return wrapper

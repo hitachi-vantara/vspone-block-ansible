@@ -11,13 +11,12 @@ ANSIBLE_METADATA = {
     "supported_by": "certified",
     "status": ["stableinterface"],
 }
-
 DOCUMENTATION = """
 ---
 module: hv_system_facts
-short_description: Retrives system information from Hitachi VSP storage systems.
+short_description: Retrieves system information from Hitachi VSP storage systems.
 description:
-     - This module retrives the system information from Hitachi VSP storage systems.
+  - This module retrieves the system information from Hitachi VSP storage systems.
 version_added: '3.0.0'
 author:
   - Hitachi Vantara, LTD. VERSION 3.0.0
@@ -48,6 +47,16 @@ options:
         description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
         type: str
         required: false
+  spec:
+    description: Special options for the module.
+    type: dict
+    required: false
+    suboptions:
+      refresh:
+        description: Force a refresh of the system information.
+        type: bool
+        required: false
+        default: false
 """
 
 EXAMPLES = """
@@ -113,6 +122,11 @@ def main(module=None):
         "management_address": {"required": False, "type": "str"},
         "management_username": {"required": False, "type": "str"},
         "management_key": {"required": False, "type": "str"},
+        "spec": {
+            "required": False, "type": "dict",
+            "options": {
+                "refresh": {"required": False, "type": "bool", "default": False},
+            },},
         "connection_info": {
             "required": True,
             "type": "dict",

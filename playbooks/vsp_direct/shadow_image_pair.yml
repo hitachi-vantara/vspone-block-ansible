@@ -1,0 +1,134 @@
+####################################################################
+# Example : Shadow Image Pair Playbook
+####################################################################
+- name: Shadow Image Pair Module
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_direct_variables.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+####################################################################
+# Task 1 : Create shadow image pair
+####################################################################
+    - name: Create shadow image pair
+      hv_shadow_image_pair:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          primary_volume_id: "{{ shadow_image_pair_pvol_1 }}"
+          secondary_volume_id: "{{ shadow_image_pair_svol_1 }}"
+          allocate_new_consistency_group: "{{ shadow_image_pair_new_consistency_group_1 }}"
+          copy_pace_track_size: "{{ shadow_image_pair_copy_pace_track_size_1 }}"
+          enable_quick_mode: "{{ shadow_image_pair_enable_quick_mode_1 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 2 : Split shadow image pair
+####################################################################
+    - name: Split shadow image pair 
+      hv_shadow_image_pair:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_split }}"
+        spec:
+          primary_volume_id: "{{ shadow_image_pair_pvol_2 }}"
+          secondary_volume_id: "{{ shadow_image_pair_svol_2 }}"
+          enable_quick_mode: "{{ shadow_image_pair_enable_quick_mode_2 }}"
+          enable_read_write: "{{ shadow_image_pair_enable_read_write_2 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 3 : Resync shadow image pair
+####################################################################
+    - name: Resync shadow image pair
+      hv_shadow_image_pair:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_sync }}"
+        spec:
+          primary_volume_id: "{{ shadow_image_pair_pvol_3 }}"
+          secondary_volume_id: " {{ shadow_image_pair_svol_3 }}"
+          enable_quick_mode: "{{ shadow_image_pair_enable_quick_mode_3 }}"
+          copy_pace: "{{ shadow_image_pair_copy_pace_3 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 4 : Create and Auto-Split shadow image pair
+####################################################################
+    - name: Create and Auto-Split shadow image pair
+      hv_shadow_image_pair:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_split }}"
+        spec:
+          primary_volume_id: "{{ shadow_image_pair_pvol_4 }}"
+          secondary_volume_id: " {{ shadow_image_pair_svol_4 }}"
+          allocate_new_consistency_group: " {{ shadow_image_pair_new_consistency_group_4 }}"
+          consistency_group_id: " {{ shadow_image_pair_consistency_group_id_4 }}"
+          copy_pace_track_size: "{{ shadow_image_pair_copy_pace_track_size_4 }}"          
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 5 : Restore shadow image pair
+####################################################################
+    - name: Restore shadow image pair
+      hv_shadow_image_pair:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_restore }}"
+        spec:
+          primary_volume_id: "{{ shadow_image_pair_pvol_5 }}"
+          secondary_volume_id: " {{ shadow_image_pair_svol_5 }}"
+          enable_quick_mode: "{{ shadow_image_pair_enable_quick_mode_5 }}"
+          copy_pace: "{{ shadow_image_pair_copy_pace_5 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 6 : Delete shadow image pair
+####################################################################
+    - name: Delete shadow image pair 
+      hv_shadow_image_pair:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_absent }}"
+        spec:
+          primary_volume_id: "{{ shadow_image_pair_pvol_6 }}"
+          secondary_volume_id: " {{ shadow_image_pair_svol_6 }}"
+      register: result
+
+    - debug:
+        var: result

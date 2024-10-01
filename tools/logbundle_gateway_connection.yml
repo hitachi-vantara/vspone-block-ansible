@@ -13,7 +13,7 @@
           username: username
           password: password
       register: result_token
-      ignore_errors: True
+      ignore_errors: False
 
     - debug:
         var: result_token

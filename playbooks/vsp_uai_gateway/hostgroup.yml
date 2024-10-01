@@ -1,3 +1,6 @@
+####################################################################
+# Example :  Hostgroup  playbook
+####################################################################
 - name: Hostgroup Module
   hosts: localhost
   gather_facts: false
@@ -7,165 +10,202 @@
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_uai_gateway_variables.yml
 
   tasks:
+####################################################################
+# Task 0 : Get UAI gateway token
+####################################################################
+    - name: Get UAI gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
+      register: result_token
+      ignore_errors: False
+
+#####################################################################
+# Task 1 : Create hostgroup
+######################################################################      
     - name: Create hostgroup
       hv_hg:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
-          api_token: "{{ ansible_vault_gateway_api_token }}"
+          api_token: "{{ result_token.api_token.token }}"
           subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: present
+        state: "{{ state_present }}"
         spec:
-          name: 'hostgroup-server1'
-          port: 'CL1-C'
-          host_mode: 'VMWARE_EXTENSION'
-          host_mode_options: [ 54, 63 ]
-          luns: [ 100, 200 ]
-          wwns: [ '9876543210ABCDE0', '9876543210ABCDE1' ]
+          name: "{{ hostgroup_name_1 }}"
+          port: "{{ hostgroup_port_1 }}"
+          host_mode: "{{ hostgroup_host_mode_1 }}"
+          host_mode_options: "{{ hostgroup_host_mode_options_1 }}"
+          ldevs: "{{ hostgroup_ldevs_1 }}"
+          wwns: "{{ hostgroup_wwns_1 }}"
       register: result
 
     - debug:
         var: result
 
+#####################################################################
+# Task 2 : Update host mode and host mode options
+#####################################################################
     - name: Update host mode and host mode options
       hv_hg:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
-          api_token: "{{ ansible_vault_gateway_api_token }}"
+          api_token: "{{ result_token.api_token.token }}"
           subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: present
+        state: "{{ state_present }}"
         spec:
-          state: set_host_mode_and_hmo
-          name: 'hostgroup-server1'
-          port: 'CL1-C'
-          host_mode: 'LINUX'
-          host_mode_options: [ 13 ]
+          state: "{{ substate_set_host_mode_and_hmo }}"
+          name: "{{ hostgroup_name_2 }}"
+          port: "{{ hostgroup_port_2 }}"
+          host_mode: "{{ hostgroup_host_mode_2 }}"
+          host_mode_options: "{{ hostgroup_host_mode_options_2 }}"
       register: result
 
     - debug:
         var: result
 
+#####################################################################
+# Task 3 : Remove host mode options
+#####################################################################
     - name: Remove host mode options
       hv_hg:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
-          api_token: "{{ ansible_vault_gateway_api_token }}"
+          api_token: "{{ result_token.api_token.token }}"
           subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: present
+        state: "{{ state_present }}"
         spec:
-          state: absent
-          name: 'hostgroup-server1'
-          port: 'CL1-C'
-          host_mode_options: [ 13 ]
+          state: "{{ substate_absent }}"
+          name: "{{ hostgroup_name_3 }}"
+          port: "{{ hostgroup_port_3 }}"
+          host_mode_options: "{{ hostgroup_host_mode_options_3 }}"
       register: result
 
     - debug:
         var: result
 
+#####################################################################
+# Task 4 : Add wwns to hostgroup
+#####################################################################
     - name: Add wwns to hostgroup
       hv_hg:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
-          api_token: "{{ ansible_vault_gateway_api_token }}"
+          api_token: "{{ result_token.api_token.token }}"
           subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: present
+        state: "{{ state_present }}"
         spec:
-          state: add_wwn
-          name: 'hostgroup-server1'
-          port: 'CL1-C'
-          wwns: [ '9876543210ABCDED', '9876543210ABCDEE' ]
+          state: "{{ substate_add_wwn }}"
+          name: "{{ hostgroup_name_4 }}"
+          port: "{{ hostgroup_port_4 }}"
+          wwns: "{{ hostgroup_wwns_4 }}"
       register: result
 
     - debug:
         var: result
 
+#####################################################################
+# Task 5 : Remove wwns from hostgroup
+#####################################################################
     - name: Remove wwns from hostgroup
       hv_hg:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
-          api_token: "{{ ansible_vault_gateway_api_token }}"
+          api_token: "{{ result_token.api_token.token }}"
           subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: present
+        state: "{{ state_present }}"
         spec:
-          state: remove_wwn
-          name: 'hostgroup-server1'
-          port: 'CL1-C'
-          wwns: [ '9876543210ABCDED', '9876543210ABCDEE' ]
+          state: "{{ substate_remove_wwn }}"
+          name: "{{ hostgroup_name_5 }}"
+          port: "{{ hostgroup_port_5 }}"
+          wwns: "{{ hostgroup_wwns_5 }}"
       register: result
 
     - debug:
         var: result
 
-    - name: Present luns to hostgroup
+#####################################################################
+# Task 6 : Present ldevs to hostgroup
+#####################################################################
+    - name: Present ldevs to hostgroup
       hv_hg:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
-          api_token: "{{ ansible_vault_gateway_api_token }}"
+          api_token: "{{ result_token.api_token.token }}"
           subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: present
+        state: "{{ state_present }}"
         spec:
-          state: 'present_lun'
-          name: 'hostgroup-server1'
-          port: 'CL1-C'
-          luns: [ 300, 400 ]
+          state: "{{ substate_present_ldev }}"
+          name: "{{ hostgroup_name_6 }}"
+          port: "{{ hostgroup_port_6 }}"
+          ldevs: "{{ hostgroup_ldevs_6 }}"
       register: result
 
     - debug:
         var: result
 
-    - name: Unpresent luns from hostgroup
+#####################################################################
+# Task 7 : Unpresent ldevs from hostgroup
+#####################################################################
+    - name: Unpresent ldevs from hostgroup
       hv_hg:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
-          api_token: "{{ ansible_vault_gateway_api_token }}"
+          api_token: "{{ result_token.api_token.token }}"
           subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: present
+        state: "{{ state_present }}"
         spec:
-          state: 'unpresent_lun'
-          name: 'hostgroup-server1'
-          port: 'CL1-C'
-          luns: [ 300, 400 ]
+          state: "{{ substate_unpresent_ldev }}"
+          name: "{{ hostgroup_name_7 }}"
+          port: "{{ hostgroup_port_7 }}"
+          ldevs: "{{ hostgroup_ldevs_7 }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 8 : Delete hostgroup
+#####################################################################
     - name: Delete hostgroup
       hv_hg:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
-          api_token: "{{ ansible_vault_gateway_api_token }}"
+          api_token: "{{ result_token.api_token.token }}"
           subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: absent
+        state: "{{ state_absent }}"
         spec:
-          name: 'hostgroup-server1'
-          port: 'CL1-C'
-          should_delete_all_luns: true
+          name: "{{ hostgroup_name_8 }}"
+          port: "{{ hostgroup_port_8 }}"
+          should_delete_all_ldevs: true
       register: result
 
     - debug:

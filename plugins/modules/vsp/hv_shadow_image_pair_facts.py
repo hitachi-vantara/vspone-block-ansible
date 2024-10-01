@@ -58,7 +58,7 @@ options:
     description: Specification for retrieving shadow image pair information.
     type: dict
     suboptions:
-      pvol:
+      primary_volume_id:
         type: int
         description: Primary volume id.
         required: false
@@ -88,7 +88,7 @@ EXAMPLES = '''
       serial: 123456
 
     spec:
-      pvol: 274
+      primary_volume_id: 274
 '''
 
 RETURN = '''
@@ -103,12 +103,12 @@ data:
         "copy_pace_track_size": "MEDIUM",
         "copy_rate": 100,
         "entitlement_status": "assigned",
-        "mirror_unitId": -1,
+        "mirror_unit_id": -1,
         "partner_id": "partner123",
         "primary_hex_volume_id": "00:01:12",
         "primary_volume_id": 274,
         "resource_id": "localpair-2749fed78e8d23a61ed17a8af71c85f8",
-        "secondary_hex_volumeId": "00:01:17",
+        "secondary_hex_volume_id": "00:01:17",
         "secondary_volume_id": 279,
         "status": "PAIR",
         "storage_serial_number": "123456",

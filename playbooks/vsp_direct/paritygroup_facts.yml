@@ -1,3 +1,6 @@
+####################################################################
+# Example : Parity Group Facts Playbook
+####################################################################
 - name: Parity Group Facts
   hosts: localhost
   gather_facts: false
@@ -6,14 +9,22 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_direct_variables.yml
 
-  tasks:      
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+####################################################################
+# Task 1 : Get all paritygroups
+####################################################################      
     - name: Get all paritygroups
       hv_paritygroup_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
       register: result
@@ -21,16 +32,16 @@
     - debug:
         var: result
 
+####################################################################
+# Task 2 : Get one paritygroup
+####################################################################
     - name: Get one paritygroup
       hv_paritygroup_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          parity_group_id: '1-1'
+          parity_group_id: "{{ paritygroup_facts_parity_group_id_1 }}"
       register: result
 
     - debug:

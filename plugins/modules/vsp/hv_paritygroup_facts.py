@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_paritygroup_facts
-short_description: Retrives information about parity groups from Hitachi VSP storage systems.
+short_description: retrieves information about parity groups from Hitachi VSP storage systems.
 description:
      - This module gathers facts about parity groups from Hitachi VSP storage systems.
 version_added: '3.0.0'

@@ -13,7 +13,7 @@ DOCUMENTATION = """
 module: hv_snapshot_facts
 short_description: Retrieves snapshot information from from Hitachi VSP storage systems.
 description:
-  - This module retrives information about snapshots from from Hitachi VSP storage systems.
+  - This module retrieves information about snapshots from from Hitachi VSP storage systems.
 version_added: '3.0.0'
 author:
   - Hitachi Vantara, LTD. VERSION 3.0.0
@@ -60,7 +60,7 @@ options:
     type: dict
     required: true
     suboptions:
-      pvol:
+      primary_volume_id:
         description:
           - The primary volume identifier. If not provided, it will be omitted.
         type: str
@@ -83,7 +83,7 @@ EXAMPLES = """
         password: "secret"
         connection_type: "direct"
       spec:
-        pvol: 525
+        primary_volume_id: 525
         mirror_unit_id: 10
   - name: Gather snapshot facts with only primary volume
     hv_snapshot_facts:
@@ -95,7 +95,7 @@ EXAMPLES = """
         password: "secret"
         connection_type: "direct"
       spec:
-        pvol: 'volume1'
+        primary_volume_id: 'volume1'
         
   - name: Gather snapshot facts without specific volume or mirror unit ID
     hv_snapshot_facts:
@@ -115,21 +115,24 @@ snapshots:
   type: list
   elements: dict
   sample:
-    - storageSerialNumber: 123456
-      primaryVolumeId: 101
-      primaryHexVolumeId: "0x65"
-      secondaryVolumeId: 102
-      secondaryHexVolumeId: "0x66"
-      svolAccessMode: "read-write"
-      poolId: 1
-      consistencyGroupId: 1
-      mirrorUnitId: 200
-      copyRate: 3
-      copyPaceTrackSize: "64KB"
-      status: "available"
-      type: "snapshot"
-      entitlementStatus: "entitled"
-      snapshotId: "snap001"
+    - storage_serial_number: 810050
+      primary_volume_id: 1030
+      primary_hex_volume_id: "00:04:06"
+      secondary_volume_id: 1031
+      secondary_hex_volume_id: "00:04:07"
+      svol_access_mode: ""
+      pool_id: 12
+      consistency_group_id: -1
+      mirror_unit_id: 3
+      copy_rate: -1
+      copy_pace_track_size: ""
+      status: "PAIR"
+      type: ""
+      snapshot_id: "1030,3"
+      is_consistency_group: true
+      primary_or_secondary: "P-VOL"
+      snapshot_group_name: "NewNameSPG"
+      can_cascade: true
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -193,7 +196,39 @@ class VSPHtiSnapshotFactManager:
         try:
 
             snapshot_data = self.get_snapshot_facts()
-
+        
+            if snapshot_data:
+                for snapshot in snapshot_data:
+                    # thinImagePropertiesDto = None
+                    # dto = snapshot.get('thin_image_properties_dto')
+                    # if dto and isinstance(dto, dict) :
+                    #     thinImagePropertiesDto = dto
+                    # else:
+                    #     del snapshot['thin_image_properties_dto']
+                        
+                    # dto = snapshot.get('thin_image_properties')
+                    # if dto and isinstance(dto, dict) :
+                    #     thinImagePropertiesDto = dto
+                    # else:
+                    #     del snapshot['thin_image_properties']
+                    
+                    if not isinstance(snapshot, dict) :
+                      break
+                        
+                    snapshot['can_cascade'] = False
+                    snapshot['is_cloned'] = ''
+                    snapshot['is_data_reduction_force_copy'] = False
+                    if True :
+                        ttype = snapshot.get('type')
+                        if ttype == 'CASCADE':
+                            snapshot['is_data_reduction_force_copy'] = True
+                            snapshot['can_cascade'] = True
+                            snapshot['is_cloned'] = False
+                        elif ttype == 'CLONE':
+                            snapshot['is_data_reduction_force_copy'] = True
+                            snapshot['can_cascade'] = True
+                            snapshot['is_cloned'] = True
+                    
         except Exception as e:
             self.module.fail_json(msg=str(e))
 
@@ -208,7 +243,7 @@ class VSPHtiSnapshotFactManager:
             found = reconciler.check_storage_in_ucpsystem()
             if not found:
                 self.module.fail_json(
-                    "Storage system is not onboard in the default UAI Gateway or still onboarding/refreshing"
+                    "The storage system is still onboarding or refreshing, Please try after sometime"
                 )
 
         result = reconciler.get_snapshot_facts(self.spec)

@@ -24,14 +24,14 @@ class HostGroupSpec(SingleBaseClass):
     port: Optional[str] = None
     host_mode: Optional[str] = None
     host_mode_options: Optional[List[int]] = None
-    luns: Optional[List[int]] = None
+    ldevs: Optional[List[int]] = None
     wwns: Optional[List[str]] = None
     delete_all_luns: Optional[bool] = None
 
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():
             setattr(self, field, kwargs.get(field, None))
-        self.delete_all_luns = kwargs.get("should_delete_all_luns", None)
+        self.delete_all_luns = kwargs.get("should_delete_all_ldevs", None)
 
 @dataclass
 class VSPPortResponse:
@@ -68,19 +68,19 @@ class VSPLunResponse:
 
 
 @dataclass
-class VSPHostModeOptionProvResponse:
+class VSPHostModeOption:
     hostModeOption: str = None
     hostModeOptionNumber: int = None
 
 
 @dataclass
-class VSPLunPathProvResponse:
+class VSPLunPath:
     ldevId: int = None
     lunId: int = None
 
 
 @dataclass
-class VSPWwnProvResponse:
+class VSPWwn:
     id: int = None
     name: str = None
 
@@ -90,9 +90,9 @@ class VSPHostGroupInfo(SingleBaseClass):
     hostGroupId: int = None
     hostGroupName: str = None
     hostMode: str = None
-    hostModeOptions: List[VSPHostModeOptionProvResponse] = None
-    lunPaths: List[VSPLunPathProvResponse] = None
-    wwns: List[VSPWwnProvResponse] = None
+    hostModeOptions: List[VSPHostModeOption] = None
+    lunPaths: List[VSPLunPath] = None
+    wwns: List[VSPWwn] = None
     port: str = None
     resourceGroupId: int = None
 
@@ -102,14 +102,14 @@ class VSPHostGroupInfo(SingleBaseClass):
         self.hostMode = kwargs.get("hostMode")
         if "hostModeOptions" in kwargs:
             self.hostModeOptions = dicts_to_dataclass_list(
-                kwargs.get("hostModeOptions"), VSPHostModeOptionProvResponse
+                kwargs.get("hostModeOptions"), VSPHostModeOption
             )
         if "lunPaths" in kwargs:
             self.lunPaths = [
-                VSPLunPathProvResponse(**lunPath) for lunPath in kwargs.get("lunPaths")
+                VSPLunPath(**lunPath) for lunPath in kwargs.get("lunPaths")
             ]
         if "wwns" in kwargs:
-            self.wwns = [VSPWwnProvResponse(**wwn) for wwn in kwargs.get("wwns")]
+            self.wwns = [VSPWwn(**wwn) for wwn in kwargs.get("wwns")]
         self.port = kwargs.get("port")
         self.resourceGroupId = kwargs.get("resourceGroupId")
 
@@ -130,3 +130,41 @@ class VSPModifyHostGroupProvResponse:
     hostGroup: VSPHostGroupInfo = None
     comments: List[str] = None
     comment: str = None
+
+@dataclass
+class VSPHostGroupUAIGInfo(SingleBaseClass):
+    hostGroupName: str = None
+    hostGroupId: int = 0
+    resourceGroupId: int = 0
+    port: str = None
+    hostMode: str = None
+
+@dataclass
+class VSPHostGroupUAIG(SingleBaseClass):
+    resourceId: str = None
+    type: str = None
+    storageId: str = None
+    entitlementStatus: str = None
+    hostGroupInfo: VSPHostGroupUAIGInfo = None
+    # 20240830 - without these, the create hur was breaking
+    partnerId: str = None
+    subscriberId: str = None
+    hostGroupName: str = None
+    hostGroupId: int = 0
+    resourceGroupId: int = 0
+    port: str = None
+    hostMode: str = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        hg_info = kwargs.get("hostGroupInfo")
+        if hg_info:
+            for field in hg_info:
+                if getattr(self, field) is None:
+                    setattr(self, field, hg_info.get(field, None))
+
+
+
+@dataclass
+class VSPHostGroupsUAIG(BaseDataClass):
+    data: List[VSPHostGroupUAIG] = None

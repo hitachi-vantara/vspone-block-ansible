@@ -1,3 +1,6 @@
+####################################################################
+# Example :  Snapshot Facts Playbook
+####################################################################
 - name: Snapshot Pair Facts
   hosts: localhost
   gather_facts: false
@@ -6,50 +9,73 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_uai_gateway_variables.yml
 
   tasks:
+####################################################################
+# Task 0 : Get UAI gateway token
+####################################################################
+    - name: Get UAI gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
+      register: result_token
+      ignore_errors: False
+
+####################################################################
+# Task 1 : Get all snapshot pairs
+####################################################################
     - name: Get all snapshot pairs
       hv_snapshot_facts:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
-          api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 2 : Get snapshot pairs with same pvol
+####################################################################
     - name: Get snapshot pairs with same pvol
       hv_snapshot_facts:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
-          api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         spec:
-          pvol: 176
+          primary_volume_id: "{{ snapshot_facts_pvol_2 }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 3 : Get one snapshot pair
+####################################################################
     - name: Get one snapshot pair
       hv_snapshot_facts:
         connection_info:
-          connection_type: "gateway"
-          address: gateway.company.com
-          api_token: "{{ ansible_vault_gateway_api_token }}"
-          subscriber_id: 12345
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
-          serial: 40014
+          serial: "{{ storage_serial }}"
         spec:
-          pvol: 176
-          mirror_unit_id: 3
+          primary_volume_id: "{{ snapshot_facts_pvol_3 }}"
+          mirror_unit_id: "{{ snapshot_facts_mirror_unit_id_3 }}"
       register: result
 
     - debug:

@@ -5,6 +5,7 @@ try:
     from ..common.ansible_common import (
         snake_to_camel_case,
         log_entry_exit,
+        volume_id_to_hex_format,
     )
     from ..common.hv_constants import (
         CommonConstants, StateValue,
@@ -18,6 +19,7 @@ except ImportError:
     from common.ansible_common import (
         snake_to_camel_case,
         log_entry_exit,
+        volume_id_to_hex_format,
     )
     from common.hv_constants import (
         CommonConstants, StateValue
@@ -58,12 +60,11 @@ class VSPShadowImagePairReconciler:
             logger.writeError(f"An error occurred: {str(e)}")
         pairId = None
         if shadow_image_data is not None:
-            pairId = shadow_image_data.get("resource_id")
+            pairId = shadow_image_data.get("resourceId")
         print(f"Pair Id: {pairId}")
         if pairId is not None:
             self.shadowImagePairSpec.pair_id = pairId
         try:
-
             if state == StateValue.PRESENT:
                 if pairId is not None:
                     shadow_image_response = shadow_image_data
@@ -148,10 +149,17 @@ class VSPShadowImagePairReconciler:
                 
                 else:
                     raise Exception(e)
-            raise Exception(e)
+            logger.writeError(f"An error occurred: {str(e)}")
+            raise Exception(str(e))
             
             #self.module.fail_json(msg=str(e))
-
+        shadow_image_response = (
+            ShadowImagePairPropertyExtractor(self.serial).extract_object(
+                shadow_image_response
+            )
+            if isinstance(shadow_image_response, dict)
+            else shadow_image_response
+        )
         return shadow_image_response
     
     @log_entry_exit
@@ -159,35 +167,35 @@ class VSPShadowImagePairReconciler:
         data = self.provisioner.create_shadow_image_pair(
             self.serial, shadowImagePairSpec
         )
-        return ShadowImagePairPropertyExtractor(self.serial).extract_object(data)
+        return data
 
     @log_entry_exit
     def shadow_image_pair_split(self, shadowImagePairSpec):
         data = self.provisioner.split_shadow_image_pair(
             self.serial, shadowImagePairSpec
         )
-        return ShadowImagePairPropertyExtractor(self.serial).extract_object(data)
+        return data
 
     @log_entry_exit
     def shadow_image_pair_resync(self, shadowImagePairSpec):
         data = self.provisioner.resync_shadow_image_pair(
             self.serial, shadowImagePairSpec
         )
-        return ShadowImagePairPropertyExtractor(self.serial).extract_object(data)
+        return data
 
     @log_entry_exit
     def shadow_image_pair_restore(self, shadowImagePairSpec):
         data = self.provisioner.restore_shadow_image_pair(
             self.serial, shadowImagePairSpec
         )
-        return ShadowImagePairPropertyExtractor(self.serial).extract_object(data)
+        return data
 
     @log_entry_exit
     def shadow_image_pair_get_by_pvol_and_svol(self, pvol, svol):
         data = self.provisioner.get_shadow_image_pair_by_pvol_and_svol(
             self.serial, pvol, svol
         )
-        return ShadowImagePairPropertyExtractor(self.serial).extract_object(data)
+        return data
 
     @log_entry_exit
     def shadow_image_pair_delete(self, shadowImagePairSpec):
@@ -205,19 +213,21 @@ class ShadowImagePairPropertyExtractor:
             "entitlement_status": str,
         }
         self.common_properties = {
-            "resource_id": str,
+            # "resource_id": str,
             "consistency_group_id": int,
             "copy_pace_track_size": str,
             "copy_rate": int,
-            "mirror_unitId": int,
+            "mirror_unit_id": int,
             "primary_hex_volume_id": str,
             "primary_volume_id": int,
             "storage_serial_number": str,
-            "secondary_hex_volumeId": str,
+            "secondary_hex_volume_id": str,
             "secondary_volume_id": int,
             "status": str,
             "svol_access_mode": str,
             "type": str,
+            "copy_group_name": str,
+            "copy_pair_name": str,
         }
         self.serial = serial
 
@@ -240,6 +250,7 @@ class ShadowImagePairPropertyExtractor:
                         "" if value_type == str else -1 if value_type == int else False
                     )
                     new_dict[key] = default_value
+
             for key, value_type in self.common_properties.items():
                 # Assign the value based on the response key and its data type
                 cased_key = snake_to_camel_case(key)
@@ -262,9 +273,9 @@ class ShadowImagePairPropertyExtractor:
                         )
                         new_dict[key] = default_value
             if new_dict.get("primary_hex_volume_id") == "":
-                new_dict["primary_hex_volume_id"] = self.volume_id_to_hex_format(new_dict.get("primary_volume_id"))
-            if new_dict.get("secondary_hex_volumeId") == "":
-                new_dict["secondary_hex_volumeId"] = self.volume_id_to_hex_format(new_dict.get("secondary_volume_id"))
+                new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("primary_volume_id"))
+            if new_dict.get("secondary_hex_volume_id") == "":
+                new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("secondary_volume_id"))
             new_items.append(new_dict)
         return new_items
 
@@ -306,22 +317,7 @@ class ShadowImagePairPropertyExtractor:
                     new_dict[key] = default_value
 
         if new_dict.get("primary_hex_volume_id") == "":
-            new_dict["primary_hex_volume_id"] = self.volume_id_to_hex_format(new_dict.get("primary_volume_id"))
-        if new_dict.get("secondary_hex_volumeId") == "":
-            new_dict["secondary_hex_volumeId"] = self.volume_id_to_hex_format(new_dict.get("secondary_volume_id"))
+            new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("primary_volume_id"))
+        if new_dict.get("secondary_hex_volume_id") == "":
+            new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("secondary_volume_id"))
         return new_dict
-
-    def volume_id_to_hex_format(self,vol_id):
-        hex_format = None
-        
-        # Split the hex value to string 
-        hex_value = format(vol_id, '06x') 
-        # Convert hexadecimal to 00:00:00 format
-        part1_hex = hex_value[:2]
-        part2_hex = hex_value[2:4]
-        part3_hex = hex_value[4:6]
-
-        # Combine the hexadecimal values into the desired format
-        hex_format = f"{part1_hex}:{part2_hex}:{part3_hex}"
-        
-        return hex_format

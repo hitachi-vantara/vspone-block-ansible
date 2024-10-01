@@ -1,3 +1,6 @@
+####################################################################
+# Example :  UAIG Token Playbook
+####################################################################
 - name: UAIG Token
   hosts: localhost
   gather_facts: false
@@ -8,12 +11,15 @@
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
 
   tasks:
+####################################################################
+# Task 1 : Get UAI gateway token
+####################################################################
     - name: Get UAI gateway token
       hv_uaig_token_fact:
         connection_info:
           address: "{{ uai_gateway_address }}"
-          username: "{{ ansible_vault_gateway_username }}"
-          password: "{{ ansible_vault_gateway_secret }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
       register: result
 
     - debug:

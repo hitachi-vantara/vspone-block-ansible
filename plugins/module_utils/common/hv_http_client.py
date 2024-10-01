@@ -1,9 +1,10 @@
 import functools
 import json as jsonModule
 import urllib.parse
+import urllib.error as urllib_error
 
 import logging
-from ansible.module_utils.urls import open_url, urllib_error, socket
+from ansible.module_utils.urls import open_url, socket
 from ansible.module_utils.six.moves.urllib import parse as urlparse
 from ansible.module_utils.six.moves.http_client import HTTPException
 from ansible.module_utils._text import to_native, to_text
@@ -211,7 +212,7 @@ class HTTPClient(object):
         logger = Log()
         text = response.read()
         # 2.4 MT - comment out if too verbose
-        logger.writeDebug(LogMessages.API_RESPONSE.format(to_native(text)))
+        # logger.writeDebug(LogMessages.API_RESPONSE.format(to_native(text)))
         try:
             httpResponse = HTTPClientResponse()
             if response.status < 400:

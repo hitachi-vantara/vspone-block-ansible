@@ -1,3 +1,6 @@
+####################################################################
+# Example : Volume Facts Playbook
+####################################################################
 - name: Volume Facts
   hosts: localhost
   gather_facts: false
@@ -6,67 +9,75 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - sds_block_variables.yml
 
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+  
   tasks:
+####################################################################
+# Task 1 : Get volumes by default count
+####################################################################
     - name: Get volumes by default count
       hv_sds_block_volume_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 2 : Get volumes by count
+####################################################################
     - name: Get volumes by count
       hv_sds_block_volume_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         spec:
-          count: 200
+          count: "{{ volume_facts_count_2 }}"
       register: result
 
     - debug:
         var: result
-        
+
+####################################################################
+# Task 3 : Get volumes by names
+####################################################################        
     - name: Get volumes by names
       hv_sds_block_volume_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         spec:
-          names: [ 'test-volume1', 'test-volume2' ]
+          names: "{{ volume_facts_names_3 }}" 
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 4 : Get volumes by nicknames
+####################################################################
     - name: Get volumes by nicknames
       hv_sds_block_volume_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         spec:
-          nicknames: [ 'nickname1', 'nickname2' ]
+          nicknames: "{{ volume_facts_nicknames_4 }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 5 : Get volumes by other filters
+####################################################################
     - name: Get volumes by other filters
       hv_sds_block_volume_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         spec:
-          count: 200
-          saving_setting:   Disabled
+          count: "{{ volume_facts_count_5 }}"
+          capacity_saving: "{{ volume_facts_capacity_saving_5 }}"
       register: result
 
     - debug:

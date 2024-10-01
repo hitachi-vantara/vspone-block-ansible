@@ -2,12 +2,16 @@ try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
     from ..common.ansible_common import log_entry_exit, convert_block_capacity
-    from ..model.vsp_parity_group_models import *
+    from ..model.vsp_parity_group_models import VSPParityGroup, VSPParityGroups
+    from ..common.hv_constants import StateValue, ConnectionTypes
+
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
     from common.ansible_common import log_entry_exit, convert_block_capacity
-    from model.vsp_parity_group_models import *
+    from model.vsp_parity_group_models import  VSPParityGroup, VSPParityGroups
+    from common.hv_constants import StateValue, ConnectionTypes
+
 
 
 class VSPParityGroupProvisioner:
@@ -16,6 +20,11 @@ class VSPParityGroupProvisioner:
         self.gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_PARITY_GROUP
         )
+        self.serial = None
+        self.resource_id = None
+        self.connection_info = connection_info
+        self.gateway.resource_id = self.resource_id
+        
 
     @log_entry_exit
     def format_parity_group(self, parity_group):
@@ -122,23 +131,29 @@ class VSPParityGroupProvisioner:
 
     @log_entry_exit
     def get_all_parity_groups(self):
-        tmp_parity_groups = []
-        # Get a list of parity groups
-        parity_groups = self.gateway.get_all_parity_groups()
-        for parity_group in parity_groups.data:
-            tmp_parity_groups.append(
-                VSPParityGroup(**self.format_parity_group(parity_group))
-            )
-        # Get a list of external parity groups
-        external_parity_groups = self.gateway.get_all_external_parity_groups()
-        for external_parity_group in external_parity_groups.data:
-            tmp_parity_groups.append(
-                VSPParityGroup(
-                    **self.format_external_parity_group(external_parity_group)
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            tmp_parity_groups = []
+            # Get a list of parity groups
+            parity_groups = self.gateway.get_all_parity_groups()
+            for parity_group in parity_groups.data:
+                tmp_parity_groups.append(
+                    VSPParityGroup(**self.format_parity_group(parity_group))
                 )
-            )
+            # Get a list of external parity groups
+            external_parity_groups = self.gateway.get_all_external_parity_groups()
+            for external_parity_group in external_parity_groups.data:
+                tmp_parity_groups.append(
+                    VSPParityGroup(
+                        **self.format_external_parity_group(external_parity_group)
+                    )
+                )
 
-        return VSPParityGroups(tmp_parity_groups)
+            return VSPParityGroups(tmp_parity_groups)
+        else:
+            parity_groups = self.gateway.get_all_parity_groups()
+            return VSPParityGroups(
+                data=[VSPParityGroup(**pg.to_dict()) for pg in parity_groups.data]
+            )
 
     @log_entry_exit
     def get_parity_group(self, pg_id):

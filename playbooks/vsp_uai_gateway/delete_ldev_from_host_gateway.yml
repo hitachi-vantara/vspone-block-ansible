@@ -1,0 +1,72 @@
+####################################################################
+# Example : Delete/Detach ldev(s) from host for gateway
+####################################################################
+- name: Detach/Delete ldevs from host for gateway
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_uai_gateway_variables.yml
+
+  tasks:
+####################################################################
+# Task 0 : Get UAI gateway token
+####################################################################
+    - name: Get UAI gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
+      register: result_token
+      ignore_errors: False
+
+#####################################################################
+# Task 1 : Detach ldevs from hostgroup with gateway connection
+######################################################################  
+    - name: Detach ldevs from hostgroup with gateway connection
+      hv_hg:
+        storage_system_info:
+          serial: '{{ storage_serial }}'       
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: '{{ subscriber_id | default(omit) }}'
+        state: "{{ state_present }}"
+        spec:
+          state: "{{ substate_unpresent_ldev }}"
+          name: "{{ delete_ldev_from_host_gateway_name_1 }}"
+          port: "{{ delete_ldev_from_host_gateway_port_1 }}"
+          ldevs: "{{ delete_ldev_from_host_gateway_ldevs_1 }}"
+      register: result
+
+    - debug:
+      var: result
+
+#####################################################################
+# Task 2 : Delete ldev with gateway connection
+######################################################################      
+    - name: Delete ldev with gateway connection
+      hv_ldev:
+        storage_system_info:
+          serial: '{{ storage_serial }}'          
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: '{{ subscriber_id | default(omit) }}'
+          connection_type: "{{ connection_type }}"
+        state: "{{ state_absent }}"
+        spec:
+          ldev_id: '{{ item }}'
+      with_items: '{{ delete_ldev_from_host_gateway_ldevs_2 }}'          
+      register: result
+
+    - debug:
+      var: result
+
+

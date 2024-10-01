@@ -1,0 +1,203 @@
+####################################################################
+# Example : LDEV  Playbook
+####################################################################
+- name: Logical Device Module
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_direct_variables.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+####################################################################
+# Task 1 : Create ldev
+####################################################################
+    - name: Create ldev
+      hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          ldev_id: "{{ ldev_ldev_id_1 }}"
+          pool_id: "{{ ldev_pool_id_1 }}"
+          size: "{{ ldev_size_1 }}"
+          name: "{{ ldev_name_1 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 2 : Create ldev with free id and present to NVM System
+####################################################################
+    - name: Create ldev with free id and present to NVM System
+      hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          pool_id: "{{ ldev_pool_id_2 }}"
+          size: "{{ ldev_size_2 }}"
+          name: "{{ ldev_name_2 }}"
+          capacity_saving: "{{ ldev_capacity_saving_2 }}"
+          data_reduction_share: "{{ ldev_data_reduction_share_2 }}"
+          state: "{{ substate_add_host_nqn }}"
+          nvm_subsystem_name: "{{ ldev_nvm_subsystem_name_2 }}"
+          host_nqns: "{{ ldev_host_nqns_2 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 3 : Present existing volume to NVM System
+####################################################################
+    - name: Present existing volume to NVM System
+      hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          ldev_id: "{{ ldev_ldev_id_3 }}"
+          state: "{{ substate_add_host_nqn }}"
+          nvm_subsystem_name: "{{ ldev_nvm_subsystem_name_3 }}"
+          host_nqns: "{{ ldev_host_nqns_3 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 4 : Expand size of ldev
+####################################################################
+    - name: Expand size of ldev
+      hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          ldev_id: "{{ ldev_ldev_id_4 }}"
+          size: "{{ ldev_size_4 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 5 : Delete ldev just created
+####################################################################
+    - name: Delete ldev just created
+      hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_absent }}"
+        spec:
+          ldev_id: "{{ ldev_ldev_id_5 }}"
+      register: result
+
+    - debug:
+        var: result
+
+#########################################################################
+# Task 6 : Create ldev using parity group and auto free ldev id selection
+#########################################################################
+    - name: Create ldev using parity group and auto free ldev id selection
+      hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          parity_group: "{{ ldev_parity_group_6 }}"
+          size: "{{ ldev_size_6 }}"
+          name: "{{ ldev_name_6 }}"
+      register: result
+
+    - debug:
+        var: result
+
+###########################################################################
+# Task 7 : Create ldev with capacity saving and data_reduction_share
+###########################################################################
+    - name: Create ldev with capacity saving and data_reduction_share
+      hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          pool_id: "{{ ldev_pool_id_7 }}"
+          size: "{{ ldev_size_7 }}"
+          capacity_saving: "{{ ldev_capacity_saving_7 }}"
+          data_reduction_share: "{{ ldev_data_reduction_share_7 }}"
+      register: result
+
+    - debug:
+        var: result
+
+###########################################################################
+# Task 8 : Remove host nqns from existing volume of NVM System
+###########################################################################
+    - name: Remove host nqns from existing volume of NVM System
+      hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          ldev_id: "{{ ldev_ldev_id_8 }}"
+          state: "{{ substate_remove_host_nqn }}"
+          nvm_subsystem_name: "{{ ldev_nvm_subsystem_name_8 }}"
+          host_nqns: "{{ ldev_host_nqns_8 }}"
+      register: result
+
+    - debug:
+        var: result
+
+###########################################################################
+# Task 9 : Delete ldev
+###########################################################################
+    - name: Delete ldev
+      hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          ldev_id: "{{ ldev_ldev_id_9 }}"
+      register: result
+
+    - debug:
+        var: result
+
+#########################################################################################################
+# Task 10 : Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
+#########################################################################################################
+    - name: Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
+      hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_absent }}"
+        spec:
+          ldev_id: "{{ ldev_ldev_id_10 }}"
+          force: true
+      register: result
+
+    - debug:
+        var: result

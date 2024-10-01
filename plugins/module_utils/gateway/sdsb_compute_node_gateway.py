@@ -103,6 +103,48 @@ class SDSBComputeNodeDirectGateway:
                 hba_id_list.append(x.get("id"))
 
         return hba_id_list
+    
+    @log_entry_exit
+    def get_compute_node_iscsi_pairs(self, compute_node_id):
+        end_point = SDSBlockEndpoints.GET_HBAS.format(compute_node_id)
+        hba_data = self.connection_manager.get(end_point)
+        data = hba_data["data"]
+        logger.writeDebug("GW:get_compute_node_nqn_ids:data={}", data)
+
+        iscsi_name_id_map = {}
+        for x in data:
+            if x.get("protocol") == "iSCSI":
+                iscsi_name_id_map[x.get("name")] = x.get("id")
+
+        return iscsi_name_id_map
+
+    @log_entry_exit
+    def get_compute_node_nqn_ids(self, compute_node_id):
+        end_point = SDSBlockEndpoints.GET_HBAS.format(compute_node_id)
+        hba_data = self.connection_manager.get(end_point)
+        data = hba_data["data"]
+        logger.writeDebug("GW:get_compute_node_nqn_ids:data={}", data)
+
+        hba_id_list = []
+        for x in data:
+            if x.get("protocol") == "NVMe_TCP":
+                hba_id_list.append(x.get("id"))
+
+        return hba_id_list
+
+    @log_entry_exit
+    def get_compute_node_nqn_pairs(self, compute_node_id):
+        end_point = SDSBlockEndpoints.GET_HBAS.format(compute_node_id)
+        hba_data = self.connection_manager.get(end_point)
+        data = hba_data["data"]
+        logger.writeDebug("GW:get_compute_node_nqn_ids:data={}", data)
+
+        nqn_name_id_map = {}
+        for x in data:
+            if x.get("protocol") == "NVMe_TCP":
+                nqn_name_id_map[x.get("name")] = x.get("id")
+
+        return nqn_name_id_map
 
     @log_entry_exit
     def get_compute_node_hba_name_id_pairs(self, compute_node_id):
@@ -118,6 +160,21 @@ class SDSBComputeNodeDirectGateway:
                 hba_list.append(pair)
 
         return hba_list
+    
+    @log_entry_exit
+    def get_compute_node_nqn_name_id_pairs(self, compute_node_id):
+        end_point = SDSBlockEndpoints.GET_HBAS.format(compute_node_id)
+        hba_data = self.connection_manager.get(end_point)
+        data = hba_data["data"]
+
+        logger.writeDebug("GW:get_compute_node_nqn_name_id_pairs:data={}", data)
+        hba_list = []
+        for x in data:
+            if x.get("protocol") == "NVMe_TCP":
+                pair = NameIdPair(x.get("name"), x.get("id"))
+                hba_list.append(pair)
+
+        return hba_list
 
     @log_entry_exit
     def get_compute_node_hba_names(self, compute_node_id):
@@ -129,6 +186,20 @@ class SDSBComputeNodeDirectGateway:
         hba_name_list = []
         for x in data:
             if x.get("protocol") == "iSCSI":
+                hba_name_list.append(x.get("name"))
+
+        return hba_name_list
+    
+    @log_entry_exit
+    def get_compute_node_nqn_names(self, compute_node_id):
+        end_point = SDSBlockEndpoints.GET_HBAS.format(compute_node_id)
+        hba_data = self.connection_manager.get(end_point)
+        data = hba_data["data"]
+
+        logger.writeDebug("GW:get_compute_node_nqn_names:data={}", data)
+        hba_name_list = []
+        for x in data:
+            if x.get("protocol") == "NVMe_TCP":
                 hba_name_list.append(x.get("name"))
 
         return hba_name_list
@@ -218,6 +289,18 @@ class SDSBComputeNodeDirectGateway:
         end_point = SDSBlockEndpoints.POST_HBAS.format(compute_node_id)
         data = self.connection_manager.post(end_point, body)
         logger.writeDebug("GW:add_iqn_to_compute_node:data={}", data)
+        return data
+    
+    @log_entry_exit
+    def add_nqn_to_compute_node(self, compute_node_id, nqn):
+        body = {
+            "protocol": "NVMe_TCP",
+            "hostNqn": str(nqn),
+        }
+        logger.writeDebug("GW:add_nqn_to_compute_node:body={}", body)
+        end_point = SDSBlockEndpoints.POST_HBAS.format(compute_node_id)
+        data = self.connection_manager.post(end_point, body)
+        logger.writeDebug("GW:add_nqn_to_compute_node:data={}", data)
         return data
 
     @log_entry_exit

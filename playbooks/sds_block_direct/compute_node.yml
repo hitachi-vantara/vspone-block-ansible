@@ -1,3 +1,6 @@
+####################################################################
+# Example : Compute Node Playbook
+####################################################################
 - name: Compute Node Module
   hosts: localhost
   gather_facts: false
@@ -6,127 +9,167 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - sds_block_variables.yml
 
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+  
   tasks:
+####################################################################
+# Task 1 : Create compute node
+####################################################################
     - name: Create compute node
       hv_sds_block_compute_node:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          name: computenode1
-          os_type: VMWare
+          name: "{{ compute_node_name_1 }}"
+          os_type: "{{ compute_node_os_type_1 }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 2 : Update compute node name
+####################################################################
     - name: Update compute node name
       hv_sds_block_compute_node:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          id: 3d971bb3-40fd-4cb5-bf68-2010b30aa74d
-          name: computenode1a
-          os_type: Linux
+          id: "{{ compute_node_id_2 }}"
+          name: "{{ compute_node_name_2 }}"
+          os_type: "{{ compute_node_os_type_2 }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 3 : Add iqn initiators to compute node
+####################################################################
     - name: Add iqn initiators to compute node
       hv_sds_block_compute_node:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          state: add_iscsi_initiator
-          name: computenode1
-          iscsi_initiators: ["iqn.1991-05.com.hitachi:test-iscsi-iqn3", "iqn.1991-05.com.hitachi:test-iscsi-iqn4"]
+          state: "{{ substate_add_iscsi_initiator }}"
+          name: "{{ compute_node_name_3 }}"
+          iscsi_initiators: "{{ compute_node_iscsi_initiators_3 }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 4 : Add nqn initiators to compute node
+####################################################################
+    - name: Add nqn initiators to compute node
+      hv_sds_block_compute_node:
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
+        spec:
+          state: "{{ substate_add_host_nqn }}"
+          name: "{{ compute_node_name_4 }}"
+          host_nqns: "{{ compute_node_host_nqns_4 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 5 : Remove iqn initiators from compute node
+####################################################################
     - name: Remove iqn initiators from compute node
       hv_sds_block_compute_node:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          state: remove_iscsi_initiator
-          name: computenode1
-          iscsi_initiators: ["iqn.1991-05.com.hitachi:test-iscsi-iqn3", "iqn.1991-05.com.hitachi:test-iscsi-iqn4"]
+          state: "{{ substate_remove_iscsi_initiator }}"
+          name: "{{ compute_node_name_5 }}"
+          iscsi_initiators: "{{ compute_node_iscsi_initiators_5 }}"
       register: result
 
     - debug:
         var: result
 
+#########################################################################
+# Task 6 : Remove nqn initiators from compute node
+#########################################################################
+    - name: Remove nqn initiators from compute node
+      hv_sds_block_compute_node:
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
+        spec:
+          state: "{{ substate_remove_host_nqn }}"
+          name: "{{ compute_node_name_6 }}"
+          host_nqns: compute_node_host_nqns_6
+      register: result
+
+    - debug:
+        var: result
+
+#########################################################################
+# Task 7 : Attach volumes to compute node
+#########################################################################
     - name: Attach volumes to compute node
       hv_sds_block_compute_node:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          state: attach_volume
-          name: computenode1
-          volumes: ["test-volume3", "test-volume4"]
+          state: "{{ substate_attach_volume }}"
+          name: "{{ compute_node_name_7 }}"
+          volumes: "{{ compute_node_volumes_7 }}" 
       register: result
 
     - debug:
         var: result
 
+#########################################################################
+# Task 8 : Detach volumes from compute node
+#########################################################################
     - name: Detach volumes from compute node
       hv_sds_block_compute_node:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          state: detach_volume
-          name: computenode1
-          volumes: ["test-volume3", "test-volume4"]
+          state: "{{ substate_detach_volume }}"
+          name: "{{ compute_node_name_8 }}"
+          volumes: "{{ compute_node_volumes_8 }}"
       register: result
 
     - debug:
         var: result
 
+#########################################################################
+# Task 9 : Delete compute node by name
+#########################################################################
     - name: Delete compute node by name
       hv_sds_block_compute_node:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: absent
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_absent }}"
         spec:
-          name: computenode1
-          should_delete_all_volumes: true
+          name: "{{ compute_node_name_9 }}"
+          should_delete_all_volumes: "{{ compute_node_should_delete_all_volumes_9 }}"
       register: result
 
     - debug:
         var: result
 
+#########################################################################
+# Task 10 : Delete compute node by id
+#########################################################################
     - name: Delete compute node by id
       hv_sds_block_compute_node:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: absent
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_absent }}"
         spec:
-          id: 3d971bb3-40fd-4cb5-bf68-2010b30aa74d
+          id: "{{ compute_node_id_10 }}"
       register: result
 
     - debug:

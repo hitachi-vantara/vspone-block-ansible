@@ -35,11 +35,7 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: true
-        choices: ['gateway']
-      subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
-        type: str
-        required: false
+        choices: ['gateway']    
       api_token:
         description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
         type: str
@@ -61,10 +57,9 @@ EXAMPLES = '''
       address: gateway.company.com
       api_token: "eyJhbGciOiJS......"
       connection_type: "gateway"
-      subscriber_id: ""
 
     spec:
-      subscriber_id: ""
+      subscriber_id: "12345"
 
 - name: Retrieve information about a specific subscriber
   hv_gateway_subscriber_fact:       
@@ -72,10 +67,9 @@ EXAMPLES = '''
       address: gateway.company.com
       api_token: "eyJhbGciOiJS......"
       connection_type: "gateway"
-      subscriber_id: "sub1234"
 
     spec:
-      subscriber_id: "sub1234"
+      subscriber_id: "1234"
 '''
 
 RETURN = '''
@@ -108,42 +102,13 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     GatewayArguments,
     GatewayParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    StateValue,
-    ConnectionTypes,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
-    camel_array_to_snake_case,
-)
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.uaig_subscriber_reconciler import (
     SubscriberReconciler,
 )
-
-
-try:
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_logger import (
-        MessageID,
-    )
-
-    HAS_MESSAGE_ID = True
-except ImportError as error:
-    HAS_MESSAGE_ID = False
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
-)
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
 
 
 logger = Log()
-
-try:
-    HAS_MESSAGE_ID = True
-except ImportError as error:
-    HAS_MESSAGE_ID = False
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
 
 
 class SubscriberFactsManager:

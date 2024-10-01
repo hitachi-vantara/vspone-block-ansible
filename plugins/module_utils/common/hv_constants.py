@@ -41,12 +41,18 @@ class StateValue:
     RESTORE = "restore"
     UPDATE = "update"
     RE_SYNC = "resync"
+    CLONE = "clone"
+    SWAP_RESYNC = "swap_resync"
+    SWAP_SPLIT = "swap_split"
 
 
 class CommonConstants:
     #UCP_NAME = 'ucp-ansible-test'
+    UCP_NAME_PREFIX = 'REMOTE_STORAGE_SYSTEM_'
     UCP_NAME = 'Storage_System'
+    UCP_SERIAL_PREFIX = 'UCP-CI-'
     UCP_SERIAL = 'UCP-CI-202404'
+    UCP_REMOTE_SERIAL = 'UCP-CI-881734'
     PARTNER_ID = 'apiadmin'
     SUBSCRIBER_ID = '12345'
     ONBOARDING = 'ONBOARDING'
@@ -67,6 +73,11 @@ class GatewayClassTypes:
     VSP_ISCSI_TARGET = "vsp_iscsi_target"
     VSP_STORAGE_POOL = "vsp_storage_pool"
     VSP_PARITY_GROUP = "vsp_parity_group"
+    VSP_TRUE_COPY = "vsp_true_copy"
+    VSP_HUR = "vsp_hur"
+    VSP_VOL_TIER = "vsp_vol_tier"
+    VSP_GAD_PAIR = "vsp_gad_pair"
+    VSP_NVME_SUBSYSTEM = "vsp_one_nvme_subsystem"
 
     SDSB_CHAP_USER = "sdsb_chap_user"
     SDSB_COMPUTE_NODE = "sdsb_compute_node"
@@ -75,9 +86,15 @@ class GatewayClassTypes:
     SDSB_POOL = "sdsb_pool"
     SDSB_PORT_AUTH = "sdsb_port_auth"
     SDSB_PORT = "sdsb_port"
+    SDSB_VPS = "sdsb_vps"
 
     UAIG_SUBSCRIBER = "uaig_subscriber"
     UAIG_PASSWORD = "uaig_password"
+    UAIG_SUBSCRIBER_RESOURCE = "uaig_subscriber_resource"
+    STORAGE_PORT = "storage_port"
+    VSP_STORAGE_POOL = "vsp_storage_pool"
+    VSP_UNSUBSCRIBE = "vsp_unsubscribe"
+
 
 
 class VSPHostGroupConstant:
@@ -85,8 +102,8 @@ class VSPHostGroupConstant:
     PORT_TYPE_FCOE = "FCoE"
     PORT_TYPE_HNASS = "HNASS"
     PORT_TYPE_HNASU = "HNASU"
-    STATE_PRESENT_LUN = "present_lun"
-    STATE_UNPRESENT_LUN = "unpresent_lun"
+    STATE_PRESENT_LDEV = "present_ldev"
+    STATE_UNPRESENT_LDEV = "unpresent_ldev"
     STATE_SET_HOST_MODE = "set_host_mode_and_hmo"
     STATE_ADD_WWN = "add_wwn"
     STATE_REMOVE_WWN = "remove_wwn"
@@ -102,10 +119,15 @@ class VSPIscsiTargetConstant:
     WAY_OF_CHAP_USER = "INI"
     STATE_ADD_INITIATOR = "add_iscsi_initiator"
     STATE_REMOVE_INITIATOR = "remove_iscsi_initiator"
-    STATE_ATTACH_LUN = "attach_lun"
-    STATE_DETACH_LUN = "detach_lun"
+    STATE_ATTACH_LDEV = "attach_ldev"
+    STATE_DETACH_LDEV = "detach_ldev"
     STATE_ADD_CHAP_USER = "add_chap_user"
     STATE_REMOVE_CHAP_USER = "remove_chap_user"
 
 class GatewayConstant:
     ADMIN_USER_NAME = "admin"
+
+
+class HEADER_NAME_CONSTANT:
+    PARTNER_ID = "partnerId"
+    SUBSCRIBER_ID = "subscriberId"

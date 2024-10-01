@@ -10,11 +10,20 @@ except ImportError:
 @dataclass
 class GetShadowImageSpec:
     pvol: Optional[int] = None
-    #svol: Optional[int] = None
+    # svol: Optional[int] = None
+
+    def __init__(self, **kwargs):
+        for field in self.__dataclass_fields__.keys():
+            setattr(self, field, kwargs.get(field, None))
+
+        if kwargs.get("primary_volume_id"):
+            self.pvol = kwargs.get("primary_volume_id")
 
 
 @dataclass
 class VSPShadowImagePairInfo(SingleBaseClass):
+    copyGroupName: Optional[str] = None
+    copyPairName: Optional[str] = None
     resourceId: Optional[str] = None
     consistencyGroupId: Optional[int] = None
     copyPaceTrackSize: Optional[str] = None
@@ -38,7 +47,7 @@ class VSPShadowImagePairInfo(SingleBaseClass):
         shadow_image_info = kwargs.get("shadowImageInfo")
         if shadow_image_info:
             for field in self.__dataclass_fields__.keys():
-                if not getattr(self, field):
+                if getattr(self, field) is None:
                     setattr(self, field, shadow_image_info.get(field, None))
 
             self.type = shadow_image_info.get("type", None)
@@ -65,6 +74,21 @@ class ShadowImagePairSpec:
     copy_pace: Optional[str] = None
     is_data_reduction_force_copy: Optional[bool] = None
     pair_id: Optional[str] = None
+    primary_volume_id: Optional[int] = None
+    secondary_volume_id: Optional[int] = None
+    allocate_new_consistency_group: Optional[bool] = None
+
+    def __init__(self, **kwargs):
+        for field in self.__dataclass_fields__.keys():
+            setattr(self, field, kwargs.get(field, None))
+        
+        if kwargs.get("primary_volume_id"):
+            self.pvol = kwargs.get("primary_volume_id")
+        if kwargs.get("secondary_volume_id"):
+            self.svol = kwargs.get("secondary_volume_id")
+        if kwargs.get("allocate_new_consistency_group"):
+            self.new_consistency_group = kwargs.get("allocate_new_consistency_group")
+        
 
 
 @dataclass

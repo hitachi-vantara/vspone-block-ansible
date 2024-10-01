@@ -82,7 +82,7 @@ options:
         description: sub task operation.
         type: str
         required: false
-        choices: ['present_lun', 'unpresent_lun', 'add_wwn', 'remove_wwn', 'set_host_mode_and_hmo']
+        choices: ['present_ldev', 'unpresent_ldev', 'add_wwn', 'remove_wwn', 'set_host_mode_and_hmo']
       name:
         description: Name of the host group.
         type: str
@@ -96,8 +96,8 @@ options:
         type: list
         elements: str
         required: false
-      luns:
-        description: LUNs to be mapped/unmapped with the host group. Supported format can be decimal or HEX.
+      ldevs:
+        description: LDEVs to be mapped/unmapped with the host group. Supported format can be decimal or HEX.
         type: list
         elements: str
         required: false
@@ -175,8 +175,8 @@ options:
           - 122 [TASK_SET_FULL_RESPONSE_AFTER_QOS_UPPER_LIMIT]
           - 124 [GUARANTEED_RESPONSE_DURING_CONTROLLER_FAILURE]
           - 131 [WCE_BIT_OFF_MODE]
-      should_delete_all_luns:
-        description: If the value is true, destroy the logical units that are no longer attached to any host group or iSCSI target.
+      should_delete_all_ldevs:
+        description: If the value is true, destroy the logical devices that are no longer attached to any host group or iSCSI target.
         required: false
 '''
 
@@ -198,7 +198,7 @@ EXAMPLES = '''
          host_mode: 'VMWARE_EXTENSION'
          host_mode_options: [ 40 ]
          wwns: [ '100000109B583B2D', '100000109B583B2C' ]
-         luns: [ 393, 851 ]
+         ldevs: [ 393, 851 ]
       register: result
     - debug: var=result.hostGroups
 -
@@ -218,7 +218,7 @@ EXAMPLES = '''
           host_mode: 'VMWARE_EXTENSION'
           host_mode_options: [ 54, 63 ]
           wwns: [ '100000109B583B2D', '100000109B583B2C' ]
-          luns: [ 00:23:A4 ]
+          ldevs: [ 00:23:A4 ]
       register: result
     - debug: var=result.hostGroups
 -
@@ -253,10 +253,10 @@ EXAMPLES = '''
           username: "{{management_username}}"
           password: "{{management_password}}"
         host_group_info:
-          state: present_lun
+          state: present_ldev
           name: 'testhg26dec'
           port: 'CL1-A'
-          luns: [ 00:05:77, 00:05:7D ]
+          ldevs: [ 00:05:77, 00:05:7D ]
       register: result
 -
   name: Unpresent LUN
@@ -270,10 +270,10 @@ EXAMPLES = '''
           username: "{{management_username}}"
           password: "{{management_password}}"
         spec:
-          state: unpresent_lun
+          state: unpresent_ldev
           name: 'testhg26dec'
           port: 'CL1-A'
-          luns: [ 800, 801 ]
+          ldevs: [ 800, 801 ]
       register: result
 -
   name: Add WWN

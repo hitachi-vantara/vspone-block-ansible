@@ -197,7 +197,7 @@ def runPlaybook(module):
 
         del hg["resourceId"]
 
-        # if not options or 'luns' in options:
+        # if not options or 'ldevs' in options:
         #     paths = hg.get('lunPaths', None)
         #     if paths:
         #         writeNameValue('Paths={}', hg['lunPaths'])
@@ -225,7 +225,7 @@ def runPlaybook(module):
         if options:
             if "wwns" not in options:
                 del hg["wwns"]
-            if "luns" not in options and lun is None:
+            if "ldevs" not in options and lun is None:
                 del hg["lunPaths"]
 
             # if hg.get("hostModeOptions", None):

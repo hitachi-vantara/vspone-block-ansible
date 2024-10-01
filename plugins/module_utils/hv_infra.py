@@ -404,8 +404,13 @@ class Utils:
 
         if lun is None:
             return
+        if lun.get("ports") is not None:
+            del lun["ports"]
         if lun.get("resourceId") is not None:
             del lun["resourceId"]
+        if lun.get("isDRS") is not None:
+            lun["isDataReductionShareEnabled"] = lun["isDRS"]
+            del lun["isDRS"]
         if lun.get("naaId") is not None:
             lun["canonicalName"] = lun["naaId"]
             del lun["naaId"]
@@ -1190,6 +1195,12 @@ class StorageSystem:
 
         elif system is None:
 
+            # ss is not in the system, add ss (ucp must be added already)
+            # operator will add to isp (this needs the puma gatewayAddress)
+            # then ucp, then we have to wait for the facts to finish
+            # we can print to the log file, that's about it?
+
+            # get the puma gatewayAddress from UCP
             ucpManager = UcpManager(
                 self.management_address,
                 self.management_username,
@@ -1226,7 +1237,8 @@ class StorageSystem:
             self.logger.writeDebug("20230523 response={}", response)
 
         else:
-
+            # ss is already in thisUCP
+            # we should show the ss from UCP so user can see which UCP this ss belongs to!!
             return StorageSystemManager.formatStorageSystem(system)
 
         if response.ok:
@@ -1240,7 +1252,6 @@ class StorageSystem:
                 self.logger.writeInfo("taskId={}", taskId)
                 self.checkTaskStatus(taskId)
                 time.sleep(5)
-
                 system = self.waitForUCPinSS(ucp_serial)
 
             self.logger.writeInfo("system={}", system)
@@ -1316,6 +1327,7 @@ class StorageSystem:
         funcName = "hv_infra:removeStorageSystem"
         self.logger.writeEnterSDK(funcName)
 
+        # this is done in the caller? or check for none here
 
         if ucp_serial is not None:
             # detach from UCP
@@ -1379,13 +1391,14 @@ class StorageSystem:
     # in general, we have to check the fact, so it has to wait for the fact to finish refreshing,
     # save this for reviewing the design
     def removeStorageSystem2(self, ucp_serial):
-        funcName = "hv_infra:removeStorageSystem"
+        funcName = "hv_infra:removeStorageSystem2"
         self.logger.writeEnterSDK(funcName)
 
         if ucp_serial is not None:
             # detach from UCP
             self.removeStorageSystemFromUCP(ucp_serial)
 
+        # i.e. the ucp list in ss is not empty
         # revisit this later
         attached = True
 

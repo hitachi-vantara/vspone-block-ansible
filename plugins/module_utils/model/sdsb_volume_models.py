@@ -12,7 +12,14 @@ class VolumeFactSpec:
     count: Optional[int] = None
     names: Optional[List[str]] = None
     nicknames: Optional[List[str]] = None
-    saving_setting: Optional[str] = None
+    capacity_saving: Optional[str] = None
+
+
+@dataclass
+class QosParamSpec:
+    upper_limit_for_iops: Optional[int] = None
+    upper_limit_for_transfer_rate_mb_per_sec: Optional[int] = None
+    upper_alert_allowable_time_in_sec: Optional[int] = None
 
 @dataclass
 class VolumeSpec:
@@ -21,9 +28,17 @@ class VolumeSpec:
     nickname: Optional[str] = None
     capacity: Optional[str] = None
     state: Optional[str] = None
-    saving_setting: Optional[str] = None  
+    capacity_saving: Optional[str] = None  
     pool_name: Optional[str] = None
     compute_nodes: Optional[List[str]] = None
+    qos_param: Optional[QosParamSpec] = None
+    vps_id: Optional[str] = None
+    vps_name: Optional[str] = None
+
+    def __post_init__(self):
+        if isinstance(self.qos_param, dict):
+            self.qos_param = QosParamSpec(**self.qos_param)
+
 
 @dataclass
 class QosParam(SingleBaseClass):
@@ -49,7 +64,10 @@ class Lun:
     lun: int
     serverId: str
 
-
+@dataclass
+class ComputeNodeSummaryInfo:
+    id: str
+    name: str
 @dataclass
 class SDSBVolumeInfo(SingleBaseClass):
 
@@ -80,6 +98,7 @@ class SDSBVolumeInfo(SingleBaseClass):
     vpsName: str
     naaId: str
     qosParam: QosParam
+    computeNodesInfo:List[ComputeNodeSummaryInfo]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -92,10 +111,7 @@ class SDSBVolumeInfo(SingleBaseClass):
 class SDSBVolumesInfo(BaseDataClass):
     data: List[SDSBVolumeInfo]
 
-@dataclass
-class ComputeNodeSummaryInfo:
-    id: str
-    name: str
+
 
 @dataclass
 class SDSBVolumeAndComputeNodeInfo(SingleBaseClass):

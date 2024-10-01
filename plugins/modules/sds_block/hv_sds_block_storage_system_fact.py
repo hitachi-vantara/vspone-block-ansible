@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_sds_block_storage_system_fact
-short_description: Retrives information about a specific Hitachi SDS block storage system.
+short_description: retrieves information about a specific Hitachi SDS block storage system.
 description:
      - This module gathers facts about a specific storage system.
 

@@ -33,7 +33,8 @@ class VSPHostGroupReconciler:
         self.serial = serial
         self.hostGroupSpec = hostGroupSpec
         self.provisioner = VSPHostGroupProvisioner(self.connectionInfo)
-        # self._validate_parameters()
+        self.provisioner.serial = serial
+
 
     def pre_check_port(self, port):
         logger = Log()
@@ -63,8 +64,8 @@ class VSPHostGroupReconciler:
             if len(wwns[0]) == 1:
                 raise Exception(VSPHostGroupMessage.WWNS_INVALID.value)
         if (
-            subobjState == VSPHostGroupConstant.STATE_PRESENT_LUN
-            or subobjState == VSPHostGroupConstant.STATE_UNPRESENT_LUN
+            subobjState == VSPHostGroupConstant.STATE_PRESENT_LDEV
+            or subobjState == VSPHostGroupConstant.STATE_UNPRESENT_LDEV
             or subobjState == VSPHostGroupConstant.STATE_SET_HOST_MODE
         ):
             # if hg with given port is not found, we have to ignore
@@ -123,8 +124,8 @@ class VSPHostGroupReconciler:
         if subobjState not in (
             StateValue.PRESENT,
             StateValue.ABSENT,
-            VSPHostGroupConstant.STATE_PRESENT_LUN,
-            VSPHostGroupConstant.STATE_UNPRESENT_LUN,
+            VSPHostGroupConstant.STATE_PRESENT_LDEV,
+            VSPHostGroupConstant.STATE_UNPRESENT_LDEV,
             VSPHostGroupConstant.STATE_SET_HOST_MODE,
             VSPHostGroupConstant.STATE_ADD_WWN,
             VSPHostGroupConstant.STATE_REMOVE_WWN,
@@ -135,14 +136,14 @@ class VSPHostGroupReconciler:
         logger.writeDebug("subobjState={}", subobjState)
         if (
             subobjState == VSPHostGroupConstant.STATE_ADD_WWN
-            or subobjState == VSPHostGroupConstant.STATE_PRESENT_LUN
+            or subobjState == VSPHostGroupConstant.STATE_PRESENT_LDEV
             or subobjState == VSPHostGroupConstant.STATE_SET_HOST_MODE
         ):
             subobjState = StateValue.PRESENT
 
         if (
             subobjState == VSPHostGroupConstant.STATE_REMOVE_WWN
-            or subobjState == VSPHostGroupConstant.STATE_UNPRESENT_LUN
+            or subobjState == VSPHostGroupConstant.STATE_UNPRESENT_LDEV
         ):
             subobjState = StateValue.ABSENT
 
@@ -310,7 +311,7 @@ class VSPHostGroupReconciler:
         result["comments"] = []
         self.pre_check_port(port)
         newWWN = self.pre_check_wwns(subobjState, data.wwns, result)
-        newLun = self.pre_check_luns(subobjState, data.luns, result)
+        newLun = self.pre_check_luns(subobjState, data.ldevs, result)
         subobjState = self.pre_check_sub_state(subobjState)
         logger.writeParam("state={}", state)
         logger.writeParam("subobjState={}", subobjState)
@@ -319,7 +320,7 @@ class VSPHostGroupReconciler:
         logger.writeParam("hostmodename={}", hostmodename)
         logger.writeParam("hostoptlist={}", hostoptlist)
         logger.writeParam("newWWN={}", newWWN)
-        logger.writeParam("luns={}", newLun)
+        logger.writeParam("ldevs={}", newLun)
         hostGroups = []
         # get all hgs
         # see if all the (hg,port)s are created
@@ -362,7 +363,7 @@ class VSPHostGroupReconciler:
                 )
             else:
                 if len(hostGroup.lunPaths) > 0 and not spec.delete_all_luns:
-                    result["comment"] = VSPHostGroupMessage.LUNS_PRESENT.value
+                    result["comment"] = VSPHostGroupMessage.LDEVS_PRESENT.value
                 else:
                     # Handle delete host group
                     self.delete_host_group(spec, hostGroup, result)

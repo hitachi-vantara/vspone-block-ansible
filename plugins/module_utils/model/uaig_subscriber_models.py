@@ -21,6 +21,14 @@ class SubscriberSpec:
     quota_limit: Optional[str] = None
     description: Optional[str] = None
 
+@dataclass 
+class Resource:
+    type: Optional[str] = None
+    values: Optional[List[str]] = None
+
+@dataclass 
+class UnsubscribeSpec:
+    resources: Optional[List[Resource]] = None
 
 @dataclass
 class SubscriberInfo:

@@ -1,4 +1,7 @@
-- name: Compute Port Facts
+####################################################################
+# Example : Set Port Authentication Playbook
+####################################################################
+- name: Set Port Authentication
   hosts: localhost
   gather_facts: false
   collections:
@@ -6,19 +9,27 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - sds_block_variables.yml
 
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+  
   tasks:
+#########################################################################
+# Task 1 : Set port authentication mode
+#########################################################################
     - name: Set port authentication mode
       hv_sds_block_compute_port_authentication:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          port_name: iqn.1994-04.jp.co.hitachi:rsd.sph.t.0a85a.000
-          authentication_mode: CHAP
-          target_chap_users: [ 'chapuser1' ]
+          port_name: "{{ port_auth_port_name_1 }}"
+          authentication_mode: "{{ port_auth_authentication_mode_1 }}"
+          target_chap_users: "{{ port_auth_target_chap_users_1 }}"
       register: result
 
     - debug:
