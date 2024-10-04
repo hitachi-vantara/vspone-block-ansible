@@ -1,0 +1,232 @@
+####################################################################
+# Example : iSCSI Target Playbook
+####################################################################
+- name: Iscsi Target Module
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_uai_gateway_variables.yml
+
+  tasks:
+####################################################################
+# Task 0 : Get UAI gateway token
+####################################################################
+    - name: Get UAI gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
+      register: result_token
+      ignore_errors: False
+
+####################################################################
+# Task 1 : Create iscsi target
+####################################################################
+    - name: Create iscsi target
+      hv_iscsi_target:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          name: "{{ iscsi_target_name_1 }}"
+          port: "{{ iscsi_target_port_1 }}"
+          iqn_initiators: "{{ iscsi_target_iqn_initiators_1 }}"
+          ldevs: "{{ iscsi_target_ldevs_1 }}"
+          chap_users: "{{ iscsi_target_chap_users_1 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 2 : Update iscsi target host mode and host mode options
+####################################################################
+    - name: Update iscsi target host mode and host mode options
+      hv_iscsi_target:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          name: "{{ iscsi_target_name_2 }}"
+          port: "{{ iscsi_target_port_2 }}"
+          host_mode: "{{ iscsi_target_host_mode_2 }}"
+          host_mode_options: "{{ iscsi_target_host_mode_options_2 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 3 : Add chap users to iscsi target
+####################################################################
+    - name: Add chap users to iscsi target
+      hv_iscsi_target:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          state: "{{ substate_add_chap_user }}"
+          name: "{{ iscsi_target_name_3 }}"
+          port: "{{ iscsi_target_port_3 }}"
+          chap_users: "{{ iscsi_target_chap_users_3 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 4 : Remove chap user from iscsi target
+####################################################################
+    - name: Remove chap user from iscsi target
+      hv_iscsi_target:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          state: "{{ substate_remove_chap_user }}"
+          name: "{{ iscsi_target_name_4 }}"
+          port: "{{ iscsi_target_port_4 }}"
+          chap_users: "{{ iscsi_target_chap_users_4 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 5 : Add iqn initiators to iscsi target
+####################################################################
+    - name: Add iqn initiators to iscsi target
+      hv_iscsi_target:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          state: "{{ substate_add_iscsi_initiator }}"
+          name: "{{ iscsi_target_name_5 }}"
+          port: "{{ iscsi_target_port_5 }}"
+          iqn_initiators: "{{ iscsi_target_iqn_initiators_5 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 6 : Remove iqn initiators from iscsi target
+####################################################################
+    - name: Remove iqn initiators from iscsi target
+      hv_iscsi_target:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          state: "{{ substate_remove_iscsi_initiator }}"
+          name: "{{ iscsi_target_name_6 }}"
+          port: "{{ iscsi_target_port_6 }}"
+          iqn_initiators: "{{ iscsi_target_iqn_initiators_6 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 7 : Attach ldevs to iscsi target
+####################################################################
+    - name: Attach ldevs to iscsi target
+      hv_iscsi_target:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          state: "{{ substate_attach_ldev }}"
+          name: "{{ iscsi_target_name_7 }}"
+          port: "{{ iscsi_target_port_7 }}"
+          ldevs: "{{ iscsi_target_ldevs_7 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 8 : Detach ldevs from iscsi target
+####################################################################
+    - name: Detach ldevs from iscsi target
+      hv_iscsi_target:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          state: "{{ substate_detach_ldev }}"
+          name: "{{ iscsi_target_name_8 }}"
+          port: "{{ iscsi_target_port_8 }}"
+          ldevs: "{{ iscsi_target_ldevs_8 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 9 : Delete iscsi target
+####################################################################
+    - name: Delete iscsi target
+      hv_iscsi_target:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_absent }}"
+        spec:
+          name: "{{ iscsi_target_name_9 }}"
+          port: "{{ iscsi_target_port_9 }}"
+      register: result
+
+    - debug:
+        var: result

@@ -1,3 +1,6 @@
+####################################################################
+# Example :  Snapshot Facts Playbook
+####################################################################
 - name: Snapshot Pair Facts
   hosts: localhost
   gather_facts: false
@@ -6,14 +9,22 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_direct_variables.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
 
   tasks:
+####################################################################
+# Task 1 : Get all snapshot pairs
+####################################################################
     - name: Get all snapshot pairs
       hv_snapshot_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
       register: result
@@ -21,32 +32,32 @@
     - debug:
         var: result
 
-    - name: Get snapshot pairs with same pvol
+####################################################################
+# Task 2 : Get snapshot pairs with same primary_volume_id
+####################################################################
+    - name: Get snapshot pairs with same primary_volume_id
       hv_snapshot_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          pvol: 176
+          primary_volume_id: "{{ snapshot_facts_pvol_2  }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 3 : Get one snapshot pair
+####################################################################
     - name: Get one snapshot pair
       hv_snapshot_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          pvol: 176
-          mirror_unit_id: 3
+          primary_volume_id: "{{ snapshot_facts_pvol_3  }}"
+          mirror_unit_id: "{{ snapshot_facts_mirror_unit_id_3 }}"
       register: result
 
     - debug:

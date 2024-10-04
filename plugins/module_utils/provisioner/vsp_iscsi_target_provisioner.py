@@ -48,7 +48,12 @@ class VSPIscsiTargetProvisioner:
                 lstHg.append(iscsi_target)
 
         return lstHg
-
+    def get_iscsi_target_using_name(self, name, serial):
+        iscsi_targets = self.gateway.get_iscsi_targets(None, serial)
+        for iscsi_target in iscsi_targets.data:
+            if iscsi_target.name == name:
+                return iscsi_target
+        return None
     def create_one_iscsi_target(self, iscsi_target_payload, serial):
         self.gateway.create_one_iscsi_target(iscsi_target_payload, serial)
 
@@ -83,3 +88,6 @@ class VSPIscsiTargetProvisioner:
 
     def delete_iscsi_target(self, iscsi_target, is_delete_all_luns, serial):
         self.gateway.delete_iscsi_target(iscsi_target, is_delete_all_luns, serial)
+
+    def get_all_iscsi_targets(self, serial):
+        return self.gateway.get_all_iscsi_target_by_partner_id(serial)

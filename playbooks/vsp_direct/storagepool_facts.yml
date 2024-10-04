@@ -1,3 +1,6 @@
+####################################################################
+# Example :  Storage Pool Facts Playbook
+####################################################################
 - name: Storage Pool Facts
   hosts: localhost
   gather_facts: false
@@ -6,14 +9,22 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_direct_variables.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
 
   tasks:
+####################################################################
+# Task 1 : Get all storage pools
+####################################################################
     - name: Get all storage pools
       hv_storagepool_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
       register: result
@@ -21,16 +32,16 @@
     - debug:
         var: result
 
+####################################################################
+# Task 2 : Get one storage pool
+####################################################################
     - name: Get one storage pool
       hv_storagepool_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          pool_id: 1
+          pool_id: "{{ storagepool_facts_pool_id_2 }}"
       register: result
 
     - debug:

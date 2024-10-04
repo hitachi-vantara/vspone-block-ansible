@@ -2,7 +2,7 @@ import json
 
 __metaclass__ = type
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: hv_sds_block_compute_node
 short_description: Manages Hitachi SDS block storage system compute nodes.
@@ -61,11 +61,15 @@ options:
         type: str
         required: false
       state:
-        description: The state of the compute node task. Choices are 'add_iscsi_initiator', 'remove_iscsi_initiator', 'attach_volume', 'detach_volume'.
+        description: The state of the compute node task. Choices are 'add_iscsi_initiator', 'remove_iscsi_initiator', 'attach_volume', 'detach_volume', 'add_host_nqn','remove_host_nqn'.
         type: str
         required: false
       iscsi_initiators:
         description: The array of iSCSI Initiators.
+        type: list
+        required: false
+      host_nqns:
+        description: The array of NQN Initiators.
         type: list
         required: false
       volumes:
@@ -76,9 +80,9 @@ options:
         description: Will delete the volumes that are not attached to any compute node.
         type: bool
         required: false
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 - name: Create compute node
   hv_sds_block_compute_node:
     state: present
@@ -174,9 +178,9 @@ EXAMPLES = '''
       state: "detach_volume"
       name: "computenode1"
       volumes: ["test-volume3", "test-volume4"]
-'''
+"""
 
-RETURN = '''
+RETURN = """
 data:
   description: The compute node information.
   returned: always
@@ -217,7 +221,7 @@ data:
           }
       ]
     }
-'''
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
@@ -230,7 +234,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconc
     ComputeNodePropertiesExtractor,
     ComputeNodeAndVolumePropertiesExtractor,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
     SDSBComputeNodeArguments,
     SDSBParametersManager,
@@ -271,21 +277,29 @@ class SDSBComputeNodeManager:
             compute_node = sdsb_reconciler.reconcile_compute_node(self.state, self.spec)
 
             logger.writeDebug(
-                f"MOD:hv_sds_block_compute_node_facts:compute_nodes= {compute_node}"
+                f"MOD:hv_sds_block_compute_node:compute_nodes= {compute_node}"
             )
 
             if self.state.lower() == StateValue.ABSENT:
                 compute_node_data_extracted = compute_node
             else:
                 output_dict = compute_node.to_dict()
-                compute_node_data_extracted = ComputeNodeAndVolumePropertiesExtractor().extract_dict(
-                    output_dict
+                logger.writeDebug(
+                  f"MOD:hv_sds_block_compute_node:output_dict= {output_dict}"
                 )
-
+                compute_node_data_extracted = (
+                    ComputeNodeAndVolumePropertiesExtractor().extract_dict(output_dict)
+                )
+                logger.writeDebug(
+                  f"MOD:hv_sds_block_compute_node:compute_node_data_extracted= {compute_node_data_extracted}"
+                )
         except Exception as e:
             self.module.fail_json(msg=str(e))
 
-        response = {"changed": self.connection_info.changed, "data": compute_node_data_extracted}
+        response = {
+            "changed": self.connection_info.changed,
+            "data": compute_node_data_extracted,
+        }
         # self.module.exit_json(compute_nodes=compute_node_data_extracted)
         self.module.exit_json(**response)
 

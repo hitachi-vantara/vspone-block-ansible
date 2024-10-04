@@ -1,3 +1,6 @@
+####################################################################
+# Example : Chap User Facts Playbook
+####################################################################
 - name: Chap User Facts
   hosts: localhost
   gather_facts: false
@@ -6,40 +9,48 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - sds_block_variables.yml
 
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+  
   tasks:
+####################################################################
+# Task 1 : Get all chap users
+####################################################################
     - name: Get all chap users
       hv_sds_block_chap_user_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 2 : Get one chap user by id
+####################################################################
     - name: Get one chap user by id
       hv_sds_block_chap_user_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         spec:
-          id: 464e1fd1-9892-4134-866c-6964ce786676
+          id: "{{ chap_user_facts_chap_user_id_2 }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 3 : Get one chap user by name
+####################################################################
     - name: Get one chap user by name
       hv_sds_block_chap_user_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         spec:
-          target_chap_user_name: chapuser1
+          target_chap_user_name: "{{ chap_user_facts_target_chap_user_name_3 }}"
       register: result
 
     - debug:

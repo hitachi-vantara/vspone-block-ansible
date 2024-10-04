@@ -1,0 +1,220 @@
+####################################################################
+# Example : LDEV  Playbook
+####################################################################
+- name: Logical Device Module
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_uai_gateway_variables.yml
+
+  tasks:
+####################################################################
+# Task 0 : Get UAI gateway token
+####################################################################
+    - name: Get UAI gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
+      register: result_token
+      ignore_errors: False
+
+####################################################################
+# Task 1 : Create ldev
+####################################################################
+    - name: Create ldev
+      hv_ldev:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          ldev_id: "{{ ldev_ldev_id_1 }}"
+          pool_id: "{{ ldev_pool_id_1 }}"
+          size: "{{ ldev_size_1 }}"
+          name: "{{ ldev_name_1 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 2 : Expand size of ldev
+####################################################################
+    - name: Expand size of ldev
+      hv_ldev:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          ldev_id: "{{ ldev_ldev_id_2 }}"
+          size: "{{ ldev_size_2 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 3 : Delete ldev just created
+####################################################################
+    - name: Delete ldev just created
+      hv_ldev:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_absent }}"
+        spec:
+          ldev_id: "{{ ldev_ldev_id_3 }}"
+      register: result
+
+    - debug:
+        var: result
+
+#########################################################################
+# Task 4 : Create ldev using parity group and auto free ldev id selection
+#########################################################################
+    - name: Create ldev using parity group and auto free ldev id selection
+      hv_ldev:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          parity_group: "{{ ldev_parity_group_4 }}"
+          size: "{{ ldev_size_4 }}"
+          name: "{{ ldev_name_4 }}"
+      register: result
+
+    - debug:
+        var: result
+
+###########################################################################
+# Task 5 : Create ldev with capacity saving and auto free ldev id selection
+###########################################################################
+    - name: Create ldev with capacity saving and auto free ldev id selection
+      hv_ldev:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          pool_id: "{{ ldev_pool_id_5 }}"
+          size: "{{ ldev_size_5 }}"
+          capacity_saving: "{{ ldev_capacity_saving_5 }}"
+      register: result
+
+###########################################################################
+# Task 6 : Create ldev with capacity saving and data_reduction_share
+###########################################################################
+    - name: Create ldev with capacity saving and data_reduction_share
+      hv_ldev:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          pool_id: "{{ ldev_pool_id_6 }}"
+          size: "{{ ldev_size_6 }}"
+          capacity_saving: "{{ ldev_capacity_saving_6 }}"
+          data_reduction_share: "{{ ldev_data_reduction_share_6 }}"
+      register: result
+
+###########################################################################
+# Task 7 : Create ldev with volume tiering
+###########################################################################
+    - name: Create ldev with volume tiering
+      hv_ldev:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_present }}"
+        spec:
+          pool_id: "{{ ldev_pool_id_7 }}"
+          size: "{{ ldev_size_7 }}"
+          is_relocation_enabled: "{{ ldev_relocation_enabled_7 }}"
+          tier_level_for_new_page_allocation: "{{ ldev_tier_level_7 }}"
+          tiering_policy:
+            tier_level: "{{ ldev_tiering_policy_level_7 }}"
+            tier1_allocation_rate_min: "{{ ldev_tier1_alloc_rate_min_7 }}"
+            tier1_allocation_rate_max: "{{ ldev_tier1_alloc_rate_max_7 }}"
+            tier3_allocation_rate_min: "{{ ldev_tier3_alloc_rate_min_7 }}"
+            tier3_allocation_rate_max: "{{ ldev_tier3_alloc_rate_max_7 }}"
+      register: result
+
+    - debug:
+        var: result
+
+###########################################################################
+# Task 8 : Delete ldev
+###########################################################################
+    - name: Delete ldev
+      hv_ldev:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_absent }}"
+        spec:
+          ldev_id: "{{ ldev_ldev_id_8 }}"
+      register: result
+
+    - debug:
+        var: result
+
+#####################################################################################
+# Task 9 : Force delete ldev removes the ldev from hostgroups, or iscsi targets 
+#####################################################################################
+    - name: Force delete ldev removes the ldev from hostgroups, or iscsi targets
+      hv_ldev:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_absent }}"
+        spec:
+          ldev_id: "{{ ldev_ldev_id_9 }}"
+          force: "{{ ldev_force_delete_9 }}"
+      register: result
+
+    - debug:
+        var: result

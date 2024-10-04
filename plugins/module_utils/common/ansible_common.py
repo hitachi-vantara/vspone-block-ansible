@@ -1,8 +1,5 @@
-from logging.handlers import RotatingFileHandler
 import os
-import logging
 import functools
-import sys
 import re
 from typing import List
 
@@ -14,13 +11,17 @@ try:
 except ImportError:
     from hv_constants import TARGET_SUB_DIRECTORY
     from vsp_constants import PEGASUS_MODELS
+    from .ansible_common_constants import ANSIBLE_LOG_PATH, LOGFILE_NAME
+
 
 
 def get_logger_file():
     return os.path.join(ANSIBLE_LOG_PATH, LOGFILE_NAME)
 
+
 def get_logger_dir():
     return ANSIBLE_LOG_PATH
+
 
 def snake_to_camel_case(string):
     # Split the string into words using '_' as delimiter
@@ -124,9 +125,14 @@ def log_entry_exit(func):
         func_name = func.__name__
 
         logger.writeEnter(f"{module_name}:{func_name}")
+        # result = func(*args, **kwargs)
 
-        result = func(*args, **kwargs)
-
+        try:
+            ## 202408 - common break point
+            result = func(*args, **kwargs)
+        except Exception as e:
+            logger.writeError(f"Exception in {module_name}:{func_name} - {e}")
+            raise
         logger.writeExit(f"{module_name}:{func_name}")
         return result
 
@@ -189,6 +195,10 @@ def operation_constants(state):
 
 
 def volume_id_to_hex_format(vol_id):
+
+    if vol_id is None:
+        return ""
+
     hex_format = None
 
     # Split the hex value to string
@@ -206,3 +216,78 @@ def volume_id_to_hex_format(vol_id):
 
 def is_pegasus_model(storage_info) -> bool:
     return any(sub in storage_info.model for sub in PEGASUS_MODELS)
+
+
+
+def calculate_naid(wwn_any_port, serial_number, lun, array_family=7):
+    wwn_any_port = int(wwn_any_port,16)
+    # Mask and adjustment based on array family
+    wwn_mask_and = 0xFFFFFF00
+    serial_number_mask_or = 0x00000000
+    
+    if array_family == 0:  # ARRAY_FAMILY_DF
+        wwn_mask_and = 0xFFFFFFF0
+    elif array_family == 2:  # ARRAY_FAMILY_HM700
+        while serial_number > 99999:
+            serial_number -= 100000
+        serial_number_mask_or = 0x50200000
+    elif array_family == 3:  # ARRAY_FAMILY_R800
+        serial_number_mask_or = 0x00300000
+    elif array_family == 4:  # ARRAY_FAMILY_HM800
+        while serial_number > 99999:
+            serial_number -= 100000
+        serial_number_mask_or = 0x50400000
+    elif array_family == 5:  # ARRAY_FAMILY_R900
+        serial_number_mask_or = 0x00500000
+    elif array_family == 6:  # ARRAY_FAMILY_HM900
+        if 400000 <= serial_number < 500000:
+            serial_number_mask_or = 0x50400000
+        elif 700000 <= serial_number < 800000:
+            serial_number_mask_or = 0x50700000
+        else:
+            serial_number_mask_or = 0x50600000
+        while serial_number > 99999:
+            serial_number -= 100000
+    elif array_family == 7:  # ARRAY_FAMILY_HM2000
+        serial_number_mask_or = 0x50800000
+        while serial_number > 99999:
+            serial_number -= 100000
+    else:
+        raise ValueError(f"Unsupported array family: {array_family}")
+
+    # Apply masks
+    wwn_part = wwn_any_port & 0xFFFFFFFF
+    wwn_part &= wwn_mask_and
+    serial_number |= serial_number_mask_or
+
+    # Construct high bytes
+    high_bytes = (
+        (0x60 << 56) |
+        (0x06 << 48) |
+        (0x0e << 40) |
+        (0x80 << 32) |
+        ((wwn_part >> 24) & 0xFF) << 24 |
+        ((wwn_part >> 16) & 0xFF) << 16 |
+        ((wwn_part >> 8) & 0xFF) << 8 |
+        (wwn_part & 0xFF)
+    )
+
+    # Construct low bytes
+    low_bytes = (
+        ((serial_number >> 24) & 0xFF) << 56 |
+        ((serial_number >> 16) & 0xFF) << 48 |
+        ((serial_number >> 8) & 0xFF) << 40 |
+        (serial_number & 0xFF) << 32 |
+        0x00 << 24 |
+        0x00 << 16 |
+        ((lun >> 8) & 0xFF) << 8 |
+        (lun & 0xFF)
+    )
+
+    # Format NAID
+    naid = f"naa.{high_bytes:012x}{low_bytes:016x}"
+
+    return naid
+
+
+

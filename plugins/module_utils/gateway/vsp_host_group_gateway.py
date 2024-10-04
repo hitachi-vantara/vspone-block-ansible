@@ -5,22 +5,26 @@ import threading
 
 try:
     from ..common.vsp_constants import Endpoints
-    from .gateway_manager import VSPConnectionManager
+    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
     from ..common.hv_log import Log
-    from ..common.ansible_common import convert_hex_to_dec
+    from ..common.ansible_common import log_entry_exit, convert_hex_to_dec
     from ..common.ansible_common import dicts_to_dataclass_list
     from ..model.vsp_host_group_models import *
     from ..common.hv_constants import *
     from ..message.vsp_host_group_msgs import *
+    from ..common.uaig_constants import Endpoints as UAIGEndpoints
+    from ..common.uaig_utils import UAIGResourceID
 except ImportError as ie:
     from common.vsp_constants import Endpoints
-    from .gateway_manager import VSPConnectionManager
+    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
     from common.hv_log import Log
-    from common.ansible_common import convert_hex_to_dec
+    from common.ansible_common import log_entry_exit, convert_hex_to_dec
     from common.ansible_common import dicts_to_dataclass_list
     from model.vsp_host_group_models import *
     from common.hv_constants import *
     from message.vsp_host_group_msgs import *
+    from common.uaig_constants import Endpoints as UAIGEndpoints
+    from common.uaig_utils import UAIGResourceID
 
 g_raidHostModeOptions = {
     2: "VERITAS_DB_EDITION_ADV_CLUSTER",
@@ -98,19 +102,23 @@ class VSPHostGroupDirectGateway:
             connection_info.address, connection_info.username, connection_info.password
         )
         self.end_points = Endpoints
+        self.serial = None
 
+    @log_entry_exit
     def get_ports(self):
         logger = Log()
         end_point = self.end_points.GET_PORTS
         resp = self.rest_api.read(end_point)
         return dicts_to_dataclass_list(resp["data"], VSPPortResponse)
 
+    @log_entry_exit
     def get_one_port(self, port_id):
         logger = Log()
         end_point = self.end_points.GET_ONE_PORT.format(port_id)
         resp = self.rest_api.read(end_point)
         return VSPPortResponse(**resp)
 
+    @log_entry_exit
     def check_valid_port(self, port_id):
         is_valid = True
         port = self.get_one_port(port_id)
@@ -124,6 +132,7 @@ class VSPHostGroupDirectGateway:
             is_valid = False
         return is_valid
 
+    @log_entry_exit
     def get_wwns(self, port_id, hg_number):
         end_point = "{}?portId={}&hostGroupNumber={}".format(
             self.end_points.GET_WWNS, port_id, hg_number
@@ -134,6 +143,7 @@ class VSPHostGroupDirectGateway:
         resp = self.rest_api.read(end_point)
         return dicts_to_dataclass_list(resp["data"], VSPWwnResponse)
 
+    @log_entry_exit
     def get_luns(self, port_id, hg_number):
         end_point = self.end_points.GET_LUNS.format(
             "?portId={}&hostGroupNumber={}".format(port_id, hg_number)
@@ -141,6 +151,7 @@ class VSPHostGroupDirectGateway:
         resp = self.rest_api.read(end_point)
         return dicts_to_dataclass_list(resp["data"], VSPLunResponse)
 
+    @log_entry_exit
     def parse_host_group(self, hg, is_get_wwns, is_get_luns):
         tmpHg = {}
         port_id = hg["portId"]
@@ -183,6 +194,7 @@ class VSPHostGroupDirectGateway:
 
         return tmpHg
 
+    @log_entry_exit
     def get_host_groups(self, ports_input, name_input, is_get_wwns, is_get_luns):
         logger = Log()
         lstHg = []
@@ -218,6 +230,7 @@ class VSPHostGroupDirectGateway:
 
         return VSPHostGroupsInfo(dicts_to_dataclass_list(lstHg, VSPHostGroupInfo))
 
+    @log_entry_exit
     def get_one_host_group(self, port_id, name):
         if not self.check_valid_port(port_id):
             return VSPOneHostGroupInfo(**{"data": None})
@@ -235,6 +248,7 @@ class VSPHostGroupDirectGateway:
 
         return VSPOneHostGroupInfo(**{"data": None})
 
+    @log_entry_exit
     def create_host_group(self, port, name, wwns, luns, host_mode, host_mode_options):
         if not self.check_valid_port(port):
             raise Exception(VSPHostGroupMessage.PORT_TYPE_INVALID.value)
@@ -267,6 +281,7 @@ class VSPHostGroupDirectGateway:
             if luns:
                 self.add_luns_to_host_group(hg_info, luns)
 
+    @log_entry_exit
     def add_wwns_to_host_group(self, hg, wwns):
         logger = Log()
         for wwn in wwns:
@@ -278,6 +293,7 @@ class VSPHostGroupDirectGateway:
             resp = self.rest_api.post(end_point, data)
             logger.writeInfo(resp)
 
+    @log_entry_exit
     def add_luns_to_host_group(self, hg, luns):
         logger = Log()
         for lun in luns:
@@ -289,6 +305,7 @@ class VSPHostGroupDirectGateway:
             resp = self.rest_api.post(end_point, data)
             logger.writeInfo(resp)
 
+    @log_entry_exit
     def delete_one_lun_from_host_group(self, host_group: VSPHostGroupInfo, lun_id):
         logger = Log()
         end_point = self.end_points.DELETE_LUNS.format(
@@ -297,6 +314,7 @@ class VSPHostGroupDirectGateway:
         resp = self.rest_api.delete(end_point)
         logger.writeInfo(resp)
 
+    @log_entry_exit
     def is_volume_not_associated_with_hgs(self, ldev_id):
         logger = Log()
         end_point = self.end_points.LDEVS_ONE.format(ldev_id)
@@ -306,23 +324,24 @@ class VSPHostGroupDirectGateway:
             return True
         return False
 
+    @log_entry_exit
     def delete_one_volume(self, ldev_id):
         logger = Log()
         end_point = self.end_points.DELETE_LDEVS.format(ldev_id)
         resp = self.rest_api.delete(end_point)
         logger.writeInfo(resp)
 
+    @log_entry_exit
     def unpresent_lun_from_hg_and_delete_lun(self, hg, lun):
         self.delete_one_lun_from_host_group(hg, lun.lunId)
         if self.is_volume_not_associated_with_hgs(lun.ldevId):
             self.delete_one_volume(lun.ldevId)
 
+    @log_entry_exit
     def delete_host_group(self, hg, is_delete_all_luns):
         logger = Log()
         if is_delete_all_luns:
-            with concurrent.futures.ThreadPoolExecutor(
-                max_workers=4
-            ) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
                 future_tasks = [
                     executor.submit(
                         self.unpresent_lun_from_hg_and_delete_lun, hg, logical_unit
@@ -337,6 +356,7 @@ class VSPHostGroupDirectGateway:
         resp = self.rest_api.delete(end_point)
         logger.writeInfo(resp)
 
+    @log_entry_exit
     def delete_wwns_from_host_group(self, hg, wwns):
         logger = Log()
         for wwn in wwns:
@@ -344,6 +364,7 @@ class VSPHostGroupDirectGateway:
             resp = self.rest_api.delete(end_point)
             logger.writeInfo(resp)
 
+    @log_entry_exit
     def delete_luns_from_host_group(self, hg, luns):
         logger = Log()
         for lun in luns:
@@ -357,6 +378,7 @@ class VSPHostGroupDirectGateway:
                     logger.writeInfo(resp)
                     break
 
+    @log_entry_exit
     def set_host_mode(self, hg, host_mode, host_mode_options):
         logger = Log()
         end_point = self.end_points.PATCH_HOST_GROUPS.format(hg.port, hg.hostGroupId)
@@ -372,3 +394,72 @@ class VSPHostGroupDirectGateway:
                 data["hostModeOptions"] = [-1]
         resp = self.rest_api.patch(end_point, data)
         logger.writeInfo(resp)
+
+
+class VSPHostGroupUAIGateway:
+    def __init__(self, connection_info):
+        self.logger = Log()
+        self.connection_manager = UAIGConnectionManager(
+            connection_info.address,
+            connection_info.username,
+            connection_info.password,
+            connection_info.api_token,
+        )
+        self.connection_info = connection_info
+        self.serial = None
+        self.resource_id = None
+
+    @log_entry_exit
+    def populate_header(self):
+        headers = {}
+        headers["partnerId"] = CommonConstants.PARTNER_ID
+        if self.connection_info.subscriber_id is not None:
+            headers["subscriberId"] = self.connection_info.subscriber_id
+        return headers
+
+    @log_entry_exit
+    def set_serial(self, serial):
+        self.serial = serial
+
+    @log_entry_exit
+    def set_resource_id(self, serial=None):
+        logger = Log()
+        serial = serial if serial else self.serial
+        self.resource_id = UAIGResourceID().storage_resourceId(self.serial)
+        logger.writeDebug(
+            "GW:set_resource_id:serial = {}  resourceId = {}",
+            self.serial,
+            self.resource_id,
+        )
+
+    @log_entry_exit
+    def get_host_groups(self, ports_input, name_input, is_get_wwns, is_get_luns):
+        self.set_resource_id()
+        end_point = UAIGEndpoints.UAIG_GET_HOST_GROUPS.format(self.resource_id)
+        headers = self.populate_header()
+        host_grps = self.connection_manager.get(end_point, headers)
+        hg_info = VSPHostGroupsUAIG().dump_to_object(host_grps)
+        return hg_info
+
+    @log_entry_exit
+    def get_host_groups_for_resource_id(self, resource_id):
+        end_point = UAIGEndpoints.UAIG_GET_HOST_GROUPS.format(resource_id)
+        headers = self.populate_header()
+        host_grps = self.connection_manager.get(end_point, headers)
+        hg_info = VSPHostGroupsUAIG().dump_to_object(host_grps)
+        return hg_info
+
+    @log_entry_exit
+    def get_host_group_by_id(self, hg_id):
+        end_point = UAIGEndpoints.GET_HOST_GROUP_BY_ID.format(self.resource_id, hg_id)
+        headers = None
+        # headers = self.populate_header()
+        host_grp = self.connection_manager.get(end_point, headers)
+        return VSPHostGroupUAIG(**host_grp["data"])
+
+    @log_entry_exit
+    def create_default_host_group(self, payload):
+        end_point = UAIGEndpoints.UAIG_CREATE_HOST_GROUP.format(self.resource_id)
+        headers = self.populate_header()
+        host_grp_id = self.connection_manager.post(end_point, payload, headers)
+        return host_grp_id

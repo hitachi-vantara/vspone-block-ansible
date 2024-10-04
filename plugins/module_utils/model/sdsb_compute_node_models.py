@@ -28,15 +28,20 @@ class ComputeNodeSpec:
     state: Optional[str] = None
     iscsi_initiators: Optional[List[str]] = None
     volumes: Optional[List[str]] = None
-    # host_wwns: Optional[List[str]] = None
+    host_nqns: Optional[List[str]] = None
     should_delete_all_volumes: Optional[bool] = False
 
+@dataclass
+class HBAPorts:
+    portId: str
+    portName: str
 
 @dataclass
 class Path:
     hbaName: str
-    portIds: List[str]
+    portIds: Optional[List[str]] = None
     # protocol: str
+    ports: Optional[List[HBAPorts]] = None
 
 
 @dataclass
@@ -71,11 +76,11 @@ class SDSBComputeNodeInfo:
     osType: str = None
     totalCapacity: int = -1
     usedCapacity: int = -1
-    numberOfPaths: int = -1
+    numberOfPaths: int = 0
     vpsId: str = None
     vpsName: str = None
-    numberOfVolumes: int = -1
-    lun: int = -1
+    numberOfVolumes: int = 0
+    # lun: int = -1
     paths: List[Path] = None
 
     def __init__(self, **kwargs):
@@ -88,8 +93,10 @@ class SDSBComputeNodeInfo:
         self.vpsName = kwargs.get("vpsName")
         if "numberOfVolumes" in kwargs:
             self.numberOfVolumes = kwargs.get("numberOfVolumes")
-        if "lun" in kwargs:
-            self.lun = kwargs.get("lun")
+        if "numberOfPaths" in kwargs:
+            self.numberOfPaths = kwargs.get("numberOfPaths")
+        # if "lun" in kwargs:
+        #     self.lun = kwargs.get("lun")
         if "paths" in kwargs:
             self.paths = [Path(**path) for path in kwargs.get("paths")]
 

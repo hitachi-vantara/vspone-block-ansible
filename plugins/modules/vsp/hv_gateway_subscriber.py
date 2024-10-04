@@ -42,10 +42,6 @@ options:
         type: str
         required: true
         choices: ['gateway']
-      subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
-        type: str
-        required: false
       api_token:
         description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
         type: str
@@ -56,7 +52,7 @@ options:
     required: true
     suboptions:
       subscriber_id:
-        description: ID of the subscriber to be create/updated/deleted.
+        description: The subscriber ID can be 1 to 15 characters long and must include numbers from 0 to 9.
         type: str
         required: true
       name:
@@ -85,9 +81,8 @@ EXAMPLES = '''
       address: gateway.company.com
       api_token: "eyJhbGciOiJS......"
       connection_type: "gateway"
-      subscriber_id: "sub123"
     spec:
-      subscriber_id: "sub123"
+      subscriber_id: "12345"
       name: "Testsub123"
       soft_limit: "70"
       hard_limit: "80"
@@ -100,9 +95,8 @@ EXAMPLES = '''
       address: gateway.company.com
       api_token: "eyJhbGciOiJS......"
       connection_type: "gateway"
-      subscriber_id: "sub123"
     spec:
-      subscriber_id: "sub123"
+      subscriber_id: "12345"
 
 - name: Update a subscriber
   hv_gateway_subscriber:
@@ -111,9 +105,8 @@ EXAMPLES = '''
       address: gateway.company.com
       api_token: "eyJhbGciOiJS......"
       connection_type: "gateway"
-      subscriber_id: "sub123"
     spec:
-      subscriber_id: "sub123"
+      subscriber_id: "12345"
       quota_limit: "30"
 '''
 
@@ -212,10 +205,17 @@ class SubscriberManager:
                 if not self.params_manager.spec.subscriber_id:
                     subscriber_data = "Subscriber ID is missing."
                 else:
-                  existing_subscriber = reconciler.get_subscriber_facts(
-                      self.params_manager.spec
-                  )
-                  if len(existing_subscriber) == 0:
+                  
+                  existing_subscriber = None
+                  try:
+                    ## we are getting exception now, hence this try-catch
+                    existing_subscriber = reconciler.get_subscriber_facts(
+                        self.params_manager.spec
+                    )
+                  except Exception as e:
+                    logger.writeInfo(f"Caught exception implies subscriber not found, go ahead with create: {e}")
+                    
+                  if not existing_subscriber or len(existing_subscriber) == 0:
                       self.spec = self.params_manager.set_subscriber_spec("present")
                       subscriber_data = reconciler.create_subscriber(self.spec)
                       if subscriber_data:
@@ -226,7 +226,8 @@ class SubscriberManager:
                           self.spec, existing_subscriber[0]
                       )
                       if subscriber_data:
-                        self.connection_info.changed = True
+                        same_data = self.is_both_subscriber_data_same(existing_subscriber[0], subscriber_data)
+                        self.connection_info.changed = not same_data
             elif self.state == StateValue.ABSENT:
                 self.spec = self.params_manager.set_subscriber_spec("absent")
                 subscriber_data = reconciler.delete_subscriber(self.spec)
@@ -239,15 +240,21 @@ class SubscriberManager:
 
         self.module.exit_json(**response)
 
+    def is_both_subscriber_data_same(self, existing, returned):
+        if len(existing) != len(returned):
+            return False
+        else:
+            for i in existing:
+                if i == "time":
+                    continue
+                if existing.get(i) != returned.get(i):
+                    return False
+            return True
 
 def main():
-    """
-    Create AWS FSx class instance and invoke apply
-    :return: None
-    """
+
     obj_store = SubscriberManager()
     obj_store.apply()
-
 
 if __name__ == "__main__":
     main()

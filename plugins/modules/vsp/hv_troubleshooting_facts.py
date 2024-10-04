@@ -74,6 +74,7 @@ import os
 import time
 import json
 import glob
+import platform
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
@@ -300,6 +301,40 @@ def remove_old_logbundles(zipdir):
         logger.writeDebug(f"Deleted: {file_path}")
     logger.writeDebug("Cleanup completed. Kept the latest 3 zip files.")
 
+def get_os_info():
+    # Get OS edition
+    os_edition = platform.system()
+    # Get OS version
+    os_version = platform.release()
+    # Get Ansible version (if installed)
+    try:
+        ansible_version = subprocess.check_output(["ansible", "--version"]).decode("utf-8").split("\n")[0]
+    except subprocess.CalledProcessError:
+        ansible_version = "Ansible not installed"
+    # Get Python version
+    python_version = platform.python_version()
+    return os_edition, os_version, ansible_version, python_version
+
+def write_os_info_to_file(filename):
+    # Get system information
+    os_edition, os_version, ansible_version, python_version = get_os_info()
+
+    # Print the results
+    writeLog(f"OS Edition: {os_edition}")
+    writeLog(f"OS Version: {os_version}")
+    writeLog(f"Ansible Version: {ansible_version}")
+    writeLog(f"Python Version: {python_version}")
+
+    # Write the system information to file
+    with open(filename, "w") as file:
+        file.write(f"OS Edition: {os_edition}\n")
+        file.write(f"OS Version: {os_version}\n")
+        file.write(f"Ansible Version: {ansible_version}\n")
+        file.write(f"Python Version: {python_version}\n")
+
+    # Print a success message
+    writeLog("System information has been written to os_info.txt")
+
 def main(module=None):
     fields = {
         "uai_gateway_address": {"required": False, "type": "str"},
@@ -358,6 +393,8 @@ def main(module=None):
             subpath = os.path.join(tempdir, subdir)
             if not os.path.exists(subpath):
                 os.makedirs(subpath)
+
+        write_os_info_to_file(os.path.join(tempdir, "os_info.txt"))
 
         writeLog("Copying Ansible playbooks")
 

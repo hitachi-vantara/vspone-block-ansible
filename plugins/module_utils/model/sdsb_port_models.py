@@ -51,16 +51,33 @@ class IscsiInformation:
     isIsnsClientEnabled: bool
     isnsServers: List[IsnsServer]
 
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if "ipv4Information" in kwargs:
-            self.authParam = Ipv4Information(**kwargs.get("ipv4Information"))   
+            self.ipv4Information = Ipv4Information(**kwargs.get("ipv4Information"))   
         if "ipv6Information" in kwargs:
-            self.authParam = Ipv4Information(**kwargs.get("ipv6Information"))
+            self.ipv6Information = Ipv4Information(**kwargs.get("ipv6Information"))
         if "isnsServers" in kwargs:
-            self.iscsiInformation = dicts_to_dataclass_list(
+            self.isnsServers = dicts_to_dataclass_list(
                 kwargs.get("isnsServers"), IsnsServer
             )
+
+@dataclass
+class NvmeTcpInformation:
+    ipMode: str
+    ipv4Information: Ipv4Information
+    ipv6Information: Ipv6Information
+    delayedAck: bool
+    mtuSize: int
+    macAddress: str
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if "ipv4Information" in kwargs:
+            self.ipv4Information = Ipv4Information(**kwargs.get("ipv4Information"))
+        if "ipv6Information" in kwargs:
+            self.ipv6Information = Ipv4Information(**kwargs.get("ipv6Information"))
 
 @dataclass
 class SDSBComputePortInfo(SingleBaseClass):
@@ -71,7 +88,7 @@ class SDSBComputePortInfo(SingleBaseClass):
     nickname: str
     configuredPortSpeed: str
     portSpeed: str
-    portSpeedDuplex: str
+    portNumber: str
     protectionDomainId: str
     storageNodeId: str
     interfaceName: str
@@ -79,7 +96,13 @@ class SDSBComputePortInfo(SingleBaseClass):
     status: str
     fcInformation: str
     iscsiInformation: IscsiInformation
-    nvmeTcpInformation: str = None
+    nvmeTcpInformation: NvmeTcpInformation
+    portSpeedDuplex: str = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if "portNumber" in kwargs:
+            self.portNumber = kwargs.get("portNumber")
 
     def to_dict(self):
         return asdict(self)

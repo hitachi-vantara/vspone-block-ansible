@@ -1,0 +1,51 @@
+####################################################################
+# Example : Delete/Detach ldev(s) from host
+####################################################################
+- name: Delete ldevs from host
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_direct_variables.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+####################################################################
+# Task 1 : Detach ldevs from host group with direct connection
+####################################################################
+    - name: Detach ldevs from host group with direct connection
+      hv_hg:
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
+        spec:
+          state: "{{ substate_unpresent_ldev }}"
+          name: "{{ delete_ldev_from_host_name_1 }}"
+          port: "{{ delete_ldev_from_host_port_1 }}"
+          ldevs: "{{ delete_ldev_from_host_ldevs_1 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 2 : Delete ldev with direct connection
+####################################################################
+    - name: Delete ldev with direct connection
+      hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_absent }}"
+        spec:
+          ldev_id: "{{ delete_ldev_from_host_ldev_id_2 }}"
+      register: result
+
+    - debug:
+        var: result

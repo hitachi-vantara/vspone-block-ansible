@@ -4,6 +4,16 @@ from ansible.module_utils.six.moves.urllib import parse as urlparse
 
 PEGASUS_MODELS = ["B28", "B26"]
 
+BASIC_STORAGE_DETAILS = None
+
+
+def get_basic_storage_details():
+    global BASIC_STORAGE_DETAILS
+    return BASIC_STORAGE_DETAILS
+
+def set_basic_storage_details(storage_details):
+    global BASIC_STORAGE_DETAILS
+    BASIC_STORAGE_DETAILS = storage_details
 class Endpoints(object):
 
     #vsp storage
@@ -25,10 +35,15 @@ class Endpoints(object):
     POST_FORMAT_LDEV = "v1/objects/ldevs/{}/actions/format/invoke"
     UAIG_GET_VOLUMES = "v3/storage/{}/volumes/details{}"
     UAIG_DELETE_ONE_VOLUME = "v3/storage/{}/volumes/{}?isDelete=true"
+    GET_FREE_LDEV_FROM_META = "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0&count=1"
+    GET_LDEVS_BY_POOL_ID= "v1/objects/ldevs?poolId={}"
 
     # Port
     GET_PORTS = "v1/objects/ports"
+    GET_PORTS_DETAILS = "v1/objects/ports?detailInfoType=portMode"
     GET_ONE_PORT = "v1/objects/ports/{}"
+    GET_ONE_PORT_WITH_MODE = "v1/objects/ports/{}?detailInfoType=portMode"
+    UPDATE_PORT = "v1/objects/ports/{}"
     UAIG_GET_PORTS_V2 = "v2/storage/devices/{}/ports{}"
     UAIG_GET_PORTS_V3 = "v3/storage/{}/ports{}"
 
@@ -153,6 +168,7 @@ class Endpoints(object):
     DIRECT_RESTORE_SHADOW_IMAGE_PAIR = "v1/objects/local-clone-copypairs/{pairId}/actions/restore/invoke"
     DIRECT_DELETE_SHADOW_IMAGE_PAIR = "v1/objects/local-clone-copypairs/{pairId}"
     DIRECT_GET_ALL_COPY_PAIR_GROUP = "v1/objects/local-clone-copygroups"
+    DIRECT_GET_SI_BY_CPG = "v1/objects/local-clone-copypairs?localCloneCopyGroupId={}"
     
     # SnapShot
     ALL_SNAPSHOTS = "v1/objects/snapshot-replications"
@@ -164,12 +180,20 @@ class Endpoints(object):
     GET_SNAPSHOTS_BY_GROUP = "v1/objects/snapshot-groups/{}"
     GET_SNAPSHOT_GROUPS_ONE = "v1/objects/snapshot-groups/{}"
     POST_SNAPSHOTS_SPLIT = "v1/objects/snapshots/{}/actions/split/invoke"
+    POST_SNAPSHOTS_SVOL_ADD = "v1/objects/snapshots/{}/actions/assign-volume/invoke"
+    POST_SNAPSHOTS_SVOL_REMOVE = "v1/objects/snapshots/{}/actions/unassign-volume/invoke"
     POST_SNAPSHOTS_RESYNC = "v1/objects/snapshots/{}/actions/resync/invoke"
     POST_SNAPSHOTS_RESTORE = "v1/objects/snapshots/{}/actions/restore/invoke"
 
+    SNAPSHOTS_BY_GROUP_ID = "v1/objects/snapshot-groups/{}"
+    GET_SNAPSHOTS_BY_GROUP = "v1/objects/snapshot-groups"
+    SPLIT_SNAPSHOT_BY_GRP = "v1/objects/snapshot-groups/{}/actions/split/invoke"
+    RESYNC_SNAPSHOT_BY_GRP = "v1/objects/snapshot-groups/{}/actions/resync/invoke"
+    RESTORE_SNAPSHOT_BY_GRP = "v1/objects/snapshot-groups/{}/actions/restore/invoke"
     # Pool
     GET_POOLS = "v1/objects/pools"
     GET_POOL = "v1/objects/pools/{}"
+
 
     # Parity group
     GET_PARITY_GROUPS = "v1/objects/parity-groups"
@@ -286,6 +310,9 @@ class AutomationConstants(object):
     CHAP_SECRET_LEN_MAX = 32
     HG_NAME_LEN_MIN = 1
     HG_NAME_LEN_MAX = 64
+    CONSISTENCY_GROUP_ID_MIN = 0
+    CONSISTENCY_GROUP_ID_MAX = 255
+    POOL_SIZE_MIN = 16777216
 
 
 class LogMessages(object):
@@ -320,6 +347,7 @@ class VolumePayloadConst:
     LABEL = "label"
     ADDITIONAL_BLOCK_CAPACITY = "additionalBlockCapacity"
     IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED = "isDataReductionSharedVolumeEnabled"
+    IS_DATA_REDUCTION_SHARE_ENABLED = "isDataReductionShareEnabled"
     FORCE_FORMAT = "isDataReductionForceFormat"
     OPERATION_TYPE = "operationType"
     ENHANCED_EXPANSION = "enhancedExpansion"
@@ -349,10 +377,12 @@ class VSPSnapShotReq:
     snapshotGroupName = "snapshotGroupName"
     snapshotPoolId = "snapshotPoolId"
     pvolLdevId = "pvolLdevId"
+    svolLdevId = "svolLdevId"
     isConsistencyGroup = "isConsistencyGroup"
     autoSplit = "autoSplit"
     isDataReductionForceCopy = "isDataReductionForceCopy"
     canCascade = "canCascade"
+    parameters = "parameters"
 
 class PairStatus:
     PSUS = "PSUS"
@@ -366,3 +396,65 @@ class PairStatus:
     PSUP = "PSUP"
     CPYP = "CPYP"
     OTHER = "OTHER"
+
+class VSPPortSetting:
+    LUN_SECURITY_SETTING = "lunSecuritySetting"
+    PORT_MODE = "portMode"
+
+
+class DefaultValues:
+    DEFAULT_HG_NAME = "ansible_host_group"
+
+
+
+ARRAY_FAMILY_LOOKUP = {
+    "AMS": "ARRAY_FAMILY_DF",
+    "HUS": "ARRAY_FAMILY_DF",
+    "VSP": "ARRAY_FAMILY_R700",
+    "HUS-VM": "ARRAY_FAMILY_HM700",
+    "VSP G1000": "ARRAY_FAMILY_R800",
+    "VSP G1500/F1500": "ARRAY_FAMILY_R800",
+    "VSP G200": "ARRAY_FAMILY_HM800",
+    "VSP G 400": "ARRAY_FAMILY_HM800",
+    "VSP F 400": "ARRAY_FAMILY_HM800",
+    "VSP N 400": "ARRAY_FAMILY_HM800",
+    "VSP G 600": "ARRAY_FAMILY_HM800",
+    "VSP F 600": "ARRAY_FAMILY_HM800",
+    "VSP N 600": "ARRAY_FAMILY_HM800",
+    "VSP G 800": "ARRAY_FAMILY_HM800",
+    "VSP F 800": "ARRAY_FAMILY_HM800",
+    "VSP N 800": "ARRAY_FAMILY_HM800",
+    "VSP G130": "ARRAY_FAMILY_HM800",
+    "VSP G150": "ARRAY_FAMILY_HM800",
+    "VSP G/F350": "ARRAY_FAMILY_HM800",
+    "VSP G/F370": "ARRAY_FAMILY_HM800",
+    "VSP G/F700": "ARRAY_FAMILY_HM800",
+    "VSP G/F900": "ARRAY_FAMILY_HM800",
+    "VSP 5000": "ARRAY_FAMILY_R900",
+    "VSP 5000H": "ARRAY_FAMILY_R900",
+    "VSP 5500": "ARRAY_FAMILY_R900",
+    "VSP 5500H": "ARRAY_FAMILY_R900",
+    "VSP 5200": "ARRAY_FAMILY_R900",
+    "VSP 5200H": "ARRAY_FAMILY_R900",
+    "VSP 5600": "ARRAY_FAMILY_R900",
+    "VSP 5600H": "ARRAY_FAMILY_R900",
+    "VSP E590": "ARRAY_FAMILY_HM900",
+    "VSP E790": "ARRAY_FAMILY_HM900",
+    "VSP E990": "ARRAY_FAMILY_HM900",
+    "VSP E1090": "ARRAY_FAMILY_HM900",
+    "VSP E1090H": "ARRAY_FAMILY_HM900",
+    "VSP One B23": "ARRAY_FAMILY_HM2000",
+    "VSP One B24": "ARRAY_FAMILY_HM2000",
+    "VSP One B26": "ARRAY_FAMILY_HM2000",
+    "VSP One B28": "ARRAY_FAMILY_HM2000",
+}
+
+
+class UnSubscribeResourceTypes:
+    HOST_GROUP = "HostGroup"
+    VOLUME = "volume"
+    PORT = "port"
+    ISCSI_TARGET = "IscsiTarget"
+    STORAGE_POOL = "StoragePool"
+    CHAP_USER = "chapuser"
+    SHADOW_IMAGE = "shadowimage"

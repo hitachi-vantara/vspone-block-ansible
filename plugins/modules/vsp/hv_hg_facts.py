@@ -77,15 +77,15 @@ options:
         type: list
         required: false
       query:
-        description: Determines what information to return about the host groups. Can specify 'wwns' for HBA WWNs, 'luns' for mapped LUNs, or both.
+        description: Determines what information to return about the host groups. Can specify 'wwns' for HBA WWNs, 'ldevs' for mapped LDEVs, or both.
         type: list
         elements: str
         required: false
-        choices: ['wwns', 'luns']
+        choices: ['wwns', 'ldevs']
 '''
 
 EXAMPLES = """
-- name:  Show luns/wwns for hostgroups
+- name:  Show ldevs/wwns for hostgroups
   tasks:
     - hv_hg_facts:
         storage_system_info:
@@ -96,7 +96,7 @@ EXAMPLES = """
           connection_type: "gateway"
           subscriber_id: "sub123"
         spec:
-          query: [ 'wwns', 'luns' ]
+          query: [ 'wwns', 'ldevs' ]
           name: 'test-ansible-hg-1'
           ports: [ 'CL1-A', 'CL2-B' ]
       register: result

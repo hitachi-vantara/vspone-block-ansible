@@ -25,7 +25,6 @@ class VSPParityGroupReconciler:
     def __init__(self, connectionInfo):
         self.connectionInfo = connectionInfo
         self.provisioner = VSPParityGroupProvisioner(self.connectionInfo)
-        # self._validate_parameters()
 
     @log_entry_exit
     def get_all_parity_groups(self):
@@ -39,7 +38,7 @@ class VSPParityGroupReconciler:
 class VSPParityGroupCommonPropertiesExtractor:
     def __init__(self):
         self.common_properties = {
-            "resource_id": str,
+            # "resource_id": str,
             "parity_group_id": str,
             "free_capacity": str,
             "resource_group_id": int,

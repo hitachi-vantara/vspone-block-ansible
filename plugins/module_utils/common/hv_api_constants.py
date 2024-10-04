@@ -45,7 +45,6 @@ class API:
     EXTERNAL_PORT_ISCSI_NAME = "externalPortIscsiName"
 
     FAILED = "Failed"
-    PEGASUS_STATUS = "status"
 
     HBA_ID = "hbaId"
     HBA_NAME = "hbaName"

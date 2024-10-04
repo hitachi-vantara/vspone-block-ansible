@@ -1,0 +1,114 @@
+####################################################################
+# Example :  Hitachi Universal Replicator (HUR) playbook
+####################################################################
+- name: HUR - Hitachi Universal Replicator Pair
+  hosts: localhost
+  collections:
+    - hitachivantara.vspone_block.vsp
+  gather_facts: false
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_uai_gateway_variables.yml
+
+  tasks:
+####################################################################
+# Task 0 : Get UAI gateway token
+####################################################################
+    - name: Get UAI gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
+      register: result_token
+      ignore_errors: False
+
+#####################################################################
+# Task 1 : Create HUR pair
+######################################################################
+    - name: Create HUR pair
+      hv_hur:
+        storage_system_info:
+          serial: '{{ storage_serial }}'
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        spec:
+          primary_volume_id: "{{ hur_primary_volume_id_1 }}"
+          primary_volume_journal_id: "{{ hur_primary_volume_journal_id_1 }}"
+          secondary_volume_journal_id: "{{ hur_secondary_volume_journal_id_1 }}"
+          secondary_pool_id: "{{ hur_secondary_pool_id_1 }}"
+          allocate_new_consistency_group: "{{ hur_allocate_new_consistency_group_1 }}"
+          secondary_storage_serial_number: "{{ hur_secondary_storage_serial_number_1 }}"
+          secondary_hostgroup:  "{{ hur_secondary_hostgroup_1 }}"
+          
+      register: result
+
+    - debug: 
+        var: result
+
+#####################################################################
+# Task 2 : Split HUR pair
+######################################################################
+    - name: Split HUR pair 
+      hv_hur:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: split
+        spec:
+          primary_volume_id: "{{ hur_primary_volume_id_2 }}"
+          mirror_unit_id: "{{ hur_mirror_unit_id_2 }}"
+      register: result
+
+    - debug:
+        var: result
+
+#####################################################################
+# Task 3 : Resync HUR pair
+######################################################################
+    - name: Resync HUR pair
+      hv_hur:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: resync
+        spec:
+          primary_volume_id: "{{ hur_primary_volume_id_3 }}"
+          mirror_unit_id: "{{ hur_mirror_unit_id_3 }}"
+      register: result
+
+    - debug:
+        var: result
+
+#####################################################################
+# Task 4 : Delete HUR pair
+######################################################################
+    - name: Delete HUR pair
+      hv_hur:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ state_absent }}"
+        spec:
+          primary_volume_id: "{{ hur_primary_volume_id_4 }}"
+          mirror_unit_id: "{{ hur_mirror_unit_id_4 }}"
+      register: result
+
+    - debug:
+        var: result

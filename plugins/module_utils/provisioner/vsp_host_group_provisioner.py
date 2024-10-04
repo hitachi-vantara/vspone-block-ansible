@@ -6,6 +6,8 @@ try:
     from ..common.ansible_common import convert_hex_to_dec
     from ..model.vsp_host_group_models import *
     from ..common.ansible_common import dicts_to_dataclass_list
+    from ..common.uaig_utils import UAIGResourceID
+
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import *
@@ -13,6 +15,9 @@ except ImportError:
     from common.ansible_common import convert_hex_to_dec
     from model.vsp_host_group_models import *
     from common.ansible_common import dicts_to_dataclass_list
+    from common.uaig_utils import UAIGResourceID
+
+
 
 
 class VSPHostGroupProvisioner:
@@ -21,11 +26,16 @@ class VSPHostGroupProvisioner:
         self.gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_HOST_GROUP
         )
+        self.connection_info = connection_info
+        self.serial = None
 
     def get_host_groups(
         self, ports_input=None, name_input=None, lun_input=None, query=None
     ):
         logger = Log()
+        logger.writeDebug("PROV:get_host_groups:serial = {}", self.serial)
+        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
+            self.gateway.set_serial(self.serial)
         if name_input == "":
             name_input = None
 
@@ -44,7 +54,7 @@ class VSPHostGroupProvisioner:
             is_get_wwns = True
 
         is_get_luns = False
-        if query and "luns" in query or lun_input is not None:
+        if query and "ldevs" in query or lun_input is not None:
             is_get_luns = True
         host_groups = self.gateway.get_host_groups(
             ports_input, name_input, is_get_wwns, is_get_luns
@@ -65,7 +75,13 @@ class VSPHostGroupProvisioner:
 
     def get_one_host_group(self, port_input, name):
         return self.gateway.get_one_host_group(port_input, name)
-
+    
+    def get_all_host_groups(self, serial):
+        
+        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
+            res_id = UAIGResourceID().storage_resourceId(serial)
+            return self.gateway.get_host_groups_for_resource_id(res_id)
+    
     def create_host_group(self, port, name, wwns, luns, host_mode, host_mode_options):
         self.gateway.create_host_group(
             port, name, wwns, luns, host_mode, host_mode_options

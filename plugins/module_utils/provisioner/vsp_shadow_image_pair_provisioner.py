@@ -4,25 +4,23 @@ try:
     from ..common.ansible_common import log_entry_exit
     from ..gateway.gateway_factory import GatewayFactory
     from ..gateway.vsp_shadow_image_pair_gateway import VSPShadowImagePairUAIGateway
-    from ..common.hv_constants import GatewayClassTypes
+    from ..common.hv_constants import GatewayClassTypes, ConnectionTypes
     from ..model.vsp_shadow_image_pair_models import *
     from ..common.ansible_common import dicts_to_dataclass_list
-    from ..common.vsp_constants import VolumePayloadConst
+    from ..common.vsp_constants import VolumePayloadConst, PairStatus
     from .vsp_volume_prov import VSPVolumeProvisioner
     from ..message.vsp_shadow_image_pair_msgs import VSPShadowImagePairValidateMsg
 
 except ImportError:
     from common.ansible_common import log_entry_exit
     from gateway.vsp_shadow_image_pair_gateway import VSPShadowImagePairUAIGateway
-    from common.hv_constants import GatewayClassTypes
+    from common.hv_constants import GatewayClassTypes, ConnectionTypes
     from gateway.gateway_factory import GatewayFactory
     from model.vsp_shadow_image_pair_models import *
     from common.ansible_common import dicts_to_dataclass_list
-    from vsp_volume_prov import VSPVolumeProvisioner
-    from common.vsp_constants import VolumePayloadConst
+    from .vsp_volume_prov import VSPVolumeProvisioner
+    from common.vsp_constants import VolumePayloadConst, PairStatus
     from message.vsp_shadow_image_pair_msgs import VSPShadowImagePairValidateMsg
-
-
 
 
 class VSPShadowImagePairProvisioner:
@@ -31,7 +29,10 @@ class VSPShadowImagePairProvisioner:
         self.gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_SHADOW_IMAGE_PAIR
         )
-        self.vol_provisioner = VSPVolumeProvisioner(connection_info)
+        self.connection_info = connection_info
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            ## 20240820 for direct only
+            self.vol_provisioner = VSPVolumeProvisioner(connection_info)
 
     @log_entry_exit
     def get_all_shadow_image_pairs(self, serial, pvol):
@@ -41,25 +42,32 @@ class VSPShadowImagePairProvisioner:
             )
         else:
             shadow_image_pairs = self.gateway.get_all_shadow_image_pairs(serial)
-        
 
         return shadow_image_pairs.data_to_list()
 
     @log_entry_exit
     def create_shadow_image_pair(self, serial, createShadowImagePairSpec):
 
-        pvol = self.vol_provisioner.get_volume_by_ldev(createShadowImagePairSpec.pvol)
-        
-        if pvol.emulationType == VolumePayloadConst.NOT_DEFINED:
-            raise ValueError(VSPShadowImagePairValidateMsg.PVOL_NOT_FOUND.value)
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            ## 20240820 for direct only
+            pvol = self.vol_provisioner.get_volume_by_ldev(
+                createShadowImagePairSpec.pvol
+            )
+            if pvol.emulationType == VolumePayloadConst.NOT_DEFINED:
+                raise ValueError(VSPShadowImagePairValidateMsg.PVOL_NOT_FOUND.value)
+            createShadowImagePairSpec.is_data_reduction_force_copy = (
+                True
+                if pvol.dataReductionMode
+                and pvol.dataReductionMode != VolumePayloadConst.DISABLED
+                else False
+            )
 
-        createShadowImagePairSpec.is_data_reduction_force_copy = True if pvol.dataReductionMode and pvol.dataReductionMode != VolumePayloadConst.DISABLED else False
         pairId = self.gateway.create_shadow_image_pair(
             serial, createShadowImagePairSpec
         )
         time.sleep(20)
         shadow_image_pair = self.gateway.get_shadow_image_pair_by_id(serial, pairId)
-        if isinstance(shadow_image_pair,dict):
+        if isinstance(shadow_image_pair, dict):
             return shadow_image_pair
         return shadow_image_pair.to_dict()
 
@@ -74,63 +82,67 @@ class VSPShadowImagePairProvisioner:
         if pvol is None:
             shadow_image_pairs = self.gateway.get_all_shadow_image_pairs(serial)
         else:
-            shadow_image_pairs = self.gateway.get_shadow_image_pair_by_pvol(serial,pvol)
-        shadow_image_list = []        
+            shadow_image_pairs = self.gateway.get_shadow_image_pair_by_pvol(
+                serial, pvol
+            )
+        shadow_image_list = []
         shadow_image_pair = None
         for sip in shadow_image_pairs.data_to_list():
-            print("pvol = "+str(pvol))
+            print("pvol = " + str(pvol))
             if sip.get("primaryVolumeId") == pvol:
                 shadow_image_list.append(sip)
             if svol is not None:
                 if sip.get("secondaryVolumeId") == svol:
                     shadow_image_pair = sip
                     return shadow_image_pair
+                
+        if svol is not None:
+            return None
         
-        return VSPShadowImagePairsInfo(dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo))
-        
+        return VSPShadowImagePairsInfo(
+            dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo)
+        )
 
     @log_entry_exit
     def split_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-        response = self.gateway.split_shadow_image_pair(
-            serial, updateShadowImagePairSpec
+        _ = self.gateway.split_shadow_image_pair(serial, updateShadowImagePairSpec)
+        return self.get_si_pair_with_latest_data(
+            serial, updateShadowImagePairSpec.pair_id, PairStatus.PSUS
         )
-        time.sleep(20)
-        shadow_image_pair = self.gateway.get_shadow_image_pair_by_id(
-            serial, updateShadowImagePairSpec.pair_id
-        )
-        if isinstance(shadow_image_pair,dict):
-            return shadow_image_pair
-        return shadow_image_pair.to_dict()
 
     @log_entry_exit
     def resync_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-        response = self.gateway.resync_shadow_image_pair(
-            serial, updateShadowImagePairSpec
+        _ = self.gateway.resync_shadow_image_pair(serial, updateShadowImagePairSpec)
+        return self.get_si_pair_with_latest_data(
+            serial, updateShadowImagePairSpec.pair_id, PairStatus.PAIR
         )
-        time.sleep(20)
-        shadow_image_pair = self.gateway.get_shadow_image_pair_by_id(
-            serial, updateShadowImagePairSpec.pair_id
-        )
-        if isinstance(shadow_image_pair,dict):
-            return shadow_image_pair
-        return shadow_image_pair.to_dict()
 
     @log_entry_exit
     def restore_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-        response = self.gateway.restore_shadow_image_pair(
-            serial, updateShadowImagePairSpec
+        _ = self.gateway.restore_shadow_image_pair(serial, updateShadowImagePairSpec)
+
+        return self.get_si_pair_with_latest_data(
+            serial, updateShadowImagePairSpec.pair_id, PairStatus.PAIR
         )
-        time.sleep(20)
-        shadow_image_pair = self.gateway.get_shadow_image_pair_by_id(
-            serial, updateShadowImagePairSpec.pair_id
-        )
-        if isinstance(shadow_image_pair,dict):
-            return shadow_image_pair
-        return shadow_image_pair.to_dict()
+    @log_entry_exit
+    def get_si_pair_with_latest_data(self, serial, pair_id, type):
+        pair = None
+        count = 0
+
+        while  count < 10:
+            pair = self.gateway.get_shadow_image_pair_by_id(serial, pair_id)
+
+            if (
+                isinstance(pair, dict)
+                and pair.get("status") == type
+                or pair.status == type
+            ):
+                return pair.to_dict()
+            time.sleep(10)
+            count += 1
+        return pair
 
     @log_entry_exit
     def delete_shadow_image_pair(self, serial, deleteShadowImagePairSpec):
-        response = self.gateway.delete_shadow_image_pair(
-            serial, deleteShadowImagePairSpec
-        )
+        _ = self.gateway.delete_shadow_image_pair(serial, deleteShadowImagePairSpec)
         return "Shadow image pair is deleted."

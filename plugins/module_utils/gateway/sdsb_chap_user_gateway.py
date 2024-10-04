@@ -17,7 +17,7 @@ except ImportError:
 logger = Log()
 
 
-class SDSBChapUsereDirectGateway:
+class SDSBChapUserDirectGateway:
 
     def __init__(self, connection_info):
         self.connection_manager = SDSBConnectionManager(

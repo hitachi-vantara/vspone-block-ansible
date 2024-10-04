@@ -1,3 +1,6 @@
+####################################################################
+# Example : Volume Playbook
+####################################################################
 - name: Volume Module
   hosts: localhost
   gather_facts: false
@@ -6,129 +9,175 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - sds_block_variables.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
 
   tasks:
+    ####################################################################
+    # Task 1 : Create volume
+    ####################################################################
     - name: Create volume
       hv_sds_block_volume:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          name: test-volume1
-          capacity: 100MB
-          pool_name: sp01
-          saving_setting: Compression
-          compute_nodes: ["computenode1", "computenode2"]
+          name: "{{ volume_name_1 }}"
+          capacity: "{{ volume_capacity_1 }}"
+          pool_name: "{{ volume_pool_name_1 }}"
+          capacity_saving: "{{ volume_capacity_saving_1 }}"
+          compute_nodes: "{{ volume_compute_nodes_1 }}"
       register: result
 
     - debug:
         var: result
 
+    ####################################################################
+    # Task 2 : Create volume with QoS parameters
+    ####################################################################
+    - name: Create volume with QoS parameters
+      hv_sds_block_volume:
+        state: "{{ state_present }}"
+        connection_info: "{{ connection_info }}"
+        spec:
+          pool_name: "{{ volume_pool_name_2 }}"
+          name: "{{ volume_name_2 }}"
+          capacity: "{{ volume_capacity_2 }}"
+          qos_param:
+            upper_limit_for_iops: "{{ volume_qos_param_upper_limit_for_iops_2 }}"
+            upper_limit_for_transfer_rate_mb_per_sec: "{{ volume_qos_param_upper_limit_for_transfer_rate_mb_per_sec_2 }}"
+            upper_alert_allowable_time_in_sec: "{{ volume_qos_param_upper_alert_allowable_time_in_sec_2 }}"
+          compute_nodes: "{{ volume_compute_nodes_2 }}" 
+      register: result
+
+    - debug:
+        var: result
+
+    ####################################################################
+    # Task 3 : Update volume
+    ####################################################################
     - name: Update volume
       hv_sds_block_volume:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          id: df63a5d9-32ea-4ae1-879a-7c23fbc574db
-          name: new-test-volume1
-          saving_setting: Compression
+          id: "{{ volume_id_3 }}"
+          name: "{{ volume_name_3 }}"
+          capacity_saving: "{{ volume_capacity_saving_3 }}"
       register: result
 
     - debug:
         var: result
 
+    ####################################################################
+    # Task 4 : Update volume QoS parameters
+    ####################################################################
+    - name: Update volume QoS parameters
+      hv_sds_block_volume:
+        state: "{{ state_present }}"
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: "{{ volume_name_4 }}"
+          qos_param:
+            upper_limit_for_iops: "{{ volume_qos_param_upper_limit_for_iops_4 }}"
+            upper_limit_for_transfer_rate_mb_per_sec: "{{ volume_qos_param_upper_limit_for_transfer_rate_mb_per_sec_4 }}"
+            upper_alert_allowable_time_in_sec: "{{ volume_qos_param_upper_alert_allowable_time_in_sec_4 }}"
+      register: result
+      
+    - debug:
+        var: result
+
+    ####################################################################
+    # Task 5 : Expand volume by name
+    ####################################################################
     - name: Expand volume by name
       hv_sds_block_volume:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          name: test-volume1
-          capacity: 500MB
+          name: "{{ volume_name_5 }}"
+          capacity: "{{ volume_capacity_5 }}"
       register: result
 
     - debug:
         var: result
 
+    ####################################################################
+    # Task 6 : Expand volume by id
+    ####################################################################
     - name: Expand volume by id
       hv_sds_block_volume:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          id: df63a5d9-32ea-4ae1-879a-7c23fbc574db
-          capacity: 500MB
+          id: "{{ volume_id_6 }}"
+          capacity: "{{ volume_capacity_6 }}"
       register: result
 
     - debug:
         var: result
 
+    ####################################################################
+    # Task 7 : Add volume to compute nodes
+    ####################################################################
     - name: Add volume to compute nodes
       hv_sds_block_volume:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          state: add_compute_node
-          name: test-volume1
-          compute_nodes: ["computenode1", "computenode2"]
+          state: "{{ substate_add_compute_node }}"
+          name: "{{ volume_name_7 }}"
+          compute_nodes: "{{ volume_compute_nodes_7 }}"
       register: result
 
     - debug:
         var: result
 
+    ####################################################################
+    # Task 8 : Remove volume from compute nodes
+    ####################################################################
     - name: Remove volume from compute nodes
       hv_sds_block_volume:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: present
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_present }}"
         spec:
-          state: remove_compute_node
-          name: test-volume1
-          compute_nodes: ["computenode1", "computenode2"]
+          state: "{{ substate_remove_compute_node }}"
+          name: "{{ volume_name_8 }}"
+          compute_nodes: "{{ volume_compute_nodes_8 }}"
       register: result
 
     - debug:
         var: result
 
+    ####################################################################
+    # Task 9 : Delete volume by name
+    ####################################################################
     - name: Delete volume by name
       hv_sds_block_volume:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: absent
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_absent }}"
         spec:
-          name: test-volume1
+          name: "{{ volume_name_9 }}"
       register: result
 
     - debug:
         var: result
 
+    ####################################################################
+    # Task 10 : Delete volume by id
+    ####################################################################
     - name: Delete volume by id
       hv_sds_block_volume:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
-        state: absent
+        connection_info: "{{ connection_info }}"
+        state: "{{ state_absent }}"
         spec:
-          id: df63a5d9-32ea-4ae1-879a-7c23fbc574db
+          id: "{{ volume_id_10 }}"
       register: result
 
     - debug:
         var: result
-

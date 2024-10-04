@@ -3,14 +3,17 @@ from ansible.module_utils.six.moves.urllib import parse as urlparse
 
 
 class Endpoints(object):
-    GET_SNAPSHOTS = "v2/storage/devices/{}/snapshotpairs"
+    # GET_SNAPSHOTS = "v2/storage/devices/{}/snapshotpairs"
     GET_SNAPSHOTS_V3 = "v3/storage/devices/{}/snapshotpairs"
     GET_SNAPSHOT = "v2/storage/devices/{}/snapshotpair/{}"
+    
     GET_SNAPSHOT_BY_PVOL = "v2/storage/devices/{}/snapshotpair/?primaryLunId={}"
+    
     DELETE_SNAPSHOT = "v2/storage/devices/{}/snapshotpair/{}"
     CREATE_SNAPSHOT = "v2/storage/devices/{}/snapshotpair"
     CREATE_SNAPSHOT_V3 = "v3/storage/devices/{}/snapshotPair"
     RESYNC_SNAPSHOT = "v2/storage/devices/{}/snapshotpair/{}/resync"
+    CLONE_SNAPSHOT = "v2/storage/devices/{}/snapshotpair/{}/clone"
     SPLIT_SNAPSHOT = "v2/storage/devices/{}/snapshotpair/{}/split"
     RESTORE_SNAPSHOT = "v2/storage/devices/{}/snapshotpair/{}/restore"
     GET_UCPSYSTEMS = "v2/systems"
@@ -23,6 +26,76 @@ class Endpoints(object):
     GET_TASK = "v2/tasks/{}"
     GET_USERS = "v2/rbac/users"
     UPDATE_PASSWORD = "v2/rbac/users/{id}"
+
+    ## Subscriber related endpoints
+    GET_SUBSCRIBER_RESOURCES = "v3/partner/{}/subscriber/{}/resources"
+    UNTAG_SUBSCRIBER_RESOURCE = "v3/storage/{}/resource/{}?type={}&subscriberId={}"
+    GET_STORAGE_DEVICE_BY_ID = "v2/storage/devices/{}"
+
+    ## Host Group
+    GET_HOST_GROUPS = "v2/storage/devices/{}/hostGroups"
+    GET_HOST_GROUP_BY_ID = "v2/storage/devices/{}/hostGroups/{}"
+    CREATE_HOST_GROUP = "v2/storage/devices/{}/hostGroups"
+
+    UAIG_GET_HOST_GROUPS = "v3/storage/devices/{}/hostGroups"
+    UAIG_CREATE_HOST_GROUP = "v3/storage/devices/{}/hostGroups"
+
+    ## Volumes
+    GET_VOLUMES = "v2/storage/devices/{}/volumes"
+    GET_VOLUME_BY_ID = "v2/storage/devices/{}/volumes/{}"
+    UAIG_GET_VOLUMES = "v3/storage/{}/volume?fromLdevId=0&toLdevId=65535"
+
+    ## Parity Group
+    GET_PARITY_GROUPS = "v2/storage/devices/{}/parityGroups"
+
+    ## Storage Ports
+    GET_PORTS = "v2/storage/devices/{}/ports"
+    UAIG_GET_PORTS = "v3/storage/{}/ports"
+    UAIG_TAG_PORT = "v3/storage/{}/resource"
+    
+    GET_REPLICATION_PAIRS = "v2/storage/devices/{}/replicationPairs"
+    GET_GAD_PAIRS_V3 = "v3/storage/devices/{}/gadpairs"
+    GAD_SINGLE_PAIR_V3 = "v3/storage/devices/{}/gadpair/{}"
+    SPLIT_GAD_PAIR = "v2/storage/devices/{}/gadpair/{}/split"
+    RESYNC_GAD_PAIR = "v2/storage/devices/{}/gadpair/{}/resync"
+    SPLIT_GAD_PAIR_V3 = "v3/storage/devices/{}/gadpair/{}/split"
+    RESYNC_GAD_PAIR_V3 = "v3/storage/devices/{}/gadpair/{}/resync"
+    POST_GAD_PAIR = "v3/storage/devices/gadpair"
+    GET_REPLICATION_PAIR_BY_ID = "v2/storage/devices/{}/replicationPair/{}"
+
+    ## TrueCopy
+    GET_TRUE_COPY_PAIRS = "v3/storage/devices/{}/truecopypairs"
+    # CREATE_TRUE_COPY_PAIR = "v2/storage/devices/truecopypair"
+    CREATE_TRUE_COPY_PAIR = "v3/storage/devices/truecopypair"
+    DELETE_TRUE_COPY_PAIR = "v3/storage/devices/{}/truecopypair/{}?isDelete=True"
+    # DELETE_TRUE_COPY_PAIR = "v2/storage/devices/{}/truecopypair/{}"
+    RESYNC_TRUE_COPY_PAIR = "v2/storage/devices/{}/truecopypair/{}/resync"
+    SPLIT_TRUE_COPY_PAIR = "v2/storage/devices/{}/truecopypair/{}/split"
+    SWAP_SPLIT_TRUE_COPY_PAIR = "v2/storage/devices/{}/truecopypair/{}/swap-split"
+    SWAP_RESYNC_TRUE_COPY_PAIR = "v2/storage/devices/{}/truecopypair/{}/swap-resync"
+
+    GET_HUR_PAIRS = "v3/storage/devices/{}/hurpairs"
+    GET_HUR_PAIR_BY_ID = "v2/storage/devices/{}/hurpair/{}"
+    CREATE_HUR_PAIR_V2 = "v2/storage/devices/hurpair"
+    CREATE_HUR_PAIR = "v3/storage/devices/hurpair"
+    DELETE_HUR_PAIR = "v3/storage/devices/{}/hurpair/{}?isDelete=true"
+    RESYNC_HUR_PAIR = "v2/storage/devices/{}/hurpair/{}/resync"
+    SPLIT_HUR_PAIR = "v2/storage/devices/{}/hurpair/{}/split"
+    SWAP_SPLIT_HUR_PAIR = "v2/storage/devices/{}/hurpair/{}/swap-split"
+    SWAP_RESYNC_HUR_PAIR = "v2/storage/devices/{}/hurpair/{}/swap-resync"
+
+    ## Pool management
+    GET_POOLS = "v2/storage/devices/{}/pools"
+    POST_POOLS = "v2/storage/devices/{}/pools"
+    SINGLE_POOL = "v2/storage/devices/{}/pools/{}"
+    SINGLE_POOL_V3 = "v3/storage/{}/pools/{}"
+    STORAGE_POOL_DUP = "v2/storage/devices/{}/pools/{}/duplication"
+
+    MT_STORAGE_POOL = "v3/storage/{}/pools"
+    SINGLE_STORAGE_POOL = "v3/storage/{}/pools/{}"
+    
+    APPLY_VOL_TIERING = "v2/policies/luntiering"
+
 
 
 class Http(object):
@@ -191,3 +264,43 @@ class Log(object):
         logging.ERROR: {PRIORITY: 3},
         logging.CRITICAL: {PRIORITY: 2},
     }
+
+
+class StoragePoolPayloadConst:
+    NAME = "name"
+    TYPE = "type"
+    POOL_VOLUMES = "poolVolumes"
+    RESOURCE_GROUP_ID = "resourceGroupId"
+    WARNING_THRESHOLD_RATE = "warningThresholdRate"
+    DEPLETION_THRESHOLD_RATE = "depletionThresholdRate"
+    UCP_SYSTEM = "ucpSystem"
+    IS_ENABLE_DEDUPLICATION = "isEnableDeduplication"
+    CAPACITY = "capacity"
+    PARITY_GROUP_ID = "parityGroupId"
+
+class GADPairConst:
+    PRIMARY_SERIAL_NUMBER = "primarySerialNumber"
+    PRIMARY_LUN_ID = "primaryLunID"
+    CONSISTENCY_GROUP_ID = "consistencyGroupId"
+    NEW_CONSISTENCY_GROUP = "newConsistencyGroup"
+    OPERATION = "operation"
+    PRIMARY_HOSTGROUP_PAYLOADS = "primaryHostGroupPayloads"
+    UCP_SYSTEM = "ucpSystem"
+    REMOTE_UCP_SYSTEM ="remoteUcpSystem"
+
+    SECONDARY_SERIAL_NUMBER = "secondarySerialNumber"
+    SECONDARY_POOL_ID = "secondaryPoolID"
+    SECONDARY_HOSTGROUP_PAYLOADS = "secondaryHostGroupPayloads"
+    SET_ALUA_MODE = "setAluaMode"
+    PRIMARY_RESOURCE_GROUP_PAYLOAD = "primaryResourceGroupPayload"
+    VIRTUAL_RESOURCE_GROUP_PAYLOAD = "virtualResourceGroupPayload"
+    QUORUM_DISK_ID = "quorumDiskID"
+    NAME = "name"
+    PORT = "port"
+    HOST_GROUP_ID = "hostGroupID"
+    RESOURCE_GROUP_ID = "resourceGroupID"
+    ENABLE_PREFERRED_PATH = "enablePreferredPath"
+
+class UAIGStorageHealthStatus:
+    NORMAL = "NORMAL"
+    REFRESHING = "REFRESHING"

@@ -1,16 +1,28 @@
+from enum import Enum
+
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
     from ..model.vsp_storage_system_models import *
     from ..common.ansible_common import log_entry_exit, convert_block_capacity
-    from enum import Enum
+    from ..model.common_base_models import VSPCommonInfo
+    from ..common.vsp_constants import set_basic_storage_details
+    from ..common.hv_constants import StateValue, ConnectionTypes
+    from ..common.uaig_utils import UAIGResourceID
+    from ..common.uaig_constants import UAIGStorageHealthStatus
+
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
     from model.vsp_storage_system_models import *
     from common.ansible_common import log_entry_exit, convert_block_capacity
-    from enum import Enum
+    from model.common_base_models import VSPCommonInfo
+    from common.vsp_constants import set_basic_storage_details
+    from common.hv_constants import StateValue, ConnectionTypes
+    from common.uaig_utils import UAIGResourceID
+    from common.uaig_constants import UAIGStorageHealthStatus
+
 
 
 class VSPStorageSystemProvisioner:
@@ -19,6 +31,9 @@ class VSPStorageSystemProvisioner:
         self.gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_STORAGE_SYSTEM
         )
+        self.connection_info = connection_info
+        self.serial = None
+        self.resource_id = None
 
     @log_entry_exit
     def get_syslog_servers(self):
@@ -145,6 +160,24 @@ class VSPStorageSystemProvisioner:
         return storage_pools
 
     @log_entry_exit
+    def get_current_storage_system_info(self):
+        return self.gateway.get_current_storage_system_info()
+
+    def populate_basic_storage_info(self):
+        storage_info = self.get_current_storage_system_info()
+        port_info = self.get_ports()
+        first_port_wwn = None
+        if len(port_info) > 0:
+            first_port_wwn = port_info[0]["wwn"]
+        basic_details = VSPCommonInfo(
+            serialNumber=storage_info.serialNumber,
+            model=storage_info.model,
+            firstWWN=first_port_wwn,
+            deviceID=storage_info.storageDeviceId,
+        )
+        set_basic_storage_details(basic_details)
+
+    @log_entry_exit
     def get_ports(self):
         ports = self.gateway.get_ports()
         tmp_ports = []
@@ -252,12 +285,17 @@ class VSPStorageSystemProvisioner:
             for basic_journal in basic_journal_pools.data:
                 if detailed_journal.journalId == basic_journal.journalId:
                     tmp_journal_pool = {}
+
+                    tmp_journal_pool["journal_id"] = detailed_journal.journalId
+                    tmp_journal_pool["journal_status"] = basic_journal.journalStatus
+
                     tmp_journal_pool["data_overflow_watch_seconds"] = (
                         detailed_journal.dataOverflowWatchInSeconds
                     )
                     tmp_journal_pool["is_cache_mode_enabled"] = (
                         detailed_journal.isCacheModeEnabled
                     )
+
                     tmp_journal_pool["is_inflow_control_enabled"] = (
                         detailed_journal.isInflowControlEnabled
                     )
@@ -342,7 +380,8 @@ class VSPStorageSystemProvisioner:
                 except Exception as err:
                     # Some storage models do not support capacity feature.
                     # So set value of total and free capacities to invalid values.
-                    if err.args[0].get("code") == 404:
+                    API_MSG = "The API is not supported for the specified storage system"
+                    if (isinstance(err.args[0], str) and API_MSG in err.args[0])   or  err.args[0].get("code") == 404:
                         tmp_storage_info["total_capacity"] = ""
                         tmp_storage_info["free_capacity"] = ""
                         tmp_storage_info["total_capacity_in_mb"] = -1
@@ -392,8 +431,8 @@ class VSPStorageSystemProvisioner:
                 tmp_storage_info["health_description"] = ""
 
                 if query:
-                    if "pools" in query:
-                        tmp_storage_info["storage_pools"] = self.get_storage_pools()
+                    # if "pools" in query:
+                    #     tmp_storage_info["storage_pools"] = self.get_storage_pools()
 
                     if "ports" in query:
                         tmp_storage_info["ports"] = self.get_ports()
@@ -418,3 +457,25 @@ class VSPStorageSystemProvisioner:
                 serial_number
             )
         )
+
+    @log_entry_exit
+    def get_storage_ucp_system(self, serial):
+        systems = self.gateway.get_ucp_systems()
+        for system in systems.data:
+            for storage in system.storageDevices:
+                if storage.serialNumber == serial and (storage.healthStatus == UAIGStorageHealthStatus.NORMAL or storage.healthStatus == UAIGStorageHealthStatus.REFRESHING):
+                    return storage
+        return None
+
+    @log_entry_exit
+    def check_ucp_system(self, serial):
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            return serial, ""
+        if not self.gateway.check_storage_in_ucpsystem(serial):
+            raise ValueError(
+                "UCP system is not available. Please try again or provide the correct serial number."
+            )
+        else:
+            self.serial = serial
+            self.resource_id = UAIGResourceID().storage_resourceId(self.serial)
+            return serial, self.resource_id

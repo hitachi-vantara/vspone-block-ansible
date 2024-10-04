@@ -93,14 +93,9 @@ class SDSBChapUserReconciler:
                 chap_user = self.get_chap_user_by_id(spec.id)
                 if chap_user is None:
                     raise ValueError(SDSBChapUserValidationMsg.INVALID_CHAP_USER_ID.value)
-                if chap_user is not None:
+                else :
                     logger.writeDebug("RC:chap_user={}", chap_user)
                     return self.update_sdsb_chap_user(chap_user, spec)
-                else:
-                    logger.writeDebug(
-                        "RC:=== spec.id is not None but CHAP user is None ==="
-                    )
-                    raise ValueError(SDSBChapUserValidationMsg.CHAP_USER_ID_ABSENT.value.format(spec.id))
 
             else:
                 # this could be a create or an update

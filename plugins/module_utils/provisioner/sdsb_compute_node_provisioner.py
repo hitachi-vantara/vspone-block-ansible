@@ -2,12 +2,14 @@ try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
     from ..model.sdsb_compute_node_models import *
+    from ..model.sdsb_port_models import *
     from ..common.ansible_common import log_entry_exit
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
     from model.sdsb_compute_node_models import *
+    from model.sdsb_port_models import *
     from common.ansible_common import log_entry_exit
 
 
@@ -34,6 +36,24 @@ class SDSBComputeNodeProvisioner:
     @log_entry_exit
     def get_compute_node_by_id(self, id):
         return self.gateway.get_compute_node_by_id(id)
+    
+    @log_entry_exit
+    def get_compute_node_details_by_id(self, id):
+        cn =  self.gateway.get_compute_node_by_id(id)
+        if cn.numberOfPaths > 0:
+            cn.paths = []
+            hba_data = {}
+            paths = self.gateway.get_hba_paths(id)
+            for path in paths:
+                port_data = {
+                        "portId": path.portId,
+                        "portName": path.portNickname,
+                    }
+                if path.hbaName not in hba_data:
+                    hba_data[path.hbaName] = {"hbaName": path.hbaName, "hbaId": path.hbaId, "ports": []}
+                hba_data[path.hbaName]["ports"].append(port_data)
+            cn.paths.append(list(hba_data.values()))
+        return cn
 
     @log_entry_exit
     def get_compute_node_by_name(self, name):
@@ -50,6 +70,10 @@ class SDSBComputeNodeProvisioner:
     @log_entry_exit
     def add_iqn_to_compute_node(self, compute_node_id, iqn):
         return self.gateway.add_iqn_to_compute_node(compute_node_id, iqn)
+    
+    @log_entry_exit
+    def add_nqn_to_compute_node(self, compute_node_id, nqn):
+        return self.gateway.add_nqn_to_compute_node(compute_node_id, nqn)
 
     @log_entry_exit
     def get_compute_port_ids(self):
@@ -76,6 +100,18 @@ class SDSBComputeNodeProvisioner:
     @log_entry_exit
     def get_compute_node_hba_ids(self, compute_node_id):
         return self.gateway.get_compute_node_hba_ids(compute_node_id)
+    
+    @log_entry_exit
+    def get_compute_node_nqn_ids(self, compute_node_id):
+        return self.gateway.get_compute_node_nqn_ids(compute_node_id)
+
+    @log_entry_exit
+    def get_compute_node_nqn_pairs(self, compute_node_id):
+        return self.gateway.get_compute_node_nqn_pairs(compute_node_id)
+
+    @log_entry_exit
+    def get_compute_node_iscsi_pairs(self, compute_node_id):
+        return self.gateway.get_compute_node_iscsi_pairs(compute_node_id)
 
     @log_entry_exit
     def attach_volume_to_compute_node(self, compute_node_id, volume_id):
@@ -88,6 +124,10 @@ class SDSBComputeNodeProvisioner:
     @log_entry_exit
     def get_compute_node_hba_names(self, compute_node_id):
         return self.gateway.get_compute_node_hba_names(compute_node_id)
+    
+    @log_entry_exit
+    def get_compute_node_nqn_names(self, compute_node_id):
+        return self.gateway.get_compute_node_nqn_names(compute_node_id)
 
     @log_entry_exit
     def get_hba_paths(self, compute_node_id):
@@ -117,4 +157,8 @@ class SDSBComputeNodeProvisioner:
     @log_entry_exit
     def get_compute_node_hba_name_id_pairs(self, compute_node_id):
         return self.gateway.get_compute_node_hba_name_id_pairs(compute_node_id)
+    
+    @log_entry_exit
+    def get_compute_node_nqn_name_id_pairs(self, compute_node_id):
+        return self.gateway.get_compute_node_nqn_name_id_pairs(compute_node_id)
 

@@ -98,6 +98,7 @@ class VSPDetailedJournalPoolPfrest:
     isDataCopying: bool = None
     mpBladeId: int = None
     mirrorUnits: List[VSPMirrorUnit] = None
+    journalStatus: str = None
 
 
 @dataclass
@@ -437,3 +438,40 @@ class VSPStorageSystemInfo:
     storage_pools: List[VSPNormalizedPool] = None
     quorum_disks: List[VSPNormalizedQuorumDisk] = None
     free_logical_unit_list: VSPNormalizedFreeLun = None
+
+
+@dataclass
+class StorageDevice:
+    serialNumber: str = None
+    resourceId: str = None
+    address: str = None
+    model: str = None
+    microcodeVersion: str = None
+    resourceState: str = None
+    healthStatus: str = None
+    ucpSystems: List[str] = None
+    gatewayAddress: str = None
+
+
+@dataclass
+class UCPStorageSystemInfo(SingleBaseClass):
+    resourceId: str = None
+    name: str = None
+    resourceState: str = None
+    computeDevices: List[str] = None
+    storageDevices: List[StorageDevice] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        storage_devices = kwargs.get("storageDevices")
+        if storage_devices:
+            self.storageDevices = [
+                StorageDevice(**device) for device in storage_devices
+            ]
+
+
+@dataclass
+class UCPStorageSystemsInfo(BaseDataClass):
+    data: List[UCPStorageSystemInfo] = None

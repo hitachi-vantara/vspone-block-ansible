@@ -1,5 +1,5 @@
 try:
-    from ..common.hv_constants import Http
+    from ..common.hv_constants import Http, CommonConstants
     from ..common.sdsb_constants import ModuleArgs
     from ..model.uaig_subscriber_models import SubscriberFactSpec, SubscriberSpec
     from ..model.uaig_password_model import PasswordSpec
@@ -132,14 +132,22 @@ class UAIGParametersManager:
         self.spec = None
 
 
-    def _validate_parameters(self):
-        pass
-
-
 class GatewayArguments:
 
     common_arguments = {
         "connection_info": UAIGCommonParameters.connection_info(),
+        "storage_system_info" : {
+            "required": False,
+            "type": "dict",
+            "description": "Information about the storage system.",
+            "options": {
+                "serial": {
+                    "required": True,
+                    "type": "str",
+                    "description": "The serial number of the storage system.",
+                }
+            },
+        } ,     
         "spec": {
             "required": False,
             "type": "dict",
@@ -167,6 +175,10 @@ class GatewayArguments:
         cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
 
+    @classmethod
+    def get_subscription_fact(cls):
+        return cls.common_arguments
+    
     @classmethod
     def gateway_subscriber(cls):
         spec_options = {
@@ -248,6 +260,15 @@ class GatewayParametersManager:
 
     def __init__(self, params):
         self.params = params
+        if (
+            "storage_system_info" in self.params and
+            self.params.get("storage_system_info") is not None
+        ):
+            self.storage_system_info = StorageSystemInfo(
+                **self.params.get("storage_system_info", {"serial": None})
+            )
+        else:
+            self.storage_system_info = StorageSystemInfo(**{"serial": None})
         self.connection_info = ConnectionInfo(**self.params.get("connection_info", {}))
         self.spec = None
         self.connection_info_map = self.params["connection_info"]
@@ -286,10 +307,6 @@ class GatewayParametersManager:
         api_token = self.connection_info_map.get("api_token")
         connection_type = self.connection_info_map.get("connection_type")
         return ConnectionInfo(address, username, password, api_token, connection_type)
-
-    def _validate_parameters(self):
-        pass
-
 
 class UAIGSnapshotArguments:
 
@@ -351,9 +368,29 @@ class UAIGSnapshotArguments:
                 "required": False,
                 "type": "bool",
             },
+            "auto_split": {
+                "required": False,
+                "type": "bool",
+            },
             "mirror_unit_id": {
                 "required": False,
                 "type": "int",
+            },
+            "snapshot_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "is_data_reduction_force_copy": {
+                "required": False,
+                "type": "bool",
+            },
+            "can_cascade": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_clone": {
+                "required": False,
+                "type": "bool",
             },
         }
 
@@ -361,7 +398,7 @@ class UAIGSnapshotArguments:
             "state": {
                 "required": False,
                 "type": "str",
-                "choices": ["present", "absent", "split", "resync", "restore"],
+                "choices": ["present", "absent", "split", "resync", "restore", "clone"],
                 "default": "present",
             }
         }
@@ -415,10 +452,28 @@ class UAIGResourceID:
         str_for_hash = f"{p_vol}:{s_vol}:{primary_storage_serial_number}"
         return f"localpair-{self.get_md5_hash(str_for_hash)}"
 
+    def replpair_resourceId(self, p_vol, s_vol, primary_storage_serial_number):
+        str_for_hash = f"{p_vol}:{s_vol}:{primary_storage_serial_number}"
+        return f"replpair-{self.get_md5_hash(str_for_hash)}"
+    
+    @classmethod
+    def getSystemSerial(self,management_address, remote_gateway_address):   
+        system_name = CommonConstants.UCP_NAME
+        system_serial = CommonConstants.UCP_SERIAL
+        system_gateway = management_address
+        if remote_gateway_address and remote_gateway_address != "":
+            ## expect ip address or fqdn
+            hash_obj = hashlib.sha256(remote_gateway_address.encode("utf-8")  )
+            ss = str(int.from_bytes(hash_obj.digest(), 'big'))
+            last6 = ss[-6:]
+            system_serial = CommonConstants.UCP_SERIAL_PREFIX + last6
+            system_name = CommonConstants.UCP_NAME_PREFIX + last6
+            system_gateway = remote_gateway_address
+        return system_name, system_serial, system_gateway
 
 class GatewaySpecValidators:
 
-
+    
     @staticmethod
     def validate_subscriber(state, input_spec: SubscriberSpec):
 

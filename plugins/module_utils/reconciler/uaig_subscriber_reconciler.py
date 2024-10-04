@@ -158,13 +158,16 @@ class SubscriberPropertiesExtractor:
             for key, value_type in request.__dict__.items():
 
                 # Assign the value based on the response key and its data type
-                new_key = snake_to_camel_case(key)
-                new_dict[new_key] = value_type
+                if value_type is not None:
+                    new_key = snake_to_camel_case(key)
+                    new_dict[new_key] = value_type
             return new_dict
         else:
             new_dict["name"] = existing_item["name"]
-            new_dict["softLimit"] = existing_item["soft_limit_in_percent"]
-            new_dict["hardLimit"] = existing_item["hard_limit_in_percent"]
+            if existing_item.get("soft_limit_in_percent"):
+                new_dict["softLimit"] = existing_item["soft_limit_in_percent"]
+            if existing_item.get("hard_limit_in_percent"):
+                new_dict["hardLimit"] = existing_item["hard_limit_in_percent"]
             new_dict["quotaLimit"] = existing_item["quota_limit_in_gb"]
             for key, value_type in request.__dict__.items():
 

@@ -31,7 +31,6 @@ class VSPIscsiTargetReconciler:
         self.connectionInfo = connectionInfo
         self.serial = serial
         self.provisioner = VSPIscsiTargetProvisioner(self.connectionInfo)
-        # self._validate_parameters()
 
     def get_iscsi_targets(self, spec):
         return self.provisioner.get_iscsi_targets(spec, self.serial)
@@ -43,16 +42,16 @@ class VSPIscsiTargetReconciler:
             StateValue.ABSENT,
             VSPIscsiTargetConstant.STATE_ADD_INITIATOR,
             VSPIscsiTargetConstant.STATE_REMOVE_INITIATOR,
-            VSPIscsiTargetConstant.STATE_ATTACH_LUN,
-            VSPIscsiTargetConstant.STATE_DETACH_LUN,
+            VSPIscsiTargetConstant.STATE_ATTACH_LDEV,
+            VSPIscsiTargetConstant.STATE_DETACH_LDEV,
             VSPIscsiTargetConstant.STATE_ADD_CHAP_USER,
             VSPIscsiTargetConstant.STATE_REMOVE_CHAP_USER,
         ):
             raise Exception(VSPIscsiTargetMessage.SPEC_STATE_INVALID.value)
 
         if (
-            sub_state == VSPIscsiTargetConstant.STATE_ATTACH_LUN
-            or sub_state == VSPIscsiTargetConstant.STATE_DETACH_LUN
+            sub_state == VSPIscsiTargetConstant.STATE_ATTACH_LDEV
+            or sub_state == VSPIscsiTargetConstant.STATE_DETACH_LDEV
         ):
             spec.chap_users = None
             spec.iqn_initiators = None
@@ -61,12 +60,12 @@ class VSPIscsiTargetReconciler:
             or sub_state == VSPIscsiTargetConstant.STATE_REMOVE_INITIATOR
         ):
             spec.chap_users = None
-            spec.luns = None
+            spec.ldevs = None
         elif (
             sub_state == VSPIscsiTargetConstant.STATE_ADD_CHAP_USER
             or sub_state == VSPIscsiTargetConstant.STATE_REMOVE_CHAP_USER
         ):
-            spec.luns = None
+            spec.ldevs = None
             spec.iqn_initiators = None
 
     def pre_check_port(self, port):
@@ -96,7 +95,7 @@ class VSPIscsiTargetReconciler:
                 port=spec.port,
                 host_mode=spec.host_mode,
                 host_mode_options=spec.host_mode_options,
-                luns=spec.luns,
+                luns=spec.ldevs,
                 iqn_initiators=spec.iqn_initiators,
                 chap_users=spec.chap_users,
             ),
@@ -132,8 +131,8 @@ class VSPIscsiTargetReconciler:
             )
 
         logger.writeDebug("check luns for update")
-        if spec.luns:  # If luns is present, present or overwrite luns
-            self.handle_update_luns(spec.state, spec.luns, iscsi_target, result)
+        if spec.ldevs:  # If ldevs is present, present or overwrite ldevs
+            self.handle_update_luns(spec.state, spec.ldevs, iscsi_target, result)
 
         logger.writeDebug("check chap users for update")
         if spec.chap_users:  # If chap_users is present, update chap_users
@@ -244,7 +243,7 @@ class VSPIscsiTargetReconciler:
         logger.writeDebug("del_luns={0}", del_luns)
 
         if (
-            state == VSPIscsiTargetConstant.STATE_ATTACH_LUN
+            state == VSPIscsiTargetConstant.STATE_ATTACH_LDEV
             or state == StateValue.PRESENT
         ) and add_luns:
             if len(add_luns) > 0:
@@ -254,7 +253,7 @@ class VSPIscsiTargetReconciler:
                 result["changed"] = True
 
         if (
-            state == VSPIscsiTargetConstant.STATE_DETACH_LUN
+            state == VSPIscsiTargetConstant.STATE_DETACH_LDEV
             or state == StateValue.ABSENT
         ):
             if del_luns:
@@ -322,7 +321,7 @@ class VSPIscsiTargetReconciler:
     def handle_delete_iscsi_target(self, spec, iscsi_target, result):
         logger = Log()
         self.provisioner.delete_iscsi_target(
-            iscsi_target, spec.should_delete_all_luns, self.serial
+            iscsi_target, spec.should_delete_all_ldevs, self.serial
         )
         result["changed"] = True
         result["iscsiTarget"] = None
@@ -355,9 +354,9 @@ class VSPIscsiTargetReconciler:
                     VSPIscsiTargetMessage.ISCSI_TARGET_HAS_BEEN_DELETED.value
                 )
             else:
-                if len(iscsi_target.logicalUnits) > 0 and not spec.should_delete_all_luns:
+                if len(iscsi_target.logicalUnits) > 0 and not spec.should_delete_all_ldevs:
                     result["comment"] = (
-                        VSPIscsiTargetMessage.LUNS_PRESENT.value
+                        VSPIscsiTargetMessage.LDEVS_PRESENT.value
                     )
                 else:
                     # Handle delete iscsi target

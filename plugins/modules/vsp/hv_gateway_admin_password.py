@@ -150,10 +150,6 @@ class GatewayPasswordManager:
 
 
 def main():
-    """
-    Create AWS FSx class instance and invoke apply
-    :return: None
-    """
     obj_store = GatewayPasswordManager()
     obj_store.apply()
 

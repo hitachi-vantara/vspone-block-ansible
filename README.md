@@ -1,4 +1,4 @@
-# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 3.0.1
+# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 3.1.0
 
 The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of Ansible modules for managing Hitachi VSP One SDS Block and Hitachi VSP One series systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
@@ -18,7 +18,7 @@ View the changelog [here](Changelog).
 - VSP G350, G370, G700, G900, G1000, G1500
 
 ### Software requirements
-- Red Hat Ansible Core - 2.14 to 2.16
+- Red Hat Ansible Core - 2.13.9, 2.14, 2.15, 2.16, 2.17
 - Python - 3.8 or higher
 - Hitachi UAI Gateway 4.6 for using Gateway Connection
 
@@ -48,8 +48,8 @@ View the changelog [here](Changelog).
 - hv_hg - Manages host group on Hitachi VSP storage system.
 - hv_iscsi_target_facts - Retrieves information about iSCSI targets from Hitachi VSP storage systems.
 - hv_iscsi_target - Manages iSCSI target on Hitachi VSP storage systems.
-- hv_lun_facts - Retrieves information about logical units (LUNs) from Hitachi VSP storage systems.
-- hv_lun - Manages logical units (LUNs) on Hitachi VSP storage systems.
+- hv_ldev_facts - Retrieves information about logical devices from Hitachi VSP storage systems.
+- hv_ldev - Manages logical devices on Hitachi VSP storage systems.
 - hv_paritygroup_facts - Retrieves information about parity groups from Hitachi VSP storage systems.
 - hv_shadow_image_pair_facts - Retrieves information about shadow image pairs from Hitachi VSP storage systems.
 - hv_shadow_image_pair - Manages shadow image pairs on Hitachi VSP storage systems.
@@ -93,7 +93,7 @@ ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax to install version 1.0.0:
 
 ```
-ansible-galaxy collection install hitachivantara.vspone_block:==3.0.0
+ansible-galaxy collection install hitachivantara.vspone_block:==3.1.0
 ```
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.

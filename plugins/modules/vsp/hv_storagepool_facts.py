@@ -128,6 +128,9 @@ storagePool:
       utilization_rate: 0
       virtual_volume_count: 0
       warning_threshold_rate: 70
+      is_encrypted: true
+      subscriber_id: "subscriber_id"
+      partner_id: "partner_id"
 """
 
 import json
@@ -140,7 +143,9 @@ try:
     HAS_MESSAGE_ID = True
 except ImportError as error:
     HAS_MESSAGE_ID = False
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
     HiException,
 )
@@ -153,20 +158,12 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     VSPStoragePoolArguments,
     VSPParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
-    camel_array_to_snake_case,
-    camel_dict_to_snake_case,
-)
-from dataclasses import asdict
-
-logger = Log()
 
 
 class VspStoragePoolFactManager:
     def __init__(self):
+        self.logger = Log()
+
         self.argument_spec = VSPStoragePoolArguments().storage_pool_fact()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
@@ -176,70 +173,26 @@ class VspStoragePoolFactManager:
         try:
             self.params_manager = VSPParametersManager(self.module.params)
             self.spec = self.params_manager.get_pool_fact_spec()
+            self.serial = self.params_manager.get_serial()
         except Exception as e:
+            self.logger.writeException(e)
             self.module.fail_json(msg=str(e))
 
     def apply(self):
         try:
-            if (
-                self.params_manager.connection_info.connection_type.lower()
-                == ConnectionTypes.GATEWAY
-            ):
-                self.gateway_storage_pool_read()
-            else:
-                if self.spec.pool_id is not None:
-                    storage_pool = self.direct_storage_pool_read()
-                    storage_pool_dict = {}
-                    if storage_pool is not None:
-                        storage_pool_dict = storage_pool.to_dict()
-                    storage_pool_data_extracted = vsp_storage_pool.VSPStoragePoolCommonPropertiesExtractor().extract_pool(
-                        storage_pool_dict
-                    )
-                    snake_case_storage_pool_data = camel_dict_to_snake_case(
-                        storage_pool_data_extracted
-                    )
-                    self.module.exit_json(storagePool=snake_case_storage_pool_data)
-                else:
-                    all_storage_pools = self.direct_all_storage_pools_read()
-                    storage_pools_list = all_storage_pools.data_to_list()
-                    storage_pools_data_extracted = vsp_storage_pool.VSPStoragePoolCommonPropertiesExtractor().extract_all_pools(
-                        storage_pools_list
-                    )
-                    snake_case_storage_pools_data = camel_array_to_snake_case(
-                        storage_pools_data_extracted
-                    )
-                    self.module.exit_json(storagePool=snake_case_storage_pools_data)
-        except HiException as ex:
-            if HAS_MESSAGE_ID:
-                logger.writeAMException(MessageID.ERR_GetStoragePools)
-            else:
-                logger.writeAMException("0x0000")
-            self.module.fail_json(msg=ex.format())
+            result = vsp_storage_pool.VSPStoragePoolReconciler(
+                self.params_manager.connection_info, self.serial
+            ).storage_pool_facts(self.spec)
+            if result is None:
+                self.module.fail_json("Couldn't find any storage pool.")
+            self.module.exit_json(storagePool=result)
         except Exception as ex:
+            self.logger.writeException(ex)
+
             self.module.fail_json(msg=str(ex))
 
-    def direct_all_storage_pools_read(self):
-        result = vsp_storage_pool.VSPStoragePoolReconciler(
-            self.params_manager.connection_info
-        ).get_all_storage_pools()
-        if result is None:
-            self.module.fail_json("Couldn't read storage pools.")
-        return result
 
-    def direct_storage_pool_read(self):
-        result = vsp_storage_pool.VSPStoragePoolReconciler(
-            self.params_manager.connection_info
-        ).get_storage_pool(self.spec)
-        if result is None:
-            self.module.fail_json("Couldn't read storage pools.")
-        return result
-
-    def gateway_storage_pool_read(self):
-        self.module.params["spec"] = self.module.params.get("spec")
-        runner.runPlaybook(self.module)
-
-
-def main(module=None):
+def main():
     obj_store = VspStoragePoolFactManager()
     obj_store.apply()
 

@@ -5,9 +5,9 @@ __metaclass__ = type
 from abc import ABC, abstractmethod
 import json
 import time
+import urllib.error as urllib_error
 
-
-from ansible.module_utils.urls import open_url, urllib_error, socket
+from ansible.module_utils.urls import open_url, socket
 
 
 try:
@@ -60,7 +60,8 @@ class ConnectionManager(ABC):
         """returns dict if json, native string otherwise"""
         try:
             text = response.read().decode("utf-8")
-            logger.writeDebug(text)
+            if not ("token" in text):
+                logger.writeDebug(text)
             msg = {}
             raw_message = json.loads(text)
             if not len(raw_message):
@@ -243,6 +244,7 @@ class VSPConnectionManager(ConnectionManager):
 
     @log_entry_exit
     def getAuthToken(self):
+        headers = {}
         if self.session:
             if self.session.expiry_time > time.time():
                 headers = {"Authorization": "Session {0}".format(self.session.token)}
@@ -389,7 +391,8 @@ class VSPConnectionManager(ConnectionManager):
         headers["Content-Type"] = "application/json"
         if headers_input is not None:
             headers.update(headers_input)
-
+        
+        logger.writeDebug("url = {}", url)
         TIME_OUT = 300
         if data is not None:
             data = json.dumps(data)
@@ -446,6 +449,18 @@ class VSPConnectionManager(ConnectionManager):
             except Exception:
                 raise Exception("Could not dicard the current session.")
 
+
+    @log_entry_exit
+    def set_base_url_for_vsp_one_server(self):
+        self.base_url =  "https://{self.address}/ConfigurationManager/simple"
+
+    @log_entry_exit
+    def get_base_url(self):
+        return self.base_url
+
+    @log_entry_exit
+    def set_base_url(self, url):
+        self.base_url =  url
 
 class UAIGConnectionManager:
     def __init__(self, address, username=None, password=None, token=None):
@@ -515,9 +530,14 @@ class UAIGConnectionManager:
         headers["Content-Type"] = "application/json"
         if headers_input is not None:
             headers.update(headers_input)
+            
+        logger.writeDebug(f"url={url}")
+        logger.writeDebug(f"headers_input={headers_input}")
 
         if data is not None:
             data = json.dumps(data)
+            logger.writeDebug(f"data={data}")
+
         try:
 
             response = open_url(
@@ -534,10 +554,20 @@ class UAIGConnectionManager:
             )
         except (urllib_error.HTTPError, socket.timeout) as err:
             error_resp = json.loads(err.read().decode())
+            
+            ##  error_resp={'timestamp': '2024-08-06T07:34:53.089+00:00', 'status': 400, 'error': 'Bad Request', 'path': '/porcelain/v2/storage/devices/storage-e51aa8e9806a70a036a77fec150d1407/hurpair/replpair-b3d13a38398466d44dcfec17b010cf89/split'}
+            logger.writeDebug(f"error_resp={error_resp}")
+            if isinstance(error_resp.get("error"), str):
+                ss = 'Internal system error: '
+                ss = ss + error_resp.get("error")
+                raise Exception(ss)
+            
+            ## puma error messages are not consistent
+            ## error_resp={'type': 'about:blank', 'title': 'Bad Request', 'status': 400, 'detail': 'Validation failure', 'instance': '/porcelain/v2/storage/devices/storage-e51aa8e9806a70a036a77fec150d1407/hurpair/replpair-b3d13a38398466d44dcfec17b010cf89/swap-resync'}            
             error_dtls = (
                 error_resp.get("error").get("message")
                 if error_resp.get("error")
-                else error_resp.get("detail")
+                else error_resp.get("detail") if error_resp.get("detail")  else error_resp.get("message")
             )
             raise Exception(error_dtls)
         except Exception as err:
@@ -552,12 +582,16 @@ class UAIGConnectionManager:
     @log_entry_exit
     def _load_response(self, response):
         """returns dict if json, native string otherwise"""
+        
         try:
             text = response.read().decode("utf-8")
-            logger.writeDebug(text)
+            if not ("token" in text):
+                logger.writeDebug(text)
             msg = {}
             raw_message = json.loads(text)
-            if not len(raw_message):
+            # logger.writeDebug(raw_message)
+            # for empty list [] it was failing
+            if not len(raw_message) and len(raw_message) > 2:
                 if raw_message.get("errorSource"):
                     msg[API.CAUSE] = raw_message[API.CAUSE]
                     msg[API.SOLUTION] = raw_message[API.SOLUTION]
@@ -568,7 +602,9 @@ class UAIGConnectionManager:
 
     @log_entry_exit
     def get_auth_token(self):
- 
+        funcName = "UAIGConnectionManager:get_auth_token"
+        # self.logger.writeEnterSDK(funcName)
+
         body = {"username": self.username, "password": self.password}
 
         end_point = "v2/auth/login"
@@ -604,8 +640,8 @@ class UAIGConnectionManager:
         return self._make_login_request(method="POST", url=url, data=data)
 
     @log_entry_exit
-    def get(self, end_point, headers=None):
-        return self._make_request("GET", end_point, None, headers)
+    def get(self, end_point, headers_input=None):
+        return self._make_request("GET", end_point, None, headers_input)
 
     @log_entry_exit
     def update(self, end_point, data=None):
@@ -615,7 +651,7 @@ class UAIGConnectionManager:
     def _process_task(self, task_id, resource_id):
         response = None
         retryCount = 0
-        while response is None and retryCount < 60:
+        while response is None and retryCount < 120:
             task_response = self.get_task(task_id)
             task_status = task_response[API.DATA].get(API.STATUS)
             logger.writeDebug("task_response = {}", task_response)
@@ -633,8 +669,13 @@ class UAIGConnectionManager:
                     descriptions = [
                         element.get("description") for element in task_events
                     ]
-                # raise Exception(task_name + " " + task_status + " " + descriptions[0])
-                raise Exception(f"{task_name} {task_status}, {descriptions[0]}")
+                    self.raiseMappedExceptions(descriptions)
+                    # raise Exception(task_name + " " + task_status + " " + descriptions[0])
+                    descriptions = ", ".join(descriptions)
+                    raise Exception(f"{task_name} {task_status}, {descriptions}")
+                else:
+                    ## failed with no task event
+                    raise Exception(f"Task failed and no event details.")
             else:
                 retryCount = retryCount + 1
                 time.sleep(10)
@@ -644,12 +685,273 @@ class UAIGConnectionManager:
 
         return response        
 
+    ## UCA-1347, we are seeing invaild grid from porcelain (urpair-xxx, should be hurpair-xxx)
+    ## this version will get the pvol and mirror-id from the subtask
+    def _process_task_ext_v3(self, task_id, resource_id):
+        response = None
+        retryCount = 0
+        while response is None and retryCount < 120:
+            task_response = self.get_task(task_id)
+            task_status = task_response[API.DATA].get(API.STATUS)
+            logger.writeDebug("task_response = {}", task_response)
+            response = None
+
+            if task_status == API.SUCCESS:
+                if resource_id is not None:
+                    response = resource_id
+                else:
+                    response = task_response
+            elif task_status == API.FAILED:
+                task_name = task_response[API.DATA].get(API.NAME)
+                task_events = task_response[API.DATA].get("events")
+                if len(task_events):
+                    descriptions = [
+                        element.get("description") for element in task_events
+                    ]
+                    self.raiseMappedExceptions(descriptions)
+                    # raise Exception(task_name + " " + task_status + " " + descriptions[0])
+                    description0 = self._get_description(descriptions)
+                    raise Exception(f"{task_name} {task_status}, {description0}")                
+                else:
+                    ## failed with no task event
+                    raise Exception(f"Task failed and no event details.")
+            else:
+                retryCount = retryCount + 1
+                time.sleep(10)
+
+        if response is None:
+            raise Exception("Timeout Error! The tasks was not completed in 10 minutes")
+        
+        pvol = None
+        svol = None
+        
+        ## 20240912 - look for pvol and mirror id in the subtask
+        task_events = task_response[API.DATA].get("events")
+        if len(task_events):
+            descriptions = [
+                element.get("description") for element in task_events
+            ]
+            pvol, svol = self._get_hur_pvol(descriptions)       
+
+        return pvol, svol        
+    
+    ## this version will return the GRID in the additional attributes if available
+    @log_entry_exit
+    def _process_task_ext(self, task_id, resource_id):
+        response = None
+        retryCount = 0
+        while response is None and retryCount < 120:
+            task_response = self.get_task(task_id)
+            task_status = task_response[API.DATA].get(API.STATUS)
+            logger.writeDebug("task_response = {}", task_response)
+            response = None
+
+            if task_status == API.SUCCESS:
+                if resource_id is not None:
+                    response = resource_id
+                else:
+                    response = task_response
+            elif task_status == API.FAILED:
+                task_name = task_response[API.DATA].get(API.NAME)
+                task_events = task_response[API.DATA].get("events")
+                if len(task_events):
+                    descriptions = [
+                        element.get("description") for element in task_events
+                    ]
+                    self.raiseMappedExceptions(descriptions)
+                    # raise Exception(task_name + " " + task_status + " " + descriptions[0])
+                    description0 = self._get_description(descriptions)
+                    raise Exception(f"{task_name} {task_status}, {description0}")                
+                else:
+                    ## failed with no task event
+                    raise Exception(f"Task failed and no event details.")
+            else:
+                retryCount = retryCount + 1
+                time.sleep(10)
+
+        if response is None:
+            raise Exception("Timeout Error! The tasks was not completed in 10 minutes")
+
+        ## 20240808 - look for the additional attributes
+        additionalAttributes = task_response[API.DATA].get("additionalAttributes",None)
+        logger.writeDebug("additionalAttributes = {}", additionalAttributes)
+        if additionalAttributes and len(additionalAttributes):
+            items = [
+                element.get("id") for element in additionalAttributes
+                if element.get("type") == 'resource'
+            ]
+            if len(items):
+                response = items[0]          
+
+        return response        
+
+    # 20240904 subtask
+    def _get_description(self, descriptions):
+        # find the first subtask in the descriptions
+        # get the subtask id
+        # fetch it, then return the top most
+        # if anything goes wrong, the top of the input descriptions is returned
+        
+        subtask = None
+        
+        ## caller ensures descriptions is proper
+        description0 = descriptions[0]
+        for desc in descriptions:
+            if "Initiated subtask" in desc :
+                ss = desc[:-1]
+                ss = ss.split(" ")
+                if len(ss) < 3:
+                    ## unexpected error
+                    break
+                subtask = ss[2]
+
+        logger.writeDebug("subtask = {}", subtask)
+        if subtask is None:
+            return description0
+
+        task_response = self.get_task(subtask)
+        logger.writeDebug("subtask_response = {}", task_response)
+        
+        # just return the top of the descriptions
+        task_events = task_response[API.DATA].get("events")
+        if len(task_events):
+            descriptions = [
+                element.get("description") for element in task_events
+            ]
+            # make sure this is what we want here
+            # self.raiseMappedExceptions(descriptions)
+            description0 = "Task event details: "+", ".join(descriptions)
+            
+        logger.writeDebug("description0 = {}", description0)
+        return description0
+
+    # 20240912 get hur pvol and mirror id
+    def _get_hur_pvol(self, descriptions):
+        
+        subtask = None
+        pvol = None
+        svol = None
+        
+        ## caller ensures descriptions is proper
+        description0 = descriptions[0]
+        for desc in descriptions:
+            if "Initiated subtask" in desc :
+                ss = desc.replace("."," ")
+                ss = ss.split(" ")
+                if len(ss) < 3:
+                    ## unexpected error
+                    break
+                subtask = ss[2]
+
+        logger.writeDebug("subtask = {}", subtask)
+        if subtask is None:
+            return pvol, svol
+
+        task_response = self.get_task(subtask)
+        logger.writeDebug("subtask_response = {}", task_response)
+        
+        # let's find the pvol and mirror id
+        # Successfully created HUR Pair with primary volume 1956, secondary volume 213
+        task_events = task_response[API.DATA].get("events")
+        if len(task_events):
+            descriptions = [
+                element.get("description") for element in task_events
+            ]
+            for desc in descriptions:
+                if "Successfully created HUR Pair with primary volume" in desc :
+                    ss = desc.replace(",","")
+                    ss = ss.split(" ")
+                    if len(ss) < 11:
+                        ## unexpected error
+                        break
+                    pvol = ss[7]
+                    svol = ss[10]
+                    break
+            
+        logger.writeDebug("pvol = {}", pvol)
+        logger.writeDebug("svol = {}", svol)
+        return pvol, svol
+
+    @log_entry_exit
+    def _process_task_subtask(self, task_id, resource_id):
+        response = None
+        retryCount = 0
+        while response is None and retryCount < 120:
+            task_response = self.get_task(task_id)
+            task_status = task_response[API.DATA].get(API.STATUS)
+            logger.writeDebug("task_response = {}", task_response)
+            response = None
+
+            if task_status == API.SUCCESS:
+                if resource_id is not None:
+                    response = resource_id
+                else:
+                    response = task_response
+            elif task_status == API.FAILED:
+                task_name = task_response[API.DATA].get(API.NAME)
+                task_events = task_response[API.DATA].get("events")
+                if len(task_events):
+                    descriptions = [
+                        element.get("description") for element in task_events
+                    ]
+                    self.raiseMappedExceptions(descriptions)
+                    # raise Exception(task_name + " " + task_status + " " + descriptions[0])
+                    description0 = self._get_description(descriptions)
+                    raise Exception(f"{task_name} {task_status}, {description0}")
+                else:
+                    ## failed with no task event
+                    raise Exception(f"Task failed and no event details.")
+            else:
+                retryCount = retryCount + 1
+                time.sleep(10)
+
+        if response is None:
+            raise Exception("Timeout Error! The tasks was not completed in 10 minutes")
+
+        ## 20240808 - look for the additional attributes
+        additionalAttributes = task_response[API.DATA].get("additionalAttributes",None)
+        logger.writeDebug("additionalAttributes = {}", additionalAttributes)
+        if additionalAttributes and len(additionalAttributes):
+            items = [
+                element.get("id") for element in additionalAttributes
+                if element.get("type") == 'resource'
+            ]
+            if len(items):
+                response = items[0]          
+
+        return response        
+
+    @log_entry_exit
+    def raiseMappedExceptions(self, descriptions):
+        
+        if not descriptions:
+            return
+        
+        #######################################################################
+        
+        # 202407 raiseMappedExceptions
+        
+        ## we can keep adding new known messages to search in the task event descriptions
+        ## and return a desired (mapped) message for ansible users
+        
+        msg1 = "No consistent volume ID available in the hostgroups: ."
+        msg2 = "Unable to present volume to host group"
+        
+        # if msg1 is found in the task descriptions then
+        # raise msg2 exception        
+        for description in descriptions:
+            if description == msg1:
+                raise Exception(msg2)
+            
+        #######################################################################
+            
     @log_entry_exit
     def post(self, endpoint, data, headers_input=None):
-
+        
         post_response = self._make_request(
             method="POST", end_point=endpoint, data=data, headers_input=headers_input
         )
+        logger.writeDebug("702 post_response = {}", post_response)
         if post_response.get(API.DATA) is not None:
             task_id = post_response[API.DATA].get(API.TASK_ID)
             resource_id = post_response[API.DATA].get(API.RESOURCE_ID)
@@ -659,11 +961,61 @@ class UAIGConnectionManager:
 
         return self._process_task(task_id, resource_id)
 
+    # 20240904 subtask
     @log_entry_exit
-    def patch(self, endpoint, data=None):
+    def post_subtask_ext(self, endpoint, data, headers_input=None):
 
         post_response = self._make_request(
-            method="PATCH", end_point=endpoint, data=data
+            method="POST", end_point=endpoint, data=data, headers_input=headers_input
+        )
+        logger.writeDebug("702 post_response = {}", post_response)
+        if post_response.get(API.DATA) is not None:
+            task_id = post_response[API.DATA].get(API.TASK_ID)
+            resource_id = post_response[API.DATA].get(API.RESOURCE_ID)
+        else:
+            task_id = post_response.get(API.TASK_ID)
+            resource_id = post_response.get(API.RESOURCE_ID)
+
+        return self._process_task_subtask(task_id, resource_id)
+
+    ## this version of post would have extra processing in the task,
+    ## it would look for the GRID from the additional attributes      
+    @log_entry_exit
+    def post_ext(self, endpoint, data, headers_input=None):
+
+        post_response = self._make_request(
+            method="POST", end_point=endpoint, data=data, headers_input=headers_input
+        )
+        logger.writeDebug("702 post_response = {}", post_response)
+        if post_response.get(API.DATA) is not None:
+            task_id = post_response[API.DATA].get(API.TASK_ID)
+            resource_id = post_response[API.DATA].get(API.RESOURCE_ID)
+        else:
+            task_id = post_response.get(API.TASK_ID)
+            resource_id = post_response.get(API.RESOURCE_ID)
+
+        return self._process_task_ext(task_id, resource_id)
+
+    def post_ext_hur_v3(self, endpoint, data, headers_input=None):
+
+        post_response = self._make_request(
+            method="POST", end_point=endpoint, data=data, headers_input=headers_input
+        )
+        logger.writeDebug("702 post_response = {}", post_response)
+        if post_response.get(API.DATA) is not None:
+            task_id = post_response[API.DATA].get(API.TASK_ID)
+            resource_id = post_response[API.DATA].get(API.RESOURCE_ID)
+        else:
+            task_id = post_response.get(API.TASK_ID)
+            resource_id = post_response.get(API.RESOURCE_ID)
+
+        return self._process_task_ext_v3(task_id, resource_id)
+
+    @log_entry_exit
+    def patch(self, endpoint, data=None, headers_input=None):
+
+        post_response = self._make_request(
+            method="PATCH", end_point=endpoint, data=data, headers_input=headers_input
         )
         if post_response.get(API.DATA) is not None:
             task_id = post_response[API.DATA].get(API.TASK_ID)

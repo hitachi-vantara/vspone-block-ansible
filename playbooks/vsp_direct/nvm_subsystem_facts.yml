@@ -1,0 +1,63 @@
+####################################################################
+# Example : NVM Subsystems Facts Playbook
+####################################################################
+- name: NVM Subsystems Facts
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_direct_variables.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+####################################################################
+# Task 1 : Get all NVM Subsystems
+####################################################################
+    - name: Get all NVM Subsystems
+      hv_nvm_subsystems_facts:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 2 : Get NVM Subsystem by name
+####################################################################
+    - name: Get NVM Subsystem by name or id
+      hv_nvm_subsystems_facts:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          name: "{{ nvm_subsystem_facts_name_2 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 3 : Get NVM Subsystem by id
+####################################################################
+    - name: Get NVM Subsystem by name or id
+      hv_nvm_subsystems_facts:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          id: "{{ nvm_subsystem_facts_id_3 }}"
+      register: result
+
+    - debug:
+        var: result

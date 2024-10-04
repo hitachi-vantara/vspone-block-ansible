@@ -41,6 +41,7 @@ def runPlaybook(module):
 
     serial = module.params["serial_number"]
     model = module.params["model"]
+    spec = module.params["spec"]
     # name = module.params['name']
     name = CommonConstants.UCP_NAME
     
@@ -50,7 +51,10 @@ def runPlaybook(module):
     management_password = connection_info.get("password", None)
     subscriberId = connection_info.get("subscriber_id", None)
     api_token = connection_info.get("api_token", None)
+
+    is_refresh = spec.get("refresh", False) if spec else False
     
+    logger.writeDebug("is_refresh={}", is_refresh)
     logger.writeDebug("54 connection_info={}", connection_info)
     logger.writeDebug("54 management_address={}", management_address)
     
@@ -97,10 +101,18 @@ def runPlaybook(module):
 
     logger.writeInfo("56 name={0}".format(name))
     # if serial is None and model is None and name is None:
-    if False:
+    if True:
         ucps = ucpManager.getAllUcpSystem()
-        ucpManager.formatUCPs(ucps)
-        module.exit_json(ucps=ucps, warning=warning)
+        # ucpManager.formatUCPs(ucps)
+        # module.exit_json(ucps=ucps, warning=warning)
+        result = []
+        for ucp in ucps:
+            storages = ucpManager.getStorageDevicesWithRefresh(ucp) if is_refresh else ucpManager.getStorageDevices(ucp)
+            ucpManager.formatStorages(storages)
+            injectEntitlement(storages) 
+            result = result + storages
+        logger.writeDebug("result={}",result)
+        storages = result         
     elif name is not None:
 
         #   str = model.replace(" ","-")

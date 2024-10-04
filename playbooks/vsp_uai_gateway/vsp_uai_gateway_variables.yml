@@ -1,0 +1,834 @@
+
+####################################################################
+# Variables for states : Common for all playbooks
+####################################################################
+state_present : present
+state_absent : absent
+state_resync : resync
+state_sync : sync
+state_split : split
+state_restore : restore
+
+####################################################################
+# Variables for substates, state feild inside spec
+####################################################################
+substate_set_host_mode_and_hmo : set_host_mode_and_hmo
+substate_add_wwn : add_wwn
+substate_remove_wwn : remove_wwn
+substate_present_ldev : present_ldev
+substate_unpresent_ldev : unpresent_ldev
+substate_absent : absent
+substate_add_chap_user : add_chap_user
+substate_remove_chap_user : remove_chap_user
+substate_add_iscsi_initiator : add_iscsi_initiator
+substate_remove_iscsi_initiator : remove_iscsi_initiator
+
+####################################################################
+# Variables for admin_password playbook
+####################################################################
+# Task 0 : Get UAI gateway token
+####################################################################
+# No variables needed in this file for the above task, and this 
+# task is common for all the playbooks present in this directory.
+# First we get the token and used that token to login.
+# Task 0 will not be included under other playbooks' variables section.
+#######################################################################
+# Task 1 : Update UAI Gateway admin user password
+#######################################################################
+admin_password_password_1 : new-password
+
+#####################################################################
+# Variables for delete_ldev_from_host_gateway playbook
+#####################################################################
+# Task 1 : Detach ldevs from hostgroup with gateway connection
+######################################################################
+delete_ldev_from_host_gateway_name_1 : test-ansible-mt-23456-8b
+delete_ldev_from_host_gateway_port_1 : CL8-B
+delete_ldev_from_host_gateway_ldevs_1 : [ 360 ]
+#####################################################################
+# Task 2 : Delete ldev with gateway connection
+######################################################################
+delete_ldev_from_host_gateway_ldevs_2 : [ 360 ]
+
+#####################################################################
+# Variables for gad_pair_facts playbook
+#####################################################################
+# Task 1 : Get all GAD pairs
+######################################################################
+# No variables needed in this file for the above task
+#####################################################################
+# Task 2 : Get GAD pair using primary volume id
+######################################################################
+gad_pair_facts_primary_volume_id_2 : 4
+
+#####################################################################
+# Variables for gad_pair playbook
+#####################################################################
+# Task 1 : Create GAD pair with single server configuration
+#####################################################################
+gad_primary_storage_serial_number_1 : 800010 
+gad_secondary_storage_serial_number_1 : 800011
+gad_primary_volume_id_1 : 12
+gad_secondary_pool_id_1 : 1
+gad_secondary_hostgroups_1 : 
+  - name : test
+    port : CL1-A
+    resource_group_id : 1
+    id : 1
+    enable_preferred_path: false
+gad_primary_resource_group_name_1 : primary_resource_group_1
+gad_quorum_disk_id_1 : 1
+gad_allocate_new_consistency_group_1: False
+#####################################################################
+# Task 2 : Create GAD pair with  server cluster configuration
+#####################################################################
+gad_primary_storage_serial_number_2 : 800010
+gad_secondary_storage_serial_number_2 : 800011
+gad_primary_volume_id_2 : 12
+gad_secondary_pool_id_2 : 1
+gad_secondary_hostgroups_2 : 
+  - name : test
+    port : CL1-A
+    resource_group_id : 1
+    id : 1
+    enable_preferred_path: false
+gad_primary_hostgroups_2 : 
+  - name : test
+    port : CL1-A
+    resource_group_id : 1
+    id : 1
+    enable_preferred_path: false
+gad_allocate_new_consistency_group_2: False
+#####################################################################
+# Task 3 : Create GAD pair with cross path server configuration
+#####################################################################
+gad_primary_storage_serial_number_3 : 800010
+gad_secondary_storage_serial_number_3 : 800011
+gad_primary_volume_id_3 : 12
+gad_secondary_pool_id_3 : 1
+gad_secondary_hostgroups_3 : 
+  - name : test
+    port : CL1-A
+    resource_group_id : 1
+    id : 1
+    enable_preferred_path: false
+gad_primary_hostgroups_3 : 
+  - name : test
+    port : CL1-A
+    resource_group_id : 1
+    id : 1
+    enable_preferred_path: false
+gad_primary_resource_group_name_3: primary_resource_group_1
+gad_quorum_disk_id_3 : 3
+gad_set_alua_mode_3 : false
+gad_allocate_new_consistency_group_3: False
+#####################################################################
+# Task 4 : Split GAD pair
+#####################################################################
+gad_primary_volume_id_4 : 4
+#####################################################################
+# Task 5 : Resync GAD pair
+#####################################################################
+gad_primary_volume_id_5 : 4
+#####################################################################
+# Task 6 : Delete GAD pair
+#####################################################################
+gad_primary_volume_id_6 : 4
+
+#####################################################################
+# Variables for hostgroup_facts playbook
+#####################################################################
+# Task 1 : Get all hostgroups
+######################################################################
+# No variables needed in this file for the above task
+#####################################################################
+# Task 2 : Get hostgroups of specific ports
+######################################################################
+hostgroup_facts_ports_2 : 
+  - CL1-A 
+  - CL2-A
+#####################################################################
+# Task 3 : Get hostgroups of specific ports with same hg name
+######################################################################
+hostgroup_facts_ports_3 :
+  - CL1-A 
+  - CL2-A
+hostgroup_facts_name_3 : hatestdummy5
+#####################################################################
+# Task 4 : Get hostgroups of specific ports, include wwns and ldevs
+######################################################################
+hostgroup_facts_ports_4 : 
+  - CL1-A 
+  - CL2-A
+hostgroup_facts_query_4 :
+  - wwns
+  - ldevs
+
+####################################################################
+# Variables for hostgroup playbook
+#####################################################################
+# Task 1 : Create hostgroup
+######################################################################
+hostgroup_name_1 : hostgroup-server1
+hostgroup_port_1 : CL1-C
+hostgroup_host_mode_1 : VMWARE_EXTENSION
+hostgroup_host_mode_options_1 : [ 54, 63 ]
+hostgroup_ldevs_1 : [ 100, 200 ]
+hostgroup_wwns_1 : 
+  - 9876543210ABCDE0
+  - 9876543210ABCDE1
+#####################################################################
+# Task 2 : Update host mode and host mode options
+######################################################################
+hostgroup_name_2 : hostgroup-server1
+hostgroup_port_2 : CL1-C
+hostgroup_host_mode_2 : LINUX
+hostgroup_host_mode_options_2 : [ 25, 68 ]
+#####################################################################
+# Task 3 : Remove host mode options
+#####################################################################
+hostgroup_name_3 : hostgroup-server1
+hostgroup_port_3 : CL1-C
+hostgroup_host_mode_options_3 : [ 68 ]
+#####################################################################
+# Task 4 : Add wwns to hostgroup
+#####################################################################
+hostgroup_name_4 : hostgroup-server2
+hostgroup_port_4 : CL1-C
+hostgroup_wwns_4 :
+  - 9876543210ABCDE0
+  - 9876543210ABCDE1
+#####################################################################
+# Task 5 : Remove wwns from hostgroup
+#####################################################################
+hostgroup_name_5 : hostgroup-server2
+hostgroup_port_5 : CL1-C
+hostgroup_wwns_5 : 
+  - 9876543210ABCDE1
+#####################################################################
+# Task 6 : Present ldevs to hostgroup
+#####################################################################
+hostgroup_name_6 : hostgroup-server2
+hostgroup_port_6 : CL1-C
+hostgroup_ldevs_6 : [ 300, 400 ]
+#####################################################################
+# Task 7 : Unpresent ldevs from hostgroup
+#####################################################################
+hostgroup_name_7 : hostgroup-server2
+hostgroup_port_7 : CL1-C
+hostgroup_ldevs_7 : [ 400 ]
+####################################################################
+# Task 8 : Delete hostgroup
+#####################################################################
+hostgroup_name_8 : hostgroup-server2
+hostgroup_port_8 : CL1-C
+
+#####################################################################
+# Variables for hur_facts playbook
+#####################################################################
+# Task 1 : Get all HUR pairs
+######################################################################
+# No variables needed in this file for the above task
+######################################################################
+# Task 2 : Get HUR pair using primary volume Id and mirror unit Id
+######################################################################
+hur_facts_primary_volume_id_2 : 111
+hur_facts_mirror_unit_id_2 : 10
+#####################################################################
+# Task 3 : Get HUR pair using primary volume Id
+######################################################################
+hur_facts_primary_volume_id_3 : 111
+#####################################################################
+# Task 4 : Get HUR pair using secondary volume Id
+######################################################################
+hur_facts_secondary_volume_id_4 : 122
+
+#####################################################################
+# Variables for hur playbook
+#####################################################################
+# Task 1 : Create HUR pair
+######################################################################
+hur_primary_volume_id_1 : 123
+hur_primary_volume_journal_id_1 : 12
+hur_secondary_volume_journal_id_1 : 23
+hur_secondary_pool_id_1 : 1
+hur_allocate_new_consistency_group_1 : true
+hur_secondary_storage_serial_number_1 : 800011
+hur_secondary_hostgroup_1 :
+    name : remote-hostgroup-1
+    port : CL1-A
+#####################################################################
+# Task 2 : Split HUR pair
+######################################################################
+hur_primary_volume_id_2 : 123
+hur_mirror_unit_id_2 : 3
+#####################################################################
+# Task 3 : Resync HUR pair
+######################################################################
+hur_primary_volume_id_3 : 123
+hur_mirror_unit_id_3 : 3
+#####################################################################
+# Task 4 : Delete HUR pair
+######################################################################
+hur_primary_volume_id_4 : 123
+hur_mirror_unit_id_4 : 3
+
+####################################################################
+# Variables for iscsi_targrt_facts playbook
+####################################################################
+# Task 1 : Get all iscsi targets
+####################################################################
+# No variables needed for this task
+####################################################################
+# Task 2 : Get iscsi targets by ports
+####################################################################
+iscsi_target_facts_ports_2 : 
+  - CL1-A
+  - CL1-B
+  - CL2-A
+  - CL2-B
+####################################################################
+# Task 3 : Get iscsi targets by ports and name
+####################################################################
+iscsi_target_facts_name_3 : iscsi-target-server-1
+iscsi_target_facts_ports_3 :
+  - CL1-A
+  - CL1-B
+
+####################################################################
+# Variables for iscsi_target playbook
+####################################################################
+# Task 1 : Create iscsi target
+####################################################################
+iscsi_target_name_1 : iscsi-target-server-1
+iscsi_target_port_1 : CL4-C
+iscsi_target_iqn_initiators_1 : 
+  - iqn.1993-08.org.debian.iscsi:01:107dc7e4254a
+  - iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
+iscsi_target_ldevs_1 : [ 100, 200 ]
+iscsi_target_chap_users_1 :
+  - chap_user_name : user1
+    chap_secret : TopSecretForMyChap1
+####################################################################
+# Task 2 : Update iscsi target host mode and host mode options
+####################################################################
+iscsi_target_name_2 : iscsi-target-server-1
+iscsi_target_port_2 : CL4-C
+iscsi_target_host_mode_2 : LINUX
+iscsi_target_host_mode_options_2 : [ 54, 63 ]
+####################################################################
+# Task 3 : Add chap users to iscsi target
+####################################################################
+iscsi_target_name_3 : iscsi-target-server-1
+iscsi_target_port_3 : CL4-C
+iscsi_target_chap_users_3 :
+  - chap_user_name : user1
+    chap_secret : TopSecretForMyChap1
+  - chap_user_name : user2
+    chap_secret : TopSecretForMyChap2
+####################################################################
+# Task 4 : Remove chap user from iscsi target
+####################################################################
+iscsi_target_name_4 : iscsi-target-server-1
+iscsi_target_port_4 : CL4-C
+iscsi_target_chap_users_4 :
+  - chap_user_name : user2
+    chap_secret : TopSecretForMyChap2
+####################################################################
+# Task 5 : Add iqn initiators to iscsi target
+####################################################################
+iscsi_target_name_5 : iscsi-target-server-1
+iscsi_target_port_5 : CL4-C
+iscsi_target_iqn_initiators_5 :
+  - iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
+####################################################################
+# Task 6 : Remove iqn initiators from iscsi target
+####################################################################
+iscsi_target_name_6 : iscsi-target-server-1
+iscsi_target_port_6 : CL4-C
+iscsi_target_iqn_initiators_6 : 
+  - iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
+####################################################################
+# Task 7 : Attach ldevs to iscsi target
+####################################################################
+iscsi_target_name_7 : iscsi-target-server-1
+iscsi_target_port_7 : CL4-C
+iscsi_target_ldevs_7 : [ 300, 400 ]
+####################################################################
+# Task 8 : Detach ldevs from iscsi target
+####################################################################
+iscsi_target_name_8 : iscsi-target-server-1
+iscsi_target_port_8 : CL4-C
+iscsi_target_ldevs_8 : [ 300, 400 ]
+####################################################################
+# Task 9 : Delete iscsi target
+####################################################################
+iscsi_target_name_9 : iscsi-target-server-1
+iscsi_target_port_9 : CL4-C
+
+####################################################################
+# Variables for ldev_facts playbook
+####################################################################
+# Task 1 : Get all ldevs
+####################################################################
+# No variables needed for this task
+####################################################################
+# Task 2 : Get ldevs within range
+####################################################################
+ldev_facts_start_ldev_id_2 : 1000
+ldev_facts_end_ldev_id_2 : 2000
+####################################################################
+# Task 3 : Get ldevs from start id up to max count
+####################################################################
+ldev_facts_start_ldev_id_3 : 500
+ldev_facts_count_3 : 10
+####################################################################
+# Task 4 : Get ldev with same name
+####################################################################
+ldev_facts_name_4 : database-volume1
+####################################################################
+# Task 5 : Get one ldev
+####################################################################
+ldev_facts_ldev_id_5 : 176
+
+####################################################################
+# Variables for ldev playbook
+####################################################################
+# Task 1 : Create ldev
+####################################################################
+ldev_ldev_id_1 : 345
+ldev_pool_id_1 : 15
+ldev_size_1 : 1GB
+ldev_name_1 : database_volume1
+####################################################################
+# Task 2 : Expand size of ldev
+####################################################################
+ldev_ldev_id_2 : 345
+ldev_size_2 : 8GB # This is the final size of the volume
+####################################################################
+# Task 3 : Delete ldev just created
+####################################################################
+ldev_ldev_id_3 : 345
+#########################################################################
+# Task 4 : Create ldev using parity group and auto free ldev id selection
+#########################################################################
+ldev_parity_group_4 : 1-1
+ldev_size_4 : 10GB
+ldev_name_4 : database_volume2
+###########################################################################
+# Task 5 : Create ldev with capacity saving and auto free ldev id selection
+###########################################################################
+ldev_pool_id_5 : 15
+ldev_size_5 : 1GB
+ldev_capacity_saving_5 : compression_deduplication
+###########################################################################
+# Task 6 : Create ldev with capacity saving and data_reduction_share
+###########################################################################
+ldev_pool_id_6 : 15
+ldev_size_6 : 1GB
+ldev_capacity_saving_6 : compression_deduplication
+ldev_data_reduction_share_6 : true
+###########################################################################
+# Task 7 : Create ldev with volume tiering
+###########################################################################
+ldev_pool_id_7 : 15
+ldev_size_7 : 1.07GB
+ldev_relocation_enabled_7 : true
+ldev_tier_level_7 : Low
+ldev_tiering_policy_level_7 : 12
+ldev_tier1_alloc_rate_min_7 : 20
+ldev_tier1_alloc_rate_max_7 : 100
+ldev_tier3_alloc_rate_min_7 : 30
+ldev_tier3_alloc_rate_max_7 : 70
+###########################################################################
+# Task 8 : Delete ldev
+###########################################################################
+ldev_ldev_id_8 : 345
+##############################################################################
+# Task 9 : Force delete ldev removes the ldev from hostgroups or iscsi targets
+###############################################################################
+ldev_ldev_id_9 : 345
+ldev_force_delete_9 : true
+
+####################################################################
+# Variables for paritygroup_facts playbook
+####################################################################
+# Task 1 : Get all paritygroups
+####################################################################
+# No variables needed for this task
+####################################################################
+# Task 2 : Get one paritygroup
+####################################################################
+paritygroup_facts_parity_group_id_1 : 1-1
+
+####################################################################
+# Variables for provision_ldev_to_host playbook
+####################################################################
+# Task 1 : Create ldev with gateway connection
+####################################################################
+provision_ldev_to_host_pool_id_1 : 15
+provision_ldev_to_host_size_1 : 1GB
+provision_ldev_to_host_name_1 : database_volume1
+####################################################################
+# Task 2 : Present ldev to host group with gateway connection
+####################################################################
+provision_ldev_to_host_name_2 : test-ansible-mt-23456-8b
+provision_ldev_to_host_port_2 : CL8-B
+
+####################################################################
+# Variables for shadow_image_pair_facts playbook
+####################################################################
+# Task 1 : Get all paritygroups
+####################################################################
+# No variables needed for this task
+####################################################################
+# Task 2 : Get one shadow image pair
+####################################################################
+shadow_image_pair_facts_pvol_2 : 274
+
+####################################################################
+# Variables for shadow_image_pair playbook
+####################################################################
+# Task 1 : Create shadow image pair
+####################################################################
+shadow_image_pair_pvol_1 : 274
+shadow_image_pair_svol_1 : 277
+shadow_image_pair_new_consistency_group_1 : true
+shadow_image_pair_copy_pace_track_size_1 : MEDIUM
+shadow_image_pair_auto_split_1 : true
+shadow_image_pair_enable_quick_mode_1 : false
+####################################################################
+# Task 2 : Split shadow image pair
+####################################################################
+shadow_image_pair_pvol_2 : 274
+shadow_image_pair_svol_2 : 277
+shadow_image_pair_enable_quick_mode_2 : true
+shadow_image_pair_enable_read_write_2 : false
+####################################################################
+# Task 3 : Resync shadow image pair
+####################################################################
+shadow_image_pair_pvol_3 : 274
+shadow_image_pair_svol_3 : 277
+shadow_image_pair_enable_quick_mode_3 : false
+shadow_image_pair_copy_pace_3 : MEDIUM
+####################################################################
+# Task 4 : Create and Auto-Split shadow image pair
+####################################################################
+shadow_image_pair_pvol_4 : 274
+shadow_image_pair_svol_4 : 277
+shadow_image_pair_new_consistency_group_4 : true
+shadow_image_pair_consistency_group_id_4 : 1
+shadow_image_pair_copy_pace_track_size_4 : MEDIUM
+####################################################################
+# Task 5 : Restore shadow image pair
+####################################################################
+shadow_image_pair_pvol_5 : 274
+shadow_image_pair_svol_5 : 277
+shadow_image_pair_enable_quick_mode_5 : true
+shadow_image_pair_copy_pace_5 : MEDIUM
+
+####################################################################
+# Task 6 : Delete shadow image pair
+####################################################################
+shadow_image_pair_pvol_6 : 274
+shadow_image_pair_svol_6 : 277
+
+####################################################################
+# Variables for snapshot_facts playbook
+####################################################################
+# Task 1 : Get all snapshot pairs
+####################################################################
+# No variables needed for this task
+####################################################################
+# Task 2 : Get snapshot pairs with same pvol
+####################################################################
+snapshot_facts_pvol_2 : 100
+####################################################################
+# Task 3 : Get one snapshot pair
+####################################################################
+snapshot_facts_pvol_3 : 101
+snapshot_facts_mirror_unit_id_3 : 1
+
+####################################################################
+# Variables for snapshot playbook
+####################################################################
+# Task 1 : Create snapshot pair
+####################################################################
+snapshot_pvol_1 : 100
+snapshot_pool_id_1 : 15
+snapshot_snapshot_group_name_1 : snapshot-group-name-1
+####################################################################
+# Task 2 : Split snapshot pair
+####################################################################
+snapshot_pvol_2 : 100
+snapshot_mirror_unit_id_2 : 1
+####################################################################
+# Task 3 : Resync snapshot pair
+####################################################################
+snapshot_pvol_3 : 100
+snapshot_mirror_unit_id_3 : 1
+####################################################################
+# Task 4 : Create and Auto-Split snapshot pair
+####################################################################
+snapshot_pvol_4 : 100
+snapshot_pool_id_4 : 1
+snapshot_snapshot_group_name_4 : snapshot-group-name-4
+####################################################################
+# Task 5 : Restore snapshot pair
+####################################################################
+snapshot_pvol_5 : 100
+snapshot_mirror_unit_id_5 : 5
+####################################################################
+# Task 6 : Create snapshot pair using existing consistency group
+####################################################################
+snapshot_pvol_6 : 100
+snapshot_pool_id_6 : 1
+snapshot_snapshot_group_name_6 : snapshot-group-name
+snapshot_is_data_reduction_force_copy_6 : true
+####################################################################
+# Task 7 : Create snapshot advanced cascade pair
+####################################################################
+snapshot_pvol_7 : 100
+snapshot_pool_id_7 : 1
+snapshot_snapshot_group_name_7 : snapshot-group-name
+snapshot_is_data_reduction_force_copy_7 : true
+snapshot_can_cascade_7 : true
+####################################################################
+# Task 8 : Create snapshot advanced clone pair
+####################################################################
+snapshot_pvol_8 : 100
+snapshot_pool_id_8 : 1
+snapshot_snapshot_group_name_8 : snapshot-group-name
+snapshot_is_data_reduction_force_copy_8 : true
+snapshot_is_clone_8 : true
+snapshot_can_cascade_8 : false
+####################################################################
+# Task 9 : Create clone volume using snapshot advanced clone pair
+#################################################################### 
+snapshot_pvol_9 : 1000
+snapshot_mirror_unit_id_9 : 10
+####################################################################
+# Task 10 : Delete snapshot pair
+####################################################################
+snapshot_pvol_10 : 100
+snapshot_mirror_unit_id_10 : 5
+
+####################################################################
+# Variables for storagepool_facts playbook
+####################################################################
+# Task 1 : Get all storage pools
+####################################################################
+# No variables needed for this task
+####################################################################
+# Task 2 : Get one storage pool
+####################################################################
+storagepool_facts_pool_id_2 : 15
+
+####################################################################
+# Example :  Storage Pool Playbook
+####################################################################
+# Task 1 : Create a storage pool using required details
+####################################################################
+storagepool_name_1 : storagepool-01
+storagepool_type_1 : HDP
+storagepool_parity_group_id_1 : 1-1
+storagepool_capacity_1 : 8GB
+####################################################################
+# Task 2 : Create a storage pool using more details
+####################################################################
+storagepool_name_2 : storagepool-01
+storagepool_type_2 : HDP
+storagepool_parity_group_id_2 : 1-1
+storagepool_capacity_2 : 8GB
+storagepool_warning_threshold_rate_2 : 80
+storagepool_resource_group_id_2 : 1
+storagepool_should_enable_deduplication_2 : true
+storagepool_depletion_threshold_rate_2 : 90
+####################################################################
+# Task 3 : Expand pool by pool Name
+####################################################################
+storagepool_name_3 : storagepool-02
+storagepool_pool_volumes_3 :
+  - parity_group_id : 1-1
+    capacity : 8GB
+  - parity_group_id : 1-1
+    capacity : 8GB
+  - parity_group_id : 1-1
+    capacity : 8GB
+####################################################################
+# Task 4 : Expand pool by pool ID
+####################################################################
+storagepool_id_4 : 15
+storagepool_pool_volumes_4 :
+  - parity_group_id : 1-1
+    capacity : 8GB
+  - parity_group_id : 1-1
+    capacity : 8GB
+  - parity_group_id : 1-1
+    capacity : 8GB
+####################################################################
+# Task 5 : Delete pool by pool ID
+####################################################################
+storagepool_id_5 : 10
+####################################################################
+# Task 6 : Delete pool by pool Name
+#################################################################### 
+storagepool_name6 : storagepool-02
+
+####################################################################
+# Variables for storagesystem_facts playbook
+####################################################################
+# Task 1 : Get storage system facts
+####################################################################
+# No variables needed for this task in this file
+####################################################################
+# Task 2 : Get storage system facts using query
+####################################################################
+storagesystem_facts_query_2 :
+  - ports
+  - quorumdisks
+  - journalPools
+  - freeLogicalUnitList  
+
+####################################################################
+# Variables for storagesystem playbook
+####################################################################
+# Task 1 : Add storage system
+####################################################################
+# No variables needed for this task in this file
+####################################################################
+# Task 2 : Add storage system with remote gateway address
+####################################################################
+storagesystem_remote_gateway_address_2 : 10.10.10.10
+####################################################################
+# Task 3 : Delete storage system
+####################################################################
+# No variables needed for this task in this file
+
+####################################################################
+# Variables for subscriber_facts playbook
+####################################################################
+# Task 1 : Get all subscribers
+####################################################################
+# No variables needed for this task in this file
+####################################################################
+# Task 2 : Get one subscriber
+####################################################################
+subscriber_facts_subscriber_id_2 : 2345
+
+####################################################################
+# Variables for subscriber playbook
+####################################################################
+# Task 1 : Create subscriber
+####################################################################
+subscriber_subscriber_id_1 : 789
+subscriber_name_1 : subscriber_001
+subscriber_soft_limit_1 : 65
+subscriber_hard_limit_1 : 75
+subscriber_quota_limit_1 : 700
+####################################################################
+# Task 2 : Update subscriber
+####################################################################
+subscriber_subscriber_id_2 : 789
+subscriber_name_2 : subscriber_001
+subscriber_soft_limit_2 : 68
+subscriber_hard_limit_2 : 78
+subscriber_quota_limit_2 : 750
+####################################################################
+# Task 3 : Delete subscriber
+####################################################################
+subscriber_subscriber_id_3 : 789
+
+
+####################################################################
+# Variables for subscription_facts playbook
+####################################################################
+# Task 1 : Get all resources for the  subscriber
+####################################################################
+# No variables needed for this task in this file
+########################################################################
+# Task 2 : Get all resources for the  subscriber for a specific storage
+########################################################################
+# No variables needed for this task in this file
+########################################################################
+
+####################################################################
+# Variables for system_facts playbook
+####################################################################
+# Task 1 : Get all storages
+####################################################################
+# No variables needed for this task in this file
+####################################################################
+# Task 2 : Get one subscriber
+####################################################################
+system_facts_refresh_2 : true
+
+####################################################################
+# Variables for truecopy_facts playbook
+####################################################################
+# Task 1 : Get all TrueCopy pairs
+####################################################################
+# No variables needed for this task in this file
+####################################################################
+# Task 2 : Get TrueCopy pair by primary volume ID
+####################################################################
+truecopy_facts_primary_volume_id_2 : 5554
+
+####################################################################
+# Variables for truecopy playbook
+####################################################################
+# Task 1 : Create TrueCopy
+####################################################################
+truecopy_primary_volume_id_1 : 3555
+truecopy_consistency_group_id_1 : -1
+truecopy_fence_level_1 : NEVER
+truecopy_allocate_new_consistency_group_1 : false
+truecopy_secondary_storage_serial_number_1 : 800011
+truecopy_secondary_pool_id_1 : 4
+truecopy_secondary_hostgroup_1 :
+    name : remote-hostgroup-1
+    port : CL1-A
+####################################################################
+# Task 2 : Resync trueCopy
+####################################################################
+truecopy_primary_volume_id_2 : 3555
+####################################################################
+# Task 3 : Split TrueCopy
+####################################################################
+truecopy_primary_volume_id_3 : 3555
+####################################################################
+# Task 4 : Delete TrueCopy
+####################################################################
+truecopy_primary_volume_id_4 : 3555
+
+####################################################################
+# Variables for uai_gateway_token playbook
+####################################################################
+# Task 1 :  Get UAI gateway token
+####################################################################
+# No variables needed for this task in this file
+####################################################################
+
+
+####################################################################
+# Variables for unsubscribe_resource playbook
+####################################################################
+# Task 1 :  Unsubscribe resources for the specific subscriber
+####################################################################
+unsubscribe_resource_resources_1 :
+  - type : hostgroup
+    values : 
+      - CL3-C, test-001
+      - CLA-1, test-005
+  - type : volume
+    values : [5015, 5016]
+  - type : port
+    values : [CL5-A, CL1-A]
+  - type : iscsitarget
+    values : 
+      - CL4-C, iscsi-AnsibleAuto349605
+      - CL4-C, Ansible-CreateISCSI-62117
+  - type : storagepool
+    values : [1HDP8]
+
+

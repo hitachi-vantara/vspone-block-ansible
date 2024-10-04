@@ -11,7 +11,7 @@ class VSPIscsiTargetMessage(Enum):
     LUN_IS_NOT_IN_ISCSI_TARGET = "The LUN is not in the iSCSI target."
     CHAP_USER_IS_NOT_IN_ISCSI_TARGET = "The CHAP user is not in the iSCSI target."
     SPEC_STATE_INVALID = "The spec state parameter is invalid."
-    LUNS_PRESENT = "The iSCSI target has LUNs presented. Make sure to unpresent all LUNs prior to deleting the iSCSI target."
+    LDEVS_PRESENT = "The iSCSI target has LDEVs presented. Make sure to unpresent all LDEV prior to deleting the iSCSI target."
     RESOURCE_PRESENT = "The resource is already present."
 
 class VSPIscsiTargetValidationMsg(Enum):

@@ -230,8 +230,8 @@ def runPlaybook(module):
     if subobjState not in (
         "present",
         "absent",
-        "present_lun",
-        "unpresent_lun",
+        "present_ldev",
+        "unpresent_ldev",
         "set_host_mode_and_hmo",
         "add_wwn",
         "remove_wwn",
@@ -253,8 +253,8 @@ def runPlaybook(module):
     hostoptlist = data.get("host_mode_options", None)
     logger.writeDebug(hostoptlist)
     wwns = data.get("wwns", None)
-    luns = data.get("luns")
-    is_delete_all_luns = data.get("should_delete_all_luns", None)
+    luns = data.get("ldevs")
+    is_delete_all_luns = data.get("should_delete_all_ldevs", None)
 
     logger.writeDebug("2133 ports", ports)
 
@@ -296,8 +296,8 @@ def runPlaybook(module):
     logger.writeDebug("subobjState={}", subobjState)
     comments = []
     if (
-        subobjState == "present_lun"
-        or subobjState == "unpresent_lun"
+        subobjState == "present_ldev"
+        or subobjState == "unpresent_ldev"
         or subobjState == "set_host_mode_and_hmo"
     ):
         # if hg with given port is not found, we have to ignore
@@ -312,19 +312,19 @@ def runPlaybook(module):
         # if hg with given port is not found, we have to ignore
         if luns is not None:
             luns = None
-            comments.append("The parameter luns is ignored.")
+            comments.append("The parameter ldevs is ignored.")
 
     if subobjState == "add_wwn" and (len(ports) > 1 or len(ports) == 0):
         raise Exception("Unable to add WWN to more than one port.")
 
     if (
         subobjState == "add_wwn"
-        or subobjState == "present_lun"
+        or subobjState == "present_ldev"
         or subobjState == "set_host_mode_and_hmo"
     ):
         subobjState = "present"
 
-    if subobjState == "remove_wwn" or subobjState == "unpresent_lun":
+    if subobjState == "remove_wwn" or subobjState == "unpresent_ldev":
         subobjState = "absent"
 
     #################################################################
@@ -374,7 +374,7 @@ def runPlaybook(module):
     logger.writeParam("hostmodename={}", hostmodename)
     logger.writeParam("hostoptlist={}", hostoptlist)
     logger.writeParam("newWWN={}", newWWN)
-    logger.writeParam("luns={}", newLun)
+    logger.writeParam("ldevs={}", newLun)
 
     hostGroups = []
 
@@ -529,7 +529,7 @@ def runPlaybook(module):
         else:
 
             result["comment"] = (
-                "Hostgroup has luns presented. Please make sure to unpresent all lun prior deleting hostgroup."
+                "Hostgroup has ldevs presented. Please make sure to unpresent all ldev prior deleting hostgroup."
             )
             writeMsg("NO Delete with comment")
     else:

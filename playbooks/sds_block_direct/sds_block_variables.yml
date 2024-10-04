@@ -1,0 +1,302 @@
+####################################################################
+# Variables for states : Common for all playbooks
+####################################################################
+state_present : present
+state_absent : absent
+
+####################################################################
+# Variables for substates, state feild inside spec
+####################################################################
+# substates for compute_node
+####################################################################
+substate_add_iscsi_initiator : add_iscsi_initiator
+substate_remove_iscsi_initiator : remove_iscsi_initiator
+substate_add_host_nqn : add_host_nqn
+substate_remove_host_nqn : remove_host_nqn
+substate_attach_volume : attach_volume
+substate_detach_volume : detach_volume
+####################################################################
+# substates for volume
+####################################################################
+substate_add_compute_node : add_compute_node
+substate_remove_compute_node : remove_compute_node
+
+####################################################################
+# Variables for chap_user_facts playbook
+####################################################################
+# Task 1 : Get all chap users
+####################################################################
+# No variables needed for this task
+####################################################################
+# Task 2 : Get one chap user by id
+####################################################################
+chap_user_facts_chap_user_id_2 : 464e1fd1-9892-4134-866c-6964ce786676
+####################################################################
+# Task 3 : Get one chap user by name
+####################################################################
+chap_user_facts_target_chap_user_name_3 : chapuser1
+
+####################################################################
+# Variables for chap_user playbook
+####################################################################
+# Task 1 : Create chap user
+####################################################################
+chap_user_target_chap_user_name_1 : chapuser2
+chap_user_target_chap_secret_1 :  chapuser2_secret
+chap_user_initiator_chap_user_name_1 : chapuser1
+chap_user_initiator_chap_secret_1 : chapuser1_secret
+####################################################################
+# Task 2 : Update chap user name
+####################################################################
+chap_user_id_2 : 464e1fd1-9892-4134-866c-6964ce786676
+chap_user_target_chap_user_name_2 : newchapuser2
+####################################################################
+# Task 3 : Update chap user name and secret
+####################################################################
+chap_user_id_3 : 464e1fd1-9892-4134-866c-6964ce786676
+chap_user_target_chap_user_name_3 : newchapuser2
+chap_user_target_chap_secret_3 : chapuser2_new_secret
+####################################################################
+# Task 4 : Delete chap user
+####################################################################
+chap_user_id_4 : 464e1fd1-9892-4134-866c-6964ce786676
+
+####################################################################
+# Variables for compute_node_facts playbook
+####################################################################
+# Task 1 : Get all compute nodes
+####################################################################
+# No variables needed for this task
+####################################################################
+# Task 2 : Get compute nodes by names
+####################################################################
+compute_node_facts_names_2 : 
+  - computenode1
+  - computenode2
+####################################################################
+# Task 3 : Get compute nodes by hba_name
+########################################################################
+compute_node_facts_hba_name : iqn_1991-05_com_hitachi:test-iscsi-iqn0002
+
+#########################################################################
+# Variables for compute_node playbook
+####################################################################
+# Task 1 : Create compute node
+####################################################################
+compute_node_name_1 : computenode1
+compute_node_os_type_1 : VMWare
+####################################################################
+# Task 2 : Update compute node name
+####################################################################
+compute_node_id_2 : 3d971bb3-40fd-4cb5-bf68-2010b30aa74d
+compute_node_name_2 : computenode1a
+compute_node_os_type_2 : Linux
+####################################################################
+# Task 3 : Add iqn initiators to compute node
+####################################################################
+compute_node_name_3 : computenode1
+compute_node_iscsi_initiators_3 : 
+  - iqn_1991-05_com_hitachi:test-iscsi-iqn3
+  - iqn_1991-05_com_hitachi:test-iscsi-iqn4
+####################################################################
+# Task 4 : Add nqn initiators to compute node
+####################################################################
+compute_node_name_4 : computenode1a
+compute_node_host_nqns_4 : 
+  - nqn_1994-04_jp_co_company:nvme:sds-subsystem-sid_1-3001-nvmssid_0101
+#########################################################################
+# Task 5 : Remove iqn initiators from compute node
+#########################################################################
+compute_node_name_5 : computenode1
+compute_node_iscsi_initiators_5 : 
+  - iqn_1991-05_com_hitachi:test-iscsi-iqn3
+#########################################################################
+# Task 6 : Remove nqn initiators from compute node
+#########################################################################
+compute_node_name_6 : computenode1a
+compute_node_host_nqns_6 : 
+  - nqn_1994-04_jp_co_company:nvme:sds-subsystem-sid_1-3001-nvmssid_0101
+#########################################################################
+# Task 7 : Attach volumes to compute node
+#########################################################################
+compute_node_name_7 : computenode1
+compute_node_volumes_7 : 
+  - test-volume-3
+  - test-volume-4
+#########################################################################
+# Task 8 : Detach volumes from compute node
+#########################################################################
+compute_node_name_8 : computenode1
+compute_node_volumes_8 : 
+  - test-volume-4
+#########################################################################
+# Task 9 : Delete compute node by name
+#########################################################################
+compute_node_name_9 : computenode1
+compute_node_should_delete_all_volumes_9 : true
+#########################################################################
+# Task 10 : Delete compute node by id
+#########################################################################
+compute_node_id_10 : 3d971bb3-40fd-4cb5-bf68-2010b30aa74d
+
+#########################################################################
+# Variables for compute_port_facts playbook
+#########################################################################
+# Task 1 : Get all compute ports
+#########################################################################
+# No variables needed for this task
+##########################################################################
+# Task 2 : Get compute nodes by names
+##########################################################################
+compute_port_facts_name_2 :  iqn_1994-04_jp_co_hitachi:rsd_sph_t_0a85a_002
+##########################################################################
+# Task 3 : Get compute port by nicknames
+##########################################################################
+compute_port_facts_nicknames_3 : 
+  - 000-iSCSI-000
+  - 001-iSCSI-001
+
+#########################################################################
+# Variables for port_auth playbook
+#########################################################################
+# Task 1 : Set port authentication mode
+#########################################################################
+port_auth_port_name_1 : iqn_1994-04_jp_co_hitachi:rsd_sph_t_0a85a_000
+port_auth_authentication_mode_1 : CHAP
+port_auth_target_chap_users_1 : 
+  - chapuser1
+
+########################################################################
+# Variables for storagesystem_facts playbook
+########################################################################
+# Task 1 : Get storage system facts
+#######################################################################
+# No variables needed for this task
+#######################################################################
+
+#######################################################################
+# Variables for update_vps_volume_adr_setting
+#########################################################################
+# Task 1 :  Update VPS Volume ADR setting by id
+#########################################################################
+update_vps_volume_adr_setting_id_1 : dab1fa60-5c41-486a-9551-ec41c74d9f01
+update_vps_volume_adr_setting_capacity_saving_1 : Disabled
+#########################################################################
+# Task 2 :  Update VPS Volume ADR setting by name
+#########################################################################
+update_vps_volume_adr_setting_name_2 : VPS_01
+update_vps_volume_adr_setting_capacity_saving_2 : Compression
+
+####################################################################
+# Variables for volume_facts playbook
+####################################################################
+# Task 1 : Get volumes by default count
+####################################################################
+# No variables needed for this task
+####################################################################
+# Task 2 : Get volumes by count
+####################################################################
+volume_facts_count_2 : 200
+####################################################################
+# Task 3 : Get volumes by names
+####################################################################
+volume_facts_names_3 : 
+  - test-volume1
+  - test-volume2
+####################################################################
+# Task 4 : Get volumes by nicknames
+####################################################################
+volume_facts_nicknames_4 : 
+  - nickname1
+  - nickname2
+####################################################################
+# Task 5 : Get volumes by other filters
+####################################################################
+volume_facts_count_5 : 200
+volume_facts_capacity_saving_5 : Disabled
+
+####################################################################
+# Variables for volume playbook
+####################################################################
+# Task 1 : Create volume
+####################################################################
+volume_name_1 : test-volume1
+volume_capacity_1 : 100MB
+volume_pool_name_1 : SP01
+volume_capacity_saving_1 : Compression
+volume_compute_nodes_1 : 
+  - computenode1
+  - computenode2
+####################################################################
+# Task 2 : Create volume with QoS parameters
+####################################################################
+volume_pool_name_2 : SP01
+volume_name_2  : SDSB-volume-4
+volume_capacity_2 : 100
+volume_qos_param_upper_limit_for_iops_2 : 100
+volume_qos_param_upper_limit_for_transfer_rate_mb_per_sec_2 : 100
+volume_qos_param_upper_alert_allowable_time_in_sec_2 : 100
+volume_compute_nodes_2 :
+  - computenode1
+  - computenode2
+####################################################################
+# Task 3 : Update volume
+####################################################################
+volume_id_3 : df63a5d9-32ea-4ae1-879a-7c23fbc574db
+volume_name_3 : new-test-volume1
+volume_capacity_saving_3 : Compression
+####################################################################
+# Task 4 : Update volume QoS parameters
+####################################################################
+volume_name_4 : SDSB-volume-4
+volume_qos_param_upper_limit_for_iops_4 : 100
+volume_qos_param_upper_limit_for_transfer_rate_mb_per_sec_4 : 100
+volume_qos_param_upper_alert_allowable_time_in_sec_4 : 100
+####################################################################
+# Task 5 : Expand volume by name
+####################################################################
+volume_name_5 : test-volume1
+volume_capacity_5 : 500MB
+####################################################################
+# Task 6 : Expand volume by id
+####################################################################
+volume_id_6 : df63a5d9-32ea-4ae1-879a-7c23fbc574db
+volume_capacity_6 : 750GB
+####################################################################
+# Task 7 : Add volume to compute nodes
+####################################################################
+volume_name_7 : test-volume1
+volume_compute_nodes_7 :
+  - computenode1
+  - computenode2
+####################################################################
+# Task 8 : Remove volume from compute nodes
+####################################################################
+volume_name_8 : test-volume1
+volume_compute_nodes_8 :
+  - computenode1
+  - computenode2
+####################################################################
+# Task 9 : Delete volume by name
+####################################################################
+volume_name_9 : test-volume1
+####################################################################
+# Task 10 : Delete volume by id
+####################################################################
+volume_id_10 : df63a5d9-32ea-4ae1-879a-7c23fbc574db
+
+####################################################################
+# Variables for vps_facts playbook
+####################################################################
+# Task 1 : Get all VPS
+####################################################################
+# No variables needed for this task
+####################################################################
+# Task 2 : Get VPS by name
+####################################################################
+vps_facts_name_2 : VPS_01
+####################################################################
+# Task 3 : Get VPS by id
+####################################################################
+vps_facts_id_3 : dab1fa60-5c41-486a-9551-ec41c74d9f01
+

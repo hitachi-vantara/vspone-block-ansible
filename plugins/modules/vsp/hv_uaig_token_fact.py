@@ -85,9 +85,9 @@ class UAIGTokenFactManager:
 
         parameterManager = SDSBParametersManager(self.module.params)
         self.connection_info = parameterManager.get_connection_info()
-        logger.writeDebug(
-            f"MOD:hv_uai_token_fact:connection_info= {self.connection_info}"
-        )
+        # logger.writeDebug(
+        #     f"MOD:hv_uai_token_fact:connection_info= {self.connection_info}"
+        # )
 
     def apply(self):
         token = None
@@ -99,12 +99,10 @@ class UAIGTokenFactManager:
             sdsb_reconciler = UAIGAuthTokenReconciler(self.connection_info)
             token = sdsb_reconciler.get_auth_token()
 
-            logger.writeDebug(f"MOD:hv_uai_token_fact:compute_nodes= {token}")
+            # logger.writeDebug(f"MOD:hv_uai_token_fact:compute_nodes= {token}")
             output = {
                 "token": str(token),
             }
-            # output_dict = chap_users.data_to_list()
-            # chap_users_data_extracted = ChapUserPropertiesExtractor().extract(output_dict)
 
         except Exception as e:
             self.module.fail_json(msg=str(e))

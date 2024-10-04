@@ -63,11 +63,11 @@ options:
     type: dict
     required: true
     suboptions:
-      pvol:
+      primary_volume_id:
         description: Primary volume id.
         type: int
         required: true
-      svol:
+      secondary_volume_id:
         description: Secondary volume id.
         type: int
         required: true
@@ -75,7 +75,7 @@ options:
         description: Auto split.
         type: bool
         required: false
-      new_consistency_group:
+      allocate_new_consistency_group:
         description: New consistency group.
         type: bool
         required: false
@@ -120,9 +120,9 @@ EXAMPLES = '''
       connection_type: "gateway"
       subscriber_id: "sub123"
     spec:
-      pvol: 274
-      svol: 277
-      new_consistency_group: true
+      primary_volume_id: 274
+      secondary_volume_id: 277
+      allocate_new_consistency_group: true
       copy_pace_track_size: "MEDIUM"
 
 - name: Split shadow image pair
@@ -136,8 +136,8 @@ EXAMPLES = '''
       connection_type: "gateway"
       subscriber_id: "sub123"
     spec:
-      pvol: 274
-      svol: 277
+      primary_volume_id: 274
+      secondary_volume_id: 277
       enable_quick_mode: true
       enable_read_write: false
 
@@ -152,8 +152,8 @@ EXAMPLES = '''
       connection_type: "gateway"
       subscriber_id: "sub123"
     spec:
-      pvol: 274
-      svol: 277
+      primary_volume_id: 274
+      secondary_volume_id: 277
       enable_quick_mode: true
       copy_pace: "FAST"
 
@@ -168,8 +168,8 @@ EXAMPLES = '''
       connection_type: "gateway"
       subscriber_id: "sub123"
     spec:
-      pvol: 274
-      svol: 277
+      primary_volume_id: 274
+      secondary_volume_id: 277
       copy_pace_track_size: "MEDIUM"
 
 - name: Restore shadow image pair
@@ -183,8 +183,8 @@ EXAMPLES = '''
       connection_type: "gateway"
       subscriber_id: "sub123"
     spec:
-      pvol: 274
-      svol: 277
+      primary_volume_id: 274
+      secondary_volume_id: 277
       enable_quick_mode: true
       copy_pace: "FAST"
 
@@ -199,8 +199,8 @@ EXAMPLES = '''
       connection_type: "gateway"
       subscriber_id: "sub123"
     spec:
-      pvol: 274
-      svol: 277
+      primary_volume_id: 274
+      secondary_volume_id: 277
 '''
 
 RETURN = '''
@@ -215,12 +215,12 @@ data:
         "copy_pace_track_size": "MEDIUM",
         "copy_rate": 100,
         "entitlement_status": "assigned",
-        "mirror_unitId": -1,
+        "mirror_unit_id": -1,
         "partner_id": "partner123",
         "primary_hex_volume_id": "00:01:12",
         "primary_volume_id": 274,
         "resource_id": "localpair-2749fed78e8d23a61ed17a8af71c85f8",
-        "secondary_hex_volumeId": "00:01:17",
+        "secondary_hex_volume_id": "00:01:17",
         "secondary_volume_id": 279,
         "status": "PAIR",
         "storage_serial_number": "123456",
@@ -317,10 +317,7 @@ class VSPShadowImagePairManager:
 
 
 def main():
-    """
-    Create AWS FSx class instance and invoke apply
-    :return: None
-    """
+
     obj_store = VSPShadowImagePairManager()
     obj_store.apply()
 

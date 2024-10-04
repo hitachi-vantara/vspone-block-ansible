@@ -39,30 +39,33 @@ class SubscriberUAIGateway:
             )
         try:
             data = self.connectionManager.get(end_point)
-            self.logger.writeDebug("{} Response={}", funcName, data)
-            self.logger.writeExitSDK(funcName)
-            return data
-        except:
-            return []
+        except Exception as e:
+            if "'list' object has no attribute 'get'" in str(e):
+                return []
+            else:
+                raise e
+        self.logger.writeDebug("{} Response={}", funcName, data)
+        self.logger.writeExitSDK(funcName)
+        return data
+
+       
 
     def create_subscriber(self, request):
         funcName = "SubscriberUAIGateway: create_subscriber"
         self.logger.writeEnterSDK(funcName)
 
         request["partnerId"] = CommonConstants.PARTNER_ID
-        if not request.get("softLimit"):
-            request["softLimit"] = "80"
-        if not request.get("hardLimit"):
-            request["hardLimit"] = "90"
+        # if not request.get("softLimit"):
+        #     request["softLimit"] = "80"
+        # if not request.get("hardLimit"):
+        #     request["hardLimit"] = "90"
         body = request
         end_point = Endpoints.CREATE_SUBSCRIBER
-        try:
-            data = self.connectionManager.post(end_point, body)
-            self.logger.writeDebug("{} Response={}", funcName, data)
-            self.logger.writeExitSDK(funcName)
-            return data
-        except:
-            return {}
+        data = self.connectionManager.post(end_point, body)
+        self.logger.writeDebug("{} Response={}", funcName, data)
+        self.logger.writeExitSDK(funcName)
+        return data
+  
 
     def update_subscriber(self, request):
         funcName = "SubscriberUAIGateway: update_subscriber"
@@ -72,23 +75,21 @@ class SubscriberUAIGateway:
         end_point = Endpoints.UPDATE_SUBSCRIBER.format(
             partnerId=CommonConstants.PARTNER_ID, subscriberId=request["subscriberId"]
         )
-        try:
-            data = self.connectionManager.patch(end_point, body)
-            self.logger.writeDebug("{} Response={}", funcName, data)
-            self.logger.writeExitSDK(funcName)
-            return data
-        except:
-            return {}
+       
+        data = self.connectionManager.patch(end_point, body)
+        self.logger.writeDebug("{} Response={}", funcName, data)
+        self.logger.writeExitSDK(funcName)
+        return data
+    
 
     def delete_subscriber(self, subscriberId):
         funcName = "SubscriberUAIGateway: delete_subscriber"
         self.logger.writeEnterSDK(funcName)
 
         end_point = Endpoints.DELETE_SUBSCRIBER.format(subscriberId=subscriberId)
-        try:
-            data = self.connectionManager.delete(end_point)
-            self.logger.writeDebug("{} Response={}", funcName, data)
-            self.logger.writeExitSDK(funcName)
-            return "Subscriber deleted successfully"
-        except Exception as e:
-            return "Failed to delete subscriber as " + str(e).lower()
+    
+        data = self.connectionManager.delete(end_point)
+        self.logger.writeDebug("{} Response={}", funcName, data)
+        self.logger.writeExitSDK(funcName)
+        return "Subscriber deleted successfully"
+    

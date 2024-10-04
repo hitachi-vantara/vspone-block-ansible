@@ -1,0 +1,64 @@
+####################################################################
+# Example : iSCSI Target Facts Playbook
+####################################################################
+- name: Iscsi Target Facts
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_direct_variables.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+####################################################################
+# Task 1 : Get all iscsi targets
+####################################################################
+    - name: Get all iscsi targets
+      hv_iscsi_target_facts:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 2 : Get iscsi targets by ports
+####################################################################
+    - name: Get iscsi targets by ports
+      hv_iscsi_target_facts:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          ports: "{{ iscsi_target_facts_ports_2 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 3 : Get iscsi targets by ports and name
+####################################################################
+    - name: Get iscsi targets by ports and name
+      hv_iscsi_target_facts:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          name: "{{ iscsi_target_facts_name_3 }}"
+          ports: "{{ iscsi_target_facts_ports_3 }}"
+      register: result
+
+    - debug:
+        var: result

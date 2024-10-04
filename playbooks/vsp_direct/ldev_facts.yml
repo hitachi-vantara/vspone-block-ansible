@@ -1,0 +1,111 @@
+####################################################################
+# Example : LDEV Facts Playbook
+####################################################################
+- name: Logical Device Facts
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_direct_variables.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+####################################################################
+# Task 1 : Get all ldevs
+####################################################################
+    - name: Get all ldevs
+      hv_ldev_facts:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 2 : Get ldevs within range
+####################################################################
+    - name: Get ldevs within range
+      hv_ldev_facts:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          start_ldev_id: "{{ ldev_facts_start_ldev_id_1 }}"
+          end_ldev_id: "{{ ldev_facts_end_ldev_id_1 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 3 : Get ldevs from start id up to max count
+####################################################################
+    - name: Get ldevs from start id up to max count
+      hv_ldev_facts:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          start_ldev_id: "{{ ldev_facts_start_ldev_id_3 }}"
+          count: "{{ ldev_facts_count_3 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 4 : Get ldev with same name
+####################################################################
+    - name: Get ldev with same name
+      hv_ldev_facts:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          name: "{{ ldev_facts_name_4 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 5 : Get one ldev
+####################################################################
+    - name: Get one ldev
+      hv_ldev_facts:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          ldev_id: "{{ ldev_facts_ldev_id_5 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 6 : Get one ldev with detailed info
+####################################################################
+    - name: Get one ldev with detailed info
+      hv_ldev_facts:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          ldev_id: "{{ ldev_facts_ldev_id_6 }}"
+          is_detailed: "{{ ldev_facts_is_detailed_6 }}"
+      register: result
+
+    - debug:
+        var: result

@@ -1,0 +1,121 @@
+####################################################################
+# Example : LDEV Facts Playbook
+####################################################################
+- name: Logical Device Facts
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_uai_gateway_variables.yml
+
+  tasks:
+####################################################################
+# Task 0 : Get UAI gateway token
+####################################################################
+    - name: Get UAI gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
+      register: result_token
+      ignore_errors: False
+
+####################################################################
+# Task 1 : Get all ldevs
+####################################################################
+    - name: Get all ldevs
+      hv_ldev_facts:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 2 : Get ldevs within range
+####################################################################
+    - name: Get ldevs within range
+      hv_ldev_facts:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          ldev_id: "{{ ldev_facts_start_ldev_id_2 }}"
+          end_ldev_id: "{{ ldev_facts_end_ldev_id_2 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 3 : Get ldevs from start id up to max count
+####################################################################
+    - name: Get ldevs from start id up to max count
+      hv_ldev_facts:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          ldev_id: "{{ ldev_facts_start_ldev_id_3 }}"
+          count: "{{ ldev_facts_count_3 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 4 : Get ldev with same name
+####################################################################
+    - name: Get ldevs with same name
+      hv_ldev_facts:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          name: "{{ ldev_facts_name_4 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 5 : Get one ldev
+####################################################################
+    - name: Get one ldev
+      hv_ldev_facts:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          ldev_id: "{{ ldev_facts_ldev_id_5 }}"
+      register: result
+
+    - debug:
+        var: result

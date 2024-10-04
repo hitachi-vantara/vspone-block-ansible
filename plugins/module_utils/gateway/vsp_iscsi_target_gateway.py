@@ -383,7 +383,7 @@ class VSPIscsiTargetDirectGateway:
                     port=port_id,
                     host_mode=spec.host_mode,
                     host_mode_options=spec.host_mode_options,
-                    luns=spec.luns,
+                    luns=spec.ldevs,
                     iqn_initiators=spec.iqn_initiators,
                     chap_users=spec.chap_users,
                 )
@@ -733,6 +733,17 @@ class VSPIscsiTargetUAIGateway:
                 del iscsi_target["iSCSIId"]
                 return VSPOneIscsiTargetInfo(VSPIscsiTargetInfo(**iscsi_target))
         return VSPOneIscsiTargetInfo(**{"data": None})
+    
+    def get_all_iscsi_target_by_partner_id(self, serial):
+        end_point = Endpoints.UAIG_GET_ISCSIS.format(
+            self.get_storage_resource_id(serial), "?refresh={}".format(False)
+        )
+        headers = {}
+        headers["partnerId"] = CommonConstants.PARTNER_ID
+        resp = self.connectionManager.get(end_point, headers)
+        return VSPIscsiTargetsInfo(
+            dicts_to_dataclass_list(resp["data"], VSPIscsiTargetInfo)
+        )
 
     def create_one_iscsi_target(self, iscsi_target_payload: IscsiTargetPayLoad, serial):
         logger = Log()

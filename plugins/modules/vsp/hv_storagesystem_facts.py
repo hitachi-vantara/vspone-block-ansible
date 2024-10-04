@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_storagesystem_facts
-short_description:  Retrives storage system information from Hitachi VSP storage systems.
+short_description:  retrieves storage system information from Hitachi VSP storage systems.
 description:
   - This module gathers facts about a specific storage system.
 version_added: '3.0.0'
@@ -71,12 +71,12 @@ options:
           - Additional information to be gathered.
         type: list
         elements: str
-        choices: ['pools', 'ports', 'quorumdisks', 'journalPools', 'freeLogicalUnitList']
+        choices: ['ports', 'quorumdisks', 'journalPools', 'freeLogicalUnitList']
         required: false
 """
 
 EXAMPLES = """
-- name: Get Storage System without additional information for pools, ports, quorumdisks, journalPools and freeLogicalUnitList
+- name: Get Storage System without additional information for ports, quorumdisks, journalPools and freeLogicalUnitList
   tasks:
     - hv_storagesystem_facts:
         storage_system_info:
@@ -86,10 +86,9 @@ EXAMPLES = """
           username: "admin"
           password: "secret"
           connection_type: "direct"
-- name: Get Storage System with additional information for pools, ports, quorumdisks, journalPools and freeLogicalUnitList
+- name: Get Storage System with additional information for ports, quorumdisks, journalPools and freeLogicalUnitList
   vars:
     query:
-      pools
       ports
       quorumdisks
       journalPools
@@ -162,79 +161,6 @@ storage_system_info:
     },
     "total_capacity": "27.62 TB",
     "total_capacity_in_mb": 28958728,
-    "storage_pools": [
-      {
-        "deduplication_enabled": true,
-        "depletion_threshold_rate": 80,
-        "dp_volumes": [
-          {
-            "logical_unit_id": 0,
-            "size": "21.00 GB"
-          },
-          {
-            "logical_unit_id": 3,
-            "size": "21.00 GB"
-          },
-          {
-            "logical_unit_id": 16,
-            "size": "51.00 MB"
-          }
-        ],
-        "free_capacity": 608635453440,
-        "free_capacity_in_units": "566.84 GB",
-        "ldev_ids": [
-          1,
-          2
-        ],
-        "name": "test_pool",
-        "pool_id": 0,
-        "replication_depletion_alert_rate": -1,
-        "replication_usage_rate": -1,
-        "resource_group_id": 0,
-        "resource_id": "storagepool-jdgdff12534",
-        "status": "NORMAL",
-        "subscription_limit_rate": -1,
-        "subscription_rate": 8469,
-        "subscription_warning_rate": -1,
-        "total_capacity": 648403746816,
-        "total_capacity_in_unit": "603.87 GB",
-        "type": "HDP",
-        "utilization_rate": 6,
-        "virtual_volume_count": 582,
-        "warning_threshold_rate": 70
-      },
-      {
-        "deduplication_enabled": true,
-        "depletion_threshold_rate": 70,
-        "dp_volumes": [
-          {
-            "logical_unit_id": 5,
-            "size": "21.00 GB"
-          }
-        ],
-        "free_capacity": 12771655680,
-        "free_capacity_in_units": "11.89 GB",
-        "ldev_ids": [
-          3
-        ],
-        "name": "test_pool_2",
-        "pool_id": 1,
-        "replication_depletion_alert_rate": -1,
-        "replication_usage_rate": -1,
-        "resource_group_id": 0,
-        "resource_id": "storagepool-kagfdfs63542",
-        "status": "NORMAL",
-        "subscription_limit_rate": -1,
-        "subscription_rate": 867,
-        "subscription_warning_rate": -1,
-        "total_capacity": 12771655680,
-        "total_capacity_in_unit": "11.89 GB",
-        "type": "HDP",
-        "utilization_rate": 6,
-        "virtual_volume_count": 582,
-        "warning_threshold_rate": 70
-      }
-    ]
   }
 """
 
@@ -304,18 +230,23 @@ class VspStorageSystemFactManager:
             else:
                 storage_system_data = asdict(self.direct_storage_system_read())
                 
-            if storage_system_data.get("StoragePools"):
-                storage_system_data["storage_pools"] = storage_system_data[
-                    "StoragePools"
-                ]
-            if storage_system_data.get("Ports"):
-                storage_system_data["ports"] = storage_system_data["Ports"]
-            if storage_system_data.get("QuorumDisks"):
-                storage_system_data["quorum_disks"] = storage_system_data["QuorumDisks"]
-            if storage_system_data.get("JournalPools"):
-                storage_system_data["journal_pools"] = storage_system_data[
-                    "JournalPools"
-                ]
+            logger.writeDebug("233 self.spec = {}", self.spec.query)
+            specQuery = self.spec.query
+            if specQuery:
+       
+              if storage_system_data.get("StoragePools"):
+                  storage_system_data["storage_pools"] = storage_system_data[
+                      "StoragePools"
+                  ]
+              if storage_system_data.get("Ports"):
+                  storage_system_data["ports"] = storage_system_data["Ports"]
+              if storage_system_data.get("QuorumDisks"):
+                  storage_system_data["quorum_disks"] = storage_system_data["QuorumDisks"]
+              if storage_system_data.get("JournalPools"):
+                  storage_system_data["journal_pools"] = storage_system_data[
+                      "JournalPools"
+                  ]
+                
             storage_system_data_extracted = (
                 vsp_storage_system.VSPStorageSystemCommonPropertiesExtractor().extract(
                     storage_system_data

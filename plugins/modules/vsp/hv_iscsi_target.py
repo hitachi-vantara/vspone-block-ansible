@@ -81,12 +81,12 @@ options:
           - 'absent: update iscsi target by remove all paramters mentioned in spec'
           - 'add_iscsi_initiator: update iscsi target by append all iqn initiators mentioned in spec'
           - 'remove_iscsi_initiator: update iscsi target by remove all iqn initiators mentioned in spec'
-          - 'attach_lun: update iscsi target by append all luns mentioned in spec'
-          - 'detach_lun: update iscsi target by remove all luns mentioned in spec'
+          - 'attach_ldev: update iscsi target by append all ldevs mentioned in spec'
+          - 'detach_ldev: update iscsi target by remove all ldevs mentioned in spec'
           - 'add_chap_user: update iscsi target by append all chap users mentioned in spec'
           - 'remove_chap_user: update iscsi target by remove all chap users mentioned in spec'
         required: false
-        choices: ['present', 'absent', 'add_iscsi_initiator', 'remove_iscsi_initiator', 'attach_lun', 'detach_lun', 'add_chap_user', 'remove_chap_user']
+        choices: ['present', 'absent', 'add_iscsi_initiator', 'remove_iscsi_initiator', 'attach_ldev', 'detach_ldev', 'add_chap_user', 'remove_chap_user']
         default: 'present'
       port:
         description: port of the iscsi target.
@@ -160,8 +160,8 @@ options:
           - '113 [iSCSI CHAP Authentication Log]'
           - '114 [Auto Asynchronous Reclamation on ESXi 6.5+]'
         required: false
-      luns:
-        description: LUN ID in decimal or HEX of the LUN that you want to present or unpresent.
+      ldevs:
+        description: LDEV ID in decimal or HEX of the LDEV that you want to present or unpresent.
         required: false
       iqn_initiators:
         description: List of IQN initiators that you want to add or remove.
@@ -169,8 +169,8 @@ options:
       chap_users:
         description: List of CHAP users that you want to add or remove.
         required: false
-      should_delete_all_luns:
-        description: If the value is true, destroy the logical units that are no longer attached to any iSCSI Target.
+      should_delete_all_ldevs:
+        description: If the value is true, destroy the logical devices that are no longer attached to any iSCSI Target.
         required: false
 '''
 
@@ -189,7 +189,7 @@ EXAMPLES = '''
           iqn_initiators:
             - iqn.1993-08.org.debian.iscsi:01:107dc7e4254a
             - iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
-          luns: [100, 200]
+          ldevs: [100, 200]
           chap_users:
           - chap_user_name: user1
             chap_secret: TopSecretForMyChap1
@@ -278,7 +278,7 @@ EXAMPLES = '''
             - iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
       register: result
 
-    - name: Attach luns to iscsi target with direct connection
+    - name: Attach ldevs to iscsi target with direct connection
       hv_iscsi_target:
         connection_info:
           connection_type: "direct"
@@ -287,13 +287,13 @@ EXAMPLES = '''
           password: "{{ ansible_vault_storage_secret }}"
         state: present
         spec:
-          state: attach_lun
+          state: attach_ldev
           name: 'iscsi-target-server-1'
           port: 'CL4-C'
-          luns: [300, 400]
+          ldevs: [300, 400]
       register: result
 
-    - name: Detach luns from iscsi target with direct connection
+    - name: Detach ldevs from iscsi target with direct connection
       hv_iscsi_target:
         connection_info:
           connection_type: "direct"
@@ -302,10 +302,10 @@ EXAMPLES = '''
           password: "{{ ansible_vault_storage_secret }}"
         state: present
         spec:
-          state: detach_lun
+          state: detach_ldev
           name: 'iscsi-target-server-1'
           port: 'CL4-C'
-          luns: [300, 400]
+          ldevs: [300, 400]
       register: result
 
     - name: Delete iscsi target with direct connection
@@ -337,7 +337,7 @@ EXAMPLES = '''
           iqn_initiators:
             - iqn.1993-08.org.debian.iscsi:01:107dc7e4254a
             - iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
-          luns: [100, 200]
+          ldevs: [100, 200]
           chap_users:
           - chap_user_name: user1
             chap_secret: TopSecretForMyChap1
@@ -436,7 +436,7 @@ EXAMPLES = '''
             - iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
       register: result
 
-    - name: Attach luns to iscsi target with gateway connection
+    - name: Attach ldevs to iscsi target with gateway connection
       hv_iscsi_target:
         connection_info:
           connection_type: "gateway"
@@ -447,13 +447,13 @@ EXAMPLES = '''
           serial: 40014
         state: present
         spec:
-          state: attach_lun
+          state: attach_ldev
           name: 'iscsi-target-server-1'
           port: 'CL4-C'
-          luns: [300, 400]
+          ldevs: [300, 400]
       register: result
 
-    - name: Detach luns from iscsi target with gateway connection
+    - name: Detach ldevs from iscsi target with gateway connection
       hv_iscsi_target:
         connection_info:
           connection_type: "gateway"
@@ -464,10 +464,10 @@ EXAMPLES = '''
           serial: 40014
         state: present
         spec:
-          state: detach_lun
+          state: detach_ldev
           name: 'iscsi-target-server-1'
           port: 'CL4-C'
-          luns: [300, 400]
+          ldevs: [300, 400]
       register: result
 
     - name: Delete iscsi target with gateway connection

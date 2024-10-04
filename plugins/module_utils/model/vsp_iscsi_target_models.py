@@ -29,10 +29,10 @@ class IscsiTargetSpec(SingleBaseClass):
     port: Optional[str] = None
     host_mode: Optional[str] = None
     host_mode_options: Optional[List[int]] = None
-    luns: Optional[List[int]] = None
+    ldevs: Optional[List[int]] = None
     iqn_initiators: Optional[List[str]] = None
     chap_users: Optional[List[IscsiTargetChapUserSpec]] = None
-    should_delete_all_luns: Optional[bool] = None
+    should_delete_all_ldevs: Optional[bool] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -155,6 +155,7 @@ class VSPIscsiTargetInfo(SingleBaseClass):
     iscsiName: str = None
     iscsiId: int = None
     entitlementStatus: str = None
+    type: str = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -166,6 +167,21 @@ class VSPIscsiTargetInfo(SingleBaseClass):
             )
         if "authParam" in kwargs and kwargs.get("authParam") is not None:
             self.authParam = VSPAuthParamInfo(**kwargs.get("authParam"))
+
+        tg_info = kwargs.get("iscsiTargetInfo")
+        if tg_info:
+            for key, value in tg_info.items():
+                if not hasattr(self, key):
+                    if key == "iSCSIName":
+                        self.iscsiName = value
+                    if key == "iSCSIId":
+                        self.iscsiId = value
+                    setattr(self, key, value)
+
+        if kwargs.get("iSCSIName"):
+            self.iscsiName = kwargs.get("iSCSIName")
+        if kwargs.get("iSCSIId"):
+            self.iscsiId = kwargs.get("iSCSIId")
 
 
 @dataclass

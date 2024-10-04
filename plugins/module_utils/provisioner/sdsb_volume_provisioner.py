@@ -34,19 +34,32 @@ class SDSBVolumeProvisioner:
         start_number=1,
         num_of_digits=1,
         savings=None,
+        qos_param=None,
+        vps_id=None,
     ):
 
         if not savings:
             savings = "Disabled"
 
         return self.gateway.create_bulk_volume(
-            pool_id, name, capacity, volume_count, start_number, num_of_digits, savings
+            pool_id,
+            name,
+            capacity,
+            volume_count,
+            start_number,
+            num_of_digits,
+            savings,
+            qos_param,
+            vps_id,
         )
 
     @log_entry_exit
-    def create_volume(self, pool_id, name, capacity, savings=None):
-        return self.gateway.create_volume(pool_id, name, capacity, savings)
-
+    def create_volume(
+        self, pool_id, name, capacity, savings=None, qos_param=None, vps_id=None
+    ):
+        return self.gateway.create_volume(
+            pool_id, name, capacity, savings, qos_param, vps_id
+        )
 
     @log_entry_exit
     def get_volume_by_id(self, volume_id):
@@ -55,7 +68,7 @@ class SDSBVolumeProvisioner:
     @log_entry_exit
     def get_volume_by_name(self, volume_name):
         return self.gateway.get_volume_by_name(volume_name)
-      
+
     @log_entry_exit
     def get_volumes(self, spec=None):
         volumes = self.gateway.get_volumes()
@@ -64,7 +77,6 @@ class SDSBVolumeProvisioner:
         else:
             ret_vol = self.apply_filters(volumes.data, spec)
             return SDSBVolumesInfo(ret_vol)
-
 
     @log_entry_exit
     def get_all_volume_names(self):
@@ -75,7 +87,7 @@ class SDSBVolumeProvisioner:
         for v in volumes.data:
             volume_names.append(v.name)
         return volume_names
-    
+
     @log_entry_exit
     def get_volume_name_by_id(self, id):
         logger.writeDebug("PV:get_volume_name_by_id:vol_id={}", id)
@@ -85,36 +97,36 @@ class SDSBVolumeProvisioner:
             return vol.name
 
     @log_entry_exit
-    def delete_volume(self, id):
+    def delete_volume(self, id, vps_id=None):
         logger.writeDebug("PV:delete_volume:vol_id={}", id)
-        vol = self.gateway.delete_volume(id)
+        vol = self.gateway.delete_volume(id, vps_id)
         return vol
 
     @log_entry_exit
-    def update_volume(self, volume_id, name, nickname):
-        self.gateway.update_volume(volume_id, name, nickname)
+    def update_volume(self, volume_id, name, nickname, qos_param=None, vps_id=None):
+        self.gateway.update_volume(volume_id, name, nickname, qos_param, vps_id)
 
     @log_entry_exit
-    def expand_volume_capacity(self, volume_id, capacity):
-        self.gateway.expand_volume_capacity(volume_id, capacity)
+    def expand_volume_capacity(self, volume_id, capacity, vps_id=None):
+        self.gateway.expand_volume_capacity(volume_id, capacity, vps_id)
 
     @log_entry_exit
     def apply_filters(self, volumes, spec):
         result = volumes
-        if spec.saving_setting:
-            result = self.apply_filter_ss(result, spec.saving_setting)
+        if spec.capacity_saving:
+            result = self.apply_filter_ss(result, spec.capacity_saving)
         if spec.names:
             result = self.apply_filter_names(result, spec.names)
         if spec.nicknames:
             result = self.apply_filter_nicknames(result, spec.nicknames)
         if spec.count:
             result = self.apply_filter_count(result, spec.count)
-        
+
         return result
 
     @log_entry_exit
     def apply_filter_ss(self, volumes, filter):
-        ret_val= []
+        ret_val = []
         for x in volumes:
             if x.savingSetting == filter:
                 ret_val.append(x)
@@ -123,17 +135,17 @@ class SDSBVolumeProvisioner:
 
     @log_entry_exit
     def apply_filter_names(self, volumes, filter):
-        ret_val= []
+        ret_val = []
         for n in filter:
             for x in volumes:
                 if x.name == n:
                     ret_val.append(x)
 
         return ret_val
-    
+
     @log_entry_exit
     def apply_filter_nicknames(self, volumes, filter):
-        ret_val= []
+        ret_val = []
         for n in filter:
             for x in volumes:
                 if x.nickname == n:

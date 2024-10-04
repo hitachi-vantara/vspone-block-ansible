@@ -63,6 +63,12 @@ class SDSBlockEndpoints(object):
     GET_STORAGE_CLUSTER = "v1/objects/storage"
     GET_HEALTH_STATUS = "v1/objects/health-status"
 
+    GET_VPS = "v1/objects/virtual-private-storages"
+    GET_VPS_BY_ID = "v1/objects/virtual-private-storages/{}"
+    DELETE_VPS = "v1/objects/virtual-private-storages/{}"
+    POST_VPS = "v1/objects/virtual-private-storages"
+    UPDATE_VPS = "v1/objects/virtual-private-storages/{}"
+
 
 class Http(object):
     GET = "GET"
@@ -131,6 +137,12 @@ class AutomationConstants(object):
     MIN_TIME_ALLOWED = 1
     CHAP_SECRET_MIN = 12
     CHAP_SECRET_MAX = 32
+    QOS_UPPER_LIMIT_IOPS_MIN = 100
+    QOS_UPPER_LIMIT_IOPS_MAX = 2147483647
+    QOS_UPPER_LIMIT_XFER_RATE_MIN = 1
+    QOS_UPPER_LIMIT_XFER_RATE_MAX = 2097151
+    QOS_UPPER_ALERT_ALLOWABLE_TIME_OUT_MIN = 1
+    QOS_UPPER_ALERT_ALLOWABLE_TIME_OUT_MAX = 600
 
 
 class ErrorMessages(object):

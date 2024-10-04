@@ -1,0 +1,82 @@
+####################################################################
+# Example : iSCSI Target Facts Playbook
+####################################################################
+- name: Iscsi Target Facts
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - hitachivantara.vspone_block.vsp
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - vsp_uai_gateway_variables.yml
+
+  tasks:
+####################################################################
+# Task 0 : Get UAI gateway token
+####################################################################
+    - name: Get UAI gateway token
+      hv_uaig_token_fact:
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
+      register: result_token
+      ignore_errors: False
+
+####################################################################
+# Task 1 : Get all iscsi targets
+####################################################################
+    - name: Get all iscsi targets
+      hv_iscsi_target_facts:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 2 : Get iscsi targets by ports
+####################################################################
+    - name: Get iscsi targets by ports
+      hv_iscsi_target_facts:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          ports: "{{ iscsi_target_facts_ports_2 }}"
+      register: result
+
+    - debug:
+        var: result
+
+####################################################################
+# Task 3 : Get iscsi targets by ports and name
+####################################################################
+    - name: Get iscsi targets by ports and name
+      hv_iscsi_target_facts:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          subscriber_id: "{{ subscriber_id }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          name: "{{ iscsi_target_facts_name_3 }}"
+          ports: "{{ iscsi_target_facts_ports_3 }}"
+      register: result
+
+    - debug:
+        var: result

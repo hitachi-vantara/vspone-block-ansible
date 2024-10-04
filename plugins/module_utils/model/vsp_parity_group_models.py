@@ -105,3 +105,23 @@ class VSPParityGroup(SingleBaseClass):
 @dataclass
 class VSPParityGroups(BaseDataClass):
     data: List[VSPParityGroup] = None
+
+@dataclass
+class VSPParityGroupUAIG(SingleBaseClass):
+    resourceId: str = None
+    parityGroupId: str = None
+    freeCapacity: int = 0
+    resourceGroupId: int = 0
+    totalCapacity: int = 0
+    ldevIds: List[int] = None
+    raidLevel: str = None
+    driveType: str = None
+    copybackMode: bool = False
+    status: str = None
+    isPoolArrayGroup: bool = False
+    isAcceleratedCompression: bool = False
+    isEncryptionEnabled: bool = False
+
+@dataclass
+class VSPParityGroupsUAIG(BaseDataClass):
+    data: List[VSPParityGroupUAIG] = None

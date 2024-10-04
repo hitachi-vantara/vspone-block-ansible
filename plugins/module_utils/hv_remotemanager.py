@@ -637,7 +637,6 @@ class RemoteManager:
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
-
             return "OK"
         elif "HIJSONFAULT" in response.headers:
             ex = Exception(json.loads(response.headers["HIJSONFAULT"]))
@@ -848,7 +847,6 @@ class RemoteManager:
             return "OK"
         elif "HIJSONFAULT" in response.headers:
 
-
             jfault = json.loads(response.headers["HIJSONFAULT"])
             msg = jfault["ErrorMessage"]
             if "The pair is already split" in msg:
@@ -895,7 +893,6 @@ class RemoteManager:
         if response.ok:
             return "OK"
         elif "HIJSONFAULT" in response.headers:
-
 
             jfault = json.loads(response.headers["HIJSONFAULT"])
             msg = jfault["ErrorMessage"]

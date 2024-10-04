@@ -2,14 +2,36 @@ import json
 
 try:
     from ..common.vsp_constants import Endpoints
-    from .gateway_manager import VSPConnectionManager
+    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
     from ..common.ansible_common import dicts_to_dataclass_list, log_entry_exit
-    from ..model.vsp_parity_group_models import *
+    from ..model.vsp_parity_group_models import (
+        VSPPfrestParityGroupList,
+        VSPPfrestParityGroup,
+        VSPPfrestExternalParityGroupList,
+        VSPPfrestExternalParityGroup,
+        VSPPfrestParityGroupSpace,
+        VSPPfrestLdevList,
+        VSPPfrestLdev,
+        VSPParityGroupUAIG,
+        VSPParityGroupsUAIG
+    )
+    from ..common.uaig_constants import Endpoints as UAIGEndpoints
 except ImportError:
     from common.vsp_constants import Endpoints
-    from .gateway_manager import VSPConnectionManager
+    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
     from common.ansible_common import dicts_to_dataclass_list, log_entry_exit
-    from model.vsp_parity_group_models import *
+    from model.vsp_parity_group_models import (
+        VSPPfrestParityGroupList,
+        VSPPfrestParityGroup,
+        VSPPfrestExternalParityGroupList,
+        VSPPfrestExternalParityGroup,
+        VSPPfrestParityGroupSpace,
+        VSPPfrestLdevList,
+        VSPPfrestLdev,
+        VSPParityGroupUAIG,
+        VSPParityGroupsUAIG
+    )
+    from common.uaig_constants import Endpoints as UAIGEndpoints
 
 
 class VSPParityGroupDirectGateway:
@@ -66,3 +88,23 @@ class VSPParityGroupDirectGateway:
         return VSPPfrestLdevList(
             dicts_to_dataclass_list(rest_ldevs["data"], VSPPfrestLdev)
         )
+
+
+class VSPParityGroupUAIGateway:
+
+    def __init__(self, connection_info):
+        self.connectionManager = UAIGConnectionManager(
+            connection_info.address,
+            connection_info.username,
+            connection_info.password,
+            connection_info.api_token,
+        )
+        self.serial_number = None
+        self.resource_id = None
+
+    @log_entry_exit
+    def get_all_parity_groups(self):
+        end_point = UAIGEndpoints.GET_PARITY_GROUPS.format(self.resource_id)
+        parity_grps = self.connectionManager.get(end_point)
+        pg_info =  VSPParityGroupsUAIG().dump_to_object(parity_grps)
+        return pg_info

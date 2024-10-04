@@ -1,3 +1,6 @@
+####################################################################
+# Example : Compute Port Facts Playbook
+####################################################################
 - name: Compute Port Facts
   hosts: localhost
   gather_facts: false
@@ -6,40 +9,48 @@
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
+    - sds_block_variables.yml
 
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+  
   tasks:
+####################################################################
+# Task 1 : Get all compute ports
+####################################################################
     - name: Get all compute ports
       hv_sds_block_port_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
       register: result
 
     - debug:
         var: result
 
+####################################################################
+# Task 2 : Get compute nodes by names
+####################################################################
     - name: Get compute port by name
       hv_sds_block_port_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         spec:
-          name: iqn.1994-04.jp.co.hitachi:rsd.sph.t.0a85a.002
+          name: "{{ compute_port_facts_name_2 }}"
       register: result
 
     - debug:
         var: result
 
-    - name: Get compute port by nickname
+##########################################################################
+# Task 3 : Get compute port by nicknames
+##########################################################################
+    - name: Get compute port by nicknames
       hv_sds_block_port_facts:
-        connection_info:
-          address: "{{ storage_address }}"
-          username: "{{ ansible_vault_storage_username }}"
-          password: "{{ ansible_vault_storage_secret }}"
+        connection_info: "{{ connection_info }}"
         spec:
-          nicknames: ["000-iSCSI-000", "001-iSCSI-001"]
+          nicknames: "{{ compute_port_facts_nicknames_3 }}"
       register: result
 
     - debug:

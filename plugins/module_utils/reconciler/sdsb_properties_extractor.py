@@ -27,22 +27,22 @@ class SDSBBasePropertiesExtractor(ABC):
     def __init__(self):
         self.common_properties = {}
         self.parameter_mapping = {}
-        self.size_properties = ("total_capacity", "used_capacity")
 
     @log_entry_exit
-    def change_size_keys(self, response_key):
+    def change_keys(self, response_key):
         new_dict = {}
-
+        if not response_key:
+            return new_dict
         for key, value in response_key.items():
             key = camel_to_snake_case(key)
-            if key in self.size_properties:
-                new_key = key + "_mb"
+            if key in self.parameter_mapping.keys():
+                new_key = self.parameter_mapping.get(key)
                 new_dict[new_key] = value
             else:
                 value_type = type(value)
-                # logger.writeDebug('RC:extract:change_size_keys:key={} value_type2 = {}', key, type(value))
+                # logger.writeDebug('RC:extract:change_keys:key={} value_type2 = {}', key, type(value))
                 if value_type == dict:
-                    value = self.change_size_keys(value)
+                    value = self.change_keys(value)
                 if value is None:
                     default_value = (
                         ""
@@ -67,15 +67,15 @@ class SDSBBasePropertiesExtractor(ABC):
                 # Get the corresponding key from the response or its mapped key
                 response_key = response.get(key)
                 if value_type == dict:
-                    response_key = self.change_size_keys(response_key)
+                    response_key = self.change_keys(response_key)
                 # logger.writeDebug('RC:extract:self.size_properties = {}', self.size_properties)
                 logger.writeDebug('RC:extract:key = {} response_key={}', key, response_key)
                 logger.writeDebug('RC:extract:value_type={}', value_type)
                 # Assign the value based on the response key and its data type
                 key = camel_to_snake_case(key)
                 if response_key is not None:
-                    if key in self.size_properties: 
-                        new_key = key + "_mb"
+                    if key in self.parameter_mapping.keys():
+                        new_key = self.parameter_mapping.get(key)
                         new_dict[new_key] = value_type(response_key)
                     else:
                         new_dict[key] = value_type(response_key)
@@ -105,11 +105,27 @@ class SDSBBasePropertiesExtractor(ABC):
             if key in response:
                 response_key = response.get(key)
                 if value_type == dict:
-                    response_key = self.change_size_keys(response_key)
+                    response_key = self.change_keys(response_key)
             # Assign the value based on the response key and its data type
-            cased_key = camel_to_snake_case(key)
+            key = camel_to_snake_case(key)
             if response_key is not None:
-                new_dict[cased_key] = value_type(response_key)
+                if key in self.parameter_mapping.keys():
+                    new_key = self.parameter_mapping.get(key)
+                    new_dict[new_key] = value_type(response_key)
+                else:
+                    new_dict[key] = value_type(response_key)
+            else:
+                # Handle missing keys by assigning default values
+                default_value = (
+                    ""
+                    if value_type == str
+                    else (
+                        -1
+                        if value_type == int
+                        else [] if value_type == list else False
+                    )
+                )
+                new_dict[key] = default_value
         new_dict = camel_dict_to_snake_case(new_dict)
         return new_dict
 
@@ -126,11 +142,15 @@ class ComputeNodePropertiesExtractor(SDSBBasePropertiesExtractor):
             "vpsId": str,
             "vpsName": str,
             "numberOfVolumes": int,
-            "lun": int,
+            # "lun": int,
             "paths": list,
         }
 
-        self.size_properties = ("total_capacity", "used_capacity")
+        self.parameter_mapping = {
+            "nickname": "name",
+            "total_capacity": "total_capacity_mb",
+            "used_capacity" : "used_capacity_mb",
+        }
 
 class ComputePortPropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
@@ -142,17 +162,18 @@ class ComputePortPropertiesExtractor(SDSBBasePropertiesExtractor):
             "nickname": str,
             "configuredPortSpeed": str,
             "portSpeed": str,
+            "portNumber": str,
             "portSpeedDuplex": str,
             "protectionDomainId": str,
             "storageNodeId": str,
             "interfaceName": str,
             "statusSummary": str,
             "status": str,
-            # "fcInformation": str,
-            # "nvmeTcpInformation": str,
+            "fcInformation": str,
+            "nvmeTcpInformation": dict,
             "iscsiInformation": dict,
         }
-        self.size_properties = ("total_capacity", "used_capacity")
+        self.parameter_mapping = {}
 
 class PortDetailPropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
@@ -161,7 +182,7 @@ class PortDetailPropertiesExtractor(SDSBBasePropertiesExtractor):
             "portAuthInfo": dict,
             "chapUsersInfo": list,
         }
-        self.size_properties = ("total_capacity", "used_capacity")
+        self.parameter_mapping = {}
 
 class VolumeAndComputeNodePropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
@@ -169,7 +190,11 @@ class VolumeAndComputeNodePropertiesExtractor(SDSBBasePropertiesExtractor):
             "volumeInfo": dict,
             "computeNodeInfo": list,
         }
-        self.size_properties = ("total_capacity", "used_capacity")
+        self.parameter_mapping = {
+            "nickname": "name",
+            "total_capacity": "total_capacity_mb",
+            "used_capacity" : "used_capacity_mb",
+        }
 
 class ComputeNodeAndVolumePropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
@@ -177,7 +202,11 @@ class ComputeNodeAndVolumePropertiesExtractor(SDSBBasePropertiesExtractor):
             "computeNodeInfo": dict,
             "volumeInfo": list,
         }
-        self.size_properties = ("total_capacity", "used_capacity")
+        self.parameter_mapping = {
+            "nickname": "name",
+            "total_capacity": "total_capacity_mb",
+            "used_capacity" : "used_capacity_mb",
+        }
 
 class ChapUserPropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
@@ -186,10 +215,17 @@ class ChapUserPropertiesExtractor(SDSBBasePropertiesExtractor):
             "targetChapUserName": str,
             "initiatorChapUserName": str,
         }
-        self.size_properties = ("total_capacity", "used_capacity")
+        self.parameter_mapping = {}
 
 class VolumePropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
+        # self.qos_param = {
+        #             "upper_alert_allowable_time": int,
+        #             "upper_alert_time": str,
+        #             "upper_limit_for_iops": int,
+        #             "upper_limit_for_transfer_rate": int
+        #         }
+        
         self.common_properties = {
             "dataReductionEffects": dict,
             "id": str,
@@ -218,5 +254,15 @@ class VolumePropertiesExtractor(SDSBBasePropertiesExtractor):
             "vpsName": str,
             "naaId": str,
             "qosParam" : dict,
+            "computeNodesInfo": list,
         }
-        self.size_properties = ("total_capacity", "used_capacity")
+        # self.size_properties = ("total_capacity", "used_capacity")
+        self.size_properties = ()
+        self.parameter_mapping = {
+            "total_capacity": "total_capacity_mb",
+            "used_capacity" : "used_capacity_mb",
+            "upper_alert_allowable_time": "upper_alert_allowable_time_in_sec",
+            "upper_limit_for_transfer_rate" : "upper_limit_for_transfer_rate_mb_per_sec",
+            "saving_setting" : "capacity_saving",
+        }
+
