@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_hur_facts
-short_description: Retrieves HUR information from from Hitachi VSP storage systems.
+short_description: Retrieves HUR information from Hitachi VSP storage systems.
 description:
-  - This module retrieves information about HURs from from Hitachi VSP storage systems.
+  - This module retrieves information about HURs from Hitachi VSP storage systems.
 version_added: '3.1.0'
 author:
   - Hitachi Vantara, LTD. VERSION 3.1.0

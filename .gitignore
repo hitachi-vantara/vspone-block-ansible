@@ -16,3 +16,4 @@ get_session_id.py
 collection_build.sh
 scripts/
 plugins/module_utils/unit_test
+run_in_python.py

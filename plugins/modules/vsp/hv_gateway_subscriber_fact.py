@@ -143,10 +143,6 @@ class SubscriberFactsManager:
 
 
 def main():
-    """
-    Create AWS FSx class instance and invoke apply
-    :return: None
-    """
     obj_store = SubscriberFactsManager()
     obj_store.apply()
 

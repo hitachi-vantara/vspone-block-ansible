@@ -5,10 +5,10 @@ __metaclass__ = type
 DOCUMENTATION = '''
 ---
 module: hv_gateway_subscription_facts
-short_description: Retrieves information about subscriber on Hitachi VSP storage systems.
+short_description: Retrieves information about resources of a subscriber on Hitachi VSP storage systems.
 description:
-  - This module retrieves information about subscriber.
-  - It provides details about a subscriber such as name, ID and other relevant information.
+  - This module retrieves information about resources of a subscriber.
+  - It provides details about resources of a subscriber such as type, value and other relevant information.
 version_added: '3.1.0'
 author:
   - Hitachi Vantara, LTD. VERSION 3.1.0
@@ -45,7 +45,7 @@ options:
       serial:
         description: Serial number of the Hitachi storage system.
         type: str
-        required: true
+        required: false
 '''
 
 EXAMPLES = '''
@@ -71,13 +71,13 @@ data:
   sample: [
     {
         "resource_value": "CL1-A",
-        "storage_serial": "810045",
+        "storage_serial": "50015",
         "subscriber_id": "12345",
         "type": "Port"
     },
     {
         "resource_value": "5015",
-        "storage_serial": "810050",
+        "storage_serial": "50015",
         "subscriber_id": "12345",
         "total_capacity": 1073741824,
         "type": "Volume"
@@ -133,10 +133,6 @@ class SubscriberResourceFactsManager:
 
 
 def main():
-    """
-    Create AWS FSx class instance and invoke apply
-    :return: None
-    """
     obj_store = SubscriberResourceFactsManager()
     obj_store.apply()
 

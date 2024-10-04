@@ -359,10 +359,6 @@ class VSPHtiSnapshotManager:
 
 
 def main():
-    """
-    Create AWS FSx class instance and invoke apply
-    :return: None
-    """
     obj_store = VSPHtiSnapshotManager()
     obj_store.apply()
 

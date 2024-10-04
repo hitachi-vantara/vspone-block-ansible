@@ -204,10 +204,6 @@ class VSPShadowImagePairManager:
 
 
 def main():
-    """
-    Create AWS FSx class instance and invoke apply
-    :return: None
-    """
     obj_store = VSPShadowImagePairManager()
     obj_store.apply()
 

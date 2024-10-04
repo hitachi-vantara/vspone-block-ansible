@@ -89,25 +89,20 @@ class VSPVolumeReconciler:
         """Reconciler for volume management"""
 
         if state == StateValue.PRESENT:
+
+            if spec.ldev_id is None and spec.name is None and spec.nvm_subsystem_name and spec.state is not None and spec.state == VSPVolumeSubstates.REMOVE_HOST_NQN :
+                # ldev_id and name not present in the spec, but nvm_subsystem_name present
+                self.update_nvm_subsystem(spec)
+                return "NVM subsystem updated successfully."
+            
             volume = None
             if spec.ldev_id:
                 volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
 
             if not volume or volume.emulationType == VolumePayloadConst.NOT_DEFINED:
+                spec.ldev_id = self.create_volume(spec)
                 if spec.name:
-                    vol = self.provisioner.get_volume_by_name(spec.name)
-                    if vol is None:
-                        spec.ldev_id = self.create_volume(spec)
-                        # Set name after ldev is created
-                        self.update_volume_name(spec.ldev_id, spec.name)
-                    else:
-                        spec.ldev_id = vol.ldevId
-                else:
-                    if spec.nvm_subsystem_name:
-                        # ldev_id and name not present in the spec, but nvm_subsystem_name present
-                        self.update_nvm_subsystem(spec)
-                        return "NVM subsystem updated successfully."
-
+                    self.update_volume_name(spec.ldev_id, spec.name)
             else:
                 self.update_volume(volume, spec)
             
@@ -210,6 +205,17 @@ class VSPVolumeReconciler:
                     logger.writeDebug("RC:ldev_found={}", ldev_found)
             
                 self.set_host_namespace_paths(nvme_subsystem.nvmSubsystemId, spec.host_nqns, namespace_id)
+            else:
+                ldev_found = self.is_ldev_present(nvme_subsystem.nvmSubsystemId, spec.ldev_id)
+                logger.writeDebug("RC:process_create_nvme={}", ldev_found)
+                if not ldev_found:
+                    #add ldev to the nvme name space
+                    object_id = self.create_namespace_for_ldev(nvme_subsystem.nvmSubsystemId, spec.ldev_id)
+                    namespace_id = object_id.split(",")[-1]
+                    logger.writeDebug("RC:namespace_id={}", namespace_id)
+                else:
+                    namespace_id = ldev_found.namespaceId
+                    logger.writeDebug("RC:ldev_found={}", ldev_found)
 
     @log_entry_exit
     def set_host_namespace_paths(self, nvme_subsystem_id, hpst_nqns, namespace_id):
@@ -273,7 +279,10 @@ class VSPVolumeReconciler:
             else:
                 self.remove_hqn_from_exiting_vol(nvme_subsystem, spec.host_nqns, spec.ldev_id)
         elif spec.state.lower() == VSPVolumeSubstates.ADD_HOST_NQN:
-            self.process_add_host_nqns(nvme_subsystem, spec.host_nqns, spec.ldev_id)
+            if spec.ldev_id is None:
+                return
+            else:
+                self.process_add_host_nqns(nvme_subsystem, spec.host_nqns, spec.ldev_id)
         else:
             return
 
@@ -296,6 +305,18 @@ class VSPVolumeReconciler:
                 logger.writeDebug("RC:ldev_found={}", ldev_found)
             
             self.set_host_namespace_paths(nvme_subsystem.nvmSubsystemId, host_nqns, namespace_id)
+        else:
+            # If host_nqns is empty just create the namespace for ldev_id
+            ldev_found = self.is_ldev_present(nvme_subsystem.nvmSubsystemId, ldev_id)
+            logger.writeDebug("RC:process_create_nvme={}", ldev_found)
+            if not ldev_found:
+                #add ldev to the nvme name space
+                object_id = self.create_namespace_for_ldev(nvme_subsystem.nvmSubsystemId, ldev_id)
+                namespace_id = object_id.split(",")[-1]
+                logger.writeDebug("RC:namespace_id={}", namespace_id)
+            else:
+                namespace_id = ldev_found.namespaceId
+                logger.writeDebug("RC:ldev_found={}", ldev_found)
 
     @log_entry_exit
     def remove_hqn_from_nvm_subsystem(self, nvm, host_nqn):

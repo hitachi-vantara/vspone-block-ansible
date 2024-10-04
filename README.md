@@ -18,7 +18,7 @@ View the changelog [here](Changelog).
 - VSP G350, G370, G700, G900, G1000, G1500
 
 ### Software requirements
-- Red Hat Ansible Core - 2.13.9, 2.14, 2.15, 2.16, 2.17
+- Red Hat Ansible Core - 2.14 to 2.16
 - Python - 3.8 or higher
 
 ### Supported operating systems
