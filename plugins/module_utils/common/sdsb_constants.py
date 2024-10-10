@@ -1,5 +1,4 @@
 import logging
-from telnetlib import AUTHENTICATION
 
 
 class SDSBlockEndpoints(object):

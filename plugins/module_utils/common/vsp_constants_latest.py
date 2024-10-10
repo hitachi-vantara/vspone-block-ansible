@@ -1,7 +1,4 @@
 import logging
-from telnetlib import AUTHENTICATION
-from ansible.module_utils.six.moves.urllib import parse as urlparse
-
 
 class Endpoints(object):
     GET_ALL_SHADOW_IMAGE_PAIR = "v2/storage/devices/{deviceId}/shadowimages{refresh}"
