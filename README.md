@@ -102,7 +102,7 @@ To upgrade the collection to the latest available version, run the following com
 ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 ```
 
-You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax to install version 1.0.0:
+If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 3.1.0. If you encounter any issues, please report them in this [repository](https://github.com/hitachi-vantara/vspone-block-ansible/issues). Use the following syntax to install version 3.1.0:
 
 ```
 ansible-galaxy collection install hitachivantara.vspone_block:==3.1.0
