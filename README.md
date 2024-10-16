@@ -20,7 +20,7 @@ View the changelog [here](Changelog).
 ### Software requirements
 - Red Hat Ansible Core - 2.13.9, 2.14, 2.15, 2.16, 2.17
 - Python - 3.8 or higher
-- Hitachi UAI Gateway 4.6 for using Gateway Connection
+- Hitachi UAI Gateway 4.7 for using Gateway Connection
 
 ## Installation Instructions
 - For installation, see [Hitachi Vantara VSP One Block Storage Modules for Red Hat Ansible user guide](https://docs.hitachivantara.com).
