@@ -20,6 +20,7 @@ View the changelog [here](Changelog).
 ### Software requirements
 - Red Hat Ansible Core - 2.13.9, 2.14, 2.15, 2.16, 2.17
 - Python - 3.8 or higher
+- Hitachi UAI Gateway 4.7 for using Gateway Connection
 
 ### Supported operating systems
 - Oracle Enterprise Linux 8.9 or higher
