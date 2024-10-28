@@ -30,7 +30,7 @@
     - name: Create GAD pair with single server configuration
       hv_gad:
         storage_system_info:
-          serial: '{{ storage_serial }}'      
+          serial: '{{ storage_serial }}'
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
@@ -42,21 +42,18 @@
           primary_volume_id: "{{ gad_primary_volume_id_1 }}"
           secondary_pool_id: "{{ gad_secondary_pool_id_1 }}"
           secondary_hostgroups: "{{ gad_secondary_hostgroups_1 }}"
-          primary_resource_group_name: "{{ gad_primary_resource_group_name_1 }}"
           quorum_disk_id: "{{ gad_quorum_disk_id_1 }}"
           allocate_new_consistency_group: "{{ gad_allocate_new_consistency_group_1 }}"
       register: result
-
-    - debug: 
+    - debug:
         var: result
-
 #####################################################################
 # Task 2 : Create GAD pair with  server cluster configuration
 #####################################################################
     - name: Create GAD pair with  server cluster configuration
       hv_gad:
         storage_system_info:
-          serial: '{{ storage_serial }}'  
+          serial: '{{ storage_serial }}'
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
@@ -68,11 +65,11 @@
           primary_volume_id: "{{ gad_primary_volume_id_2 }}"
           secondary_pool_id: "{{ gad_secondary_pool_id_2 }}"
           secondary_hostgroups: "{{ gad_secondary_hostgroups_2 }}"
-          primary_hostgroups: "{{ gad_primary_hostgroups_2 }}"
+          quorum_disk_id: "{{ gad_quorum_disk_id_2 }}"
           allocate_new_consistency_group: "{{ gad_allocate_new_consistency_group_2 }}"
       register: result
-
-    - debug: 
+ 
+    - debug:
         var: result
 
 #####################################################################
@@ -92,15 +89,14 @@
           secondary_storage_serial_number: "{{ gad_secondary_storage_serial_number_3 }}"
           primary_volume_id: "{{ gad_primary_volume_id_3 }}"
           secondary_pool_id: "{{ gad_secondary_pool_id_3 }}"
-          secondary_hostgroups: "{{ gad_secondary_hostgroups_3 }}"
           primary_hostgroups: "{{ gad_primary_hostgroups_3 }}"
-          primary_resource_group_name: "{{ gad_primary_resource_group_name_3 }}"
+          secondary_hostgroups: "{{ gad_secondary_hostgroups_3 }}"
           quorum_disk_id: "{{ gad_quorum_disk_id_3 }}"
           set_alua_mode: "{{ gad_set_alua_mode_3 }}"
           allocate_new_consistency_group: "{{ gad_allocate_new_consistency_group_3 }}"
       register: result
-
-    - debug: 
+ 
+    - debug:
         var: result
 
 #####################################################################
