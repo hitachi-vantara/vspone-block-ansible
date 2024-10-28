@@ -23,7 +23,7 @@ View the changelog [here](Changelog).
 - Hitachi UAI Gateway 4.7 for using Gateway Connection
 
 ## Installation Instructions
-- For installation, see [Hitachi Vantara VSP One Block Storage Modules for Red Hat Ansible user guide](https://docs.hitachivantara.com/search/all?query=Ansible&content-lang=en-US).
+- For installation, see [Hitachi Vantara VSP One Block Storage Modules for Red Hat Ansible user guide](https://docs.hitachivantara.com/v/u/en-us/adapters-and-drivers/3.1.0/rn-92adptr150).
 
 ## Idempotence
 - Idempotence is supported for this release.
