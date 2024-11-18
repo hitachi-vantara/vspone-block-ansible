@@ -1,2 +1,47 @@
 ---
 requires_ansible: ">=2.13.9"
+action_groups:
+  vspone_block:
+    - sds_block.hv_sds_block_chap_user
+    - sds_block.hv_sds_block_chap_user_facts
+    - sds_block.hv_sds_block_compute_node
+    - sds_block.hv_sds_block_compute_node_facts
+    - sds_block.hv_sds_block_compute_port_authentication
+    - sds_block.hv_sds_block_port_facts
+    - sds_block.hv_sds_block_storage_system_fact
+    - sds_block.hv_sds_block_volume
+    - sds_block.hv_sds_block_volume_facts
+    - sds_block.hv_sds_block_vps
+    - sds_block.hv_sds_block_vps_facts
+    - vsp.hv_gad
+    - vsp.hv_gad_fact
+    - vsp.hv_gateway_admin_password
+    - vsp.hv_gateway_subscriber
+    - vsp.hv_gateway_subscriber_fact
+    - vsp.hv_gateway_subscription_facts
+    - vsp.hv_gateway_unsubscribe_resource
+    - vsp.hv_hg
+    - vsp.hv_hg_facts
+    - vsp.hv_hur
+    - vsp.hv_hur_facts
+    - vsp.hv_iscsi_target
+    - vsp.hv_iscsi_target_facts
+    - vsp.hv_ldev
+    - vsp.hv_ldev_facts
+    - vsp.hv_nvm_subsystems_facts
+    - vsp.hv_paritygroup_facts
+    - vsp.hv_shadow_image_pair
+    - vsp.hv_shadow_image_pair_facts
+    - vsp.hv_snapshot
+    - vsp.hv_snapshot_facts
+    - vsp.hv_storage_port
+    - vsp.hv_storage_port_facts
+    - vsp.hv_storagepool
+    - vsp.hv_storagepool_facts
+    - vsp.hv_storagesystem
+    - vsp.hv_storagesystem_facts
+    - vsp.hv_system_facts
+    - vsp.hv_troubleshooting_facts
+    - vsp.hv_truecopy
+    - vsp.hv_truecopy_facts
+    - vsp.hv_uaig_token_fact
