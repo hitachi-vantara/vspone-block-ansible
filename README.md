@@ -47,6 +47,9 @@ If the collection was installed from Ansible Galaxy, to upgrade the collection t
 
 ## Module manifest
 A listing of all available modules with descriptions can be found in the [module manifest](docs/ModuleManifest.md).
+
+## Contributing
+Contribution guidelines and procedures are kept in [./docs/CONTRIBUTING](docs/CONTRIBUTING.md).
            
 ## Author(s)
 
