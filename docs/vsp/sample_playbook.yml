@@ -1,0 +1,23 @@
+---
+- name: Sample Playbook
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Ensure the latest version of git is installed
+      apt:
+        name: git
+        state: latest
+        update_cache: yes
+
+    - name: Create a directory
+      file:
+        path: /home/ubuntu/sample_directory
+        state: directory
+        mode: '0755'
+
+    - name: Copy a file
+      copy:
+        src: /home/ubuntu/sample_file.txt
+        dest: /home/ubuntu/sample_directory/sample_file.txt
+        mode: '0644'
