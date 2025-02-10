@@ -5,6 +5,8 @@ short_description: Manages GAD pairs on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, deletion, splitting and resync of GAD pairs on Hitachi VSP storage systems.
   - It supports various GAD pairs operations based on the specified task level.
+  - For examples of VSP direct connect, follow the link https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/gad_pair.yml
+  - For examples of VSP gateway connect, follow the link https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/gad_pair.yml
 version_added: '3.1.0'
 author:
   - Hitachi Vantara, LTD. VERSION 3.1.0
