@@ -1,5 +1,3 @@
-import json
-
 try:
     from ..common.vsp_constants import Endpoints
     from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
@@ -12,8 +10,7 @@ try:
         VSPPfrestParityGroupSpace,
         VSPPfrestLdevList,
         VSPPfrestLdev,
-        VSPParityGroupUAIG,
-        VSPParityGroupsUAIG
+        VSPParityGroupsUAIG,
     )
     from ..common.uaig_constants import Endpoints as UAIGEndpoints
 except ImportError:
@@ -28,8 +25,7 @@ except ImportError:
         VSPPfrestParityGroupSpace,
         VSPPfrestLdevList,
         VSPPfrestLdev,
-        VSPParityGroupUAIG,
-        VSPParityGroupsUAIG
+        VSPParityGroupsUAIG,
     )
     from common.uaig_constants import Endpoints as UAIGEndpoints
 
@@ -38,13 +34,15 @@ class VSPParityGroupDirectGateway:
 
     def __init__(self, connection_info):
         self.connectionManager = VSPConnectionManager(
-            connection_info.address, connection_info.username, connection_info.password
+            connection_info.address,
+            connection_info.username,
+            connection_info.password,
+            connection_info.api_token,
         )
 
     @log_entry_exit
     def get_all_parity_groups(self):
         endPoint = Endpoints.GET_PARITY_GROUPS
-        print(endPoint)
         parity_groups_dict = self.connectionManager.get(endPoint)
         return VSPPfrestParityGroupList(
             dicts_to_dataclass_list(parity_groups_dict["data"], VSPPfrestParityGroup)
@@ -53,14 +51,12 @@ class VSPParityGroupDirectGateway:
     @log_entry_exit
     def get_parity_group(self, parity_group_id):
         endPoint = Endpoints.GET_PARITY_GROUP.format(parity_group_id)
-        print(endPoint)
         parity_group_dict = self.connectionManager.get(endPoint)
         return VSPPfrestParityGroup(**parity_group_dict)
 
     @log_entry_exit
     def get_all_external_parity_groups(self):
         endPoint = Endpoints.GET_EXTERNAL_PARITY_GROUPS
-        print(endPoint)
         parity_groups_dict = self.connectionManager.get(endPoint)
         return VSPPfrestExternalParityGroupList(
             dicts_to_dataclass_list(
@@ -71,7 +67,6 @@ class VSPParityGroupDirectGateway:
     @log_entry_exit
     def get_external_parity_group(self, external_parity_group_id):
         endPoint = Endpoints.GET_EXTERNAL_PARITY_GROUP.format(external_parity_group_id)
-        print(endPoint)
         parity_group_dict = self.connectionManager.get(endPoint)
         epg = VSPPfrestExternalParityGroup(**parity_group_dict)
         epg.spaces = dicts_to_dataclass_list(
@@ -83,11 +78,70 @@ class VSPParityGroupDirectGateway:
     @log_entry_exit
     def get_ldevs(self, ldevs_query):
         endPoint = Endpoints.GET_LDEVS.format(ldevs_query)
-        print(endPoint)
         rest_ldevs = self.connectionManager.get(endPoint)
         return VSPPfrestLdevList(
             dicts_to_dataclass_list(rest_ldevs["data"], VSPPfrestLdev)
         )
+
+    @log_entry_exit
+    def create_parity_group(self, spec):
+        endPoint = Endpoints.GET_PARITY_GROUPS
+        payload = {
+            "parityGroupId": spec.parity_group_id,
+            "driveLocationIds": spec.drive_location_ids,
+            "raidType": spec.raid_type,
+            "isEncryptionEnabled": (
+                spec.is_encryption_enabled if spec.is_encryption_enabled else False
+            ),
+            "isCopyBackModeEnabled": (
+                spec.is_copy_back_mode_enabled
+                if spec.is_copy_back_mode_enabled
+                else True
+            ),
+            "isAcceleratedCompressionEnabled": (
+                spec.is_accelerated_compression_enabled
+                if spec.is_accelerated_compression_enabled
+                else False
+            ),
+        }
+        if spec.clpr_id is not None:
+            payload["clprId"] = spec.clpr_id
+        response = self.connectionManager.post(endPoint, payload)
+        return response
+
+    @log_entry_exit
+    def delete_parity_group(self, parity_group_id):
+        endPoint = Endpoints.GET_PARITY_GROUP.format(parity_group_id)
+        response = self.connectionManager.delete(endPoint)
+        return response
+
+    @log_entry_exit
+    def update_parity_group(self, spec):
+        endPoint = Endpoints.GET_PARITY_GROUP.format(spec.parity_group_id)
+        payload = {
+            "isAcceleratedCompressionEnabled": spec.is_accelerated_compression_enabled
+        }
+        response = self.connectionManager.patch(endPoint, payload)
+        return response
+
+    @log_entry_exit
+    def get_all_drives(self):
+        endPoint = Endpoints.GET_DRIVES
+        drives_dict = self.connectionManager.get(endPoint)
+        return drives_dict
+
+    @log_entry_exit
+    def get_one_drive(self, spec):
+        endPoint = Endpoints.GET_DRIVE.format(spec.drive_location_id)
+        drives_dict = self.connectionManager.get(endPoint)
+        return drives_dict
+
+    @log_entry_exit
+    def change_drive_setting(self, spec):
+        endPoint = Endpoints.GET_DRIVE.format(spec.drive_location_id)
+        payload = {"isSpareEnabled": spec.is_spared_drive}
+        response = self.connectionManager.patch(endPoint, payload)
+        return response
 
 
 class VSPParityGroupUAIGateway:
@@ -106,5 +160,5 @@ class VSPParityGroupUAIGateway:
     def get_all_parity_groups(self):
         end_point = UAIGEndpoints.GET_PARITY_GROUPS.format(self.resource_id)
         parity_grps = self.connectionManager.get(end_point)
-        pg_info =  VSPParityGroupsUAIG().dump_to_object(parity_grps)
+        pg_info = VSPParityGroupsUAIG().dump_to_object(parity_grps)
         return pg_info

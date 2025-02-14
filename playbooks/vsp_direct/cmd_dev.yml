@@ -1,0 +1,73 @@
+---
+####################################################################
+# Example : Command Device Playbook
+####################################################################
+- name: Command Device Management
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task 1 : Enable a Command Device
+    ####################################################################
+    - name: Enable a Command Device
+      hitachivantara.vspone_block.vsp.hv_cmd_dev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          ldev_id: 98
+          is_security_enabled: false
+          is_user_authentication_enabled: false
+          is_device_group_definition_enabled: false
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 2 : Update the settings of a Command Device
+    ####################################################################
+    - name: Create a Command Device from an LDEV ID
+      hitachivantara.vspone_block.vsp.hv_cmd_dev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          ldev_id: 98
+          is_security_enabled: true
+          is_user_authentication_enabled: true
+          is_device_group_definition_enabled: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 3 : Disable a Command Device
+    ####################################################################
+    - name: Enable a Command Device
+      hitachivantara.vspone_block.vsp.hv_cmd_dev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "absent"
+        spec:
+          ldev_id: 98
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

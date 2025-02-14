@@ -1,16 +1,24 @@
+from dataclasses import asdict
+
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
-    from ..model.sdsb_storage_system_models import *
+    from ..model.sdsb_storage_system_models import (
+        SDSBHealthStatus,
+        SDSBStorageSystemInfo,
+        SDSBPfrestSavingEffectOfStorage,
+    )
     from ..common.ansible_common import log_entry_exit
-    from enum import Enum
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
-    from model.sdsb_storage_system_models import *
+    from model.sdsb_storage_system_models import (
+        SDSBHealthStatus,
+        SDSBStorageSystemInfo,
+        SDSBPfrestSavingEffectOfStorage,
+    )
     from common.ansible_common import log_entry_exit
-    from enum import Enum
 
 
 class SDSBStorageSystemProvisioner:
@@ -24,11 +32,11 @@ class SDSBStorageSystemProvisioner:
         health_status_list = []
         for hs in health_status.resources:
             hs_obj = SDSBHealthStatus(**hs)
-            if hs_obj.type == None:
+            if hs_obj.type is None:
                 hs_obj.type = ""
-            if hs_obj.status == None:
+            if hs_obj.status is None:
                 hs_obj.status = ""
-            if hs_obj.protectionDomainId == None:
+            if hs_obj.protectionDomainId is None:
                 hs_obj.protectionDomainId = ""
             health_status_list.append(asdict(hs_obj))
         storage_system = {}

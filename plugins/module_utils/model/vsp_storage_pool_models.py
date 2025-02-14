@@ -1,12 +1,10 @@
-from dataclasses import dataclass, asdict, fields
+from dataclasses import dataclass, fields
 from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass, camel_to_snake
 except ImportError:
     from common_base_models import BaseDataClass, SingleBaseClass, camel_to_snake
-
-from typing import Optional
 
 
 @dataclass
@@ -30,6 +28,8 @@ class StoragePoolSpec:
     warning_threshold_rate: int = None
     depletion_threshold_rate: int = None
     should_enable_deduplication: bool = None
+    ldev_ids: List[int] = None
+    duplication_ldev_ids: List[int] = None
 
     def __post_init__(self):
         if self.pool_volumes:
@@ -59,7 +59,7 @@ class VSPPfrestStoragePool(SingleBaseClass):
     locatedVolumeCount: int = None
     snapshotCount: int = None
     isShrinking: bool = None
-
+    name: str = None
     # Not used info
     # usedPhysicalCapacityRate: int = None
     # availablePhysicalVolumeCapacity: int = None
@@ -92,6 +92,8 @@ class VSPPfrestStoragePool(SingleBaseClass):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        if kwargs.get("poolName"):
+            self.name = kwargs.get("poolName")
 
 
 @dataclass
@@ -103,6 +105,7 @@ class VSPPfrestStoragePoolList(BaseDataClass):
 class VSPPfrestLdev(SingleBaseClass):
     ldevId: int = None
     blockCapacity: int = None
+    resourceGroupId: int = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -124,7 +127,6 @@ class VSPStoragePool(SingleBaseClass):
     dpVolumes: List[VSPDpVolume] = None
     resourceId: str = None
     name: str = None
-    type: str = None
     poolId: int = None
     name: str = None
     type: str = None
@@ -132,8 +134,10 @@ class VSPStoragePool(SingleBaseClass):
     utilizationRate: int = None
     freeCapacity: int = None
     freeCapacityInUnits: str = None
+    free_capacity_in_mb: str = None
     totalCapacity: int = None
     totalCapacityInUnit: str = None
+    total_capacity_in_mb: str = None
     warningThresholdRate: int = None
     depletionThresholdRate: int = None
     subscriptionLimitRate: int = None
@@ -152,14 +156,15 @@ class VSPStoragePool(SingleBaseClass):
         dpVolumes = kwargs.get("dpVolumes", None)
         if dpVolumes:
             self.dpVolumes = [VSPDpVolume(**dp) for dp in dpVolumes]
-
+        pool_type = kwargs.get("type", None)
+        self.type = "HRT" if pool_type == "RT" else pool_type
 
     def to_dict(self) -> dict:
         """
         Convert the dataclass instance to a dictionary with snake_case keys,
         replacing None values with default fillers based on data type.
         """
-        
+
         result = {}
         for field in fields(self):
             value = getattr(self, field.name)
@@ -167,15 +172,27 @@ class VSPStoragePool(SingleBaseClass):
 
             # Determine default filler based on data type
             if value is None or value == "null":
-                value = -1 if field.type == int else "" if field.type == str else False if field.type == bool else [] if field.type == List else None
+                value = (
+                    -1
+                    if field.type == int
+                    else (
+                        ""
+                        if field.type == str
+                        else (
+                            False
+                            if field.type == bool
+                            else [] if field.type == List else None
+                        )
+                    )
+                )
             elif field.type == List[VSPDpVolume]:
                 if value is not None:
                     value = [item.camel_to_snake_dict() for item in value]
-                else:value = []
+                else:
+                    value = []
             result[snake_case_key] = value
 
         return result
-
 
 
 @dataclass
@@ -228,3 +245,22 @@ class UAIGStoragePool(SingleBaseClass):
 
 class UAIGStoragePools(BaseDataClass):
     data: List[UAIGStoragePool] = None
+
+
+@dataclass
+class JournalVolumeSpec:
+    journal_id: int = None
+    startLdevId: int = None
+    endLdevId: int = None
+    data_overflow_watchIn_seconds: int = None
+    mp_blade_id: int = None
+    is_cache_mode_enabled: bool = None
+    ldev_ids: List[int] = None
+
+
+@dataclass
+class JournalVolumeFactSpec:
+    journal_id: Optional[int] = None
+    is_free_journal_pool_id: Optional[bool] = None
+    free_journal_pool_id_count: Optional[int] = None
+    is_mirror_not_used: Optional[bool] = None

@@ -13,12 +13,26 @@ class VSPIscsiTargetMessage(Enum):
     SPEC_STATE_INVALID = "The spec state parameter is invalid."
     LDEVS_PRESENT = "The iSCSI target has LDEVs presented. Make sure to unpresent all LDEV prior to deleting the iSCSI target."
     RESOURCE_PRESENT = "The resource is already present."
+    CATCH_MSG_ISCSI_TARGET = "The specified target alias cannot be registered because it is already used on the same port"
+
 
 class VSPIscsiTargetValidationMsg(Enum):
-    IQN_OUT_OF_RANGE = "The IQN initiator is out of range. Specify a value in the range of 5 to 223."
+    IQN_OUT_OF_RANGE = (
+        "The IQN initiator is out of range. Specify a value in the range of 5 to 223."
+    )
     ISCSI_NAME_OUT_OF_RANGE = "The iSCSI target name is out of range. Specify a value in the range of 1 to 32."
-    CHAP_USER_NAME_OUT_OF_RANGE = "The CHAP user name is out of range. Specify a value in the range of 1 to 223."
-    CHAP_SECRET_OUT_OF_RANGE = "The CHAP secret is out of range. Specify a value in the range of 12 to 32."
-    LUN_OUT_OF_RANGE = "The LUN is out of range. Specify a value in the range of 1 to 65535."
-    PORT_OUT_OF_RANGE = "The port is out of range. Specify a value in the range of 1 to 256."
-    HOST_MODE_OUT_OF_RANGE = "The host mode is out of range. Specify a value in the range of 1 to 256."
+    CHAP_USER_NAME_OUT_OF_RANGE = (
+        "The CHAP user name is out of range. Specify a value in the range of 1 to 223."
+    )
+    CHAP_SECRET_OUT_OF_RANGE = (
+        "The CHAP secret is out of range. Specify a value in the range of 12 to 32."
+    )
+    LUN_OUT_OF_RANGE = (
+        "The LUN is out of range. Specify a value in the range of 1 to 65535."
+    )
+    PORT_OUT_OF_RANGE = (
+        "The port is out of range. Specify a value in the range of 1 to 256."
+    )
+    HOST_MODE_OUT_OF_RANGE = (
+        "The host mode is out of range. Specify a value in the range of 1 to 256."
+    )

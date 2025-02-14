@@ -1,8 +1,13 @@
 try:
     from ..common.sdsb_constants import SDSBlockEndpoints
     from ..common.ansible_common import dicts_to_dataclass_list
-    from ..model.sdsb_compute_node_models import *
-    from ..model.sdsb_port_models import *
+    from ..model.sdsb_compute_node_models import (
+        SDSBComputeNodesInfo,
+        SDSBComputeNodeInfo,
+        NameIdPair,
+        HbaPathInfo,
+    )
+    from ..model.sdsb_port_models import SDSBComputePortInfo, SDSBComputePortsInfo
     from .gateway_manager import SDSBConnectionManager
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
@@ -10,8 +15,13 @@ try:
 except ImportError:
     from common.sdsb_constants import SDSBlockEndpoints
     from common.ansible_common import dicts_to_dataclass_list
-    from model.sdsb_compute_node_models import *
-    from model.sdsb_port_models import *
+    from model.sdsb_compute_node_models import (
+        SDSBComputeNodesInfo,
+        SDSBComputeNodeInfo,
+        NameIdPair,
+        HbaPathInfo,
+    )
+    from model.sdsb_port_models import SDSBComputePortInfo, SDSBComputePortsInfo
     from .gateway_manager import SDSBConnectionManager
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
@@ -33,7 +43,7 @@ class SDSBComputeNodeDirectGateway:
         end_point = SDSBlockEndpoints.GET_SERVERS
         if spec is not None:
             names = spec.names
-            if names != None and len(names) != 0:
+            if names is not None and len(names) != 0:
                 if len(names) == 1:
                     end_point = SDSBlockEndpoints.GET_SERVERS_AND_QUERY_NICKNAME.format(
                         names[0]
@@ -103,7 +113,7 @@ class SDSBComputeNodeDirectGateway:
                 hba_id_list.append(x.get("id"))
 
         return hba_id_list
-    
+
     @log_entry_exit
     def get_compute_node_iscsi_pairs(self, compute_node_id):
         end_point = SDSBlockEndpoints.GET_HBAS.format(compute_node_id)
@@ -160,7 +170,7 @@ class SDSBComputeNodeDirectGateway:
                 hba_list.append(pair)
 
         return hba_list
-    
+
     @log_entry_exit
     def get_compute_node_nqn_name_id_pairs(self, compute_node_id):
         end_point = SDSBlockEndpoints.GET_HBAS.format(compute_node_id)
@@ -189,7 +199,7 @@ class SDSBComputeNodeDirectGateway:
                 hba_name_list.append(x.get("name"))
 
         return hba_name_list
-    
+
     @log_entry_exit
     def get_compute_node_nqn_names(self, compute_node_id):
         end_point = SDSBlockEndpoints.GET_HBAS.format(compute_node_id)
@@ -290,7 +300,7 @@ class SDSBComputeNodeDirectGateway:
         data = self.connection_manager.post(end_point, body)
         logger.writeDebug("GW:add_iqn_to_compute_node:data={}", data)
         return data
-    
+
     @log_entry_exit
     def add_nqn_to_compute_node(self, compute_node_id, nqn):
         body = {

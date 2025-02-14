@@ -1,33 +1,28 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-__metaclass__ = type
-
 import json
 import re
 import collections
 import time
 import hashlib
 
-from ansible.module_utils.basic import AnsibleModule
 
-# from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import StorageSystem, \
-#     StorageSystemManager, DedupMode
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_storagemanager import (
     StorageManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import Utils
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
+    Utils,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ucpmanager import (
     UcpManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
 )
-
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
     CommonConstants,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_constants import (
+    DEFAULT_NAME_PREFIX,
 )
 
 logger = Log()
@@ -36,8 +31,6 @@ moduleName = "LUN"
 
 def loggingInfo(msg):
     logger.writeInfo(msg)
-    pass
-
 
 
 def handleResizeInDP(
@@ -109,7 +102,8 @@ def handleResize(
         # storageSystem.expandLunInBytes(lun, sizeInBytes)
         if lun.get("totalCapacity") is not None:
             lun["totalCapacity"] = Utils.formatCapacity(lun["totalCapacity"])
-        result["changed"] = True
+        # uca-2306
+        # result["changed"] = True
         loggingInfo("after expandLun")
         # logicalUnit = storageSystem.getLun(lun)
 
@@ -140,7 +134,7 @@ def getLogicalUnit(ucpManager, lun):
 
     if lun is None:
         return None
-    
+    logicalUnit = None
     lunInfo = ucpManager.getLunByID(lun)
     logger.writeInfo("335 getLunByID={}", lunInfo)
     if lunInfo:
@@ -153,6 +147,22 @@ def getLogicalUnit(ucpManager, lun):
     # logicalUnit = storageSystem.getLun(lun)
 
     return logicalUnit
+
+
+def generate_lun_name_from_spec(lun_name):
+    if lun_name is None or lun_name == "":
+        return lun_name
+    do_not_need_prefix = lun_name.lower().startswith("ansible")
+    if do_not_need_prefix:
+        pass
+    else:
+        lun_name = f"ansible-{lun_name}"
+    return lun_name
+
+
+def generate_lun_name(ldev_id):
+    label = f"{DEFAULT_NAME_PREFIX}-{ldev_id}"
+    return label
 
 
 def getLogicalUnitsByName(storageSystem, lun_name):
@@ -197,9 +207,9 @@ def isValidParityGroup(parity_group):
     try:
         pg = parity_group.replace("-", "")
         loggingInfo("isValidaParityGroup, pg={0}".format(pg))
-        p = int(pg)
+        int(pg)
         return True
-    except Exception as ex:
+    except Exception:
         return False
 
 
@@ -209,6 +219,7 @@ def get_storage_volume_md5_hash(storage_system_serial_number, ldev):
 
 
 def get_md5_hash(data):
+    # nosec: No security issue here as it is does not exploit any security vulnerability only used for generating unique resource id for UAIG
     md5_hash = hashlib.md5()
     md5_hash.update(data.encode("utf-8"))
     return md5_hash.hexdigest()
@@ -226,13 +237,12 @@ def runPlaybook(module):
     management_username = connection_info.get("username")
     management_password = connection_info.get("password")
     subscriberId = connection_info.get("subscriber_id", None)
-    auth_token = connection_info.get('api_token', None)
+    auth_token = connection_info.get("api_token", None)
 
     state = module.params.get("state", "present")
     if state not in ["present", "absent"]:
         raise Exception("State must only be either present or absent.")
 
-    connection_info["password"] = "******"
     module.params["connection_info"] = json.dumps(connection_info)
 
     if storage_serial is None:
@@ -247,24 +257,21 @@ def runPlaybook(module):
 
     partnerId = CommonConstants.PARTNER_ID
     # subscriberId=CommonConstants.SUBSCRIBER_ID
-    
-    ########################################################
+
     # True: test the rest of the module using api_token
-    
-    if True:
-        ucpManager = UcpManager(
-            management_address,
-            management_username,
-            management_password,
-            auth_token,
-            partnerId,
-            subscriberId,
-            storage_serial,
-        )    
-        auth_token = ucpManager.getAuthTokenOnly()
-        management_username = ''
-    ########################################################
-    
+
+    ucpManager = UcpManager(
+        management_address,
+        management_username,
+        management_password,
+        auth_token,
+        partnerId,
+        subscriberId,
+        storage_serial,
+    )
+    auth_token = ucpManager.getAuthTokenOnly()
+    management_username = ""
+
     storageSystem = None
     try:
         storageSystem = StorageManager(
@@ -283,7 +290,7 @@ def runPlaybook(module):
     if not storageSystem.isStorageSystemInUcpSystem():
         raise Exception("Storage system is not under the management system.")
 
-    ## check the healthStatus=onboarding
+    #  check the healthStatus=onboarding
     ucpManager = UcpManager(
         management_address,
         management_username,
@@ -297,74 +304,85 @@ def runPlaybook(module):
         raise Exception("Storage system is onboarding, please try again later.")
 
     lun_info = module.params["spec"]
-    # lun = lun_info.get("luns", None)  ### note, it is using 'luns'
+    # lun = lun_info.get("luns", None)  # # note, it is using 'luns'
     lun = lun_info.get("ldev_id", None)
     force = lun_info.get("force", None)
     enableDRS = lun_info.get("data_reduction_share", False)
-    
-    ########################################################################    
-    # 20240824 - vol tiering valiations
-    
-    is_relocation_enabled = lun_info.get("is_relocation_enabled", None)
-    tier_level_for_new_page_allocation = lun_info.get("tier_level_for_new_page_allocation", None)
-    tiering_policy = lun_info.get("tiering_policy", None)
-    
-    # flatten tiering_policy
-    tier_level=None
-    tier1_allocation_rate_min=None
-    tier1_allocation_rate_max=None
-    tier3_allocation_rate_min=None
-    tier3_allocation_rate_max=None     
-    doApplyVolTiering = False
-                                           
-    if tiering_policy:
-        tier_level = tiering_policy.get('tier_level',None)
-        tier1_allocation_rate_min = tiering_policy.get('tier1_allocation_rate_min',None)
-        tier1_allocation_rate_max = tiering_policy.get('tier1_allocation_rate_max',None)
-        tier3_allocation_rate_min = tiering_policy.get('tier3_allocation_rate_min',None)
-        tier3_allocation_rate_max = tiering_policy.get('tier3_allocation_rate_max',None)
 
-    if is_relocation_enabled or \
-        tier_level_for_new_page_allocation or \
-        tier_level or \
-        tier1_allocation_rate_min or \
-        tier1_allocation_rate_max or \
-        tier3_allocation_rate_min or \
-        tier3_allocation_rate_max : 
+    # 20250103 - vldev_id
+    vldev_id = lun_info.get("vldev_id", None)
+
+    # 20240824 - vol tiering validations
+
+    is_relocation_enabled = lun_info.get("is_relocation_enabled", None)
+    tier_level_for_new_page_allocation = lun_info.get(
+        "tier_level_for_new_page_allocation", None
+    )
+    tiering_policy = lun_info.get("tiering_policy", None)
+
+    # flatten tiering_policy
+    tier_level = None
+    tier1_allocation_rate_min = None
+    tier1_allocation_rate_max = None
+    tier3_allocation_rate_min = None
+    tier3_allocation_rate_max = None
+    doApplyVolTiering = False
+
+    if tiering_policy:
+        tier_level = tiering_policy.get("tier_level", None)
+        tier1_allocation_rate_min = tiering_policy.get(
+            "tier1_allocation_rate_min", None
+        )
+        tier1_allocation_rate_max = tiering_policy.get(
+            "tier1_allocation_rate_max", None
+        )
+        tier3_allocation_rate_min = tiering_policy.get(
+            "tier3_allocation_rate_min", None
+        )
+        tier3_allocation_rate_max = tiering_policy.get(
+            "tier3_allocation_rate_max", None
+        )
+
+    if (
+        is_relocation_enabled
+        or tier_level_for_new_page_allocation
+        or tier_level
+        or tier1_allocation_rate_min
+        or tier1_allocation_rate_max
+        or tier3_allocation_rate_min
+        or tier3_allocation_rate_max
+    ):
         doApplyVolTiering = True
-        
+
     if tier_level_for_new_page_allocation:
-        if tier_level_for_new_page_allocation != 'High' and \
-           tier_level_for_new_page_allocation != 'Middle' and \
-           tier_level_for_new_page_allocation != 'Low':
-            raise Exception("tier_level_for_new_page_allocation must be High, Middle or Low")
-        
+        if (
+            tier_level_for_new_page_allocation != "High"
+            and tier_level_for_new_page_allocation != "Middle"
+            and tier_level_for_new_page_allocation != "Low"
+        ):
+            raise Exception(
+                "tier_level_for_new_page_allocation must be High, Middle or Low"
+            )
+
     if tier_level:
-        if tier_level < 0 or \
-           tier_level > 31 :
+        if tier_level < 0 or tier_level > 31:
             raise Exception("tier_level must be a value from 0 to 31")
-        
+
     if tier1_allocation_rate_min:
-        if tier1_allocation_rate_min < 1 or \
-           tier1_allocation_rate_min > 100 :
+        if tier1_allocation_rate_min < 1 or tier1_allocation_rate_min > 100:
             raise Exception("tier1_allocation_rate_min must be a value from 1 to 100")
-        
+
     if tier1_allocation_rate_max:
-        if tier1_allocation_rate_max < 1 or \
-           tier1_allocation_rate_max > 100 :
+        if tier1_allocation_rate_max < 1 or tier1_allocation_rate_max > 100:
             raise Exception("tier1_allocation_rate_max must be a value from 1 to 100")
-            
+
     if tier3_allocation_rate_min:
-        if tier3_allocation_rate_min < 1 or \
-           tier3_allocation_rate_min > 100 :
+        if tier3_allocation_rate_min < 1 or tier3_allocation_rate_min > 100:
             raise Exception("tier3_allocation_rate_min must be a value from 1 to 100")
-        
+
     if tier3_allocation_rate_max:
-        if tier3_allocation_rate_max < 1 or \
-           tier3_allocation_rate_max > 100 :
+        if tier3_allocation_rate_max < 1 or tier3_allocation_rate_max > 100:
             raise Exception("tier3_allocation_rate_max must be a value from 1 to 100")
-        
-    ########################################################################    
 
     parity_group = lun_info.get("parity_group", None)
     if parity_group == "":
@@ -400,9 +418,8 @@ def runPlaybook(module):
 
     loggingInfo("luns={0}".format(lun))
     logicalUnit = None
-    logicalUnits = None
     lunName = lun_info.get("name", None)
-    if lunName == "":
+    if lunName is None or lunName == "":
         lunName = None
 
     if lunName and len(lunName) > 32:
@@ -471,7 +488,7 @@ def runPlaybook(module):
 
         lunIsExisting = False
 
-        ## a2.4 MT this returns all the luns for this subscriber
+        #  a2.4 MT this returns all the luns for this subscriber
         lunInfo = ucpManager.getLunByID(lun)
         logger.writeInfo("RD_0903 getLunByID={}", lunInfo)
         if lunInfo:
@@ -481,40 +498,44 @@ def runPlaybook(module):
                     lunInfo = item
                     lunIsExisting = True
                     break
-                
-        logger.writeInfo("lunIsExisting={}",lunIsExisting)
-        if not lunIsExisting :
+
+        logger.writeInfo("lunIsExisting={}", lunIsExisting)
+        if not lunIsExisting:
             lunInfo = None
 
-        if state == "absent" and  not lunIsExisting :
-            loggingInfo("419 lun already deleted or lun is not tagged to this subscriber")
+        if state == "absent" and not lunIsExisting:
+            loggingInfo(
+                "419 lun already deleted or lun is not tagged to this subscriber"
+            )
             lunInfo = None
-        elif subscriberId and not lunIsExisting :
-            
-            ## see if we need to auto-tag to allow lun update
-            
+        elif subscriberId and not lunIsExisting:
+
+            #  see if we need to auto-tag to allow lun update
+
             # the provided lun is not found in the subscriber
             # let's check entitlement using v3
             lun_resourceId = get_storage_volume_md5_hash(storage_serial, lun)
             logger.writeDebug("413 lun_resourceId={}", lun_resourceId)
             lunInfo2 = storageSystem.getOneLunByResourceIDV3(lun)
             logger.writeDebug("416 lunInfo2={}", lunInfo2)
-            
-            assigned = True
+
             if lunInfo2:
-                ## check entitlement
+                #  check entitlement
                 for lun2 in lunInfo2:
-                    
-                    ## assume we only have to check the first one
-                    entitlementStatus = lun2.get('entitlementStatus',None)
-                    if entitlementStatus is None or entitlementStatus != 'assigned' :
-                        ## not assigned, we can tag this existing volume
-                        logger.writeDebug("416 this volume is unassigned, tag this volume={}", lun)
-                        assigned = False
-                        s_resourceId, _ = storageSystem.getStorageSystemResourceId()
+
+                    #  assume we only have to check the first one
+                    entitlementStatus = lun2.get("entitlementStatus", None)
+                    if entitlementStatus is None or entitlementStatus != "assigned":
+                        #  not assigned, we can tag this existing volume
+                        logger.writeDebug(
+                            "416 this volume is unassigned, tag this volume={}", lun
+                        )
+                        s_resourceId, unused = (
+                            storageSystem.getStorageSystemResourceId()
+                        )
                         storageSystem.tagV2Volume(s_resourceId, lun_resourceId)
-                        
-                        ## after tagging, we need the v2 luninfo to continue the processing
+
+                        #  after tagging, we need the v2 luninfo to continue the processing
                         lunInfo = ucpManager.getLunByID_v2(lun)
                         lunIsExisting = False
                         if lunInfo:
@@ -523,22 +544,22 @@ def runPlaybook(module):
                                 if str(item.get("ldevId")) == str(lun):
                                     lunInfo = item
                                     lunIsExisting = True
-                                    break                        
+                                    break
                         if lunIsExisting:
                             break
-                    
-                    ## assume we only have to check the first one
+
+                    #  assume we only have to check the first one
                     raise Exception(
                         "This existing volume does not belong to the current subscriber."
                     )
-                                    
+
                     # storageVolumeInfo = lun2.get('storageVolumeInfo',None)
                     # if storageVolumeInfo:
                     #     ldevId = storageVolumeInfo.get('ldevId',None)
                     #     if ldevId:
                     #         if str(ldevId) == str(lun):
                     #             # we need to tag this
-                
+
                     # check v2 existence
                     # logger.writeDebug("349 is v2 ExistingLun?")
                     # lunInfo = isExistingLun(storageSystem, lun)
@@ -548,19 +569,19 @@ def runPlaybook(module):
                     #         "This existing volume does not belong to this subscriber."
                     #     )
 
-        if lunInfo == None and state == "absent":
+        if not lunInfo and state == "absent":
             logicalUnit = None
         else:
             logicalUnit = lunInfo
     elif lunName is not None:
-        
-        ## this is incorrect, we cannot allow update a lun by name only
-        ## ldev.id must be given also
+
+        #  this is incorrect, we cannot allow update a lun by name only
+        #  ldev.id must be given also
         # 20240911 you can have luns with the same name
         pass
 
         # loggingInfo("312 lunName={0}".format(lunName))
-        
+
         # lunNameMatch = [
         #     unit
         #     for unit in storageSystem.getAllLuns()
@@ -572,9 +593,9 @@ def runPlaybook(module):
         # if len(lunNameMatch) == 1:
         #     logicalUnit = lunNameMatch[0]
 
-    #loggingInfo("logicalUnit={0}".format(logicalUnit))
+    # loggingInfo("logicalUnit={0}".format(logicalUnit))
 
-    #logger.writeDebug("335 logicalUnit={}", logicalUnit)
+    # logger.writeDebug("335 logicalUnit={}", logicalUnit)
     logger.writeDebug("335 state={}", module.params["state"])
 
     if state == "present":
@@ -586,7 +607,6 @@ def runPlaybook(module):
         # match = re.match(r'(\d+)(\D*)', str(size))
 
         logger.writeParam("size={}", size)
-        entered_size = size
         if size is not None:
             match = re.match(r"(^\d*[.]?\d*)(\D*)", str(size))
             if match:
@@ -605,10 +625,9 @@ def runPlaybook(module):
                 "Size is required. This module only accepts MB, GB or TB sizes."
             )
 
-
         loggingInfo("state={0}".format(state))
 
-        # ###Update Lun Name
+        # Update Lun Name
 
         logger.writeDebug("335 lun={}", lun)
         logger.writeDebug("335 lunName={}", lunName)
@@ -630,8 +649,8 @@ def runPlaybook(module):
             loggingInfo(cap_saving_setting)
             # loggingInfo(DedupMode.modes.index(str(logicalUnit.get('dedupCompressionMode'
             #                                                        ))))
-        
-            #logger.writeDebug("552 deduplicationCompressionMode={}", logicalUnit.get("deduplicationCompressionMode"))
+
+            # logger.writeDebug("552 deduplicationCompressionMode={}", logicalUnit.get("deduplicationCompressionMode"))
 
             if str(logicalUnit.get("deduplicationCompressionMode")) != str(
                 cap_saving_setting
@@ -695,11 +714,8 @@ def runPlaybook(module):
         loggingInfo(storagePool)
         loggingInfo(logicalUnit)
 
+        #  reconciling begins here
 
-        #############################################################################
-        #############################################################################
-        ## reconciling begins here
-        
         if clonedLunName is not None:
             loggingInfo("Clone mode")
             if not logicalUnit:
@@ -726,13 +742,32 @@ def runPlaybook(module):
             else:
                 raise Exception("Cannot clone logical unit without a storage pool.")
         elif logicalUnit is not None:
-            
-            ######################################################################################
-            ################################## applyVolTiering ##################################
-                    
-            ## 20240824 - vol tiering, update lun
-            
-            if doApplyVolTiering :
+
+            #  20250103 - updateLunVldevId
+            if vldev_id is not None and logicalUnit["virtualLogicalUnitId"] != vldev_id:
+                result["changed"] = True
+                logger.writeDebug("lun={}", lun)
+                logger.writeDebug("vldev_id={}", vldev_id)
+                s_resourceId, unused = storageSystem.getStorageSystemResourceId()
+                lun_resourceId = get_storage_volume_md5_hash(storage_serial, lun)
+                storageSystem.updateLunVldevId(
+                    s_resourceId,
+                    lun_resourceId,
+                    lun,
+                    logicalUnit["virtualLogicalUnitId"],
+                    -1,
+                )
+                storageSystem.updateLunVldevId(
+                    s_resourceId,
+                    lun_resourceId,
+                    lun,
+                    -1,
+                    vldev_id,
+                )
+                logicalUnit["virtualLogicalUnitId"] = vldev_id
+
+            #  20240824 - vol tiering, update lun
+            if doApplyVolTiering:
                 storageSystem.applyVolTiering(
                     lun,
                     is_relocation_enabled,
@@ -743,8 +778,8 @@ def runPlaybook(module):
                     tier3_allocation_rate_min,
                     tier3_allocation_rate_max,
                 )
-                
-                ## after the apply, need to update the local lunInfo
+
+                #  after the apply, need to update the local lunInfo
                 lunInfotmp = ucpManager.getLunByID(lun)
                 if lunInfotmp:
                     for item in lunInfotmp:
@@ -752,9 +787,7 @@ def runPlaybook(module):
                             logicalUnit = item
                             logger.writeDebug("743 logicalUnit={}", logicalUnit)
                             break
-                
-            ######################################################################################
-            ################################## handleResizeInDP ##################################
+
             if size is not None:
 
                 # if lun is None, consider create only, no idempotent,
@@ -776,18 +809,19 @@ def runPlaybook(module):
                         "Cannot expand logical unit. More than 1 LUN found with the given name. Use lun parameter instead."
                     )
                 elif logicalUnit:
-                    
+
                     if storagePool is None and parity_group:
                         raise Exception(
                             "Cannot expand logical unit which is in a parity group."
-                        )                    
-                    
+                        )
+
                     if storagePool is None:
                         raise Exception(
                             "Cannot expand logical unit, storage pool is not provided."
-                        )                    
-                    
-                    result["changed"] = True
+                        )
+
+                    # uca-2306
+                    # result["changed"] = True
                     logicalUnit = handleResizeInDP(
                         storageSystem,
                         logicalUnit,
@@ -799,9 +833,7 @@ def runPlaybook(module):
                     )
                     result["lun"] = logicalUnit
                     # Utils.formatLun(result["lun"])
-            ################################## handleResizeInDP ##################################
-            ######################################################################################
-                
+
         elif logicalUnit is None and (
             storagePool is not None or parity_group is not None
         ):
@@ -855,11 +887,24 @@ def runPlaybook(module):
                 else:
                     logger.writeInfo("createLunInDP size={0}".format(size))
                     logger.writeInfo("createLunInDP sizetype={0}".format(sizetype))
-                    
-                    logger.writeDebug("20240824 is_relocation_enabled ={}",is_relocation_enabled)
-                    logger.writeDebug("20240824 tier_level_for_new_page_allocation ={}",tier_level_for_new_page_allocation)
-                    logger.writeDebug("20240824 tiering_policy ={}",tiering_policy)
-                    
+
+                    logger.writeDebug(
+                        "20240824 is_relocation_enabled ={}", is_relocation_enabled
+                    )
+                    logger.writeDebug(
+                        "20240824 tier_level_for_new_page_allocation ={}",
+                        tier_level_for_new_page_allocation,
+                    )
+                    logger.writeDebug("20240824 tiering_policy ={}", tiering_policy)
+                    # if lunName is not None:
+                    #     if len(lunName) > 31:
+                    #         raise Exception(
+                    #             "Cannot create logical unit. Invalid lunName {}. Lun name cannot have more than 31 characters .".format(lunName)
+                    #             )
+                    #     else:
+                    #     lunName = lunName  # generate_lun_name_from_spec(lunName)
+
+                    # createLunInDP
                     new_lun, addl_comment = storageSystem.createLunInDP(
                         lun,
                         storagePool,
@@ -869,22 +914,57 @@ def runPlaybook(module):
                         enableDRS,
                         lunName,
                     )
-                    
+                    # UCA-2317
+                    time.sleep(5)
+                    if (lunName is None or lunName == "") and new_lun is not None:
+                        lunName = generate_lun_name(new_lun)
+                        logger.writeDebug(
+                            "20241211 new_lun ={} lunName = {}", new_lun, lunName
+                        )
+                        logicalUnit2 = getLogicalUnit(ucpManager, new_lun)
+                        lunResourceId = logicalUnit2["resourceId"]
+                        storageSystem.updateLunName(lunResourceId, lunName)
+
                     if addl_comment:
                         result["comment"] = addl_comment
-                    
-                    if len(lunNameMatch) > 0:
-                        lunName = lunName + "_" + hex(int(new_lun))
-                    else:
-                        lunName = lun_info.get("name", "")
-                    logger.writeDebug("659 createLunInDP result={}",result)
+
+                    # if len(lunNameMatch) > 0:
+                    #     lunName = lunName + "_" + hex(int(new_lun))
+                    # else:
+                    # lunName = lun_info.get("name", "")
+                    lunName
+                    logger.writeDebug("659 createLunInDP result={}", result)
                     logger.writeDebug("lunName={0}".format(lunName))
                     logger.writeDebug("new_lun={0}".format(new_lun))
-                    
-                    ###############################################
-                    ## 20240824 - vol tiering, create lun
-                    
-                    if doApplyVolTiering :
+
+                    # 20250103 - updateLunVldevId after createLun
+                    if vldev_id is not None:
+                        logger.writeDebug("vldev_id={}", vldev_id)
+                        s_resourceId, unused = (
+                            storageSystem.getStorageSystemResourceId()
+                        )
+                        lun_resourceId = get_storage_volume_md5_hash(
+                            storage_serial, new_lun
+                        )
+                        # always first unmap
+                        storageSystem.updateLunVldevId(
+                            s_resourceId,
+                            lun_resourceId,
+                            new_lun,
+                            new_lun,
+                            -1,
+                        )
+                        # then map
+                        storageSystem.updateLunVldevId(
+                            s_resourceId,
+                            lun_resourceId,
+                            new_lun,
+                            -1,
+                            vldev_id,
+                        )
+
+                    #  20240824 - vol tiering, create lun
+                    if doApplyVolTiering:
                         storageSystem.applyVolTiering(
                             new_lun,
                             is_relocation_enabled,
@@ -895,7 +975,6 @@ def runPlaybook(module):
                             tier3_allocation_rate_min,
                             tier3_allocation_rate_max,
                         )
-                    ###############################################
 
                     # a2.4 MT post createLunInDP, need refresh
                     # need to refresh luns for v3 get vol to work??
@@ -952,12 +1031,54 @@ def runPlaybook(module):
                         lun_info.get("meta_serial", -1),
                         lun_info.get("name", ""),
                     )
+                    # UCA-2317
+                    time.sleep(5)
+
+                    # 20250103 - updateLunVldevId after createLunInPG
+                    if vldev_id is not None:
+                        logger.writeDebug("vldev_id={}", vldev_id)
+                        s_resourceId, unused = (
+                            storageSystem.getStorageSystemResourceId()
+                        )
+                        lun_resourceId = get_storage_volume_md5_hash(
+                            storage_serial, new_lun
+                        )
+                        # always first unmap
+                        storageSystem.updateLunVldevId(
+                            s_resourceId,
+                            lun_resourceId,
+                            new_lun,
+                            new_lun,
+                            -1,
+                        )
+                        # then map
+                        storageSystem.updateLunVldevId(
+                            s_resourceId,
+                            lun_resourceId,
+                            new_lun,
+                            -1,
+                            vldev_id,
+                        )
+
                     lunName = lun_info.get("name", "")
+                    if lunName is not None or lunName != "":
+                        pass
+                        # lunName = lunName  # generate_lun_name_from_spec(lunName)
+                    else:
+                        lunName = generate_lun_name(new_lun)
+
+                    if lunName and new_lun:
+                        logger.writeDebug(
+                            "20241211 new_lun ={} lunName = {}", new_lun, lunName
+                        )
+                        logicalUnit2 = getLogicalUnit(ucpManager, new_lun)
+                        lunResourceId = logicalUnit2["resourceId"]
+                        storageSystem.updateLunName(lunResourceId, lunName)
                     # if lunName != '':
                     # storageSystem.updateLunName(new_lun, lunName)
                     # if cap_saving_setting is not None:
 
-                    # # # LUN exists, idempotent
+                    # LUN exists, idempotent
 
                     # loggingInfo('update the cap_saving_setting')
                     # storageSystem.setDedupCompression(new_lun,
@@ -987,7 +1108,7 @@ def runPlaybook(module):
                 lunInfo = storageSystem.getOneLunByResourceID(lun_resourceId)
                 logger.writeDebug("20230617 lunInfo={}", lunInfo)
                 # logger.writeDebug('lunInfo={}', lunInfo)
-                logger.writeDebug('753 result={}', result)
+                logger.writeDebug("753 result={}", result)
                 if lunInfo is None:
                     logger.writeDebug(
                         "20230617 volume {} is created, but timed out looking for it.",
@@ -999,18 +1120,18 @@ def runPlaybook(module):
                         )
                     )
                 else:
-                    ## post create
-                    ## inject the subscriber info
+                    #  post create
+                    #  inject the subscriber info
                     logger.writeDebug("865 subscribe_id={}", subscriberId)
-                    lunInfo['entitlementStatus'] = "unassigned"
+                    lunInfo["entitlementStatus"] = "unassigned"
                     if subscriberId and subscriberId != "":
-                        lunInfo['entitlementStatus'] = "assigned"
-                        lunInfo['partnerId'] = CommonConstants.PARTNER_ID
-                        lunInfo['subscriberId'] = subscriberId
+                        lunInfo["entitlementStatus"] = "assigned"
+                        lunInfo["partnerId"] = CommonConstants.PARTNER_ID
+                        lunInfo["subscriberId"] = subscriberId
                     Utils.formatLun(lunInfo)
                 result["lun"] = lunInfo
                 result["changed"] = True
-        
+
         if logicalUnit:
             logger.writeDebug(logicalUnit)
             result["lun"] = logicalUnit
@@ -1021,28 +1142,28 @@ def runPlaybook(module):
 
         loggingInfo("delete mode")
         if logicalUnit is not None:
-            logger.writeDebug('841 logicalUnit={}',logicalUnit)
-            logger.writeDebug('841 force={}',force)
-            logger.writeDebug('841 logicalUnitId={}',logicalUnit["ldevId"])
+            logger.writeDebug("841 logicalUnit={}", logicalUnit)
+            logger.writeDebug("841 force={}", force)
+            logger.writeDebug("841 logicalUnitId={}", logicalUnit["ldevId"])
             logger.writeDebug(int(logicalUnit["pathCount"]))
-            
+
             if lunName is not None:
                 raise Exception("The name parameter is not supported for delete.")
 
-            ## we should not get here if lun is tagged to other subscriber,
-            ## should have been validated already
-                
-            if force :
+            #  we should not get here if lun is tagged to other subscriber,
+            #  should have been validated already
+
+            if force:
                 storageSystem.detachLun(logicalUnit["ldevId"])
             elif int(logicalUnit["pathCount"]) >= 1:
                 raise Exception("Cannot delete LUN: Lun is mapped to a hostgroup!")
 
             storageSystem.deleteLun(logicalUnit["resourceId"])
-            result["comment"] = "LUN is deleted"
+            result["comment"] = "Ldev is deleted"
             result["lun"] = logicalUnit
             result["changed"] = True
             Utils.formatLun(result["lun"])
-            
+
         elif lun is None and lunName is None:
             raise Exception("Cannot delete LUN: No lun or name was specified!")
         elif lunName is not None and len(lunNameMatch) > 1:
@@ -1051,7 +1172,7 @@ def runPlaybook(module):
             )
         else:
             result["lun"] = None
-            result["comment"] = "LUN not found. (Perhaps it has already been deleted?)"
+            result["comment"] = "Ldev not found. (Perhaps it has already been deleted?)"
             result["skipped"] = True
 
     logger.writeExit(moduleName)

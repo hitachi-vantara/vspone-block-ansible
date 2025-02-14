@@ -1,10 +1,5 @@
-from dataclasses import dataclass, asdict
-from typing import Optional, List
-
-try:
-    from .common_base_models import BaseDataClass
-except ImportError:
-    from common_base_models import BaseDataClass
+from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass

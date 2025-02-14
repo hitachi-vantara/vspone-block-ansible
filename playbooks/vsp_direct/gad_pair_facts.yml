@@ -1,0 +1,89 @@
+---
+####################################################################
+# Example :  Global Active Device Pair (GAD) Facts Playbook
+####################################################################
+- name: GAD Facts
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+    secondary_connection_info:
+      address: "{{ secondary_storage_address }}"
+      username: "{{ vault_secondary_storage_username }}"
+      password: "{{ vault_secondary_storage_secret }}"
+  tasks:
+    ####################################################################
+    # Task 1 : Get all GAD pairs by copy group name
+    ####################################################################
+    - name: Get all GAD pairs
+      hitachivantara.vspone_block.vsp.hv_gad_facts:
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+
+        spec:
+          copy_group_name: "copy_group_name_1"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 2 : Get GAD pair using secondary volume Id
+    ####################################################################
+    - name: Get GAD pair using only primary volume Id
+      hitachivantara.vspone_block.vsp.hv_gad_facts:
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          secondary_volume_id: 222
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 3 : Get GAD pair using primary volume Id
+    ####################################################################
+    - name: Get GAD pair using only primary volume Id
+      hitachivantara.vspone_block.vsp.hv_gad_facts:
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          primary_volume_id: 111
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 4 : Get all GAD pairs from all copy groups
+    ####################################################################
+    - name: Get GAD pair using only primary volume Id
+      hitachivantara.vspone_block.vsp.hv_gad_facts:
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

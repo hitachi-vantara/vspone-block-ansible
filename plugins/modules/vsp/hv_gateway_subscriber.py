@@ -1,18 +1,25 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2021, [ Hitachi Vantara ]
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
 from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: hv_gateway_subscriber
 short_description: Manages subscribers of a partner on Hitachi VSP storage systems.
 description:
-  - This module allows for the creation, updation and deletion of subscribers.
+  - This module allows for the creation, updating and deletion of subscribers.
   - It supports various subscriber operations based on the specified task level.
+  - This module is supported only for gateway connection type.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/subscriber.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   state:
     description: The level of the subscriber task. Choices are 'present', 'absent'.
@@ -30,20 +37,23 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication.This field is valid for direct connection type only, and it is a required field.
+          Not required for this module.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication.This field is valid for direct connection type only, and it is a required field.
+          Not required for this module.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
-        required: true
+        required: false
         choices: ['gateway']
+        default: 'gateway'
       api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description: Token value to access UAI gateway.
         type: str
         required: false
   spec:
@@ -71,9 +81,13 @@ options:
         description: Quota limit for the subscriber.
         type: str
         required: false
-'''
+      description:
+        description: Description of the subscriber.
+        type: str
+        required: false
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 - name: Create a subscriber
   hv_gateway_subscriber:
     state: present
@@ -108,9 +122,9 @@ EXAMPLES = '''
     spec:
       subscriber_id: "12345"
       quota_limit: "30"
-'''
+"""
 
-RETURN = '''
+RETURN = """
 data:
   description: Newly created subscriber object.
   returned: success
@@ -131,7 +145,7 @@ data:
         "used_quota_in_gb": "",
         "used_quota_in_percent": -1
     }
-'''
+"""
 
 
 from ansible.module_utils.basic import AnsibleModule
@@ -141,103 +155,91 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
     StateValue,
-    ConnectionTypes,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
-    camel_array_to_snake_case,
 )
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.uaig_subscriber_reconciler import (
     SubscriberReconciler,
 )
 
-
-try:
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_logger import (
-        MessageID,
-    )
-
-    HAS_MESSAGE_ID = True
-except ImportError as error:
-    HAS_MESSAGE_ID = False
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
 )
-
-
-logger = Log()
-
-try:
-    HAS_MESSAGE_ID = True
-except ImportError as error:
-    HAS_MESSAGE_ID = False
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
+)
 
 
 class SubscriberManager:
     def __init__(self):
-
+        self.logger = Log()
+        self.argument_spec = GatewayArguments().gateway_subscriber()
+        self.module = AnsibleModule(
+            argument_spec=self.argument_spec,
+            supports_check_mode=True,
+        )
         try:
-            self.argument_spec = GatewayArguments().gateway_subscriber()
-            self.module = AnsibleModule(
-                argument_spec=self.argument_spec,
-                supports_check_mode=True,
-                # can be added mandotary , optional mandatory arguments
-            )
             self.params_manager = GatewayParametersManager(self.module.params)
             self.state = self.params_manager.get_state()
             self.connection_info = self.params_manager.get_connection_info()
-            logger.writeInfo(f"State: {self.state}")
+            self.logger.writeInfo(f"State: {self.state}")
 
         except Exception as e:
-            logger.writeError(f"An error occurred during initialization: {str(e)}")
+            self.logger.writeError(f"An error occurred during initialization: {str(e)}")
             self.module.fail_json(msg=str(e))
 
     def apply(self):
-
+        registration_message = validate_ansible_product_registration()
         subscriber_data = None
         reconciler = SubscriberReconciler(self.params_manager.connection_info)
         self.params_manager.set_subscriber_fact_spec()
         try:
-
+            self.logger.writeInfo("=== Start of Gateway Subscriber operation ===")
             if self.state == StateValue.PRESENT:
                 if not self.params_manager.spec.subscriber_id:
                     subscriber_data = "Subscriber ID is missing."
                 else:
-                  
-                  existing_subscriber = None
-                  try:
-                    ## we are getting exception now, hence this try-catch
-                    existing_subscriber = reconciler.get_subscriber_facts(
-                        self.params_manager.spec
-                    )
-                  except Exception as e:
-                    logger.writeInfo(f"Caught exception implies subscriber not found, go ahead with create: {e}")
-                    
-                  if not existing_subscriber or len(existing_subscriber) == 0:
-                      self.spec = self.params_manager.set_subscriber_spec("present")
-                      subscriber_data = reconciler.create_subscriber(self.spec)
-                      if subscriber_data:
-                        self.connection_info.changed = True
-                  else:
-                      self.spec = self.params_manager.set_subscriber_spec("update")
-                      subscriber_data = reconciler.update_subscriber(
-                          self.spec, existing_subscriber[0]
-                      )
-                      if subscriber_data:
-                        same_data = self.is_both_subscriber_data_same(existing_subscriber[0], subscriber_data)
-                        self.connection_info.changed = not same_data
+
+                    existing_subscriber = None
+                    try:
+                        #  we are getting exception now, hence this try-catch
+                        existing_subscriber = reconciler.get_subscriber_facts(
+                            self.params_manager.spec
+                        )
+                    except Exception as e:
+                        self.logger.writeError(
+                            f"Caught exception implies subscriber not found, go ahead with create: {e}"
+                        )
+
+                    if not existing_subscriber or len(existing_subscriber) == 0:
+                        self.spec = self.params_manager.set_subscriber_spec("present")
+                        subscriber_data = reconciler.create_subscriber(self.spec)
+                        if subscriber_data:
+                            self.connection_info.changed = True
+                    else:
+                        self.spec = self.params_manager.set_subscriber_spec("update")
+                        subscriber_data = reconciler.update_subscriber(
+                            self.spec, existing_subscriber[0]
+                        )
+                        if subscriber_data:
+                            same_data = self.is_both_subscriber_data_same(
+                                existing_subscriber[0], subscriber_data
+                            )
+                            self.connection_info.changed = not same_data
             elif self.state == StateValue.ABSENT:
                 self.spec = self.params_manager.set_subscriber_spec("absent")
                 subscriber_data = reconciler.delete_subscriber(self.spec)
                 if "Subscriber deleted successfully" in subscriber_data:
                     self.connection_info.changed = True
         except Exception as e:
+            self.logger.writeError(str(e))
+            self.logger.writeInfo("=== End of Gateway Subscriber operation ===")
             self.module.fail_json(msg=str(e))
 
         response = {"changed": self.connection_info.changed, "data": subscriber_data}
-
+        if registration_message:
+            response["user_consent_required"] = registration_message
+        self.logger.writeInfo(f"{response}")
+        self.logger.writeInfo("=== End of Gateway Subscriber operation ===")
         self.module.exit_json(**response)
 
     def is_both_subscriber_data_same(self, existing, returned):
@@ -251,10 +253,12 @@ class SubscriberManager:
                     return False
             return True
 
-def main():
+
+def main(module=None):
 
     obj_store = SubscriberManager()
     obj_store.apply()
+
 
 if __name__ == "__main__":
     main()

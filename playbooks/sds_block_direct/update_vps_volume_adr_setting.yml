@@ -1,15 +1,13 @@
+---
 ####################################################################
 # Example :  Update VPS Volume ADR Setting Playbook
 ####################################################################
 - name: Update VPS Volume ADR Setting
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.sds_block
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - sds_block_variables.yml
 
   vars:
     # Common connection info for all tasks
@@ -17,34 +15,36 @@
       address: "{{ storage_address }}"
       username: "{{ vault_storage_username }}"
       password: "{{ vault_storage_secret }}"
-  
+
   tasks:
-#########################################################################
-# Task 1 :  Update VPS Volume ADR setting by id
-#########################################################################
+    #########################################################################
+    # Task 1 :  Update VPS Volume ADR setting by id
+    #########################################################################
     - name: Update VPS Volume ADR setting by id
-      hv_sds_block_vps:
+      hitachivantara.vspone_block.sds_block.hv_sds_block_vps:
         connection_info: "{{ connection_info }}"
         spec:
-          id: "{{ update_vps_volume_adr_setting_id_1 }}"
-          capacity_saving: "{{ update_vps_volume_adr_setting_capacity_saving_1 }}"
+          id: "dab1fa60-5c41-486a-9551-ec41c74d9f01"
+          capacity_saving: "Disabled"
 
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-#########################################################################
-# Task 2 :  Update VPS Volume ADR setting by name
-#########################################################################
+    #########################################################################
+    # Task 2 :  Update VPS Volume ADR setting by name
+    #########################################################################
     - name: Update VPS Volume ADR setting by name
-      hv_sds_block_vps:
+      hitachivantara.vspone_block.sds_block.hv_sds_block_vps:
         connection_info: "{{ connection_info }}"
         spec:
-          name: "{{ update_vps_volume_adr_setting_name_2 }}"
-          capacity_saving: "{{ update_vps_volume_adr_setting_capacity_saving_2 }}"
+          name: "VPS_01"
+          capacity_saving: "Compression"
 
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

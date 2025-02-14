@@ -30,7 +30,7 @@ class SnapshotGroupSpec:
 
 @dataclass
 class SnapshotGroupFactSpec:
-    snapshot_group_name: str
+    snapshot_group_name: str = None
 
 
 @dataclass
@@ -62,8 +62,9 @@ class SnapshotReconcileSpec:
         if kwargs.get("primary_volume_id"):
             self.pvol = kwargs.get("primary_volume_id")
         if kwargs.get("allocate_new_consistency_group"):
-            self.allocate_consistency_group = kwargs.get("allocate_new_consistency_group")
-
+            self.allocate_consistency_group = kwargs.get(
+                "allocate_new_consistency_group"
+            )
 
 
 @dataclass
@@ -91,11 +92,12 @@ class DirectSnapshotInfo(SingleBaseClass):
     type: Optional[str] = "NORMAL"
     snapshotReplicationId: Optional[str] = None
     poolId: Optional[int] = None
+    progressRate: Optional[int] = None
 
     def __post_init__(self):
         if self.isClone and self.canCascade:
             self.type = "CLONE"
-        elif self.isClone == False and self.canCascade == True:
+        elif self.isClone is False and self.canCascade is True:
             self.type = "CASCADE"
         if self.snapshotReplicationId:
             self.snapshotId = self.snapshotReplicationId
@@ -108,6 +110,11 @@ class SnapshotGroupInfo(SingleBaseClass):
     snapshotGroupName: Optional[str] = None
     snapshotGroupId: Optional[str] = None
     snapshots: Optional[List[DirectSnapshotInfo]] = None
+
+    def __post_init__(self):
+        if self.snapshots:
+            snapshots = [DirectSnapshotInfo(**snapshot) for snapshot in self.snapshots]
+            self.snapshots = DirectSnapshotsInfo(data=snapshots)
 
 
 @dataclass
@@ -153,24 +160,24 @@ class UAIGSnapshotInfo(SingleBaseClass):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        ## 20240825 snapshot_pair_info is from v3 response
-        ## 20240825 thinImagePropertiesDto is from v3 response
+        #  20240825 snapshot_pair_info is from v3 response
+        #  20240825 thinImagePropertiesDto is from v3 response
         snapshot_pair_info = kwargs.get("snapshotPairInfo")
         thinImagePropertiesDto = None
 
-        ## v2 response does not have snapshot_pair_info
-        ## thinImageProperties is from v2 response
+        #  v2 response does not have snapshot_pair_info
+        #  thinImageProperties is from v2 response
         thinImageProperties = kwargs.get("thinImageProperties")
         if thinImageProperties:
             for field in self.__dataclass_fields__.keys():
-                ## only if the base value is None
+                #  only if the base value is None
                 if getattr(self, field) is None:
                     setattr(self, field, thinImageProperties.get(field, None))
-                ## specail overwrite
+                #  specail overwrite
                 if field == "type":
                     setattr(self, field, thinImageProperties.get(field, None))
 
-        ## flattern the struct from v3
+        #  flattern the struct from v3
         if snapshot_pair_info:
             thinImagePropertiesDto = snapshot_pair_info.get("thinImagePropertiesDto")
             for field in self.__dataclass_fields__.keys():
@@ -178,10 +185,10 @@ class UAIGSnapshotInfo(SingleBaseClass):
                     setattr(self, field, snapshot_pair_info.get(field))
         if thinImagePropertiesDto:
             for field in self.__dataclass_fields__.keys():
-                ## only if the base value is None
+                #  only if the base value is None
                 if getattr(self, field) is None:
                     setattr(self, field, thinImagePropertiesDto.get(field, None))
-                ## specail overwrite
+                #  specail overwrite
                 if field == "type":
                     setattr(self, field, thinImagePropertiesDto.get(field, None))
 

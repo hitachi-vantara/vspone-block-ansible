@@ -1,25 +1,29 @@
-import json
-from typing import Optional, List, Dict, Any
+from typing import List, Dict, Any
 
 try:
     from ..common.uaig_constants import Endpoints
     from ..common.hv_constants import CommonConstants
     from .gateway_manager import UAIGConnectionManager
     from ..common.hv_log import Log
-    from ..common.ansible_common import dicts_to_dataclass_list, log_entry_exit
+    from ..common.ansible_common import log_entry_exit
 except ImportError:
     from common.uaig_constants import Endpoints
     from common.hv_constants import CommonConstants
     from .gateway_manager import UAIGConnectionManager
     from common.hv_log import Log
-    from common.ansible_common import dicts_to_dataclass_list, log_entry_exit
+    from common.ansible_common import log_entry_exit
+
 
 class VSPVolTieringUAIGateway:
 
     def __init__(self, connection_info):
         self.logger = Log()
         self.connection_manager = UAIGConnectionManager(
-            connection_info.address, connection_info.username, connection_info.password, connection_info.api_token)        
+            connection_info.address,
+            connection_info.username,
+            connection_info.password,
+            connection_info.api_token,
+        )
         self.end_points = Endpoints
         self.connectionInfo = connection_info
 
@@ -40,12 +44,12 @@ class VSPVolTieringUAIGateway:
 
         for u in ucpsystems:
             # if u.get("name") == CommonConstants.UCP_NAME:
-                for s in u.get("storageDevices"):
-                    if str(s.get("serialNumber")) == str(storage_serial_number):
-                        return s.get("healthState") != CommonConstants.ONBOARDING
+            for s in u.get("storageDevices"):
+                if str(s.get("serialNumber")) == str(storage_serial_number):
+                    return s.get("healthState") != CommonConstants.ONBOARDING
         return False
-    
-    ## 20240822 - VSPVolTieringUAIGateway apply_vol_tiering
+
+    #  20240822 - VSPVolTieringUAIGateway apply_vol_tiering
     @log_entry_exit
     def apply_vol_tiering(
         self,
@@ -58,12 +62,12 @@ class VSPVolTieringUAIGateway:
         tier1_allocation_rate_max: int,
         tier3_allocation_rate_min: int,
         tier3_allocation_rate_max: int,
-        ) -> Dict[str, Any]:
+    ) -> Dict[str, Any]:
 
         tierLevelForNewPageAlloc = "L"
         if tier_level_for_new_page_allocation:
             tierLevelForNewPageAlloc = "H"
-            
+
         end_point = self.end_points.APPLY_VOL_TIERING
         payload = {
             "enableRelocation": is_relocation_enabled,
@@ -78,8 +82,8 @@ class VSPVolTieringUAIGateway:
             "tier3AllocRateMax": tier3_allocation_rate_max,
             "tier3AllocRateMin": tier3_allocation_rate_min,
             "shouldAllowDelete": False,
-            }
-        
+        }
+
         headers = self._populate_headers()
         self.logger.writeDebug(f"apply_vol_tiering payload: {payload}")
         return self.connection_manager.post(end_point, payload, headers_input=headers)
@@ -90,14 +94,3 @@ class VSPVolTieringUAIGateway:
         if self.connectionInfo.subscriber_id is not None:
             headers["subscriberId"] = self.connectionInfo.subscriber_id
         return headers
-
-        ret_list = []
-        for hg in secondary_hgs:
-            item = {}
-            # item["id"] = hg.id
-            item["name"] = hg.name
-            item["port"] = hg.port
-            # item["resourceGroupID"] = hg.resource_group_id or 0
-            ret_list.append(item)
-
-        return ret_list    

@@ -1,15 +1,13 @@
+---
 ####################################################################
 # Example : Hostgroup Facts Playbook
 ####################################################################
 - name: Hostgroup Facts
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_direct_variables.yml
 
   vars:
     # Common connection info for all tasks
@@ -19,63 +17,68 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-####################################################################
-# Task 1 : Get all hostgroups
-####################################################################
+    ####################################################################
+    # Task 1 : Get all hostgroups
+    ####################################################################
     - name: Get all hostgroups
-      hv_hg_facts:
+      hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Get hostgroups of specific ports
-####################################################################
+    ####################################################################
+    # Task 2 : Get hostgroups of specific ports
+    ####################################################################
     - name: Get hostgroups of specific ports
-      hv_hg_facts:
+      hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          ports: "{{ hostgroup_facts_ports_2 }}"
+          ports: ["CL1-A"]
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 3 : Get hostgroups of specific ports with same hostgroup name
-####################################################################
+    ####################################################################
+    # Task 3 : Get hostgroups of specific ports with same hostgroup name
+    ####################################################################
     - name: Get hostgroups of specific ports with same hostgroup name
-      hv_hg_facts:
+      hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          ports: "{{ hostgroup_facts_ports_3 }}"
-          name: "{{ hostgroup_facts_name_3 }}"
+          ports: ["CL1-A", "CL2-A"]
+          name: "hatestdummy5"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 4 : Get hostgroups of specific ports, include wwns and ldevs
-####################################################################
+    ####################################################################
+    # Task 4 : Get hostgroups of specific ports, include wwns and ldevs
+    ####################################################################
     - name: Get hostgroups of specific ports, include wwns and ldevs
-      hv_hg_facts:
+      hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          ports: "{{ hostgroup_facts_ports_4 }}"
-          query: "{{ hostgroup_facts_query_4 }}"
+          ports: ["CL2-B"]
+          query:
+            - wwns
+            - ldevs
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
-

@@ -1,14 +1,13 @@
 import logging
-from ansible.module_utils.six.moves.urllib import parse as urlparse
 
 
 class Endpoints(object):
     # GET_SNAPSHOTS = "v2/storage/devices/{}/snapshotpairs"
     GET_SNAPSHOTS_V3 = "v3/storage/devices/{}/snapshotpairs"
     GET_SNAPSHOT = "v2/storage/devices/{}/snapshotpair/{}"
-    
+
     GET_SNAPSHOT_BY_PVOL = "v2/storage/devices/{}/snapshotpair/?primaryLunId={}"
-    
+
     DELETE_SNAPSHOT = "v2/storage/devices/{}/snapshotpair/{}"
     CREATE_SNAPSHOT = "v2/storage/devices/{}/snapshotpair"
     CREATE_SNAPSHOT_V3 = "v3/storage/devices/{}/snapshotPair"
@@ -27,12 +26,12 @@ class Endpoints(object):
     GET_USERS = "v2/rbac/users"
     UPDATE_PASSWORD = "v2/rbac/users/{id}"
 
-    ## Subscriber related endpoints
+    #  Subscriber related endpoints
     GET_SUBSCRIBER_RESOURCES = "v3/partner/{}/subscriber/{}/resources"
     UNTAG_SUBSCRIBER_RESOURCE = "v3/storage/{}/resource/{}?type={}&subscriberId={}"
     GET_STORAGE_DEVICE_BY_ID = "v2/storage/devices/{}"
 
-    ## Host Group
+    #  Host Group
     GET_HOST_GROUPS = "v2/storage/devices/{}/hostGroups"
     GET_HOST_GROUP_BY_ID = "v2/storage/devices/{}/hostGroups/{}"
     CREATE_HOST_GROUP = "v2/storage/devices/{}/hostGroups"
@@ -40,34 +39,41 @@ class Endpoints(object):
     UAIG_GET_HOST_GROUPS = "v3/storage/devices/{}/hostGroups"
     UAIG_CREATE_HOST_GROUP = "v3/storage/devices/{}/hostGroups"
 
-    ## Volumes
+    #  Volumes
     GET_VOLUMES = "v2/storage/devices/{}/volumes"
     GET_VOLUME_BY_ID = "v2/storage/devices/{}/volumes/{}"
     UAIG_GET_VOLUMES = "v3/storage/{}/volume?fromLdevId=0&toLdevId=65535"
 
-    ## Parity Group
+    #  Parity Group
     GET_PARITY_GROUPS = "v2/storage/devices/{}/parityGroups"
 
-    ## Storage Ports
+    #  Storage Ports
     GET_PORTS = "v2/storage/devices/{}/ports"
     UAIG_GET_PORTS = "v3/storage/{}/ports"
     UAIG_TAG_PORT = "v3/storage/{}/resource"
-    
+
     GET_REPLICATION_PAIRS = "v2/storage/devices/{}/replicationPairs"
+    GET_REPLICATION_PAIRS_REFRESH = (
+        "v2/storage/devices/{}/replicationPairs?refresh=true"
+    )
     GET_GAD_PAIRS_V3 = "v3/storage/devices/{}/gadpairs"
     GAD_SINGLE_PAIR_V3 = "v3/storage/devices/{}/gadpair/{}"
     SPLIT_GAD_PAIR = "v2/storage/devices/{}/gadpair/{}/split"
     RESYNC_GAD_PAIR = "v2/storage/devices/{}/gadpair/{}/resync"
+    SWAP_SPLIT_GAD_PAIR = "v2/storage/devices/{}/gadpair/{}/swap-split"
+    SWAP_RESYNC_GAD_PAIR = "v2/storage/devices/{}/gadpair/{}/swap-resync"
     SPLIT_GAD_PAIR_V3 = "v3/storage/devices/{}/gadpair/{}/split"
     RESYNC_GAD_PAIR_V3 = "v3/storage/devices/{}/gadpair/{}/resync"
     POST_GAD_PAIR = "v3/storage/devices/gadpair"
     GET_REPLICATION_PAIR_BY_ID = "v2/storage/devices/{}/replicationPair/{}"
 
-    ## TrueCopy
+    #  TrueCopy
     GET_TRUE_COPY_PAIRS = "v3/storage/devices/{}/truecopypairs"
     # CREATE_TRUE_COPY_PAIR = "v2/storage/devices/truecopypair"
     CREATE_TRUE_COPY_PAIR = "v3/storage/devices/truecopypair"
-    DELETE_TRUE_COPY_PAIR = "v3/storage/devices/{}/truecopypair/{}?isDelete=True"
+    DELETE_TRUE_COPY_PAIR = (
+        "v3/storage/devices/{}/truecopypair/{}?isDelete=True&deleteLun={}"
+    )
     # DELETE_TRUE_COPY_PAIR = "v2/storage/devices/{}/truecopypair/{}"
     RESYNC_TRUE_COPY_PAIR = "v2/storage/devices/{}/truecopypair/{}/resync"
     SPLIT_TRUE_COPY_PAIR = "v2/storage/devices/{}/truecopypair/{}/split"
@@ -84,7 +90,7 @@ class Endpoints(object):
     SWAP_SPLIT_HUR_PAIR = "v2/storage/devices/{}/hurpair/{}/swap-split"
     SWAP_RESYNC_HUR_PAIR = "v2/storage/devices/{}/hurpair/{}/swap-resync"
 
-    ## Pool management
+    #  Pool management
     GET_POOLS = "v2/storage/devices/{}/pools"
     POST_POOLS = "v2/storage/devices/{}/pools"
     SINGLE_POOL = "v2/storage/devices/{}/pools/{}"
@@ -93,9 +99,17 @@ class Endpoints(object):
 
     MT_STORAGE_POOL = "v3/storage/{}/pools"
     SINGLE_STORAGE_POOL = "v3/storage/{}/pools/{}"
-    
+
     APPLY_VOL_TIERING = "v2/policies/luntiering"
 
+    #  Journal Volume management
+    GET_JOURNAL_VOLUMES = "v2/storage/devices/{0}/journalpool?ucpSystem={1}"
+    POST_JOURNAL_VOLUMES = "v2/storage/devices/{0}/journalPool"
+    UPDATE_JOURNAL_VOLUMES = "v2/storage/devices/{0}/journalPool/{1}"
+    JOURNAL_VOLUMES_EXPAND = "v2/storage/devices/{0}/journalPool/{1}/expand"
+    JOURNAL_VOLUMES_SHRINK = "v2/storage/devices/{0}/journalPool/{1}/shrink"
+    JOURNAL_VOLUMES_MP_BLADE = "v2/storage/devices/{0}/journalPool/{1}/mpBlade"
+    DELETE_JP = "v2/storage/devices/{0}/journalPool/{1}"
 
 
 class Http(object):
@@ -274,9 +288,19 @@ class StoragePoolPayloadConst:
     WARNING_THRESHOLD_RATE = "warningThresholdRate"
     DEPLETION_THRESHOLD_RATE = "depletionThresholdRate"
     UCP_SYSTEM = "ucpSystem"
-    IS_ENABLE_DEDUPLICATION = "isEnableDeduplication"
+    IS_ENABLE_DEDUPLICATION = "duplicationLdevIds"
     CAPACITY = "capacity"
     PARITY_GROUP_ID = "parityGroupId"
+
+    # Direct Mapping
+    POOL_ID = "poolId"
+    POOL_NAME = "poolName"
+    LDEV_IDS = "ldevIds"
+    WARNING_THRESHOLD = "warningThreshold"
+    DEPLETION_THRESHOLD = "depletionThreshold"
+    POOL_TYPE = "poolType"
+    PARAMETERS = "parameters"
+
 
 class GADPairConst:
     PRIMARY_SERIAL_NUMBER = "primarySerialNumber"
@@ -286,7 +310,7 @@ class GADPairConst:
     OPERATION = "operation"
     PRIMARY_HOSTGROUP_PAYLOADS = "primaryHostGroupPayloads"
     UCP_SYSTEM = "ucpSystem"
-    REMOTE_UCP_SYSTEM ="remoteUcpSystem"
+    REMOTE_UCP_SYSTEM = "remoteUcpSystem"
 
     SECONDARY_SERIAL_NUMBER = "secondarySerialNumber"
     SECONDARY_POOL_ID = "secondaryPoolID"
@@ -301,6 +325,17 @@ class GADPairConst:
     RESOURCE_GROUP_ID = "resourceGroupID"
     ENABLE_PREFERRED_PATH = "enablePreferredPath"
 
+
 class UAIGStorageHealthStatus:
     NORMAL = "NORMAL"
     REFRESHING = "REFRESHING"
+
+
+class VSPJournalVolumeUAIGReq:
+    ucpSystem = "ucpSystem"
+    serialNumber = "serialNumber"
+    journalPoolId = "journalPoolId"
+    logicalUnitIds = "logicalUnitIds"
+    isCacheModeEnabled = "isCacheModeEnabled"
+    dataOverflowWatchSeconds = "dataOverflowWatchSeconds"
+    mpBladeId = "mpBladeId"

@@ -118,3 +118,5 @@ class MessageID(Enum):
     ERR_OPERATION_VSM = 0xA1F4
     ERR_OPERATION_HNAS = 0xA1F5
     ERR_GetParityGroups = 0xA1F6
+    ERR_GetStorageID = 0xA1F7
+    ERR_GetCopyGroups = 0xA1F8

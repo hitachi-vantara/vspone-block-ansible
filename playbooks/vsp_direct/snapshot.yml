@@ -1,15 +1,13 @@
-####################################################################
+---
+######################################################################################
 # Example : Snapshot  Playbook
-####################################################################
+######################################################################################
 - name: Snapshot Pair Module
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_direct_variables.yml
 
   vars:
     # Common connection info for all tasks
@@ -19,126 +17,171 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-####################################################################
-# Task 1 : Create snapshot pair
-####################################################################
+    ######################################################################################
+    # Task 1 : Create snapshot pair
+    ######################################################################################
     - name: Create snapshot pair
-      hv_snapshot:
+      hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present"
         spec:
-          primary_volume_id: "{{ snapshot_pvol_1 }}"
-          pool_id: "{{ snapshot_pool_id_1 }}"
-          snapshot_group_name: "{{ snapshot_snapshot_group_name_1 }}"
-   
+          primary_volume_id: 100
+          pool_id: 15
+          snapshot_group_name: "snapshot-group-name-1"
+
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Split snapshot pair
-####################################################################
-    - name: Split snapshot pair 
-      hv_snapshot:
+    ######################################################################################
+    # Task 2 : Split snapshot pair
+    ######################################################################################
+    - name: Split snapshot pair
+      hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_split }}"
+        state: "split"
         spec:
-          primary_volume_id: "{{ snapshot_pvol_2 }}"
-          mirror_unit_id: "{{ snapshot_mirror_unit_id_2 }}"
+          primary_volume_id: 100
+          mirror_unit_id: 1
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 3 : Resync snapshot pair
-####################################################################
+    ######################################################################################
+    # Task 3 : Resync snapshot pair
+    ######################################################################################
     - name: Resync snapshot pair
-      hv_snapshot:
+      hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_sync }}"
+        state: "sync"
         spec:
-          primary_volume_id: "{{ snapshot_pvol_3 }}"
-          mirror_unit_id: "{{ snapshot_mirror_unit_id_3 }}"
+          primary_volume_id: 100
+          mirror_unit_id: 1
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 4 : Create and Auto-Split snapshot pair
-####################################################################
+    ######################################################################################
+    # Task 4 : Create and Auto-Split snapshot pair
+    ######################################################################################
     - name: Create and Auto-Split snapshot pair
-      hv_snapshot:
+      hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_split }}"
+        state: "split"
         spec:
-          primary_volume_id: "{{ snapshot_pvol_4 }}"
-          pool_id: "{{ snapshot_pool_id_4 }}"
-          snapshot_group_name: "{{ snapshot_snapshot_group_name_4 }}"
+          primary_volume_id: 100
+          pool_id: 1
+          snapshot_group_name: "snapshot-group-name-4"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 5 : Restore snapshot pair
-####################################################################
+    ######################################################################################
+    # Task 5 : Restore snapshot pair
+    ######################################################################################
     - name: Restore snapshot pair
-      hv_snapshot:
+      hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_restore }}"
+        state: "restore"
         spec:
-          primary_volume_id: "{{ snapshot_pvol_5 }}"
-          mirror_unit_id: "{{ snapshot_mirror_unit_id_5 }}"
+          primary_volume_id: 100
+          mirror_unit_id: 5
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 6 : Create snapshot pair using existing consistency group
-####################################################################
+    ######################################################################################
+    # Task 6 : Create snapshot pair using existing consistency group
+    ######################################################################################
     - name: Create snapshot pair using existing consistency group
-      hv_snapshot:
+      hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present"
         spec:
-          primary_volume_id: "{{ snapshot_pvol_6 }}"
-          pool_id: "{{ snapshot_pool_id_6 }}"
-          snapshot_group_name: "{{ snapshot_snapshot_group_name_6 }}"
-          is_data_reduction_force_copy: "{{ snapshot_is_data_reduction_force_copy_6 }}"
+          primary_volume_id: 100
+          pool_id: 1
+          snapshot_group_name: "snapshot-group-name"
+          is_data_reduction_force_copy: true
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 7 : Delete snapshot pair
-####################################################################
+    ######################################################################################
+    # Task 7 : Delete snapshot pair
+    ######################################################################################
     - name: Delete snapshot pair
-      hv_snapshot:
+      hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_absent }}"
+        state: "absent"
         spec:
-          primary_volume_id: "{{ snapshot_pvol_7 }}"
-          mirror_unit_id: "{{ snapshot_mirror_unit_id_7 }}"
+          primary_volume_id: 100
+          mirror_unit_id: 5
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task 8 : Clone snapshot pair
+    ######################################################################################
+    - name: Clone snapshot pair
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "clone"
+        spec:
+          primary_volume_id: 100
+          mirror_unit_id: 5
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task 9 : Create and clone snapshot pair
+    ######################################################################################
+    - name: Create and clone snapshot pair
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "present"
+        spec:
+          primary_volume_id: 100
+          pool_id: 5
+          snapshot_group_name: "snapshot-group-name-1"
+          is_clone: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

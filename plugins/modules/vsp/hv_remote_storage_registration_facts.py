@@ -1,0 +1,241 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2021, [ Hitachi Vantara ]
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
+
+__metaclass__ = type
+
+DOCUMENTATION = """
+---
+module: hv_remote_storage_registration_facts
+short_description: Retrieves remote storage registration information from Hitachi VSP storage systems.
+description:
+  - This module retrieves remote storage registration information from Hitachi VSP storage systems.
+  - This module is supported only for direct connection type.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/remote_storage_registration_facts.yml)
+version_added: '3.2.0'
+author:
+  - Hitachi Vantara LTD (@hitachi-vantara)
+options:
+  storage_system_info:
+    description:
+      - Information about the remote storage systems.
+    type: dict
+    required: false
+    suboptions:
+      serial:
+        description:
+          - The serial number of the storage system.
+        type: str
+        required: false
+  connection_info:
+    description: Information required to establish a connection to the storage system.
+    type: dict
+    required: true
+    suboptions:
+      address:
+        description: IP address or hostname of storage system.
+        type: str
+        required: true
+      username:
+        description: Username for authentication.
+        type: str
+        required: false
+      password:
+        description: Password for authentication.
+        type: str
+        required: false
+      api_token:
+        description: Value of the lock token to operate on locked resources.
+        type: str
+        required: false
+      connection_type:
+        description: Type of connection to the storage system. Only direct connection is supported.
+        type: str
+        required: false
+        choices: ['direct', 'gateway']
+        default: 'direct'
+      subscriber_id:
+        description:
+          - This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
+            Not needed for this operation.
+        type: str
+        required: false
+  secondary_connection_info:
+    description: Information required to establish a connection to the secondary storage system.
+    required: true
+    type: dict
+    suboptions:
+      address:
+        description: IP address or hostname of storage system.
+        type: str
+        required: true
+      username:
+        description: Username for authentication.
+        type: str
+        required: false
+      password:
+        description: Password for authentication.
+        type: str
+        required: false
+      api_token:
+        description: Value of the lock token to operate on locked resources.
+        type: str
+        required: false
+  spec:
+    description:
+      - Specification for the remote storage registration.
+    type: dict
+    required: false
+    suboptions:
+      rest_server_ip:
+        description:
+          - The IP address of the REST API server of the remote storage system.
+        type: str
+        required: false
+      is_mutual_discovery:
+        description: >
+          Specify whether to perform a mutual registration operation. If set to true, perform a mutual registration operation.
+          If this value is omitted, true is specified.
+        type: bool
+        required: false
+"""
+
+EXAMPLES = """
+- name: Remote Storage Registration Facts
+  hv_remote_storage_registration_facts:
+    connection_info:
+      address: 172.0.0.2
+      username: "admin"
+      password: "password"
+    secondary_connection_info:
+      address: 172.0.0.3
+      username: "admin"
+      password: "password"
+"""
+
+RETURN = """
+remote_storage:
+  description: A list information about the storage systems registered on the REST API server.
+  returned: always
+  type: list
+  elements: dict
+  sample:
+    {
+        "storages_registered_in_local": [
+            {
+                "communication_modes": [
+                    {
+                        "communicationMode": "lanConnectionMode"
+                    }
+                ],
+                "ctl1_ip": "172.0.0.127",
+                "ctl2_ip": "172.0.0.128",
+                "dkc_type": "Local",
+                "model": "VSP E1090H",
+                "rest_server_ip": "172.0.0.2",
+                "rest_server_port": 443,
+                "serial_number": 710036,
+                "storage_device_id": "938000710036"
+            },
+            {
+                "communication_modes": [
+                    {
+                        "communicationMode": "lanConnectionMode"
+                    }
+                ],
+                "ctl1_ip": "172.0.0.131",
+                "ctl2_ip": "172.0.0.132",
+                "dkc_type": "Remote",
+                "model": "VSP E1090H",
+                "rest_server_ip": "172.0.0.3",
+                "rest_server_port": 443,
+                "serial_number": 710035,
+                "storage_device_id": "938000710035"
+            }
+        ],
+    }
+"""
+
+
+from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_remote_storage_registration import (
+    VSPRemoteStorageRegistrationReconciler,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
+    VSPRemoteStorageRegistrationArguments,
+    VSPParametersManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
+)
+
+
+class VSPRemoteStorageRegistrationFactsManager:
+    def __init__(self):
+        self.logger = Log()
+        self.argument_spec = (
+            VSPRemoteStorageRegistrationArguments().remote_storage_registration_facts()
+        )
+        self.module = AnsibleModule(
+            argument_spec=self.argument_spec,
+            supports_check_mode=True,
+        )
+
+        self.parameter_manager = VSPParametersManager(self.module.params)
+        self.connection_info = self.parameter_manager.get_connection_info()
+        self.storage_serial_number = self.parameter_manager.get_serial()
+        self.spec = self.parameter_manager.get_remote_storage_registration_fact_spec()
+        self.state = self.parameter_manager.get_state()
+        self.secondary_connection_info = (
+            self.parameter_manager.get_secondary_connection_info()
+        )
+        self.spec.secondary_connection_info = self.secondary_connection_info
+
+    def apply(self):
+        self.logger.writeInfo("=== Start of Remote Storage Registration Facts ===")
+        registration_message = validate_ansible_product_registration()
+        try:
+            reconciler = VSPRemoteStorageRegistrationReconciler(
+                self.connection_info,
+                self.storage_serial_number,
+                self.state,
+                # self.secondary_connection_info,
+            )
+
+            remote_storages = reconciler.get_remote_storage_registration_facts(
+                self.spec
+            )
+            self.logger.writeDebug(
+                f"MOD:hv_copy_group_facts:copy_groups= {remote_storages}"
+            )
+
+        except Exception as e:
+            self.logger.writeError(str(e))
+            self.logger.writeInfo("=== End of Remote Storage Registration Facts ===")
+            self.module.fail_json(msg=str(e))
+
+        data = {
+            "remote_storage_registration_facts": remote_storages,
+        }
+        if registration_message:
+            data["user_consent_required"] = registration_message
+
+        self.logger.writeInfo(f"{data}")
+        self.logger.writeInfo("=== End of Remote Storage Registration Facts ===")
+        self.module.exit_json(**data)
+
+
+def main(module=None):
+    obj_store = VSPRemoteStorageRegistrationFactsManager()
+    obj_store.apply()
+
+
+if __name__ == "__main__":
+    main()

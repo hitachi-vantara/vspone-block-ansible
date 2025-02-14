@@ -1,25 +1,54 @@
-import json
-from typing import NamedTuple
 import concurrent.futures
 
 try:
     from ..common.vsp_constants import Endpoints
-    from .gateway_manager import *
+    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
     from ..common.hv_log import Log
-    from ..common.ansible_common import *
-    from ..model.vsp_iscsi_target_models import *
-    from ..common.hv_constants import *
+    from ..common.ansible_common import (
+        dicts_to_dataclass_list,
+        log_entry_exit,
+    )
+    from ..model.vsp_iscsi_target_models import (
+        VSPIscsiTargetsInfo,
+        VSPIscsiTargetInfo,
+        VSPIqnInitiatorDirectGw,
+        VSPLunDirectGw,
+        VSPChapUserDirectGw,
+        VSPPortsInfo,
+        VSPPortInfo,
+        VSPOneIscsiTargetInfo,
+        IscsiTargetPayLoad,
+        VSPPortsInfoV3,
+        VSPPortInfoV3,
+    )
+    from ..common.hv_constants import VSPIscsiTargetConstant, CommonConstants
     from ..hv_ucpmanager import UcpManager
-    from ..message.vsp_iscsi_target_msgs import *
+    from ..message.vsp_iscsi_target_msgs import VSPIscsiTargetMessage
 except ImportError:
     from common.vsp_constants import Endpoints
-    from .gateway_manager import *
+
+    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
     from common.hv_log import Log
-    from common.ansible_common import *
-    from model.vsp_iscsi_target_models import *
-    from common.hv_constants import *
+    from common.ansible_common import (
+        dicts_to_dataclass_list,
+        log_entry_exit,
+    )
+    from model.vsp_iscsi_target_models import (
+        VSPIscsiTargetsInfo,
+        VSPIscsiTargetInfo,
+        VSPIqnInitiatorDirectGw,
+        VSPLunDirectGw,
+        VSPChapUserDirectGw,
+        VSPPortsInfo,
+        VSPPortInfo,
+        VSPOneIscsiTargetInfo,
+        IscsiTargetPayLoad,
+        VSPPortsInfoV3,
+        VSPPortInfoV3,
+    )
+    from common.hv_constants import VSPIscsiTargetConstant, CommonConstants
     from hv_ucpmanager import UcpManager
-    from message.vsp_iscsi_target_msgs import *
+    from message.vsp_iscsi_target_msgs import VSPIscsiTargetMessage
 
 g_raidHostModeOptions = {
     2: "VERITAS_DB_EDITION_ADV_CLUSTER",
@@ -89,17 +118,20 @@ gHostMode = {
 class VSPIscsiTargetDirectGateway:
     def __init__(self, connection_info):
         self.connectionManager = VSPConnectionManager(
-            connection_info.address, connection_info.username, connection_info.password
+            connection_info.address,
+            connection_info.username,
+            connection_info.password,
+            connection_info.api_token,
         )
 
     def get_ports(self, serial=None):
-        logger = Log()
+        Log()
         end_point = Endpoints.GET_PORTS
         resp = self.connectionManager.get(end_point)
         return VSPPortsInfo(dicts_to_dataclass_list(resp["data"], VSPPortInfo))
 
     def get_one_port(self, port_id):
-        logger = Log()
+        Log()
         end_point = Endpoints.GET_ONE_PORT.format(port_id)
         resp = self.connectionManager.read(end_point)
         return VSPPortInfo(**resp)
@@ -174,13 +206,17 @@ class VSPIscsiTargetDirectGateway:
         tmp_iscsi_target["hostMode"]["hostModeOptions"] = []
         if host_mode_options:
             for option in host_mode_options:
+
+                option_txt = ""
                 if option in g_raidHostModeOptions:
-                    tmp_iscsi_target["hostMode"]["hostModeOptions"].append(
-                        {
-                            "raidOption": g_raidHostModeOptions[option],
-                            "raidOptionNumber": option,
-                        }
-                    )
+                    option_txt = g_raidHostModeOptions[option]
+
+                tmp_iscsi_target["hostMode"]["hostModeOptions"].append(
+                    {
+                        "raidOption": option_txt,
+                        "raidOptionNumber": option,
+                    }
+                )
 
         tmp_iscsi_target["authParam"] = {}
         tmp_iscsi_target["authParam"]["authenticationMode"] = iscsi_target[
@@ -207,9 +243,7 @@ class VSPIscsiTargetDirectGateway:
     def worker_get_iscsi_target(self, port_id, name_input):
         lst_iscsi_target = []
         end_point = Endpoints.GET_HOST_GROUPS.format(
-            "?portId={}&detailInfoType=resourceGroup&isSimpleMode=false".format(
-                port_id
-            )
+            "?portId={}&detailInfoType=resourceGroup&isSimpleMode=false".format(port_id)
         )
         resp = self.connectionManager.get(end_point)
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
@@ -220,7 +254,9 @@ class VSPIscsiTargetDirectGateway:
                     and name_input != iscsi_target["hostGroupName"]
                 ):
                     continue
-                futures.append(executor.submit(self.parse_iscsi_target, iscsi_target=iscsi_target))
+                futures.append(
+                    executor.submit(self.parse_iscsi_target, iscsi_target=iscsi_target)
+                )
             for future in concurrent.futures.as_completed(futures):
                 lst_iscsi_target.append(future.result())
         return lst_iscsi_target
@@ -248,11 +284,15 @@ class VSPIscsiTargetDirectGateway:
                 logger.writeInfo("port_type = {}", port_type)
                 if port_type != VSPIscsiTargetConstant.PORT_TYPE_ISCSI:
                     continue
-                futures.append(executor.submit(self.worker_get_iscsi_target, port_id, name_input))
+                futures.append(
+                    executor.submit(self.worker_get_iscsi_target, port_id, name_input)
+                )
             for future in concurrent.futures.as_completed(futures):
                 lst_iscsi_target = lst_iscsi_target + future.result()
 
-        lst_iscsi_target = sorted(lst_iscsi_target, key=lambda x: (x["portId"], x["iscsiId"])) 
+        lst_iscsi_target = sorted(
+            lst_iscsi_target, key=lambda x: (x["portId"], x["iscsiId"])
+        )
         return VSPIscsiTargetsInfo(
             dicts_to_dataclass_list(lst_iscsi_target, VSPIscsiTargetInfo)
         )
@@ -326,7 +366,11 @@ class VSPIscsiTargetDirectGateway:
         data["portId"] = iscsi_target_payload.port
         data["hostGroupName"] = iscsi_target_payload.name
         if iscsi_target_payload.host_mode:
-            data["hostMode"] = iscsi_target_payload.host_mode
+            host_mode = (
+                gHostMode.get(iscsi_target_payload.host_mode)
+                or iscsi_target_payload.host_mode
+            )
+            data["hostMode"] = host_mode
         if (
             iscsi_target_payload.host_mode_options
             and len(iscsi_target_payload.host_mode_options) > 0
@@ -362,7 +406,7 @@ class VSPIscsiTargetDirectGateway:
     def create_iscsi_targets(self, spec, serial=None):
         logger = Log()
         ports_input = spec.ports
-        name_input = spec.name
+        spec.name
         port_set = None
         if ports_input:
             port_set = set(ports_input)
@@ -548,7 +592,10 @@ class VSPIscsiTargetUAIGateway:
     def __init__(self, connection_info):
         self.connection_info = connection_info
         self.connectionManager = UAIGConnectionManager(
-            connection_info.address, connection_info.username, connection_info.password, connection_info.api_token
+            connection_info.address,
+            connection_info.username,
+            connection_info.password,
+            connection_info.api_token,
         )
         self.resource_id = None
         self.is_tag_port = False
@@ -627,12 +674,12 @@ class VSPIscsiTargetUAIGateway:
         return VSPPortsInfo(dicts_to_dataclass_list(resp["data"], VSPPortInfo))
 
     def get_one_port(self, port_id):
-        logger = Log()
+        Log()
 
     def check_valid_port(self, port_id):
         is_valid = True
         port = self.get_one_port(port_id)
-        port_type = port.portType
+        port_type = port.portType if port else None
         if port_type != VSPIscsiTargetConstant.PORT_TYPE_ISCSI:
             is_valid = False
         return is_valid
@@ -671,10 +718,7 @@ class VSPIscsiTargetUAIGateway:
             port_set = set(ports_input)
         logger.writeInfo("port_set={0}".format(port_set))
         for iscsi_target in resp["data"]:
-            if (
-                name_input is not None
-                and name_input != iscsi_target["iSCSIName"]
-            ):
+            if name_input is not None and name_input != iscsi_target["iSCSIName"]:
                 continue
             port_id = iscsi_target["portId"]
             if port_set and port_id not in port_set:
@@ -711,7 +755,9 @@ class VSPIscsiTargetUAIGateway:
                 del iscsi_target["iSCSIId"]
                 return VSPOneIscsiTargetInfo(VSPIscsiTargetInfo(**iscsi_target))
         if not is_found:
-            iscsi_target_info_obj = self.get_iscsi_target_by_partner_id(port_id, name, serial)
+            iscsi_target_info_obj = self.get_iscsi_target_by_partner_id(
+                port_id, name, serial
+            )
             if iscsi_target_info_obj.data:
                 self.tag_iscsi_target(iscsi_target_info_obj.data.resourceId, serial)
             return iscsi_target_info_obj
@@ -733,7 +779,7 @@ class VSPIscsiTargetUAIGateway:
                 del iscsi_target["iSCSIId"]
                 return VSPOneIscsiTargetInfo(VSPIscsiTargetInfo(**iscsi_target))
         return VSPOneIscsiTargetInfo(**{"data": None})
-    
+
     def get_all_iscsi_target_by_partner_id(self, serial):
         end_point = Endpoints.UAIG_GET_ISCSIS.format(
             self.get_storage_resource_id(serial), "?refresh={}".format(False)
@@ -782,7 +828,9 @@ class VSPIscsiTargetUAIGateway:
         except Exception as e:
             logger.writeInfo("err = {}", e)
             if VSPIscsiTargetMessage.RESOURCE_PRESENT.value in str(e):
-                iscsi_target_info_obj = self.get_iscsi_target_by_partner_id(iscsi_target_payload.port, iscsi_target_payload.name, serial)
+                iscsi_target_info_obj = self.get_iscsi_target_by_partner_id(
+                    iscsi_target_payload.port, iscsi_target_payload.name, serial
+                )
                 self.tag_iscsi_target(iscsi_target_info_obj.data.resourceId, serial)
             else:
                 raise e
@@ -889,8 +937,11 @@ class VSPIscsiTargetUAIGateway:
         logger = Log()
         end_point = Endpoints.UAIG_GET_VOLUMES.format(
             self.get_storage_resource_id(serial),
-            "?fromLdevId={}&toLdevId={}&refresh={}".format(ldev_id, ldev_id, False),
+            "?fromLdevId={from_id}&toLdevId={to_id}&refresh={refresh}".format(
+                from_id=ldev_id, to_id=ldev_id, refresh=False
+            ),
         )
+
         headers = self.populate_header()
         resp = self.connectionManager.get(end_point, headers)
         logger.writeInfo(resp)

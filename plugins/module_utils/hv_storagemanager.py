@@ -1,16 +1,8 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# Copyright: (c) 2020, Hewlett Packard Enterprise Development LP.
-
-__metaclass__ = type
-
-import json
 import time
 import hashlib
 
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
 )
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ucpmanager import (
@@ -83,11 +75,8 @@ class StorageManager:
                 self.management_password,
                 self.api_token,
             )
-        except Exception as ex:
+        except Exception:
             raise Exception("Management System is not configured.")
-
-    #################################################################
-    #################################################################
 
     def throwException(self, response):
         self.logger.writeInfo("throwException, response={}", response)
@@ -95,7 +84,7 @@ class StorageManager:
             "{0}:{1}".format(response.status_code, response.json().get("error"))
         )
 
-    ## helper func
+    #  helper func
     def isStorageSystemInUcpSystem(self):
         funcName = "hv_storagemanager:isStorageSystemInUcpSystem"
         self.logger.writeEnterSDK(funcName)
@@ -103,7 +92,7 @@ class StorageManager:
         self.logger.writeDebug("ucp_serial={}", self.ucp_serial)
 
         theUCP = self.ucpManager.getUcpSystem(self.ucp_serial)
-        self.logger.writeInfo("theUCP={}", theUCP)
+        self.logger.writeDebug("theUCP={}", theUCP)
 
         if theUCP is None:
             raise Exception("The System is not found.")
@@ -114,7 +103,7 @@ class StorageManager:
             ss = str(ss)
             self.logger.writeDebug("ss={}", ss)
 
-            #Removed the restriction of having the storage system in the UCP system
+            # Removed the restriction of having the storage system in the UCP system
             return True
             # if ss == str(self.storage_serial):
             #     return True
@@ -132,7 +121,7 @@ class StorageManager:
         funcName = "hv_storagesystem:getStorageSystemResourceId"
         self.logger.writeEnterSDK(funcName)
         headers = self.ucpManager.getAuthToken()
-        self.logger.writeParam("headers={}", headers)
+        # self.logger.writeParam("headers={}", headers)
 
         urlPath = "v2/storage/devices"
         url = self.ucpManager.getUrl(urlPath)
@@ -140,13 +129,13 @@ class StorageManager:
 
         systems = self.getAllStorageSystems()
 
-        self.logger.writeInfo("systems={}", systems)
+        self.logger.writeDebug("systems={}", systems)
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x["serialNumber"]))
-            self.logger.writeInfo(self.storage_serial)
-            self.logger.writeInfo(int(x["serialNumber"]) == self.storage_serial)
+            self.logger.writeDebug(int(x["serialNumber"]))
+            self.logger.writeDebug(self.storage_serial)
+            self.logger.writeDebug(int(x["serialNumber"]) == self.storage_serial)
 
             if str(x["serialNumber"]) == str(self.storage_serial):
                 system = x
@@ -169,7 +158,7 @@ class StorageManager:
 
         funcName = "hv_storagesystem:getStorageSystemResourceIdInISP"
         self.logger.writeEnterSDK(funcName)
-        headers = self.ucpManager.getAuthToken()
+        self.ucpManager.getAuthToken()
         # self.logger.writeParam('headers={}', headers)
 
         urlPath = "v2/storage/devices"
@@ -183,9 +172,9 @@ class StorageManager:
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x["serialNumber"]))
-            self.logger.writeInfo(self.storage_serial)
-            self.logger.writeInfo(int(x["serialNumber"]) == self.storage_serial)
+            self.logger.writeDebug(int(x["serialNumber"]))
+            self.logger.writeDebug(self.storage_serial)
+            self.logger.writeDebug(int(x["serialNumber"]) == self.storage_serial)
             if str(x["serialNumber"]) == str(self.storage_serial):
                 system = x
                 break
@@ -231,7 +220,7 @@ class StorageManager:
         self.logger.writeEnterSDK(funcName)
         resourceId = self.getStorageSystemResourceIdInISP()
         # (resourceId, ucp) = self.getStorageSystemResourceId()
-        self.logger.writeInfo("Storage_resource_id={0}".format(resourceId))
+        self.logger.writeDebug("Storage_resource_id={0}".format(resourceId))
         # urlPath = 'v2/storage/devices/{0}/volumes?refresh=false'.format(resourceId)
         urlPath = "v2/storage/devices/{0}/volumes?fromLdevId=0&toLdevId=64000&refresh=false".format(
             resourceId
@@ -243,7 +232,7 @@ class StorageManager:
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
 
-        ## too much to dump
+        #  too much to dump
         # self.logger.writeDebug('response.json()={}', response.json())
         self.logger.writeDebug("20230620 response.ok={}", response.ok)
         if response.ok:
@@ -292,9 +281,9 @@ class StorageManager:
     def tagResource(self, storageResourceId, resourceId, resourceType):
         funcName = "hv_storagemanager:tagResource"
         self.logger.writeEnterSDK(funcName)
-        
+
         if self.subscriberId is None:
-            ## NOP
+            #  NOP
             self.logger.writeDebug("295 subscriberId is required to tagResource")
             return
 
@@ -330,9 +319,9 @@ class StorageManager:
     def tagV2Volume(self, resourceId, volumeResourceId):
         funcName = "hv_storagemanager:tagV2Volume"
         self.logger.writeEnterSDK(funcName)
-        
+
         if self.subscriberId is None:
-            ## NOP
+            #  NOP
             self.logger.writeDebug("294 subscriberId is required to tag")
             return
 
@@ -397,12 +386,12 @@ class StorageManager:
                 time.sleep(5)
             else:
                 self.logger.writeDebug("failed: {}", response)
-        except:
+        except (ValueError, TypeError):
             self.logger.writeDebug("except")
 
         self.logger.writeExitSDK(funcName)
 
-    ## may not be used anymore
+    #  may not be used anymore
     def getLunByID(self, ldevid):
 
         funcName = "hv_storagemanager:getLunByID"
@@ -423,7 +412,7 @@ class StorageManager:
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
 
-        ## too much to dump
+        #  too much to dump
         # self.logger.writeDebug('response.json()={}', response.json())
         self.logger.writeDebug("386 response.ok={}", response.ok)
         if response.ok:
@@ -440,9 +429,10 @@ class StorageManager:
         funcName = "hv_storagemanager:get_one_lun_by_id_v3"
         self.logger.writeEnterSDK(funcName)
         resourceId = self.getStorageSystemResourceIdInISP()
-        urlPath = "v3/storage/{0}/volumes/details?fromLdevId={1}&toLdevId={2}&refresh=false".format(
-            resourceId, ldevid, ldevid
+        urlPath = "v3/storage/{resource_id}/volumes/details?fromLdevId={from_ldev}&toLdevId={to_ldev}&refresh=false".format(
+            resource_id=resourceId, from_ldev=ldevid, to_ldev=ldevid
         )
+
         url = self.ucpManager.getUrl(urlPath)
         self.logger.writeParam("urlPath={}", url)
 
@@ -478,11 +468,12 @@ class StorageManager:
         try:
             lun_resourceId = int(lun_resourceId)
             lun_resourceId = self.get_storage_volume_md5_hash(lun_resourceId)
-        except:
-            pass
+        except Exception as ex:
+            self.logger.writeDebug(f"exception in getOneLunByResourceID {ex}")
+
         self.logger.writeDebug("Storage_resource_id={0}".format(storage_resourceId))
         self.logger.writeDebug("330 lun_resourceId={0}".format(lun_resourceId))
-        
+
         # urlPath = 'v2/storage/devices/{0}/volumes?refresh=false'.format(resourceId)
         urlPath = "v2/storage/devices/{0}/volumes/{1}".format(
             storage_resourceId, lun_resourceId
@@ -494,7 +485,7 @@ class StorageManager:
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
 
-        ## only one lun
+        #  only one lun
         self.logger.writeDebug("response.json()={}", response.json())
         self.logger.writeDebug("20230620 response.ok={}", response.ok)
         if response.ok:
@@ -518,9 +509,10 @@ class StorageManager:
         self.logger.writeDebug("Storage_resource_id={0}".format(storage_resourceId))
         self.logger.writeDebug("437 lun={0}".format(lun))
         # urlPath = 'v2/storage/devices/{0}/volumes?refresh=false'.format(resourceId)
-        urlPath = "v3/storage/{0}/volume?fromLdevId={1}&toLdevId={2}".format(
-            storage_resourceId, lun, lun
+        urlPath = "v3/storage/{storage_id}/volume?fromLdevId={from_lun}&toLdevId={to_lun}".format(
+            storage_id=storage_resourceId, from_lun=lun, to_lun=lun
         )
+
         url = self.ucpManager.getUrl(urlPath)
         self.logger.writeParam("443 urlPath={}", url)
         headers = self.ucpManager.getAuthToken()
@@ -529,7 +521,7 @@ class StorageManager:
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
 
-        ## only one lun
+        #  only one lun
         self.logger.writeDebug("response.json()={}", response.json())
         self.logger.writeDebug("451 response.ok={}", response.ok)
         if response.ok:
@@ -548,11 +540,11 @@ class StorageManager:
         self.logger.writeEnterSDK(funcName)
         self.logger.writeParam("lun={}", lun)
 
-        self.logger.writeInfo("20230617 looking for lun={}", lun)
+        self.logger.writeDebug("20230617 looking for lun={}", lun)
 
         # luns = self.getAllLuns()
-        ## getLunByID replaces getAllLuns,
-        ## it uses the lun input id for the range to look for the lun
+        #  getLunByID replaces getAllLuns,
+        #  it uses the lun input id for the range to look for the lun
         luns = self.getLunByID(lun)
         foundlun = None
         for item in luns:
@@ -561,15 +553,15 @@ class StorageManager:
             try:
                 if str(item["ldevId"]) == str(lun):
                     foundlun = item
-                    self.logger.writeInfo("foundlun={}", foundlun)
+                    self.logger.writeDebug("foundlun={}", foundlun)
                     break
             except Exception as e:
                 self.logger.writeDebug("403 e={}", e)
-                self.logger.writeInfo(str(e))
+                self.logger.writeError(str(e))
 
         self.logger.writeDebug("405 foundlun={}", foundlun)
-        if foundlun == None:
-            self.logger.writeInfo("lun {} not found", lun)
+        if foundlun is None:
+            self.logger.writeDebug("lun {} not found", lun)
 
         self.logger.writeExitSDK(funcName)
         return foundlun
@@ -587,13 +579,13 @@ class StorageManager:
             and canonicalName.find(manufacturerCode) > 0
         ):
             lunCode = canonicalName[28:36]
-            self.logger.writeInfo("lunCode={0}".format(lunCode))
+            self.logger.writeDebug("lunCode={0}".format(lunCode))
             modelCode = canonicalName[20:23]
-            self.logger.writeInfo("modelCode={0}".format(modelCode))
+            self.logger.writeDebug("modelCode={0}".format(modelCode))
             serialSubCode = canonicalName[24:28]
             serialCode = serialSubCode
 
-            self.logger.writeInfo("serialCode={0}".format(serialCode))
+            self.logger.writeDebug("serialCode={0}".format(serialCode))
             storageSerial = int(serialCode, 16)
             if modelCode == "502":
                 storageSerial = "2{0}".format(storageSerial)
@@ -605,10 +597,10 @@ class StorageManager:
                 storageSerial = "7{0}".format(storageSerial)
 
             self.storage_serial = int(storageSerial)
-            self.logger.writeInfo("storageSerial={0}".format(self.storage_serial))
+            self.logger.writeDebug("storageSerial={0}".format(self.storage_serial))
 
             lun = int(lunCode, 16)
-            self.logger.writeInfo("lun={0}".format(lun))
+            self.logger.writeDebug("lun={0}".format(lun))
             self.logger.writeExitSDK(funcName)
             return self.getLun(lun)
 
@@ -627,25 +619,25 @@ class StorageManager:
         # urlPath = "v2/storage/devices/{0}/volumes/{1}".format(resourceId, lunResourceId)
         urlPath = "v3/storage/{0}/volumes/{1}".format(resourceId, lunResourceId)
         url = self.ucpManager.getUrl(urlPath)
-        self.logger.writeInfo("url={}", url)
+        self.logger.writeDebug("url={}", url)
         body = {
             # 'capacity': str(size) + 'GB'
-            "capacity": size
+            "capacity": size.upper() if size else None
         }
-        self.logger.writeInfo("body={}", body)
+        self.logger.writeDebug("body={}", body)
         headers = self.ucpManager.getAuthToken()
         headers["PartnerId"] = self.partnerId
         if self.subscriberId:
             headers["subscriberId"] = self.subscriberId
-        self.logger.writeInfo("headers={}", headers)
+        self.logger.writeDebug("headers={}", headers)
 
         response = requests.patch(
             url, json=body, headers=headers, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo("response={}", response.json())
+        self.logger.writeDebug("response={}", response.json())
         if response.ok:
             # resourceId = response.json()['data']['resourceId']
-            # self.logger.writeInfo('resourceId={}', resourceId)
+            # self.logger.writeDebug('resourceId={}', resourceId)
             taskId = response.json()["data"].get("taskId")
             self.ucpManager.checkTaskStatus(taskId)
             time.sleep(10)
@@ -661,22 +653,22 @@ class StorageManager:
         # get storage in each UCP
         urlPath = "v2/storage/devices"
         url = self.ucpManager.getUrl(urlPath)
-        self.logger.writeInfo("url={}", url)
+        self.logger.writeDebug("url={}", url)
 
         ucp_systems = self.ucpManager.getAllUcpSystem()
-        self.logger.writeInfo(
+        self.logger.writeDebug(
             "getAllStorageSystems, loop thru each ucp and get list of storages"
         )
 
         storage_systems = []
         for ucp in ucp_systems:
             sn = str(ucp.get("serialNumber"))
-            self.logger.writeInfo(sn)
+            self.logger.writeDebug(sn)
             body = {"ucpSystem": sn}
-            self.logger.writeInfo("body={}", body)
+            self.logger.writeDebug("body={}", body)
             headers = self.ucpManager.getAuthToken()
 
-            self.logger.writeInfo("getAllStorageSystems for ucp_serial={}", sn)
+            self.logger.writeDebug("getAllStorageSystems for ucp_serial={}", sn)
             response = requests.get(
                 url,
                 headers=headers,
@@ -688,8 +680,8 @@ class StorageManager:
                 authResponse = response.json()
                 systems = authResponse.get("data")
                 storage_systems.extend(systems)
-            elif "HIJSONFAULT" in response.headers:
-                Utils.raiseException(response)
+            # elif "HIJSONFAULT" in response.headers:
+            #     Utils.raiseException(response)
             else:
                 self.throwException(response)
 
@@ -708,8 +700,8 @@ class StorageManager:
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x["serialNumber"]))
-            self.logger.writeInfo(self.storage_serial)
+            self.logger.writeDebug(int(x["serialNumber"]))
+            self.logger.writeDebug(self.storage_serial)
             if str(x["serialNumber"]) == str(self.storage_serial):
                 system = x
                 break
@@ -720,14 +712,74 @@ class StorageManager:
         self.logger.writeExitSDK(funcName)
         return result
 
-    #################################################################
-    
+    # 2.4 MT updateLunVldevId
+    def updateLunVldevId(
+        self,
+        storage_resourceId: str,
+        lun_resourceId: str,
+        lunId: int,
+        vldev_id_old: int,
+        vldev_id: int,
+    ):
+        funcName = "hv_storagemanager:updateLunVldevId"
+        self.logger.writeEnterSDK(funcName)
+
+        self.logger.writeParam("storage_resourceId={}", storage_resourceId)
+        self.logger.writeParam("lun_resourceId={}", lun_resourceId)
+        self.logger.writeParam("lunId={}", lunId)
+        self.logger.writeParam("vldev_id_old={}", vldev_id_old)
+        self.logger.writeParam("vldev_id={}", vldev_id)
+
+        if vldev_id_old == vldev_id:
+            return
+
+        headers = self.ucpManager.getAuthToken()
+        headers["PartnerId"] = self.partnerId
+        if self.subscriberId:
+            headers["subscriberId"] = self.subscriberId
+        self.logger.writeDebug("752 headers={}", headers)
+
+        urlPath = "v2/storage/devices/{0}/volumes/{1}".format(
+            storage_resourceId, lun_resourceId
+        )
+        url = self.ucpManager.getUrl(urlPath)
+
+        body = {
+            "virtualLdevId": vldev_id,
+        }
+
+        self.logger.writeDebug("565 url={}", url)
+        self.logger.writeDebug("body={}", body)
+        self.logger.writeDebug("headers={}", headers)
+
+        try:
+            response = requests.patch(
+                url,
+                json=body,
+                headers=headers,
+                verify=self.shouldVerifySslCertification,
+            )
+            self.logger.writeDebug("568 response={}", response.json())
+
+            if not response.ok:
+                self.throwException(response)
+            else:
+                taskId = response.json()["data"].get("taskId")
+                self.ucpManager.checkTaskStatus(taskId)
+                #  20240831 after this is done, there is a delay for the facts to get updated
+                # time.sleep(20)
+        except Exception as e:
+            self.logger.writeDebug("773 err:{}", e)
+            raise Exception(e)
+
+        self.logger.writeExitSDK(funcName)
+
     # 2.4 MT applyVolTiering
     def applyVolTiering(
         self,
         lunId: int,
         is_relocation_enabled: bool,
-        tier_level_for_new_page_allocation: bool,
+        tier_level_for_new_page_allocation: str,
         tier_level: int,
         tier1_allocation_rate_min: int,
         tier1_allocation_rate_max: int,
@@ -742,7 +794,7 @@ class StorageManager:
 
         self.logger.writeParam("resourceId={}", resourceId)
         self.logger.writeParam("ucp={}", ucp)
-        
+
         body = {
             "name": "volume-policy-1",
             "lunId": int(lunId),
@@ -758,36 +810,35 @@ class StorageManager:
             # "tier3AllocRateMin": tier3_allocation_rate_min,
             "shouldAllowDelete": False,
         }
-        
+
         if tier_level_for_new_page_allocation:
             tierLevelForNewPageAlloc = "M"
-            if tier_level_for_new_page_allocation.lower() == 'high':
-                tierLevelForNewPageAlloc = "H"        
-            if tier_level_for_new_page_allocation.lower() == 'low':
-                tierLevelForNewPageAlloc = "L" 
-            body['tierLevelForNewPageAlloc'] = tierLevelForNewPageAlloc
-            
+            if tier_level_for_new_page_allocation.lower() == "high":
+                tierLevelForNewPageAlloc = "H"
+            if tier_level_for_new_page_allocation.lower() == "low":
+                tierLevelForNewPageAlloc = "L"
+            body["tierLevelForNewPageAlloc"] = tierLevelForNewPageAlloc
+
         if is_relocation_enabled is not None:
-            body['enableRelocation'] = is_relocation_enabled
+            body["enableRelocation"] = is_relocation_enabled
         if tier_level is not None:
-            body['tierLevel'] = tier_level
+            body["tierLevel"] = tier_level
         if tier1_allocation_rate_max:
-            body['tier1AllocRateMax'] = tier1_allocation_rate_max
+            body["tier1AllocRateMax"] = tier1_allocation_rate_max
         if tier1_allocation_rate_min:
-            body['tier1AllocRateMin'] = tier1_allocation_rate_min
+            body["tier1AllocRateMin"] = tier1_allocation_rate_min
         if tier3_allocation_rate_max:
-            body['tier3AllocRateMax'] = tier3_allocation_rate_max
+            body["tier3AllocRateMax"] = tier3_allocation_rate_max
         if tier3_allocation_rate_min:
-            body['tier3AllocRateMin'] = tier3_allocation_rate_min
-            
-                        
+            body["tier3AllocRateMin"] = tier3_allocation_rate_min
+
         self.logger.writeDebug("body={}", body)
         headers = self.ucpManager.getAuthToken()
         headers["PartnerId"] = self.partnerId
         if self.subscriberId:
             headers["subscriberId"] = self.subscriberId
-        self.logger.writeInfo("752 headers={}", headers)
-        
+        self.logger.writeDebug("752 headers={}", headers)
+
         urlPath = "v3/luntiering/addPolicy"
         urlPath = "v2/policies/luntiering"
         url = self.ucpManager.getUrl(urlPath)
@@ -795,24 +846,25 @@ class StorageManager:
 
         try:
             response = requests.post(
-                url, json=body, headers=headers, verify=self.shouldVerifySslCertification
+                url,
+                json=body,
+                headers=headers,
+                verify=self.shouldVerifySslCertification,
             )
             self.logger.writeDebug("568 response={}", response.json())
-            
+
             if not response.ok:
                 self.throwException(response)
             else:
                 taskId = response.json()["data"].get("taskId")
                 self.ucpManager.checkTaskStatus(taskId)
-                ## 20240831 after this is done, there is a delay for the facts to get updated
+                #  20240831 after this is done, there is a delay for the facts to get updated
                 time.sleep(20)
         except Exception as e:
             self.logger.writeDebug("773 err:{}", e)
             raise Exception(e)
 
         self.logger.writeExitSDK(funcName)
-    
-    #################################################################
 
     def createLunInDP(
         self,
@@ -842,7 +894,7 @@ class StorageManager:
             "enableDRS": enableDRS,
             "poolId": pool,
             "name": name,
-            "capacity": size,
+            "capacity": size.upper() if size else None,
             "resourceGroupId": 0,
             "ucpSystem": ucp,
         }
@@ -868,7 +920,7 @@ class StorageManager:
             self.logger.writeDebug("resourceId={}", resourceId)
             taskId = response.json()["data"].get("taskId")
             self.logger.writeDebug("572 taskId={}", taskId)
-            
+
             # 20240904 subtask
             self.ucpManager.checkTaskSubtaskStatus(taskId)
             time.sleep(5)
@@ -887,7 +939,7 @@ class StorageManager:
                 # have to look up the ldevid
                 try:
                     int(lun)
-                except:
+                except (ValueError, TypeError):
                     ss = lun.split(" ")
                     lun_resourceId = ""
                     if ss:
@@ -913,11 +965,11 @@ class StorageManager:
 
                 self.logger.writeDebug(" 596 storage_serial={}", self.storage_serial)
                 volumeResourceId = self.get_storage_volume_md5_hash(lun)
-                
-                ## 20240831 tagV2Volume volumeResourceId 
+
+                #  20240831 tagV2Volume volumeResourceId
                 self.logger.writeDebug(" 596 volumeResourceId={}", volumeResourceId)
-                
-                #Removed the volume tag as already tagged using the v3 api
+
+                # Removed the volume tag as already tagged using the v3 api
                 # try:
                 #     comment = self.tagV2Volume(resourceId, volumeResourceId)
                 # except Exception as e:
@@ -936,8 +988,8 @@ class StorageManager:
             if response.status_code == 422:
                 raise Exception("The lun name is invalid.")
             else:
-                ## this is how to handle porcleain error 400 or 500,
-                ## return the error message
+                #  this is how to handle porcleain error 400 or 500,
+                #  return the error message
                 rjson = response.json()
                 raise Exception(rjson["error"])
 
@@ -969,7 +1021,7 @@ class StorageManager:
         body = {
             "parityGroupId": parityGroup,
             "name": luName,
-            "capacity": size,
+            "capacity": str(size).upper() if size else None,
             "resourceGroupId": 0,
             "ucpSystem": ucp,
         }
@@ -977,22 +1029,22 @@ class StorageManager:
             body["lunId"] = lun
         self.logger.writeDebug("body={}", body)
         headers = self.ucpManager.getAuthToken()
-        # self.logger.writeInfo('headers={}', headers)
+        # self.logger.writeDebug('headers={}', headers)
         response = requests.post(
             url, json=body, headers=headers, verify=self.shouldVerifySslCertification
         )
         self.logger.writeDebug("response={}", response.json())
         if response.ok:
             # resourceId = response.json()['data']['resourceId']
-            # self.logger.writeInfo('resourceId={}', resourceId)
+            # self.logger.writeDebug('resourceId={}', resourceId)
             taskId = response.json()["data"].get("taskId")
             self.ucpManager.checkTaskStatus(taskId)
             time.sleep(5)
 
             self.logger.writeDebug("20230617 exiting {} lun={}", funcName, lun)
             if lun is None:
-                ## ldevid was not given in the input
-                ## get the newly created lun ldevid
+                #  ldevid was not given in the input
+                #  get the newly created lun ldevid
                 lun = self.getLunIdFromTaskStatusEvents(taskId)
             self.logger.writeDebug("20230617 exiting {} lun={}", funcName, lun)
 
@@ -1003,7 +1055,7 @@ class StorageManager:
             raise Exception(response)
 
     # a2.4 MT updateLunName
-    ### this func does expand size, change dedup, and lun name
+    # # this func does expand size, change dedup, and lun name
     def updateLunName(self, lunResourceId, lunName):
         funcName = "StorageManager:updateLunName"
         self.logger.writeEnterSDK(funcName)
@@ -1019,23 +1071,23 @@ class StorageManager:
         urlPath = "v2/storage/devices/{0}/volumes/{1}".format(resourceId, lunResourceId)
         urlPath = "v3/storage/{0}/volumes/{1}".format(resourceId, lunResourceId)
         url = self.ucpManager.getUrl(urlPath)
-        self.logger.writeInfo("url={}", url)
+        self.logger.writeDebug("url={}", url)
         body = {"lunName": lunName}
-        self.logger.writeInfo("body={}", body)
+        self.logger.writeDebug("body={}", body)
 
         headers = self.ucpManager.getAuthToken()
         headers["PartnerId"] = self.partnerId
         if self.subscriberId:
             headers["subscriberId"] = self.subscriberId
-        self.logger.writeInfo("752 headers={}", headers)
+        self.logger.writeDebug("752 headers={}", headers)
 
         response = requests.patch(
             url, json=body, headers=headers, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo("response={}", response.json())
+        self.logger.writeDebug("response={}", response.json())
         if response.ok:
             # resourceId = response.json()['data']['resourceId']
-            # self.logger.writeInfo('resourceId={}', resourceId)
+            # self.logger.writeDebug('resourceId={}', resourceId)
             taskId = response.json()["data"].get("taskId")
             self.ucpManager.checkTaskStatus(taskId)
             time.sleep(10)
@@ -1061,26 +1113,26 @@ class StorageManager:
 
         urlPath = "v2/storage/devices/{0}/volumes/{1}".format(resourceId, lunResourceId)
         url = self.ucpManager.getUrl(urlPath)
-        self.logger.writeInfo("url={}", url)
+        self.logger.writeDebug("url={}", url)
         body = {"deduplicationCompressionMode": dedupMode}
-        self.logger.writeInfo("body={}", body)
+        self.logger.writeDebug("body={}", body)
         headers = self.ucpManager.getAuthToken()
-        self.logger.writeInfo("headers={}", headers)
+        self.logger.writeDebug("headers={}", headers)
         response = requests.patch(
             url, json=body, headers=headers, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo("response={}", response.json())
+        self.logger.writeDebug("response={}", response.json())
         if response.ok:
             # resourceId = response.json()['data']['resourceId']
-            # self.logger.writeInfo('resourceId={}', resourceId)
+            # self.logger.writeDebug('resourceId={}', resourceId)
             taskId = response.json()["data"].get("taskId")
             self.ucpManager.checkTaskStatus(taskId)
             time.sleep(10)
             self.logger.writeExitSDK(funcName)
         else:
             self.logger.writeDebug("response={}", response)
-            ## this is how to handle porcleain error 400 or 500,
-            ## return the error message
+            #  this is how to handle porcleain error 400 or 500,
+            #  return the error message
             rjson = response.json()
             raise Exception(rjson["error"])
 
@@ -1143,10 +1195,10 @@ class StorageManager:
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
 
-        self.logger.writeInfo(response.status_code)
+        self.logger.writeDebug(response.status_code)
         if response.ok:
             # resourceId = response.json()['data']['resourceId']
-            # self.logger.writeInfo('resourceId={}', resourceId)
+            # self.logger.writeDebug('resourceId={}', resourceId)
             taskId = response.json()["data"].get("taskId")
             self.ucpManager.checkTaskStatus(taskId)
             time.sleep(10)
@@ -1157,8 +1209,8 @@ class StorageManager:
             raise Exception(response)
 
     # a2.4 MT removeNamespace
-    def removeNamespace( self, storageResourceId, nvmSubsystemId, namespaceId ):
-        
+    def removeNamespace(self, storageResourceId, nvmSubsystemId, namespaceId):
+
         funcName = "hv_storagemanager:removeNamespace"
         self.logger.writeEnterSDK(funcName)
         self.logger.writeParam("nvmSubsystemId={}", nvmSubsystemId)
@@ -1170,12 +1222,12 @@ class StorageManager:
 
         url = self.ucpManager.getUrl(urlPath)
         headers = self.ucpManager.getAuthToken()
-        
+
         namespaceIds = []
         namespaceIds.append(int(namespaceId))
-        
+
         body = {}
-        body['namespaceIds'] = namespaceIds
+        body["namespaceIds"] = namespaceIds
         self.logger.writeDebug("body={}", body)
 
         self.logger.writeParam("url={}", url)
@@ -1183,10 +1235,10 @@ class StorageManager:
             url, headers=headers, json=body, verify=self.shouldVerifySslCertification
         )
 
-        self.logger.writeInfo(response.status_code)
+        self.logger.writeDebug(response.status_code)
         if response.ok:
             # resourceId = response.json()['data']['resourceId']
-            # self.logger.writeInfo('resourceId={}', resourceId)
+            # self.logger.writeDebug('resourceId={}', resourceId)
             taskId = response.json()["data"].get("taskId")
             self.ucpManager.checkTaskStatus(taskId)
             time.sleep(10)
@@ -1194,7 +1246,6 @@ class StorageManager:
         else:
             self.logger.writeDebug("response={}", response)
             raise Exception(response)
-
 
     def deleteLunV2(self, lunResourceId):
         funcName = "hv_storagemanager:deleteLunV2"
@@ -1215,10 +1266,10 @@ class StorageManager:
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
 
-        self.logger.writeInfo(response.status_code)
+        self.logger.writeDebug(response.status_code)
         if response.ok:
             # resourceId = response.json()['data']['resourceId']
-            # self.logger.writeInfo('resourceId={}', resourceId)
+            # self.logger.writeDebug('resourceId={}', resourceId)
             taskId = response.json()["data"].get("taskId")
             self.ucpManager.checkTaskStatus(taskId)
             time.sleep(5)
@@ -1227,7 +1278,6 @@ class StorageManager:
         else:
             self.logger.writeDebug("response={}", response)
             raise Exception(response)
-
 
     def getSoftLimitMessageFromTaskStatusEvents(self, taskId):
         funcName = "hv_storagemanager:getSoftLimitMessageFromTaskStatusEvents"
@@ -1241,12 +1291,10 @@ class StorageManager:
         )
         self.logger.writeDebug("response={}", response)
         status = None
-        name = None
-        lun = None
         if response.ok:
             status = response.json()["data"].get("status")
-            name = response.json()["data"].get("name")
-            
+            response.json()["data"].get("name")
+
         returnMsg = None
         if status.lower() == "success":
             events = response.json()["data"].get("events")
@@ -1256,12 +1304,11 @@ class StorageManager:
             start = description.find(returnMsg)
             returnMsg = description
             if start < 0:
-                self.logger.writeDebug('Not found')
+                self.logger.writeDebug("Not found")
                 return None
 
         self.logger.writeExitSDK(funcName)
         return returnMsg
-
 
     def getLunIdFromTaskStatusEvents(self, taskId):
         funcName = "hv_storagemanager:getLunIdFromTaskStatusEvents"
@@ -1275,16 +1322,15 @@ class StorageManager:
         )
         self.logger.writeDebug("response={}", response)
         status = None
-        name = None
         lun = None
         if response.ok:
             status = response.json()["data"].get("status")
-            name = response.json()["data"].get("name")
+            response.json()["data"].get("name")
 
         if status.lower() == "success":
             events = response.json()["data"].get("events")
             description = events[0].get("description")
-            self.logger.writeInfo(description)
+            self.logger.writeDebug(description)
             # start = description.find("Created logical Unit") + len("Created logical Unit")
             # end = description. find("in")
             # lun = description[start:end]
@@ -1302,7 +1348,7 @@ class StorageManager:
             lun = description[start:end]
 
             parsedLun = "20230617 parsedLun={0}".format(lun)
-            self.logger.writeInfo(parsedLun)
+            self.logger.writeDebug(parsedLun)
         self.logger.writeExitSDK(funcName)
         return lun.strip()
 
@@ -1350,17 +1396,13 @@ class StorageManager:
             # storage_systems.extend(data.get('storageDevices'))
             storage_systems = data
 
-        elif "HIJSONFAULT" in response.headers:
-            Utils.raiseException(response)
+        # elif "HIJSONFAULT" in response.headers:
+        #     Utils.raiseException(response)
         else:
             self.throwException(response)
 
         self.logger.writeExitSDK(funcName)
         return storage_systems
-
-    ###################################################################
-    ########## Host Groups
-    ###################################################################
 
     def getV3HostGroup(self, hgName, hgPort):
 
@@ -1372,16 +1414,14 @@ class StorageManager:
         # a2.4 MT getV3HostGroup
         (resourceId, ucp) = self.getStorageSystemResourceId()
         urlPath = "v2/storage/devices/{0}/hostGroups?refresh=false".format(resourceId)
-        urlPath = "v3/storage/{0}/resource?type=HostGroup".format(
-            resourceId
-        )
+        urlPath = "v3/storage/{0}/resource?type=HostGroup".format(resourceId)
         url = self.ucpManager.getUrl(urlPath)
         headers = self.ucpManager.getAuthToken()
         headers["PartnerId"] = self.partnerId
-        
+
         # do not consider the subscriberId
         # since the caller wants to know if this hg is assigned (tagged already)
-        # 
+        #
         # if self.subscriberId:
         #     headers["subscriberId"] = self.subscriberId
 
@@ -1393,25 +1433,24 @@ class StorageManager:
         if response.ok:
             hgs1 = response.json()["data"]
             self.logger.writeDebug("1162 len={}", len(hgs1))
-            
+
             hgs2 = []
-            ## find the hg
+            #  find the hg
             for hg in hgs1:
-                hostGroupInfo = hg.get('hostGroupInfo',None)
+                hostGroupInfo = hg.get("hostGroupInfo", None)
                 if hostGroupInfo:
-                    hostGroupName = hostGroupInfo.get('hostGroupName',None)
-                    port = hostGroupInfo.get('port',None)
+                    hostGroupName = hostGroupInfo.get("hostGroupName", None)
+                    port = hostGroupInfo.get("port", None)
                     if hgName == hostGroupName and hgPort == port:
                         hgs2.append(hg)
                         break
-                        
+
             self.logger.writeExitSDK(funcName)
             return hgs2
         else:
             self.throwException(response)
 
-
-    ## this will take time for OOB
+    #  this will take time for OOB
     def getAllHostGroups(self):
 
         funcName = "hv_storagemanager:getAllHostGroups"
@@ -1435,7 +1474,7 @@ class StorageManager:
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
         if response.ok:
-            # self.logger.writeInfo('response.json()={}',
+            # self.logger.writeDebug('response.json()={}',
             #                        response.json())
             self.logger.writeExitSDK(funcName)
             return response.json()["data"]
@@ -1449,9 +1488,7 @@ class StorageManager:
         self.logger.writeEnterSDK(funcName)
 
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        urlPath = "v3/storage/{0}/iscsiTargets/details".format(
-            resourceId
-        )
+        urlPath = "v3/storage/{0}/iscsiTargets/details".format(resourceId)
         url = self.ucpManager.getUrl(urlPath)
         headers = self.ucpManager.getAuthToken()
         headers["PartnerId"] = self.partnerId
@@ -1478,12 +1515,10 @@ class StorageManager:
         urlPath = "v2/storage/devices/{0}/iscsiTargets/{1}".format(
             sresourceId, resourceId
         )
-        
+
         headers = self.ucpManager.getAuthToken()
         if self.subscriberId:
-            urlPath = "v3/storage/{0}/iscsiTargets/{1}".format(
-                sresourceId, resourceId
-            )            
+            urlPath = "v3/storage/{0}/iscsiTargets/{1}".format(sresourceId, resourceId)
             headers["PartnerId"] = self.partnerId
             headers["subscriberId"] = self.subscriberId
 
@@ -1504,57 +1539,62 @@ class StorageManager:
 
         funcName = "hv_storagemanager:detachLun"
         self.logger.writeEnterSDK(funcName)
-        
+
         # get all nvme
         items, resourceId = self.getNvmSubsystems()
         if items:
             for item in items:
                 self.logger.writeDebug("item={}", item)
-                nvmSubsystemId = item['grid']
-                for lu in item['namespaces']:
+                nvmSubsystemId = item["grid"]
+                for lu in item["namespaces"]:
                     self.logger.writeDebug("namespace={}", lu)
-                    logicalUnitIdIT = lu['lun']
+                    logicalUnitIdIT = lu["lun"]
                     if str(logicalUnitId) == str(logicalUnitIdIT):
                         # found
                         # removeNamespace
                         luns = []
-                        luns.append(int(logicalUnitIdIT)) 
-                        namespaceId = lu['id']
-                        self.removeNamespace( resourceId, nvmSubsystemId, namespaceId )
-                        self.logger.writeDebug("done removeNamespace, logicalUnitIdIT={}", logicalUnitIdIT)
+                        luns.append(int(logicalUnitIdIT))
+                        namespaceId = lu["id"]
+                        self.removeNamespace(resourceId, nvmSubsystemId, namespaceId)
+                        self.logger.writeDebug(
+                            "done removeNamespace, logicalUnitIdIT={}", logicalUnitIdIT
+                        )
                         return True
-            
+
         # get all hgs
         items = self.getAllHostGroups()
         if items:
             for item in items:
                 # self.logger.writeDebug("1328 item={}", item)
-                for lu in item['lunPaths']:
-                    logicalUnitIdIT = lu['ldevId']
+                for lu in item["lunPaths"]:
+                    logicalUnitIdIT = lu["ldevId"]
                     if str(logicalUnitId) == str(logicalUnitIdIT):
                         # found lun in hg
                         # unpresent from hg
                         luns = []
-                        luns.append(int(logicalUnitIdIT))                        
-                        self.unpresentLun2( luns, item["resourceId"] )
-                        self.logger.writeDebug("done detachLun hg, logicalUnitIdIT={}", logicalUnitIdIT)
+                        luns.append(int(logicalUnitIdIT))
+                        self.unpresentLun2(luns, item["resourceId"])
+                        self.logger.writeDebug(
+                            "done detachLun hg, logicalUnitIdIT={}", logicalUnitIdIT
+                        )
                         return True
-                            
+
         # get all iscsi targets (IT)
         items = self.getIscsiTargets()
         if items:
             for item in items:
-                for lu in item['logicalUnits']:
-                    logicalUnitIdIT = lu['logicalUnitId']
+                for lu in item["logicalUnits"]:
+                    logicalUnitIdIT = lu["logicalUnitId"]
                     if str(logicalUnitId) == str(logicalUnitIdIT):
                         # found lun in IT
                         # unpresent from IT
-                        self.unpresentLunFromIT( logicalUnitIdIT, item)
-                        self.logger.writeDebug("done detachLun IT, logicalUnitIdIT={}", logicalUnitIdIT)
+                        self.unpresentLunFromIT(logicalUnitIdIT, item)
+                        self.logger.writeDebug(
+                            "done detachLun IT, logicalUnitIdIT={}", logicalUnitIdIT
+                        )
                         return True
 
         return False
-
 
     def createHostGroup(self, hgName, port, wwnList, hostmode, hostModeOptions):
 
@@ -1592,10 +1632,15 @@ class StorageManager:
         if len(wwns) > 0:
             body["wwns"] = wwns
 
-        ## we do not have a playbook to tag a port,
-        ## so we do it here, if the port belongs to other subs already,
-        ## the create would fail
-        self.tagPort(resourceId, port)
+        #  we do not have a playbook to tag a port,
+        #  so we do it here, if the port belongs to other subs already,
+        #  the create would fail
+        try:
+            # a2.4 MT tagPort to createHostGroup
+            self.tagPort(resourceId, port)
+        except Exception:
+            self.logger.writeDebug("common case is already tagged")
+            pass
 
         # a2.4 MT createHostGroup
         self.logger.writeParam("body={}", body)
@@ -1624,15 +1669,13 @@ class StorageManager:
                 taskId = response.json()["data"].get("taskId")
                 self.ucpManager.checkTaskStatus(taskId)
         except Exception as e:
-          
+
             self.logger.writeDebug("1025 err:{}", e)
             self.logger.writeDebug(
                 "1025 The hostgroup is already present, but not for this subscriber."
             )
+
             raise Exception(e)
-            raise Exception(
-                "The resource is already in use, not available for this subscriber."
-            )
 
         self.logger.writeExitSDK(funcName)
 
@@ -1654,7 +1697,7 @@ class StorageManager:
         for x in hostgroups:
             if x.get("hostGroupName") == hgName and x.get("port") == port:
                 hostgroup = x
-                self.logger.writeInfo("Found HostGroup")
+                self.logger.writeDebug("Found HostGroup")
                 break
 
         self.logger.writeExitSDK(funcName)
@@ -1683,7 +1726,7 @@ class StorageManager:
                 continue
             if x.get("hostGroupName") == hgName and x.get("port") == port:
                 hostgroup = x
-                self.logger.writeInfo("Found HostGroup")
+                self.logger.writeDebug("Found HostGroup")
                 break
 
         self.logger.writeExitSDK(funcName)
@@ -1738,7 +1781,7 @@ class StorageManager:
         if not response.ok:
             self.throwException(response)
         else:
-            self.logger.writeInfo(response)
+            self.logger.writeDebug(response)
             # taskId = response.json()['data'].get('taskId')
             # self.checkTaskStatus(taskId)
             self.logger.writeExitSDK(funcName)
@@ -1779,19 +1822,39 @@ class StorageManager:
             "hostModeOptions": list(map(int, hostopt)),
         }
 
-        self.logger.writeInfo(url)
-        self.logger.writeInfo(body)
-        response = requests.patch(
-            url, json=body, headers=headers, verify=self.shouldVerifySslCertification
-        )
-        self.logger.writeInfo("response={}", response)
+        self.logger.writeDebug(url)
+        self.logger.writeDebug(body)
+        retry_times = 5
+        retry_count = 0
+        while retry_count < retry_times:
+            response = requests.patch(
+                url,
+                json=body,
+                headers=headers,
+                verify=self.shouldVerifySslCertification,
+            )
+            self.logger.writeDebug("response={}", response)
 
-        if not response.ok:
-            self.throwException(response)
+            if not response.ok:
+                self.throwException(response)
+            else:
+                taskId = response.json()["data"].get("taskId")
+                try:
+                    self.ucpManager.checkTaskStatus(taskId)
+                    break
+                except Exception as e:
+                    if "Operation failed. Updating host group failed" in str(e):
+                        self.logger.writeDebug("Updating host group retrying")
+                        retry_count += 1
+                        time.sleep(10)
+                        continue
+                    else:
+                        raise e
+
         else:
-            taskId = response.json()["data"].get("taskId")
-            self.ucpManager.checkTaskStatus(taskId)
-            time.sleep(5)
+            raise Exception(
+                "This issue may be intermittent. Please re-run the task after a while."
+            )
 
         self.logger.writeExitSDK(funcName)
 
@@ -1848,7 +1911,6 @@ class StorageManager:
             taskId = response.json()["data"].get("taskId")
             self.ucpManager.checkTaskStatus(taskId)
 
-
     # a2.4 MT unpresent Lun from iscsi target
     def unpresentLunFromIT(
         self,
@@ -1862,24 +1924,24 @@ class StorageManager:
         self.logger.writeParam("dryRun={}", self.dryRun)
         if self.dryRun:
             return
-        
-        (resourceId, _) = self.getStorageSystemResourceId()
+
+        (resourceId, unused) = self.getStorageSystemResourceId()
         resourceIdIT = iscsiTarget.get("resourceId")
         urlPath = "/v3/storage/{0}/iscsiTargets/{1}/volumes".format(
             resourceId, resourceIdIT
         )
         url = self.ucpManager.getUrl(urlPath)
-        
+
         headers = self.ucpManager.getAuthToken()
         headers["PartnerId"] = self.partnerId
         if self.subscriberId:
             headers["subscriberId"] = self.subscriberId
-            
+
         luns = []
         luns.append(int(lun))
         body = {"ldevIds": luns}
         self.logger.writeDebug("1665 body={}", body)
-        
+
         response = requests.delete(
             url, headers=headers, json=body, verify=self.shouldVerifySslCertification
         )
@@ -1890,7 +1952,6 @@ class StorageManager:
         else:
             taskId = response.json()["data"].get("taskId")
             self.ucpManager.checkTaskStatus(taskId)
-
 
     def unpresentLun(
         self,
@@ -1958,8 +2019,8 @@ class StorageManager:
         self.logger.writeParam("dryRun={}", self.dryRun)
         if self.dryRun:
             return
-        
-        (resourceId, _) = self.getStorageSystemResourceId()
+
+        (resourceId, unused) = self.getStorageSystemResourceId()
         urlPath = "/v3/storage/devices/{0}/hostGroups/{1}/volumes".format(
             resourceId, hgResourceId
         )
@@ -1980,7 +2041,6 @@ class StorageManager:
         else:
             taskId = response.json()["data"].get("taskId")
             self.ucpManager.checkTaskStatus(taskId)
-
 
     def addWWN(
         self,
@@ -2019,14 +2079,14 @@ class StorageManager:
         response = requests.post(
             url, headers=headers, json=body, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo(url)
-        self.logger.writeInfo(body)
+        self.logger.writeDebug(url)
+        self.logger.writeDebug(body)
         if not response.ok:
             self.throwException(response)
         else:
             taskId = response.json()["data"].get("taskId")
             self.ucpManager.checkTaskStatus(taskId)
-            ## after success, have to refresh hg, else addl add would not work
+            #  after success, have to refresh hg, else addl add would not work
             self.refreshHostGroups(resourceId)
         self.logger.writeExitSDK(funcName)
 
@@ -2067,13 +2127,13 @@ class StorageManager:
         response = requests.delete(
             url, headers=headers, json=body, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo(url)
-        self.logger.writeInfo(body)
+        self.logger.writeDebug(url)
+        self.logger.writeDebug(body)
         if not response.ok:
             self.logger.writeDebug("removeWWN not ok response={}", response)
             self.throwException(response)
         else:
-            self.logger.writeInfo("response.json()={}", response.json())
+            self.logger.writeDebug("response.json()={}", response.json())
             jjson = response.json()
             data = jjson.get("data", None)
             if data is not None:
@@ -2081,8 +2141,8 @@ class StorageManager:
                 if taskId is not None:
                     self.ucpManager.checkTaskStatus(taskId)
             else:
-                ## have to refresh, else the get hg would be wrong
-                ## it may be a bug in the porcelain since it is not returning the data/taskId?
+                #  have to refresh, else the get hg would be wrong
+                #  it may be a bug in the porcelain since it is not returning the data/taskId?
                 self.refreshHostGroups(resourceId)
                 # time.sleep(20)
 
@@ -2190,13 +2250,14 @@ class StorageManager:
             return response.json()["data"], resourceId
         else:
             self.throwException(response)
-            
+
     def get_storage_volume_md5_hash(self, ldev):
         storage_system_serial_number = self.storage_serial
         ldev_id = f"{storage_system_serial_number}:{ldev}"
         return f"storagevolume-{self.get_md5_hash(ldev_id)}"
 
     def get_md5_hash(self, data):
+        # nosec: No security issue here as it is does not exploit any security vulnerability only used for generating unique resource id for UAIG
         md5_hash = hashlib.md5()
         md5_hash.update(data.encode("utf-8"))
         return md5_hash.hexdigest()

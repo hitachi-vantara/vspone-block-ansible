@@ -19,6 +19,6 @@ class GatewayPasswordProvisioner:
 
         self.gateway.gateway_password(password, user)
         return "Sucessfully updated admin password"
-    
+
     def get_admin_user(self):
         return self.gateway.get_admin_user()

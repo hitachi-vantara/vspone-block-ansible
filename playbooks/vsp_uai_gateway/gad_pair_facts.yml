@@ -1,35 +1,33 @@
+---
 ####################################################################
 # Example :  Global-active device (GAD) Pair Facts playbook
 ####################################################################
 - name: GAD pair facts
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_uai_gateway_variables.yml
 
   tasks:
-####################################################################
-# Task 0 : Get UAI gateway token
-####################################################################
+    ####################################################################
+    # Task 0 : Get UAI gateway token
+    ####################################################################
     - name: Get UAI gateway token
-      hv_uaig_token_fact:
+      hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
-      ignore_errors: False
+      ignore_errors: false
 
-#####################################################################
-# Task 1 : Get all GAD pairs
-######################################################################
+    #####################################################################
+    # Task 1 : Get all GAD pairs
+    ######################################################################
     - name: Get all GAD pairs
-      hv_gad_fact:
+      hitachivantara.vspone_block.vsp.hv_gad_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
@@ -38,14 +36,15 @@
           serial: "{{ storage_serial }}"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-######################################################################
-# Task 2 : Get GAD pair using primary volume id
-######################################################################
+    ######################################################################
+    # Task 2 : Get GAD pair using primary volume id
+    ######################################################################
     - name: Get GAD pair using primary volume id
-      hv_gad_fact:
+      hitachivantara.vspone_block.vsp.hv_gad_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
@@ -53,8 +52,9 @@
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          primary_volume_id: "{{ gad_pair_facts_primary_volume_id_2 }}"
+          primary_volume_id: 1234
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

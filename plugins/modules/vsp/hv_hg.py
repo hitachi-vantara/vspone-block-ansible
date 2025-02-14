@@ -3,26 +3,34 @@
 # Copyright: (c) 2021, [ Hitachi Vantara ]
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
-DOCUMENTATION = '''
+
+
+DOCUMENTATION = """
 ---
 module: hv_hg
-author: Hitachi Vantara, LTD. VERSION 3.0.0
 short_description: Manages host group on Hitachi VSP storage system.
 description:
-     - This module provides the following host group management operations
-     - 1. create host group.
-     - 2. delete host group.
-     - 3. add logical unit to host group.
-     - 4. remove logical unit from host group.
-     - 5. add host WWN to host group.
-     - 6. remove host WWN from host group.
-     - 7. set host mode.
-     - 8. add host mode option to host group.
-     - 9. remove host mode option from host group.
+  - This module provides the following host group management operations
+  - 1. create host group.
+  - 2. delete host group.
+  - 3. add logical unit to host group.
+  - 4. remove logical unit from host group.
+  - 5. add host WWN to host group.
+  - 6. remove host WWN from host group.
+  - 7. set host mode.
+  - 8. add host mode option to host group.
+  - 9. remove host mode option from host group.
+  - This module is supported for both direct and gateway connection types.
+  - For direct connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/hostgroup.yml)
+  - For gateway connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/hostgroup.yml)
 version_added: '3.0.0'
-requirements:
+author:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   state:
     description:
@@ -30,18 +38,18 @@ options:
       - set state to I(absent) for delete host group
     type: str
     required: false
-    default: present
-    choices: [present, absent]
+    default: "present"
+    choices: ["present", "absent"]
   storage_system_info:
     description:
       - Information about the Hitachi storage system.
     type: dict
-    required: true
+    required: false
     suboptions:
       serial:
         description: Serial number of the Hitachi storage system.
         type: str
-        required: true
+        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
@@ -52,11 +60,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication.This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication.This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -66,27 +74,29 @@ options:
         choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
+        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description: Token value to access UAI gateway. This is a required field for gateway connection type.
         type: str
         required: false
   spec:
     description: Specification for hostgroup operation.
     type: dict
-    required: true
+    required: false
     suboptions:
       state:
         description: sub task operation.
         type: str
         required: false
-        choices: ['present_ldev', 'unpresent_ldev', 'add_wwn', 'remove_wwn', 'set_host_mode_and_hmo']
+        choices: ['present_ldev', 'unpresent_ldev', 'add_wwn', 'remove_wwn', 'set_host_mode_and_hmo', 'present']
+        default: 'present'
       name:
-        description: Name of the host group.
+        description: Name of the host group.If not given,
+          it will create the name with prefix "smrha-" and add 10 digit random number at the end, for example "smrha-0806262996".
         type: str
-        required: true
+        required: false
       port:
         description: FC Port.
         type: str
@@ -122,67 +132,66 @@ options:
           - HP_XP
           - DYNIX
       host_mode_options:
-        description: List of host mode options of host group.
+        description:
+          - List of host group host mode option numbers.
+          - '0 # RESERVED'
+          - '2 # VERITAS_DB_EDITION_ADV_CLUSTER'
+          - '6 # TPRLO'
+          - '7 # AUTO_LUN_RECOGNITION'
+          - '12 # NO_DISPLAY_FOR_GHOST_LUN'
+          - '13 # SIM_REPORT_AT_LINK_FAILURE'
+          - '14 # HP_TRUECLUSTER_WITH_TRUECOPY'
+          - '15 # RAID_HACMP'
+          - '22 # VERITAS_CLUSTER_SERVER'
+          - '23 # REC_COMMAND_SUPPORT'
+          - '25 # SUPPORT_SPC_3_PERSISTENT_RESERVATION'
+          - '33 # SET_REPORT_DEVICE_ID_ENABLE'
+          - '39 # CHANGE_NEXUS_SPECIFIED_IN_SCSI_TARGET_RESET'
+          - '40 # VVOL_EXPANSION'
+          - '41 # PRIORITIZED_DEVICE_RECOGNITION'
+          - '42 # PREVENT_OHUB_PCI_RETRY'
+          - '43 # QUEUE_FULL_RESPONSE'
+          - '48 # HAM_SVOL_READ'
+          - '49 # BB_CREDIT_SETUP_1'
+          - '50 # BB_CREDIT_SETUP_2'
+          - '51 # ROUND_TRIP_SETUP'
+          - '52 # HAM_AND_CLUSTER_SW_FOR_SCSI_2'
+          - '54 # EXTENDED_COPY'
+          - '57 # HAM_RESPONSE_CHANGE'
+          - '60 # LUN0_CHANGE_GUARD'
+          - '61 # EXPANDED_PERSISTENT_RESERVE_KEY'
+          - '63 # VSTORAGE_APIS_ON_T10_STANDARDS'
+          - '65 # ROUND_TRIP_EXTENDED_SETUP'
+          - '67 # CHANGE_OF_ED_TOV_VALUE'
+          - '68 # PAGE_RECLAMATION_LINUX'
+          - '69 # ONLINE_LUSE_EXPANSION'
+          - '71 # CHANGE_UNIT_ATTENTION_FOR_BLOCKED_POOL_VOLS'
+          - '72 # AIX_GPFS'
+          - '73 # WS2012'
+          - '78 # NON_PREFERRED_PATH'
+          - '91 # DISABLE_IO_WAIT_FOR_OPEN_STACK'
+          - '95 # CHANGE_SCSI_LU_RESET_NEXUS_VSP_HUS_VM'
+          - '96 # CHANGE_SCSI_LU_RESET_NEXUS'
+          - '97 # PROPRIETARY_ANCHOR_COMMAND_SUPPORT'
+          - '100 # HITACHI_HBA_EMULATION_CONNECTION_OPTION'
+          - '102 # GAD_STANDARD_INQURY_EXPANSION_HCS'
+          - '105 # TASK_SET_FULL_RESPONSE_FOR_IO_OVERLOAD'
+          - '110 # ODX Support for WS2012'
+          - '113 # iSCSI CHAP Authentication Log'
+          - '114 # Auto Asynchronous Reclamation on ESXi 6.5+ '
+          - '122 # TASK_SET_FULL_RESPONSE_AFTER_QOS_UPPER_LIMIT'
+          - '124 # GUARANTEED_RESPONSE_DURING_CONTROLLER_FAILURE'
+          - '131 # WCE_BIT_OFF_MODE'
         type: list
         elements: int
         required: false
-        choices:
-          - 0 [RESERVED]
-          - 2 [VERITAS_DB_EDITION_ADV_CLUSTER]
-          - 6 [TPRLO]
-          - 7 [AUTO_LUN_RECOGNITION]
-          - 12 [NO_DISPLAY_FOR_GHOST_LUN]
-          - 13 [SIM_REPORT_AT_LINK_FAILURE]
-          - 14 [HP_TRUECLUSTER_WITH_TRUECOPY]
-          - 15 [RAID_HACMP]
-          - 22 [VERITAS_CLUSTER_SERVER]
-          - 23 [REC_COMMAND_SUPPORT]
-          - 25 [SUPPORT_SPC_3_PERSISTENT_RESERVATION]
-          - 33 [SET_REPORT_DEVICE_ID_ENABLE]
-          - 39 [CHANGE_NEXUS_SPECIFIED_IN_SCSI_TARGET_RESET]
-          - 40 [VVOL_EXPANSION]
-          - 41 [PRIORITIZED_DEVICE_RECOGNITION]
-          - 42 [PREVENT_OHUB_PCI_RETRY]
-          - 43 [QUEUE_FULL_RESPONSE]
-          - 48 [HAM_SVOL_READ]
-          - 49 [BB_CREDIT_SETUP_1]
-          - 50 [BB_CREDIT_SETUP_2]
-          - 51 [ROUND_TRIP_SETUP]
-          - 52 [HAM_AND_CLUSTER_SW_FOR_SCSI_2]
-          - 54 [EXTENDED_COPY]
-          - 57 [HAM_RESPONSE_CHANGE]
-          - 60 [LUN0_CHANGE_GUARD]
-          - 61 [EXPANDED_PERSISTENT_RESERVE_KEY]
-          - 63 [VSTORAGE_APIS_ON_T10_STANDARDS]
-          - 65 [ROUND_TRIP_EXTENDED_SETUP]
-          - 67 [CHANGE_OF_ED_TOV_VALUE]
-          - 68 [PAGE_RECLAMATION_LINUX]
-          - 69 [ONLINE_LUSE_EXPANSION]
-          - 71 [CHANGE_UNIT_ATTENTION_FOR_BLOCKED_POOL_VOLS]
-          - 72 [AIX_GPFS]
-          - 73 [WS2012]
-          - 78 [NON_PREFERRED_PATH]
-          - 91 [DISABLE_IO_WAIT_FOR_OPEN_STACK]
-          - 95 [CHANGE_SCSI_LU_RESET_NEXUS_VSP_HUS_VM]
-          - 96 [CHANGE_SCSI_LU_RESET_NEXUS]
-          - 97 [PROPRIETARY_ANCHOR_COMMAND_SUPPORT]
-          - 100 [HITACHI_HBA_EMULATION_CONNECTION_OPTION]
-          - 102 [GAD_STANDARD_INQURY_EXPANSION_HCS]
-          - 105 [TASK_SET_FULL_RESPONSE_FOR_IO_OVERLOAD]
-          - 110 [ODX Support for WS2012]
-          - 113 [iSCSI CHAP Authentication Log]
-          - 114 [Auto Asynchronous Reclamation on ESXi 6.5+]
-          - 122 [TASK_SET_FULL_RESPONSE_AFTER_QOS_UPPER_LIMIT]
-          - 124 [GUARANTEED_RESPONSE_DURING_CONTROLLER_FAILURE]
-          - 131 [WCE_BIT_OFF_MODE]
       should_delete_all_ldevs:
         description: If the value is true, destroy the logical devices that are no longer attached to any host group or iSCSI target.
         required: false
-'''
-
-EXAMPLES = '''
--
-  name: Create host group with LUN in decimal
+        type: bool
+"""
+EXAMPLES = """
+- name: Create host group with LUN in decimal for direct connection type
   tasks:
     - hv_hg:
         state: present
@@ -190,43 +199,73 @@ EXAMPLES = '''
           serial: '446039'
         connection_info:
           address: storage1.company.com
-          username: "{{management_username}}"
-          password: "{{management_password}}"
+          username: "dummy_user"
+          password: "dummy_password"
         spec:
-         name: 'testhg26dec'
-         port: 'CL1-A'
-         host_mode: 'VMWARE_EXTENSION'
-         host_mode_options: [ 40 ]
-         wwns: [ '100000109B583B2D', '100000109B583B2C' ]
-         ldevs: [ 393, 851 ]
+          name: 'testhg26dec'
+          port: 'CL1-A'
+          host_mode: 'VMWARE_EXTENSION'
+          host_mode_options: [40]
+          wwns: ['100000109B583B2D', '100000109B583B2C']
+          ldevs: [393, 851]
       register: result
     - debug: var=result.hostGroups
--
-  name: Create host group with LUN in HEX
+
+- name: Create host group with LUN in decimal for gateway connection type
   tasks:
     - hv_hg:
         state: present
         storage_system_info:
-          serial: '446039'    
+          serial: '446039'
+        connection_info:
+          address: gateway1.company.com
+          api_token: "api_token_value"
+        spec:
+          name: 'testhg26dec'
+          port: 'CL1-A'
+          host_mode: 'VMWARE_EXTENSION'
+          host_mode_options: [40]
+          wwns: ['100000109B583B2D', '100000109B583B2C']
+          ldevs: [393, 851]
+      register: result
+    - debug: var=result.hostGroups
+
+- name: Create host group with LUN in HEX for direct connection type
+  tasks:
+    - hv_hg:
+        state: present
+        storage_system_info:
+          serial: '446039'
         connection_info:
           address: storage1.company.com
-          username: "{{management_username}}"
-          password: "{{management_password}}"
+          username: "dummy_user"
+          password: "dummy_password"
         host_group_info:
           name: 'testhg26dec'
           port: 'CL1-A'
           host_mode: 'VMWARE_EXTENSION'
-          host_mode_options: [ 54, 63 ]
-          wwns: [ '100000109B583B2D', '100000109B583B2C' ]
-          ldevs: [ 00:23:A4 ]
+          host_mode_options: [54, 63]
+          wwns: ['100000109B583B2D', '100000109B583B2C']
+          ldevs: ['00:23:A4']
       register: result
     - debug: var=result.hostGroups
--
-  name: Delete host group
-  vars:
-    - storage_serial: "715035"
-    - host_group_name: test-ansible-hg-1
-    - port: CL2-B
+
+- name: Delete host group for gateway connection type
+  tasks:
+    - hv_hg:
+        state: absent
+        storage_system_info:
+          serial: '446039'
+        connection_info:
+          address: gateway1.company.com
+          api_token: "api_token_value"
+        spec:
+          name: 'testhg26dec'
+          port: 'CL1-A'
+      register: result
+    - debug: var=result
+
+- name: Delete host group for direct connection type
   tasks:
     - hv_hg:
         state: absent
@@ -234,15 +273,15 @@ EXAMPLES = '''
           serial: '446039'
         connection_info:
           address: storage1.company.com
-          username: "{{management_username}}"
-          password: "{{management_password}}"
+          username: "dummy_user"
+          password: "dummy_password"
         spec:
           name: 'testhg26dec'
           port: 'CL1-A'
       register: result
     - debug: var=result
--
-  name: Present LUN
+
+- name: Present LUN for direct connection type
   tasks:
     - hv_hg:
         state: present
@@ -250,33 +289,33 @@ EXAMPLES = '''
           serial: '446039'
         connection_info:
           address: storage1.company.com
-          username: "{{management_username}}"
-          password: "{{management_password}}"
+          username: "dummy_user"
+          password: "dummy_password"
         host_group_info:
           state: present_ldev
           name: 'testhg26dec'
           port: 'CL1-A'
-          ldevs: [ 00:05:77, 00:05:7D ]
+          ldevs: ['00:05:77', '00:05:7D']
       register: result
--
-  name: Unpresent LUN
+
+- name: Unpresent LUN for direct connection type
   tasks:
-    - hpe_hg:
+    - hv_hg:
         state: present
         storage_system_info:
           serial: '446039'
         connection_info:
           address: storage1.company.com
-          username: "{{management_username}}"
-          password: "{{management_password}}"
+          username: "dummy_user"
+          password: "dummy_password"
         spec:
           state: unpresent_ldev
           name: 'testhg26dec'
           port: 'CL1-A'
-          ldevs: [ 800, 801 ]
+          ldevs: [800, 801]
       register: result
--
-  name: Add WWN
+
+- name: Add WWN for direct connection type
   tasks:
     - hv_hg:
         state: present
@@ -284,17 +323,17 @@ EXAMPLES = '''
           serial: '446039'
         connection_info:
           address: storage1.company.com
-          username: "{{management_username}}"
-          password: "{{management_password}}"
+          username: "dummy_user"
+          password: "dummy_password"
         spec:
           state: add_wwn
           name: 'testhg26dec'
           port: 'CL1-A'
-          wwns: [ 200000109B3C0FD3 ]
+          wwns: ['200000109B3C0FD3']
       register: result
     - debug: var=result
--
-  name: Remove WWN
+
+- name: Remove WWN for direct connection type
   tasks:
     - hv_hg:
         state: present
@@ -302,17 +341,17 @@ EXAMPLES = '''
           serial: '446039'
         connection_info:
           address: storage1.company.com
-          username: "{{management_username}}"
-          password: "{{management_password}}"
+          username: "dummy_user"
+          password: "dummy_password"
         spec:
           state: remove_wwn
           name: 'testhg26dec'
           port: 'CL1-A'
-          wwns: [ 200000109B3C0FD3 ]
+          wwns: ['200000109B3C0FD3']
       register: result
     - debug: var=result
--
-  name: Update host group
+
+- name: Update host group for direct connection type
   tasks:
     - hv_hg:
         state: present
@@ -320,19 +359,19 @@ EXAMPLES = '''
           serial: '446039'
         connection_info:
           address: storage1.company.com
-          username: "{{management_username}}"
-          password: "{{management_password}}"
+          username: "dummy_user"
+          password: "dummy_password"
         spec:
           state: set_host_mode_and_hmo
           name: 'testhg26dec'
           port: 'CL1-A'
           host_mode: 'VMWARE_EXTENSION'
-          host_mode_options: [ 54, 63 ]
+          host_mode_options: [54, 63]
       register: result
     - debug: var=result
-'''
+"""
 
-RETURN = '''
+RETURN = """
 hostGroups:
   type: dict
   description: Info of host group.
@@ -375,36 +414,20 @@ hostGroups:
       }
     ]
   }
-'''
-
-import json
-from dataclasses import dataclass, asdict
-
-try:
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_logger import (
-        MessageID,
-    )
-
-    HAS_MESSAGE_ID = True
-except ImportError as error:
-    HAS_MESSAGE_ID = False
-
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+"""
+from ansible.module_utils.basic import AnsibleModule
+from dataclasses import asdict
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
     HiException,
 )
-
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
-    StorageSystem,
-    StorageSystemManager,
-)
-from ansible.module_utils.basic import AnsibleModule
 import ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_hg_runner as runner
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPHostGroupArguments,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    StateValue,
     ConnectionTypes,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler import (
@@ -414,57 +437,43 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     VSPParametersManager,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
-    camel_to_snake_case,
-    camel_dict_to_snake_case,
+    validate_ansible_product_registration,
 )
-
-ANSIBLE_METADATA = {
-    "metadata_version": "1.1",
-    "supported_by": "certified",
-    "status": ["stableinterface"],
-}
-
-logger = Log()
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
+    ModuleMessage,
+)
 
 
 class VSPHostGroupManager:
     def __init__(self):
-      try:
+        self.logger = Log()
         self.argument_spec = VSPHostGroupArguments().host_group()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
-            # can be added mandotary , optional mandatory arguments
         )
 
-        self.params = VSPParametersManager(self.module.params)
-        self.serial_number = self.params.storage_system_info.serial
-
-        parameterManager = VSPParametersManager(self.module.params)
-        self.state = parameterManager.get_state()
-        self.spec = parameterManager.host_group_spec()
-        self.connection_info = parameterManager.get_connection_info()
-        
-      except Exception as e:
-        self.module.fail_json(msg=str(e))
+        try:
+            params_manager = VSPParametersManager(self.module.params)
+            self.connection_info = params_manager.get_connection_info()
+            self.serial_number = params_manager.get_serial()
+            self.state = params_manager.get_state()
+            self.spec = params_manager.host_group_spec()
+        except Exception as e:
+            self.logger.writeError(str(e))
+            self.module.fail_json(msg=str(e))
 
     def apply(self):
-        logger = Log()
+        self.logger.writeInfo("=== Start of Host Group operation ===")
+        registration_message = validate_ansible_product_registration()
         host_group_data = None
         host_group_data_extracted = None
-        logger.writeInfo(
-            f"{self.params.connection_info.connection_type} connection type"
-        )
         try:
-            if (
-                self.params.connection_info.connection_type.lower()
-                == ConnectionTypes.DIRECT
-            ):
+            if self.connection_info.connection_type.lower() == ConnectionTypes.DIRECT:
                 host_group_data = asdict(self.direct_host_group_modification())
-                logger.writeInfo("host_group_data {}", host_group_data)
+                self.logger.writeInfo("host_group_data {}", host_group_data)
             elif (
-                self.params.connection_info.connection_type.lower()
-                == ConnectionTypes.GATEWAY
+                self.connection_info.connection_type.lower() == ConnectionTypes.GATEWAY
             ):
                 host_group_list = self.gateway_host_group_modification()
                 host_group_data = {host_group_list}
@@ -473,10 +482,14 @@ class VSPHostGroupManager:
                     self.serial_number
                 ).extract_dict(host_group_data)
             )
-
         except Exception as e:
+            self.logger.writeError(str(e))
+            self.logger.writeInfo("=== End of Host Group operation ===")
             self.module.fail_json(msg=str(e))
-
+        if registration_message:
+            host_group_data_extracted["user_consent_required"] = registration_message
+        self.logger.writeInfo(f"{host_group_data_extracted}")
+        self.logger.writeInfo("=== End of Host Group operation ===")
         self.module.exit_json(**host_group_data_extracted)
 
     def direct_host_group_modification(self):
@@ -484,17 +497,17 @@ class VSPHostGroupManager:
             self.connection_info, self.serial_number
         ).host_group_reconcile(self.state, self.spec)
         if result is None:
-            self.module.fail_json("Couldn't read host group ")
+            raise ValueError(ModuleMessage.HOST_GROUP_NOT_FOUND.value)
         return result
 
     def gateway_host_group_modification(self):
-        self.module.params["spec"] = self.module.params.get("spec")
+        # self.module.params["spec"] = self.module.params.get("spec")
         try:
             return runner.runPlaybook(self.module)
         except HiException as ex:
-            self.module.fail_json(msg=ex.format())
+            raise Exception(ex.format())
         except Exception as ex:
-            self.module.fail_json(msg=str(ex))
+            raise Exception(str(ex))
 
 
 def main(module=None):

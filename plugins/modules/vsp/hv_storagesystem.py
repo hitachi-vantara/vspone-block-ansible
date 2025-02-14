@@ -3,19 +3,23 @@
 # Copyright: (c) 2021, [ Hitachi Vantara ]
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
+
 
 DOCUMENTATION = """
 ---
 module: hv_storagesystem
 short_description: Manages Hitachi VSP storage systems.
 description:
-     - This module manages Hitachi VSP storage systems.
-
+  - This module manages Hitachi VSP storage systems.
+  - This module is supported only for gateway connection type.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/storagesystem.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   state:
     description: The desired state of the storage system.
@@ -32,7 +36,7 @@ options:
       serial:
         description: Serial number of the Hitachi storage system.
         type: str
-        required: true
+        required: false
       address:
         description: IP address or hostname of the storage system.
         type: str
@@ -72,7 +76,7 @@ options:
         required: True
         choices: ['gateway']
       subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
+        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
@@ -99,8 +103,7 @@ EXAMPLES = """
       register: result
     - debug: var=result
 
--
-  name: Deleting Storage System
+- name: Deleting Storage System
   tasks:
     - hv_storagesystem:
         storage_system_info:
@@ -176,26 +179,13 @@ storageSystems:
 import json
 import os
 
-try:
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_messages import (
-        MessageID,
-    )
-
-    HAS_MESSAGE_ID = True
-except ImportError as error:
-    HAS_MESSAGE_ID = False
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.uaig_utils import UAIGResourceID
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.uaig_utils import (
+    UAIGResourceID,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
 )
 
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
-    StorageSystem,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
-    StorageSystemManager,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ucpmanager import (
     UcpManager,
 )
@@ -206,6 +196,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     camel_to_snake_case_dict,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 
 ANSIBLE_METADATA = {
@@ -252,8 +245,8 @@ def getStorageJson(storageProfile):
 def main(module=None):
     fields = {
         "state": {"default": "present", "choices": ["present", "absent"]},
-        "storage_system_info": {"required": True, "type": "json"},
-        "connection_info": {"required": True, "type": "json"},
+        "storage_system_info": {"required": True, "type": "dict"},
+        "connection_info": {"required": True, "type": "dict"},
     }
 
     if module is None:
@@ -262,26 +255,30 @@ def main(module=None):
     try:
 
         logger.writeEnterModule(moduleName)
-
+        logger.writeInfo("=== Start of Storage System operation. ===")
+        registration_message = validate_ansible_product_registration()
         storage_system_info = module.params.get("storage_system_info", None)
         if storage_system_info is None:
+            logger.writeError(
+                "Invalid storage_system_info, please correct it and try again."
+            )
             raise Exception(
                 "Invalid storage_system_info, please correct it and try again."
             )
 
-        storage_system_info = json.loads(storage_system_info)
-        if storage_system_info is None:
-            raise Exception(
-                "Invalid storage_system_info, please correct it and try again."
-            )
+        # storage_system_info = json.loads(storage_system_info)
+        # if storage_system_info is None:
+        #     raise Exception(
+        #         "Invalid storage_system_info, please correct it and try again."
+        #     )
 
-        ###########################################################
         # valid UCP
 
         ucp_serial = CommonConstants.UCP_NAME
         logger.writeDebug("ucp_name={}", ucp_serial)
 
         if ucp_serial is None:
+            logger.writeError("The parameter ucp_name is required.")
             raise Exception("The parameter ucp_name is required.")
 
         # x = re.search("^(UCP-CI|UCP-HC|UCP-RS|Logical-UCP)-\d{5,10}$", ucp_serial)
@@ -290,20 +287,26 @@ def main(module=None):
 
         connection_info = module.params.get("connection_info", None)
         if connection_info is None:
+            logger.writeError(
+                "Invalid connection_info, please correct it and try again."
+            )
             raise Exception("Invalid connection_info, please correct it and try again.")
 
-        connection_info = json.loads(connection_info)
-        if connection_info is None:
-            raise Exception("Invalid connection_info, please correct it and try again.")
+        # connection_info = json.loads(connection_info)
+        # if connection_info is None:
+        #     raise Exception("Invalid connection_info, please correct it and try again.")
 
         management_address = connection_info.get("address", None)
         management_username = connection_info.get("username", None)
         management_password = connection_info.get("password", None)
-        auth_token = connection_info.get('api_token', None)
+        auth_token = connection_info.get("api_token", None)
         logger.writeDebug("management_address={}", management_address)
         logger.writeDebug("management_username={}", management_username)
 
         if management_address is None:
+            logger.writeError(
+                "Missing management_address, please correct it and try again."
+            )
             raise Exception(
                 "Missing management_address, please correct it and try again."
             )
@@ -315,22 +318,19 @@ def main(module=None):
         #     raise Exception(
         #         "Missing management_password, please correct it and try again."
         #     )
-    
-        ########################################################
+
         # True: test the rest of the module using api_token
-        
-        if False:
-            ucpManager = UcpManager(
-                management_address,
-                management_username,
-                management_password,
-                auth_token,
-            )    
-            auth_token = ucpManager.getAuthTokenOnly()
-            management_username = ''
-            
-        ########################################################
- 
+
+        # if False:
+        #     ucpManager = UcpManager(
+        #         management_address,
+        #         management_username,
+        #         management_password,
+        #         auth_token,
+        #     )
+        #     auth_token = ucpManager.getAuthTokenOnly()
+        #     management_username = ""
+
         ucpManager = UcpManager(
             management_address, management_username, management_password, auth_token
         )
@@ -338,7 +338,6 @@ def main(module=None):
         # theUCP = ucpManager.getUcpSystem( ucp_serial )
         # logger.writeDebug('theUCP={}', theUCP)
 
-        ###########################################################
         # attach SS to UCP
 
         storage_serial = storage_system_info.get("serial", None)
@@ -350,76 +349,109 @@ def main(module=None):
         logger.writeDebug("storage_serial={}", storage_serial)
         logger.writeDebug("20230620 storage_user={}", storage_user)
         logger.writeDebug("20230620 remote_gateway_address={}", remote_gateway_address)
-        
+
         if storage_serial is None:
+            logger.writeError(
+                "Missing storage_serial, please correct it and try again."
+            )
             raise Exception("Missing storage_serial, please correct it and try again.")
 
         if int(storage_serial) < 10000 or int(storage_serial) > 999999:
+            logger.writeError(
+                "Invalid storage serial number, please correct it and try again."
+            )
             raise Exception(
                 "Invalid storage serial number, please correct it and try again."
             )
-            
+
         if remote_gateway_address == management_address:
-            raise Exception("The remote_gateway_address cannot be the same as the management_address.")
-          
-        ## get the ucp_serial by remote gateway, if given
-        conv_system_name, conv_system_serial, conv_mgmt_address = \
-          UAIGResourceID.getSystemSerial(management_address, remote_gateway_address)
+            logger.writeError(
+                "The remote_gateway_address cannot be the same as the management_address."
+            )
+            raise Exception(
+                "The remote_gateway_address cannot be the same as the management_address."
+            )
+
+        #  get the ucp_serial by remote gateway, if given
+        conv_system_name, conv_system_serial, conv_mgmt_address = (
+            UAIGResourceID.getSystemSerial(management_address, remote_gateway_address)
+        )
         logger.writeDebug("name={}", conv_system_name)
         logger.writeDebug("serial={}", conv_system_serial)
         logger.writeDebug("gateway={}", conv_mgmt_address)
-        
+
         # ucp is mantatory input
         # get the puma getway info out of it
         theUCP = ucpManager.getUcpSystem(conv_system_name)
         if theUCP is None:
-          theUCP = ucpManager.createUcpSystem(
-              conv_system_serial,
-              conv_mgmt_address,
-              "UCP CI",
-              conv_system_name,
-              "AMERICA",
-              "United States",
-              "95054",
-              ""
-              )            
-          theUCP = ucpManager.getUcpSystem( conv_system_name )
-          # raise Exception("UCP {} is not found.".format(conv_system_name))
+            theUCP = ucpManager.createUcpSystem(
+                conv_system_serial,
+                conv_mgmt_address,
+                "UCP CI",
+                conv_system_name,
+                "AMERICA",
+                "United States",
+                "95054",
+                "",
+            )
+            theUCP = ucpManager.getUcpSystem(conv_system_name)
+            # raise Exception("UCP {} is not found.".format(conv_system_name))
         if theUCP is None:
-            ## sng,a2.4 system is not ready
+            #  sng,a2.4 system is not ready
+            logger.writeError("Unable to perform basic setup, the system is not ready.")
             raise Exception("Unable to perform basic setup, the system is not ready.")
 
         logger.writeDebug("the system={}", theUCP)
-        
-        ## to work with StorageSystem, it needs the serial, not name
+
+        #  to work with StorageSystem, it needs the serial, not name
         ucp_serial = theUCP["serialNumber"]
         logger.writeDebug("system_serial={}", ucp_serial)
-        
+
         state = module.params["state"]
         if state != "absent":
-                  
-            ## 2.4 - handle ss already onboarded
+
+            #  2.4 - handle ss already onboarded
             # logger.writeDebug("380 theUCP={}", theUCP['storageDevices'])
-            storageDevices = theUCP.get('storageDevices', None)
+            storageDevices = theUCP.get("storageDevices", None)
             if storageDevices:
-              for storageDevice in storageDevices:
-                # logger.writeDebug("380 storage_serial={}", storage_serial)
-                # logger.writeDebug("380 storageDevice['serialNumber']={}", storageDevice['serialNumber'])
-                if str(storageDevice['serialNumber']) == str(storage_serial):
-                  # it is already onboarded
-                  storageDevice.pop("ucpSystems", None)
-                  logger.writeExitModule(moduleName)
-                  module.exit_json(storageSystems=storageDevice)                     
+                for storageDevice in storageDevices:
+                    tmp = storageDevice.get("serialNumber", None)
+                    if tmp is None:
+                        continue
+                    # logger.writeDebug("380 storage_serial={}", storage_serial)
+                    # logger.writeDebug("380 storageDevice['serialNumber']={}", storageDevice['serialNumber'])
+                    if str(storageDevice["serialNumber"]) == str(storage_serial):
+                        # it is already onboarded
+                        storageDevice.pop("ucpSystems", None)
+                        logger.writeExitModule(moduleName)
+                        data = {
+                            "storage_systems": storageDevice,
+                        }
+                        if registration_message:
+                            data["user_consent_required"] = registration_message
+
+                        logger.writeInfo(f"{data}")
+                        logger.writeInfo("=== End of Storage System operation. ===")
+                        module.exit_json(**data)
 
             if storage_address is None:
+                logger.writeError(
+                    "Missing storage_address, please correct it and try again."
+                )
                 raise Exception(
                     "Missing storage_address, please correct it and try again."
                 )
             if storage_user is None:
+                logger.writeError(
+                    "Missing storage_user, please correct it and try again."
+                )
                 raise Exception(
                     "Missing storage_user, please correct it and try again."
                 )
             if storage_password is None:
+                logger.writeError(
+                    "Missing storage_password, please correct it and try again."
+                )
                 raise Exception(
                     "Missing storage_password, please correct it and try again."
                 )
@@ -438,23 +470,39 @@ def main(module=None):
                 ucp_serial,
             )
 
-            ## sng,a2.4 - expect only one ss here
+            #  sng,a2.4 - expect only one ss here
             results.pop("ucpSystems", None)
             results = formatSS(results)
 
             logger.writeExitModule(moduleName)
-            module.exit_json(changed= True, storage_system=results)
-            # module.exit_json(storageSystems=results['storage_system'],
+            data = {
+                "storage_system": results,
+                "changed": True,
+            }
+            if registration_message:
+                data["user_consent_required"] = registration_message
+            logger.writeInfo(f"{data}")
+            logger.writeInfo("=== End of Storage System operation. ===")
+            module.exit_json(**data)
             # details=results['details'])
         else:
             results = ucpManager.removeStorageSystem(
                 storage_serial,
                 ucp_serial,
             )
-            #    module.exit_json(**results)
             if results is not None and results:
+                logger.writeError("Storage is no longer in the system.")
+                logger.writeInfo("=== End of Storage System operation. ===")
                 module.exit_json(msg="Storage is no longer in the system.")
-            module.exit_json(changed= True, msg=f"Storage with serial {storage_serial} successfully deleted.")
+
+            logger.writeError(
+                f"Storage with serial {storage_serial} successfully deleted."
+            )
+            logger.writeInfo("=== End of Storage System operation. ===")
+            module.exit_json(
+                changed=True,
+                msg=f"Storage with serial {storage_serial} successfully deleted.",
+            )
 
     except EnvironmentError as ex:
         logger.writeDebug("EnvironmentError={}", ex)
@@ -462,6 +510,8 @@ def main(module=None):
             msg = "Failed to add storage, please check input parameters."
         else:
             msg = ex.strerror
+        logger.writeError(msg)
+        logger.writeInfo("=== End of Storage System operation. ===")
         module.fail_json(msg=msg)
     except Exception as ex:
         logger.writeDebug("326 Exception={}", ex)
@@ -471,7 +521,10 @@ def main(module=None):
             msg = "Failed during add storage, please check input parameters."
         else:
             msg = str(ex)
+        logger.writeError(msg)
+        logger.writeInfo("=== End of Storage System operation. ===")
         module.fail_json(msg=msg)
+
 
 def formatSS(storageSystem):
     logger.writeDebug("storageSystem={}", storageSystem)
@@ -484,6 +537,7 @@ def formatSS(storageSystem):
     del storageSystem["totalPoolCapacity"]
     del storageSystem["totalPoolCapacityInMb"]
     return camel_to_snake_case_dict(storageSystem)
+
 
 if __name__ == "__main__":
     main()

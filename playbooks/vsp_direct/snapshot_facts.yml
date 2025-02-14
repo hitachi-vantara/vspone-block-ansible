@@ -1,15 +1,13 @@
-####################################################################
+---
+######################################################################################
 # Example :  Snapshot Facts Playbook
-####################################################################
+######################################################################################
 - name: Snapshot Pair Facts
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_direct_variables.yml
 
   vars:
     # Common connection info for all tasks
@@ -19,46 +17,49 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-####################################################################
-# Task 1 : Get all snapshot pairs
-####################################################################
+    ######################################################################################
+    # Task 1 : Get all snapshot pairs
+    ######################################################################################
     - name: Get all snapshot pairs
-      hv_snapshot_facts:
+      hitachivantara.vspone_block.vsp.hv_snapshot_facts:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Get snapshot pairs with same primary_volume_id
-####################################################################
+    ######################################################################################
+    # Task 2 : Get snapshot pairs with same primary_volume_id
+    ######################################################################################
     - name: Get snapshot pairs with same primary_volume_id
-      hv_snapshot_facts:
+      hitachivantara.vspone_block.vsp.hv_snapshot_facts:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          primary_volume_id: "{{ snapshot_facts_pvol_2  }}"
+          primary_volume_id: 100
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 3 : Get one snapshot pair
-####################################################################
+    ######################################################################################
+    # Task 3 : Get one snapshot pair
+    ######################################################################################
     - name: Get one snapshot pair
-      hv_snapshot_facts:
+      hitachivantara.vspone_block.vsp.hv_snapshot_facts:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          primary_volume_id: "{{ snapshot_facts_pvol_3  }}"
-          mirror_unit_id: "{{ snapshot_facts_mirror_unit_id_3 }}"
+          primary_volume_id: 101
+          mirror_unit_id: 1
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

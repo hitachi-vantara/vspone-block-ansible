@@ -1,15 +1,13 @@
+---
 ####################################################################
 # Example : Set Port Authentication Playbook
 ####################################################################
 - name: Set Port Authentication
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.sds_block
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - sds_block_variables.yml
 
   vars:
     # Common connection info for all tasks
@@ -17,20 +15,21 @@
       address: "{{ storage_address }}"
       username: "{{ vault_storage_username }}"
       password: "{{ vault_storage_secret }}"
-  
+
   tasks:
-#########################################################################
-# Task 1 : Set port authentication mode
-#########################################################################
+    #########################################################################
+    # Task 1 : Set port authentication mode
+    #########################################################################
     - name: Set port authentication mode
-      hv_sds_block_compute_port_authentication:
+      hitachivantara.vspone_block.sds_block.hv_sds_block_compute_port_authentication:
         connection_info: "{{ connection_info }}"
         state: "{{ state_present }}"
         spec:
-          port_name: "{{ port_auth_port_name_1 }}"
-          authentication_mode: "{{ port_auth_authentication_mode_1 }}"
-          target_chap_users: "{{ port_auth_target_chap_users_1 }}"
+          port_name: "iqn_1994-04_jp_co_hitachi:rsd_sph_t_0a85a_000"
+          authentication_mode: "CHAP"
+          target_chap_users: ["chapuser1"]
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

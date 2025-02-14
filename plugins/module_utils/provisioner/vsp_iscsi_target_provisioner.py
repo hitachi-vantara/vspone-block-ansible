@@ -1,18 +1,12 @@
 try:
 
     from ..gateway.gateway_factory import GatewayFactory
-    from ..common.hv_constants import *
+    from ..common.hv_constants import GatewayClassTypes, VSPIscsiTargetConstant
     from ..common.hv_log import Log
-    from ..common.ansible_common import convert_hex_to_dec
-    from ..model.vsp_iscsi_target_models import *
-    from ..common.ansible_common import dicts_to_dataclass_list
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
-    from common.hv_constants import *
+    from common.hv_constants import GatewayClassTypes, VSPIscsiTargetConstant
     from common.hv_log import Log
-    from common.ansible_common import convert_hex_to_dec
-    from model.vsp_iscsi_target_models import *
-    from common.ansible_common import dicts_to_dataclass_list
 
 
 class VSPIscsiTargetProvisioner:
@@ -48,12 +42,14 @@ class VSPIscsiTargetProvisioner:
                 lstHg.append(iscsi_target)
 
         return lstHg
+
     def get_iscsi_target_using_name(self, name, serial):
         iscsi_targets = self.gateway.get_iscsi_targets(None, serial)
         for iscsi_target in iscsi_targets.data:
             if iscsi_target.name == name:
                 return iscsi_target
         return None
+
     def create_one_iscsi_target(self, iscsi_target_payload, serial):
         self.gateway.create_one_iscsi_target(iscsi_target_payload, serial)
 

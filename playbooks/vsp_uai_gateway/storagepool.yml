@@ -1,160 +1,170 @@
+---
 ####################################################################
 # Example :  Storage Pool Playbook
 ####################################################################
 - name: Storage Pool Module
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_uai_gateway_variables.yml
 
   tasks:
-####################################################################
-# Task 0 : Get UAI gateway token
-####################################################################
+    ####################################################################
+    # Task 0 : Get UAI gateway token
+    ####################################################################
     - name: Get UAI gateway token
-      hv_uaig_token_fact:
+      hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
-      ignore_errors: False
+      ignore_errors: false
 
-####################################################################
-# Task 1 : Create a storage pool using required details
-####################################################################
+    ####################################################################
+    # Task 1 : Create a storage pool using required details
+    ####################################################################
     - name: Create a storage pool using required details
-      hv_storagepool:
+      hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: present
         spec:
-            name: "{{ storagepool_name_1 }}"
-            type: "{{ storagepool_type_1 }}"
-            pool_volumes:
-              - parity_group_id: "{{ storagepool_parity_group_id_1 }}"
-                capacity: "{{ storagepool_capacity_1 }}"
+          name: storagepool-01
+          type: HDP
+          pool_volumes:
+            - parity_group_id: 1-1
+              capacity: 8GB
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Create a storage pool using more details
-####################################################################
+    ####################################################################
+    # Task 2 : Create a storage pool using more details
+    ####################################################################
     - name: Create a storage pool using other details
-      hv_storagepool:
+      hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: present
         spec:
-            name: "{{ storagepool_name_2 }}"
-            type: "{{ storagepool_type_2 }}"
-            pool_volumes:
-              - parity_group_id: "{{ storagepool_parity_group_id_2 }}"
-                capacity: "{{ storagepool_capacity_2 }}"
-            warning_threshold_rate: "{{ storagepool_warning_threshold_rate_2 }}"
-            resource_group_id: "{{ storagepool_resource_group_id_2 }}"
-            should_enable_deduplication: "{{ storagepool_should_enable_deduplication_2 }}"
-            depletion_threshold_rate: "{{ storagepool_depletion_threshold_rate_2 }}"
+          name: storagepool-01
+          type: HDP
+          pool_volumes:
+            - parity_group_id: 1-1
+              capacity: 8GB
+          warning_threshold_rate: 80
+          resource_group_id: 1
+          should_enable_deduplication: true
+          depletion_threshold_rate: 90
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 3 : Expand pool by pool Name
-####################################################################
+    ####################################################################
+    # Task 3 : Expand pool by pool Name
+    ####################################################################
     - name: Expand pool by pool Name
-      hv_storagepool:
+      hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: present
         spec:
-            name: "{{ storagepool_name_3 }}"
-            pool_volumes: "{{ storagepool_pool_volumes_3 }}"
+          name: storagepool-02
+          pool_volumes:
+            - parity_group_id: 1-1
+              capacity: 8GB
+            - parity_group_id: 1-1
+              capacity: 8GB
+            - parity_group_id: 1-1
+              capacity: 8GB
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 4 : Expand pool by pool ID
-####################################################################              
+    ####################################################################
+    # Task 4 : Expand pool by pool ID
+    ####################################################################
     - name: Expand pool by pool ID
-      hv_storagepool:
+      hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: present
         spec:
-            id: "{{ storagepool_id_4 }}"
-            pool_volumes: "{{ storagepool_pool_volumes_4 }}"
+          id: 15
+          pool_volumes:
+            - parity_group_id: 1-1
+              capacity: 8GB
+            - parity_group_id: 1-1
+              capacity: 8GB
+            - parity_group_id: 1-1
+              capacity: 8GB
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 5 : Delete pool by pool ID
-#################################################################### 
+    ####################################################################
+    # Task 5 : Delete pool by pool ID
+    ####################################################################
     - name: Delete pool by pool ID
-      hv_storagepool:
+      hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_absent }}"
+        state: absent
         spec:
-            id:  "{{ storagepool_id_5 }}"          
+          id: 10
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 6 : Delete pool by pool Name
-#################################################################### 
+    ####################################################################
+    # Task 6 : Delete pool by pool Name
+    ####################################################################
     - name: Delete pool by pool Name
-      hv_storagepool:
+      hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_absent }}"
+        state: absent
         spec:
-            name: "{{ hv_storagepool_name6 }}"          
+          name: storagepool-02
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

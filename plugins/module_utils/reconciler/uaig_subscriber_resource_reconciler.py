@@ -1,16 +1,18 @@
 try:
-    from ..provisioner.uaig_subscriber_resource_provisioner import SubscriberResourceProvisioner
+    from ..provisioner.uaig_subscriber_resource_provisioner import (
+        SubscriberResourceProvisioner,
+    )
     from ..message.gateway_msgs import GatewayValidationMsg
     from ..common.ansible_common import (
         camel_to_snake_case,
-        snake_to_camel_case,
         camel_array_to_snake_case,
     )
 except ImportError:
-    from provisioner.uaig_subscriber_resource_provisioner import SubscriberResourceProvisioner
+    from provisioner.uaig_subscriber_resource_provisioner import (
+        SubscriberResourceProvisioner,
+    )
     from common.ansible_common import (
         camel_to_snake_case,
-        snake_to_camel_case,
         camel_array_to_snake_case,
     )
 
@@ -25,16 +27,20 @@ class SubscriberResourceReconciler:
     def get_subscriber_resource_facts(self):
 
         if self.connection_info.subscriber_id is None:
-            raise ValueError(GatewayValidationMsg.SUBSCRIBER_ID_FOR_RESOURCE_MISSING.value)
-        
-        data = self.provisioner.get_subscriber_resource_facts(self.connection_info.subscriber_id)
+            raise ValueError(
+                GatewayValidationMsg.SUBSCRIBER_ID_FOR_RESOURCE_MISSING.value
+            )
+
+        data = self.provisioner.get_subscriber_resource_facts(
+            self.connection_info.subscriber_id
+        )
         if data:
             if self.storage_serial is not None:
                 data = self.apply_filter_serial(data)
             return SubscriberResourcePropertiesExtractor().extract(data)
 
         return []
-    
+
     def apply_filter_serial(self, data):
         new_data = []
         for x in data:
@@ -65,7 +71,6 @@ class SubscriberResourcePropertiesExtractor:
 
         self.size = ["total_capacity"]
 
-
     def extract(self, responses):
         new_items = []
         for response in responses:
@@ -85,29 +90,21 @@ class SubscriberResourcePropertiesExtractor:
                     else:
                         new_dict[key] = value_type(response_key)
                 # else:
-                    # Handle missing keys by assigning default values
-                    # default_value = (
-                    #     ""
-                    #     if value_type == str
-                    #     else (
-                    #         -1
-                    #         if value_type == int or value_type == float
-                    #         else [] if value_type == list else False
-                    #     )
-                    # )
-                    # if key in self.parameter_mapping:
-                    #     key = self.parameter_mapping[key]
-                    # key = camel_to_snake_case(key)
-                    # if key == "used_quota_in_percent":
-                    #     new_dict[key] = 0
-                    # elif key == "used_quota_in_gb":
-                    #     new_dict[key] = "0"
-                    # else:
-                    #     new_dict[key] = default_value                     
+                # Handle missing keys by assigning default values
+                # default_value = get_default_value(value_type)
+                # if key in self.parameter_mapping:
+                #     key = self.parameter_mapping[key]
+                # key = camel_to_snake_case(key)
+                # if key == "used_quota_in_percent":
+                #     new_dict[key] = 0
+                # elif key == "used_quota_in_gb":
+                #     new_dict[key] = "0"
+                # else:
+                #     new_dict[key] = default_value
             new_items.append(new_dict)
         new_items = camel_array_to_snake_case(new_items)
         return new_items
 
-    def convert_capacity_to_gb(self, size) :
-        size /= (1024 * 1024 * 1024)
-        return f"{size:.2f}GB"  
+    def convert_capacity_to_gb(self, size):
+        size /= 1024 * 1024 * 1024
+        return f"{size:.2f}GB"

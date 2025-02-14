@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict, fields
+from dataclasses import dataclass, asdict
 from typing import Optional, List
 
 try:
@@ -10,6 +10,7 @@ except ImportError:
 @dataclass
 class StorageSystemFactSpec:
     query: Optional[List[str]] = None
+    refresh: Optional[bool] = None
 
 
 @dataclass
@@ -107,7 +108,7 @@ class VSPDetailedJournalPoolPfrestList(BaseDataClass):
 
 
 @dataclass
-class VSPBasicJournalPoolPfrest:
+class VSPBasicJournalPoolPfrest(SingleBaseClass):
     journalId: str = None
     muNumber: int = None
     consistencyGroupId: int = None
@@ -124,7 +125,7 @@ class VSPBasicJournalPoolPfrest:
 
 @dataclass
 class VSPBasicJournalPoolPfrestList(BaseDataClass):
-    data: List[VSPBasicJournalPoolPfrest]
+    data: List[VSPBasicJournalPoolPfrest] = None
 
 
 @dataclass

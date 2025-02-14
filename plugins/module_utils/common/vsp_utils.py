@@ -1,4 +1,6 @@
+import copy
 import re
+
 try:
     from ..common.hv_log import (
         Log,
@@ -16,18 +18,43 @@ try:
     )
     from ..model.vsp_iscsi_target_models import IscsiTargetFactSpec, IscsiTargetSpec
     from ..model.vsp_storage_system_models import StorageSystemFactSpec
-    from ..model.vsp_snapshot_models import SnapshotFactSpec, SnapshotReconcileSpec, SnapshotGroupSpec, SnapshotGroupFactSpec
+    from ..model.vsp_snapshot_models import (
+        SnapshotFactSpec,
+        SnapshotReconcileSpec,
+        SnapshotGroupSpec,
+        SnapshotGroupFactSpec,
+    )
     from ..model.vsp_storage_pool_models import PoolFactSpec, StoragePoolSpec
-    from ..model.vsp_parity_group_models import ParityGroupFactSpec
+    from ..model.vsp_storage_pool_models import JournalVolumeSpec, JournalVolumeFactSpec
+    from ..model.vsp_parity_group_models import (
+        ParityGroupFactSpec,
+        ParityGroupSpec,
+        DrivesFactSpec,
+    )
     from ..model.vsp_storage_port_models import PortFactSpec, ChangePortSettingSpec
     from ..model.vsp_hur_models import HurSpec, HurFactSpec
-    from ..model.vsp_true_copy_models import TrueCopyFactSpec, TrueCopySpec
+    from ..model.vsp_true_copy_models import (
+        TrueCopyFactSpec,
+        TrueCopySpec,
+    )
     from ..model.vsp_gad_pairs_models import VspGadPairSpec, GADPairFactSpec
-    from ..model.vsp_nvme_models import VSPNvmeSubsystemFactSpec
+    from ..model.vsp_nvme_models import VSPNvmeSubsystemFactSpec, VSPNvmeSubsystemSpec
     from ..model.uaig_subscriber_models import UnsubscribeSpec
+    from ..model.vsp_copy_groups_models import CopyGroupsFactSpec, CopyGroupSpec
+    from ..model.vsp_resource_group_models import (
+        VSPResourceGroupSpec,
+        VSPResourceGroupFactSpec,
+    )
+    from ..model.vsp_cmd_dev_models import VSPCmdDevSpec
+    from ..model.vsp_rg_lock_models import VSPResourceGroupLockSpec
+    from ..model.vsp_remote_storage_registration_models import (
+        VSPRemoteStorageRegistrationFactSpec,
+        VSPRemoteStorageRegistrationSpec,
+    )
     from ..common.hv_constants import ConnectionTypes, StateValue
     from ..common.vsp_constants import AutomationConstants
     from ..common.ansible_common import camel_to_snake_case, convert_to_bytes
+
     from ..message.vsp_lun_msgs import VSPVolValidationMsg
     from ..message.vsp_snapshot_msgs import VSPSnapShotValidateMsg
     from ..message.vsp_parity_group_msgs import VSPParityGroupValidateMsg
@@ -41,8 +68,8 @@ try:
     from ..message.vsp_storage_port_msgs import VSPStoragePortValidateMsg
     from ..message.vsp_gad_pair_msgs import GADPairValidateMSG
     from ..message.gateway_msgs import GatewayValidationMsg
-    from ..common.vsp_constants import BASIC_STORAGE_DETAILS
-
+    from ..message.vsp_nvm_msgs import VspNvmValidationMsg
+    from ..message.vsp_resource_group_msgs import VSPResourceGroupValidateMsg
 
 except ImportError:
     from model.common_base_models import (
@@ -56,24 +83,49 @@ except ImportError:
         GetShadowImageSpec,
         ShadowImagePairSpec,
     )
-    from model.vsp_nvme_models import VSPNvmeSubsystemFactSpec
     from model.vsp_iscsi_target_models import IscsiTargetFactSpec, IscsiTargetSpec
-    from model.vsp_snapshot_models import SnapshotFactSpec, SnapshotReconcileSpec, SnapshotGroupSpec, SnapshotGroupFactSpec
+    from model.vsp_snapshot_models import (
+        SnapshotFactSpec,
+        SnapshotReconcileSpec,
+        SnapshotGroupSpec,
+        SnapshotGroupFactSpec,
+    )
     from model.vsp_storage_system_models import StorageSystemFactSpec
     from model.vsp_storage_pool_models import PoolFactSpec, StoragePoolSpec
-    from model.vsp_parity_group_models import ParityGroupFactSpec
+    from model.vsp_storage_pool_models import JournalVolumeSpec, JournalVolumeFactSpec
+    from model.vsp_parity_group_models import (
+        ParityGroupFactSpec,
+        ParityGroupSpec,
+        DrivesFactSpec,
+    )
     from model.vsp_storage_port_models import PortFactSpec, ChangePortSettingSpec
     from model.vsp_hur_models import HurSpec, HurFactSpec
-    from model.vsp_true_copy_models import TrueCopyFactSpec, TrueCopySpec
+    from model.vsp_true_copy_models import (
+        TrueCopyFactSpec,
+        TrueCopySpec,
+    )
     from model.vsp_gad_pairs_models import VspGadPairSpec, GADPairFactSpec
-    from model.vsp_nvme_models import VSPNvmeSubsystemFactSpec
+    from model.vsp_nvme_models import VSPNvmeSubsystemFactSpec, VSPNvmeSubsystemSpec
     from model.uaig_subscriber_models import UnsubscribeSpec
+    from model.vsp_copy_groups_models import CopyGroupsFactSpec, CopyGroupSpec
+    from model.vsp_resource_group_models import (
+        VSPResourceGroupSpec,
+        VSPResourceGroupFactSpec,
+    )
+    from model.vsp_cmd_dev_models import VSPCmdDevSpec
+    from model.vsp_rg_lock_models import VSPResourceGroupLockSpec
+    from model.vsp_remote_storage_registration_models import (
+        VSPRemoteStorageRegistrationFactSpec,
+        VSPRemoteStorageRegistrationSpec,
+    )
 
     from common.hv_constants import ConnectionTypes, StateValue
+    from common.vsp_constants import AutomationConstants
     from common.ansible_common import camel_to_snake_case, convert_to_bytes
+    from common.hv_log import Log
+
     from message.vsp_lun_msgs import VSPVolValidationMsg
     from message.common_msgs import CommonMessage
-    from common.vsp_constants import AutomationConstants
     from message.vsp_snapshot_msgs import VSPSnapShotValidateMsg
     from message.vsp_parity_group_msgs import VSPParityGroupValidateMsg
     from message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
@@ -85,13 +137,10 @@ except ImportError:
     from message.vsp_hur_msgs import VSPHurValidateMsg
     from message.vsp_gad_pair_msgs import GADPairValidateMSG
     from message.gateway_msgs import GatewayValidationMsg
-
-    from common.hv_log import Log
-    from common.vsp_constants import BASIC_STORAGE_DETAILS
+    from message.vsp_nvm_msgs import VspNvmValidationMsg
 
 
-#########################################################
-### VSP Parameter manager ###
+# # VSP Parameter manager # #
 class VSPParametersManager:
 
     def __init__(self, params):
@@ -119,6 +168,15 @@ class VSPParametersManager:
         else:
             self.tenant_info = TenantInfo()
 
+        if "secondary_connection_info" in self.params:
+            self.secondary_connection_info = None
+            if self.params.get("secondary_connection_info") is not None:
+                self.secondary_connection_info = ConnectionInfo(
+                    **self.params.get("secondary_connection_info", {})
+                )
+        else:
+            self.secondary_connection_info = None
+
         VSPSpecValidators.validate_connection_info(self.connection_info)
 
     def get_state(self):
@@ -132,6 +190,9 @@ class VSPParametersManager:
 
     def get_tenant_info(self):
         return self.tenant_info
+
+    def get_secondary_connection_info(self):
+        return self.secondary_connection_info
 
     def set_volume_fact_spec(self):
 
@@ -201,7 +262,6 @@ class VSPParametersManager:
         )
         VSPSpecValidators().validate_snapshot_fact(self.spec)
         return self.spec
-  
 
     def get_hur_fact_spec(self):
         self.spec = HurFactSpec(**self.params["spec"] if self.params["spec"] else {})
@@ -229,6 +289,17 @@ class VSPParametersManager:
         VSPSpecValidators().validate_storage_pool(input_spec, self.get_state())
         return input_spec
 
+    def get_journal_volume_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = JournalVolumeFactSpec(**self.params["spec"])
+        else:
+            input_spec = None
+        return input_spec
+
+    def journal_volume_spec(self):
+        input_spec = JournalVolumeSpec(**self.params["spec"])
+        return input_spec
+
     def get_port_fact_spec(self):
         self.spec = PortFactSpec(**self.params["spec"] if self.params["spec"] else {})
         return self.spec
@@ -246,6 +317,22 @@ class VSPParametersManager:
             input_spec = ParityGroupFactSpec()
         return input_spec
 
+    def get_parity_group_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = ParityGroupSpec(**self.params["spec"])
+            VSPSpecValidators().validate_parity_group(input_spec)
+        else:
+            input_spec = ParityGroupSpec()
+        return input_spec
+
+    def get_drives_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = DrivesFactSpec(**self.params["spec"])
+            # VSPSpecValidators().validate_parity_group_fact(input_spec)
+        else:
+            input_spec = DrivesFactSpec()
+        return input_spec
+
     def true_cpoy_spec(self):
         self.spec = TrueCopySpec(**self.params["spec"])
         VSPSpecValidators().validate_true_copy_module(self.spec)
@@ -259,6 +346,14 @@ class VSPParametersManager:
             input_spec = TrueCopyFactSpec()
         return input_spec
 
+    def get_copy_groups_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = CopyGroupsFactSpec(**self.params["spec"])
+            VSPSpecValidators().validate_copy_groups_fact(input_spec)
+        else:
+            input_spec = CopyGroupsFactSpec()
+        return input_spec
+
     def get_nvme_subsystem_fact_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
             input_spec = VSPNvmeSubsystemFactSpec(**self.params["spec"])
@@ -267,37 +362,100 @@ class VSPParametersManager:
             input_spec = VSPNvmeSubsystemFactSpec()
         return input_spec
 
+    def get_nvme_subsystem_spec(self):
+        self.spec = VSPNvmeSubsystemSpec(
+            **self.params["spec"] if self.params["spec"] else {}
+        )
+        VSPSpecValidators().validate_nvme_subsystem(self.spec)
+        return self.spec
+
     def hur_spec(self):
         self.spec = HurSpec(**self.params["spec"])
-        VSPSpecValidators().validate_hur_module(self.spec, self.state)
+        # VSPSpecValidators().validate_hur_module(self.spec, self.state)
+        return self.spec
+
+    def copy_group_spec(self):
+        self.spec = CopyGroupSpec(**self.params["spec"])
+        # VSPSpecValidators().validate_hur_module(self.spec, self.state)
         return self.spec
 
     def gad_pair_spec(self):
         self.spec = VspGadPairSpec(**self.params["spec"])
         VSPSpecValidators().validate_gad_pair_spec(self.spec, self.state)
         return self.spec
-    
+
     def gad_pair_fact_spec(self):
-        self.spec = GADPairFactSpec(**self.params["spec"] if self.params["spec"] else {})
+        self.spec = GADPairFactSpec(
+            **self.params["spec"] if self.params["spec"] else {}
+        )
         return self.spec
-    
+
     def snapshot_grp_spec(self):
-        self.spec = SnapshotGroupSpec(**self.params["spec"] )
+        self.spec = SnapshotGroupSpec(**self.params["spec"])
         return self.spec
-    
+
     def snapshot_grp_fact_spec(self):
-        self.spec = SnapshotGroupFactSpec(**self.params["spec"] )
+
+        self.spec = SnapshotGroupFactSpec(**self.params["spec"])
+
         return self.spec
 
     def unsubscribe_spec(self):
-        if "spec" in self.params and self.params["spec"] is not None and self.params["spec"]["resources"] is None:
+        if (
+            "spec" in self.params
+            and self.params["spec"] is not None
+            and self.params["spec"]["resources"] is None
+        ):
             raise ValueError("Ensure resources is not empty.")
 
         self.spec = UnsubscribeSpec(**self.params["spec"])
         VSPSpecValidators().validate_unsubscribe_module(self.spec)
         return self.spec
-###########################################################################
-## Arguments Managements ##
+
+    def get_resource_group_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = VSPResourceGroupFactSpec(**self.params["spec"])
+            VSPSpecValidators().validate_resource_group_fact(input_spec)
+        else:
+            input_spec = VSPResourceGroupFactSpec()
+        return input_spec
+
+    def get_resource_group_spec(self):
+        self.spec = VSPResourceGroupSpec(
+            **self.params["spec"] if self.params["spec"] else {}
+        )
+        VSPSpecValidators().validate_resource_group(self.spec)
+        return self.spec
+
+    def get_cmd_dev_spec(self):
+        self.spec = VSPCmdDevSpec(**self.params["spec"] if self.params["spec"] else {})
+        VSPSpecValidators().validate_cmd_dev(self.spec)
+        return self.spec
+
+    def get_rg_lock_spec(self):
+        self.spec = VSPResourceGroupLockSpec(
+            **self.params["spec"] if self.params["spec"] else {}
+        )
+        VSPSpecValidators().validate_rg_lock(self.spec)
+        return self.spec
+
+    def get_remote_storage_registration_spec(self):
+        self.spec = VSPRemoteStorageRegistrationSpec(
+            **self.params["spec"] if self.params["spec"] else {}
+        )
+        VSPSpecValidators().validate_remote_storage_registration(self.spec)
+        return self.spec
+
+    def get_remote_storage_registration_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = VSPRemoteStorageRegistrationFactSpec(**self.params["spec"])
+            VSPSpecValidators().validate_remote_storage_registration_fact(input_spec)
+        else:
+            input_spec = VSPRemoteStorageRegistrationFactSpec()
+        return input_spec
+
+
+# Arguments Managements ##
 class VSPCommonParameters:
 
     @staticmethod
@@ -305,12 +463,10 @@ class VSPCommonParameters:
         return {
             "required": False,
             "type": "dict",
-            "description": "Information about the storage system.",
             "options": {
                 "serial": {
                     "required": False,
                     "type": "str",
-                    "description": "The serial number of the storage system.",
                 }
             },
         }
@@ -320,7 +476,6 @@ class VSPCommonParameters:
         return {
             "required": True,
             "type": "dict",
-            "description": "Information about the storage system.",
             "options": {
                 "state": {
                     "required": False,
@@ -343,38 +498,32 @@ class VSPCommonParameters:
         return {
             "required": True,
             "type": "dict",
-            "description": "Information for establishing the connection.",
             "options": {
                 "address": {
                     "required": True,
                     "type": "str",
-                    "description": "The management address of the storage system.",
                 },
                 "username": {
                     "required": False,
                     "type": "str",
-                    "description": "The username for authentication.",
                 },
                 "password": {
                     "required": False,
                     "no_log": True,
                     "type": "str",
-                    "description": "The password or authentication key.",
                 },
                 "api_token": {
                     "required": False,
                     "type": "str",
-                    "description": "The api token for the connection.",
+                    "no_log": True,
                 },
                 "subscriber_id": {
                     "required": False,
                     "type": "str",
-                    "description": "The subscriber ID.",
                 },
                 "connection_type": {
                     "required": False,
                     "type": "str",
-                    "description": "The type of connection.",
                     "choices": ["gateway", "direct"],
                     "default": "direct",
                 },
@@ -395,17 +544,14 @@ class VSPCommonParameters:
         return {
             "required": False,
             "type": "dict",
-            "description": "Tenant Information",
             "options": {
                 "partnerId": {
                     "required": False,
                     "type": "str",
-                    "description": "Partner Id.",
                 },
                 "subscriberId": {
                     "required": False,
                     "type": "str",
-                    "description": "Subscriber Id.",
                 },
             },
         }
@@ -417,9 +563,8 @@ class VSPVolumeArguments:
         "storage_system_info": VSPCommonParameters.storage_system_info(),
         "connection_info": VSPCommonParameters.connection_info(),
         "spec": {
-            "required": False,
+            "required": True,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
         "state": {
@@ -435,42 +580,39 @@ class VSPVolumeArguments:
         spec_options = {
             "ldev_id": {
                 "required": False,
-                "type": "str",
-                "description": "The ID of the LDEV to get information for.",
+                "type": "int",
             },
             "start_ldev_id": {
                 "required": False,
                 "type": "int",
-                "description": "The start ID of the LUN to get information for.",
             },
             "end_ldev_id": {
                 "required": False,
                 "type": "int",
-                "description": "The end ID of the LUN to get information for.",
             },
             "count": {
                 "required": False,
                 "type": "int",
-                "description": "The maximum count of LUNs to return.",
             },
             "name": {
                 "required": False,
                 "type": "str",
-                "description": "The name of the LUN.",
             },
             "is_detailed": {
                 "required": False,
                 "type": "bool",
-                "description": "Determines whether details information for the LUN is diaplyed.",
+                "default": False,
             },
         }
-
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        return args
 
     @classmethod
     def volume(cls):
-        
+
         tiering_policy = {
             "tier_level": {
                 "required": False,
@@ -492,12 +634,50 @@ class VSPVolumeArguments:
                 "required": False,
                 "type": "int",
             },
-        }    
-        
+        }
+
+        qos_settings = {
+            "upper_iops": {
+                "required": False,
+                "type": "int",
+            },
+            "lower_iops": {
+                "required": False,
+                "type": "int",
+            },
+            "upper_transfer_rate": {
+                "required": False,
+                "type": "int",
+            },
+            "lower_transfer_rate": {
+                "required": False,
+                "type": "int",
+            },
+            "upper_alert_allowable_time": {
+                "required": False,
+                "type": "int",
+            },
+            "lower_alert_allowable_time": {
+                "required": False,
+                "type": "int",
+            },
+            "response_priority": {
+                "required": False,
+                "type": "int",
+            },
+            "response_alert_allowable_time": {
+                "required": False,
+                "type": "int",
+            },
+        }
         spec_options = {
             "ldev_id": {
                 "required": False,
-                "type": "str",
+                "type": "int",
+            },
+            "vldev_id": {
+                "required": False,
+                "type": "int",
             },
             "pool_id": {
                 "required": False,
@@ -526,30 +706,26 @@ class VSPVolumeArguments:
             "force": {
                 "required": False,
                 "type": "bool",
-                "description": "If true, the task will unmap the lun from hostgroup, iscsi target, and NVMe subsystem before delete the lun.",
             },
             "is_relocation_enabled": {
                 "required": False,
                 "type": "bool",
-                "description": "Enable relocation.",
             },
             "tier_level_for_new_page_allocation": {
                 "required": False,
                 "type": "str",
-                "description": "New page allocation tier level: High or Low",
             },
             "tiering_policy": {
                 "required": False,
                 "type": "dict",
                 "options": tiering_policy,
-                "description": "Tiering policy.",
             },
             "state": {
                 "required": False,
                 "type": "str",
                 "choices": ["add_host_nqn", "remove_host_nqn"],
                 "default": "add_host_nqn",
-            }, 
+            },
             "nvm_subsystem_name": {
                 "required": False,
                 "type": "str",
@@ -557,7 +733,17 @@ class VSPVolumeArguments:
             "host_nqns": {
                 "required": False,
                 "type": "list",
-            },          
+                "elements": "str",
+            },
+            "should_shred_volume_enable": {
+                "required": False,
+                "type": "bool",
+            },
+            "qos_settings": {
+                "required": False,
+                "type": "dict",
+                "options": qos_settings,
+            },
         }
 
         cls.common_arguments["spec"]["options"] = spec_options
@@ -573,7 +759,6 @@ class VSPHostGroupArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
@@ -584,70 +769,97 @@ class VSPHostGroupArguments:
             "query": {
                 "required": False,
                 "type": "list",
+                "elements": "str",
+                "choices": ["wwns", "ldevs"],
                 "default": [],
-                "description": "Filters LUNs and WWNs.",
             },
             "name": {
                 "required": False,
                 "type": "str",
-                "description": "The name of the host group.",
             },
             "ports": {
                 "required": False,
                 "type": "list",
-                "description": "The port of the host group.",
+                "elements": "str",
             },
-            "lun": {"required": False, "type": "int", "description": "LDEV ID."},
+            "lun": {
+                "required": False,
+                "type": "int",
+            },
         }
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args.pop("state")
+        return args
 
     @classmethod
     def host_group(cls):
-        cls.common_arguments["spec"]["required"] = True
+        # cls.common_arguments["spec"]["required"] = True
         spec_options = {
             "state": {
                 "required": False,
                 "type": "str",
+                "choices": [
+                    "present",
+                    "present_ldev",
+                    "unpresent_ldev",
+                    "add_wwn",
+                    "remove_wwn",
+                    "set_host_mode_and_hmo",
+                ],
                 "default": "present",
-                "description": "State of the host group tasks.",
             },
             "name": {
-                "required": True,
+                "required": False,
                 "type": "str",
-                "description": "Name of the host group.",
             },
             "port": {
                 "required": True,
                 "type": "str",
-                "description": "Fibre Channel port.",
             },
             "host_mode": {
                 "required": False,
                 "type": "str",
-                "description": "Host mode of the host group.",
+                "choices": [
+                    "LINUX",
+                    "VMWARE",
+                    "HP",
+                    "OPEN_VMS",
+                    "TRU64",
+                    "SOLARIS",
+                    "NETWARE",
+                    "WINDOWS",
+                    "HI_UX",
+                    "AIX",
+                    "VMWARE_EXTENSION",
+                    "WINDOWS_EXTENSION",
+                    "UVM",
+                    "HP_XP",
+                    "DYNIX",
+                ],
             },
+            # sng20250212 host_mode_options validations
             "host_mode_options": {
                 "required": False,
                 "type": "list",
-                "description": "Host mode options of the host group.",
+                "elements": "int",
             },
             "ldevs": {
                 "required": False,
                 "type": "list",
-                "description": "LDEV ID in decimal or HEX of the LDEV that you want to present.",
+                "elements": "str",
             },
             "wwns": {
                 "required": False,
                 "type": "list",
-                "description": "List of host WWNs.",
+                "elements": "str",
             },
             "should_delete_all_ldevs": {
                 "required": False,
                 "type": "bool",
-                "description": "If the value is true, destroy the logical devices that are no longer attached to any host group.",
             },
         }
+        # args = copy.deepcopy(cls.common_arguments)
         cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
 
@@ -662,9 +874,8 @@ class VSPShadowImagePairArguments:
         "connection_info": VSPCommonParameters.connection_info(),
         "state": shadow_image_pair_state,
         "spec": {
-            "required": False,
+            "required": True,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
@@ -675,12 +886,13 @@ class VSPShadowImagePairArguments:
             "primary_volume_id": {
                 "required": False,
                 "type": "int",
-                "description": "Primary volume id",
             },
         }
-
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        return args
 
     @classmethod
     def shadow_image_pair(cls):
@@ -688,52 +900,39 @@ class VSPShadowImagePairArguments:
             "primary_volume_id": {
                 "required": True,
                 "type": "int",
-                "description": "Primary volume id",
             },
             "secondary_volume_id": {
                 "required": True,
                 "type": "int",
-                "description": "Secondary volume id",
             },
             "auto_split": {
                 "required": False,
                 "type": "bool",
-                "description": "Auto split",
             },
             "allocate_new_consistency_group": {
                 "required": False,
                 "type": "bool",
-                "description": "New consistency group",
             },
             "consistency_group_id": {
                 "required": False,
                 "type": "int",
-                "description": "Consistency group id",
             },
             "copy_pace_track_size": {
                 "required": False,
                 "type": "str",
-                "description": "Copy pace track size",
+                "choices": ["SLOW", "MEDIUM", "FAST"],
             },
             "enable_quick_mode": {
                 "required": False,
                 "type": "bool",
-                "description": "Enable quick mode",
             },
             "enable_read_write": {
                 "required": False,
                 "type": "bool",
-                "description": "Enable read write",
-            },
-            "copy_pace": {
-                "required": False,
-                "type": "str",
-                "description": "Copy pace",
             },
             "pair_id": {
                 "required": False,
                 "type": "str",
-                "description": "Pair Id",
             },
         }
 
@@ -742,20 +941,45 @@ class VSPShadowImagePairArguments:
 
 
 class VSPSnapshotArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    # ssi["options"].pop("api_token")
+    ssi["options"].pop("subscriber_id")
+    # ssi["options"]["username"]["required"] = True
+    # ssi["options"]["password"]["required"] = True
+    ssi["options"]["connection_type"]["choices"] = ["direct"]
 
     snapshot_image_state = VSPCommonParameters.state()
     snapshot_image_state["choices"].extend(["split", "sync", "restore", "clone"])
+    snapshot_image_state_sng = VSPCommonParameters.state()
+    snapshot_image_state_sng["choices"] = [
+        "split",
+        "sync",
+        "restore",
+        "clone",
+        "absent",
+    ]
+    snapshot_image_state_sng["required"] = True
+    snapshot_image_state_sng.pop("default")
 
     common_arguments = {
         "storage_system_info": VSPCommonParameters.storage_system_info(),
         "connection_info": VSPCommonParameters.connection_info(),
         "spec": {
-            "required": False,
+            "required": True,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
         "state": snapshot_image_state,
+    }
+    common_arguments_sng = {
+        "storage_system_info": VSPCommonParameters.storage_system_info(),
+        "connection_info": ssi,
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+        "state": snapshot_image_state_sng,
     }
 
     @classmethod
@@ -769,12 +993,11 @@ class VSPSnapshotArguments:
                 "required": False,
                 "type": "bool",
             },
-
         }
 
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
-    
+        cls.common_arguments_sng["spec"]["options"] = spec_options
+        return cls.common_arguments_sng
+
     @classmethod
     def snapshot_grp_fact_args(cls):
         spec_options = {
@@ -782,29 +1005,30 @@ class VSPSnapshotArguments:
                 "required": True,
                 "type": "str",
             }
-
         }
+        args = copy.deepcopy(cls.common_arguments_sng)
+        args["spec"]["required"] = True
+        args["spec"]["options"] = spec_options
+        args.pop("state")
+        return args
 
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
-    
     @classmethod
     def get_snapshot_fact_args(cls):
         spec_options = {
             "primary_volume_id": {
                 "required": False,
                 "type": "int",
-                "description": "Primary Volume Id.",
             },
             "mirror_unit_id": {
                 "required": False,
                 "type": "int",
-                "description": "Mirror Unit Id.",
             },
         }
-
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        return args
 
     @classmethod
     def get_snapshot_reconcile_args(cls):
@@ -867,7 +1091,6 @@ class VSPStorageSystemArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
@@ -878,7 +1101,17 @@ class VSPStorageSystemArguments:
             "query": {
                 "required": False,
                 "type": "list",
-                "description": "List of query options.",
+                "elements": "str",
+                "choices": [
+                    "ports",
+                    "quorumdisks",
+                    "journalPools",
+                    "freeLogicalUnitList",
+                ],
+            },
+            "refresh": {
+                "required": False,
+                "type": "bool",
             },
         }
 
@@ -895,7 +1128,6 @@ class VSPIscsiTargetArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
@@ -906,16 +1138,17 @@ class VSPIscsiTargetArguments:
             "ports": {
                 "required": False,
                 "type": "list",
-                "description": "The port of the iscsi target.",
+                "elements": "str",
             },
             "name": {
                 "required": False,
                 "type": "str",
-                "description": "The name of the iscsi target.",
             },
         }
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args.pop("state")
+        return args
 
     @classmethod
     def iscsi_target(cls):
@@ -925,47 +1158,70 @@ class VSPIscsiTargetArguments:
                 "required": False,
                 "type": "str",
                 "default": "present",
-                "description": "State of the iscsi target tasks.",
+                "choices": [
+                    "present",
+                    "absent",
+                    "add_iscsi_initiator",
+                    "remove_iscsi_initiator",
+                    "attach_ldev",
+                    "detach_ldev",
+                    "add_chap_user",
+                    "remove_chap_user",
+                ],
             },
             "name": {
-                "required": True,
+                "required": False,
                 "type": "str",
-                "description": "Name of the iscsi target.",
             },
             "port": {
                 "required": True,
                 "type": "str",
-                "description": "iSCSI port.",
             },
             "host_mode": {
                 "required": False,
                 "type": "str",
-                "description": "Host mode of the iscsi target.",
+                "choices": [
+                    "LINUX",
+                    "VMWARE",
+                    "HP",
+                    "OPEN_VMS",
+                    "TRU64",
+                    "SOLARIS",
+                    "NETWARE",
+                    "WINDOWS",
+                    "HI_UX",
+                    "AIX",
+                    "VMWARE_EXTENSION",
+                    "WINDOWS_EXTENSION",
+                    "UVM",
+                    "HP_XP",
+                    "DYNIX",
+                ],
             },
+            # sng20250212 host_mode_options validations
             "host_mode_options": {
                 "required": False,
                 "type": "list",
-                "description": "Host mode options of the iscsi target.",
+                "elements": "int",
             },
             "ldevs": {
                 "required": False,
                 "type": "list",
-                "description": "LUN ID in decimal or HEX of the LUN that you want to present.",
+                "elements": "int",
             },
             "iqn_initiators": {
                 "required": False,
                 "type": "list",
-                "description": "List of host IQN initiators.",
+                "elements": "str",
             },
             "chap_users": {
                 "required": False,
                 "type": "list",
-                "description": "List of CHAP users.",
+                "elements": "dict",
             },
             "should_delete_all_ldevs": {
                 "required": False,
                 "type": "bool",
-                "description": "If the value is true, destroy the logical devices that are no longer attached to any iSCSI Target.",
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
@@ -980,7 +1236,6 @@ class VSPStoragePoolArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
         "state": {
@@ -997,11 +1252,12 @@ class VSPStoragePoolArguments:
             "pool_id": {
                 "required": False,
                 "type": "int",
-                "description": "Pool number.",
             }
         }
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args.pop("state")
+        return args
 
     @classmethod
     def storage_pool(cls):
@@ -1009,7 +1265,6 @@ class VSPStoragePoolArguments:
             "id": {
                 "required": False,
                 "type": "int",
-                "description": "Pool Id.",
             },
             "name": {
                 "required": False,
@@ -1018,7 +1273,7 @@ class VSPStoragePoolArguments:
             "type": {
                 "required": False,
                 "type": "str",
-                "choices": ["HDT", "HDP", "HRT", "HTI", "hdp", "hdt", "hrt", "hti"],
+                "choices": ["HDT", "HDP", "HRT", "HTI"],
             },
             "should_enable_deduplication": {
                 "required": False,
@@ -1039,6 +1294,7 @@ class VSPStoragePoolArguments:
             "pool_volumes": {
                 "required": False,
                 "type": "list",
+                "elements": "dict",
                 "options": {
                     "capacity": {
                         "required": True,
@@ -1055,21 +1311,109 @@ class VSPStoragePoolArguments:
         return cls.common_arguments
 
 
-class VSPStoragePortArguments:
+class VSPJournalVolumeArguments:
 
     common_arguments = {
         "storage_system_info": VSPCommonParameters.storage_system_info(),
         "connection_info": VSPCommonParameters.connection_info(),
-        "state": {
-            "required": False,
-            "type": "str",
-            "choices": ["present"],
-            "default": "present",
-        },
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
+            "options": {},
+        },
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "absent",
+                "update",
+                "expand_journal_volume",
+                "shrink_journal_volume",
+            ],
+            "default": "present",
+        },
+    }
+
+    @classmethod
+    def journal_volume_fact(cls):
+        spec_options = {
+            "journal_id": {
+                "required": False,
+                "type": "int",
+            },
+            "is_free_journal_pool_id": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "free_journal_pool_id_count": {
+                "required": False,
+                "type": "int",
+                "default": 1,
+            },
+            "is_mirror_not_used": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args.pop("state")
+        return args
+
+    @classmethod
+    def journal_volume(cls):
+        spec_options = {
+            "journal_id": {
+                "required": False,
+                "type": "int",
+            },
+            "startLdevId": {
+                "required": False,
+                "type": "int",
+            },
+            "endLdevId": {
+                "required": False,
+                "type": "int",
+            },
+            "is_cache_mode_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "data_overflow_watchIn_seconds": {
+                "required": False,
+                "type": "int",
+            },
+            "mp_blade_id": {
+                "required": False,
+                "type": "int",
+            },
+            "ldev_ids": {
+                "required": False,
+                "type": "list",
+                "elements": "int",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        return args
+
+
+class VSPStoragePortArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    # ssi["options"].pop("api_token")
+    ssi["options"].pop("subscriber_id")
+    # ssi["options"]["username"]["required"] = True
+    # ssi["options"]["password"]["required"] = True
+    ssi["options"]["connection_type"]["choices"] = ["direct"]
+    common_arguments = {
+        "storage_system_info": VSPCommonParameters.storage_system_info(),
+        "connection_info": ssi,
+        "spec": {
+            "required": False,
+            "type": "dict",
             "options": {},
         },
     }
@@ -1080,7 +1424,7 @@ class VSPStoragePortArguments:
             "ports": {
                 "required": False,
                 "type": "list",
-                "description": "List of Ports",
+                "elements": "str",
             }
         }
         cls.common_arguments["spec"]["options"] = spec_options
@@ -1092,7 +1436,6 @@ class VSPStoragePortArguments:
             "port": {
                 "required": True,
                 "type": "str",
-                "description": "Port Id",
             },
             "port_mode": {
                 "required": False,
@@ -1115,8 +1458,13 @@ class VSPParityGroupArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
+        },
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "absent", "update"],
+            "default": "present",
         },
     }
 
@@ -1126,18 +1474,98 @@ class VSPParityGroupArguments:
             "parity_group_id": {
                 "required": False,
                 "type": "str",
-                "description": "Parity group number.",
             }
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        return args
+        # cls.common_arguments["spec"]["options"] = spec_options
+        # return cls.common_arguments
+
+    @classmethod
+    def drives_fact(cls):
+        spec_options = {
+            "drive_location_id": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        return args
+        # cls.common_arguments["spec"]["options"] = spec_options
+        # return cls.common_arguments
+
+    @classmethod
+    def drives(cls):
+        spec_options = {
+            "drive_location_id": {
+                "required": False,
+                "type": "str",
+            },
+            "is_spared_drive": {
+                "required": False,
+                "type": "bool",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args["state"]["choices"] = ["present"]
+        # args.pop("state")
+        return args
+        # cls.common_arguments["spec"]["options"] = spec_options
+        # return cls.common_arguments
+
+    @classmethod
+    def parity_group(cls):
+        spec_options = {
+            "parity_group_id": {
+                "required": False,
+                "type": "str",
+            },
+            "drive_location_ids": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+            "raid_type": {
+                "required": False,
+                "type": "str",
+            },
+            "is_encryption_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_copy_back_mode_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_accelerated_compression_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "clpr_id": {
+                "required": False,
+                "type": "int",
+            },
         }
         cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
 
 
-class VSPTrueCopyArguments:
-
+class VSPCopyGroupsArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    ssi["options"].pop("subscriber_id")
+    ssi["options"].pop("connection_type")
     common_arguments = {
         "storage_system_info": VSPCommonParameters.storage_system_info(),
         "connection_info": VSPCommonParameters.connection_info(),
+        "secondary_connection_info": ssi,
         "state": {
             "required": False,
             "type": "str",
@@ -1147,7 +1575,57 @@ class VSPTrueCopyArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def copy_groups_facts(cls):
+        spec_options = {
+            "name": {
+                "required": False,
+                "type": "str",
+            },
+            "should_include_remote_replication_pairs": {
+                "required": False,
+                "type": "bool",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args.pop("state")
+        return args
+        # cls.common_arguments["spec"]["options"] = spec_options
+        # return cls.common_arguments
+
+
+class VSPTrueCopyArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    ssi["options"].pop("subscriber_id")
+    ssi["options"].pop("connection_type")
+    ssi["required"] = False
+
+    common_arguments = {
+        "storage_system_info": VSPCommonParameters.storage_system_info(),
+        "connection_info": VSPCommonParameters.connection_info(),
+        "secondary_connection_info": ssi,
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "absent",
+                "resize",
+                "resync",
+                "split",
+                "swap_split",
+                "swap_resync",
+            ],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
             "options": {},
         },
     }
@@ -1156,54 +1634,110 @@ class VSPTrueCopyArguments:
     def true_copy(cls):
         spec_options = {
             "primary_volume_id": {
-                "required": True,
+                "required": False,
                 "type": "int",
-                "description": "Primary volume Id.",
+            },
+            "secondary_volume_id": {
+                "required": False,
+                "type": "int",
             },
             "consistency_group_id": {
                 "required": False,
                 "type": "int",
-                "description": "Consistency group Id.",
             },
             "fence_level": {
                 "required": False,
                 "type": "str",
-                "choices": ["NEVER", "DATA", "STATUS", "UNKNOWN"],
+                "choices": ["NEVER", "DATA", "STATUS"],
                 "default": "NEVER",
-                "description": "Fence level",
             },
             "allocate_new_consistency_group": {
                 "required": False,
                 "type": "bool",
                 "default": False,
-                "description": "Whether to create a new consistecy group.",
             },
             "secondary_storage_serial_number": {
                 "required": False,
                 "type": "int",
-                "description": "Secondary storage serial number.",
             },
             "secondary_pool_id": {
                 "required": False,
                 "type": "int",
-                "description": "Id of dynamic pool where the secondary volume will be created.",
+            },
+            "begin_secondary_volume_id": {
+                "required": False,
+                "type": "int",
+            },
+            "end_secondary_volume_id": {
+                "required": False,
+                "type": "int",
             },
             "secondary_hostgroup": {
                 "required": False,
                 "type": "dict",
-                "description": "hostgroup details of the secondary volume",
                 "options": {
                     "name": {
                         "required": True,
                         "type": "str",
-                        "description": "Name of the host group.",
                     },
                     "port": {
                         "required": True,
                         "type": "str",
-                        "description": "Fibre Channel port.",
                     },
                 },
+            },
+            "copy_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "copy_pair_name": {
+                "required": False,
+                "type": "str",
+            },
+            "path_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "local_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "is_new_group_creation": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "is_consistency_group": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "copy_pace": {
+                "required": False,
+                "type": "str",
+            },
+            "do_initial_copy": {
+                "required": False,
+                "type": "bool",
+                "default": True,
+            },
+            "is_data_reduction_force_copy": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "is_svol_readwriteable": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "new_volume_size": {
+                "required": False,
+                "type": "str",
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
@@ -1215,16 +1749,33 @@ class VSPTrueCopyArguments:
             "primary_volume_id": {
                 "required": False,
                 "type": "int",
-                "description": "Primary volume Id.",
             },
             "secondary_volume_id": {
                 "required": False,
                 "type": "int",
-                "description": "Secondary volume Id.",
+            },
+            "copy_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "copy_pair_name": {
+                "required": False,
+                "type": "str",
+            },
+            "local_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_device_group_name": {
+                "required": False,
+                "type": "str",
             },
         }
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args.pop("state")
+        return args
+
 
 class VSPVolTierArguments:
 
@@ -1243,7 +1794,6 @@ class VSPVolTierArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
@@ -1272,38 +1822,39 @@ class VSPVolTierArguments:
                 "type": "int",
             },
         }
-        
+
         spec_options = {
             "ldev_id": {
                 "required": True,
                 "type": "int",
-                "description": "Volume Id.",
             },
             "is_relocation_enabled": {
                 "required": False,
                 "type": "bool",
-                "description": "Enable relocation.",
             },
             "tier_level_for_new_page_allocation": {
                 "required": False,
                 "type": "bool",
-                "description": "New page allocation tier level.",
             },
             "tiering_policy": {
                 "required": False,
                 "type": "dict",
                 "default": False,
-                "description": "Tiering policy.",
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
-    
-class VSPHurArguments:
 
+
+class VSPHurArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    ssi["options"].pop("subscriber_id")
+    ssi["options"].pop("connection_type")
+    ssi["required"] = False
     common_arguments = {
         "storage_system_info": VSPCommonParameters.storage_system_info(),
         "connection_info": VSPCommonParameters.connection_info(),
+        "secondary_connection_info": ssi,
         "state": {
             "required": False,
             "type": "str",
@@ -1312,13 +1863,15 @@ class VSPHurArguments:
                 "absent",
                 "split",
                 "resync",
+                "resize",
+                "swap_split",
+                "swap_resync",
             ],
             "default": "present",
         },
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
@@ -1327,72 +1880,129 @@ class VSPHurArguments:
     def hur(cls):
         spec_options = {
             "primary_volume_id": {
-                "required": True,
+                "required": False,
                 "type": "int",
-                "description": "Primary volume Id.",
+            },
+            "secondary_volume_id": {
+                "required": False,
+                "type": "int",
             },
             "mirror_unit_id": {
                 "required": False,
+                "choices": [0, 1, 2, 3],
                 "type": "int",
-                "description": "Mirror Unit Id is required other than the CREATE operation",
             },
             "consistency_group_id": {
                 "required": False,
                 "type": "int",
-                "description": "Consistency group Id.",
+            },
+            "is_consistency_group": {
+                "required": False,
+                "type": "bool",
+                "default": False,
             },
             "enable_delta_resync": {
                 "required": False,
                 "type": "bool",
                 "default": False,
-                "description": "Enable delta resync",
             },
             "allocate_new_consistency_group": {
                 "required": False,
                 "type": "bool",
                 "default": False,
-                "description": "Whether to create a new consistency group.",
             },
             "primary_volume_journal_id": {
                 "required": False,
                 "type": "int",
-                "description": "Primary volume journal.",
             },
             "secondary_volume_journal_id": {
                 "required": False,
                 "type": "int",
-                "description": "Secondary volume journal.",
             },
             "secondary_storage_serial_number": {
                 "required": False,
                 "type": "int",
-                "description": "Secondary storage serial number.",
             },
             "secondary_pool_id": {
                 "required": False,
                 "type": "int",
-                "description": "Id of dynamic pool where the secondary volume will be created.",
+            },
+            "copy_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "copy_pair_name": {
+                "required": False,
+                "type": "str",
+            },
+            "is_new_group_creation": {
+                "required": False,
+                "type": "bool",
+            },
+            "fence_level": {
+                "required": False,
+                "type": "str",
+                "choices": ["ASYNC", "NEVER", "DATA", "STATUS"],
+                "default": "NEVER",
+            },
+            "local_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "do_initial_copy": {
+                "required": False,
+                "type": "bool",
+                "default": True,
+            },
+            "is_data_reduction_force_copy": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "do_delta_resync_suspend": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_svol_readwriteable": {
+                "required": False,
+                "type": "bool",
+            },
+            "new_volume_size": {
+                "required": False,
+                "type": "str",
+            },
+            "begin_secondary_volume_id": {
+                "required": False,
+                "type": "int",
+            },
+            "end_secondary_volume_id": {
+                "required": False,
+                "type": "int",
             },
             "secondary_hostgroup": {
                 "required": False,
                 "type": "dict",
-                "description": "hostgroup details of the secondary volume",
                 "options": {
                     "name": {
                         "required": True,
                         "type": "str",
-                        "description": "Name of the host group.",
                     },
                     "port": {
                         "required": True,
                         "type": "str",
-                        "description": "Fibre Channel port.",
                     },
                 },
             },
         }
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = True
+
+        return args
 
     # 20240812 HUR facts spec
     @classmethod
@@ -1401,37 +2011,170 @@ class VSPHurArguments:
             "primary_volume_id": {
                 "required": False,
                 "type": "int",
-                "description": "Primary Volume Id.",
             },
             "secondary_volume_id": {
                 "required": False,
                 "type": "int",
-                "description": "Secondary volume Id.",
+            },
+            "copy_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "secondary_storage_serial_number": {
+                "required": False,
+                "type": "int",
+            },
+            "copy_pair_name": {
+                "required": False,
+                "type": "str",
+            },
+            "local_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_device_group_name": {
+                "required": False,
+                "type": "str",
             },
             "mirror_unit_id": {
                 "required": False,
                 "type": "int",
-                "description": "Mirror Unit Id.",
+                "choices": [0, 1, 2, 3],
             },
         }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args.pop("state")
+        return args
 
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+
+class VSPRemoteCopyGroupArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    ssi["options"].pop("subscriber_id")
+    ssi["options"].pop("connection_type")
+    common_arguments = {
+        "storage_system_info": VSPCommonParameters.storage_system_info(),
+        "connection_info": VSPCommonParameters.connection_info(),
+        "secondary_connection_info": ssi,
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "absent",
+                "split",
+                "resync",
+                "swap_split",
+                "swap_resync",
+            ],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def get_copy_group_args(cls):
+        spec_options = {
+            "copy_group_name": {
+                "required": True,
+                "type": "str",
+            },
+            "replication_type": {
+                "required": False,
+                "type": "str",
+                "choices": [
+                    "TC",
+                    "UR",
+                    "GAD",
+                ],
+            },
+            "local_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "is_svol_writable": {
+                "required": False,
+                "type": "bool",
+            },
+            "svol_operation_mode": {
+                "required": False,
+                "type": "str",
+            },
+            "do_pvol_write_protect": {
+                "required": False,
+                "type": "bool",
+            },
+            "do_data_suspend": {
+                "required": False,
+                "type": "bool",
+            },
+            "do_failback": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "failback_mirror_unit_number": {
+                "required": False,
+                "type": "int",
+            },
+            "is_consistency_group": {
+                "required": False,
+                "type": "bool",
+            },
+            "consistency_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "fence_level": {
+                "required": False,
+                "type": "str",
+                "choices": [
+                    "DATA",
+                    "STATUS",
+                    "NEVER",
+                ],
+                "default": "NEVER",
+            },
+            "copy_pace": {
+                "required": False,
+                "type": "int",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = True
+
+        return args
+
 
 class VSPNvmeSubsystemArguments:
+    # Removed when gateway will be supported
+    # ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    # ssi["options"].pop("api_token")
+    # ssi["options"].pop("subscriber_id")
+    # ssi["options"]["username"]["required"] = True
+    # ssi["options"]["password"]["required"] = True
+    # ssi["options"]["connection_type"]["choices"] = ["direct"]
     common_arguments = {
         "storage_system_info": VSPCommonParameters.storage_system_info(),
         "connection_info": VSPCommonParameters.connection_info(),
         "state": {
             "required": False,
             "type": "str",
-            "choices": ["present","absent"],
+            "choices": ["present", "absent"],
             "default": "present",
         },
         "spec": {
-            "required": False,
+            "required": True,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
@@ -1442,12 +2185,91 @@ class VSPNvmeSubsystemArguments:
             "name": {
                 "required": False,
                 "type": "str",
-                "description": "Name of the NVM Subsystem.",
             },
             "id": {
                 "required": False,
                 "type": "int",
-                "description": "Id of the NVM Subsystem.",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        return args
+
+    @classmethod
+    def nvme_subsystem(cls):
+        namespace_options = {
+            "ldev_id": {
+                "required": True,
+                "type": "int",
+            },
+            "nickname": {
+                "required": False,
+                "type": "str",
+            },
+            "paths": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+        }
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "int",
+            },
+            "name": {
+                "required": False,
+                "type": "str",
+            },
+            "host_mode": {
+                "required": False,
+                "type": "str",
+            },
+            # "host_mode_options": {
+            #     "required": False,
+            #     "type": "list",
+            # },
+            "enable_namespace_security": {
+                "required": False,
+                "type": "bool",
+                "default": True,
+            },
+            "ports": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+            "host_nqns": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+            },
+            "state": {
+                "required": False,
+                "type": "str",
+                "choices": [
+                    "add_port",
+                    "remove_port",
+                    "add_host_nqn",
+                    "remove_host_nqn",
+                    "add_namespace",
+                    "remove_namespace",
+                    "add_namespace_path",
+                    "remove_namespace_path",
+                ],
+            },
+            "namespaces": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": namespace_options,
+            },
+            "force": {
+                "required": False,
+                "type": "bool",
+                "default": False,
             },
         }
 
@@ -1455,40 +2277,266 @@ class VSPNvmeSubsystemArguments:
         return cls.common_arguments
 
 
-class VSPGADArguments:
-
+class VSPResourceGroupArguments:
+    # ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    # ssi["options"].pop("api_token")
+    # ssi["options"].pop("subscriber_id")
+    # ssi["options"]["username"]["required"] = True
+    # ssi["options"]["password"]["required"] = True
+    # ssi["options"]["connection_type"]["choices"] = ["direct"]
     common_arguments = {
         "storage_system_info": VSPCommonParameters.storage_system_info(),
         "connection_info": VSPCommonParameters.connection_info(),
         "state": {
             "required": False,
             "type": "str",
-            "choices": ["present", "absent", "split", "resync"],
+            "choices": ["present", "absent"],
+            "default": "present",
+        },
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def resource_group_facts(cls):
+        spec_options = {
+            "name": {
+                "required": False,
+                "type": "str",
+            },
+            "id": {
+                "required": False,
+                "type": "int",
+            },
+            "is_locked": {
+                "required": False,
+                "type": "bool",
+            },
+            "query": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        return args
+
+    @classmethod
+    def resource_group(cls):
+        hg_args = {
+            "name": {
+                "required": True,
+                "type": "str",
+            },
+            "port": {
+                "required": True,
+                "type": "str",
+            },
+        }
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "int",
+            },
+            "name": {
+                "required": False,
+                "type": "str",
+            },
+            "virtual_storage_serial": {
+                "required": False,
+                "type": "str",
+            },
+            "virtual_storage_model": {
+                "required": False,
+                "type": "str",
+                "choices": [
+                    "VSP_5100H",
+                    "VSP_5200H",
+                    "VSP_5500H",
+                    "VSP_5600H",
+                    "VSP_5100",
+                    "VSP_5200",
+                    "VSP_5500",
+                    "VSP_5600",
+                    "VSP_E1090",
+                    "VSP_E1090H",
+                    "VSP_E590",
+                    "VSP_E590H",
+                    "VSP_E790",
+                    "VSP_E790H",
+                    "VSP_E990",
+                    "VSP_F350",
+                    "VSP_F370",
+                    "VSP_F400",
+                    "VSP_F600",
+                    "VSP_F700",
+                    "VSP_F800",
+                    "VSP_F900",
+                    "VSP_F1500",
+                    "VSP_G130",
+                    "VSP_G150",
+                    "VSP_G200",
+                    "VSP_G350",
+                    "VSP_G370",
+                    "VSP_G400",
+                    "VSP_G600",
+                    "VSP_G700",
+                    "VSP_G800",
+                    "VSP_G900",
+                    "VSP_G1000",
+                    "VSP_G1500",
+                    "VSP_ONE_B28",
+                    "VSP_ONE_B26",
+                    "VSP_ONE_B24",
+                ],
+            },
+            # "virtual_storage_type": {
+            #     "required": False,
+            #     "type": "str",
+            #     "choices": [
+            #         "VSP_G1000",
+            #         "VSP_G1500",
+            #         "VSP_F1500",
+            #         "VSP_5X00H",
+            #         "VSP_5X00",
+            #         "VSP_EX00H",
+            #         "VSP_EX00",
+            #         "VSP_FX00",
+            #         "VSP_GX00",
+            #         "VSP_NX00",
+            #     ],
+            # },
+            "ldevs": {
+                "required": False,
+                "type": "list",
+                "elements": "int",
+            },
+            "ports": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+            "parity_groups": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+            "storage_pool_ids": {
+                "required": False,
+                "type": "list",
+                "elements": "int",
+            },
+            "host_groups": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_args,
+            },
+            "iscsi_targets": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_args,
+            },
+            "nvm_subsystem_ids": {
+                "required": False,
+                "type": "list",
+                "elements": "int",
+            },
+            "force": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "state": {
+                "required": False,
+                "type": "str",
+                "choices": [
+                    "add_resource",
+                    "remove_resource",
+                ],
+                "default": "add_resource",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        return args
+
+
+class VSPGADArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    ssi["options"].pop("subscriber_id")
+    ssi["options"].pop("connection_type")
+    ssi["required"] = False
+    common_arguments = {
+        "storage_system_info": VSPCommonParameters.storage_system_info(),
+        "connection_info": VSPCommonParameters.connection_info(),
+        "secondary_connection_info": ssi,
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "absent",
+                "split",
+                "resync",
+                "swap_split",
+                "swap_resync",
+                "resize",
+            ],
             "default": "present",
         },
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
 
     @classmethod
     def gad_pair_fact_args(cls):
-        spec_options ={
+        spec_options = {
             "primary_volume_id": {
                 "required": False,
                 "type": "int",
-                "description": "Primary Volume Id.",
             },
-            }
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+            "copy_group_name": {"required": False, "type": "str"},
+            "secondary_storage_serial_number": {
+                "required": False,
+                "type": "int",
+            },
+            "secondary_volume_id": {
+                "required": False,
+                "type": "int",
+            },
+            "copy_pair_name": {
+                "required": False,
+                "type": "str",
+            },
+            "local_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args.pop("state")
+
+        return args
+
     @classmethod
     def gad_pair_args_spec(cls):
         hg_options = {
-            
             "name": {
                 "required": True,
                 "type": "str",
@@ -1499,7 +2547,7 @@ class VSPGADArguments:
             },
             "port": {
                 "required": True,
-                "type": "int",
+                "type": "str",
             },
         }
 
@@ -1513,7 +2561,7 @@ class VSPGADArguments:
                 "type": "str",
             },
             "primary_volume_id": {
-                "required": True,
+                "required": False,
                 "type": "int",
             },
             "secondary_pool_id": {
@@ -1535,13 +2583,13 @@ class VSPGADArguments:
             "primary_hostgroups": {
                 "required": False,
                 "type": "list",
-                "element": "dict",
+                "elements": "dict",
                 "options": hg_options,
             },
             "secondary_hostgroups": {
                 "required": False,
                 "type": "list",
-                "element": "dict",
+                "elements": "dict",
                 "options": hg_options,
             },
             "primary_resource_group_name": {
@@ -1556,12 +2604,80 @@ class VSPGADArguments:
                 "required": False,
                 "type": "int",
             },
+            #  sng1104
+            "local_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "copy_pair_name": {
+                "required": False,
+                "type": "str",
+            },
+            "path_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "copy_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "copy_pace": {
+                "required": False,
+                "type": "str",
+                "choices": ["HIGH", "MEDIUM", "LOW"],
+                "default": "MEDIUM",
+            },
+            "mu_number": {
+                "required": False,
+                "type": "str",
+            },
+            "fence_level": {
+                "required": False,
+                "type": "str",
+                "choices": ["NEVER", "DATA", "STATUS", "UNKNOWN"],
+                "default": "NEVER",
+            },
+            "is_data_reduction_force_copy": {
+                "required": False,
+                "type": "bool",
+                "default": True,
+            },
+            "do_initial_copy": {
+                "required": False,
+                "type": "bool",
+                "default": True,
+            },
+            "is_consistency_group": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_new_group_creation": {
+                "required": False,
+                "type": "bool",
+            },
+            "new_volume_size": {
+                "required": False,
+                "type": "str",
+            },
+            "begin_secondary_volume_id": {
+                "required": False,
+                "type": "int",
+            },
+            "end_secondary_volume_id": {
+                "required": False,
+                "type": "int",
+            },
         }
         cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = True
         return cls.common_arguments
 
 
-## 20240822 - VSPVolumeTieringArguments
+#  20240822 - VSPVolumeTieringArguments
 class VSPVolumeTieringArguments:
 
     common_arguments = {
@@ -1576,7 +2692,6 @@ class VSPVolumeTieringArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
@@ -1629,6 +2744,7 @@ class VSPVolumeTieringArguments:
         cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
 
+
 class VSPUnsubscriberArguments:
 
     common_arguments = {
@@ -1637,13 +2753,12 @@ class VSPUnsubscriberArguments:
         "state": {
             "required": False,
             "type": "str",
-            "choices": ["present", "absent", "sync", "split"],
+            "choices": ["present", "absent"],
             "default": "present",
         },
         "spec": {
             "required": True,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
@@ -1659,31 +2774,217 @@ class VSPUnsubscriberArguments:
             "values": {
                 "required": True,
                 "type": "list",
+                "elements": "str",
             },
-        }        
+        }
         spec_options = {
             "resources": {
                 "required": True,
-                "type": list[resource],
-                "description": "Array of resources to unsubscribe",
-                #  "options": resource,
+                "type": "list",
+                "elements": "dict",
+                "options": resource,
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments.pop("state")
+        cls.common_arguments["storage_system_info"]["options"]["serial"][
+            "required"
+        ] = True
+        cls.common_arguments["connection_info"]["options"]["connection_type"][
+            "default"
+        ] = "gateway"
+        cls.common_arguments["connection_info"]["options"].pop("username")
+        cls.common_arguments["connection_info"]["options"].pop("password")
+        return cls.common_arguments
+
+
+class VSPCmdDevArguments:
+
+    common_arguments = {
+        "storage_system_info": VSPCommonParameters.storage_system_info(),
+        "connection_info": {
+            "required": True,
+            "type": "dict",
+            "options": {
+                "address": {
+                    "required": True,
+                    "type": "str",
+                },
+                "username": {
+                    "required": True,
+                    "type": "str",
+                },
+                "password": {
+                    "required": True,
+                    "no_log": True,
+                    "type": "str",
+                },
+                "connection_type": {
+                    "required": False,
+                    "type": "str",
+                    "choices": ["direct"],
+                    "default": "direct",
+                },
+            },
+        },
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "absent"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def cmd_dev(cls):
+        spec_options = {
+            "ldev_id": {
+                "required": True,
+                "type": "int",
+            },
+            # "is_command_device_enabled": {
+            #     "required": False,
+            #     "type": "bool",
+            # },
+            "is_security_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_user_authentication_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_device_group_definition_enabled": {
+                "required": False,
+                "type": "bool",
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
-##############################################################
-### Validator functions ###
-RE_INT = re.compile(r'^([0-9]+)$')
+
+
+class VSPResourceGroupLockArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    ssi["required"] = False
+    ssi["options"].pop("connection_type")
+    ssi["options"].pop("subscriber_id")
+    common_arguments = {
+        "storage_system_info": VSPCommonParameters.storage_system_info(),
+        "connection_info": VSPCommonParameters.connection_info(),
+        "secondary_connection_info": ssi,
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "absent"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def rg_lock(cls):
+        spec_options = {
+            "lock_timeout_sec": {
+                "required": False,
+                "type": "int",
+            },
+            "name": {
+                "required": False,
+                "type": "str",
+            },
+            "id": {
+                "required": False,
+                "type": "int",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+
+class VSPRemoteStorageRegistrationArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    ssi["required"] = True
+    ssi["options"].pop("connection_type")
+    ssi["options"].pop("subscriber_id")
+    common_arguments = {
+        "storage_system_info": VSPCommonParameters.storage_system_info(),
+        "connection_info": VSPCommonParameters.connection_info(),
+        "secondary_connection_info": ssi,
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "absent"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def remote_storage_registration_facts(cls):
+        spec_options = {}
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        return args
+
+    @classmethod
+    def remote_storage_registration(cls):
+        spec_options = {
+            # "storage_device_id": {
+            #     "required": False,
+            #     "type": "str",
+            # },
+            "rest_server_ip": {
+                "required": False,
+                "type": "str",
+            },
+            "rest_server_port": {
+                "required": False,
+                "type": "int",
+            },
+            "is_mutual_discovery": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_mutual_deletion": {
+                "required": False,
+                "type": "bool",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+
+# # Validator functions # #
+
+RE_INT = re.compile(r"^([0-9]+)$")
+
+
 class VSPSpecValidators:
 
-    RE_INT = re.compile(r'^([0-9]+)$')
+    RE_INT = re.compile(r"^([0-9]+)$")
 
     @staticmethod
     def validate_connection_info(conn_info: ConnectionInfo):
 
-        if conn_info.connection_type == ConnectionTypes.DIRECT and conn_info.api_token:
-            raise ValueError(VSPVolValidationMsg.DIRECT_API_TOKEN_ERROR.value)
-        elif conn_info.username and conn_info.password and conn_info.api_token:
+        # For direct connect, api_token is used to pass the lock token
+        # if conn_info.connection_type == ConnectionTypes.DIRECT and conn_info.api_token:
+        #     raise ValueError(VSPVolValidationMsg.DIRECT_API_TOKEN_ERROR.value)
+        if conn_info.username and conn_info.password and conn_info.api_token:
             raise ValueError(VSPVolValidationMsg.BOTH_API_TOKEN_USER_DETAILS.value)
         elif (
             not conn_info.username
@@ -1698,6 +2999,7 @@ class VSPSpecValidators:
 
     @staticmethod
     def validate_volume_facts(input_spec: VolumeFactSpec):
+        logger = Log()
 
         if input_spec.ldev_id:
             try:
@@ -1710,7 +3012,7 @@ class VSPSpecValidators:
                     raise e
                 else:
                     # Handle other ValueErrors, like out-of-range checks
-                    pass
+                    logger.writeDebug(f"exception in validate_volume_facts {e}")
 
         if isinstance(input_spec.start_ldev_id, int) and (
             input_spec.start_ldev_id < 0
@@ -1732,16 +3034,27 @@ class VSPSpecValidators:
 
     @staticmethod
     def validate_volume_spec(state, input_spec: CreateVolumeSpec):
-
-        if isinstance(input_spec.ldev_id, int) and not (
-            0 < int(input_spec.ldev_id) < AutomationConstants.LDEV_MAX_NUMBER
+        if isinstance(input_spec.ldev_id, int) and (
+            input_spec.ldev_id < 0
+            or input_spec.ldev_id > AutomationConstants.LDEV_ID_MAX
         ):
             raise ValueError(VSPVolValidationMsg.LDEV_ID_OUT_OF_RANGE.value)
+        if isinstance(input_spec.vldev_id, int) and (
+            input_spec.vldev_id < -1
+            or input_spec.vldev_id > AutomationConstants.LDEV_ID_MAX
+        ):
+            raise ValueError(VSPVolValidationMsg.VLDEV_ID_OUT_OF_RANGE.value)
         if state == StateValue.ABSENT:
             # 2.3 gateway defines spec.ldev for one set of logics,
             # it also defines spec.ldevs as str (not list) for other business logics, it's a mess
             if not input_spec.ldev_id:
                 raise ValueError(VSPVolValidationMsg.LUN_REQUIRED.value)
+        if input_spec.name:
+            if (
+                len(input_spec.name) < AutomationConstants.LDEV_NAME_LEN_MIN
+                or len(input_spec.name) > AutomationConstants.LDEV_NAME_LEN_MAX
+            ):
+                raise ValueError(VSPVolValidationMsg.INVALID_LDEV_NAME_LEN.value)
 
     @staticmethod
     def validate_snapshot_fact(input_spec: SnapshotFactSpec):
@@ -1783,7 +3096,7 @@ class VSPSpecValidators:
                 and spec.is_data_reduction_force_copy
                 and not (spec.can_cascade or spec.is_clone)
             ):
-                ##20240813 - validate TIA create
+                # 20240813 - validate TIA create
                 raise ValueError(
                     VSPSnapShotValidateMsg.DATA_REDUCTION_FORCE_COPY_SNAP_MODE.value
                 )
@@ -1792,7 +3105,7 @@ class VSPSpecValidators:
                 and not spec.allocate_consistency_group
                 and not spec.consistency_group_id
             ):
-                ## 20240820 - consistency_group_id
+                #  20240820 - consistency_group_id
                 # raise ValueError(VSPSnapShotValidateMsg.CONSISTENCY_GROUP.value)
                 spec.allocate_consistency_group = False
 
@@ -1825,6 +3138,11 @@ class VSPSpecValidators:
             raise ValueError(VSPParityGroupValidateMsg.EMPTY_PARITY_GROUP_ID.value)
 
     @staticmethod
+    def validate_parity_group(input_spec: ParityGroupSpec):
+        if input_spec.parity_group_id is None:
+            raise ValueError(VSPParityGroupValidateMsg.EMPTY_PARITY_GROUP_ID.value)
+
+    @staticmethod
     def validate_storage_pool_fact(input_spec: PoolFactSpec):
         if input_spec.pool_id is None:
             raise ValueError(VSPStoragePoolValidateMsg.EMPTY_POOL_ID.value)
@@ -1833,7 +3151,7 @@ class VSPSpecValidators:
     def validate_storage_pool(input_spec: StoragePoolSpec, state: str):
 
         if state == StateValue.PRESENT:
-            
+
             if input_spec.pool_volumes is not None:
                 for pool_volume in input_spec.pool_volumes:
                     if (
@@ -1947,6 +3265,14 @@ class VSPSpecValidators:
                     VSPIscsiTargetValidationMsg.HOST_MODE_OUT_OF_RANGE.value
                 )
 
+        if input_spec.host_mode_options:
+            for hmo in input_spec.host_mode_options:
+                if (
+                    hmo < AutomationConstants.HOST_MODE_OPT_NUMBER_MIN
+                    or hmo > AutomationConstants.HOST_MODE_OPT_NUMBER_MAX
+                ):
+                    raise ValueError(VSPHostGroupValidationMsg.HOST_MODE_OPTION_OUT_OF_RANGE.value)
+
     @staticmethod
     def validate_host_group_spec(input_spec: HostGroupSpec):
 
@@ -1965,7 +3291,9 @@ class VSPSpecValidators:
                 # 2.4 MT - for composite playbook, gateway returns a str, direct returns a int
                 lun = int(lun)
                 if not isinstance(lun, int):
-                    raise ValueError(VSPHostGroupValidationMsg.INVALID_PARAM_LDEVS.value)
+                    raise ValueError(
+                        VSPHostGroupValidationMsg.INVALID_PARAM_LDEVS.value
+                    )
 
                 if (
                     lun < AutomationConstants.LDEV_ID_MIN
@@ -1994,6 +3322,14 @@ class VSPSpecValidators:
                 or len(input_spec.host_mode) > AutomationConstants.NAME_PARAMS_MAX
             ):
                 raise ValueError(VSPHostGroupValidationMsg.HOST_MODE_OUT_OF_RANGE.value)
+
+        if input_spec.host_mode_options:
+            for hmo in input_spec.host_mode_options:
+                if (
+                    hmo < AutomationConstants.HOST_MODE_OPT_NUMBER_MIN
+                    or hmo > AutomationConstants.HOST_MODE_OPT_NUMBER_MAX
+                ):
+                    raise ValueError(VSPHostGroupValidationMsg.HOST_MODE_OPTION_OUT_OF_RANGE.value)
 
     @staticmethod
     def validate_port_module(input_spec):
@@ -2032,6 +3368,70 @@ class VSPSpecValidators:
                     raise ValueError(
                         VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS_PORT.value
                     )
+        if input_spec.copy_group_name:
+            if (
+                len(input_spec.copy_group_name)
+                < AutomationConstants.COPY_GROUP_NAME_LEN_MIN
+                or len(input_spec.copy_group_name)
+                > AutomationConstants.COPY_GROUP_NAME_LEN_MAX
+            ):
+                raise ValueError(VSPTrueCopyValidateMsg.INVALID_COPY_GROUP_NAME.value)
+
+        if input_spec.copy_pair_name:
+            if (
+                len(input_spec.copy_pair_name)
+                < AutomationConstants.COPY_PAIR_NAME_LEN_MIN
+                or len(input_spec.copy_pair_name)
+                > AutomationConstants.COPY_PAIR_NAME_LEN_MAX
+            ):
+                raise ValueError(VSPTrueCopyValidateMsg.INVALID_COPY_PAIR_NAME.value)
+
+        if input_spec.path_group_id:
+            cg_id = input_spec.path_group_id
+            if (
+                cg_id < AutomationConstants.PATH_GROUP_ID_MIN
+                or cg_id > AutomationConstants.PATH_GROUP_ID_MAX
+            ):
+                raise ValueError(VSPTrueCopyValidateMsg.INVALID_PG_ID.value)
+
+        if input_spec.local_device_group_name:
+            if (
+                len(input_spec.local_device_group_name)
+                < AutomationConstants.DEVICE_GROUP_NAME_LEN_MIN
+                or len(input_spec.local_device_group_name)
+                > AutomationConstants.DEVICE_GROUP_NAME_LEN_MAX
+            ):
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.INVALID_LOCAL_DEVICE_GROUP_NAME.value
+                )
+
+        if input_spec.remote_device_group_name:
+            if (
+                len(input_spec.remote_device_group_name)
+                < AutomationConstants.DEVICE_GROUP_NAME_LEN_MIN
+                or len(input_spec.remote_device_group_name)
+                > AutomationConstants.DEVICE_GROUP_NAME_LEN_MAX
+            ):
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.INVALID_REMOTE_DEVICE_GROUP_NAME.value
+                )
+
+        if input_spec.copy_pace:
+            c_p = input_spec.copy_pace
+            valid_cp = ["SLOW", "MEDIUM", "FAST"]
+            if c_p.upper() not in valid_cp:
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.INVALID_CP_VALUE.value.format(valid_cp)
+                )
+
+        if input_spec.new_volume_size:
+            if (
+                len(input_spec.new_volume_size)
+                < AutomationConstants.VOLUME_SIZE_LEN_MIN
+                or len(input_spec.new_volume_size)
+                > AutomationConstants.VOLUME_SIZE_LEN_MAX
+            ):
+                raise ValueError(VSPTrueCopyValidateMsg.INVALID_VOLUME_SIZE.value)
 
     @staticmethod
     def validate_true_copy_fact(input_spec: TrueCopyFactSpec):
@@ -2040,9 +3440,155 @@ class VSPSpecValidators:
         pass
 
     @staticmethod
-    def validate_nvme_subsystem_fact(input_spec: TrueCopyFactSpec):
+    def validate_copy_groups_fact(input_spec: CopyGroupsFactSpec):
         pass
-    
+
+    @staticmethod
+    def validate_nvme_subsystem_fact(input_spec: VSPNvmeSubsystemFactSpec):
+        if input_spec.id:
+            if isinstance(input_spec.id, int) and (
+                int(input_spec.id) < AutomationConstants.NVM_SUBSYSTEM_MIN_ID
+                or int(input_spec.id) > AutomationConstants.NVM_SUBSYSTEM_MAX_ID
+            ):
+                raise ValueError(VspNvmValidationMsg.NVM_ID_OUT_OF_RANGE.value)
+
+    @staticmethod
+    def validate_resource_group_fact(input_spec: VSPResourceGroupFactSpec):
+        VALID_QUERY = [
+            "ldevs",
+            "host_groups",
+            "ports",
+            "parity_groups",
+            "storage_pool_ids",
+            "iscsi_targets",
+            "nvm_subsystem_ids",
+        ]
+
+        if input_spec is not None:
+            if input_spec.id and input_spec.name:
+                raise ValueError(VSPResourceGroupValidateMsg.NO_RG_ID_OR_RG_NAME.value)
+
+            if (input_spec.id or input_spec.name) and input_spec.is_locked is not None:
+                raise ValueError(
+                    VSPResourceGroupValidateMsg.NO_LOCK_WITH_RG_ID_OR_RG_NAME.value
+                )
+
+            # if (input_spec.id or input_spec.name) and input_spec.query:
+            #     raise ValueError(VSPResourceGroupValidateMsg.NO_QUERY_WITH_RG_ID_OR_RG_NAME.value)
+
+            if input_spec.id or input_spec.id == 0:
+                if (
+                    input_spec.id < AutomationConstants.RG_ID_MIN
+                    or input_spec.id > AutomationConstants.RG_ID_MAX
+                ):
+                    raise ValueError(VSPResourceGroupValidateMsg.INVALID_RG_ID.value)
+
+            if input_spec.query:
+                for query in input_spec.query:
+                    x = query.lower()
+                    if x not in VALID_QUERY:
+                        raise ValueError(
+                            VSPResourceGroupValidateMsg.INVALID_QUERY.value.format(
+                                query, VALID_QUERY
+                            )
+                        )
+
+                if (
+                    "storage_pool_ids" in input_spec.query
+                    and len(input_spec.query) == 1
+                ):
+                    raise ValueError(
+                        VSPResourceGroupValidateMsg.STORAGE_POOL_IDS_ALONE_NOT_ALLOWED.value
+                    )
+
+    @staticmethod
+    def validate_resource_group(input_spec: VSPResourceGroupSpec):
+
+        if input_spec.id is None and input_spec.name is None:
+            raise ValueError(VSPResourceGroupValidateMsg.NO_RG_ID_OR_RG_NAME.value)
+        if input_spec.id is not None and input_spec.name:
+            raise ValueError(VSPResourceGroupValidateMsg.BOTH_RG_ID_AND_RG_NAME.value)
+
+        if input_spec.id or input_spec.id == 0:
+            if (
+                input_spec.id < AutomationConstants.RG_ID_MIN
+                or input_spec.id > AutomationConstants.RG_ID_MAX
+            ):
+                raise ValueError(VSPResourceGroupValidateMsg.INVALID_RG_ID.value)
+        if input_spec.name:
+            if (
+                len(input_spec.name) < AutomationConstants.RG_NAME_LEN_MIN
+                or len(input_spec.name) > AutomationConstants.RG_NAME_LEN_MAX
+            ):
+                raise ValueError(VSPResourceGroupValidateMsg.INVALID_RG_NAME.value)
+
+        # if input_spec.virtual_storage_device_id:
+        #     if (
+        #         len(input_spec.virtual_storage_device_id)
+        #         < AutomationConstants.VIRTUAL_STORAGE_DEVICE_ID_LEN_MIN
+        #     ):
+        #         raise ValueError(VSPResourceGroupValidateMsg.INVALID_VIRTUAL_STORAGE_DEVICE_ID.value)
+
+        # if input_spec.start_ldev_id:
+        #     if (
+        #         input_spec.start_ldev_id < AutomationConstants.START_LDEV_ID_MIN
+        #         or input_spec.start_ldev_id > AutomationConstants.START_LDEV_ID_MAX
+        #     ):
+        #         raise ValueError(VSPResourceGroupValidateMsg.INVALID_START_LDEV_ID.value)
+
+        #     if input_spec.end_ldev_id is None:
+        #         raise ValueError(VSPResourceGroupValidateMsg.END_LDEV_ID_REQUIRED.value)
+        #     else:
+        #         if (
+        #             input_spec.end_ldev_id < AutomationConstants.END_LDEV_ID_MIN
+        #             or input_spec.end_ldev_id > AutomationConstants.END_LDEV_ID_MAX
+        #         ):
+        #             raise ValueError(VSPResourceGroupValidateMsg.INVALID_END_LDEV_ID.value)
+        #         if input_spec.end_ldev_id < input_spec.start_ldev_id:
+        #             raise ValueError(VSPResourceGroupValidateMsg.END_LDEV_LESS_START_LDEV.value)
+
+        #     if input_spec.ldev_ids:
+        #         raise ValueError(VSPResourceGroupValidateMsg.NO_START_END_LDEV_AND_LDEV_IDS.value)
+        # else:
+        #     if input_spec.end_ldev_id:
+        #         raise ValueError(VSPResourceGroupValidateMsg.START_LDEV_ID_REQUIRED.value)
+
+        if input_spec.ldevs:
+            for x in input_spec.ldevs:
+                if (
+                    x < AutomationConstants.LDEV_ID_MIN
+                    or x > AutomationConstants.LDEV_ID_MAX
+                ):
+                    raise ValueError(VSPResourceGroupValidateMsg.INVALID_LDEV_ID.value)
+
+        if input_spec.nvm_subsystem_ids:
+            for x in input_spec.nvm_subsystem_ids:
+                if (
+                    x < AutomationConstants.NVM_SUBSYSTEM_MIN_ID
+                    or x > AutomationConstants.NVM_SUBSYSTEM_MAX_ID
+                ):
+                    raise ValueError(
+                        VSPResourceGroupValidateMsg.INVALID_NVM_SUBSYSTEM_ID.value
+                    )
+
+    @staticmethod
+    def validate_nvme_subsystem(input_spec: VSPNvmeSubsystemSpec):
+        VALID_HOST_MODE_VALUES = ["LINUX", "LINUX/IRIX", "VMWARE", "VMWARE_EX", "AIX"]
+        if not input_spec.id and not input_spec.name:
+            raise ValueError(VspNvmValidationMsg.NOT_NVM_ID_OR_NVM_NAME.value)
+        if isinstance(input_spec.id, int) and (
+            int(input_spec.id) < AutomationConstants.NVM_SUBSYSTEM_MIN_ID
+            or int(input_spec.id) > AutomationConstants.NVM_SUBSYSTEM_MAX_ID
+        ):
+            raise ValueError(VspNvmValidationMsg.NVM_ID_OUT_OF_RANGE.value)
+        if input_spec.host_mode:
+            if input_spec.host_mode.upper() not in VALID_HOST_MODE_VALUES:
+                raise ValueError(
+                    VspNvmValidationMsg.INVALID_HOST_MODE.value.format(
+                        VALID_HOST_MODE_VALUES
+                    )
+                )
+
     # 20240808 - validate_hur_module
     @staticmethod
     def validate_hur_module(input_spec, state):
@@ -2055,11 +3601,11 @@ class VSPSpecValidators:
             if state == "present":
                 raise ValueError("For create, mirror_unit_id is not allowed.")
 
-            ## all other operations, other params are ignored
+            #  all other operations, other params are ignored
             return
 
-        if input_spec.secondary_storage_serial_number is None:
-            raise ValueError(VSPHurValidateMsg.SECONDARY_STORAGE_SN.value)
+        # if input_spec.secondary_storage_serial_number is None:
+        #     raise ValueError(VSPHurValidateMsg.SECONDARY_STORAGE_SN.value)
         if input_spec.secondary_pool_id is None:
             raise ValueError(VSPHurValidateMsg.SECONDARY_POOL_ID.value)
 
@@ -2093,9 +3639,85 @@ class VSPSpecValidators:
     @staticmethod
     def validate_gad_pair_spec(input_spec: VspGadPairSpec, state: str):
 
+        if input_spec.consistency_group_id:
+            cg_id = input_spec.consistency_group_id
+            if cg_id < str(AutomationConstants.CONSISTENCY_GROUP_ID_MIN) or cg_id > str(
+                AutomationConstants.CONSISTENCY_GROUP_ID_MAX
+            ):
+                raise ValueError(VSPTrueCopyValidateMsg.INVALID_CG_ID.value)
+
+        if input_spec.secondary_hostgroups:
+            for hg in input_spec.secondary_hostgroups:
+                # if hg.id is None:
+                #     raise ValueError(
+                #         VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS_ID.value
+                #     )
+                if hg.name is None:
+                    raise ValueError(
+                        VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS_NAME.value
+                    )
+                if hg.port is None:
+                    raise ValueError(
+                        VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS_PORT.value
+                    )
+        if input_spec.copy_group_name:
+            if (
+                len(input_spec.copy_group_name)
+                < AutomationConstants.COPY_GROUP_NAME_LEN_MIN
+                or len(input_spec.copy_group_name)
+                > AutomationConstants.COPY_GROUP_NAME_LEN_MAX
+            ):
+                raise ValueError(VSPTrueCopyValidateMsg.INVALID_COPY_GROUP_NAME.value)
+
+        if input_spec.copy_pair_name:
+            if (
+                len(input_spec.copy_pair_name)
+                < AutomationConstants.COPY_PAIR_NAME_LEN_MIN
+                or len(input_spec.copy_pair_name)
+                > AutomationConstants.COPY_PAIR_NAME_LEN_MAX
+            ):
+                raise ValueError(VSPTrueCopyValidateMsg.INVALID_COPY_PAIR_NAME.value)
+
+        if input_spec.path_group_id:
+            cg_id = input_spec.path_group_id
+            if cg_id < str(AutomationConstants.PATH_GROUP_ID_MIN) or cg_id > str(
+                AutomationConstants.PATH_GROUP_ID_MAX
+            ):
+                raise ValueError(VSPTrueCopyValidateMsg.INVALID_PG_ID.value)
+
+        if input_spec.local_device_group_name:
+            if (
+                len(input_spec.local_device_group_name)
+                < AutomationConstants.DEVICE_GROUP_NAME_LEN_MIN
+                or len(input_spec.local_device_group_name)
+                > AutomationConstants.DEVICE_GROUP_NAME_LEN_MAX
+            ):
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.INVALID_LOCAL_DEVICE_GROUP_NAME.value
+                )
+
+        if input_spec.remote_device_group_name:
+            if (
+                len(input_spec.remote_device_group_name)
+                < AutomationConstants.DEVICE_GROUP_NAME_LEN_MIN
+                or len(input_spec.remote_device_group_name)
+                > AutomationConstants.DEVICE_GROUP_NAME_LEN_MAX
+            ):
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.INVALID_REMOTE_DEVICE_GROUP_NAME.value
+                )
+
+        if input_spec.copy_pace:
+            c_p = input_spec.copy_pace
+            valid_cp = ["SLOW", "MEDIUM", "FAST"]
+            if c_p.upper() not in valid_cp:
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.INVALID_CP_VALUE.value.format(valid_cp)
+                )
+
         def _validate_hostgroups(hostgroups, pos):
             for hg in hostgroups:
-                
+
                 if hg.name is None:
                     raise ValueError(
                         GADPairValidateMSG.HOSTGROUPS_NAME.value.format(pos)
@@ -2113,37 +3735,70 @@ class VSPSpecValidators:
 
             if input_spec.primary_volume_id is None:
                 raise ValueError(GADPairValidateMSG.PRIMARY_VOLUME_ID.value)
-            
+
             if input_spec.secondary_pool_id is None:
                 raise ValueError(GADPairValidateMSG.SECONDARY_POOL_ID.value)
 
-            if input_spec.primary_hostgroups :
+            if input_spec.primary_hostgroups:
                 _validate_hostgroups(input_spec.primary_hostgroups, "Primary")
 
             if input_spec.secondary_hostgroups is None:
                 raise ValueError(GADPairValidateMSG.SECONDARY_HOSTGROUPS.value)
             else:
                 _validate_hostgroups(input_spec.secondary_hostgroups, "Secondary")
-            
-            if input_spec.consistency_group_id and input_spec.allocate_new_consistency_group:
+
+            if (
+                input_spec.consistency_group_id
+                and input_spec.allocate_new_consistency_group
+            ):
                 raise ValueError(GADPairValidateMSG.INCONSISTENCY_GROUP.value)
 
     @staticmethod
     def validate_unsubscribe_module(input_spec):
         # valid_type = [ "port", "volume", "hostgroup", "shadowimage", "storagepool", "iscsi_target", "hurpair", "gadpair", "truecopypair"]
-        valid_type = [ "port", "volume", "hostgroup", "storagepool", "iscsitarget" ]
+        valid_type = ["port", "volume", "hostgroup", "storagepool", "iscsitarget"]
         if input_spec.resources is None or len(input_spec.resources) < 1:
             raise ValueError("Provide proper type and values for resources.")
-                             
+
         if input_spec.resources is not None:
             for x in input_spec.resources:
-                if x['type'].lower() not in valid_type:
-                    raise ValueError(GatewayValidationMsg.UNSUPPORTED_RESOURCE_TYPE.value.format(x['type'], valid_type ))
-                if x['values'] is None or x['values'] == "":
-                    raise ValueError(GatewayValidationMsg.PROVIDE_RESOURCE_VALUE['values'])
+                if x["type"].lower() not in valid_type:
+                    raise ValueError(
+                        GatewayValidationMsg.UNSUPPORTED_RESOURCE_TYPE.value.format(
+                            x["type"], valid_type
+                        )
+                    )
+                if x["values"] is None or x["values"] == "":
+                    raise ValueError(GatewayValidationMsg.PROVIDE_RESOURCE_VALUE.value)
+
+    @staticmethod
+    def validate_cmd_dev(spec):
+        pass
+
+    @staticmethod
+    def validate_rg_lock(spec):
+        # if spec.is_resource_group_locked is None:
+        #     raise ValueError(VSPResourceGroupValidateMsg.LOCK_REQUIRED.value)
+        # if spec.is_resource_group_locked is False and spec.lock_token is None:
+        #     raise ValueError(VSPResourceGroupValidateMsg.LOCK_TOKEN_REQUIRED.value)
+        if spec.lock_timeout_sec:
+            if (
+                spec.lock_timeout_sec < AutomationConstants.RG_LOCK_TIMEOUT_MIN
+                or spec.lock_timeout_sec > AutomationConstants.RG_LOCK_TIMEOUT_MAX
+            ):
+                raise ValueError(VSPResourceGroupValidateMsg.INVALID_RG_TIMEOUT.value)
+
+    @staticmethod
+    def validate_remote_storage_registration(spec):
+        pass
+
+    @staticmethod
+    def validate_remote_storage_registration_fact(spec):
+        pass
+
 
 ###############################################################
-## Coommon functions ###
+# Common functions ###
 def camel_to_snake_case_dict_array(items):
     new_items = []
     if items:
@@ -2154,13 +3809,14 @@ def camel_to_snake_case_dict_array(items):
 
 
 def camel_to_snake_case_dict(response):
+    logger = Log()
     new_dict = {}
     try:
         for key in response.keys():
             cased_key = camel_to_snake_case(key)
             new_dict[cased_key] = response[key]
-    except:
-        pass
+    except Exception as e:
+        logger.writeDebug(f"exception in camel_to_snake_case_dict {e}")
 
     return new_dict
 
@@ -2217,7 +3873,6 @@ class NAIDCalculator:
     }
 
     def __init__(self, wwn_any_port=None, serial_number=None, device_type=None):
-        global BASIC_STORAGE_DETAILS
         # Convert WWN to integer if it's in hexadecimal string format
         if isinstance(wwn_any_port, str):
             wwn_any_port = int(wwn_any_port, 16)

@@ -1,25 +1,15 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-__metaclass__ = type
-import json
-import re
-
-from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_storagemanager import (
     StorageManager,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ucpmanager import (
     UcpManager,
 )
+
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
-    StorageSystem,
-    StorageSystemManager,
+    Utils,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import Utils
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
 )
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
@@ -29,7 +19,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     camel_to_snake_case_dict_array,
     camel_to_snake_case_dict,
 )
-
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
+)
 
 logger = Log()
 moduleName = "LUN facts"
@@ -92,25 +84,23 @@ def runPlaybook(module):
 
     partnerId = CommonConstants.PARTNER_ID
     # subscriberId=CommonConstants.SUBSCRIBER_ID
-    
-    ########################################################
+
     # True: test the rest of the module using api_token
-    
-    if False:
-        ucpManager = UcpManager(
-            management_address,
-            management_username,
-            management_password,
-            auth_token,
-            partnerId,
-            subscriberId,
-            storage_serial,
-        )    
-        auth_token = ucpManager.getAuthTokenOnly()
-        management_username = ''
-    ########################################################
-    
-    ## check the healthStatus=onboarding
+
+    # if False:
+    #     ucpManager = UcpManager(
+    #         management_address,
+    #         management_username,
+    #         management_password,
+    #         auth_token,
+    #         partnerId,
+    #         subscriberId,
+    #         storage_serial,
+    #     )
+    #     auth_token = ucpManager.getAuthTokenOnly()
+    #     management_username = ""
+
+    # #  check the healthStatus=onboarding
     ucpManager = UcpManager(
         management_address,
         management_username,
@@ -162,7 +152,7 @@ def runPlaybook(module):
         subscriberId,
         storage_serial,
     )
-    
+
     storageManager = None
     try:
         storageManager = StorageManager(
@@ -176,8 +166,10 @@ def runPlaybook(module):
             subscriberId,
         )
     except Exception as ex:
+        logger.writeException(ex)
+        logger.writeInfo("=== End of LDEV Facts ===")
         module.fail_json(msg=str(ex))
-        
+
     if lun is None and count is not None:
         raise Exception("The ldev_id parameter is required along with max_count.")
 
@@ -186,9 +178,9 @@ def runPlaybook(module):
         luns = []
         logger.writeDebug("121 lun={}", lun)
         if not isinstance(lun, int) and lun.startswith("naa."):
-            
-            ####### get lun by NAA ##########
-            
+
+            # get lun by NAA
+
             logger.writeDebug("20230606 count={}", count)
             if count is None or count == 0:
                 lun = storageSystem.getLunByNaa(lun)
@@ -198,21 +190,6 @@ def runPlaybook(module):
                 raise Exception(
                     "The parameter 'count' must be zero if lun starts with 'naa'."
                 )
-                if int(count) < 1:
-                    raise Exception(
-                        "The parameter 'count' must be a whole number greater than zero."
-                    )  #
-                lunswithcount = None
-                logger.writeInfo("getLunByNaa getAllLuns")
-                luns = storageSystem.getLunByID(lun)
-                logger.writeDebug("20230606 count={}", count)
-                lun = storageSystem.getLunByNaa(lun)
-                for index, item in enumerate(luns):
-                    if str(item.get("ldevId")) == str(lun.get("ldevId")):
-                        logger.writeDebug("index={}", index)
-                        lunswithcount = luns[index : index + int(count)]
-                        break
-                luns = lunswithcount
             logger.writeDebug("luns={}", luns)
         elif count is not None:
             if int(count) < 1:
@@ -224,15 +201,15 @@ def runPlaybook(module):
                     "Ambiguous parameters, max_count and lun_end cannot co-exist."
                 )
 
-            ####### get lun with count ##########
-            
-            logger.writeInfo("168 getLunByID count={}", count)
+            # get lun with count
+
+            logger.writeDebug("168 getLunByID count={}", count)
             # luns = storageSystem.getAllLuns()
             luns = storageSystem.getLunByID(lun)
-            # logger.writeInfo('157 luns={}', luns)
+            # logger.writeDebug('157 luns={}', luns)
             # g = (i for i, e in enumerate([1, 2, 1]) if e == 1)
 
-            # logger.writeInfo(luns)
+            # logger.writeDebug(luns)
             # index = [index for index, item in luns if item.get(
             #     'ldevId') == str(lun)]
             lunswithcount = []
@@ -248,17 +225,17 @@ def runPlaybook(module):
                     ):
                         logger.writeDebug("20230606 found index={}", index)
                         logger.writeDebug("20230606 count={}", count)
-                        lunswithcount = luns[index : index + int(count)]
+                        lunswithcount = luns[index:index + int(count)]
                         break
             # logger.writeDebug('173 lunswithcount={}', lunswithcount)
             luns = lunswithcount
             # luns = storageSystem.getLunsByCount(lun, count)
         elif lun_end is not None:
             lunswithcount = []
-            logger.writeInfo("192 getLunByID lun_end={}", lun_end)
+            logger.writeDebug("192 getLunByID lun_end={}", lun_end)
             # luns = storageSystem.getAllLuns()
             luns = storageSystem.getLunByID(lun)
-            logger.writeInfo("179 luns={}", luns)
+            logger.writeDebug("179 luns={}", luns)
             # luns = storageSystem.getLunsByRange(lun, lun_end)
 
             # Ensure lun and lun_end are integers (assuming they're not already)
@@ -292,48 +269,72 @@ def runPlaybook(module):
 
         # # terraform only
 
-        logger.writeInfo("getAllLuns luns={}", luns)
+        logger.writeDebug("getAllLuns luns={}", luns)
         luns = [unit for unit in storageSystem.getAllLuns() if unit["ldevId"] in luns]
     elif name is not None:
-        logger.writeInfo("getAllLuns name={}", name)
+        logger.writeDebug("getAllLuns name={}", name)
         luns = [unit for unit in storageSystem.getAllLuns() if unit["name"] == name]
     else:
-        logger.writeInfo("214 getAllLuns")
+        logger.writeDebug("214 getAllLuns")
         luns = storageSystem.getAllLuns()
 
-    logger.writeInfo("223 luns={}", luns)
-    
+    logger.writeDebug("223 luns={}", luns)
+
+    registration_message = validate_ansible_product_registration()
+    data = {"data": []}
+
+    if registration_message:
+        data["user_consent_required"] = registration_message
+
     if luns is None:
         logger.writeExitModule(moduleName)
+        logger.writeInfo("data=[]")
+        logger.writeInfo("=== End of LDEV Facts ===")
         module.exit_json(data=[])
-    
-    ## for the final luns,
-    ## need to get is_encrypted from the parity group as needed
+
+    #  for the final luns,
+    #  need to get is_encrypted from the parity group as needed
     if is_detailed:
         luns = addDetails(storageManager, storageSystem, luns)
-    
+
     Utils.formatLuns(luns)
     if luns:
         luns = camel_to_snake_case_dict_array_ext(luns)
-        
+
     logger.writeExitModule(moduleName)
     # return luns
-    module.exit_json(data=luns)
+    logger.writeInfo(f"{luns}")
+    logger.writeInfo("=== End of LDEV Facts ===")
+    module.exit_json(volumes=luns)
 
-##20240819 "tiering_properties" camel_to_snake_case_dict_array_ext
+
+# end of runPlaybook #
+
+
+# 20240819 "tiering_properties" camel_to_snake_case_dict_array_ext
 def camel_to_snake_case_dict_array_ext(items):
     new_items = []
     if items:
         for item in items:
             new_dict = camel_to_snake_case_dict(item)
-            # logger.writeInfo("214 new_dict={}", new_dict)
+            # logger.writeDebug("214 new_dict={}", new_dict)
             tiering_properties = new_dict.get("tiering_properties_dto", None)
             if tiering_properties:
-                new_dict["tiering_policy"] = camel_to_snake_case_dict(tiering_properties)
-                new_dict["tiering_policy"]["tier1_used_capacity_mb"] = new_dict["tiering_policy"]["tier1_used_capacity_m_b"]
-                new_dict["tiering_policy"]["tier2_used_capacity_mb"] = new_dict["tiering_policy"]["tier2_used_capacity_m_b"]
-                new_dict["tiering_policy"]["tier3_used_capacity_mb"] = new_dict["tiering_policy"]["tier3_used_capacity_m_b"]
-                new_dict["tiering_policy"]["policy"] = camel_to_snake_case_dict(new_dict["tiering_properties_dto"]["policy"])
+                new_dict["tiering_policy"] = camel_to_snake_case_dict(
+                    tiering_properties
+                )
+                new_dict["tiering_policy"]["tier1_used_capacity_mb"] = new_dict[
+                    "tiering_policy"
+                ]["tier1_used_capacity_m_b"]
+                new_dict["tiering_policy"]["tier2_used_capacity_mb"] = new_dict[
+                    "tiering_policy"
+                ]["tier2_used_capacity_m_b"]
+                new_dict["tiering_policy"]["tier3_used_capacity_mb"] = new_dict[
+                    "tiering_policy"
+                ]["tier3_used_capacity_m_b"]
+                new_dict["tiering_policy"]["policy"] = camel_to_snake_case_dict(
+                    new_dict["tiering_properties_dto"]["policy"]
+                )
                 del new_dict["tiering_properties_dto"]
                 del new_dict["tiering_policy"]["tier1_used_capacity_m_b"]
                 del new_dict["tiering_policy"]["tier2_used_capacity_m_b"]
@@ -341,30 +342,30 @@ def camel_to_snake_case_dict_array_ext(items):
             new_items.append(new_dict)
     return new_items
 
-      
-## this is only for better performance
-## would not work for OOB if IT does not return luns      
+
+#  this is only for better performance
+#  would not work for OOB if IT does not return luns
 def getIscsiTargetsLunMap(storageManager, sresourceId, its):
-    logger.writeDebug('Enter')
+    logger.writeDebug("Enter")
     # logger.writeDebug("its={}",its)
     ret = {}
-    
-    ## given the ITs
-    ## get the objectID, get the IT, get logicalUnits, add entry to the ret dict
+
+    #  given the ITs
+    #  get the objectID, get the IT, get logicalUnits, add entry to the ret dict
     for it in its:
-        
+
         if it is None:
             continue
-        
+
         # logger.writeDebug("it={}",it)
         resourceId = it.get("resourceId")
         resp = storageManager.getIscsiTarget(sresourceId, resourceId)
         if resp is None:
             continue
-        
+
         # logger.writeDebug("resp={}",resp)
         logicalUnits = resp.get("logicalUnits")
-        logger.writeDebug("logicalUnits={}",logicalUnits)
+        logger.writeDebug("logicalUnits={}", logicalUnits)
         if logicalUnits is None:
             continue
         for logicalUnit in logicalUnits:
@@ -374,113 +375,118 @@ def getIscsiTargetsLunMap(storageManager, sresourceId, its):
             if lunITs is None:
                 lunITs = []
                 ret[lun] = lunITs
-                
-            ## append this IT to the ret<lun, []IT>
+
+            #  append this IT to the ret<lun, []IT>
             dto = {}
-            dto['id'] = resp["iSCSIId"]
-            dto['name'] = resp["iSCSIName"]
-            dto['port_id'] = resp["portId"]
+            dto["id"] = resp["iSCSIId"]
+            dto["name"] = resp["iSCSIName"]
+            dto["port_id"] = resp["portId"]
             lunITs.append(dto)
-            
-    logger.writeDebug('Exit')
+
+    logger.writeDebug("Exit")
     return ret
 
+
 def getIscsiTargetById(its, id):
-    logger.writeDebug('Enter')
+    logger.writeDebug("Enter")
     # logger.writeDebug("its={}",its)
     ret = None
-    
-    ## given the ITs
+
+    #  given the ITs
     for it in its:
-        
-        logger.writeDebug("it={}",it)
+
+        logger.writeDebug("it={}", it)
         if it is None:
             continue
-        
+
         itid = it.get("iSCSIId")
         if id is None:
             continue
-        
+
         if str(itid) == str(itid):
             ret = it
             break
-            
-    logger.writeDebug("ret={}",ret)
-    logger.writeDebug('Exit')
+
+    logger.writeDebug("ret={}", ret)
+    logger.writeDebug("Exit")
     return ret
 
+
 def addDetails(storageManager, storageSystem, luns):
-    logger.writeDebug('Enter')
-    
+    logger.writeDebug("Enter")
+
     parityGroups = storageManager.getAllParityGroups()
     hostGroups = storageManager.getAllHostGroups()
     iscsiTargets = storageManager.getIscsiTargets()
-    nvmSubsystems, sresourceId = storageManager.getNvmSubsystems()    
-    
-    logger.writeDebug('len.parityGroups={}',len(parityGroups))
-    logger.writeDebug('len.hostGroups={}',len(hostGroups))
-    logger.writeDebug('len.iscsiTargets={}',len(iscsiTargets))
-    logger.writeDebug('len.nvmSubsystems={}',len(nvmSubsystems))
-    
+    nvmSubsystems, sresourceId = storageManager.getNvmSubsystems()
+
+    logger.writeDebug("len.parityGroups={}", len(parityGroups))
+    logger.writeDebug("len.hostGroups={}", len(hostGroups))
+    logger.writeDebug("len.iscsiTargets={}", len(iscsiTargets))
+    logger.writeDebug("len.nvmSubsystems={}", len(nvmSubsystems))
+
     for lun in luns:
-        
-        logger.writeDebug('lun={}', lun['ldevId'])
-        lun['isEncryptionEnabled'] = False
-        
-        ret = getAllHostGroupsByLun(hostGroups, lun['ldevId'])
-        lun['hostGroups'] = camel_to_snake_case_dict_array(ret)
-        
+
+        logger.writeDebug("lun={}", lun["ldevId"])
+        lun["isEncryptionEnabled"] = False
+
+        ret = getAllHostGroupsByLun(hostGroups, lun["ldevId"])
+        lun["hostGroups"] = camel_to_snake_case_dict_array(ret)
+
         ret = getIscsiTargetsByLun(iscsiTargets, lun)
         # ret = getIscsiTargetsByLun_old(iscsiTargets, lun['ldevId'])
-        logger.writeDebug('getIscsiTargetsByLun ret={}',len(ret))
-        lun['iscsiTargets'] = camel_to_snake_case_dict_array(ret)
-        
-        lun['nvmSubsystem'] = camel_to_snake_case_dict(
-            getNvmSubsystemByLun(nvmSubsystems, lun['ldevId']))
-        
-        pgId = lun['parityGroupId']
-        if pgId != '':
-            pg = getParityGroup(parityGroups, pgId)
-            lun['isEncryptionEnabled'] = pg['isEncryptionEnabled']
+        logger.writeDebug("getIscsiTargetsByLun ret={}", len(ret))
+        lun["iscsiTargets"] = camel_to_snake_case_dict_array(ret)
 
-    logger.writeDebug('Exit')
+        lun["nvmSubsystem"] = camel_to_snake_case_dict(
+            getNvmSubsystemByLun(nvmSubsystems, lun["ldevId"])
+        )
+
+        pgId = lun["parityGroupId"]
+        if pgId != "":
+            pg = getParityGroup(parityGroups, pgId)
+            lun["isEncryptionEnabled"] = pg["isEncryptionEnabled"]
+
+    logger.writeDebug("Exit")
     # logger.writeDebug("337 luns={}",luns)
     return luns
 
-## the new way is to get the nvmss.id from the lun
-## then it still has to loop thru the nvmss,
-## so it does not help much,
-## just use this unless there is an issue
+
+#  the new way is to get the nvmss.id from the lun
+#  then it still has to loop thru the nvmss,
+#  so it does not help much,
+#  just use this unless there is an issue
 def getNvmSubsystemByLun(nvmss, lun):
-    logger.writeParam("lun={}",lun)
+    logger.writeParam("lun={}", lun)
     ret = {}
-    
+
     for hg in nvmss:
         if hg is None:
             continue
         namespaces = hg.get("namespaces")
-        #logger.writeInfo("namespaces={}",namespaces)
+        # logger.writeDebug("namespaces={}",namespaces)
         if namespaces is None:
             continue
         for ns in namespaces:
             if str(ns.get("lun")) == str(lun):
-                # logger.writeInfo("nvmss={}",hg)
-                ret['id'] = hg["nvmSubsystemId"]
-                ret['name'] = hg["nvmSubsystemName"]
-                ret['port_id'] = hg["ports"]
+                # logger.writeDebug("nvmss={}",hg)
+                ret["id"] = hg["nvmSubsystemId"]
+                ret["name"] = hg["nvmSubsystemName"]
+                ret["port_id"] = hg["ports"]
                 # lun can only be in one nvmss
-                logger.writeDebug("ret={}",ret)
+                logger.writeDebug("ret={}", ret)
                 return ret
-            
+
     # found empty
-    logger.writeDebug("ret={}",ret)
+    logger.writeDebug("ret={}", ret)
     return {}
 
+
 def getAllHostGroupsByLun(hostGroups, lun):
-    funcName = 'getAllHostGroupsByLun'
+    funcName = "getAllHostGroupsByLun"
     logger.writeEnterModule(funcName)
     ret = []
-    
+
     for hg in hostGroups:
         if hg is None:
             continue
@@ -492,77 +498,80 @@ def getAllHostGroupsByLun(hostGroups, lun):
             # logger.writeDebug("hg={}",hg)
             if int(logicalUnit.get("ldevId")) == int(lun):
                 dto = {}
-                dto['id'] = hg["hostGroupId"]
-                dto['name'] = hg["hostGroupName"]
-                dto['port_id'] = hg["port"]
+                dto["id"] = hg["hostGroupId"]
+                dto["name"] = hg["hostGroupName"]
+                dto["port_id"] = hg["port"]
                 ret.append(dto)
                 # one lun to many hg
                 continue
-            
+
     logger.writeExitModule(funcName)
     return ret
 
-## this will work for both inband and OOB     
+
+#  this will work for both inband and OOB
 def getIscsiTargetsByLun(its, lun):
-    funcName = 'getIscsiTargetsByLun'
+    funcName = "getIscsiTargetsByLun"
     logger.writeEnterModule(funcName)
     # logger.writeParam("its={}",its)
-    logger.writeParam("lun={}",lun)
+    logger.writeParam("lun={}", lun)
     ret = []
-    
-    ## get the port list in the lunfact
-    ports = lun.get('ports',None)
-    if ports is None :
-        return [] 
-    
+
+    #  get the port list in the lunfact
+    ports = lun.get("ports", None)
+    if ports is None:
+        return []
+
     for hg in ports:
         if hg is None:
             continue
         id = hg.get("group")
-        logger.writeInfo("groupid={}",id)
+        logger.writeDebug("groupid={}", id)
         if id is None:
             continue
         it = getIscsiTargetById(its, id)
         if it:
             # logger.writeDebug("IscsiTarget={}",it)
             dto = {}
-            dto['id'] = it["iSCSIId"]
-            dto['name'] = it["iSCSIName"]
-            dto['port_id'] = it["portId"]
+            dto["id"] = it["iSCSIId"]
+            dto["name"] = it["iSCSIName"]
+            dto["port_id"] = it["portId"]
             ret.append(dto)
             # lun can be in many IscsiTargets
             continue
-            
+
     logger.writeExitModule(funcName)
     return ret
-        
-## not used anymore - this will only work for inband        
+
+
+#  not used anymore - this will only work for inband
 def getIscsiTargetsByLun_inband_only(its, lun):
     # logger.writeParam("its={}",its)
-    logger.writeParam("lun={}",lun)
+    logger.writeParam("lun={}", lun)
     ret = []
-    
+
     for hg in its:
         if hg is None:
             continue
         logicalUnits = hg.get("logicalUnits")
-        # logger.writeInfo("logicalUnits={}",logicalUnits)
+        # logger.writeDebug("logicalUnits={}",logicalUnits)
         if logicalUnits is None:
             continue
         for logicalUnit in logicalUnits:
             if str(logicalUnit.get("logicalUnitId")) == str(lun):
                 # logger.writeDebug("IscsiTarget={}",hg)
                 dto = {}
-                dto['id'] = hg["iSCSIId"]
-                dto['name'] = hg["iSCSIName"]
-                dto['port_id'] = hg["portId"]
+                dto["id"] = hg["iSCSIId"]
+                dto["name"] = hg["iSCSIName"]
+                dto["port_id"] = hg["portId"]
                 ret.append(dto)
                 # lun can be in many IscsiTargets
                 continue
-            
-    logger.writeDebug('Exit')
+
+    logger.writeDebug("Exit")
     return ret
-        
+
+
 def getParityGroup(parityGroups, pgid):
     for p in parityGroups:
         if p["parityGroupId"] == pgid:

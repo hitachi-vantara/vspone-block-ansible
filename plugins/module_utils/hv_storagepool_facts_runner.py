@@ -1,20 +1,7 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-__metaclass__ = type
-import json
-
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
-    StorageSystem,
-    StorageSystemManager,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
 )
 
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import Utils
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_storagemanager import (
     StorageManager,
 )
@@ -28,6 +15,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     camel_to_snake_case_dict_array,
     camel_to_snake_case_dict,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 
 logger = Log()
@@ -75,24 +65,22 @@ def runPlaybook(module):
     logger.writeDebug("20230606 ucp_name={}", ucp_serial)
 
     partnerId = CommonConstants.PARTNER_ID
-   
-    ########################################################
+
     # True: test the rest of the module using api_token
-    
-    if False:
-        ucpManager = UcpManager(
-            management_address,
-            management_username,
-            management_password,
-            api_token,
-            partnerId,
-            subscriberId,
-            storage_serial,
-        )    
-        api_token = ucpManager.getAuthTokenOnly()
-        management_username = ''
-    ########################################################
-    
+
+    # if False:
+    #     ucpManager = UcpManager(
+    #         management_address,
+    #         management_username,
+    #         management_password,
+    #         api_token,
+    #         partnerId,
+    #         subscriberId,
+    #         storage_serial,
+    #     )
+    #     api_token = ucpManager.getAuthTokenOnly()
+    #     management_username = ""
+
     storageSystem = None
     try:
         storageSystem = StorageManager(
@@ -113,7 +101,7 @@ def runPlaybook(module):
 
     partnerId = CommonConstants.PARTNER_ID
     subscriberId = CommonConstants.SUBSCRIBER_ID
-    ## check the healthStatus=onboarding
+    #  check the healthStatus=onboarding
     ucpManager = UcpManager(
         management_address,
         management_username,
@@ -141,5 +129,11 @@ def runPlaybook(module):
 
     # formatPools(storage_pool_details)
     # storage_pool_details = camel_to_snake_case_dict_array(storage_pool_details)
-    module.exit_json(storagePool=storage_pool_details)
+    registration_message = validate_ansible_product_registration()
+    data = {
+        "storage_pool": storage_pool_details,
+    }
+    if registration_message:
+        data["user_consent_required"] = registration_message
+    module.exit_json(**data)
     # return storage_pool_details

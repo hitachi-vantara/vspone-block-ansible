@@ -1,9 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# Copyright: (c) 2020, Hewlett Packard Enterprise Development LP.
-
-__metaclass__ = type
-
 import json
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_http_client import (
@@ -41,10 +35,9 @@ try:
             enums = [e for e in cls if e.value == value]
             return enums[0] if enums else None
 
-except ImportError as error:
+except ImportError:
 
     # Output expected ImportErrors.
-    # print("enum module not found")
 
     pass
 
@@ -54,7 +47,7 @@ try:
     )
 
     HAS_REPLICATION_STATUS = True
-except ImportError as error:
+except ImportError:
     HAS_REPLICATION_STATUS = False
 
 try:
@@ -63,10 +56,12 @@ try:
     )
 
     HAS_HTI_PAIR_TYPE = True
-except ImportError as error:
+except ImportError:
     HAS_HTI_PAIR_TYPE = False
 
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
     HiException,
 )
@@ -209,8 +204,9 @@ class RemoteManager:
         return newpair
 
     def formatGadPair(self, pair):
-        if REPLICATION_PAIR_TYPE:
-            pair["Status"] = ReplicationStatus.fromValue(pair.get("Status", 0)).name
+        # if REPLICATION_PAIR_TYPE:
+        #     pair["Status"] = ReplicationStatus.fromValue(pair.get("Status", 0)).name
+        pair["Status"] = ReplicationStatus.fromValue(pair.get("Status", 0)).name
         pair["Type"] = "GAD"
         if pair.get("FenceLevel") is not None:
             del pair["FenceLevel"]
@@ -283,7 +279,10 @@ class RemoteManager:
     ):
         obj = self.getRemoteClone(lun, remote_serial, None)
 
-        if type(obj) is not list:
+        # if type(obj) is not list:
+        #     return obj
+
+        if not isinstance(obj, list):
             return obj
 
         rclist = obj
@@ -314,7 +313,9 @@ class RemoteManager:
     ):
         obj = self.getRemoteClone(lun, remote_serial, target_lun)
 
-        if type(obj) is not list:
+        # if type(obj) is not list:
+        #     return obj
+        if not isinstance(obj, list):
             return obj
 
         rclist = obj

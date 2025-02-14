@@ -1,6 +1,7 @@
+import copy
+
 try:
-    from ..common.hv_constants import Http, CommonConstants
-    from ..common.sdsb_constants import ModuleArgs
+    from ..common.hv_constants import CommonConstants
     from ..model.uaig_subscriber_models import SubscriberFactSpec, SubscriberSpec
     from ..model.uaig_password_model import PasswordSpec
     from ..model.common_base_models import (
@@ -10,6 +11,7 @@ try:
     )
     from ..common.ansible_common import camel_to_snake_case
     from ..message.gateway_msgs import GatewayValidationMsg
+    from ..common.hv_log import Log
 except ImportError:
     from model.common_base_models import (
         ConnectionInfo,
@@ -20,9 +22,12 @@ except ImportError:
     from model.uaig_password_model import PasswordSpec
     from common.ansible_common import camel_to_snake_case
     from message.gateway_msgs import GatewayValidationMsg
+    from common.hv_log import Log
 
 
 import hashlib
+
+logger = Log()
 
 
 class UAIGCommonParameters:
@@ -32,12 +37,10 @@ class UAIGCommonParameters:
         return {
             "required": True,
             "type": "dict",
-            "description": "Information about the storage system.",
             "options": {
                 "serial": {
                     "required": True,
                     "type": "str",
-                    "description": "The serial number of the storage system.",
                 }
             },
         }
@@ -47,7 +50,6 @@ class UAIGCommonParameters:
         return {
             "required": True,
             "type": "dict",
-            "description": "State of the task.",
             "options": {
                 "state": {
                     "required": False,
@@ -63,39 +65,34 @@ class UAIGCommonParameters:
         return {
             "required": True,
             "type": "dict",
-            "description": "Information for establishing the connection.",
             "options": {
                 "address": {
                     "required": True,
                     "type": "str",
-                    "description": "The management address of the storage system.",
                 },
                 "username": {
                     "required": False,
                     "type": "str",
-                    "description": "The username for authentication.",
                 },
                 "password": {
                     "required": False,
                     "type": "str",
-                    "description": "The password or authentication key.",
+                    "no_log": True,
                 },
                 "api_token": {
                     "required": False,
                     "type": "str",
-                    "description": "The api token for the connection.",
+                    "no_log": True,
                 },
                 "subscriber_id": {
                     "required": False,
                     "type": "str",
-                    "description": "The subscriber ID.",
                 },
                 "connection_type": {
                     "required": False,
                     "type": "str",
-                    "description": "The type of connection.",
-                    "choices": ["gateway", "direct"],
-                    "default": "direct",
+                    "choices": ["gateway"],
+                    "default": "gateway",
                 },
             },
         }
@@ -105,17 +102,14 @@ class UAIGCommonParameters:
         return {
             "required": False,
             "type": "dict",
-            "description": "Tenant Information",
             "options": {
                 "partnerId": {
                     "required": False,
                     "type": "str",
-                    "description": "Partner Id.",
                 },
                 "subscriberId": {
                     "required": False,
                     "type": "str",
-                    "description": "Subscriber Id.",
                 },
             },
         }
@@ -136,22 +130,19 @@ class GatewayArguments:
 
     common_arguments = {
         "connection_info": UAIGCommonParameters.connection_info(),
-        "storage_system_info" : {
+        "storage_system_info": {
             "required": False,
             "type": "dict",
-            "description": "Information about the storage system.",
             "options": {
                 "serial": {
                     "required": True,
                     "type": "str",
-                    "description": "The serial number of the storage system.",
                 }
             },
-        } ,     
+        },
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
         "state": {
@@ -168,54 +159,57 @@ class GatewayArguments:
             "subscriber_id": {
                 "required": False,
                 "type": "str",
-                "description": "The ID of the subscriber to get information for.",
             },
         }
-
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args["connection_info"]["options"].pop("subscriber_id")
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        args.pop("storage_system_info")
+        return args
 
     @classmethod
     def get_subscription_fact(cls):
-        return cls.common_arguments
-    
+        args = copy.deepcopy(cls.common_arguments)
+        args.pop("spec")
+        args.pop("state")
+        return args
+
     @classmethod
     def gateway_subscriber(cls):
         spec_options = {
             "subscriber_id": {
                 "required": True,
                 "type": "str",
-                "description": "The ID of the new subscriber to be created.",
             },
             "name": {
                 "required": False,
                 "type": "str",
-                "description": "The name of the new subscriber to be created.",
             },
             "soft_limit": {
                 "required": False,
                 "type": "str",
-                "description": "Limit in %.",
             },
             "hard_limit": {
                 "required": False,
                 "type": "str",
-                "description": "Limit in %.",
             },
             "quota_limit": {
                 "required": False,
                 "type": "str",
-                "description": "Capacity in GB",
             },
             "description": {
                 "required": False,
                 "type": "str",
-                "description": "Description about subscriber.",
             },
         }
-
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = True
+        args.pop("storage_system_info")
+        args["connection_info"]["options"].pop("subscriber_id")
+        return args
 
     @classmethod
     def gateway_password(cls):
@@ -228,7 +222,6 @@ class GatewayArguments:
             "spec": {
                 "required": False,
                 "type": "dict",
-                "description": "Specifications for the task.",
                 "options": {},
             },
         }
@@ -236,19 +229,18 @@ class GatewayArguments:
             "uai_gateway_address": {
                 "required": True,
                 "type": "str",
-                "description": "The UAI gateway address of the storage system.",
             },
             "api_token": {
                 "required": True,
                 "type": "str",
-                "description": "The api token for the connection.",
+                "no_log": True,
             },
         }
         spec_options = {
             "password": {
                 "required": True,
                 "type": "str",
-                "description": "The new password value to be updated.",
+                "no_log": True,
             },
         }
         gw_arguments["connection_info"]["options"] = connection_option
@@ -261,8 +253,8 @@ class GatewayParametersManager:
     def __init__(self, params):
         self.params = params
         if (
-            "storage_system_info" in self.params and
-            self.params.get("storage_system_info") is not None
+            "storage_system_info" in self.params
+            and self.params.get("storage_system_info") is not None
         ):
             self.storage_system_info = StorageSystemInfo(
                 **self.params.get("storage_system_info", {"serial": None})
@@ -272,7 +264,7 @@ class GatewayParametersManager:
         self.connection_info = ConnectionInfo(**self.params.get("connection_info", {}))
         self.spec = None
         self.connection_info_map = self.params["connection_info"]
-        self.spec_map = self.params["spec"]
+        self.spec_map = self.params.get("spec")
         if "tenant_info" in self.params:
             self.tenant_info = TenantInfo(**self.params.get("tenant_info", {}))
         else:
@@ -287,7 +279,9 @@ class GatewayParametersManager:
 
     def set_subscriber_fact_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
-            self.spec = SubscriberFactSpec(self.params.get("spec", {}).get("subscriber_id"))
+            self.spec = SubscriberFactSpec(
+                self.params.get("spec", {}).get("subscriber_id")
+            )
         else:
             self.spec = SubscriberFactSpec()
 
@@ -308,6 +302,7 @@ class GatewayParametersManager:
         connection_type = self.connection_info_map.get("connection_type")
         return ConnectionInfo(address, username, password, api_token, connection_type)
 
+
 class UAIGSnapshotArguments:
 
     common_arguments = {
@@ -316,13 +311,11 @@ class UAIGSnapshotArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
         "task_level": {
             "required": False,
             "type": "dict",
-            "description": "state for the task.",
             "options": {},
         },
     }
@@ -333,12 +326,10 @@ class UAIGSnapshotArguments:
             "pvol": {
                 "required": False,
                 "type": "int",
-                "description": "Primary Volume Id.",
             },
             "mirror_unit_id": {
                 "required": False,
                 "type": "int",
-                "description": "Mirror Unit Id.",
             },
         }
 
@@ -423,15 +414,22 @@ def camel_to_snake_case_dict(response):
         for key in response.keys():
             cased_key = camel_to_snake_case(key)
             new_dict[cased_key] = response[key]
-    except:
-        pass
+    except Exception as ex:
+        logger.writeDebug(f"exception in icamel_to_snake_case_dict {ex}")
 
     return new_dict
 
 
 class UAIGResourceID:
+    """
+    This class is used to generate resource id for different resources
+    md5 hash is used to generate resource id not to expose the actual value
+    This is used to generate resource id for storage, ldev, snapshot, localpair, replpair, journalpool and so on
+    nosec: No security issue here as it is does not exploit any security vulnerability
+    """
 
     def get_md5_hash(self, data):
+        # hash is used to generate the same resource ID in the UAIG gateway, non-security purposes
         md5_hash = hashlib.md5()
         md5_hash.update(data.encode("utf-8"))
         return md5_hash.hexdigest()
@@ -455,25 +453,34 @@ class UAIGResourceID:
     def replpair_resourceId(self, p_vol, s_vol, primary_storage_serial_number):
         str_for_hash = f"{p_vol}:{s_vol}:{primary_storage_serial_number}"
         return f"replpair-{self.get_md5_hash(str_for_hash)}"
-    
+
+    def journal_pool_id(self, storage_serial_number, pool_id):
+        str_for_hash = f"{storage_serial_number}:{pool_id}"
+        return f"journalpool-{self.get_md5_hash(str_for_hash)}"
+
+    def resource_group_resourceId(self, storage_serial_number, resource_group_name):
+        resource_group_name_lower = resource_group_name.lower()
+        str_for_hash = f"{storage_serial_number}:{resource_group_name_lower}"
+        return f"resourcegroup-{self.get_md5_hash(str_for_hash)}"
+
     @classmethod
-    def getSystemSerial(self,management_address, remote_gateway_address):   
+    def getSystemSerial(cls, management_address, remote_gateway_address):
         system_name = CommonConstants.UCP_NAME
         system_serial = CommonConstants.UCP_SERIAL
         system_gateway = management_address
         if remote_gateway_address and remote_gateway_address != "":
-            ## expect ip address or fqdn
-            hash_obj = hashlib.sha256(remote_gateway_address.encode("utf-8")  )
-            ss = str(int.from_bytes(hash_obj.digest(), 'big'))
+            #  expect ip address or fqdn
+            hash_obj = hashlib.sha256(remote_gateway_address.encode("utf-8"))
+            ss = str(int.from_bytes(hash_obj.digest(), "big"))
             last6 = ss[-6:]
             system_serial = CommonConstants.UCP_SERIAL_PREFIX + last6
             system_name = CommonConstants.UCP_NAME_PREFIX + last6
             system_gateway = remote_gateway_address
         return system_name, system_serial, system_gateway
 
+
 class GatewaySpecValidators:
 
-    
     @staticmethod
     def validate_subscriber(state, input_spec: SubscriberSpec):
 
@@ -492,19 +499,19 @@ class GatewaySpecValidators:
                 try:
                     if int(input_spec.quota_limit) < 1:
                         raise ValueError(GatewayValidationMsg.QUOTA_LIMIT.value)
-                except:
+                except (ValueError, TypeError):
                     raise ValueError(GatewayValidationMsg.QUOTA_LIMIT.value)
             if input_spec.subscriber_id:
                 try:
                     if not int(input_spec.subscriber_id):
                         raise ValueError(GatewayValidationMsg.ID_NUMERIC.value)
-                except:
+                except (ValueError, TypeError):
                     raise ValueError(GatewayValidationMsg.ID_NUMERIC.value)
                 if (
-                        len(input_spec.subscriber_id) < 1
-                        or len(input_spec.subscriber_id) > 15
-                    ):
-                        raise ValueError(GatewayValidationMsg.ID_LENGTH.value)
+                    len(input_spec.subscriber_id) < 1
+                    or len(input_spec.subscriber_id) > 15
+                ):
+                    raise ValueError(GatewayValidationMsg.ID_LENGTH.value)
             if input_spec.soft_limit:
                 try:
                     if (
@@ -512,7 +519,7 @@ class GatewaySpecValidators:
                         or int(input_spec.soft_limit) > 99
                     ):
                         raise ValueError(GatewayValidationMsg.SOFT_LIMIT.value)
-                except:
+                except (ValueError, TypeError):
                     raise ValueError(GatewayValidationMsg.SOFT_LIMIT.value)
             if input_spec.hard_limit:
                 try:
@@ -521,11 +528,11 @@ class GatewaySpecValidators:
                         or int(input_spec.hard_limit) > 100
                     ):
                         raise ValueError(GatewayValidationMsg.HARD_LIMIT.value)
-                except:
+                except (ValueError, TypeError):
                     raise ValueError(GatewayValidationMsg.HARD_LIMIT.value)
             if input_spec.soft_limit and input_spec.hard_limit:
                 try:
                     if int(input_spec.hard_limit) <= int(input_spec.soft_limit):
                         raise ValueError(GatewayValidationMsg.HARD_LIMIT_GREATER.value)
-                except:
+                except (ValueError, TypeError):
                     raise ValueError(GatewayValidationMsg.HARD_LIMIT_GREATER.value)

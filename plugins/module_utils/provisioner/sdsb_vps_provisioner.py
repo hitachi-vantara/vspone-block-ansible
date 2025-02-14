@@ -1,13 +1,13 @@
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
-    from ..model.sdsb_vps_models import *
+    from ..model.sdsb_vps_models import SDSBVpsListInfo
     from ..common.ansible_common import log_entry_exit
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
-    from model.sdsb_vps_models import *
+    from model.sdsb_vps_models import SDSBVpsListInfo
     from common.ansible_common import log_entry_exit
 
 
@@ -26,7 +26,9 @@ class SDSBVpsProvisioner:
             return vps
         else:
             ret_vps = self.apply_filters(vps.data, spec)
-            return SDSBVpsListInfo(data=ret_vps, summaryInformation=vps.summaryInformation)
+            return SDSBVpsListInfo(
+                data=ret_vps, summaryInformation=vps.summaryInformation
+            )
 
     @log_entry_exit
     def apply_filters(self, vps, spec):
@@ -40,7 +42,7 @@ class SDSBVpsProvisioner:
 
     @log_entry_exit
     def apply_filter_id(self, vps, id):
-        ret_val= []
+        ret_val = []
 
         for v in vps:
             if v.id == id:
@@ -49,7 +51,7 @@ class SDSBVpsProvisioner:
 
     @log_entry_exit
     def apply_filter_name(self, vps, name):
-        ret_val= []
+        ret_val = []
 
         for v in vps:
             if v.name == name:
@@ -66,7 +68,7 @@ class SDSBVpsProvisioner:
 
         for x in all_vps.data:
             if name == x.name:
-                return x 
+                return x
 
         return None
 

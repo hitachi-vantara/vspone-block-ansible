@@ -4,6 +4,7 @@ try:
         camel_to_snake_case,
         snake_to_camel_case,
         camel_array_to_snake_case,
+        get_default_value,
     )
 except ImportError:
     from provisioner.uaig_subscriber_provisioner import SubscriberProvisioner
@@ -11,6 +12,7 @@ except ImportError:
         camel_to_snake_case,
         snake_to_camel_case,
         camel_array_to_snake_case,
+        get_default_value,
     )
 
 
@@ -25,7 +27,9 @@ class SubscriberReconciler:
         if getSubscriberSpec is None:
             data = self.provisioner.get_subscriber_facts(None)
         else:
-            data = self.provisioner.get_subscriber_facts(getSubscriberSpec.subscriber_id)
+            data = self.provisioner.get_subscriber_facts(
+                getSubscriberSpec.subscriber_id
+            )
         if data:
             if getSubscriberSpec is None or not getSubscriberSpec.subscriber_id:
                 return SubscriberPropertiesExtractor().extract(data)
@@ -92,15 +96,7 @@ class SubscriberPropertiesExtractor:
                     new_dict[key] = value_type(response_key)
                 else:
                     # Handle missing keys by assigning default values
-                    default_value = (
-                        ""
-                        if value_type == str
-                        else (
-                            -1
-                            if value_type == int or value_type == float
-                            else [] if value_type == list else False
-                        )
-                    )
+                    default_value = get_default_value(value_type)
                     if key in self.parameter_mapping:
                         key = self.parameter_mapping[key]
                     key = camel_to_snake_case(key)
@@ -109,7 +105,7 @@ class SubscriberPropertiesExtractor:
                     elif key == "used_quota_in_gb":
                         new_dict[key] = "0"
                     else:
-                        new_dict[key] = default_value                 
+                        new_dict[key] = default_value
         new_items.append(new_dict)
         new_items = camel_array_to_snake_case(new_items)
 
@@ -130,15 +126,7 @@ class SubscriberPropertiesExtractor:
                     new_dict[key] = value_type(response_key)
                 else:
                     # Handle missing keys by assigning default values
-                    default_value = (
-                        ""
-                        if value_type == str
-                        else (
-                            -1
-                            if value_type == int or value_type == float
-                            else [] if value_type == list else False
-                        )
-                    )
+                    default_value = get_default_value(value_type)
                     if key in self.parameter_mapping:
                         key = self.parameter_mapping[key]
                     key = camel_to_snake_case(key)
@@ -147,7 +135,7 @@ class SubscriberPropertiesExtractor:
                     elif key == "used_quota_in_gb":
                         new_dict[key] = "0"
                     else:
-                        new_dict[key] = default_value                     
+                        new_dict[key] = default_value
             new_items.append(new_dict)
         new_items = camel_array_to_snake_case(new_items)
         return new_items

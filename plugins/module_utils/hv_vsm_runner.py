@@ -1,27 +1,14 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# Copyright: (c) 2020, Hewlett Packard Enterprise Development LP.
-
-
-__metaclass__ = type
-
 import json
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
     StorageSystem,
-    HostMode,
-    StorageSystemManager,
     Utils,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
-)
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
-    HiException,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 
 logger = Log()
@@ -57,8 +44,6 @@ def mockGetVSM():
 
     # return vsms
     return vsm
-
-
 
 
 def getVSM(storage_serial, virtual_storage_serial):
@@ -240,7 +225,6 @@ def handleHostGroups(old, new, doAdd, storage, rgId):
 
     hgNamesNew = []  # array of hgNamesArray
     hgPortsNew = []  # array of port
-    hgNamesOld = []
     hgPortsOld = []
 
     hgMapNew = {}  # key=port, value=hgNamesArray
@@ -266,6 +250,7 @@ def handleHostGroups(old, new, doAdd, storage, rgId):
         writeMsg("walking the old items ===")
         for item in old:
             writeNameValue("old item={}", item)
+            hgName = None
             if "HgName" in item:
                 hgName = item["HgName"]
             if "Port" in item:
@@ -533,6 +518,8 @@ def handleRemoveResourceGroup(
                     "sub.state=absent, ResourceGroup exists but not in playbook, doDelete"
                 )
                 writeNameValue("call doDeleteResourceGroup={}", rsrc)
+                # this is fixed by anisble sanity test , not tested
+                rgId = rsrc["ResourceGroupId"]
                 doDeleteResourceGroup(storage_serial, rgId)
                 changed = True
             else:
@@ -553,18 +540,18 @@ def doUpdate(
 
     # vsm is the response from get.one.VSM
     # resource is the each resource obj in the resource groups of the playbook
-    ##
+    #
     # resource_groups is the to be returned used to update the vsm, same obj use to create
     # (we may not need this, since we are to call the each api to add/remove)
-    ##
+    #
     # first get the delta between the vsm and this resource
     # looks like we need a map with the key so we can logic the resource in the vsm then compare
-    ##
+    #
     # or use MetaResourceSerial, VirtualDeviceId and ResourceGroupName in the vsm to match the
     # serial, virtual_storage_serial and name in the yml respectively
     storage_serial = resource["serial"]
     name = resource.get("name", None)
-    luns = resource.get("luns", None)
+    resource.get("luns", None)
 
     rgs = getResourceGroup(vsm, storage_serial, virtual_storage_serial, name)
     if rgs is None:
@@ -733,7 +720,6 @@ def runPlaybook(module):
         validateMS(meta_resources)
 
         isCreate = True
-        index = 0
         resource_groups = []
 
         if subobjState == "absent":
@@ -817,5 +803,12 @@ def runPlaybook(module):
     # do we need this?
     # storageSystem.rediscoverVirtualStorages()
 
+    data = {
+        "storage_system": result,
+        "changed": True,
+    }
+    registration_message = validate_ansible_product_registration()
+    if registration_message:
+        data["user_consent_required"] = registration_message
     logger.writeExitModule(moduleName)
-    module.exit_json(changed=True, storageSystem=result)
+    module.exit_json(**data)

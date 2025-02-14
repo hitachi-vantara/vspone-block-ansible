@@ -1,22 +1,31 @@
-import json
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2021, [ Hitachi Vantara ]
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = '''
+
+DOCUMENTATION = """
 ---
 module: hv_sds_block_compute_port_authentication
 short_description: Manages Hitachi SDS block storage system compute port authentication mode settings.
 description:
   - This module manages compute port authentication mode settings.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/port_auth.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   state:
     description: The level of the compute port authentication task. Choices are 'present'.
     type: str
-    required: true
+    required: false
+    choices: ['present', 'absent']
+    default: 'present'
   connection_info:
     description: Information required to establish a connection to the storage system.
     required: true
@@ -53,10 +62,12 @@ options:
         description: The state of the port authorization task. Choices are 'add_chap_user', 'remove_chap_user'.
         type: str
         required: false
+        choices: ['add_chap_user', 'remove_chap_user']
       authentication_mode:
         description: Authentication mode. Choices are 'CHAP', 'CHAP_complying_with_initiator_setting', 'None'.
         type: str
         required: false
+        choices: ['CHAP', 'CHAP_complying_with_initiator_setting', 'None']
       is_discovery_chap_authentication:
         description: When true is specified, CHAP authentication at the time of discovery is enabled.
         type: bool
@@ -65,9 +76,10 @@ options:
         description: List of target CHAP user name.
         type: list
         required: false
-'''
+        elements: str
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 - name: Set port authentication mode
   hv_sds_block_compute_port_authentication:
     state: present
@@ -78,16 +90,16 @@ EXAMPLES = '''
     spec:
       port_name: "iqn.1994-04.jp.co.hitachi:rsd.sph.t.0a85a.000"
       authentication_mode: "CHAP"
-      target_chap_users: [ "chapuser1" ]
-'''
+      target_chap_users: ["chapuser1"]
+"""
 
-RETURN = '''
+RETURN = """
 data:
   description: The compute port information.
   returned: always
   type: dict
-  elements: dict/list
-  sample: 
+  elements: dict
+  sample:
     {
       "chap_users_info": [
           {
@@ -152,7 +164,7 @@ data:
           "type": "Universal"
       }
   }
-'''
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
@@ -164,10 +176,15 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconc
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_properties_extractor import (
     PortDetailPropertiesExtractor,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
     SDSBPortAuthArguments,
     SDSBParametersManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 
 logger = Log()
@@ -183,7 +200,6 @@ class SDSBPortAuthManager:
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
-            # can be added mandotary , optional mandatory arguments
         )
 
         parameter_manager = SDSBParametersManager(self.module.params)
@@ -196,7 +212,7 @@ class SDSBPortAuthManager:
     def apply(self):
         port_auth = None
         port_auth_data_extracted = None
-
+        registration_message = validate_ansible_product_registration()
         logger.writeInfo(f"{self.connection_info.connection_type} connection type")
         try:
             sdsb_reconciler = SDSBPortAuthReconciler(self.connection_info)
@@ -218,7 +234,12 @@ class SDSBPortAuthManager:
         except Exception as e:
             self.module.fail_json(msg=str(e))
 
-        response = {"changed": self.connection_info.changed, "data": port_auth_data_extracted}
+        response = {
+            "changed": self.connection_info.changed,
+            "data": port_auth_data_extracted,
+        }
+        if registration_message:
+            response["user_consent_required"] = registration_message
         self.module.exit_json(**response)
 
 

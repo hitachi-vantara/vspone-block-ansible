@@ -8,9 +8,43 @@ except ImportError:
 
 
 @dataclass
+class VSPNvmNamespaceSpec(SingleBaseClass):
+    ldev_id: Optional[int] = None
+    nickname: Optional[str] = None
+    paths: Optional[List[str]] = None
+
+
+@dataclass
+class VSPNvmHostNqnSpec(SingleBaseClass):
+    nqn: Optional[str] = None
+    nickname: Optional[str] = None
+
+
+@dataclass
+class VSPNvmeSubsystemSpec(SingleBaseClass):
+    id: Optional[int] = None
+    name: Optional[str] = None
+    host_mode: Optional[str] = None
+    # host_mode_options: Optional[List[int]] = None
+    enable_namespace_security: Optional[bool] = True
+    ports: Optional[List[str]] = None
+    host_nqns: Optional[List[VSPNvmHostNqnSpec]] = None
+    namespaces: Optional[List[VSPNvmNamespaceSpec]] = None
+    force: Optional[bool] = False
+    state: Optional[str] = None
+
+    def __post_init__(self, **kwargs):
+        if self.host_nqns:
+            self.host_nqns = [VSPNvmHostNqnSpec(**x) for x in self.host_nqns]
+        if self.namespaces:
+            self.namespaces = [VSPNvmNamespaceSpec(**x) for x in self.namespaces]
+
+
+@dataclass
 class VSPNvmeSubsystemFactSpec(SingleBaseClass):
     name: Optional[str] = None
     id: Optional[int] = None
+
 
 @dataclass
 class VspNvmeSubsystemInfo(SingleBaseClass):
@@ -20,16 +54,23 @@ class VspNvmeSubsystemInfo(SingleBaseClass):
     namespaceSecuritySetting: str
     t10piMode: str
     hostMode: str
+    virtualNvmSubsystemId: int = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        if "virtualNvmSubsystemId" in kwargs:
+            self.virtualNvmSubsystemId = kwargs.get("virtualNvmSubsystemId")
+            if self.virtualNvmSubsystemId is None:
+                self.virtualNvmSubsystemId = -1
 
     def to_dict(self):
         return asdict(self)
 
+
 @dataclass
 class VspNvmeSubsystemInfoList(BaseDataClass):
     data: List[VspNvmeSubsystemInfo]
+
 
 @dataclass
 class VspOneServerInfo(SingleBaseClass):
@@ -51,9 +92,11 @@ class VspOneServerInfo(SingleBaseClass):
     def to_dict(self):
         return asdict(self)
 
+
 @dataclass
 class VspOneServerInfoList(BaseDataClass):
     data: List[VspOneServerInfo]
+
 
 @dataclass
 class VspHostNqnInfo(SingleBaseClass):
@@ -67,6 +110,7 @@ class VspHostNqnInfo(SingleBaseClass):
 
     def to_dict(self):
         return asdict(self)
+
 
 @dataclass
 class VspHostNqnInfoList(BaseDataClass):
@@ -90,9 +134,11 @@ class VspNamespaceInfo(SingleBaseClass):
     def to_dict(self):
         return asdict(self)
 
+
 @dataclass
 class VspNamespaceInfoList(BaseDataClass):
     data: List[VspNamespaceInfo]
+
 
 @dataclass
 class VspNamespacePathInfo(SingleBaseClass):
@@ -108,9 +154,11 @@ class VspNamespacePathInfo(SingleBaseClass):
     def to_dict(self):
         return asdict(self)
 
+
 @dataclass
 class VspNamespacePathInfoList(BaseDataClass):
     data: List[VspNamespacePathInfo]
+
 
 @dataclass
 class VspNvmePortInfo(SingleBaseClass):
@@ -124,16 +172,18 @@ class VspNvmePortInfo(SingleBaseClass):
     def to_dict(self):
         return asdict(self)
 
+
 @dataclass
 class VspNvmePortInfoList(BaseDataClass):
     data: List[VspNvmePortInfo]
+
 
 @dataclass
 class VspNvmeSubsystemDetailInfo:
     nvmSubsystemInfo: VspNvmeSubsystemInfo
     portInfo: List[VspNvmePortInfo]
     namespacesInfo: List[VspNamespaceInfo]
-    namespacePathsInfo : List[VspNamespacePathInfo]
+    namespacePathsInfo: List[VspNamespacePathInfo]
     hostNqnInfo: List[VspHostNqnInfo]
 
     # def __init__(self, **kwargs):
@@ -142,25 +192,30 @@ class VspNvmeSubsystemDetailInfo:
     def to_dict(self):
         return asdict(self)
 
+
 @dataclass
 class VspNvmeSubsystemDetailInfoList(BaseDataClass):
     data: List[VspNvmeSubsystemDetailInfo]
+
 
 @dataclass
 class VspNvmePortDisplay(SingleBaseClass):
     portId: str
     portType: str
 
+
 @dataclass
 class VspHostNqnDisplay(SingleBaseClass):
     hostNqn: str
     hostNqnNickname: str
+
 
 @dataclass
 class VspNamespacePathDisplay(SingleBaseClass):
     hostNqn: str
     namespaceId: int
     ldevId: int
+
 
 @dataclass
 class VspNamespaceDisplay(SingleBaseClass):
@@ -169,6 +224,17 @@ class VspNamespaceDisplay(SingleBaseClass):
     ldevId: int
     byteFormatCapacity: str
     blockCapacity: int
+
+
+@dataclass
+class VspNvmeSubsystemDisplay(SingleBaseClass):
+    nvmSubsystemId: int
+    nvmSubsystemName: str
+    resourceGroupId: int
+    namespaceSecuritySetting: str
+    t10piMode: str
+    hostMode: str
+
 
 @dataclass
 class NvmSubsystemPort(SingleBaseClass):
@@ -182,9 +248,11 @@ class NvmSubsystemPort(SingleBaseClass):
     def to_dict(self):
         return asdict(self)
 
+
 @dataclass
 class NvmSubsystemPortList(BaseDataClass):
     data: List[NvmSubsystemPort]
+
 
 @dataclass
 class NvmShorNamespace(SingleBaseClass):
@@ -203,3 +271,12 @@ class NvmSubsystemById(SingleBaseClass):
     nvmSubsystemNqn: str = None
     namespaces: List[NvmShorNamespace] = None
     portIds: List[str] = None
+    virtualNvmSubsystemId: int = -1
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if "virtualNvmSubsystemId" in kwargs:
+            self.virtualNvmSubsystemId = kwargs.get("virtualNvmSubsystemId")
+
+    def to_dict(self):
+        return asdict(self)

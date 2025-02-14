@@ -3,28 +3,45 @@ try:
         log_entry_exit,
         snake_to_camel_case,
         get_response_key,
+        get_default_value,
     )
     from ..common.hv_log import Log
-    from ..common.hv_constants import *
+    from ..common.hv_constants import StateValue
+    from ..model.vsp_parity_group_models import ParityGroupSpec
     from ..provisioner.vsp_parity_group_provisioner import VSPParityGroupProvisioner
-    from ..model.vsp_parity_group_models import *
 except ImportError:
     from common.ansible_common import (
         log_entry_exit,
         snake_to_camel_case,
         get_response_key,
+        get_default_value,
     )
-    from common.hv_log import Log
-    from common.hv_constants import *
     from provisioner.vsp_parity_group_provisioner import VSPParityGroupProvisioner
-    from model.vsp_parity_group_models import *
+    from common.hv_log import Log
+    from common.hv_constants import StateValue
+    from model.vsp_parity_group_models import ParityGroupSpec
+
+logger = Log()
 
 
 class VSPParityGroupReconciler:
 
-    def __init__(self, connectionInfo):
+    def __init__(self, connectionInfo, state=None):
+        self.logger = Log()
         self.connectionInfo = connectionInfo
+        self.state = state
         self.provisioner = VSPParityGroupProvisioner(self.connectionInfo)
+
+    @log_entry_exit
+    def parity_group_reconcile(self, state: str, spec: ParityGroupSpec):
+        # reconcile the parity group based on the desired state in the specification
+        state = state.lower()
+        if state == StateValue.ABSENT:
+            return self.provisioner.delete_parity_group(spec)
+        elif state == StateValue.PRESENT:
+            return self.provisioner.create_parity_group(spec)
+        elif state == StateValue.UPDATE:
+            return self.provisioner.update_parity_group(spec)
 
     @log_entry_exit
     def get_all_parity_groups(self):
@@ -34,6 +51,13 @@ class VSPParityGroupReconciler:
     def get_parity_group(self, pg_id):
         return self.provisioner.get_parity_group(pg_id)
 
+    @log_entry_exit
+    def get_all_drives(self, spec):
+        if spec and spec.drive_location_id is not None:
+            return self.provisioner.get_one_drive(spec)
+        else:
+            return self.provisioner.get_all_drives()
+
 
 class VSPParityGroupCommonPropertiesExtractor:
     def __init__(self):
@@ -41,13 +65,15 @@ class VSPParityGroupCommonPropertiesExtractor:
             # "resource_id": str,
             "parity_group_id": str,
             "free_capacity": str,
+            "freeCapacity_mb": str,
             "resource_group_id": int,
             "total_capacity": str,
+            "totalCapacity_mb": str,
             "ldev_ids": list,
             "raid_level": str,
             "drive_type": str,
             "copyback_mode": bool,
-            "status": str,
+            # "status": str,
             "is_pool_array_group": bool,
             "is_accelerated_compression": bool,
             "is_encryption_enabled": bool,
@@ -75,13 +101,7 @@ class VSPParityGroupCommonPropertiesExtractor:
                     new_dict[key] = value_type(response_key)
             else:
                 # Handle for case of None response_key or missing keys by assigning default values
-                default_value = (
-                    ""
-                    if value_type == str
-                    else (
-                        -1 if value_type == int else [] if value_type == list else False
-                    )
-                )
+                default_value = get_default_value(value_type)
                 new_dict[key] = default_value
         return new_dict
 

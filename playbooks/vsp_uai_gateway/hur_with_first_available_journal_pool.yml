@@ -1,0 +1,77 @@
+---
+#####################################################################
+# Example: Create HUR Pair with First Available Journal Pool
+#####################################################################
+- name: HUR - Hitachi Universal Replicator Pair
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_gateway_var.yml
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  tasks:
+    #####################################################################
+    # Task 0: Get UAI Gateway Token
+    #####################################################################
+    - name: Get UAI gateway token
+      hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          username: "{{ vault_gateway_username }}"
+          password: "{{ vault_gateway_secret }}"
+      register: result_token
+      tags: token
+      ignore_errors: false
+    #####################################################################
+    # Task 1: Get Specific Journal Volumes (Primary and Secondary)
+    #####################################################################
+    - name: Get specific journal volumes (Primary and Secondary)
+      hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+        storage_system_info:
+          serial: "{{ item.storage_serial }}"
+        spec:
+          is_mirror_not_used: true
+      with_items:
+        - {name: "primaryjournal", storage_serial: "{{ storage_serial }}"}
+        - {name: "secondaryjournal", storage_serial: 23456}
+      register: journal_volumes
+    #####################################################################
+    # Task 2: Create HUR Pair and Debug Result
+    #####################################################################
+    - name: Create HUR pair and debug result
+      hitachivantara.vspone_block.vsp.hv_hur:
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+        spec:
+          primary_volume_id: 123
+          primary_volume_journal_id: "{{ journal_volumes.results[0].journal_volume[1].journal_pool_id }}"
+          secondary_volume_journal_id: "{{ journal_volumes.results[1].journal_volume[1].journal_pool_id }}"
+          secondary_pool_id: 3
+          allocate_new_consistency_group: true
+          secondary_storage_serial_number: 23456
+          secondary_hostgroup:
+            name: remote-hostgroup-1
+            port: CL1-A
+          secondary_hostroup: "{{ secondary_hostgroup_for_jp1 }}"
+          mirror_unit_id: 1
+      when:
+        journal_volumes.results | length > 1 and
+        journal_volumes.results[0].journal_volume | length > 1 and
+        journal_volumes.results[1].journal_volume | length > 1 and
+        journal_volumes.results[0].journal_volume[1].journal_pool_id is defined and
+        journal_volumes.results[1].journal_volume[1].journal_pool_id is defined
+      register: result
+
+
+    - name: Debug result
+      ansible.builtin.debug:
+        var: result
+      when: result is defined

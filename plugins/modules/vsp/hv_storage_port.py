@@ -3,6 +3,7 @@
 # Copyright: (c) 2021, [ Hitachi Vantara ]
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
@@ -12,21 +13,25 @@ DOCUMENTATION = """
 module: hv_storage_port
 short_description: Change the storage port settings in the Hitachi VSP storage systems.
 description:
-     - This module change the storage port settings information in the Hitachi VSP storage systems.
+  - This module change the storage port settings information in the Hitachi VSP storage systems.
+  - This module is supported only for direct connection type.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storage_port.yml)
 version_added: '3.1.0'
-requirements:
+author:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   storage_system_info:
     description:
       - Information about the storage system.
     type: dict
-    required: true
+    required: false
     suboptions:
       serial:
         description:
           - The serial number of the storage system.
         type: str
-        required: true
+        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
@@ -50,6 +55,10 @@ options:
         required: false
         choices: ['direct']
         default: 'direct'
+      api_token:
+        description: Value of the lock token to operate on locked resources for direct connection.
+        type: str
+        required: false
   spec:
     description:
       - Specification for the storage port facts to be gathered.
@@ -59,7 +68,7 @@ options:
       port:
         description:
           - The port id of the specific port to retrieve.
-        type: int
+        type: str
         required: true
       port_mode:
         description:
@@ -86,8 +95,6 @@ EXAMPLES = """
         spec:
           port: "CL1-A"
           enable_port_security: true
-
-
 """
 
 RETURN = """
@@ -96,7 +103,7 @@ storagePort:
   returned: always
   type: list
   elements: dict
-  sample: 
+  sample:
     - fabric_mode: true
       ipv4_address: ""
       ipv4_gateway_address: ""
@@ -106,7 +113,7 @@ storagePort:
       loop_id: "CE"
       lun_security_setting: false
       mac_address: ""
-      port_attributes: 
+      port_attributes:
         - "TAR"
         - "MCU"
         - "RCU"
@@ -129,27 +136,22 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     VSPParametersManager,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    StateValue,
     ConnectionTypes,
-    CommonConstants,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_storage_port import (
     VSPStoragePortReconciler,
 )
-
-try:
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_logger import (
-        MessageID,
-    )
-
-    HAS_MESSAGE_ID = True
-except ImportError as error:
-    HAS_MESSAGE_ID = False
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-
-
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log_decorator import (
     LogDecorator,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
+    ModuleMessage,
 )
 
 
@@ -158,13 +160,12 @@ class VSPStoragePortManager:
 
     def __init__(self):
         self.logger = Log()
+        self.argument_spec = VSPStoragePortArguments().storage_port()
+        self.module = AnsibleModule(
+            argument_spec=self.argument_spec,
+            supports_check_mode=True,
+        )
         try:
-            self.argument_spec = VSPStoragePortArguments().storage_port()
-            self.module = AnsibleModule(
-                argument_spec=self.argument_spec,
-                supports_check_mode=True,
-                # can be added mandotary , optional mandatory arguments
-            )
 
             self.params_manager = VSPParametersManager(self.module.params)
             self.connection_info = self.params_manager.connection_info
@@ -175,22 +176,27 @@ class VSPStoragePortManager:
             self.module.fail_json(msg=str(e))
 
     def apply(self):
+        self.logger.writeInfo("=== Start of Storage Port operation. ===")
         port_data = None
-        self.logger.writeInfo(
-            f"{self.params_manager.connection_info.connection_type} connection type"
-        )
+        registration_message = validate_ansible_product_registration()
         try:
 
             port_data = self.storage_port_module()
 
         except Exception as e:
+            self.logger.writeError(str(e))
+            self.logger.writeInfo("=== End of Storage Port operation. ===")
             self.module.fail_json(msg=str(e))
 
         resp = {
-                "changed": self.connection_info.changed,
-                "port_info": port_data,
-                "msg": f"Storage port reconciled successfully",
-            }
+            "changed": self.connection_info.changed,
+            "port_info": port_data,
+            "msg": "Storage port updated successfully",
+        }
+        if registration_message:
+            resp["user_consent_required"] = registration_message
+        self.logger.writeInfo(f"{resp}")
+        self.logger.writeInfo("=== End of Storage Port operation. ===")
         self.module.exit_json(**resp)
 
     def storage_port_module(self):
@@ -199,17 +205,15 @@ class VSPStoragePortManager:
             self.storage_serial_number,
         )
         if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            found = reconciler.check_storage_in_ucpsystem()
-            if not found:
-                self.module.fail_json(
-                    "The storage system is still onboarding or refreshing, Please try after sometime"
-                )
+            oob = reconciler.is_out_of_band()
+            if oob is True:
+                raise ValueError(ModuleMessage.OOB_NOT_SUPPORTED.value)
 
         result = reconciler.vsp_storage_port_reconcile(self.spec)
         return result
 
 
-def main():
+def main(module=None):
     """
     :return: None
     """

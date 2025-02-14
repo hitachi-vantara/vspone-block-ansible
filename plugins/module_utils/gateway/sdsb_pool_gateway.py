@@ -4,8 +4,8 @@ try:
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from .gateway_manager import SDSBConnectionManager
-    from ..model.sdsb_pool_models import *
-    
+    from ..model.sdsb_pool_models import SDSBPoolsInfo, SDSBPoolInfo
+
 
 except ImportError:
     from common.sdsb_constants import SDSBlockEndpoints
@@ -13,10 +13,12 @@ except ImportError:
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from .gateway_manager import SDSBConnectionManager
-    from model.sdsb_pool_models import *
+    from model.sdsb_pool_models import SDSBPoolsInfo, SDSBPoolInfo
 
 
 logger = Log()
+
+
 class SDSBPoolDirectGateway:
 
     def __init__(self, connection_info):
@@ -28,9 +30,7 @@ class SDSBPoolDirectGateway:
     def get_pools(self):
         end_point = SDSBlockEndpoints.GET_POOLS
         pool_data = self.connection_manager.get(end_point)
-        return SDSBPoolsInfo(
-            dicts_to_dataclass_list(pool_data["data"], SDSBPoolInfo)
-        )
+        return SDSBPoolsInfo(dicts_to_dataclass_list(pool_data["data"], SDSBPoolInfo))
 
     @log_entry_exit
     def get_pool_by_name(self, name):

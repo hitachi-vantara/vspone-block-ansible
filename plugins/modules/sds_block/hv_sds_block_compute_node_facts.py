@@ -1,18 +1,25 @@
-import json
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2021, [ Hitachi Vantara ]
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = '''
+
+DOCUMENTATION = """
 ---
 module: hv_sds_block_compute_node_facts
 short_description: Retrieves information about Hitachi SDS block storage system compute nodes.
 description:
   - This module retrieves information about compute nodes.
   - It provides details about a compute node such as ID, volume and other details.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/compute_node_facts.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -39,20 +46,23 @@ options:
         default: 'direct'
   spec:
     description: Specification for retrieving compute node information.
+    type: dict
+    required: false
     suboptions:
       names:
         type: list
         description: The names of the compute nodes.
         required: false
+        elements: str
       hba_name:
         type: str
         description: A WWN or an iSCSI name.
         required: false
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 - name: Retrieve information about all compute nodes
-  hv_sds_block_compute_node_facts:        
+  hv_sds_block_compute_node_facts:
     connection_info:
       address: vssb.company.com
       username: "admin"
@@ -60,7 +70,7 @@ EXAMPLES = '''
       connection_type: "direct"
 
 - name: Retrieve information about compute nodes by hba_name
-  hv_sds_block_compute_node_facts:         
+  hv_sds_block_compute_node_facts:
     connection_info:
       address: vssb.company.com
       username: "admin"
@@ -71,19 +81,17 @@ EXAMPLES = '''
       hba_name: 'iqn.1991-05.com.hitachi:test-iscsi-iqn1'
 
 - name: Retrieve information about compute nodes by names
-  hv_sds_block_compute_node_facts:        
+  hv_sds_block_compute_node_facts:
     connection_info:
       address: vssb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
-
     spec:
-      names: [ 'computenode1', 'computenode2' ]
+      names: ['computenode1', 'computenode2']
+"""
 
-'''
-
-RETURN = '''
+RETURN = """
 compute_nodes:
   description: A list of compute nodes.
   returned: always
@@ -125,20 +133,24 @@ compute_nodes:
         ]
       }
   ]
-'''
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_compute_node import (
     SDSBComputeNodeReconciler,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_properties_extractor import (
-    ComputeNodePropertiesExtractor,
     ComputeNodeAndVolumePropertiesExtractor,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
     SDSBComputeNodeArguments,
     SDSBParametersManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 
 logger = Log()
@@ -154,7 +166,6 @@ class SDSBComputeNodeFactsManager:
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
-            # can be added mandotary , optional mandatory arguments
         )
 
         parameter_manager = SDSBParametersManager(self.module.params)
@@ -166,7 +177,7 @@ class SDSBComputeNodeFactsManager:
     def apply(self):
         compute_nodes = None
         compute_node_data_extracted = None
-
+        registration_message = validate_ansible_product_registration()
         logger.writeInfo(f"{self.connection_info.connection_type} connection type")
         try:
             sdsb_reconciler = SDSBComputeNodeReconciler(self.connection_info)
@@ -176,14 +187,18 @@ class SDSBComputeNodeFactsManager:
                 f"MOD:hv_sds_block_compute_node_facts:compute_nodes= {compute_nodes}"
             )
             output_dict = compute_nodes.data_to_list()
-            compute_node_data_extracted = ComputeNodeAndVolumePropertiesExtractor().extract(
-                output_dict
+            compute_node_data_extracted = (
+                ComputeNodeAndVolumePropertiesExtractor().extract(output_dict)
             )
 
         except Exception as e:
             self.module.fail_json(msg=str(e))
-
-        self.module.exit_json(compute_nodes=compute_node_data_extracted)
+        data = {
+            "compute_nodes": compute_node_data_extracted,
+        }
+        if registration_message:
+            data["user_consent_required"] = registration_message
+        self.module.exit_json(**data)
 
 
 def main(module=None):

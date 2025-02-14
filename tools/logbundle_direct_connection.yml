@@ -1,12 +1,13 @@
+---
 - name: Support Log Bundle
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   tasks:
     - name: Collect log bundle for direct only
-      hv_troubleshooting_facts:
+      hitachivantara.vspone_block.vsp.hv_troubleshooting_facts:
       register: result
-      no_log: true
-    - debug: var=result
+      # no_log: true
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

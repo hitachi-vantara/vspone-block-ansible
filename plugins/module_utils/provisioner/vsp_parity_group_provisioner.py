@@ -1,22 +1,36 @@
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
-    from ..common.ansible_common import log_entry_exit, convert_block_capacity
+    from ..common.ansible_common import (
+        log_entry_exit,
+        convert_block_capacity,
+        convert_to_mb,
+    )
     from ..model.vsp_parity_group_models import VSPParityGroup, VSPParityGroups
-    from ..common.hv_constants import StateValue, ConnectionTypes
+    from ..common.hv_constants import ConnectionTypes
+    from ..common.hv_log import Log
+    from ..message.vsp_parity_group_msgs import VSPParityGroupValidateMsg
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
-    from common.ansible_common import log_entry_exit, convert_block_capacity
-    from model.vsp_parity_group_models import  VSPParityGroup, VSPParityGroups
-    from common.hv_constants import StateValue, ConnectionTypes
+    from common.ansible_common import (
+        log_entry_exit,
+        convert_block_capacity,
+        convert_to_mb,
+    )
+    from model.vsp_parity_group_models import VSPParityGroup, VSPParityGroups
+    from common.hv_constants import ConnectionTypes
+    from common.hv_log import Log
+    from message.vsp_parity_group_msgs import VSPParityGroupValidateMsg
 
+logger = Log()
 
 
 class VSPParityGroupProvisioner:
 
     def __init__(self, connection_info):
+        self.logger = Log()
         self.gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_PARITY_GROUP
         )
@@ -24,7 +38,6 @@ class VSPParityGroupProvisioner:
         self.resource_id = None
         self.connection_info = connection_info
         self.gateway.resource_id = self.resource_id
-        
 
     @log_entry_exit
     def format_parity_group(self, parity_group):
@@ -38,6 +51,8 @@ class VSPParityGroupProvisioner:
                 if parity_group.availableVolumeCapacity != 0
                 else "0"
             )
+            mb_capacity = convert_to_mb(pg_dict["freeCapacity"])
+            pg_dict["freeCapacity_mb"] = f"{mb_capacity} MB"
         else:
             None
         if parity_group.physicalCapacity is not None:
@@ -48,6 +63,8 @@ class VSPParityGroupProvisioner:
                 if parity_group.physicalCapacity != 0
                 else "0"
             )
+            mb_capacity = convert_to_mb(pg_dict["totalCapacity"])
+            pg_dict["totalCapacity_mb"] = f"{mb_capacity} MB"
         else:
             if parity_group.totalCapacity is not None:
                 pg_dict["totalCapacity"] = (
@@ -57,6 +74,8 @@ class VSPParityGroupProvisioner:
                     if parity_group.totalCapacity != 0
                     else "0"
                 )
+                mb_capacity = convert_to_mb(pg_dict["totalCapacity"])
+                pg_dict["totalCapacity_mb"] = f"{mb_capacity} MB"
             else:
                 None
         pg_dict["ldevIds"] = []
@@ -73,6 +92,7 @@ class VSPParityGroupProvisioner:
             parity_group.isAcceleratedCompressionEnabled
         )
         pg_dict["isEncryptionEnabled"] = parity_group.isEncryptionEnabled
+        pg_dict["clprId"] = parity_group.clprId
         return pg_dict
 
     @log_entry_exit
@@ -85,8 +105,11 @@ class VSPParityGroupProvisioner:
                     external_parity_group.availableVolumeCapacity * 1024 * 1024 * 1024,
                     1,
                 )
+                mb_capacity = convert_to_mb(pg_dict["freeCapacity"])
+                pg_dict["freeCapacity_mb"] = f"{mb_capacity} MB"
             else:
                 pg_dict["freeCapacity"] = "0"
+                pg_dict["freeCapacity_mb"] = "0"
         else:
             pg_dict["freeCapacity"] = None
         total_capacity = 0
@@ -125,8 +148,11 @@ class VSPParityGroupProvisioner:
                 if total_capacity != -1
                 else None
             )
+            mb_capacity = convert_to_mb(pg_dict["totalCapacity"])
+            pg_dict["totalCapacity_mb"] = f"{mb_capacity} MB"
         else:
             pg_dict["totalCapacity"] = "0"
+            pg_dict["totalCapacity_mb"] = "0"
         return pg_dict
 
     @log_entry_exit
@@ -165,3 +191,97 @@ class VSPParityGroupProvisioner:
         else:
             parity_group = self.gateway.get_parity_group(pg_id)
             return VSPParityGroup(**self.format_parity_group(parity_group))
+
+    @log_entry_exit
+    def direct_get_parity_group_by_id(self, pg_id):
+        parity_groups = self.get_all_parity_groups()
+        for parity_group in parity_groups.data:
+            if parity_group.parityGroupId == pg_id:
+                self.logger.writeDebug(
+                    f"PV:parity group exists: parity_group =  {parity_group}"
+                )
+                return parity_group
+
+    @log_entry_exit
+    def create_parity_group(self, spec):
+        parity_group_exits = self.direct_get_parity_group_by_id(spec.parity_group_id)
+        self.logger.writeDebug(f"PV:parity_group: parity_group =  {parity_group_exits}")
+        if parity_group_exits:
+            return self.get_parity_group(spec.parity_group_id)
+        response = self.gateway.create_parity_group(spec)
+        self.logger.writeDebug(f"create_parity_group_direct result: {response}")
+        self.connection_info.changed = True
+        return self.get_parity_group(spec.parity_group_id)
+
+    @log_entry_exit
+    def delete_parity_group(self, spec):
+        parity_group_exits = self.direct_get_parity_group_by_id(spec.parity_group_id)
+        self.logger.writeDebug(f"PV:parity_group: parity_group =  {parity_group_exits}")
+        if parity_group_exits is None:
+            return VSPParityGroupValidateMsg.NO_PARITY_GROUP_ID.value.format(
+                spec.parity_group_id
+            )
+        response = self.gateway.delete_parity_group(spec.parity_group_id)
+        self.logger.writeDebug(f"delete_parity_group_direct result: {response}")
+        self.connection_info.changed = True
+        return "Parity Group {} deleted successfully".format(spec.parity_group_id)
+
+    @log_entry_exit
+    def update_parity_group(self, spec):
+        parity_group_exits = self.get_parity_group(
+            spec.parity_group_id
+        )  # self.direct_get_parity_group_by_id(spec.parity_group_id)
+        self.logger.writeDebug(f"PV:parity_group: parity_group =  {parity_group_exits}")
+        if parity_group_exits is not None:
+            if (
+                parity_group_exits.isAcceleratedCompression
+                == spec.is_accelerated_compression_enabled
+            ):
+                return parity_group_exits
+        else:
+            return VSPParityGroupValidateMsg.NO_PARITY_GROUP_ID.value.format(
+                spec.parity_group_id
+            )
+        response = self.gateway.update_parity_group(spec)
+        self.logger.writeDebug(f"update_parity_group_direct result: {response}")
+        self.connection_info.changed = True
+        return self.get_parity_group(spec.parity_group_id)
+
+    @log_entry_exit
+    def get_all_drives(self):
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            drives = self.gateway.get_all_drives()
+            self.logger.writeDebug(f"get_all_drives result: {drives}")
+            for drive in drives["data"]:
+                if "totalCapacity" in drive:
+                    drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
+                    mb_capacity = convert_to_mb(drive["totalCapacity"])
+                    drive["totalCapacity_mb"] = f"{mb_capacity} MB"
+            return drives
+
+    @log_entry_exit
+    def get_one_drive(self, spec):
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            drive = self.gateway.get_one_drive(spec)
+            self.logger.writeDebug(f"get_one_drive result: {drive}")
+            if "totalCapacity" in drive:
+                drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
+                mb_capacity = convert_to_mb(drive["totalCapacity"])
+                drive["totalCapacity_mb"] = f"{mb_capacity} MB"
+            return drive
+
+    @log_entry_exit
+    def change_drive_setting(self, spec):
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            drive_exits = self.get_one_drive(spec)
+            if drive_exits is None:
+                return VSPParityGroupValidateMsg.NO_DISK_DRIVE_ID.value.format(
+                    spec.drive_location_id
+                )
+            response = self.gateway.change_drive_setting(spec)
+            self.logger.writeDebug(f"change_drive_setting result: {response}")
+            self.connection_info.changed = True
+            drive = self.get_one_drive(spec)
+            if "totalCapacity" in drive:
+                drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
+            return drive

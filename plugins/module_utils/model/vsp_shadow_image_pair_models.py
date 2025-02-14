@@ -81,14 +81,13 @@ class ShadowImagePairSpec:
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():
             setattr(self, field, kwargs.get(field, None))
-        
+
         if kwargs.get("primary_volume_id"):
             self.pvol = kwargs.get("primary_volume_id")
         if kwargs.get("secondary_volume_id"):
             self.svol = kwargs.get("secondary_volume_id")
         if kwargs.get("allocate_new_consistency_group"):
             self.new_consistency_group = kwargs.get("allocate_new_consistency_group")
-        
 
 
 @dataclass

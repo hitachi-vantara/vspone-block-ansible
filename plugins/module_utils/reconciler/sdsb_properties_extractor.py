@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 
 try:
     from ..common.ansible_common import (
@@ -6,22 +6,21 @@ try:
         camel_array_to_snake_case,
         camel_dict_to_snake_case,
         log_entry_exit,
+        get_default_value,
     )
     from ..common.hv_log import Log
-    from ..model.sdsb_volume_models import *
-    from ..model.sdsb_port_models import *
-except:
+except ImportError:
     from common.ansible_common import (
         camel_to_snake_case,
         camel_array_to_snake_case,
         camel_dict_to_snake_case,
         log_entry_exit,
+        get_default_value,
     )
     from common.hv_log import Log
-    from model.sdsb_volume_models import *
-    from model.sdsb_port_models import *
 
 logger = Log()
+
 
 class SDSBBasePropertiesExtractor(ABC):
     def __init__(self):
@@ -44,15 +43,7 @@ class SDSBBasePropertiesExtractor(ABC):
                 if value_type == dict:
                     value = self.change_keys(value)
                 if value is None:
-                    default_value = (
-                        ""
-                        if value_type == str
-                        else (
-                            -1
-                            if value_type == int
-                            else [] if value_type == list else False
-                        )
-                    )
+                    default_value = get_default_value(value_type)
                     value = default_value
                 new_dict[key] = value
         return new_dict
@@ -69,8 +60,10 @@ class SDSBBasePropertiesExtractor(ABC):
                 if value_type == dict:
                     response_key = self.change_keys(response_key)
                 # logger.writeDebug('RC:extract:self.size_properties = {}', self.size_properties)
-                logger.writeDebug('RC:extract:key = {} response_key={}', key, response_key)
-                logger.writeDebug('RC:extract:value_type={}', value_type)
+                logger.writeDebug(
+                    "RC:extract:key = {} response_key={}", key, response_key
+                )
+                logger.writeDebug("RC:extract:value_type={}", value_type)
                 # Assign the value based on the response key and its data type
                 key = camel_to_snake_case(key)
                 if response_key is not None:
@@ -79,18 +72,13 @@ class SDSBBasePropertiesExtractor(ABC):
                         new_dict[new_key] = value_type(response_key)
                     else:
                         new_dict[key] = value_type(response_key)
-                        logger.writeDebug('RC:extract:value_type(response_key)={}', value_type(response_key))
+                        logger.writeDebug(
+                            "RC:extract:value_type(response_key)={}",
+                            value_type(response_key),
+                        )
                 else:
                     # Handle missing keys by assigning default values
-                    default_value = (
-                        ""
-                        if value_type == str
-                        else (
-                            -1
-                            if value_type == int
-                            else [] if value_type == list else False
-                        )
-                    )
+                    default_value = get_default_value(value_type)
                     new_dict[key] = default_value
             new_items.append(new_dict)
         new_items = camel_array_to_snake_case(new_items)
@@ -116,15 +104,7 @@ class SDSBBasePropertiesExtractor(ABC):
                     new_dict[key] = value_type(response_key)
             else:
                 # Handle missing keys by assigning default values
-                default_value = (
-                    ""
-                    if value_type == str
-                    else (
-                        -1
-                        if value_type == int
-                        else [] if value_type == list else False
-                    )
-                )
+                default_value = get_default_value(value_type)
                 new_dict[key] = default_value
         new_dict = camel_dict_to_snake_case(new_dict)
         return new_dict
@@ -149,8 +129,9 @@ class ComputeNodePropertiesExtractor(SDSBBasePropertiesExtractor):
         self.parameter_mapping = {
             "nickname": "name",
             "total_capacity": "total_capacity_mb",
-            "used_capacity" : "used_capacity_mb",
+            "used_capacity": "used_capacity_mb",
         }
+
 
 class ComputePortPropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
@@ -175,6 +156,7 @@ class ComputePortPropertiesExtractor(SDSBBasePropertiesExtractor):
         }
         self.parameter_mapping = {}
 
+
 class PortDetailPropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
         self.common_properties = {
@@ -183,6 +165,7 @@ class PortDetailPropertiesExtractor(SDSBBasePropertiesExtractor):
             "chapUsersInfo": list,
         }
         self.parameter_mapping = {}
+
 
 class VolumeAndComputeNodePropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
@@ -193,8 +176,9 @@ class VolumeAndComputeNodePropertiesExtractor(SDSBBasePropertiesExtractor):
         self.parameter_mapping = {
             "nickname": "name",
             "total_capacity": "total_capacity_mb",
-            "used_capacity" : "used_capacity_mb",
+            "used_capacity": "used_capacity_mb",
         }
+
 
 class ComputeNodeAndVolumePropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
@@ -205,8 +189,9 @@ class ComputeNodeAndVolumePropertiesExtractor(SDSBBasePropertiesExtractor):
         self.parameter_mapping = {
             "nickname": "name",
             "total_capacity": "total_capacity_mb",
-            "used_capacity" : "used_capacity_mb",
+            "used_capacity": "used_capacity_mb",
         }
+
 
 class ChapUserPropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
@@ -217,6 +202,7 @@ class ChapUserPropertiesExtractor(SDSBBasePropertiesExtractor):
         }
         self.parameter_mapping = {}
 
+
 class VolumePropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
         # self.qos_param = {
@@ -225,7 +211,7 @@ class VolumePropertiesExtractor(SDSBBasePropertiesExtractor):
         #             "upper_limit_for_iops": int,
         #             "upper_limit_for_transfer_rate": int
         #         }
-        
+
         self.common_properties = {
             "dataReductionEffects": dict,
             "id": str,
@@ -253,16 +239,15 @@ class VolumePropertiesExtractor(SDSBBasePropertiesExtractor):
             "vpsId": str,
             "vpsName": str,
             "naaId": str,
-            "qosParam" : dict,
+            "qosParam": dict,
             "computeNodesInfo": list,
         }
         # self.size_properties = ("total_capacity", "used_capacity")
         self.size_properties = ()
         self.parameter_mapping = {
             "total_capacity": "total_capacity_mb",
-            "used_capacity" : "used_capacity_mb",
+            "used_capacity": "used_capacity_mb",
             "upper_alert_allowable_time": "upper_alert_allowable_time_in_sec",
-            "upper_limit_for_transfer_rate" : "upper_limit_for_transfer_rate_mb_per_sec",
-            "saving_setting" : "capacity_saving",
+            "upper_limit_for_transfer_rate": "upper_limit_for_transfer_rate_mb_per_sec",
+            "saving_setting": "capacity_saving",
         }
-

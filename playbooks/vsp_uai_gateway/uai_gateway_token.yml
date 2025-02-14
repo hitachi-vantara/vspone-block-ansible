@@ -1,26 +1,26 @@
+---
 ####################################################################
 # Example :  UAIG Token Playbook
 ####################################################################
 - name: UAIG Token
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
 
   tasks:
-####################################################################
-# Task 1 : Get UAI gateway token
-####################################################################
+    ####################################################################
+    # Task 1 : Get UAI gateway token
+    ####################################################################
     - name: Get UAI gateway token
-      hv_uaig_token_fact:
+      hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

@@ -3,14 +3,12 @@ try:
     from ..common.hv_constants import StateValue
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
-    from ..model.sdsb_chap_user_models import *
     from ..message.sdsb_chap_user_msgs import SDSBChapUserValidationMsg
 except ImportError:
     from provisioner.sdsb_chap_user_provisioner import SDSBChapUserProvisioner
     from common.hv_constants import StateValue
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
-    from model.sdsb_chap_user_models import *
     from message.sdsb_chap_user_msgs import SDSBChapUserValidationMsg
 
 logger = Log()
@@ -43,7 +41,7 @@ class SDSBChapUserReconciler:
     def update_sdsb_chap_user(self, chap_user, spec):
         if spec.id is None:
             raise ValueError(SDSBChapUserValidationMsg.UPDATE_REQD_FIELD.value)
-        
+
         if spec.target_chap_user_name == chap_user.targetChapUserName:
             raise ValueError(SDSBChapUserValidationMsg.SAME_TARGET_CHAP_NAME.value)
 
@@ -56,7 +54,7 @@ class SDSBChapUserReconciler:
         self.connection_info.changed = True
         return self.provisioner.update_chap_user(spec)
 
-    @log_entry_exit   
+    @log_entry_exit
     def create_chap_user(self, spec):
         self.connection_info.changed = True
         return self.provisioner.create_chap_user(spec)
@@ -65,12 +63,15 @@ class SDSBChapUserReconciler:
     def create_sdsb_chap_user(self, spec):
         if spec.target_chap_user_name is None or spec.target_chap_secret is None:
             raise ValueError(SDSBChapUserValidationMsg.CREATE_REQD_FIELD.value)
-        
+
         if len(spec.target_chap_secret) < 12 or len(spec.target_chap_secret) > 32:
             raise ValueError(SDSBChapUserValidationMsg.SECRET_LENGTH_ERR.value)
 
         if spec.initiator_chap_user_name and spec.initiator_chap_secret:
-            if len(spec.initiator_chap_secret) < 12 or len(spec.initiator_chap_secret) > 32:
+            if (
+                len(spec.initiator_chap_secret) < 12
+                or len(spec.initiator_chap_secret) > 32
+            ):
                 raise ValueError(SDSBChapUserValidationMsg.SECRET_LENGTH_ERR.value)
 
         chap_user_id = self.create_chap_user(spec)
@@ -78,7 +79,7 @@ class SDSBChapUserReconciler:
             raise Exception("Failed to create CHAP user")
 
         return self.get_chap_user_by_id(chap_user_id)
-        
+
     @log_entry_exit
     def reconcile_chap_user(self, state, spec):
         logger.writeDebug("RC:=== reconcile_CHAP user ===")
@@ -92,15 +93,19 @@ class SDSBChapUserReconciler:
                 # user provided an id of the chap user, so this must be an update
                 chap_user = self.get_chap_user_by_id(spec.id)
                 if chap_user is None:
-                    raise ValueError(SDSBChapUserValidationMsg.INVALID_CHAP_USER_ID.value)
-                else :
+                    raise ValueError(
+                        SDSBChapUserValidationMsg.INVALID_CHAP_USER_ID.value
+                    )
+                else:
                     logger.writeDebug("RC:chap_user={}", chap_user)
                     return self.update_sdsb_chap_user(chap_user, spec)
 
             else:
                 # this could be a create or an update
                 if spec.target_chap_user_name is not None:
-                    logger.writeDebug("RC:=== spec.target_chap_username is not None ===")
+                    logger.writeDebug(
+                        "RC:=== spec.target_chap_username is not None ==="
+                    )
                     cuser = self.get_chap_user_by_name(spec.target_chap_user_name)
 
                     if cuser is not None:
@@ -125,7 +130,11 @@ class SDSBChapUserReconciler:
                 chap_user = self.get_chap_user_by_name(spec.target_chap_user_name)
                 if chap_user is None:
                     self.connection_info.changed = False
-                    raise ValueError(SDSBChapUserValidationMsg.CHAP_USER_NAME_ABSENT.value.format(spec.target_chap_user_name))
+                    raise ValueError(
+                        SDSBChapUserValidationMsg.CHAP_USER_NAME_ABSENT.value.format(
+                            spec.target_chap_user_name
+                        )
+                    )
                 logger.writeDebug("RC:chap_user 2={}", chap_user)
                 chap_user_id = chap_user.id
             else:

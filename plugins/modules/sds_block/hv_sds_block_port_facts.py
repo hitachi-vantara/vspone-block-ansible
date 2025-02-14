@@ -1,18 +1,25 @@
-import json
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2021, [ Hitachi Vantara ]
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = '''
+
+DOCUMENTATION = """
 ---
 module: hv_sds_block_port_facts
 short_description: Retrieves information about Hitachi SDS block storage system compute ports.
 description:
   - This module retrieves information about compute ports.
   - It provides details about a compute port such as ID, lun and other details.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/compute_port_facts.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -39,20 +46,24 @@ options:
         default: 'direct'
   spec:
     description: Specification for retrieving compute port information.
+    type: dict
+    required: false
     suboptions:
       names:
         type: list
         description: A WWN or an iSCSI name.
         required: false
+        elements: str
       nicknames:
         type: list
         description: The names of the compute nodes.
         required: false
-'''
+        elements: str
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 - name: Retrieve information about all compute ports
-  hv_sds_block_port_facts:         
+  hv_sds_block_port_facts:
     connection_info:
       address: vssb.company.com
       username: "admin"
@@ -60,7 +71,7 @@ EXAMPLES = '''
       connection_type: "direct"
 
 - name: Retrieve information about compute ports by compute node name
-  hv_sds_block_port_facts:         
+  hv_sds_block_port_facts:
     connection_info:
       address: vssb.company.com
       username: "admin"
@@ -71,7 +82,7 @@ EXAMPLES = '''
       nicknames: ["000-iSCSI-000"]
 
 - name: Retrieve information about compute ports by names
-  hv_sds_block_port_facts:        
+  hv_sds_block_port_facts:
     connection_info:
       address: vssb.company.com
       username: "admin"
@@ -80,15 +91,14 @@ EXAMPLES = '''
 
     spec:
       names: ["p1-compute-node", "RD-compute-node-111"]
+"""
 
-'''
-
-RETURN = '''
+RETURN = """
 ports:
   description: A list of compute ports.
   returned: always
   type: list
-  elements: dict/list
+  elements: dict
   sample: [
     {
         "chap_users_info": [
@@ -150,7 +160,7 @@ ports:
         }
     }
   ]
-'''
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_port import (
@@ -159,10 +169,15 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconc
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_properties_extractor import (
     PortDetailPropertiesExtractor,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
     SDSBPortArguments,
     SDSBParametersManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 
 logger = Log()
@@ -178,7 +193,6 @@ class SDSBPortFactsManager:
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
-            # can be added mandotary , optional mandatory arguments
         )
 
         parameter_manager = SDSBParametersManager(self.module.params)
@@ -190,7 +204,7 @@ class SDSBPortFactsManager:
     def apply(self):
         ports = None
         ports_data_extracted = None
-
+        registration_message = validate_ansible_product_registration()
         logger.writeInfo(f"{self.connection_info.connection_type} connection type")
         try:
             sdsb_reconciler = SDSBPortReconciler(self.connection_info)
@@ -204,7 +218,12 @@ class SDSBPortFactsManager:
         except Exception as e:
             self.module.fail_json(msg=str(e))
 
-        self.module.exit_json(ports=ports_data_extracted)
+        data = {
+            "ports": ports_data_extracted,
+        }
+        if registration_message:
+            data["user_consent_required"] = registration_message
+        self.module.exit_json(**data)
 
 
 def main(module=None):

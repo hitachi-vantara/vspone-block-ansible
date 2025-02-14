@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from typing import Optional, List
 
 try:
@@ -55,9 +55,11 @@ class VSPPortInfo(SingleBaseClass):
             if "portType" in kwargs.get("portInfo"):
                 self.portType = kwargs.get("portInfo").get("portType")
 
+
 @dataclass
 class VSPPortsInfo(BaseDataClass):
     data: List[VSPPortInfo]
+
 
 @dataclass
 class VSPPortInfoV3(SingleBaseClass):
@@ -70,9 +72,11 @@ class VSPPortInfoV3(SingleBaseClass):
             if "portType" in kwargs.get("portInfo"):
                 self.portType = kwargs.get("portInfo").get("portType")
 
+
 @dataclass
 class VSPPortsInfoV3(BaseDataClass):
     data: List[VSPPortInfoV3]
+
 
 @dataclass
 class VSPIqnInitiatorDirectGw(SingleBaseClass):
@@ -195,11 +199,12 @@ class VSPOneIscsiTargetInfo(BaseDataClass):
 
 
 @dataclass
-class VSPIscsiTargetModificationInfo:
+class VSPIscsiTargetModificationInfo(SingleBaseClass):
     changed: bool = None
     iscsiTarget: VSPIscsiTargetInfo = None
     comments: List[str] = None
     comment: str = None
+    changed: bool = None
 
 
 @dataclass

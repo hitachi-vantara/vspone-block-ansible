@@ -1,18 +1,25 @@
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, asdict
 from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from ..common.ansible_common import dicts_to_dataclass_list
+    from ..model.common_base_models import ConnectionInfo
 
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from common.ansible_common import dicts_to_dataclass_list
+    from model.common_base_models import ConnectionInfo
+
 
 @dataclass
 class TrueCopyFactSpec(SingleBaseClass):
     primary_volume_id: Optional[int] = None
     secondary_volume_id: Optional[int] = None
+    copy_group_name: Optional[str] = None
+    copy_pair_name: Optional[str] = None
+    local_device_group_name: Optional[str] = None
+    remote_device_group_name: Optional[str] = None
+    secondary_connection_info: Optional[ConnectionInfo] = None
+
 
 @dataclass
 class TrueCopyHostGroupSpec:
@@ -24,6 +31,7 @@ class TrueCopyHostGroupSpec:
     def to_dict(self):
         return asdict(self)
 
+
 @dataclass
 class TrueCopySpec(SingleBaseClass):
     primary_volume_id: Optional[int] = None
@@ -33,17 +41,46 @@ class TrueCopySpec(SingleBaseClass):
     secondary_storage_serial_number: Optional[int] = None
     secondary_pool_id: Optional[int] = None
     secondary_hostgroups: Optional[List[TrueCopyHostGroupSpec]] = None
-
-    #Making a single hg
+    secondary_connection_info: Optional[ConnectionInfo] = None
+    secondary_volume_id: Optional[int] = None
+    # Making a single hg
     secondary_hostgroup: Optional[TrueCopyHostGroupSpec] = None
+
+    # These fields are required for the Direcr connection
+    copy_group_name: Optional[str] = None
+    copy_pair_name: Optional[str] = None
+    # replication_type: Optional[str] = None  # we will assign this field to TC
+    # remoteStorageDeviceId: Optional[str] = None # from the secondary_storage_serial_number we will find this
+    # pvolLdevId : primary_volume_id will be assigned to this field
+    # svolLdevId : secondary_volume_id will be assigned to this field
+    is_new_group_creation: Optional[bool] = True
+
+    # Optional fields
+    path_group_id: Optional[int] = None
+    local_device_group_name: Optional[str] = None
+    remote_device_group_name: Optional[str] = None
+    is_consistency_group: Optional[bool] = False
+    copy_pace: Optional[int] = 3  # range 1-15
+    do_initial_copy: Optional[bool] = True
+    is_data_reduction_force_copy: Optional[bool] = False
+    is_svol_readwriteable: Optional[bool] = False
+    new_volume_size: Optional[str] = None
+    begin_secondary_volume_id: Optional[int] = None
+    end_secondary_volume_id: Optional[int] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if "secondary_hostgroup" in kwargs and kwargs.get("secondary_hostgroup") is not None:
-            self.secondary_hostgroups = [TrueCopyHostGroupSpec(**kwargs.get("secondary_hostgroup"))]
+        if (
+            "secondary_hostgroup" in kwargs
+            and kwargs.get("secondary_hostgroup") is not None
+        ):
+            self.secondary_hostgroups = [
+                TrueCopyHostGroupSpec(**kwargs.get("secondary_hostgroup"))
+            ]
+
 
 @dataclass
-class VSPReplicationPairInfo():
+class VSPReplicationPairInfo:
     resourceId: str
     consistencyGroupId: int
     copyPaceTrackSize: int
@@ -58,7 +95,7 @@ class VSPReplicationPairInfo():
     primaryVolumeId: int
     primaryVolumeStorageId: int
     secondaryHexVolumeId: str
-    secondaryVSMResourceGroupName: str  
+    secondaryVSMResourceGroupName: str
     secondaryVirtualStorageId: str
     secondaryVirtualVolumeId: int
     secondaryVolumeId: int
@@ -90,16 +127,18 @@ class VSPReplicationPairInfo():
         self.secondaryVolumeStorageId = kwargs.get("secondaryVolumeStorageId")
         self.status = kwargs.get("status")
         self.svolAccessMode = kwargs.get("svolAccessMode")
-        self.type =  kwargs.get("type")  
+        self.type = kwargs.get("type")
         if "secondaryVirtualHexVolumeId" in kwargs:
             self.secondaryVirtualHexVolumeId = kwargs.get("secondaryVirtualHexVolumeId")
 
     def to_dict(self):
         return asdict(self)
-    
+
+
 @dataclass
 class VSPReplicationPairInfoList(BaseDataClass):
     data: List[VSPReplicationPairInfo]
+
 
 @dataclass
 class VSPTrueCopyPairInfo(SingleBaseClass):
@@ -133,7 +172,9 @@ class VSPTrueCopyPairInfo(SingleBaseClass):
             self.primaryVolumeId = tc_pair_info.get("primaryVolumeId", -1)
             self.primaryVolumeStorageId = tc_pair_info.get("primaryVolumeStorageId", -1)
             self.secondaryVolumeId = tc_pair_info.get("secondaryVolumeId", -1)
-            self.secondaryVolumeStorageId = tc_pair_info.get("secondaryVolumeStorageId", -1)
+            self.secondaryVolumeStorageId = tc_pair_info.get(
+                "secondaryVolumeStorageId", -1
+            )
             self.status = tc_pair_info.get("status", "")
             self.svolAccessMode = tc_pair_info.get("svolAccessMode", "")
 
@@ -141,6 +182,27 @@ class VSPTrueCopyPairInfo(SingleBaseClass):
                 if not getattr(self, field):
                     setattr(self, field, tc_pair_info.get(field, None))
 
+
 @dataclass
 class VSPTrueCopyPairInfoList(BaseDataClass):
+    data: List[VSPTrueCopyPairInfo]
+
+
+@dataclass
+class DirectTrueCopyPairInfo(SingleBaseClass):
+    replicationType: str
+    ldevId: int
+    remoteSerialNumber: str
+    remoteStorageTypeId: str
+    remoteLdevId: int
+    primaryOrSecondary: str
+    muNumber: int
+    status: str
+    serialNumber: str
+    storageTypeId: str
+    isMainframe: bool
+
+
+@dataclass
+class DirectTrueCopyPairInfoList(BaseDataClass):
     data: List[VSPTrueCopyPairInfo]

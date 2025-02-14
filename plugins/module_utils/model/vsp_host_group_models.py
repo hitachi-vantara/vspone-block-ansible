@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from typing import Optional, List
 
 try:
@@ -32,6 +32,7 @@ class HostGroupSpec(SingleBaseClass):
         for field in self.__dataclass_fields__.keys():
             setattr(self, field, kwargs.get(field, None))
         self.delete_all_luns = kwargs.get("should_delete_all_ldevs", None)
+
 
 @dataclass
 class VSPPortResponse:
@@ -95,8 +96,11 @@ class VSPHostGroupInfo(SingleBaseClass):
     wwns: List[VSPWwn] = None
     port: str = None
     resourceGroupId: int = None
+    portId: str = None
+    hostGroupNumber: int = None
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.hostGroupId = kwargs.get("hostGroupId")
         self.hostGroupName = kwargs.get("hostGroupName")
         self.hostMode = kwargs.get("hostMode")
@@ -131,6 +135,7 @@ class VSPModifyHostGroupProvResponse:
     comments: List[str] = None
     comment: str = None
 
+
 @dataclass
 class VSPHostGroupUAIGInfo(SingleBaseClass):
     hostGroupName: str = None
@@ -138,6 +143,7 @@ class VSPHostGroupUAIGInfo(SingleBaseClass):
     resourceGroupId: int = 0
     port: str = None
     hostMode: str = None
+
 
 @dataclass
 class VSPHostGroupUAIG(SingleBaseClass):
@@ -162,7 +168,6 @@ class VSPHostGroupUAIG(SingleBaseClass):
             for field in hg_info:
                 if getattr(self, field) is None:
                     setattr(self, field, hg_info.get(field, None))
-
 
 
 @dataclass

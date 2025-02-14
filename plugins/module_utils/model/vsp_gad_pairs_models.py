@@ -1,15 +1,33 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass, base_dict_converter
+    from ..common.ansible_common import volume_id_to_hex_format
+    from ..model.common_base_models import ConnectionInfo
+
 except ImportError:
-    from common_base_models import BaseDataClass, SingleBaseClass, base_dict_converter
+    from .common_base_models import BaseDataClass, SingleBaseClass, base_dict_converter
+    from common.ansible_common import volume_id_to_hex_format
+    from model.common_base_models import ConnectionInfo
 
 
 @dataclass
 class GADPairFactSpec:
     primary_volume_id: Optional[str] = None
+    secondary_volume_id: Optional[int] = None
+    secondary_storage_serial_number: Optional[str] = None
+    secondary_connection_info: Optional[ConnectionInfo] = None
+    copy_group_name: Optional[str] = None
+    copy_pair_name: Optional[str] = None
+    local_device_group_name: Optional[str] = None
+    remote_device_group_name: Optional[str] = None
+
+    def __post_init__(self, **kwargs):
+        if self.secondary_connection_info:
+            self.secondary_connection_info = ConnectionInfo(
+                **self.secondary_connection_info
+            )
 
 
 @dataclass
@@ -19,6 +37,7 @@ class HostgroupSpec:
     enable_preferred_path: Optional[bool] = None
     port: Optional[str] = None
     resource_group_id: Optional[int] = None
+
 
 @dataclass
 class VspGadPairSpec:
@@ -36,12 +55,47 @@ class VspGadPairSpec:
     quorum_disk_id: Optional[str] = None
     remote_ucp_system: Optional[str] = None
 
+    #  sng1104
+    path_group_id: Optional[int] = None
+    mu_number: Optional[int] = None
+    copy_pace: Optional[str] = None
+    copy_pair_name: Optional[str] = None
+    copy_group_name: Optional[str] = None
+    fence_level: Optional[str] = None
+    do_initial_copy: Optional[bool] = None
+    is_data_reduction_force_copy: Optional[bool] = None
+    is_consistency_group: Optional[bool] = None
+    is_new_group_creation: Optional[bool] = None
+    secondary_storage_connection_info: Optional[ConnectionInfo] = None
+    secondary_connection_info: Optional[ConnectionInfo] = None
+    local_device_group_name: Optional[str] = None
+    remote_device_group_name: Optional[str] = None
+    remote_connection_info: Optional[ConnectionInfo] = None
+    new_volume_size: Optional[str] = None
+    begin_secondary_volume_id: Optional[int] = None
+    end_secondary_volume_id: Optional[int] = None
+    is_svol_readwriteable: Optional[bool] = False
+
     def __post_init__(self, **kwargs):
         if self.primary_hostgroups:
-            self.primary_hostgroups = [HostgroupSpec(**x) for x in self.primary_hostgroups]
+            self.primary_hostgroups = [
+                HostgroupSpec(**x) for x in self.primary_hostgroups
+            ]
         if self.secondary_hostgroups:
-            self.secondary_hostgroups = [HostgroupSpec(**x) for x in self.secondary_hostgroups]
-        
+            self.secondary_hostgroups = [
+                HostgroupSpec(**x) for x in self.secondary_hostgroups
+            ]
+        if self.secondary_storage_connection_info:
+            self.secondary_storage_connection_info = ConnectionInfo(
+                **self.secondary_storage_connection_info
+            )
+        if self.secondary_connection_info:
+            self.secondary_connection_info = ConnectionInfo(
+                **self.secondary_connection_info
+            )
+        if self.remote_connection_info:
+            self.remote_connection_info = ConnectionInfo(**self.remote_connection_info)
+
 
 @dataclass
 class VspGadPairInfo(SingleBaseClass):
@@ -68,10 +122,10 @@ class VspGadPairInfo(SingleBaseClass):
     status: Optional[str] = None
     svolAccessMode: Optional[str] = None
     type: Optional[str] = None
-    entitlementStatus : Optional[str] = None
-    storageId : Optional[str] = None
-    subscriberId : Optional[str] = None
-    partnerId : Optional[str] = None
+    entitlementStatus: Optional[str] = None
+    storageId: Optional[str] = None
+    subscriberId: Optional[str] = None
+    partnerId: Optional[str] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -80,8 +134,12 @@ class VspGadPairInfo(SingleBaseClass):
             for key, value in gadPairInfo.items():
                 # if not hasattr(self, key):
                 setattr(self, key, value)
-                
-    def to_dict(self) :
+            if gadPairInfo.get("secondaryVirtualVolumeId"):
+                self.secondaryVirtualHexVolumeId = volume_id_to_hex_format(
+                    gadPairInfo.get("secondaryVirtualVolumeId")
+                ).upper()
+
+    def to_dict(self):
 
         data = base_dict_converter(self)
         if data.get("storage_id"):
@@ -90,7 +148,30 @@ class VspGadPairInfo(SingleBaseClass):
             data.pop("resourceId", None)
         # data["primary_vsm_resource_group_name"] = data.pop("primary_vsmresource_group_name", None)
         return data
-    
+
+
 @dataclass
 class VspGadPairsInfo(BaseDataClass):
     data: List[VspGadPairInfo] = None
+
+
+#  sng1104
+@dataclass
+class DirectGadPairInfo(SingleBaseClass):
+    replicationType: str
+    ldevId: int
+    remoteSerialNumber: str
+    remoteStorageTypeId: str
+    remoteLdevId: int
+    primaryOrSecondary: str
+    muNumber: int
+    status: str
+    isSSWS: bool
+    createdLocalTime: str
+    quorumDiskId: int
+    suspendedMode: str
+
+
+@dataclass
+class DirectGadPairInfoList(BaseDataClass):
+    data: List[DirectGadPairInfo]

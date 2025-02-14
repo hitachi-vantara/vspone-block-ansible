@@ -1,14 +1,12 @@
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
-    from ..model.sdsb_chap_user_models import *
     from ..common.ansible_common import log_entry_exit
 
 except ImportError:
 
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
-    from model.sdsb_chap_user_models import *
     from common.ansible_common import log_entry_exit
 
 

@@ -1,28 +1,67 @@
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
-    from ..common.ansible_common import log_entry_exit, convert_block_capacity
+    from ..common.hv_log import Log
+    from ..common.ansible_common import (
+        log_entry_exit,
+        convert_block_capacity,
+        convert_to_mb,
+    )
     from ..model.vsp_storage_pool_models import VSPStoragePool, VSPStoragePools
-    from ..common.hv_constants import StateValue, ConnectionTypes
+    from ..common.hv_constants import ConnectionTypes
     from .vsp_parity_group_provisioner import VSPParityGroupProvisioner
     from ..common.uaig_utils import UAIGResourceID
     from ..message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
-
+    from .vsp_volume_prov import VSPVolumeProvisioner
+    from ..model.vsp_volume_models import CreateVolumeSpec
+    from ..common.vsp_constants import StoragePoolLimits
+    from .vsp_resource_group_provisioner import VSPResourceGroupProvisioner
+    from ..model.vsp_resource_group_models import VSPResourceGroupSpec
+    from .vsp_storage_system_provisioner import VSPStorageSystemProvisioner
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
-    from common.ansible_common import log_entry_exit, convert_block_capacity
+    from common.hv_log import Log
+    from common.ansible_common import (
+        log_entry_exit,
+        convert_block_capacity,
+        convert_to_mb,
+    )
     from model.vsp_storage_pool_models import VSPStoragePool, VSPStoragePools
-    from common.hv_constants import StateValue, ConnectionTypes
+    from common.hv_constants import ConnectionTypes
     from .vsp_parity_group_provisioner import VSPParityGroupProvisioner
     from common.uaig_utils import UAIGResourceID
     from message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
-
+    from .vsp_volume_prov import VSPVolumeProvisioner
+    from model.vsp_volume_models import CreateVolumeSpec
+    from common.vsp_constants import StoragePoolLimits
+    from .vsp_resource_group_provisioner import VSPResourceGroupProvisioner
+    from model.vsp_resource_group_models import VSPResourceGroupSpec
+    from .vsp_storage_system_provisioner import VSPStorageSystemProvisioner
 
 
 from enum import Enum
 import math
+
+DEDUP_MODELS = [
+    "VSP G200",
+    "VSP G400",
+    "VSP F400",
+    "VSP G600",
+    "VSP F600",
+    "VSP G800",
+    "VSP F800",
+    "VSP G400 with NAS module",
+    "VSP G600 with NAS module",
+    "VSP G800 with NAS module",
+    "VSP G1000",
+    "VSP G1500",
+    "VSP F1500",
+    "VSP N400",
+    "VSP N600",
+    "VSP N800",
+]
 
 
 class POOL_STATUS(Enum):
@@ -42,11 +81,17 @@ def get_dppool_subscription_rate(volume_used_capacity, total_capacity):
     return math.ceil((volume_used_capacity / total_capacity) * 100.0)
 
 
+logger = Log()
+
+
 class VSPStoragePoolProvisioner:
 
     def __init__(self, connection_info):
         self.gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_STORAGE_POOL
+        )
+        self.vol_gw = GatewayFactory.get_gateway(
+            connection_info, GatewayClassTypes.VSP_VOLUME
         )
         self.connection_info = connection_info
         self.connection_type = connection_info.connection_type
@@ -54,6 +99,11 @@ class VSPStoragePoolProvisioner:
         self.serial = None
         self.pg_info = None
         self.pg_prov = VSPParityGroupProvisioner(connection_info)
+        self.vol_prov = VSPVolumeProvisioner(connection_info)
+        if self.connection_type == ConnectionTypes.DIRECT:
+
+            self.resource_group_prov = VSPResourceGroupProvisioner(connection_info)
+        self.storage_system_prov = VSPStorageSystemProvisioner(connection_info)
 
     def format_storage_pool(self, pool):
 
@@ -80,10 +130,18 @@ class VSPStoragePoolProvisioner:
         storage_pool_dict["freeCapacityInUnits"] = convert_block_capacity(
             storage_pool_dict.get("freeCapacity", -1), 1
         )
+
+        mb_capacity = convert_to_mb(storage_pool_dict["freeCapacityInUnits"])
+        storage_pool_dict["free_capacity_in_mb"] = f"{mb_capacity} MB"
+
         storage_pool_dict["totalCapacity"] = pool.totalPoolCapacity * 1024 * 1024
         storage_pool_dict["totalCapacityInUnit"] = convert_block_capacity(
             storage_pool_dict.get("totalCapacity", -1), 1
         )
+
+        mb_capacity = convert_to_mb(storage_pool_dict["totalCapacityInUnit"])
+        storage_pool_dict["total_capacity_in_mb"] = f"{mb_capacity} MB"
+
         storage_pool_dict["warningThresholdRate"] = pool.warningThreshold
         storage_pool_dict["depletionThresholdRate"] = pool.depletionThreshold
         storage_pool_dict["subscriptionLimitRate"] = pool.virtualVolumeCapacityRate
@@ -102,9 +160,12 @@ class VSPStoragePoolProvisioner:
         pool_query = "poolId={}".format(pool.poolId)
         pool_vol_query = "?" + count_query + "&" + pool_query
         ldevs = self.gateway.get_ldevs(pool_vol_query)
+        resource_grp_id = 0
         for ldev in ldevs.data:
             storage_pool_dict["ldevIds"].append(ldev.ldevId)
-
+            if ldev.resourceGroupId > 0:
+                resource_grp_id = ldev.resourceGroupId
+        storage_pool_dict["resourceGroupId"] = resource_grp_id
         storage_pool_dict["dpVolumes"] = []
         count_query = "count={}".format(16384)
         ldev_option_query = "ldevOption=dpVolume"
@@ -133,10 +194,28 @@ class VSPStoragePoolProvisioner:
 
             pools = VSPStoragePools(data=tmp_storage_pools)
         else:
-            common_object = [
-                VSPStoragePool(**pool.to_dict()) for pool in storage_pools.data
-            ]
-            pools = VSPStoragePools(data=common_object)
+            # common_object = [
+            #     VSPStoragePool(**pool.to_dict()) for pool in storage_pools.data
+            # ]
+            pools = VSPStoragePools(
+                data=[
+                    VSPStoragePool(
+                        **pg.to_dict(),
+                        free_capacity_in_mb=(
+                            f"{convert_to_mb(pg.freeCapacityInUnits)} MB"
+                            if pg.freeCapacityInUnits
+                            else "0"
+                        ),
+                        total_capacity_in_mb=(
+                            f"{convert_to_mb(pg.totalCapacityInUnit)} MB"
+                            if pg.totalCapacityInUnit
+                            else "0"
+                        ),
+                    )
+                    for pg in storage_pools.data
+                ]
+            )
+            # pools = VSPStoragePools(data=common_object)
         for pool in pools.data:
             self.add_encryption_info(pool)
 
@@ -147,13 +226,30 @@ class VSPStoragePoolProvisioner:
         if not pool.ldevIds or len(pool.ldevIds) < 0:
             return
         first_ldev = pool.ldevIds[0]
-        if self.pg_info is None:
-            self.pg_info = self.pg_prov.get_all_parity_groups()
-        for pg in self.pg_info.data:
-            if first_ldev in pg.ldevIds:
-                pool.isEncrypted = pg.isEncryptionEnabled
-                break
-        pool.isEncrypted = False
+        logger.writeDebug(f"189 first_ldev {first_ldev}")
+
+        # sng20241206 add_encryption_info for pool
+        # get the volume
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            volume = self.vol_gw.get_volume_by_id(first_ldev)
+            if len(volume.parityGroupIds) <= 0:
+                logger.writeDebug(f"189 volume {volume}")
+                return
+            pg_info = self.pg_prov.get_parity_group(volume.parityGroupIds[0])
+            logger.writeDebug(f"189 pg_info {pg_info.isEncryptionEnabled}")
+            pool.isEncrypted = pg_info.isEncryptionEnabled
+            return
+
+        else:
+            return
+        # if self.pg_info is None:
+        #     self.pg_info = self.pg_prov.get_all_parity_groups()
+        # for pg in self.pg_info.data:
+        #     if first_ldev in pg.ldevIds:
+        #         ## sng20241206 here pg.isEncryptionEnabled is None, hence this block is not working
+        #         pool.isEncrypted = pg.isEncryptionEnabled
+        #         break
+        # pool.isEncrypted = False
 
     @log_entry_exit
     def get_storage_pool(self, pool_fact_spec=None):
@@ -164,21 +260,103 @@ class VSPStoragePoolProvisioner:
 
     @log_entry_exit
     def create_storage_pool(self, pool_spec):
+        logger = Log()
 
         if pool_spec.name is None or pool_spec.name == "":
-            raise ValueError(VSPStoragePoolValidateMsg.POOL_NAME_REQUIRED.value)
+            err_msg = VSPStoragePoolValidateMsg.POOL_NAME_REQUIRED.value
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
         if pool_spec.type is None or pool_spec.type == "":
-            raise ValueError(VSPStoragePoolValidateMsg.POOL_TYPE_REQUIRED.value)
+            err_msg = VSPStoragePoolValidateMsg.POOL_TYPE_REQUIRED.value
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
         if pool_spec.pool_volumes is None:
-            raise ValueError(VSPStoragePoolValidateMsg.POOL_VOLUME_REQUIRED.value)
+            err_msg = VSPStoragePoolValidateMsg.POOL_VOLUME_REQUIRED.value
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
         pool_spec.type = pool_spec.type.upper()
-        pool_id = self.gateway.create_storage_mt_pool(pool_spec)
+
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            if pool_spec.should_enable_deduplication:
+                storage_system = (
+                    self.storage_system_prov.get_current_storage_system_info()
+                )
+
+                if storage_system.model.strip().upper() not in DEDUP_MODELS:
+                    err_msg = (
+                        VSPStoragePoolValidateMsg.DEDUPLICATION_NOT_SUPPORTED.value
+                    )
+                    logger.writeError(err_msg)
+                    raise ValueError(err_msg)
+                else:
+                    dup_ldev = self.vol_prov.get_free_ldev_from_meta()
+                    if dup_ldev is None:
+                        err_msg = VSPStoragePoolValidateMsg.NO_DUP_VOLUMES.value
+                        logger.writeError(err_msg)
+                        raise ValueError(err_msg)
+                    pool_spec.duplication_ldev_ids = [dup_ldev]
+            pool_spec.pool_id = self.get_free_pool_id()
+            # handle the case to create a volume in the parity group id
+            pool_spec.ldev_ids = self.create_ldev_for_pool(pool_spec)
+        try:
+            pool_id = self.gateway.create_storage_pool(pool_spec)
+
+        except Exception as e:
+            logger.writeException(e)
+            try:
+                if pool_spec.ldev_ids:
+                    for ldev_id in pool_spec.ldev_ids:
+                        self.vol_prov.delete_volume(ldev_id, False)
+            except Exception as ex:
+                logger.writeDebug(f"exception in initializing create_storage_pool {ex}")
+            raise e
         self.connection_info.changed = True
-        return self.get_storage_pool_by_resource_id(pool_id)
+        return self.get_storage_pool_by_id(pool_id)
+
+    @log_entry_exit
+    def get_free_pool_id(self):
+        pools = self.gateway.get_all_storage_pools()
+        pool_ids = [pool.poolId for pool in pools.data]
+        pool_ids.sort()
+        for i in range(1, StoragePoolLimits.MAX_POOL_ID + 1):
+            if i not in pool_ids:
+                return i
+        err_msg = VSPStoragePoolValidateMsg.POOL_ID_EXHAUSTED.value
+        logger.writeError(err_msg)
+        raise ValueError(err_msg)
+
+    @log_entry_exit
+    def create_ldev_for_pool(self, pool_spec):
+        volumes_ids = []
+        for vol in pool_spec.pool_volumes:
+            capacity = vol.capacity.upper()[0:-1]
+            vol_spec = CreateVolumeSpec(size=capacity, parity_group=vol.parity_group_id)
+            vol_id = self.vol_prov.create_volume(vol_spec)
+            volumes_ids.append(vol_id)
+        if pool_spec.resource_group_id is not None and pool_spec.resource_group_id > 0:
+            rg_spec = VSPResourceGroupSpec(ldevs=volumes_ids)
+            unused = self.resource_group_prov.add_resource(
+                pool_spec.resource_group_id, rg_spec
+            )
+        return volumes_ids
 
     @log_entry_exit
     def get_storage_pool_by_name_or_id(self, pool_name=None, id=None):
         storage_pools = self.get_all_storage_pools()
+        for pool in storage_pools.data:
+            logger.writeDebug(f"pool check{pool}")
+            logger.writeDebug(f"pool check{pool_name} {id}")
+            if (
+                (pool_name and pool.name and pool.name == pool_name)
+                or (id is not None and pool.poolId == id)
+                or (id is not None and pool.resourceId == id)
+            ):
+                return pool
+        return None
+
+    @log_entry_exit
+    def get_storage_pool_by_name_or_id_only(self, pool_name=None, id=None):
+        storage_pools = self.gateway.get_all_storage_pools()
         for pool in storage_pools.data:
             if (pool_name and pool.name == pool_name) or (
                 id is not None and pool.poolId == id
@@ -215,25 +393,26 @@ class VSPStoragePoolProvisioner:
             else pool.resourceId
         )
         if spec.pool_volumes is not None and len(spec.pool_volumes) > 0:
-            _ = self.gateway.update_storage_pool(resource_id, spec)
-        else:
-            return pool
-        pool = self.get_storage_pool_by_resource_id(resource_id)
-        self.connection_info.changed = True
+            if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+                spec.ldev_ids = self.create_ldev_for_pool(spec)
+            unused = self.gateway.update_storage_pool(resource_id, spec)
+            self.connection_info.changed = True
+        pool = self.get_storage_pool_by_id(resource_id)
         return pool
 
     @log_entry_exit
     def delete_storage_pool(self, spec):
-        pool = self.get_storage_pool_by_name_or_id(spec.name, spec.id)
+        pool = self.get_storage_pool_by_name_or_id_only(spec.name, spec.id)
         if pool is None:
-            raise ValueError(VSPStoragePoolValidateMsg.POOL_DOES_NOT_EXIST.value)
+            return VSPStoragePoolValidateMsg.POOL_DOES_NOT_EXIST.value
         resource_id = (
             pool.poolId
             if self.connection_type == ConnectionTypes.DIRECT
             else pool.resourceId
         )
-        self.connection_info.subscriber_id = pool.subscriberId
-        _ = self.gateway.delete_storage_pool(resource_id)
+        if self.connection_type == ConnectionTypes.GATEWAY:
+            self.connection_info.subscriber_id = pool.subscriberId
+        unused = self.gateway.delete_storage_pool(resource_id)
         self.connection_info.changed = True
         return "Storage pool deleted successfully."
 
@@ -242,13 +421,16 @@ class VSPStoragePoolProvisioner:
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
             return serial
         if not self.gateway.check_storage_in_ucpsystem(serial):
-            raise ValueError(
-                "UCP system is not available. Please try again or provide the correct serial number."
+            err_msg = VSPStoragePoolValidateMsg.UCP_SYSTEM_NOT_AVAILABLE.value.format(
+                serial
             )
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
         else:
             self.serial = serial
             self.resource_id = UAIGResourceID().storage_resourceId(self.serial)
             self.gateway.resource_id = self.resource_id
             self.pg_prov.resource_id = self.resource_id
             self.pg_prov.gateway.resource_id = self.resource_id
+            self.vol_gw.set_serial(self.serial)
             return serial

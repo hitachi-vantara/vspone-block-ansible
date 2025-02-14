@@ -1,15 +1,13 @@
+---
 ####################################################################
 # Example :  Storage Port  Playbook
 ####################################################################
 - name: Storage Port Module
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_direct_variables.yml
 
   vars:
     # Common connection info for all tasks
@@ -19,34 +17,36 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-####################################################################
-# Task 1 : Change storage port security settings using port id
-####################################################################
+    ####################################################################
+    # Task 1 : Change storage port security settings using port id
+    ####################################################################
     - name: Change storage port security settings using port id
-      hv_storage_port:
+      hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          port: "{{ storage_port_port_1 }}"
-          enable_port_security: "{{ storage_port_enable_port_security_1 }}"
+          port: "CL8-B"
+          enable_port_security: true
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Change storage port mode settings using port id
-####################################################################    
+    ####################################################################
+    # Task 2 : Change storage port mode settings using port id
+    ####################################################################
     - name: Change storage port mode settings using port id
-      hv_storage_port:
+      hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          port: "{{ storage_port_port_2 }}"
-          port_mode: "{{ storage_port_port_mode_2 }}"
+          port: "CL8-B"
+          port_mode: "FC-NVMe"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

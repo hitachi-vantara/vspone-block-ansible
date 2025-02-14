@@ -1,15 +1,31 @@
-import json
-
 try:
     from ..common.sdsb_constants import SDSBlockEndpoints
     from ..common.ansible_common import dicts_to_dataclass_list
-    from ..model.sdsb_storage_system_models import *
+    from ..model.sdsb_storage_system_models import (
+        SDSBPfrestStorageClusterInfo,
+        SDSBPfrestHealthStatus,
+        SDSBPfrestDriveList,
+        SDSBPfrestDrive,
+        SDSBPfrestPortList,
+        SDSBPfrestPort,
+        SDSBPfrestPoolList,
+        SDSBPfrestPool,
+    )
     from .gateway_manager import SDSBConnectionManager
     from ..common.ansible_common import log_entry_exit
 except ImportError:
     from common.sdsb_constants import SDSBlockEndpoints
     from common.ansible_common import dicts_to_dataclass_list
-    from model.sdsb_storage_system_models import *
+    from model.sdsb_storage_system_models import (
+        SDSBPfrestStorageClusterInfo,
+        SDSBPfrestHealthStatus,
+        SDSBPfrestDriveList,
+        SDSBPfrestDrive,
+        SDSBPfrestPortList,
+        SDSBPfrestPort,
+        SDSBPfrestPoolList,
+        SDSBPfrestPool,
+    )
     from .gateway_manager import SDSBConnectionManager
     from common.ansible_common import log_entry_exit
 
@@ -24,7 +40,6 @@ class SDSBStorageSystemDirectGateway:
     @log_entry_exit
     def sdsb_get_storage_cluster_info(self):
         endPoint = SDSBlockEndpoints.GET_STORAGE_CLUSTER
-        print(endPoint)
         storage_cluster_info = self.connection_manager.get(endPoint)
         return SDSBPfrestStorageClusterInfo(**storage_cluster_info)
 
@@ -32,14 +47,12 @@ class SDSBStorageSystemDirectGateway:
     def sdsb_get_health_status(self):
         # logger = Log()
         endPoint = SDSBlockEndpoints.GET_HEALTH_STATUS
-        print(endPoint)
         health_status = self.connection_manager.get(endPoint)
         return SDSBPfrestHealthStatus(**health_status)
 
     @log_entry_exit
     def sdsb_get_drives_info(self):
         endPoint = SDSBlockEndpoints.GET_DRIVES
-        print(endPoint)
         drives = self.connection_manager.get(endPoint)
         return SDSBPfrestDriveList(
             dicts_to_dataclass_list(drives["data"], SDSBPfrestDrive)
@@ -48,7 +61,6 @@ class SDSBStorageSystemDirectGateway:
     @log_entry_exit
     def sdsb_get_ports(self):
         endPoint = SDSBlockEndpoints.GET_PORTS
-        print(endPoint)
         ports = self.connection_manager.get(endPoint)
         return SDSBPfrestPortList(
             dicts_to_dataclass_list(ports["data"], SDSBPfrestPort)
@@ -57,7 +69,6 @@ class SDSBStorageSystemDirectGateway:
     @log_entry_exit
     def sdsb_get_pools(self):
         endPoint = SDSBlockEndpoints.GET_POOLS
-        print(endPoint)
         pools = self.connection_manager.get(endPoint)
         return SDSBPfrestPoolList(
             dicts_to_dataclass_list(pools["data"], SDSBPfrestPool)

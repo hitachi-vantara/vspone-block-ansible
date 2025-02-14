@@ -1,13 +1,11 @@
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
-    from ..model.sdsb_chap_user_models import *
     from ..common.ansible_common import log_entry_exit
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
-    from model.sdsb_chap_user_models import *
     from common.ansible_common import log_entry_exit
 
 
@@ -26,7 +24,7 @@ class SDSBPortAuthProvisioner:
             return port_data.data[0]
         else:
             return None
-    
+
     @log_entry_exit
     def get_port_auth_settings(self, port_id):
         return self.gateway.get_port_auth_settings(port_id)
@@ -41,8 +39,12 @@ class SDSBPortAuthProvisioner:
 
     @log_entry_exit
     def remove_chap_user_access_from_port(self, port_id, chap_user_id):
-            self.gateway.remove_chap_user_access_from_port(port_id, chap_user_id)
+        self.gateway.remove_chap_user_access_from_port(port_id, chap_user_id)
 
     @log_entry_exit
-    def update_port_auth_settings(self, port_id, auth_mode, is_discovery_chap_auth, is_mutual_chap_auth):
-        return self.gateway.update_port_auth_settings(port_id, auth_mode, is_discovery_chap_auth, is_mutual_chap_auth)
+    def update_port_auth_settings(
+        self, port_id, auth_mode, is_discovery_chap_auth, is_mutual_chap_auth
+    ):
+        return self.gateway.update_port_auth_settings(
+            port_id, auth_mode, is_discovery_chap_auth, is_mutual_chap_auth
+        )

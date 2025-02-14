@@ -1,15 +1,13 @@
+---
 ####################################################################
 # Example : LDEV  Playbook
 ####################################################################
 - name: Logical Device Module
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_direct_variables.yml
 
   vars:
     # Common connection info for all tasks
@@ -19,185 +17,331 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-####################################################################
-# Task 1 : Create ldev
-####################################################################
+    ####################################################################
+    # Task 1 : Create ldev
+    ####################################################################
     - name: Create ldev
-      hv_ldev:
+      hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present"
         spec:
-          ldev_id: "{{ ldev_ldev_id_1 }}"
-          pool_id: "{{ ldev_pool_id_1 }}"
-          size: "{{ ldev_size_1 }}"
-          name: "{{ ldev_name_1 }}"
+          ldev_id: 345
+          pool_id: 15
+          size: "1GB"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Create ldev with free id and present to NVM System
-####################################################################
+    ####################################################################
+    # Task 2 : Create ldev with free id and present to NVM System
+    ####################################################################
     - name: Create ldev with free id and present to NVM System
-      hv_ldev:
+      hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present"
         spec:
-          pool_id: "{{ ldev_pool_id_2 }}"
-          size: "{{ ldev_size_2 }}"
-          name: "{{ ldev_name_2 }}"
-          capacity_saving: "{{ ldev_capacity_saving_2 }}"
-          data_reduction_share: "{{ ldev_data_reduction_share_2 }}"
-          state: "{{ substate_add_host_nqn }}"
-          nvm_subsystem_name: "{{ ldev_nvm_subsystem_name_2 }}"
-          host_nqns: "{{ ldev_host_nqns_2 }}"
+          pool_id: 1
+          size: "10GB"
+          name: "rd_nvme_vol_01"
+          capacity_saving: "compression_deduplication"
+          data_reduction_share: true
+          state: "add_host_nqn"
+          nvm_subsystem_name: "rd_nvm_tcp_01"
+          host_nqns:
+            - "nqn.2014-08.com.vmware:nvme:esxi-59-60"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 3 : Present existing volume to NVM System
-####################################################################
+    ####################################################################
+    # Task 3 : Present existing volume to NVM System
+    ####################################################################
     - name: Present existing volume to NVM System
-      hv_ldev:
+      hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present"
         spec:
-          ldev_id: "{{ ldev_ldev_id_3 }}"
-          state: "{{ substate_add_host_nqn }}"
-          nvm_subsystem_name: "{{ ldev_nvm_subsystem_name_3 }}"
-          host_nqns: "{{ ldev_host_nqns_3 }}"
+          ldev_id: 164
+          state: "add_host_nqn"
+          nvm_subsystem_name: "rd_nvm_tcp_01"
+          host_nqns:
+            - "nqn.2014-08.com.vmware:nvme:esxi-59-60"
+            - "nqn.2014-08.com.vmware:nvme:esxi-59-61"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 4 : Expand size of ldev
-####################################################################
+    ####################################################################
+    # Task 4 : Expand size of ldev
+    ####################################################################
     - name: Expand size of ldev
-      hv_ldev:
+      hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present"
         spec:
-          ldev_id: "{{ ldev_ldev_id_4 }}"
-          size: "{{ ldev_size_4 }}"
+          ldev_id: 345
+          size: "8GB"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 5 : Delete ldev just created
-####################################################################
-    - name: Delete ldev just created
-      hv_ldev:
-        connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
-        state: "{{ state_absent }}"
-        spec:
-          ldev_id: "{{ ldev_ldev_id_5 }}"
-      register: result
-
-    - debug:
-        var: result
-
-#########################################################################
-# Task 6 : Create ldev using parity group and auto free ldev id selection
-#########################################################################
+    #########################################################################
+    # Task 5 : Create ldev using parity group and auto free ldev id selection
+    #########################################################################
     - name: Create ldev using parity group and auto free ldev id selection
-      hv_ldev:
+      hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present"
         spec:
-          parity_group: "{{ ldev_parity_group_6 }}"
-          size: "{{ ldev_size_6 }}"
-          name: "{{ ldev_name_6 }}"
+          parity_group: "1-1"
+          size: "10GB"
+          name: "database_volume2"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-###########################################################################
-# Task 7 : Create ldev with capacity saving and data_reduction_share
-###########################################################################
+    ###########################################################################
+    # Task 6 : Create ldev with capacity saving and data_reduction_share
+    ###########################################################################
     - name: Create ldev with capacity saving and data_reduction_share
-      hv_ldev:
+      hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present"
         spec:
-          pool_id: "{{ ldev_pool_id_7 }}"
-          size: "{{ ldev_size_7 }}"
-          capacity_saving: "{{ ldev_capacity_saving_7 }}"
-          data_reduction_share: "{{ ldev_data_reduction_share_7 }}"
+          pool_id: 15
+          size: "1GB"
+          capacity_saving: "compression_deduplication"
+          data_reduction_share: true
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-###########################################################################
-# Task 8 : Remove host nqns from existing volume of NVM System
-###########################################################################
+    ###########################################################################
+    # Task 7 : Remove host nqns from existing volume of NVM System
+    ###########################################################################
     - name: Remove host nqns from existing volume of NVM System
-      hv_ldev:
+      hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present"
         spec:
-          ldev_id: "{{ ldev_ldev_id_8 }}"
-          state: "{{ substate_remove_host_nqn }}"
-          nvm_subsystem_name: "{{ ldev_nvm_subsystem_name_8 }}"
-          host_nqns: "{{ ldev_host_nqns_8 }}"
+          ldev_id: 164
+          state: "remove_host_nqn"
+          nvm_subsystem_name: "demo-25-aub-nvme-tcp"
+          host_nqns:
+            - "nqn.2014-08.com.ucpa-sc-hv:nvme:scpodl-esxi202"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-###########################################################################
-# Task 9 : Delete ldev
-###########################################################################
+    ###########################################################################
+    # Task 8 : Delete ldev
+    ###########################################################################
     - name: Delete ldev
-      hv_ldev:
+      hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "absent"
         spec:
-          ldev_id: "{{ ldev_ldev_id_9 }}"
+          ldev_id: 345
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-#########################################################################################################
-# Task 10 : Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
-#########################################################################################################
+    #########################################################################################################
+    # Task 9 : Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
+    #########################################################################################################
     - name: Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
-      hv_ldev:
+      hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_absent }}"
+        state: "absent"
         spec:
-          ldev_id: "{{ ldev_ldev_id_10 }}"
+          ldev_id: 345
           force: true
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task 10 : Shredding a existing volume
+    #########################################################################################################
+    - name: The following request shreds an LDEV (basic volume) or DP volume. Overwrite the volume three times with dummy data
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "present"
+        spec:
+          ldev_id: 345
+          should_shred_volume_enable: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task 11 : Shredding a existing volume before deleting
+    #########################################################################################################
+    - name: The following request shreds an LDEV (basic volume) or DP volume. Overwrite the volume three times with dummy data before delete
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "absent"
+        spec:
+          ldev_id: 345
+          should_shred_volume_enable: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task 12 : Configuring QoS settings for a  existing volume
+    #########################################################################################################
+    - name: It configures the QoS settings for a specified volume.
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "present"
+        spec:
+          ldev_id: 345
+          qos_settings:
+            upper_iops: 500 # 100 to 2147483647
+            lower_iops: 300 # 10 to 2147483647
+            upper_transfer_rate: 600 # 1 to 2097151
+            lower_transfer_rate: 300 # 1 to 2097151
+            upper_alert_allowable_time: 600 # 1 to 600
+            lower_alert_allowable_time: 500 # 1 to 600
+            response_priority: 2 # 1 to 3
+            response_alert_allowable_time: 400 # 1 to 600
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task 13 : Configuring QoS settings for a  new volume
+    #########################################################################################################
+    - name: It configures the QoS settings for a new volume.
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "present"
+        spec:
+          pool_id: 10
+          size: "1GB"
+          qos_settings:
+            upper_iops: 500 # 100 to 2147483647
+            lower_iops: 300 # 10 to 2147483647
+            upper_transfer_rate: 600 # 1 to 2097151
+            lower_transfer_rate: 300 # 1 to 2097151
+            upper_alert_allowable_time: 600 # 1 to 600
+            lower_alert_allowable_time: 500 # 1 to 600
+            response_priority: 2 # 1 to 3
+            response_alert_allowable_time: 400 # 1 to 600
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task 14 : Create new volume with tiering policy
+    #########################################################################################################
+    - name: It configures the tiering policy for a new volume.
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "present"
+        spec:
+          pool_id: 10
+          size: "10GB"
+          is_relocation_enabled: true
+          tier_level_for_new_page_allocation: "Low"
+          tiering_policy:
+            tier_level: 22  # (0-5) built-in, 6-31 (custom policy)
+            tier1_allocation_rate_min: 20 # 1 to 100
+            tier1_allocation_rate_max: 40 # 1 to 100
+            tier3_allocation_rate_min: 10 # 1 to 100
+            tier3_allocation_rate_max: 40 # 1 to 100
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task 15 : Create new volume with virtual ldev
+    #########################################################################################################
+    - name: It configures the virtual ldev for a new volume.
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "present"
+        spec:
+          pool_id: 11
+          size: "10GB"
+          vldev_id: 12
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task 16 : Update volume with virtual ldev
+    #########################################################################################################
+    - name: It configures the virtual ldev for a volume.
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "present"
+        spec:
+          ldev_id: 11
+          vldev_id: 10
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

@@ -3,57 +3,71 @@
 # Copyright: (c) 2021, [ Hitachi Vantara ]
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-ANSIBLE_METADATA = {
-    "metadata_version": "1.1",
-    "supported_by": "certified",
-    "status": ["stableinterface"],
-}
 DOCUMENTATION = """
 ---
 module: hv_system_facts
 short_description: Retrieves system information from Hitachi VSP storage systems.
 description:
   - This module retrieves the system information from Hitachi VSP storage systems.
+  - This module is supported only for gateway connection type.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/system_facts.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   connection_info:
-    description: Information required to establish a connection to the storage system.
+    description:
+      - Information required to establish a connection to the storage system.
     type: dict
     required: true
     suboptions:
       address:
-        description: IP address or hostname of the UAI gateway.
+        description:
+          - IP address or hostname of the UAI gateway.
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description:
+          - Username for authentication.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description:
+          - Password for authentication.
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system.
+        description:
+          - Type of connection to the storage system.
         type: str
-        required: true
-        choices: ['gateway']
+        required: false
+        choices:
+          - gateway
+        default: gateway
       api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description:
+          - Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        type: str
+        required: false
+      subscriber_id:
+        description:
+          - This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
   spec:
-    description: Special options for the module.
+    description:
+      - Special options for the module.
     type: dict
     required: false
     suboptions:
       refresh:
-        description: Force a refresh of the system information.
+        description:
+          - Force a refresh of the system information.
         type: bool
         required: false
         default: false
@@ -70,7 +84,6 @@ EXAMPLES = """
           password: "{{management_key}}"
       register: result
     - debug: var=result
-
 """
 
 RETURN = """
@@ -79,7 +92,7 @@ storages:
   returned: always
   type: list
   elements: dict
-  sample: 
+  sample:
     - address: "196.168.0.126"
       entitlement_status: "assigned"
       gateway_address: "196.168.0.50"
@@ -92,100 +105,101 @@ storages:
       serial_number: "715036"
 """
 
-import json
 import ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ucp_facts_runner as runner
 from ansible.module_utils.basic import AnsibleModule
 
-try:
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_logger import (
-        MessageID,
-    )
+# from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+#     Log,
+# )
+# from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
+#     HiException,
+# )
 
-    HAS_MESSAGE_ID = True
-except ImportError as error:
-    HAS_MESSAGE_ID = False
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
-)
+# ANSIBLE_METADATA = {
+#     "metadata_version": "1.1",
+#     "supported_by": "certified",
+#     "status": ["stableinterface"],
+# }
 
+# try:
+#     from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_messages import (
+#         MessageID,
+#     )
 
-logger = Log()
+#     HAS_MESSAGE_ID = True
+# except ImportError:
+#     HAS_MESSAGE_ID = False
 
 
 def main(module=None):
-    logger.writeDebug("Main")
+    # logger = Log()
+    # logger.writeInfo("=== Start of System Facts ===")
+    # logger.writeDebug("Main")
     fields = {
-        "serial_number": {"required": False, "type": "str"},
-        "model": {"required": False, "type": "str"},
-        "name": {"required": False, "type": "str"},
-        "management_address": {"required": False, "type": "str"},
-        "management_username": {"required": False, "type": "str"},
-        "management_key": {"required": False, "type": "str"},
         "spec": {
-            "required": False, "type": "dict",
+            "required": False,
+            "type": "dict",
             "options": {
                 "refresh": {"required": False, "type": "bool", "default": False},
-            },},
+            },
+        },
         "connection_info": {
             "required": True,
             "type": "dict",
-            "description": "Information for establishing the connection.",
             "options": {
                 "address": {
                     "required": True,
                     "type": "str",
-                    "description": "The management address of the storage system.",
                 },
                 "username": {
                     "required": False,
                     "type": "str",
-                    "description": "The username for authentication.",
                 },
                 "password": {
                     "required": False,
                     "type": "str",
-                    "description": "The password or authentication key.",
+                    "no_log": True,
                 },
                 "api_token": {
                     "required": False,
                     "type": "str",
-                    "description": "The api token for the connection.",
+                    "no_log": True,
                 },
                 "subscriber_id": {
                     "required": False,
                     "type": "str",
-                    "description": "The subscriber ID.",
                 },
                 "connection_type": {
                     "required": False,
                     "type": "str",
-                    "description": "The type of connection.",
-                    "choices": ["gateway", "direct"],
-                    "default": "direct",
+                    "choices": ["gateway"],
+                    "default": "gateway",
                 },
             },
         },
     }
 
     if module is None:
-        module = AnsibleModule(argument_spec=fields)
+        module = AnsibleModule(argument_spec=fields, supports_check_mode=True)
 
     try:
         runner.runPlaybook(module)
-    except HiException as ex:
-        if HAS_MESSAGE_ID:
-            logger.writeAMException(MessageID.ERR_OPERATION_HOSTGROUP)
-        else:
-            logger.writeAMException("0X0000")
-        # module.fail_json(msg=ex.format())
-        module.fail_json(msg=ex)
+    # except HiException as ex:
+    # if HAS_MESSAGE_ID:
+    #     logger.writeAMException(MessageID.ERR_OPERATION_HOSTGROUP)
+    # else:
+    #     logger.writeAMException("0X0000")
+    # module.fail_json(msg=ex.format())
+    # logger.writeException(ex)
+    # logger.writeInfo("=== End of System Facts ===")
+    # module.fail_json(msg=ex)
     except Exception as ex:
-        if HAS_MESSAGE_ID:
-            logger.writeAMException(MessageID.ERR_OPERATION_HOSTGROUP)
-        else:
-            logger.writeAMException("0X0000")
+        # if HAS_MESSAGE_ID:
+        #     logger.writeAMException(MessageID.ERR_OPERATION_HOSTGROUP)
+        # else:
+        #     logger.writeAMException("0X0000")
         # module.fail_json(msg=ex.format())
+        # logger.writeInfo("=== End of System Facts ===")
         module.fail_json(msg=str(ex))
 
 

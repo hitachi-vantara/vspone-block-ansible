@@ -1,110 +1,138 @@
+---
 ####################################################################
 # Example :  TrueCopy Playbook
 ####################################################################
 - name: TrueCopy Module
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_uai_gateway_variables.yml
 
   tasks:
-####################################################################
-# Task 0 : Get UAI gateway token
-####################################################################
+    ####################################################################
+    # Task 0 : Get UAI gateway token
+    ####################################################################
     - name: Get UAI gateway token
-      hv_uaig_token_fact:
+      hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
-      ignore_errors: False
+      ignore_errors: false
 
-####################################################################
-# Task 1 : Create TrueCopy
-####################################################################
+    ####################################################################
+    # Task 1 : Create TrueCopy
+    ####################################################################
     - name: Create TrueCopy
-      hv_truecopy:
+      hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: present
         spec:
-          primary_volume_id: "{{ truecopy_primary_volume_id_1 }}"
-          consistency_group_id: "{{ truecopy_consistency_group_id_1 }}"
-          fence_level: "{{ truecopy_fence_level_1 }}"
-          allocate_new_consistency_group: "{{ truecopy_allocate_new_consistency_group_1 }}"
-          secondary_storage_serial_number: "{{ truecopy_secondary_storage_serial_number_1 }}"
-          secondary_pool_id: "{{ truecopy_secondary_pool_id_1 }}"
-          secondary_hostgroup:  "{{ truecopy_secondary_hostgroup_1 }}"
+          primary_volume_id: 3555
+          consistency_group_id: -1
+          fence_level: NEVER
+          allocate_new_consistency_group: false
+          secondary_storage_serial_number: 800011
+          secondary_pool_id: 4
+          secondary_hostgroup:
+            name: remote-hostgroup-1
+            port: CL1-A
+          begin_secondary_volume_id: 124
+          end_secondary_volume_id: 129
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Resync TrueCopy
-####################################################################
+    ####################################################################
+    # Task 2 : Resync TrueCopy
+    ####################################################################
     - name: Resync TrueCopy
-      hv_truecopy:
+      hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_sync }}"
+        state: resync
         spec:
-          primary_volume_id: "{{ truecopy_primary_volume_id_2 }}"
+          primary_volume_id: 3555
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 3 : Split TrueCopy
-####################################################################
+    ####################################################################
+    # Task 3 : Split TrueCopy
+    ####################################################################
     - name: Split TrueCopy
-      hv_truecopy:
+      hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_split }}"
+        state: split
         spec:
-          primary_volume_id: "{{ truecopy_primary_volume_id_3 }}"
+          primary_volume_id: 3555
+          is_svol_readwriteable: true
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 4 : Delete TrueCopy
-####################################################################
+    ####################################################################
+    # Task 4 : Delete TrueCopy
+    ####################################################################
     - name: Delete TrueCopy
-      hv_truecopy:
+      hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_absent }}"
+        state: absent
         spec:
-          primary_volume_id: "{{ truecopy_primary_volume_id_4 }}"
+          primary_volume_id: 3555
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task 5 : Resize TrueCopy pair
+    ######################################################################
+    - name: Resize TrueCopy pair
+      hitachivantara.vspone_block.vsp.hv_truecopy:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: resize
+        spec:
+          primary_volume_id: 3555
+          new_volume_size: 10GB
+          secondary_storage_serial_number: 810045
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

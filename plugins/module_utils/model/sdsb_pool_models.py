@@ -1,9 +1,11 @@
 from dataclasses import dataclass, asdict
-from typing import Optional, List
+from typing import List
+
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
 except ImportError:
     from common_base_models import BaseDataClass, SingleBaseClass
+
 
 @dataclass
 class CapacityManageInfo:
@@ -12,6 +14,7 @@ class CapacityManageInfo:
     thresholdWarning: int
     thresholdDepletion: int
     thresholdStorageControllerDepletion: int
+
 
 @dataclass
 class SavingEffectsInfo:
@@ -27,13 +30,16 @@ class SavingEffectsInfo:
     calculationStartTime: str
     calculationEndTime: str
 
+
 @dataclass
 class RebuildCapacityResourceSettingInfo:
     numberOfTolerableDriveFailures: int
 
+
 @dataclass
 class RebuildableResourcesInfo:
     numberOfDrives: int
+
 
 @dataclass
 class SDSBPoolInfo(SingleBaseClass):
@@ -80,12 +86,11 @@ class SDSBPoolInfo(SingleBaseClass):
     #     if "capacityManage" in kwargs:
     #         self.capacityManage = CapacityManageInfo(**kwargs.get("capacityManage"))
     #     if "savingEffects" in kwargs:
-    #         self.savingEffects = SavingEffectsInfo(**kwargs.get("savingEffects"))    
+    #         self.savingEffects = SavingEffectsInfo(**kwargs.get("savingEffects"))
     #     if "rebuildCapacityResourceSetting" in kwargs:
-    #         self.rebuildCapacityResourceSetting = RebuildCapacityResourceSettingInfo(**kwargs.get("rebuildCapacityResourceSetting"))  
+    #         self.rebuildCapacityResourceSetting = RebuildCapacityResourceSettingInfo(**kwargs.get("rebuildCapacityResourceSetting"))
     #     if "rebuildableResources" in kwargs:
-    #         self.rebuildableResources = RebuildCapacityResourceSettingInfo(**kwargs.get("rebuildableResources"))  
-
+    #         self.rebuildableResources = RebuildCapacityResourceSettingInfo(**kwargs.get("rebuildableResources"))
 
 
 @dataclass

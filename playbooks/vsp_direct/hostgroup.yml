@@ -1,15 +1,13 @@
+---
 ####################################################################
 # Example : Hostgroup Playbook
 ####################################################################
 - name: Hostgroup Module
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_direct_variables.yml
 
   vars:
     # Common connection info for all tasks
@@ -19,156 +17,170 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-####################################################################
-# Task 1 : Create hostgroup
-####################################################################
+    ####################################################################
+    # Task 1 : Create hostgroup
+    ####################################################################
     - name: Create hostgroup
-      hv_hg:
+      hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present"
         spec:
-          name: "{{ hostgroup_name_1 }}"
-          port: "{{ hostgroup_port_1 }}"
-          host_mode: "{{ hostgroup_host_mode_1 }}"
-          host_mode_options: "{{ hostgroup_host_mode_options_1 }}"
-          ldevs: "{{ hostgroup_ldevs_1 }}"
-          wwns: "{{ hostgroup_wwns_1 }}"
+          name: "hostgroup-server1"
+          port: "CL1-C"
+          host_mode: "VMWARE_EXTENSION"
+          host_mode_options: [54, 63]
+          ldevs: [100, 200]
+          wwns:
+            - "9876543210ABCDE0"
+            - "9876543210ABCDE1"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Update host mode and host mode options
-####################################################################
+    ####################################################################
+    # Task 2 : Update host mode and host mode options
+    ####################################################################
     - name: Update host mode and host mode options
-      hv_hg:
+      hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present"
         spec:
-          state: "{{ substate_set_host_mode_and_hmo }}"
-          name: "{{ hostgroup_name_2 }}"
-          port: "{{ hostgroup_port_2 }}"
-          host_mode: "{{ hostgroup_host_mode_2 }}"
-          host_mode_options: "{{ hostgroup_host_mode_options_2 }}"
+          state: "set_host_mode_and_hmo"
+          name: "hostgroup-server1"
+          port: "CL1-C"
+          host_mode: "LINUX"
+          host_mode_options: [13]
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 3 : Remove host mode options
-####################################################################
+    ####################################################################
+    # Task 3 : Remove host mode options
+    ####################################################################
     - name: Remove host mode options
-      hv_hg:
+      hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present "
         spec:
-          state: "{{ substate_absent }}"
-          name: "{{ hostgroup_name_3 }}"
-          port: "{{ hostgroup_port_3 }}"
-          host_mode_options: "{{ hostgroup_host_mode_options_3 }}"
+          state: "absent"
+          name: "hostgroup-server1"
+          port: "CL1-C"
+          host_mode_options: [13]
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 4 : Add wwns to hostgroup
-####################################################################
+    ####################################################################
+    # Task 4 : Add wwns to hostgroup
+    ####################################################################
     - name: Add wwns to hostgroup
-      hv_hg:
+      hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present "
         spec:
-          state: "{{ substate_add_wwn }}"
-          name: "{{ hostgroup_name_4 }}"
-          port: "{{ hostgroup_port_4 }}"
-          wwns: "{{ hostgroup_wwns_4 }}"
+          state: "add_wwn"
+          name: "hostgroup-server1"
+          port: "CL1-C"
+          wwns:
+            - "9876543210ABCDE0"
+            - "9876543210ABCDE1"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 5 : Remove wwns from hostgroup
-####################################################################
+    ####################################################################
+    # Task 5 : Remove wwns from hostgroup
+    ####################################################################
     - name: Remove wwns from hostgroup
-      hv_hg:
+      hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present "
         spec:
-          state: "{{ substate_remove_wwn }}"
-          name: "{{ hostgroup_name_5 }}"
-          port: "{{ hostgroup_port_5 }}"
-          wwns: "{{ hostgroup_wwns_5 }}"
+          state: "remove_wwn"
+          name: "hostgroup-server1"
+          port: "CL1-C"
+          wwns:
+            - "9876543210ABCDE0"
+            - "9876543210ABCDE1"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 6 : Present ldevs to hostgroup
-####################################################################
+    ####################################################################
+    # Task 6 : Present ldevs to hostgroup
+    ####################################################################
     - name: Present ldevs to hostgroup
-      hv_hg:
+      hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present "
         spec:
-          state: "{{ substate_present_ldev }}"
-          name: "{{ hostgroup_name_6 }}"
-          port: "{{ hostgroup_port_6 }}"
-          ldevs: "{{ hostgroup_ldevs_6 }}"
+          state: "present_ldev"
+          name: "hostgroup-server1"
+          port: "CL1-C"
+          ldevs: [300, 400]
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 7 : Unpresent ldevs from hostgroup
-####################################################################
+    ####################################################################
+    # Task 7 : Unpresent ldevs from hostgroup
+    ####################################################################
     - name: Unpresent ldevs from hostgroup
-      hv_hg:
+      hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_present }}"
+        state: "present "
         spec:
-          state: "{{ substate_unpresent_ldev }}"
-          name: "{{ hostgroup_name_7 }}"
-          port: "{{ hostgroup_port_7 }}"
-          ldevs: "{{ hostgroup_ldevs_7 }}"
+          state: "unpresent_ldev"
+          name: "hostgroup-server1"
+          port: "CL1-C"
+          ldevs: [300, 400]
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 8 : Delete hostgroup
-####################################################################
+    ####################################################################
+    # Task 8 : Delete hostgroup
+    ####################################################################
     - name: Delete hostgroup
-      hv_hg:
+      hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_absent }}"
+        state: "absent"
         spec:
-          name: "{{ hostgroup_name_8 }}"
-          port: "{{ hostgroup_port_8 }}"
-          should_delete_all_ldevs: "{{ hostgroup_should_delete_all_ldevs_8 }}"
+          name: "hostgroup-server1"
+          port: "CL1-C"
+          should_delete_all_ldevs: true
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

@@ -1,14 +1,20 @@
-from typing import List
-
 try:
     from ..provisioner.vsp_storage_system_provisioner import VSPStorageSystemProvisioner
-    from ..common.ansible_common import log_entry_exit
-    from ..model.vsp_storage_system_models import *
+    from ..common.ansible_common import log_entry_exit, get_default_value
+    from ..model.vsp_storage_system_models import (
+        VSPSyslogConfig,
+        VSPDeviceLimits,
+        VSPNormalizedFreeLun,
+    )
     from ..common.ansible_common import camel_to_snake_case
 except ImportError:
     from provisioner.vsp_storage_system_provisioner import VSPStorageSystemProvisioner
-    from common.ansible_common import log_entry_exit
-    from model.vsp_storage_system_models import *
+    from common.ansible_common import log_entry_exit, get_default_value
+    from model.vsp_storage_system_models import (
+        VSPSyslogConfig,
+        VSPDeviceLimits,
+        VSPNormalizedFreeLun,
+    )
     from common.ansible_common import camel_to_snake_case
 
 
@@ -90,14 +96,6 @@ class VSPStorageSystemCommonPropertiesExtractor:
                     "freeLogicalUnitList",
                 ]
                 if key not in query_keys:
-                    default_value = (
-                        ""
-                        if value_type == str
-                        else (
-                            -1
-                            if value_type == int
-                            else [] if value_type == list else False
-                        )
-                    )
+                    default_value = get_default_value(value_type)
                     new_dict[cased_key] = default_value
         return new_dict

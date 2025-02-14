@@ -1,28 +1,39 @@
-from enum import Enum
-
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
-    from ..model.vsp_storage_system_models import *
+    from ..common.hv_log import Log
+    from ..model.vsp_storage_system_models import (
+        VSPPrimaryAndSecondarySyslogServer,
+        VSPStorageSystemInfo,
+        TotalCapacitiesPfrest,
+    )
     from ..common.ansible_common import log_entry_exit, convert_block_capacity
     from ..model.common_base_models import VSPCommonInfo
     from ..common.vsp_constants import set_basic_storage_details
-    from ..common.hv_constants import StateValue, ConnectionTypes
+    from ..common.hv_constants import ConnectionTypes
     from ..common.uaig_utils import UAIGResourceID
     from ..common.uaig_constants import UAIGStorageHealthStatus
+    from ..message.common_msgs import CommonMessage
 
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
-    from model.vsp_storage_system_models import *
+    from common.hv_log import Log
+    from model.vsp_storage_system_models import (
+        VSPPrimaryAndSecondarySyslogServer,
+        VSPStorageSystemInfo,
+        TotalCapacitiesPfrest,
+    )
     from common.ansible_common import log_entry_exit, convert_block_capacity
     from model.common_base_models import VSPCommonInfo
     from common.vsp_constants import set_basic_storage_details
-    from common.hv_constants import StateValue, ConnectionTypes
+    from common.hv_constants import ConnectionTypes
     from common.uaig_utils import UAIGResourceID
     from common.uaig_constants import UAIGStorageHealthStatus
+    from message.common_msgs import CommonMessage
 
+logger = Log()
 
 
 class VSPStorageSystemProvisioner:
@@ -380,13 +391,18 @@ class VSPStorageSystemProvisioner:
                 except Exception as err:
                     # Some storage models do not support capacity feature.
                     # So set value of total and free capacities to invalid values.
-                    API_MSG = "The API is not supported for the specified storage system"
-                    if (isinstance(err.args[0], str) and API_MSG in err.args[0])   or  err.args[0].get("code") == 404:
+                    API_MSG = (
+                        "The API is not supported for the specified storage system"
+                    )
+                    if (
+                        isinstance(err.args[0], str) and API_MSG in err.args[0]
+                    ) or err.args[0].get("code") == 404:
                         tmp_storage_info["total_capacity"] = ""
                         tmp_storage_info["free_capacity"] = ""
                         tmp_storage_info["total_capacity_in_mb"] = -1
                         tmp_storage_info["free_capacity_in_mb"] = -1
                     else:
+                        logger.writeException(err)
                         raise  # Retrow the exception
                 # Get syslog servers
                 tmp_storage_info["syslog_config"] = self.get_syslog_servers()
@@ -452,18 +468,19 @@ class VSPStorageSystemProvisioner:
 
                 return VSPStorageSystemInfo(**tmp_storage_info)
 
-        raise ValueError(
-            "Not found storage system for the given serial number {}.".format(
-                serial_number
-            )
-        )
+        err_msg = CommonMessage.SERIAL_NUMBER_NOT_FOUND.value.format(serial_number)
+        logger.writeError(err_msg)
+        raise ValueError(err_msg)
 
     @log_entry_exit
     def get_storage_ucp_system(self, serial):
         systems = self.gateway.get_ucp_systems()
         for system in systems.data:
             for storage in system.storageDevices:
-                if storage.serialNumber == serial and (storage.healthStatus == UAIGStorageHealthStatus.NORMAL or storage.healthStatus == UAIGStorageHealthStatus.REFRESHING):
+                if storage.serialNumber == serial and (
+                    storage.healthStatus == UAIGStorageHealthStatus.NORMAL
+                    or storage.healthStatus == UAIGStorageHealthStatus.REFRESHING
+                ):
                     return storage
         return None
 
@@ -472,9 +489,9 @@ class VSPStorageSystemProvisioner:
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
             return serial, ""
         if not self.gateway.check_storage_in_ucpsystem(serial):
-            raise ValueError(
-                "UCP system is not available. Please try again or provide the correct serial number."
-            )
+            err_msg = CommonMessage.SERIAL_NUMBER_NOT_FOUND.value.format(serial)
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
         else:
             self.serial = serial
             self.resource_id = UAIGResourceID().storage_resourceId(self.serial)

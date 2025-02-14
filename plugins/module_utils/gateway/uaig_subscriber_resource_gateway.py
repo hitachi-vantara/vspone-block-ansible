@@ -1,36 +1,36 @@
 try:
     from ..common.uaig_constants import Endpoints
-    from ..common.ansible_common import dicts_to_dataclass_list
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from ..common.hv_constants import CommonConstants
-    from ..model.uaig_subscriber_models import *
-    from ..common.hv_log import Log
     from .gateway_manager import UAIGConnectionManager
 except ImportError:
     from common.uaig_constants import Endpoints
-    from common.ansible_common import dicts_to_dataclass_list
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from common.hv_constants import CommonConstants
-    from common.hv_log import Log
-    from model.uaig_subscriber_models import *
     from .gateway_manager import UAIGConnectionManager
 
 logger = Log()
 
-class SubscriberResourceUAIGateway:
 
+class SubscriberResourceUAIGateway:
 
     def __init__(self, connection_info):
 
         self.connectionManager = UAIGConnectionManager(
-            connection_info.address, connection_info.username, connection_info.password, connection_info.api_token)
+            connection_info.address,
+            connection_info.username,
+            connection_info.password,
+            connection_info.api_token,
+        )
 
     @log_entry_exit
     def get_subscriber_resource_facts(self, subscriber_id):
 
-        end_point = Endpoints.GET_SUBSCRIBER_RESOURCES.format(CommonConstants.PARTNER_ID, subscriber_id)
+        end_point = Endpoints.GET_SUBSCRIBER_RESOURCES.format(
+            CommonConstants.PARTNER_ID, subscriber_id
+        )
         data = self.connectionManager.get(end_point)
 
         logger.writeDebug("Response={}", data)
@@ -43,5 +43,4 @@ class SubscriberResourceUAIGateway:
         data = self.connectionManager.get(end_point)
 
         logger.writeDebug("Response={}", data)
-        return data["data"]   
-    
+        return data["data"]

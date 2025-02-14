@@ -1,61 +1,78 @@
+---
 ####################################################################
 # Example :  TrueCopy Facts Playbook
 ####################################################################
 - name: TrueCopy Facts
   hosts: localhost
-  collections:
-    - hitachivantara.vspone_block.vsp
   gather_facts: false
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_uai_gateway_variables.yml
-  
+
   tasks:
-####################################################################
-# Task 0 : Get UAI gateway token
-####################################################################
+    ####################################################################
+    # Task 0 : Get UAI gateway token
+    ####################################################################
     - name: Get UAI gateway token
-      hv_uaig_token_fact:
+      hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
-      ignore_errors: False
+      ignore_errors: false
 
-####################################################################
-# Task 1 : Get all TrueCopy pairs
-####################################################################
-    - name : Get all TrueCopy pairs 
-      hv_truecopy_facts:
+    ####################################################################
+    # Task 1 : Get all TrueCopy pairs
+    ####################################################################
+    - name: Get all TrueCopy pairs
+      hitachivantara.vspone_block.vsp.hv_truecopy_facts:
         storage_system_info:
-          serial: '{{ storage_serial }}'        
+          serial: "{{ storage_serial }}"
         connection_info:
-          address: "{{uai_gateway_address}}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          connection_type: "{{connection_type}}"
-          subscriber_id: '{{ subscriber_id | default(omit) }}'
+          connection_type: "{{ connection_type }}"
       register: result
 
-    - debug: 
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Get TrueCopy pair by primary volume ID
-####################################################################
-    - name : Get TrueCopy pair by primary volume ID
-      hv_truecopy_facts:
+    ####################################################################
+    # Task 2 : Get TrueCopy pair by primary volume ID
+    ####################################################################
+    - name: Get TrueCopy pair by primary volume ID
+      hitachivantara.vspone_block.vsp.hv_truecopy_facts:
         storage_system_info:
-          serial: '{{ storage_serial }}' 
+          serial: "{{ storage_serial }}"
         connection_info:
-          address: "{{uai_gateway_address}}"
+          address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          connection_type: "{{connection_type}}"
-          subscriber_id: '{{ subscriber_id | default(omit) }}'
+          connection_type: "{{ connection_type }}"
         spec:
-          primary_volume_id: "{{ truecopy_facts_primary_volume_id_2 }}"
+          primary_volume_id: 123
       register: result
 
-    - debug: 
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 3 : Get TrueCopy pair by secondary volume ID
+    ####################################################################
+    - name: Get TrueCopy pair by secondary volume ID
+      hitachivantara.vspone_block.vsp.hv_truecopy_facts:
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        connection_info:
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+          connection_type: "{{ connection_type }}"
+        spec:
+          secondary_volume_id: 456
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

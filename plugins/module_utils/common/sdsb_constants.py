@@ -53,7 +53,9 @@ class SDSBlockEndpoints(object):
     PATCH_PORT_AUTH_SETTINGS = "v1/objects/port-auth-settings/{}"
     GET_PORT_AUTH_SETTINGS_CHAP_USERS = "v1/objects/port-auth-settings/{}/chap-users"
     POST_PORT_AUTH_SETTINGS_CHAP_USERS = "v1/objects/port-auth-settings/{}/chap-users"
-    DELETE_PORT_AUTH_SETTINGS_CHAP_USERS = "v1/objects/port-auth-settings/{}/chap-users/{}"
+    DELETE_PORT_AUTH_SETTINGS_CHAP_USERS = (
+        "v1/objects/port-auth-settings/{}/chap-users/{}"
+    )
     GET_JOBS = "v1/objects/jobs/{}"
     GET_STORAGE_NODES_AND_QUERY = "v1/objects/storage-nodes?protectionDomainId={}"
     GET_DRIVES = "v1/objects/drives"
