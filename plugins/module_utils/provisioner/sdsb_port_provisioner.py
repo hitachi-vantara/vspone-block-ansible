@@ -1,13 +1,13 @@
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
-    from ..model.sdsb_port_models import *
+    from ..model.sdsb_port_models import SDSBComputePortsInfo
     from ..common.ansible_common import log_entry_exit
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
-    from model.sdsb_port_models import *
+    from model.sdsb_port_models import SDSBComputePortsInfo
     from common.ansible_common import log_entry_exit
 
 
@@ -39,22 +39,22 @@ class SDSBPortProvisioner:
             result = self.apply_filter_names(result, spec.names)
         if spec.nicknames:
             result = self.apply_filter_nicknames(result, spec.nicknames)
-        
+
         return result
 
     @log_entry_exit
     def apply_filter_names(self, ports, filter):
-        ret_val= []
+        ret_val = []
         for n in filter:
             for x in ports:
                 if x.name == n:
                     ret_val.append(x)
 
         return ret_val
-    
+
     @log_entry_exit
     def apply_filter_nicknames(self, ports, filter):
-        ret_val= []
+        ret_val = []
         for n in filter:
             for x in ports:
                 if x.nickname == n:

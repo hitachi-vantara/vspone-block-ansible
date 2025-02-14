@@ -1,5 +1,5 @@
-
 TARGET_SUB_DIRECTORY = "ansible_collections/hitachivantara/vspone_block"
+
 
 class Http(object):
     GET = "GET"
@@ -41,21 +41,24 @@ class StateValue:
     RESTORE = "restore"
     UPDATE = "update"
     RE_SYNC = "resync"
+    RESIZE = "resize"
     CLONE = "clone"
     SWAP_RESYNC = "swap_resync"
     SWAP_SPLIT = "swap_split"
+    EXPAND_JOURNAL_VOLUME = "expand_journal_volume"
+    SHRINK_JOURNAL_VOLUME = "shrink_journal_volume"
 
 
 class CommonConstants:
-    #UCP_NAME = 'ucp-ansible-test'
-    UCP_NAME_PREFIX = 'REMOTE_STORAGE_SYSTEM_'
-    UCP_NAME = 'Storage_System'
-    UCP_SERIAL_PREFIX = 'UCP-CI-'
-    UCP_SERIAL = 'UCP-CI-202404'
-    UCP_REMOTE_SERIAL = 'UCP-CI-881734'
-    PARTNER_ID = 'apiadmin'
-    SUBSCRIBER_ID = '12345'
-    ONBOARDING = 'ONBOARDING'
+    # UCP_NAME = 'ucp-ansible-test'
+    UCP_NAME_PREFIX = "REMOTE_STORAGE_SYSTEM_"
+    UCP_NAME = "Storage_System"
+    UCP_SERIAL_PREFIX = "UCP-CI-"
+    UCP_SERIAL = "UCP-CI-202404"
+    UCP_REMOTE_SERIAL = "UCP-CI-881734"
+    PARTNER_ID = "apiadmin"
+    SUBSCRIBER_ID = "12345"
+    ONBOARDING = "ONBOARDING"
     NORMAL = "NORMAL"
 
 
@@ -72,12 +75,21 @@ class GatewayClassTypes:
     VSP_STORAGE_SYSTEM = "vsp_storage_system"
     VSP_ISCSI_TARGET = "vsp_iscsi_target"
     VSP_STORAGE_POOL = "vsp_storage_pool"
+    VSP_JOURNAL_VOLUME = "vsp_journal_volume"
     VSP_PARITY_GROUP = "vsp_parity_group"
     VSP_TRUE_COPY = "vsp_true_copy"
     VSP_HUR = "vsp_hur"
     VSP_VOL_TIER = "vsp_vol_tier"
     VSP_GAD_PAIR = "vsp_gad_pair"
     VSP_NVME_SUBSYSTEM = "vsp_one_nvme_subsystem"
+    VSP_RESOURCE_GROUP = "vsp_resource_group"
+    VSP_COPY_GROUPS = "vsp_copy_groups"
+    VSP_REMOTE_COPY_GROUPS = (
+        "vsp_remote_copy_groups"  # TODO: sng1104 use VSP_COPY_GROUPS
+    )
+    VSP_CMD_DEV = "vsp_cmd_dev"
+    VSP_RG_LOCK = "vsp_rg_lock"
+    VSP_CONFIG_MAP = "vsp_config_map"
 
     SDSB_CHAP_USER = "sdsb_chap_user"
     SDSB_COMPUTE_NODE = "sdsb_compute_node"
@@ -94,7 +106,7 @@ class GatewayClassTypes:
     STORAGE_PORT = "storage_port"
     VSP_STORAGE_POOL = "vsp_storage_pool"
     VSP_UNSUBSCRIBE = "vsp_unsubscribe"
-
+    VSP_REMOTE_STORAGE_REGISTRATION = "vsp_remote_storage_registration"
 
 
 class VSPHostGroupConstant:
@@ -124,6 +136,7 @@ class VSPIscsiTargetConstant:
     STATE_ADD_CHAP_USER = "add_chap_user"
     STATE_REMOVE_CHAP_USER = "remove_chap_user"
 
+
 class GatewayConstant:
     ADMIN_USER_NAME = "admin"
 
@@ -131,3 +144,25 @@ class GatewayConstant:
 class HEADER_NAME_CONSTANT:
     PARTNER_ID = "partnerId"
     SUBSCRIBER_ID = "subscriberId"
+
+
+class PoolType:
+    HDT = "HDT"
+    HDP = "HDP"
+    HTI = "HTI"
+    HRT = "HRT"
+    RT = "RT"
+
+
+# add to be ignored api end points details like which we not need to get the telemetry data
+# Like below example , for UAIG add the api end points which don't have storage id in the url
+IGNORED_APIS = [
+    "sessions",
+    "auth",
+    "login",
+    "logout",
+    "porcelain/v2/systems",
+    "jobs",
+    "tasks",
+    "common/config/property/outofband",
+]

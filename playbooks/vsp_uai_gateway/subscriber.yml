@@ -1,84 +1,85 @@
+---
 ####################################################################
 # Example :  Subscriber Playbook
 ####################################################################
 - name: Subscriber Module
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
-    - vsp_uai_gateway_variables.yml
 
   tasks:
-####################################################################
-# Task 0 : Get UAI gateway token
-####################################################################
+    ####################################################################
+    # Task 0 : Get UAI gateway token
+    ####################################################################
     - name: Get UAI gateway token
-      hv_uaig_token_fact:
+      hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
-      ignore_errors: False
+      ignore_errors: false
 
-####################################################################
-# Task 1 : Create subscriber
-####################################################################      
+    ####################################################################
+    # Task 1 : Create subscriber
+    ####################################################################
     - name: Create subscriber
-      hv_gateway_subscriber:
+      hitachivantara.vspone_block.vsp.hv_gateway_subscriber:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-        state: "{{ state_present }}"
+        state: present
         spec:
-          subscriber_id: "{{ subscriber_subscriber_id_1 }}"
-          name: "{{ subscriber_name_1 }}"
-          soft_limit: "{{ subscriber_soft_limit_1 }}"
-          hard_limit: "{{ subscriber_hard_limit_1 }}"
-          quota_limit: "{{ subscriber_quota_limit_1 }}"
+          subscriber_id: 2345
+          name: subscriber_001
+          soft_limit: 65
+          hard_limit: 75
+          quota_limit: 700
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Update subscriber
-####################################################################
+    ####################################################################
+    # Task 2 : Update subscriber
+    ####################################################################
     - name: Update subscriber
-      hv_gateway_subscriber:
+      hitachivantara.vspone_block.vsp.hv_gateway_subscriber:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-        state: "{{ state_present }}"
+        state: present
         spec:
-          subscriber_id: "{{ subscriber_subscriber_id_2 }}"
-          name: "{{ subscriber_name_2 }}"
-          soft_limit: "{{ subscriber_soft_limit_2 }}"
-          hard_limit: "{{ subscriber_hard_limit_2 }}"
-          quota_limit: "{{ subscriber_quota_limit_2 }}"
+          subscriber_id: 2345
+          name: subscriber_001
+          soft_limit: 68
+          hard_limit: 78
+          quota_limit: 750
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 3 : Delete subscriber
-####################################################################
+    ####################################################################
+    # Task 3 : Delete subscriber
+    ####################################################################
     - name: Delete subscriber
-      hv_gateway_subscriber:
+      hitachivantara.vspone_block.vsp.hv_gateway_subscriber:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-        state: "{{ state_absent }}"
+        state: absent
         spec:
-          subscriber_id: "{{ subscriber_subscriber_id_3 }}"
+          subscriber_id: 2345
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

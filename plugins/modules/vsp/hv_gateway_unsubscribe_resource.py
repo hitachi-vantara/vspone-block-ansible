@@ -1,17 +1,24 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2021, [ Hitachi Vantara ]
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
 from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: hv_gateway_unsubscribe_resource
 short_description: Manages un-subscription of resources for a subscriber on Hitachi VSP storage systems.
 description:
   - This module unsubscribes different resources for a subscriber.
+  - This module is supported only for gateway connection type.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/unsubscribe_resource.yml)
 version_added: '3.1.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.1.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -25,14 +32,15 @@ options:
       connection_type:
         description: Type of connection to the storage system.
         type: str
-        required: true
-        choices: ['gateway']
+        required: false
+        choices: ['gateway', 'direct']
+        default: 'gateway'
       subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
+        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description: Token value to access UAI gateway.
         type: str
         required: false
   storage_system_info:
@@ -53,11 +61,21 @@ options:
       resources:
         description: Resources information that to be unsubscribed.
         type: list
-        required: true 
-'''
+        required: true
+        elements: dict
+        suboptions:
+          type:
+            description: Type of the resource.
+            type: str
+            required: true
+          values:
+            description: List of values for the resource.
+            type: list
+            required: true
+            elements: str
+"""
 
-EXAMPLES = '''
-
+EXAMPLES = """
 - name: Try to unsubscribe listed resources
   hv_gateway_subscription_facts:
     connection_info:
@@ -65,18 +83,18 @@ EXAMPLES = '''
       api_token: "eyJhbGciOiJS......"
       connection_type: "gateway"
       subscriber_id: "1234"
-
     spec:
       resources:
         - type: "hostgroup"
           values: ["test-001", "test-005"]
-        - type : "volume"
-            values : ["5015", "5016"]
-        - type : "port"
-            values : ["CL5-A", "CL1-A"]
-'''
+        - type: "volume"
+          values: ["5015", "5016"]
+        - type: "port"
+          values: ["CL5-A", "CL1-A"]
+"""
 
-RETURN = '''
+
+RETURN = """
 data:
   description: List of failure and success tasks for the un-subscription try.
   returned: success
@@ -102,9 +120,8 @@ data:
             "Found shadowimage with ID localpair-6764f2c78f8f53a1766ad716a65206f7. "
         ]
   ]
-'''
+"""
 from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPUnsubscriberArguments,
     VSPParametersManager,
@@ -115,27 +132,32 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_unsubscriber import (
     VSPUnsubscriberReconciler,
 )
-
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-
-
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log_decorator import (
     LogDecorator,
 )
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
+    ModuleMessage,
+)
 
-logger = Log()
+
 @LogDecorator.debug_methods
 class UnsubscriberManager:
 
     def __init__(self):
-        try:
-            self.argument_spec = VSPUnsubscriberArguments().unsubscribe()
+        self.logger = Log()
+        self.argument_spec = VSPUnsubscriberArguments().unsubscribe()
 
-            self.module = AnsibleModule(
-                argument_spec=self.argument_spec,
-                supports_check_mode=True,
-                # can be added mandotary , optional mandatory arguments
-            )
+        self.module = AnsibleModule(
+            argument_spec=self.argument_spec,
+            supports_check_mode=True,
+        )
+        try:
 
             self.params_manager = VSPParametersManager(self.module.params)
             self.connection_info = self.params_manager.connection_info
@@ -144,49 +166,52 @@ class UnsubscriberManager:
             self.state = self.params_manager.get_state()
 
         except Exception as e:
-            logger.writeException(e)
+            self.logger.writeException(e)
             self.module.fail_json(msg=str(e))
 
     def apply(self):
+        self.logger.writeInfo("=== Start of Gateway Unsubscribe operation ===")
+        registration_message = validate_ansible_product_registration()
         data = None
-        logger.writeDebug(
-            f"Spec = {self.spec}"
-        )
-        logger.writeDebug("state = {}", self.state)
+        self.logger.writeDebug(f"Spec = {self.spec}")
+        self.logger.writeDebug("state = {}", self.state)
         try:
 
             err, data = self.unsubscribe_module()
 
         except Exception as e:
+            self.logger.writeError(str(e))
+            self.logger.writeInfo("=== End of Gateway Unsubscribe operation ===")
             self.module.fail_json(msg=str(e))
 
         resp = {
-                "changed": self.connection_info.changed,
-                "info": data, 
-                "error" : err,
-                "msg": "Un-subscription tasks completed.",
-            }
+            "changed": self.connection_info.changed,
+            "info": data,
+            "error": err,
+            "msg": "Un-subscription tasks completed.",
+        }
+        if registration_message:
+            resp["user_consent_required"] = registration_message
+
+        self.logger.writeInfo(f"{resp}")
+        self.logger.writeInfo("=== End of Gateway Unsubscribe operation ===")
         self.module.exit_json(**resp)
 
     def unsubscribe_module(self):
- 
+
         reconciler = VSPUnsubscriberReconciler(
-            self.connection_info,
-            self.storage_serial_number,
-            self.state
+            self.connection_info, self.storage_serial_number, self.state
         )
         if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
             found = reconciler.check_storage_in_ucpsystem()
             if not found:
-                self.module.fail_json(
-                    "The storage system is still onboarding or refreshing, Please try after sometime"
-                )
+                raise ValueError(ModuleMessage.STORAGE_SYSTEM_ONBOARDING.value)
 
         result = reconciler.unsubscribe(self.spec)
         return result
 
 
-def main():
+def main(module=None):
     obj_store = UnsubscriberManager()
     obj_store.apply()
 

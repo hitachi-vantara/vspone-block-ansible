@@ -1,23 +1,32 @@
-import json
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2021, [ Hitachi Vantara ]
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = '''
+
+DOCUMENTATION = """
 ---
 module: hv_sds_block_volume
 short_description: Manages Hitachi SDS block storage system volumes.
 description:
   - This module allows the creation, update and deletion of volume, adding and removing compute code.
   - It supports various volume operations based on the specified state.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/volume.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   state:
     description: The level of the volume task. Choices are 'present', 'absent'.
     type: str
-    required: true
+    required: false
+    choices: ['present', 'absent']
+    default: 'present'
   connection_info:
     description: Information required to establish a connection to the storage system.
     required: true
@@ -41,7 +50,6 @@ options:
         required: false
         choices: ['direct']
         default: 'direct'
-
   spec:
     description: Specification for the volume task.
     type: dict
@@ -75,10 +83,12 @@ options:
         description: The state of the volume task. Choices are 'add_compute_node', 'remove_compute_node'.
         type: str
         required: false
+        choices: ['add_compute_node', 'remove_compute_node']
       compute_nodes:
         description: The array of name of compute nodes to which the volume is attached.
         type: list
         required: false
+        elements: str
       qos_param:
         description: The quality of service parameters for the volume.
         type: dict
@@ -97,9 +107,9 @@ options:
             type: int
             required: false
 
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 - name: Create volume
   hv_sds_block_volume:
     state: present
@@ -168,11 +178,11 @@ EXAMPLES = '''
     connection_info:
       address: vssb.company.com
       username: "admin"
-      password: "password""
+      password: "password"
     spec:
       name: "RD-volume-4"
       nickname: "RD-volume-0004"
-      
+
 - name: Update volume QoS parameters
   hv_sds_block_volume:
     state: present
@@ -223,15 +233,15 @@ EXAMPLES = '''
       state: "add_compute_node"
       id: "aba5c900-b04c-4beb-8ca4-ed53537afb09"
       compute_nodes: ["ComputeNode-1"]
-'''
+"""
 
-RETURN = '''
+RETURN = """
 data:
   description: The volume information.
   returned: always
   type: dict
-  elements: dict/list
-  sample: 
+  elements: dict
+  sample:
     {
       "compute_node_info": [
           {
@@ -279,7 +289,7 @@ data:
         }
     }
 
-'''
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
@@ -290,12 +300,16 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconc
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_properties_extractor import (
     VolumePropertiesExtractor,
-     VolumeAndComputeNodePropertiesExtractor
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
     SDSBVolumeArguments,
     SDSBParametersManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 
 logger = Log()
@@ -311,25 +325,24 @@ class SDSBVolumeManager:
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
-            # can be added mandotary , optional mandatory arguments
         )
         try:
-          params_manager = SDSBParametersManager(self.module.params)
-          self.state = params_manager.get_state()
-          self.connection_info = params_manager.get_connection_info()
-          self.spec = params_manager.get_volume_spec()
-          logger.writeDebug(f"MOD:hv_sds_block_compute_node:argument_spec= {self.spec}")
+            params_manager = SDSBParametersManager(self.module.params)
+            self.state = params_manager.get_state()
+            self.connection_info = params_manager.get_connection_info()
+            self.spec = params_manager.get_volume_spec()
+            logger.writeDebug(
+                f"MOD:hv_sds_block_compute_node:argument_spec= {self.spec}"
+            )
         except Exception as e:
             logger.writeError(f"An error occurred during initialization: {str(e)}")
             self.module.fail_json(msg=str(e))
-  
+
     def apply(self):
         volumes = None
         volumes_data_extracted = None
-
-        logger.writeInfo(
-            f"{self.connection_info.connection_type} connection type"
-        )
+        registration_message = validate_ansible_product_registration()
+        logger.writeInfo(f"{self.connection_info.connection_type} connection type")
         try:
             sdsb_reconciler = SDSBVolumeReconciler(self.connection_info)
             volumes = sdsb_reconciler.reconcile_volume(self.state, self.spec)
@@ -339,14 +352,19 @@ class SDSBVolumeManager:
                 volumes_data_extracted = volumes
             else:
                 output_dict = volumes.to_dict()
-                volumes_data_extracted =  VolumePropertiesExtractor().extract_dict(
+                volumes_data_extracted = VolumePropertiesExtractor().extract_dict(
                     output_dict
                 )
 
         except Exception as e:
             self.module.fail_json(msg=str(e))
 
-        response = {"changed": self.connection_info.changed, "data": volumes_data_extracted}
+        response = {
+            "changed": self.connection_info.changed,
+            "data": volumes_data_extracted,
+        }
+        if registration_message:
+            response["user_consent_required"] = registration_message
         self.module.exit_json(**response)
 
 

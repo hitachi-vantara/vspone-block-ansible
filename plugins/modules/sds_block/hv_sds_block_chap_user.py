@@ -1,23 +1,32 @@
-import json
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2021, [ Hitachi Vantara ]
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = '''
+
+DOCUMENTATION = """
 ---
 module: hv_sds_block_chap_user
 short_description: Manages Hitachi SDS block storage system CHAP users.
 description:
-  - This module allows for the creation, deletion and updation of CHAP users.
+  - This module allows for the creation, deletion and updating of CHAP users.
   - It supports various CHAP user operations based on the specified task level.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/chap_user.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   state:
     description: The level of the CHAP user task. Choices are 'present', 'absent'.
     type: str
-    required: true
+    required: false
+    choices: ['present', 'absent']
+    default: 'present'
   connection_info:
     description: Information required to establish a connection to the storage system.
     required: true
@@ -38,7 +47,7 @@ options:
       connection_type:
         description: Type of connection to the storage system.
         type: str
-        required: true
+        required: false
         choices: ['direct']
         default: 'direct'
   spec:
@@ -66,9 +75,9 @@ options:
         description: Initiator CHAP user secret.
         type: str
         required: false
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 - name: Create a CHAP user
   hv_sds_block_chap_user:
     state: present
@@ -117,9 +126,9 @@ EXAMPLES = '''
       id: "464e1fd1-9892-4134-866c-6964ce786676"
       target_chap_user_name: "chapuser2"
       target_chap_user_secret: "chapuser2_new_secret"
-'''
+"""
 
-RETURN = '''
+RETURN = """
 data:
   description: The CHAP user information.
   returned: always
@@ -131,7 +140,7 @@ data:
       "initiator_chap_user_name": "chapuser1",
       "target_chap_user_name": "newchapuser2"
     }
-'''
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
@@ -143,10 +152,15 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconc
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_properties_extractor import (
     ChapUserPropertiesExtractor,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
     SDSBChapUserArguments,
     SDSBParametersManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 
 logger = Log()
@@ -162,7 +176,6 @@ class SDSBChapUserManager:
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
-            # can be added mandotary , optional mandatory arguments
         )
 
         parameter_manager = SDSBParametersManager(self.module.params)
@@ -175,6 +188,7 @@ class SDSBChapUserManager:
     def apply(self):
         chap_users = None
         chap_user_data_extracted = None
+        registration_message = validate_ansible_product_registration()
 
         logger.writeInfo(f"{self.connection_info.connection_type} connection type")
         try:
@@ -194,7 +208,12 @@ class SDSBChapUserManager:
         except Exception as e:
             self.module.fail_json(msg=str(e))
 
-        response = {"changed": self.connection_info.changed, "data": chap_user_data_extracted}
+        response = {
+            "changed": self.connection_info.changed,
+            "data": chap_user_data_extracted,
+        }
+        if registration_message:
+            response["user_consent_required"] = registration_message
         self.module.exit_json(**response)
 
 

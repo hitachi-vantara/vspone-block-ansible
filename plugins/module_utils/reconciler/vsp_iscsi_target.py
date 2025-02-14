@@ -4,25 +4,32 @@ try:
         camel_to_snake_case,
         camel_array_to_snake_case,
         camel_dict_to_snake_case,
+        generate_random_name_prefix_string,
     )
     from ..common.hv_log import Log
-    from ..common.hv_exceptions import HiException
-    from ..model.vsp_iscsi_target_models import *
-    from ..common.ansible_common import convert_hex_to_dec
-    from ..common.hv_constants import *
-    from ..message.vsp_iscsi_target_msgs import *
+    from ..model.vsp_iscsi_target_models import (
+        IscsiTargetPayLoad,
+        VSPIscsiTargetModificationInfo,
+        IscsiTargetSpec,
+    )
+    from ..common.hv_constants import VSPIscsiTargetConstant, StateValue
+    from ..message.vsp_iscsi_target_msgs import VSPIscsiTargetMessage
 except ImportError:
     from provisioner.vsp_iscsi_target_provisioner import VSPIscsiTargetProvisioner
     from common.ansible_common import (
         camel_to_snake_case,
         camel_array_to_snake_case,
         camel_dict_to_snake_case,
+        generate_random_name_prefix_string,
     )
     from common.hv_log import Log
-    from common.hv_exceptions import HiException
-    from model.vsp_iscsi_target_models import *
-    from common.ansible_common import convert_hex_to_dec
-    from common.hv_constants import *
+    from model.vsp_iscsi_target_models import (
+        IscsiTargetPayLoad,
+        VSPIscsiTargetModificationInfo,
+        IscsiTargetSpec,
+    )
+    from common.hv_constants import VSPIscsiTargetConstant, StateValue
+    from message.vsp_iscsi_target_msgs import VSPIscsiTargetMessage
 
 
 class VSPIscsiTargetReconciler:
@@ -88,19 +95,27 @@ class VSPIscsiTargetReconciler:
         if not spec.port:
             raise Exception(VSPIscsiTargetMessage.PORTS_PARAMETER_INVALID.value)
         logger = Log()
+        spec.name = generate_random_name_prefix_string() if not spec.name else spec.name
         logger.writeInfo("spec.port={0}".format(spec.port))
-        self.provisioner.create_one_iscsi_target(
-            IscsiTargetPayLoad(
-                name=spec.name,
-                port=spec.port,
-                host_mode=spec.host_mode,
-                host_mode_options=spec.host_mode_options,
-                luns=spec.ldevs,
-                iqn_initiators=spec.iqn_initiators,
-                chap_users=spec.chap_users,
-            ),
-            self.serial,
-        )
+        try:
+            self.provisioner.create_one_iscsi_target(
+                IscsiTargetPayLoad(
+                    name=spec.name,
+                    port=spec.port,
+                    host_mode=spec.host_mode,
+                    host_mode_options=spec.host_mode_options,
+                    luns=spec.ldevs,
+                    iqn_initiators=spec.iqn_initiators,
+                    chap_users=spec.chap_users,
+                ),
+                self.serial,
+            )
+        except Exception as e:
+            if VSPIscsiTargetMessage.CATCH_MSG_ISCSI_TARGET.value in str(e):
+                spec.name = generate_random_name_prefix_string()
+                return self.handle_create_iscsi_target(spec, result)
+            else:
+                raise e
         result["iscsiTarget"] = self.provisioner.get_one_iscsi_target(
             spec.port, spec.name, self.serial
         ).data
@@ -160,7 +175,7 @@ class VSPIscsiTargetReconciler:
         if host_mode_options is not None:
             old_list = set(iscsi_target_hmo)
             new_list = set(host_mode_options)
-            add_list = new_list - old_list
+            new_list - old_list
 
             # if state == VSPIscsiTargetConstant.STATE_ADD_HOST_MODE or state == StateValue.PRESENT:
             #     # # add = new - old
@@ -319,7 +334,7 @@ class VSPIscsiTargetReconciler:
                 )
 
     def handle_delete_iscsi_target(self, spec, iscsi_target, result):
-        logger = Log()
+        Log()
         self.provisioner.delete_iscsi_target(
             iscsi_target, spec.should_delete_all_ldevs, self.serial
         )
@@ -331,9 +346,12 @@ class VSPIscsiTargetReconciler:
         result = {"changed": False}
         self.pre_check_sub_state(spec)
         self.pre_check_port(spec.port)
-        iscsi_target = self.provisioner.get_one_iscsi_target(
-            spec.port, spec.name, self.serial
-        ).data
+        if spec.name:
+            iscsi_target = self.provisioner.get_one_iscsi_target(
+                spec.port, spec.name, self.serial
+            ).data
+        else:
+            iscsi_target = None
         if state == StateValue.PRESENT:
             result["iscsiTarget"] = iscsi_target
             if iscsi_target is None:
@@ -354,10 +372,11 @@ class VSPIscsiTargetReconciler:
                     VSPIscsiTargetMessage.ISCSI_TARGET_HAS_BEEN_DELETED.value
                 )
             else:
-                if len(iscsi_target.logicalUnits) > 0 and not spec.should_delete_all_ldevs:
-                    result["comment"] = (
-                        VSPIscsiTargetMessage.LDEVS_PRESENT.value
-                    )
+                if (
+                    len(iscsi_target.logicalUnits) > 0
+                    and not spec.should_delete_all_ldevs
+                ):
+                    result["comment"] = VSPIscsiTargetMessage.LDEVS_PRESENT.value
                 else:
                     # Handle delete iscsi target
                     self.handle_delete_iscsi_target(spec, iscsi_target, result)

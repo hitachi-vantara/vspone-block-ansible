@@ -6,6 +6,7 @@ try:
 except ImportError:
     from common_base_models import BaseDataClass, SingleBaseClass
 
+
 @dataclass
 class ShortPortInfo(SingleBaseClass):
     portId: Optional[str] = None
@@ -18,9 +19,10 @@ class ShortPortInfo(SingleBaseClass):
     portSecuritySetting: Optional[bool] = None
     wwn: Optional[str] = None
     portMode: Optional[str] = None
+
     def to_dict(self):
         return asdict(self)
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         for field in fields(self):
@@ -29,9 +31,11 @@ class ShortPortInfo(SingleBaseClass):
             if kwargs.get("lunSecuritySetting"):
                 self.portSecuritySetting = kwargs.get("lunSecuritySetting")
 
+
 @dataclass
 class ShortPortInfoList(BaseDataClass):
     data: List[ShortPortInfo] = None
+
 
 @dataclass
 class PortInfo(SingleBaseClass):
@@ -54,11 +58,11 @@ class PortInfo(SingleBaseClass):
     ipv4Subnetmask: Optional[str] = None
     ipv4GatewayAddress: Optional[str] = None
     portMode: Optional[str] = None
-    portAttributes: Optional[List] = None
+    # portAttributes: Optional[List] = None
 
     def to_dict(self):
         return asdict(self)
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         for field in fields(self):
@@ -66,6 +70,8 @@ class PortInfo(SingleBaseClass):
                 setattr(self, field.name, None)
             if kwargs.get("lunSecuritySetting"):
                 self.portSecuritySetting = kwargs.get("lunSecuritySetting")
+
+
 @dataclass
 class PortsInfo(BaseDataClass):
     data: List[PortInfo] = None
@@ -82,9 +88,10 @@ class ChangePortSettingSpec:
 class PortFactSpec:
     ports: Optional[List] = None
 
+
 @dataclass
 class PortInfoUAIG:
-    portType: str = None    
+    portType: str = None
     portId: str = None
     speed: str = None
     resourceGroupId: int = 0
@@ -99,17 +106,15 @@ class PortInfoUAIG:
 class VSPPortInfoUAIG(SingleBaseClass):
     resourceId: str = None
     type: str = None
-    storageId: str = None   
+    storageId: str = None
     entitlementStatus: str = None
     partnerId: str = None
     subscriberId: str = None
     portInfo: PortInfoUAIG = None
 
-    
-    
-    # tags: List[str] = None 
+    # tags: List[str] = None
     # fabricOn: bool = False
-    
+
 
 @dataclass
 class VSPPortsInfoUAIG(BaseDataClass):

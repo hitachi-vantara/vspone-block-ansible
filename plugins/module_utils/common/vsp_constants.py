@@ -1,31 +1,35 @@
 import logging
-from ansible.module_utils.six.moves.urllib import parse as urlparse
 
 
 PEGASUS_MODELS = ["B28", "B26"]
 
 BASIC_STORAGE_DETAILS = None
 
+DEFAULT_NAME_PREFIX = "smrha"
+
 
 def get_basic_storage_details():
-    global BASIC_STORAGE_DETAILS
     return BASIC_STORAGE_DETAILS
+
 
 def set_basic_storage_details(storage_details):
     global BASIC_STORAGE_DETAILS
     BASIC_STORAGE_DETAILS = storage_details
+
+
 class Endpoints(object):
 
-    #vsp storage
+    # vsp storage
 
     GET_STORAGE_INFO = "v1/objects/storages/instance"
     PEGASUS_JOB = "simple/v1/objects/command-status/{}"
     SESSIONS = "v1/objects/sessions"
     DELETE_SESSION = "v1/objects/sessions/{}"
-    
+
     # Volumes
     POST_LDEVS = "v1/objects/ldevs"
     LDEVS_ONE = "v1/objects/ldevs/{}"
+    LDEVS_JOURNAL_VOLUME = "v1/objects/ldevs/?journalId={}"
     PEGA_LDEVS_ONE = "simple/v1/objects/volumes/{}"
     GET_LDEVS = "v1/objects/ldevs{}"
     PUT_LDEVS_CHANGE_STATUS = "v1/objects/ldevs/{}/actions/change-status/invoke"
@@ -33,11 +37,22 @@ class Endpoints(object):
     DELETE_LDEVS = "v1/objects/ldevs/{}"
     POST_EXPAND_LDEV = "v1/objects/ldevs/{}/actions/expand/invoke"
     POST_FORMAT_LDEV = "v1/objects/ldevs/{}/actions/format/invoke"
+    POST_SHRED_LDEV = "v1/objects/ldevs/{}/actions/shred/invoke"
+    POST_CHANGE_STATUS_LDEV = "v1/objects/ldevs/{}/actions/change-status/invoke"
     UAIG_GET_VOLUMES = "v3/storage/{}/volumes/details{}"
     UAIG_DELETE_ONE_VOLUME = "v3/storage/{}/volumes/{}?isDelete=true"
-    GET_FREE_LDEV_FROM_META = "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0&count=1"
-    GET_LDEVS_BY_POOL_ID= "v1/objects/ldevs?poolId={}"
-
+    GET_FREE_LDEV_FROM_META = (
+        "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0&count=1"
+    )
+    GET_FREE_LDEV_MATCHING_PVOL = (
+        "v1/objects/ldevs?ldevOption=undefined&count=1&headLdevId={}"
+    )
+    GET_LDEVS_BY_POOL_ID = "v1/objects/ldevs?poolId={}"
+    POST_UNASSIGN_VLDEV = "v1/objects/ldevs/{}/actions/unassign-virtual-ldevid/invoke"
+    POST_ASSIGN_VLDEV = "v1/objects/ldevs/{}/actions/assign-virtual-ldevid/invoke"
+    POST_QOS_UPDATE = "v1/objects/ldevs/{}/actions/set-qos/invoke"
+    GET_QOS_SETTINGS = "v1/objects/ldevs?headLdevId={}&count=1&detailInfoType=qos"
+    GET_CMD_DEVICE = "v1/objects/ldevs?headLdevId={}&count=1&detailInfoType=class"
     # Port
     GET_PORTS = "v1/objects/ports"
     GET_PORTS_DETAILS = "v1/objects/ports?detailInfoType=portMode"
@@ -53,6 +68,7 @@ class Endpoints(object):
     POST_WWNS = "v1/objects/host-wwns"
     DELETE_WWNS = "v1/objects/host-wwns/{},{},{}"
     GET_HOST_GROUPS = "v1/objects/host-groups{}"
+    GET_HOST_GROUP_BY_ID = "v1/objects/host-groups/{}"
     GET_HOST_GROUP_ONE = "v1/objects/host-groups/{},{}"
     DELETE_HOST_GROUPS = "v1/objects/host-groups/{},{}"
     PATCH_HOST_GROUPS = "v1/objects/host-groups/{},{}"
@@ -106,6 +122,7 @@ class Endpoints(object):
     POST_SNAPSHOTS = "v1/objects/snapshots"
     GET_SNAPSHOT_GROUPS = "v1/objects/snapshot-groups"
     GET_SNAPSHOT_GROUPS_ONE = "v1/objects/snapshot-groups/{}"
+    POST_SNAPSHOTS_CLONE = "v1/objects/snapshots/{}/actions/clone/invoke"
     POST_SNAPSHOTS_SPLIT = "v1/objects/snapshots/{}/actions/split/invoke"
     POST_SNAPSHOTS_RESYNC = "v1/objects/snapshots/{}/actions/resync/invoke"
     POST_SNAPSHOTS_RESTORE = "v1/objects/snapshots/{}/actions/restore/invoke"
@@ -132,7 +149,6 @@ class Endpoints(object):
     GET_STORAGE_CAPACITY = "v1/objects/total-capacities/instance"
     GET_LICENSES = "v1/objects/licenses"
     GET_TOTAL_EFFICENCY = "v1/objects/storages/{}/total-efficiencies/instance"
-    GET_JOURNAL_POOLS = "v1/objects/journals"
     GET_QUORUM_DISKS = "v1/objects/quorum-disks"
     GET_SYSLOG_SERVERS = "v1/objects/auditlog-syslog-servers/instance"
     UAIG_GET_ALL_SHADOW_IMAGE_PAIR = "v3/storage/devices/{deviceId}/shadowimages"
@@ -163,13 +179,19 @@ class Endpoints(object):
     DIRECT_GET_ALL_SHADOW_IMAGE_PAIR = "v1/objects/local-replications"
     DIRECT_GET_SHADOW_IMAGE_PAIR_BY_ID = "v1/objects/local-clone-copypairs/{pairId}"
     DIRECT_CREATE_SHADOW_IMAGE_PAIR = "v1/objects/local-clone-copypairs"
-    DIRECT_SPLIT_SHADOW_IMAGE_PAIR = "v1/objects/local-clone-copypairs/{pairId}/actions/split/invoke"
-    DIRECT_RESYNC_SHADOW_IMAGE_PAIR = "v1/objects/local-clone-copypairs/{pairId}/actions/resync/invoke"
-    DIRECT_RESTORE_SHADOW_IMAGE_PAIR = "v1/objects/local-clone-copypairs/{pairId}/actions/restore/invoke"
+    DIRECT_SPLIT_SHADOW_IMAGE_PAIR = (
+        "v1/objects/local-clone-copypairs/{pairId}/actions/split/invoke"
+    )
+    DIRECT_RESYNC_SHADOW_IMAGE_PAIR = (
+        "v1/objects/local-clone-copypairs/{pairId}/actions/resync/invoke"
+    )
+    DIRECT_RESTORE_SHADOW_IMAGE_PAIR = (
+        "v1/objects/local-clone-copypairs/{pairId}/actions/restore/invoke"
+    )
     DIRECT_DELETE_SHADOW_IMAGE_PAIR = "v1/objects/local-clone-copypairs/{pairId}"
     DIRECT_GET_ALL_COPY_PAIR_GROUP = "v1/objects/local-clone-copygroups"
     DIRECT_GET_SI_BY_CPG = "v1/objects/local-clone-copypairs?localCloneCopyGroupId={}"
-    
+
     # SnapShot
     ALL_SNAPSHOTS = "v1/objects/snapshot-replications"
     SNAPSHOTS = "v1/objects/snapshots"
@@ -181,7 +203,9 @@ class Endpoints(object):
     GET_SNAPSHOT_GROUPS_ONE = "v1/objects/snapshot-groups/{}"
     POST_SNAPSHOTS_SPLIT = "v1/objects/snapshots/{}/actions/split/invoke"
     POST_SNAPSHOTS_SVOL_ADD = "v1/objects/snapshots/{}/actions/assign-volume/invoke"
-    POST_SNAPSHOTS_SVOL_REMOVE = "v1/objects/snapshots/{}/actions/unassign-volume/invoke"
+    POST_SNAPSHOTS_SVOL_REMOVE = (
+        "v1/objects/snapshots/{}/actions/unassign-volume/invoke"
+    )
     POST_SNAPSHOTS_RESYNC = "v1/objects/snapshots/{}/actions/resync/invoke"
     POST_SNAPSHOTS_RESTORE = "v1/objects/snapshots/{}/actions/restore/invoke"
 
@@ -192,14 +216,25 @@ class Endpoints(object):
     RESTORE_SNAPSHOT_BY_GRP = "v1/objects/snapshot-groups/{}/actions/restore/invoke"
     # Pool
     GET_POOLS = "v1/objects/pools"
+    POST_POOL = "v1/objects/pools"
     GET_POOL = "v1/objects/pools/{}"
+    POOL_EXPAND = "v1/objects/pools/{}/actions/expand/invoke"
 
+    # Journal Volumes
+    GET_JOURNAL_POOLS = "v1/objects/journals"
+    GET_JOURNAL_POOL = "v1/objects/journals/{}"
+    POST_JOURNAL_POOLS = "v1/objects/journals"
+    JOURNAL_POOL_EXPAND = "v1/objects/journals/{}/actions/expand/invoke"
+    JOURNAL_POOL_SHRINK = "v1/objects/journals/{}/actions/shrink/invoke"
+    JOURNAL_POOL_MP_BLADE = "v1/objects/journals/{}/actions/assign-mp-blade/invoke"
 
     # Parity group
     GET_PARITY_GROUPS = "v1/objects/parity-groups"
     GET_PARITY_GROUP = "v1/objects/parity-groups/{}"
     GET_EXTERNAL_PARITY_GROUPS = "v1/objects/external-parity-groups"
     GET_EXTERNAL_PARITY_GROUP = "v1/objects/external-parity-groups/{}"
+    GET_DRIVES = "v1/objects/drives"
+    GET_DRIVE = "v1/objects/drives/{}"
 
     # Tag device resources
     UAIG_ADD_STORAGE_RESOURCE = "v3/storage/{}/resource"
@@ -285,6 +320,8 @@ class State(object):
 
 
 class AutomationConstants(object):
+    HOST_MODE_OPT_NUMBER_MIN = 0
+    HOST_MODE_OPT_NUMBER_MAX = 999
     PORT_NUMBER_MIN = 0
     PORT_NUMBER_MAX = 49151
     NAME_PARAMS_MIN = 1
@@ -297,11 +334,13 @@ class AutomationConstants(object):
     POOL_ID_MIN = 0
     POOL_ID_MAX = 256
     LDEV_ID_MIN = 0
-    LDEV_ID_MAX = 65535
+    LDEV_ID_MAX = 65279
     LDEV_MAX_NUMBER = 16384
     LDEV_MAX_MU_NUMBER = 1023
     ISCSI_NAME_LEN_MIN = 1
     ISCSI_NAME_LEN_MAX = 32
+    LDEV_NAME_LEN_MIN = 1
+    LDEV_NAME_LEN_MAX = 24
     IQN_LEN_MIN = 5
     IQN_LEN_MAX = 223
     CHAP_USER_NAME_LEN_MIN = 1
@@ -313,6 +352,31 @@ class AutomationConstants(object):
     CONSISTENCY_GROUP_ID_MIN = 0
     CONSISTENCY_GROUP_ID_MAX = 255
     POOL_SIZE_MIN = 16777216
+    NVM_SUBSYSTEM_MIN_ID = 0
+    NVM_SUBSYSTEM_MAX_ID = 2047
+    COPY_GROUP_NAME_LEN_MIN = 1
+    COPY_GROUP_NAME_LEN_MAX = 29
+    COPY_PAIR_NAME_LEN_MIN = 1
+    COPY_PAIR_NAME_LEN_MAX = 31
+    PATH_GROUP_ID_MIN = 0
+    PATH_GROUP_ID_MAX = 255
+    DEVICE_GROUP_NAME_LEN_MIN = 1
+    DEVICE_GROUP_NAME_LEN_MAX = 31
+    COPY_PACE_MIN = 1
+    COPY_PACE_MAX = 15
+    RG_NAME_LEN_MIN = 1
+    RG_NAME_LEN_MAX = 32
+    START_LDEV_ID_MIN = 0
+    START_LDEV_ID_MAX = 65278
+    END_LDEV_ID_MIN = 1
+    END_LDEV_ID_MAX = 65279
+    VIRTUAL_STORAGE_DEVICE_ID_LEN_MIN = 12
+    RG_ID_MIN = 1
+    RG_ID_MAX = 1023
+    RG_LOCK_TIMEOUT_MIN = 0
+    RG_LOCK_TIMEOUT_MAX = 7200
+    VOLUME_SIZE_LEN_MIN = 3
+    VOLUME_SIZE_LEN_MAX = 14
 
 
 class LogMessages(object):
@@ -340,6 +404,7 @@ class VolumePayloadConst:
     PARAMS = "parameters"
     POOL_ID = "poolId"
     BYTE_CAPACITY = "byteFormatCapacity"
+    BLOCK_CAPACITY = "blockCapacity"
     LDEV = "ldevId"
     ADR_SETTING = "dataReductionMode"
     PARITY_GROUP = "parityGroupId"
@@ -350,8 +415,9 @@ class VolumePayloadConst:
     IS_DATA_REDUCTION_SHARE_ENABLED = "isDataReductionShareEnabled"
     FORCE_FORMAT = "isDataReductionForceFormat"
     OPERATION_TYPE = "operationType"
+    STATUS = "status"
     ENHANCED_EXPANSION = "enhancedExpansion"
-
+    VIRTUAL_LDEVID = "virtualLdevId"
 
     # URL PARAMS
     HEAD_LDEV_ID = "?headLdevId={}"
@@ -360,17 +426,28 @@ class VolumePayloadConst:
 
     # volume emulation type
     NOT_DEFINED = "NOT DEFINED"
-    
-    IS_DATA_REDUCTION_SHARE_ENABLED="isDataReductionShareEnabled"
-    IS_DATA_REDUCTION_DELETE_FORCE_EXECUTE = "isDataReductionDeleteForceExecute"
 
+    IS_DATA_REDUCTION_SHARE_ENABLED = "isDataReductionShareEnabled"
+    IS_DATA_REDUCTION_DELETE_FORCE_EXECUTE = "isDataReductionDeleteForceExecute"
 
     DISABLED = "disabled"
     BLOCK = "BLK"
 
     # Volume operation type
-    FMT= "FMT"
+    FMT = "FMT"
     QFMT = "QFMT"
+    START = "START"
+    STOP = "STOP"
+
+    # QOS constants
+    UPPER_IOPS = "upperIops"
+    LOWER_IOPS = "lowerIops"
+    UPPER_TRANSFER_RATE = "upperTransferRate"
+    LOWER_TRANSFER_RATE = "lowerTransferRate"
+    UPPER_ALERT_ALLOWABLE_TIME = "upperAlertAllowableTime"
+    LOWER_ALERT_ALLOWABLE_TIME = "lowerAlertAllowableTime"
+    RESPONSE_PRIORITY = "responsePriority"
+    RESPONSE_ALERT_ALLOWABLE_TIME = "responseAlertAllowableTime"
 
 
 class VSPSnapShotReq:
@@ -383,8 +460,11 @@ class VSPSnapShotReq:
     isDataReductionForceCopy = "isDataReductionForceCopy"
     canCascade = "canCascade"
     parameters = "parameters"
+    isClone = "isClone"
+
 
 class PairStatus:
+    SSWS = "SSWS"
     PSUS = "PSUS"
     SMPP = "SMPP"
     COPY = "COPY"
@@ -392,10 +472,11 @@ class PairStatus:
     PFUL = "PFUL"
     PSUE = "PSUE"
     PFUS = "PFUS"
-    RCPY =  "RCPY"
+    RCPY = "RCPY"
     PSUP = "PSUP"
     CPYP = "CPYP"
     OTHER = "OTHER"
+
 
 class VSPPortSetting:
     LUN_SECURITY_SETTING = "lunSecuritySetting"
@@ -404,7 +485,6 @@ class VSPPortSetting:
 
 class DefaultValues:
     DEFAULT_HG_NAME = "ansible_host_group"
-
 
 
 ARRAY_FAMILY_LOOKUP = {
@@ -458,3 +538,24 @@ class UnSubscribeResourceTypes:
     STORAGE_POOL = "StoragePool"
     CHAP_USER = "chapuser"
     SHADOW_IMAGE = "shadowimage"
+
+
+class CAPACITY_SAVINGS_CONST:
+    COMPRESSION_DEDUPLICATION = "compression_deduplication"
+    COMPRESSION = "compression"
+
+
+class StoragePoolLimits:
+    MAX_POOL_ID = 127
+    JOURNAL_POOL_ID_LIMIT = 255
+
+
+class VSPJournalVolumeReq:
+    journalid = "journalId"
+    startLdevId = "startLdevId"
+    endLdevId = "endLdevId"
+    dataOverflowWatchInSeconds = "dataOverflowWatchInSeconds"
+    isCacheModeEnabled = "isCacheModeEnabled"
+    mpBladeId = "mpBladeId"
+    LDEV_IDS = "ldevIds"
+    PARAMETERS = "parameters"

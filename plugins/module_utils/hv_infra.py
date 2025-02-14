@@ -1,14 +1,6 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-
-# from requests.api import get
-__metaclass__ = type
-
 import json
 import os
 import re
-import subprocess
 import time
 
 # import urllib3
@@ -24,6 +16,7 @@ class SNAPSHOT_OPTION(Enum):
     SSOPTION_HIDE_AND_DISABLE_ACCESS = 0
     SSOPTION_HIDE_AND_ALLOW_ACCESS = 1
     SSOPTION_SHOW_AND_ALLOW_ACCESS = 3
+    UNKNOWN = None
 
     @classmethod
     def fromValue(cls, value):
@@ -52,12 +45,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_hti
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_remotemanager import (
     RemoteManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_htimanager import (
-    LunStatus,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_htimanager import (
-    LunType,
-)
+
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_htimanager import (
     PoolType,
 )
@@ -78,7 +66,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_vsm
     VirtualStorageSystem,
 )
 
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
     HiException,
 )
@@ -254,7 +244,7 @@ class StorageSystemManager:
                 serviceIP,
             )
 
-            ## if ucp is in the ss fact then do remove
+            #  if ucp is in the ss fact then do remove
             results["changed"] = False
             ss = gateway.getStorageSystem()
 
@@ -370,7 +360,7 @@ class Utils:
             raise Exception("foo:w")
 
     @staticmethod
-    def formatCapacity(valueMB, round_digits=4):
+    def formatCapacity(valueMB, round_digits=4, valueInMB=False):
 
         # expected valueMB (from puma):
         # 5120 is 5120MB
@@ -385,12 +375,12 @@ class Utils:
 
         ivalue = ivalue / 1024 / 1024
         # Utils.logger.writeParam('formatCapacity, ivalue={}', ivalue)
-        if ivalue >= oneK * oneK:
+        if ivalue >= oneK * oneK and valueInMB is False:
             divfrac = oneK * oneK
             v = ivalue / divfrac
             # Utils.logger.writeDebug('TB Section, v={}', v)
             return str(round(v, round_digits)) + "TB"
-        elif ivalue >= oneK:
+        elif ivalue >= oneK and valueInMB is False:
             v = ivalue / oneK
             return str(round(v, round_digits)) + "GB"
         else:
@@ -399,7 +389,6 @@ class Utils:
     @staticmethod
     def formatLun(lun):
 
-        Utils.logger.writeInfo("enter formatLun")
         # Utils.logger.writeDebug('enter formatLun, lun={}', lun)
 
         if lun is None:
@@ -411,6 +400,9 @@ class Utils:
         if lun.get("isDRS") is not None:
             lun["isDataReductionShareEnabled"] = lun["isDRS"]
             del lun["isDRS"]
+        if lun.get("virtualLogicalUnitId") is not None:
+            lun["virtualLdevId"] = lun["virtualLogicalUnitId"]
+            del lun["virtualLogicalUnitId"]
         if lun.get("naaId") is not None:
             lun["canonicalName"] = lun["naaId"]
             del lun["naaId"]
@@ -424,8 +416,12 @@ class Utils:
         # if lun.get('poolId') is not None:
         #    del lun['DynamicPool']
         if lun.get("totalCapacity") is not None:
+            lun["totalCapacity_mb"] = Utils.formatCapacity(
+                lun["totalCapacity"], 4, True
+            )
             lun["totalCapacity"] = Utils.formatCapacity(lun["totalCapacity"])
         if lun.get("usedCapacity") is not None:
+            lun["usedCapacity_mb"] = Utils.formatCapacity(lun["usedCapacity"], 4, True)
             lun["usedCapacity"] = Utils.formatCapacity(lun["usedCapacity"])
         # if HAS_ENUM and lun.get('Status') is not None:
         #    lun['Status'] = LunStatus.fromValue(lun.get('Status',
@@ -661,7 +657,7 @@ class StorageSystem:
                 self.sessionId = None
                 webServiceIp = system["storageGateway"]
                 # webServicePort = system['storageGatewayPort']
-            except IOError as ex:
+            except IOError:
                 raise Exception(
                     "Storage systems have not been registered. Please run add_storagesystems.yml first."
                 )
@@ -1243,7 +1239,7 @@ class StorageSystem:
 
         if response.ok:
 
-            if system is None or True:
+            if system is not None:
                 resJson = response.json()
                 self.logger.writeInfo("response={}", resJson)
                 resourceId = resJson["data"].get("resourceId")
@@ -1344,7 +1340,7 @@ class StorageSystem:
                 # we want it to return something so we can go delete ss from isp
                 return
             ucps = system["ucpSystems"]
-            if not ucp_serial in ucps:
+            if ucp_serial not in ucps:
                 found = False
                 if len(ucps) == 0:
                     attached = False
@@ -1448,9 +1444,9 @@ class StorageSystem:
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x["serialNumber"]))
-            self.logger.writeInfo(self.serial)
-            self.logger.writeInfo(int(x["serialNumber"]) == self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]))
+            self.logger.writeDebug(self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]) == self.serial)
 
             if str(x["serialNumber"]) == str(self.serial):
                 system = x
@@ -1530,8 +1526,8 @@ class StorageSystem:
         system = None
         resourceId = None
         for x in systems:
-            self.logger.writeInfo(int(x["serialNumber"]))
-            self.logger.writeInfo(int(x["serialNumber"]) == self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]))
+            self.logger.writeDebug(int(x["serialNumber"]) == self.serial)
 
             if str(x["serialNumber"]) == str(self.serial):
                 system = x
@@ -1550,14 +1546,14 @@ class StorageSystem:
         self.logger.writeDebug("20230523 resourceIdUCP={}", resourceIdUCP)
 
         headers = self.getAuthToken()
-        self.logger.writeParam("headers={}", headers)
+        # self.logger.writeParam("headers={}", headers)
 
         urlPath = "v2/systems/{0}/device/{1}".format(resourceIdUCP, resourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeParam("20230523 url={}", url)
+        self.logger.writeDebug("20230523 url={}", url)
         self.logger.writeInfo("system={}", resourceId)
-        self.logger.writeInfo("ucp_name={}", ucp_name)
-        self.logger.writeInfo("ucp_resource_id={}", resourceIdUCP)
+        self.logger.writeDebug("ucp_name={}", ucp_name)
+        self.logger.writeDebug("ucp_resource_id={}", resourceIdUCP)
 
         response = requests.patch(
             url, headers=headers, verify=self.shouldVerifySslCertification
@@ -1566,21 +1562,21 @@ class StorageSystem:
 
         if response.ok:
             resJson = response.json()
-            self.logger.writeInfo("response={}", resJson)
+            self.logger.writeDebug("response={}", resJson)
             resourceId = resJson["data"].get("resourceId")
-            self.logger.writeInfo("resourceId={}", resourceId)
+            self.logger.writeDebug("resourceId={}", resourceId)
             taskId = response.json()["data"].get("taskId")
-            self.logger.writeInfo("taskId={}", taskId)
+            self.logger.writeDebug("taskId={}", taskId)
             self.checkTaskStatus(taskId)
             # it is "REFRESHING"
             time.sleep(5)
             self.logger.writeExitSDK(funcName)
             return response
         elif "HIJSONFAULT" in response.headers:
-            self.logger.writeInfo("HIJSONFAULT response={}", response)
+            self.logger.writeError("HIJSONFAULT response={}", response)
             Utils.raiseException(self.sessionId, response)
         else:
-            self.logger.writeInfo("Unknown Exception response={}", response.json())
+            self.logger.writeError("Unknown Exception response={}", response.json())
             self.throwException(response)
 
     # returns ss and ucp grid if ss is found
@@ -1605,9 +1601,9 @@ class StorageSystem:
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x["serialNumber"]))
-            self.logger.writeInfo(self.serial)
-            self.logger.writeInfo(int(x["serialNumber"]) == self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]))
+            self.logger.writeDebug(self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]) == self.serial)
 
             if str(x["serialNumber"]) == str(self.serial):
                 system = x
@@ -1631,7 +1627,7 @@ class StorageSystem:
         funcName = "hv_infra:getStorageSystemResourceIdInISP"
         self.logger.writeEnterSDK(funcName)
         headers = self.getAuthToken()
-        self.logger.writeParam("headers={}", headers)
+        # self.logger.writeParam("headers={}", headers)
 
         urlPath = "v2/storage/devices"
         url = self.getUrl(urlPath)
@@ -1643,9 +1639,9 @@ class StorageSystem:
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x["serialNumber"]))
-            self.logger.writeInfo(self.serial)
-            self.logger.writeInfo(int(x["serialNumber"]) == self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]))
+            self.logger.writeDebug(self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]) == self.serial)
             if str(x["serialNumber"]) == str(self.serial):
                 system = x
                 break
@@ -1701,13 +1697,13 @@ class StorageSystem:
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x["serialNumber"]))
-            self.logger.writeInfo(self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]))
+            self.logger.writeDebug(self.serial)
             if str(x["serialNumber"]) == str(self.serial):
                 system = x
                 break
 
-        self.logger.writeInfo("system={}", system)
+        self.logger.writeDebug("system={}", system)
         result = StorageSystemManager.formatStorageSystem(system)
 
         self.logger.writeExitSDK(funcName)
@@ -1739,10 +1735,10 @@ class StorageSystem:
             data = authResponse["data"]
             token = data.get("token")
         elif "HIJSONFAULT" in response.headers:
-            self.logger.writeInfo("HIJSONFAULT response={}", response)
+            self.logger.writeError("HIJSONFAULT response={}", response)
             Utils.raiseException(self.sessionId, response)
         else:
-            self.logger.writeInfo("Unknown Exception response={}", response)
+            self.logger.writeError("Unknown Exception response={}", response)
             self.throwException(response)
 
         headers = {"Authorization": "Bearer {0}".format(token)}
@@ -1757,7 +1753,7 @@ class StorageSystem:
         ucp_name = "ucp-{0}".format(gatewayLast5)
         ucp_serial = "Logical-UCP-{0}".format(gatewayLast5)
         system = self.getUcpSystem(gatewayIp)
-        self.logger.writeInfo("ucpsystem={}", system)
+        self.logger.writeDebug("ucpsystem={}", system)
         if system is None:
             body = {
                 "gatewayAddress": gatewayIp,
@@ -1782,16 +1778,16 @@ class StorageSystem:
 
             if response.ok:
                 resposeJson = response.json()
-                data = resposeJson["data"]
-                self.logger.writeInfo("resposeJson={}", resposeJson)
+                resposeJson["data"]
+                self.logger.writeError("resposeJson={}", resposeJson)
                 taskId = resposeJson["data"].get("taskId")
                 self.checkTaskStatus(taskId)
                 time.sleep(10)
             elif "HIJSONFAULT" in response.headers:
-                self.logger.writeInfo("HIJSONFAULT response={}", response)
+                self.logger.writeError("HIJSONFAULT response={}", response)
                 Utils.raiseException(self.sessionId, response)
             else:
-                self.logger.writeInfo("Unknown Exception response={}", response)
+                self.logger.writeError("Unknown Exception response={}", response)
                 raise Exception(
                     "Unknown error HTTP {0}".format(
                         response.status_code + response.message
@@ -1807,8 +1803,8 @@ class StorageSystem:
         ucp_name = "ucp-{0}".format(gatewayLast5)
         ucp_serial = "Logical-UCP-{0}".format(gatewayLast5)
         system = self.getUcpSystem(gatewayIp)
-        self.logger.writeInfo("ucpsystem={}", system)
-        if system is not None:
+        self.logger.writeDebug("ucpsystem={}", system)
+        if system:
             body = {
                 "gatewayAddress": gatewayIp,
                 "model": "Logical UCP",
@@ -1832,15 +1828,15 @@ class StorageSystem:
 
             if response.ok:
                 resposeJson = response.json()
-                data = resposeJson["data"]
-                self.logger.writeInfo("resposeJson={}", resposeJson)
+                resposeJson["data"]
+                self.logger.writeDebug("resposeJson={}", resposeJson)
                 taskId = resposeJson["data"].get("taskId")
                 self.checkTaskStatus(taskId)
             elif "HIJSONFAULT" in response.headers:
-                self.logger.writeInfo("HIJSONFAULT response={}", response)
+                self.logger.writeError("HIJSONFAULT response={}", response)
                 Utils.raiseException(self.sessionId, response)
             else:
-                self.logger.writeInfo("Unknown Exception response={}", response)
+                self.logger.writeError("Unknown Exception response={}", response)
                 raise Exception(
                     "Unknown error HTTP {0}".format(
                         response.status_code + response.message
@@ -1855,7 +1851,7 @@ class StorageSystem:
 
         gatewayLast5 = gatewayIp.replace(".", "")[-5:]
         ucp_name = "ucp-{0}".format(gatewayLast5)
-        ucp_serial = "Logical-UCP-{0}".format(gatewayLast5)
+        "Logical-UCP-{0}".format(gatewayLast5)
 
         systems = self.getAllUcpSystem()
         system = next((x for x in systems if x.get("name") == ucp_name), None)
@@ -1901,14 +1897,14 @@ class StorageSystem:
         self.logger.writeExitSDK(funcName)
         if response.ok:
             authResponse = response.json()
-            self.logger.writeInfo("AllUcpSystem={}", authResponse)
+            self.logger.writeDebug("AllUcpSystem={}", authResponse)
             systems = authResponse.get("data")
             return systems
         elif "HIJSONFAULT" in response.headers:
-            self.logger.writeInfo("raiseException={}", response)
+            self.logger.writeError("raiseException={}", response)
             Utils.raiseException(self.sessionId, response)
         else:
-            self.logger.writeInfo("throwException={}", response)
+            self.logger.writeError("throwException={}", response)
             self.throwException(response)
 
     def getvCenter(self, vcip):
@@ -1934,7 +1930,7 @@ class StorageSystem:
         self.logger.writeExitSDK(funcName)
         if response.ok:
             authResponse = response.json()
-            self.logger.writeInfo("vcenters={}", authResponse)
+            self.logger.writeDebug("vcenters={}", authResponse)
             systems = authResponse.get("data")
             return systems
         elif "HIJSONFAULT" in response.headers:
@@ -1946,7 +1942,7 @@ class StorageSystem:
         funcName = "hv_infra:addvCenter"
         self.logger.writeEnterSDK(funcName)
         vCenter = self.getvCenter(vcip)
-        self.logger.writeInfo("vCenter={}", vCenter)
+        self.logger.writeDebug("vCenter={}", vCenter)
         if vCenter is None:
             body = {
                 "vcenterAddress": vcip,
@@ -1956,8 +1952,8 @@ class StorageSystem:
             }
             urlPath = "v2/virtualization/vcenters"
             url = "{0}/porcelain/{1}".format(self.basedUrl, urlPath)
-            self.logger.writeInfo("url={}", url)
-            self.logger.writeInfo("body={}", body)
+            self.logger.writeDebug("url={}", url)
+            self.logger.writeDebug("body={}", body)
             response = requests.post(
                 url,
                 headers=self.getAuthToken(),
@@ -1968,17 +1964,17 @@ class StorageSystem:
 
             if response.ok:
                 resposeJson = response.json()
-                data = resposeJson["data"]
-                self.logger.writeInfo("resposeJson={}", resposeJson)
+                resposeJson["data"]
+                self.logger.writeDebug("resposeJson={}", resposeJson)
                 taskId = resposeJson["data"].get("taskId")
                 self.checkTaskStatus(taskId)
                 vCenter = self.getvCenter(vcip)
                 time.sleep(10)
             elif "HIJSONFAULT" in response.headers:
-                self.logger.writeInfo("HIJSONFAULT response={}", response)
+                self.logger.writeError("HIJSONFAULT response={}", response)
                 Utils.raiseException(self.sessionId, response)
             else:
-                self.logger.writeInfo("Unknown Exception response={}", response)
+                self.logger.writeError("Unknown Exception response={}", response)
                 raise Exception("Unknown error HTTP {0}".format(response.status_code))
 
     # this old function only getAllStorageSystems from the first ucp,
@@ -1994,9 +1990,9 @@ class StorageSystem:
         storage_systems = []
         for ucp in ucp_systems:
             sn = str(ucp.get("serialNumber"))
-            self.logger.writeInfo(sn)
+            self.logger.writeDebug(sn)
             body = {"ucpSystem": sn}
-            self.logger.writeInfo("body={}", body)
+            self.logger.writeDebug("body={}", body)
             headers = self.getAuthToken()
 
             response = requests.get(
@@ -2102,55 +2098,6 @@ class StorageSystem:
         self.logger.writeExitSDK(funcName)
         return system
 
-    # def createLunInDP(
-    #     self,
-    #     lun,
-    #     pool,
-    #     sizeInGB,
-    #     stripeSize,
-    #     metaResourceSerial,
-    #     luName,
-    # ):
-
-    #     funcName = 'hv_infra:createLunInDP'
-    #     self.logger.writeEnterSDK(funcName)
-    #     self.logger.writeParam('lun={}', lun)
-    #     self.logger.writeParam('pool={}', pool)
-    #     self.logger.writeParam('sizeInGB={}', sizeInGB)
-    #     self.logger.writeParam('stripeSize={}', stripeSize)
-    #     self.logger.writeParam('metaResourceSerial={}',
-    #                            metaResourceSerial)
-    #     self.logger.writeParam('luName={}', luName)
-    #     resourceId = 'storage-c6aaa5b557fd584db37e55e8b77b03c6'
-    #     urlPath = 'porcelain/v2/storage/devices/{0}/volumes'.format(
-    #         resourceId)
-    #     url = self.getUrl(urlPath)
-    #     self.logger.writeInfo('url={}', url)
-    #     body = {
-    #         'deduplicationCompressionMode': 'DISABLED',
-    #         'poolId': 2,
-    #         'name': 'test',
-    #         'capacity': 1048576,
-    #         'resourceGroupId': 0,
-    #         'ucpSystem': 'demo-datastore-api-team',
-    #     }
-
-    #     headers = self.getAuthToken()
-
-    #     response = requests.post(url, json=body, headers=headers,
-    #                              verify=self.shouldVerifySslCertification)
-
-    #     self.logger.writeExitSDK(funcName)
-    #     if response.ok:
-    #         resourceId = response.json()['resourceId']
-    #         return self.getLunByResourceId(resourceId)
-    #     elif 'HIJSONFAULT' in response.headers:
-    #         Utils.raiseException(self.sessionId, response)
-    #     else:
-    #         raise Exception(
-    #            self.throwException(response)
-    # createCommandDevice(poolId, vcip, user, pword, vmName)
-
     def createCommandDevice(self, poolId, vcip, user, pword, vmName, ucp_serial):
         funcName = "hv_infra:createCommandDevice"
         self.logger.writeEnterSDK(funcName)
@@ -2166,7 +2113,7 @@ class StorageSystem:
         self.logger.writeParam("ucp={}", ucp_serial)
         urlPath = "v2/storage/devices/storage/command/device"
         url = self.getUrl(urlPath)
-        self.logger.writeInfo("url={}", url)
+        self.logger.writeDebug("url={}", url)
 
         body = {
             "poolId": poolId,
@@ -2177,17 +2124,17 @@ class StorageSystem:
             "serialNumber": self.serial,
         }
 
-        self.logger.writeInfo("body={}", body)
+        self.logger.writeDebug("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo("headers={}", headers)
+        # self.logger.writeDebug("headers={}", headers)
         response = requests.post(
             url, json=body, headers=headers, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo("response={}", response.json())
+        self.logger.writeDebug("response={}", response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
             resourceId = response.json()["data"]["resourceId"]
-            self.logger.writeInfo("resourceId={}", resourceId)
+            self.logger.writeDebug("resourceId={}", resourceId)
             taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(5)
@@ -2219,7 +2166,7 @@ class StorageSystem:
 
         urlPath = "v2/storage/devices/{0}/volumes".format(resourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeInfo("url={}", url)
+        self.logger.writeDebug("url={}", url)
         body = {
             "deduplicationCompressionMode": dedup,
             "poolId": pool,
@@ -2230,17 +2177,17 @@ class StorageSystem:
         }
         if lun is not None:
             body["lunId"] = lun
-        self.logger.writeInfo("body={}", body)
+        self.logger.writeDebug("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo("headers={}", headers)
+        self.logger.writeDebug("headers={}", headers)
         response = requests.post(
             url, json=body, headers=headers, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo("response={}", response.json())
+        self.logger.writeDebug("response={}", response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
             resourceId = response.json()["data"]["resourceId"]
-            self.logger.writeInfo("resourceId={}", resourceId)
+            self.logger.writeDebug("resourceId={}", resourceId)
             taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(5)
@@ -2269,19 +2216,19 @@ class StorageSystem:
 
         urlPath = "v2/storage/devices/{0}/volumes/{1}".format(resourceId, lunResourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeInfo("url={}", url)
+        self.logger.writeDebug("url={}", url)
         body = {"capacity": size}
-        self.logger.writeInfo("body={}", body)
+        self.logger.writeDebug("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo("headers={}", headers)
+        self.logger.writeDebug("headers={}", headers)
         response = requests.patch(
             url, json=body, headers=headers, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo("response={}", response.json())
+        self.logger.writeDebug("response={}", response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
             resourceId = response.json()["data"]["resourceId"]
-            self.logger.writeInfo("resourceId={}", resourceId)
+            self.logger.writeDebug("resourceId={}", resourceId)
             taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(10)
@@ -2303,40 +2250,6 @@ class StorageSystem:
         luName,
     ):
 
-        # funcName = 'hv_infra:createLunInPG'
-        # self.logger.writeEnterSDK(funcName)
-        # self.logger.writeParam('lun={}', lun)
-        # self.logger.writeParam('parityGroup={}', parityGroup)
-        # self.logger.writeParam('sizeInGB={}', sizeInGB)
-        # self.logger.writeParam('stripeSize={}', stripeSize)
-        # self.logger.writeParam('metaResourceSerial={}',
-        # metaResourceSerial)
-        # self.logger.writeParam('luName={}', luName)
-
-        # urlPath = 'LogicalUnit/LogicalUnit/CreateInPGLite'
-        # url = self.getUrl(urlPath)
-        # self.logger.writeInfo('url={}', url)
-        # body = {
-        # 'sessionId': self.sessionId,
-        # 'serialNumber': self.serial,
-        # 'lun': lun or -1,
-        # 'pg': parityGroup,
-        # 'sizeInGB': sizeInGB,
-        # 'stripeSize': stripeSize,
-        # 'metaResourceSerial': metaResourceSerial or -1,
-        # 'luName': luName or '',
-        # }
-
-        # response = requests.post(url, json=body,
-        # verify=self.shouldVerifySslCertification)
-
-        # self.logger.writeExitSDK(funcName)
-        # if response.ok:
-        # return response.json()
-        # elif 'HIJSONFAULT' in response.headers:
-        # Utils.raiseException(self.sessionId, response)
-        # else:
-        # self.throwException(response)
         funcName = "hv_infra:createLunInPG"
         self.logger.writeEnterSDK(funcName)
         self.logger.writeParam("lun={}", lun)
@@ -2351,7 +2264,7 @@ class StorageSystem:
 
         urlPath = "v2/storage/devices/{0}/volumes".format(resourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeInfo("url={}", url)
+        self.logger.writeDebug("url={}", url)
         body = {
             "parityGroupId": parityGroup,
             "name": luName,
@@ -2361,17 +2274,17 @@ class StorageSystem:
         }
         if lun is not None:
             body["lunId"] = lun
-        self.logger.writeInfo("body={}", body)
+        self.logger.writeDebug("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo("headers={}", headers)
+        self.logger.writeDebug("headers={}", headers)
         response = requests.post(
             url, json=body, headers=headers, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo("response={}", response.json())
+        self.logger.writeDebug("response={}", response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
             resourceId = response.json()["data"]["resourceId"]
-            self.logger.writeInfo("resourceId={}", resourceId)
+            self.logger.writeDebug("resourceId={}", resourceId)
             taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(5)
@@ -2398,19 +2311,19 @@ class StorageSystem:
 
         urlPath = "v2/storage/devices/{0}/volumes/{1}".format(resourceId, lunResourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeInfo("url={}", url)
+        self.logger.writeDebug("url={}", url)
         body = {"lunName": lunName}
-        self.logger.writeInfo("body={}", body)
+        self.logger.writeDebug("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo("headers={}", headers)
+        # self.logger.writeDebug("headers={}", headers)
         response = requests.patch(
             url, json=body, headers=headers, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo("response={}", response.json())
+        self.logger.writeDebug("response={}", response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
             resourceId = response.json()["data"]["resourceId"]
-            self.logger.writeInfo("resourceId={}", resourceId)
+            self.logger.writeDebug("resourceId={}", resourceId)
             taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(10)
@@ -2433,19 +2346,19 @@ class StorageSystem:
 
         urlPath = "v2/storage/devices/{0}/volumes/{1}".format(resourceId, lunResourceId)
         url = self.getUrl(urlPath)
-        self.logger.writeInfo("url={}", url)
+        self.logger.writeDebug("url={}", url)
         body = {"deduplicationCompressionMode": dedupMode}
-        self.logger.writeInfo("body={}", body)
+        self.logger.writeDebug("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo("headers={}", headers)
+        self.logger.writeDebug("headers={}", headers)
         response = requests.patch(
             url, json=body, headers=headers, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo("response={}", response.json())
+        self.logger.writeDebug("response={}", response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
             resourceId = response.json()["data"]["resourceId"]
-            self.logger.writeInfo("resourceId={}", resourceId)
+            self.logger.writeDebug("resourceId={}", resourceId)
             taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(10)
@@ -2611,10 +2524,10 @@ class StorageSystem:
         )
 
         self.logger.writeExitSDK(funcName)
-        self.logger.writeInfo(response.status_code)
+        self.logger.writeDebug(response.status_code)
         if response.ok:
             resourceId = response.json()["data"]["resourceId"]
-            self.logger.writeInfo("resourceId={}", resourceId)
+            self.logger.writeDebug("resourceId={}", resourceId)
             taskId = response.json()["data"].get("taskId")
             self.checkTaskStatus(taskId)
             time.sleep(10)
@@ -2642,10 +2555,10 @@ class StorageSystem:
             try:
                 if str(item["ldevId"]) == str(lun):
                     foundlun = item
-                    self.logger.writeInfo(foundlun)
+                    self.logger.writeDebug(foundlun)
                     break
             except Exception as e:
-                self.logger.writeInfo(str(e))
+                self.logger.writeException(e)
 
         self.logger.writeExitSDK(funcName)
         return foundlun
@@ -2667,12 +2580,12 @@ class StorageSystem:
         )
 
         self.logger.writeExitSDK(funcName)
-        self.logger.writeInfo(response.status_code)
+        self.logger.writeDebug(response.status_code)
         if response.ok:
             return response.json()["data"]
         elif "HIJSONFAULT" in response.headers:
             if doRetry:
-                self.logger.writeInfo(funcName + ":{}", "retry once")
+                self.logger.writeDebug(funcName + ":{}", "retry once")
                 return self.getLunByResourceId(lunResourceId, False)
             else:
                 Utils.raiseException(self.sessionId, response, False)
@@ -2693,7 +2606,7 @@ class StorageSystem:
                     foundlun = item
                     break
             except Exception as e:
-                self.logger.writeInfo(str(e))
+                self.logger.writeException(e)
 
         self.logger.writeExitSDK(funcName)
         return foundlun
@@ -2716,13 +2629,13 @@ class StorageSystem:
             and canonicalName.find(manufacturerCode) > 0
         ):
             lunCode = canonicalName[28:36]
-            self.logger.writeInfo("lunCode={0}".format(lunCode))
+            self.logger.writeDebug("lunCode={0}".format(lunCode))
             modelCode = canonicalName[20:23]
             self.logger.writeInfo("modelCode={0}".format(modelCode))
             serialSubCode = canonicalName[24:28]
             serialCode = serialSubCode
 
-            self.logger.writeInfo("serialCode={0}".format(serialCode))
+            self.logger.writeDebug("serialCode={0}".format(serialCode))
             storageSerial = int(serialCode, 16)
             if modelCode == "502":
                 storageSerial = "2{0}".format(storageSerial)
@@ -2730,10 +2643,10 @@ class StorageSystem:
                 storageSerial = "4{0}".format(storageSerial)
 
             self.serial = int(storageSerial)
-            self.logger.writeInfo("storageSerial={0}".format(self.serial))
+            self.logger.writeDebug("storageSerial={0}".format(self.serial))
 
             lun = int(lunCode, 16)
-            self.logger.writeInfo("lun={0}".format(lun))
+            self.logger.writeDebug("lun={0}".format(lun))
             self.logger.writeExitSDK(funcName)
             return self.getLun(lun)
 
@@ -2828,7 +2741,7 @@ class StorageSystem:
         funcName = "hv_infra:getAllLuns"
         self.logger.writeEnterSDK(funcName)
         (resourceId, ucp) = self.getStorageSystemResourceId()
-        self.logger.writeInfo("Storage_resource_id={0}".format(resourceId))
+        self.logger.writeDebug("Storage_resource_id={0}".format(resourceId))
         # urlPath = 'v2/storage/devices/{0}/volumes?refresh=false'.format(resourceId)
         urlPath = "v2/storage/devices/{0}/volumes?fromLdevId=1000&toLdevId=1100&refresh=false".format(
             resourceId
@@ -2840,7 +2753,7 @@ class StorageSystem:
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
 
-        # self.logger.writeInfo('response.json()={}', response.json())
+        # self.logger.writeDebug('response.json()={}', response.json())
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -2904,16 +2817,19 @@ class StorageSystem:
         self.logger.writeEnterSDK(funcName)
         self.logger.writeParam("taskId={}", taskId)
         (status, name) = self.getTaskStatus(taskId)
+        count = 0
         while status == "Running":
-            self.logger.writeInfo(
-                "{0} task with id {1} status is Running".format(name, taskId)
-            )
+            if count % 5 == 0:
+                self.logger.writeInfo(
+                    "{0} task with id {1} status is Running".format(name, taskId)
+                )
             time.sleep(5)
+            count += 1
             (status, name) = self.getTaskStatus(taskId)
 
         if status.lower() == "failed":
             description = self.getTaskStatusDescription(taskId)
-            self.logger.writeInfo(
+            self.logger.writeError(
                 "{0} task with id {1} is failed.".format(name, taskId)
             )
             raise Exception("Operation failed. {0}".format(description))
@@ -2932,16 +2848,15 @@ class StorageSystem:
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
         status = None
-        name = None
         lun = None
         if response.ok:
             status = response.json()["data"].get("status")
-            name = response.json()["data"].get("name")
+            response.json()["data"].get("name")
 
         if status.lower() == "success":
             events = response.json()["data"].get("events")
             description = events[1].get("description")
-            self.logger.writeInfo(description)
+            self.logger.writeDebug(description)
             # start = description.find("Created logical Unit") + len("Created logical Unit")
             # end = description. find("in")
             # lun = description[start:end]
@@ -2952,7 +2867,7 @@ class StorageSystem:
             end = description.find("] for")
             lun = description[start:end]
             parsedLun = "parsedLun={0}".format(lun)
-            self.logger.writeInfo(parsedLun)
+            self.logger.writeDebug(parsedLun)
         self.logger.writeExitSDK(funcName)
         return lun.strip()
 
@@ -2985,15 +2900,15 @@ class StorageSystem:
         )
         description = None
         if response.ok:
-            self.logger.writeInfo("getFailedTaskResponse={}", response.json())
-            status = response.json()["data"].get("status")
+            self.logger.writeDebug("getFailedTaskResponse={}", response.json())
+            response.json()["data"].get("status")
             name = response.json()["data"].get("name")
             events = response.json()["data"].get("events")
             if len(events):
                 descriptions = [element.get("description") for element in events]
-                self.logger.writeInfo("-".join(descriptions))
+                self.logger.writeDebug("-".join(descriptions))
                 description = events[-1].get("description")
-                self.logger.writeInfo(description)
+                self.logger.writeDebug(description)
                 return "-".join(descriptions)
             else:
                 return "{} failed".format(name)
@@ -3007,17 +2922,16 @@ class StorageSystem:
         response = requests.get(
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
-        description = None
         if response.ok:
-            self.logger.writeInfo("getFailedTaskResponse={}", response.json())
-            status = response.json()["data"].get("status")
+            self.logger.writeDebug("getFailedTaskResponse={}", response.json())
+            response.json()["data"].get("status")
             name = response.json()["data"].get("name")
             events = response.json()["data"].get("events")
             if len(events):
                 descriptions = [element.get("description") for element in events]
-                # self.logger.writeInfo('-'.join(descriptions))
+                # self.logger.writeDebug('-'.join(descriptions))
                 # description = events[-1].get('description')
-                # self.logger.writeInfo(description)
+                # self.logger.writeDebug(description)
                 return descriptions
             else:
                 return "{} failed".format(name)
@@ -3107,8 +3021,8 @@ class StorageSystem:
         response = requests.post(
             url, headers=headers, json=body, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo(url)
-        self.logger.writeInfo(body)
+        self.logger.writeDebug(url)
+        self.logger.writeDebug(body)
         if not response.ok:
             if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
@@ -3151,7 +3065,7 @@ class StorageSystem:
             else:
                 self.throwException(response)
         else:
-            self.logger.writeInfo(response)
+            self.logger.writeDebug(response)
             # taskId = response.json()['data'].get('taskId')
             # self.checkTaskStatus(taskId)
             self.logger.writeExitSDK(funcName)
@@ -3212,7 +3126,7 @@ class StorageSystem:
         )
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            # self.logger.writeInfo('response.json()={}',
+            # self.logger.writeDebug('response.json()={}',
             #                        response.json())
             return response.json()["data"]
         elif "HIJSONFAULT" in response.headers:
@@ -3232,7 +3146,7 @@ class StorageSystem:
 
     #     self.logger.writeExitSDK(funcName)
     #     if response.ok:
-    #         self.logger.writeInfo('response.json()={}',
+    #         self.logger.writeDebug('response.json()={}',
     #                                response.json())
     #         return response.json()['data']
     #     elif 'HIJSONFAULT' in response.headers:
@@ -3299,12 +3213,12 @@ class StorageSystem:
             "hostModeOptions": list(map(int, hostopt)),
         }
 
-        self.logger.writeInfo(url)
-        self.logger.writeInfo(body)
+        self.logger.writeDebug(url)
+        self.logger.writeDebug(body)
         response = requests.patch(
             url, json=body, headers=headers, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo("response={}", response)
+        self.logger.writeDebug("response={}", response)
 
         if not response.ok:
             if "HIJSONFAULT" in response.headers:
@@ -3355,8 +3269,8 @@ class StorageSystem:
         response = requests.post(
             url, headers=headers, json=body, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo(url)
-        self.logger.writeInfo(body)
+        self.logger.writeDebug(url)
+        self.logger.writeDebug(body)
         if not response.ok:
             if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
@@ -3404,15 +3318,15 @@ class StorageSystem:
         response = requests.delete(
             url, headers=headers, json=body, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo(url)
-        self.logger.writeInfo(body)
+        self.logger.writeDebug(url)
+        self.logger.writeDebug(body)
         if not response.ok:
             if "HIJSONFAULT" in response.headers:
                 Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
         else:
-            self.logger.writeInfo("response.json()={}", response.json())
+            self.logger.writeDebug("response.json()={}", response.json())
             # taskId = response.json()['data'].get('taskId')
             # self.checkTaskStatus(taskId)
             time.sleep(5)
@@ -3431,7 +3345,7 @@ class StorageSystem:
         )
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            self.logger.writeInfo("ports={}", response.json())
+            self.logger.writeDebug("ports={}", response.json())
             return response.json()["data"]
         elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
@@ -3451,7 +3365,7 @@ class StorageSystem:
         )
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            self.logger.writeInfo("pools={}", response.json())
+            self.logger.writeDebug("pools={}", response.json())
             return response.json()["data"]
 
         self.logger.writeExitSDK(funcName)
@@ -3478,7 +3392,7 @@ class StorageSystem:
 
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            self.logger.writeInfo("getJournalPools={}", response.json())
+            self.logger.writeDebug("getJournalPools={}", response.json())
             return response.json()["data"]
         elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
@@ -3501,7 +3415,7 @@ class StorageSystem:
         )
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            self.logger.writeInfo("pools={}", response.json())
+            self.logger.writeDebug("pools={}", response.json())
             return response.json()["data"]
         elif "HIJSONFAULT" in response.headers:
             Utils.raiseException(self.sessionId, response)
@@ -3609,7 +3523,7 @@ class StorageSystem:
         )
         self.logger.writeExitSDK(funcName)
         if response.ok:
-            self.logger.writeInfo("pools={}", response.json())
+            self.logger.writeDebug("pools={}", response.json())
             return response.json()["data"]
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -3773,12 +3687,12 @@ class StorageSystem:
         response = requests.post(
             url, json=body, verify=self.shouldVerifySslCertification
         )
-        self.logger.writeInfo("response={}", response)
+        self.logger.writeDebug("response={}", response)
 
         if response.ok:
             self.logger.writeExitSDK(funcName)
             if returnJson:
-                self.logger.writeInfo("response.json()={}", response.json())
+                self.logger.writeDebug("response.json()={}", response.json())
                 return response.json()
             else:
                 return
@@ -3926,7 +3840,7 @@ class RequestsUtils:
             raise Exception(
                 "Mas retry error. Perhaps webserivce is not reachable or down ?"
             )
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             raise Exception(
                 " Connection Error. Perhaps web serivce is not reachable is down ? "
             )
@@ -3943,7 +3857,7 @@ class RequestsUtils:
             raise Exception(
                 "Mas retry error. Perhaps webserivce is not reachable or down ?"
             )
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             raise Exception(
                 " Connection Error. Perhaps web serivce is not reachable is down ? "
             )

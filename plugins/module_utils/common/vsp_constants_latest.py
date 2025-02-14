@@ -1,5 +1,6 @@
 import logging
 
+
 class Endpoints(object):
     GET_ALL_SHADOW_IMAGE_PAIR = "v2/storage/devices/{deviceId}/shadowimages{refresh}"
 

@@ -2,14 +2,14 @@ try:
 
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
-    from ..model.sdsb_volume_models import *
+    from ..model.sdsb_volume_models import SDSBVolumesInfo
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
-    from model.sdsb_volume_models import *
+    from model.sdsb_volume_models import SDSBVolumesInfo
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
 

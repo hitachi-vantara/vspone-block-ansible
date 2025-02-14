@@ -1,8 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# Copyright: (c) 2020, Hewlett Packard Enterprise Development LP.
-
-__metaclass__ = type
 import json
 import logging
 from enum import Enum
@@ -138,7 +133,9 @@ class ReplicationStatus(Enum):
         return enums[0] if enums else None
 
 
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
     HiException,
 )
@@ -358,15 +355,18 @@ class HTIManager:
                 raise hiex
             else:
                 raise Exception("Unknown error HTTP {0}".format(response.status_code))
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout as t1:
+            self.logger.writeException(t1)
             raise Exception(
                 " Timeout exception. Perhaps webserivce is not reachable or down ? "
             )
-        except requests.exceptions.TooManyRedirects:
+        except requests.exceptions.TooManyRedirects as t2:
+            self.logger.writeException(t2)
             raise Exception(
                 "Mas retry error. Perhaps webserivce is not reachable or down ?"
             )
         except requests.exceptions.RequestException as e:
+            self.logger.writeException(e)
             raise Exception(
                 " Connection Error. Perhaps web serivce is not reachable or down ? "
             )
@@ -396,15 +396,18 @@ class HTIManager:
                 raise hiex
             else:
                 raise Exception("Unknown error HTTP {0}".format(response.status_code))
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout as t1:
+            self.logger.writeException(t1)
             raise Exception(
                 " Timeout exception. Perhaps webserivce is not reachable or down ? "
             )
-        except requests.exceptions.TooManyRedirects:
+        except requests.exceptions.TooManyRedirects as t2:
+            self.logger.writeException(t2)
             raise Exception(
                 "Mas retry error. Perhaps webserivce is not reachable or down ? "
             )
         except requests.exceptions.RequestException as e:
+            self.logger.writeException(e)
             raise Exception(
                 " Connection Error. Perhaps web serivce is not reachable or down ? "
             )

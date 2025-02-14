@@ -1,18 +1,25 @@
-import json
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2021, [ Hitachi Vantara ]
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = '''
+
+DOCUMENTATION = """
 ---
 module: hv_sds_block_volume_facts
 short_description: Retrieves information about Hitachi SDS block storage system volumes.
 description:
   - This module retrieves information about storage volumes.
   - It provides details about a storage volume such as name, type and other details.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/volume_facts.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -37,31 +44,36 @@ options:
         required: false
         choices: ['direct']
         default: 'direct'
-
   spec:
     description: Specification for retrieving volume information.
+    type: dict
+    required: false
     suboptions:
       count:
         type: int
         description: The maximum number of obtained volume information items. Default is 500.
         required: false
+        default: 500
       names:
         type: list
         description: The names of the volumes.
         required: false
+        elements: str
       nicknames:
         type: list
         description: The nickname of the volume.
         required: false
+        elements: str
       capacity_saving:
         type: str
         description: Settings of the data reduction function for volumes. Choices are 'Disabled', 'Compression'.
         required: false
-'''
+        choices: ['Disabled', 'Compression']
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 - name: Get volumes by default count
-  hv_sds_block_volume_facts:         
+  hv_sds_block_volume_facts:
     connection_info:
       address: vssb.company.com
       username: "admin"
@@ -69,7 +81,7 @@ EXAMPLES = '''
       connection_type: "direct"
 
 - name: Get volumes by count
-  hv_sds_block_volume_facts:         
+  hv_sds_block_volume_facts:
     connection_info:
       address: vssb.company.com
       username: "admin"
@@ -80,7 +92,7 @@ EXAMPLES = '''
       count: 200
 
 - name: Get volumes by names
-  hv_sds_block_volume_facts:       
+  hv_sds_block_volume_facts:
     connection_info:
       address: vssb.company.com
       username: "admin"
@@ -88,11 +100,10 @@ EXAMPLES = '''
       connection_type: "direct"
 
     spec:
-      names: [ 'test-volume1', 'test-volume2' ]
+      names: ['test-volume1', 'test-volume2']
 
 - name: Get volumes by other filters
   hv_sds_block_volume_facts:
-          
     connection_info:
       address: vssb.company.com
       username: "admin"
@@ -102,15 +113,14 @@ EXAMPLES = '''
     spec:
       count: 200
       capacity_saving: 'Disabled'
+"""
 
-'''
-
-RETURN = '''
+RETURN = """
 volumes:
   description: A list of volumes.
   returned: always
   type: list
-  elements: dict/list
+  elements: dict
   sample: [
     {
       "compute_node_info": [
@@ -200,7 +210,7 @@ volumes:
       }
     }
   ]
-'''
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_volume import (
@@ -208,12 +218,16 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconc
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_properties_extractor import (
     VolumePropertiesExtractor,
-    VolumeAndComputeNodePropertiesExtractor
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
     SDSBVolumeArguments,
     SDSBParametersManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 
 logger = Log()
@@ -240,6 +254,7 @@ class SDSBVolumeFactsManager:
     def apply(self):
         volumes = None
         volumes_data_extracted = None
+        registration_message = validate_ansible_product_registration()
 
         logger.writeInfo(f"{self.connection_info.connection_type} connection type")
         try:
@@ -249,12 +264,15 @@ class SDSBVolumeFactsManager:
             logger.writeDebug(f"MOD:hv_sds_volume_facts:volumes= {volumes}")
             output_dict = volumes.data_to_list()
             volumes_data_extracted = VolumePropertiesExtractor().extract(output_dict)
-            #volumes_data_extracted = VolumePropertiesExtractor().extract(output_dict)
+            # volumes_data_extracted = VolumePropertiesExtractor().extract(output_dict)
 
         except Exception as e:
             self.module.fail_json(msg=str(e))
 
-        self.module.exit_json(volumes=volumes_data_extracted)
+        data = {"volumes": volumes_data_extracted}
+        if registration_message:
+            data["user_consent_required"] = registration_message
+        self.module.exit_json(**data)
 
 
 def main(module=None):

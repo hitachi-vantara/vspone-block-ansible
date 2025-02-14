@@ -1,24 +1,15 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# Copyright: (c) 2020, Hewlett Packard Enterprise Development LP.
-
-__metaclass__ = type
-
 import json
-import logging
 
-from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
     StorageSystem,
-    StorageSystemManager,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import Utils
-
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
 )
 
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
+)
 
 logger = Log()
 moduleName = "VSM facts"
@@ -70,6 +61,12 @@ def runPlaybook(module):
             cleanResult(vsmResult)
     else:
         vsmResult = {}
-
+    registration_message = validate_ansible_product_registration()
     logger.writeExitModule(moduleName)
-    module.exit_json(vsm=vsmResult)
+    data = {
+        "vsm": vsmResult,
+    }
+    if registration_message:
+        data["user_consent_required"] = registration_message
+
+    module.exit_json(**data)

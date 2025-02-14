@@ -12,6 +12,7 @@ class ChapUserFactSpec:
     id: Optional[str] = None
     target_chap_user_name: Optional[str] = None
 
+
 @dataclass
 class ChapUserSpec:
     id: Optional[str] = None
@@ -29,6 +30,7 @@ class SDSBChapUserInfo:
 
     def to_dict(self):
         return asdict(self)
+
 
 @dataclass
 class SDSBChapUserDetailInfo(SDSBChapUserInfo):

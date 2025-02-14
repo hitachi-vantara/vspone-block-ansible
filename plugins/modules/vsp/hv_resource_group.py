@@ -1,0 +1,399 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2021, [ Hitachi Vantara ]
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+from __future__ import absolute_import, division, print_function
+
+
+__metaclass__ = type
+
+
+DOCUMENTATION = """
+---
+module: hv_resource_group
+short_description: Manages resource groups on Hitachi VSP storage systems.
+description:
+    - This module allows the creation and deletion of resource groups on Hitachi VSP storage systems.
+    - It also enables adding or removing various types of resources to/from the resource group.
+    - This module is supported for both direct and gateway connection types.
+    - For direct connection type examples, go to URL
+      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/resource_group.yml)
+    - For gateway connection type examples, go to URL
+      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/resource_group.yml)
+version_added: '3.2.0'
+author:
+    - Hitachi Vantara LTD (@hitachi-vantara)
+options:
+    state:
+        description:
+            - The desired state of the resource group task.
+        type: str
+        required: false
+        default: 'present'
+        choices: ['present', 'absent']
+    storage_system_info:
+        description:
+            - Information about the storage system.
+        type: dict
+        required: false
+        suboptions:
+            serial:
+                description:
+                    - The serial number of the storage system.
+                type: str
+                required: false
+    connection_info:
+        description:
+            - Information required to establish a connection to the storage system.
+        type: dict
+        required: true
+        suboptions:
+            address:
+                description:
+                    - IP address or hostname of the UAI gateway (for gateway connection)
+                      or the storage system (for direct connection).
+                type: str
+                required: true
+            username:
+                description:
+                    - Username for authentication.
+                type: str
+                required: false
+            password:
+                description:
+                    - Password for authentication.
+                type: str
+                required: false
+            connection_type:
+                description:
+                    - Type of connection to the storage system.
+                type: str
+                required: false
+                choices: ['direct', 'gateway']
+                default: 'direct'
+            api_token:
+                description: Value of the lock token to operate on locked resources.
+                type: str
+                required: false
+            subscriber_id:
+                description: >
+                    Subscription ID for the storage system. This is valid for multi-tenancy and when connection_type is gateway.
+                    Resource group is not supported for multi-tenancy.
+                type: str
+                required: false
+    spec:
+        description:
+            - Specification for the resource group.
+        type: dict
+        required: true
+        suboptions:
+            name:
+                description:
+                    - The name of the resource group.
+                type: str
+                required: false
+            id:
+                description:
+                    - The ID of the resource group.
+                type: int
+                required: false
+            virtual_storage_serial:
+                description:
+                    - Virtual storage serial number associated with the resource group.
+                type: str
+                required: false
+            virtual_storage_model:
+                description:
+                    - Virtual storage model name associated with the resource group.
+                type: str
+                required: false
+                choices: [ "VSP_5100H", "VSP_5200H", "VSP_5500H", "VSP_5600H", "VSP_5100", "VSP_5200", "VSP_5500", "VSP_5600",
+                           "VSP_E1090", "VSP_E590", "VSP_E790", "VSP_E990", "VSP_F350", "VSP_F370", "VSP_F400", "VSP_F600", "VSP_F700",
+                            "VSP_F800", "VSP_F900", "VSP_G130", "VSP_G150", "VSP_G200", "VSP_G350", "VSP_G370", "VSP_G400", "VSP_G600",
+                            "VSP_G700", "VSP_G800", "VSP_G900", "VSP_ONE_B28", "VSP_ONE_B26", "VSP_ONE_B24", "VSP_E790H", "VSP_E590H",
+                            "VSP_G1000", "VSP_G1500", "VSP_F1500", "VSP_E1090H",
+                        ]
+            ldevs:
+                description:
+                    - List of LDEVs to be added or removed from the resource group.
+                type: list
+                required: false
+                elements: int
+            ports:
+                description:
+                    - List of ports to be added or removed from the resource group.
+                type: list
+                required: false
+                elements: str
+            parity_groups:
+                description:
+                    - List of parity groups to be added or removed from the resource group.
+                type: list
+                required: false
+                elements: str
+            host_groups:
+                description:
+                    - List of host groups to be added or removed from the resource group.
+                type: list
+                required: false
+                elements: dict
+                suboptions:
+                    name:
+                        description: Name of the host group.
+                        type: str
+                        required: true
+                    port:
+                        description: Port name associated with the host group.
+                        type: str
+                        required: true
+            iscsi_targets:
+                description:
+                    - List of iSCSI targets to be added or removed from the resource group.
+                type: list
+                required: false
+                elements: dict
+                suboptions:
+                    name:
+                        description: Name of the iSCSI target.
+                        type: str
+                        required: true
+                    port:
+                        description: Port name associated with the iSCSI target.
+                        type: str
+                        required: true
+            nvm_subsystem_ids:
+                description:
+                    - List of NVM subsystem IDs to be added or removed from the resource group. This is supported only for direct connection type.
+                type: list
+                required: false
+                elements: int
+            storage_pool_ids:
+                description:
+                    - Pool volumes to be added or removed from the resource group.
+                type: list
+                required: false
+                elements: int
+            state:
+                description:
+                    - Operation to be performed on the resources in the resource group.
+                type: str
+                required: false
+                choices: ['add_resource', 'remove_resource']
+                default: 'add_resource'
+            force:
+                description:
+                    - For delete operations, specifies if the operation should be forced.
+                type: bool
+                required: false
+                default: false
+"""
+
+EXAMPLES = """
+- name: Create a Resource Group with virtual storage serial number of VSM
+  tasks:
+    - name: Create resource group with virtual storage serial number
+      hv_resource_group:
+        connection_info:
+          address: storage1.company.com
+          username: "admin"
+          password: "secret"
+        spec:
+          name: "my_resource_group_1"
+          virtual_storage_serial: "69200"
+          virtual_storage_model: "VSP G370"
+
+- name: Get Resource Group by name
+  tasks:
+    - name: Get resource group by name
+      hv_resource_group:
+        connection_info:
+          address: storage1.company.com
+          username: "admin"
+          password: "secret"
+        spec:
+          name: "my_resource_group"
+
+- name: Create a Resource Group with LDEVs, parity groups, ports, and host groups
+  tasks:
+    - name: Create resource group with multiple resources
+      hv_resource_group:
+        connection_info:
+          address: storage1.company.com
+          username: "admin"
+          password: "secret"
+        spec:
+          ldevs: [1, 2, 3]
+          parity_groups: ["PG1", "PG2"]
+          ports: ["CL1-A", "CL1-C"]
+          host_groups:
+            - id: 1
+              name: "my_host_group_1"
+              port: "CL1-A"
+            - id: 2
+              name: "my_host_group_2"
+              port: "CL1-A"
+
+- name: Add resources to an existing Resource Group by ID
+  tasks:
+    - name: Add resources to resource group
+      hv_resource_group:
+        connection_info:
+          address: storage1.company.com
+          username: "admin"
+          password: "secret"
+        spec:
+          state: add_resource
+          id: 4
+          ldevs: [3, 4]
+          host_groups:
+            - id: 3
+              name: "my_host_group_3"
+              port: "CL1-A"
+          iscsi_targets:
+            - id: 2
+              name: "my_iscsi_target_2"
+              port: "CL1-C"
+
+- name: Remove resources from an existing Resource Group by ID
+  tasks:
+    - name: Remove resources from resource group
+      hv_resource_group:
+        connection_info:
+          address: storage1.company.com
+          username: "admin"
+          password: "secret"
+        spec:
+          id: 4
+          state: remove_resource
+          ldevs: [3, 4]
+          host_groups:
+            - id: 3
+              name: "my_host_group_3"
+              port: "CL1-A"
+          iscsi_targets:
+            - id: 2
+              name: "my_iscsi_target_2"
+              port: "CL1-C"
+
+- name: Delete a Resource Group by ID forcefully
+  tasks:
+    - name: Delete resource group forcefully
+      hv_resource_group:
+        connection_info:
+          address: storage1.company.com
+          username: "admin"
+          password: "secret"
+        state: absent
+        spec:
+          id: 4
+          force: true
+"""
+
+RETURN = """
+resource_groups:
+  description: The resource group information.
+  returned: always
+  type: list
+  elements: dict
+  sample:
+    -   id: 4
+        name: "my_resource_group"
+        lock_status: "Unlocked"
+        host_groups:
+            -   id: 1
+                name: "my_host_group_1"
+                port: "CL1-A"
+            -   id: 2
+                name: "my_host_group_2"
+                port: "CL1-A"
+        iscsi_targets:
+            -   id: 1
+                name: "my_iscsi_target_1"
+                port: "CL1-C"
+            -   id: 2
+                name: "my_iscsi_target_2"
+                port: "CL1-C"
+        ldevs: [1, 2, 3]
+        parity_groups: ["PG1", "PG2"]
+        ports: ["CL1-A", "CL1-C"]
+"""
+
+from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
+    VSPResourceGroupArguments,
+    VSPParametersManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_resource_group import (
+    VSPResourceGroupReconciler,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
+)
+
+
+class VSPResourceGroupManager:
+    def __init__(self):
+
+        self.logger = Log()
+        self.argument_spec = VSPResourceGroupArguments().resource_group()
+        self.module = AnsibleModule(
+            argument_spec=self.argument_spec,
+            supports_check_mode=True,
+        )
+        try:
+            self.parameter_manager = VSPParametersManager(self.module.params)
+            self.connection_info = self.parameter_manager.get_connection_info()
+            self.storage_serial_number = (
+                self.parameter_manager.storage_system_info.serial
+            )
+            self.spec = self.parameter_manager.get_resource_group_spec()
+            self.state = self.parameter_manager.get_state()
+            self.logger.writeDebug(
+                f"MOD:hv_resource_group:spec= {self.spec} ss = {self.storage_serial_number}"
+            )
+        except Exception as e:
+            self.logger.writeError(f"An error occurred during initialization: {str(e)}")
+            self.module.fail_json(msg=str(e))
+
+    def apply(self):
+        self.logger.writeInfo("=== Start of Resource Group operation ===")
+        registration_message = validate_ansible_product_registration()
+
+        rg = None
+        try:
+            reconciler = VSPResourceGroupReconciler(
+                self.connection_info, self.storage_serial_number, self.state
+            )
+            rg, comment = reconciler.reconcile_resource_group(self.spec)
+
+        except Exception as e:
+            self.logger.writeError(str(e))
+            self.logger.writeInfo("=== End of Resource Group operation ===")
+            self.module.fail_json(msg=str(e))
+
+        resp = {
+            "changed": self.connection_info.changed,
+            # "resource_groups": rg,
+        }
+        if rg:
+            resp["resource_groups"] = rg
+        if comment:
+            resp["comment"] = comment
+        if registration_message:
+            resp["user_consent_required"] = registration_message
+
+        self.logger.writeInfo(f"{resp}")
+        self.logger.writeInfo("=== End of Resource Group operation ===")
+        self.module.exit_json(**resp)
+
+
+def main(module=None):
+    obj_store = VSPResourceGroupManager()
+    obj_store.apply()
+
+
+if __name__ == "__main__":
+    main()

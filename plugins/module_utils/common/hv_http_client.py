@@ -1,33 +1,32 @@
+# http client module
 import functools
 import json as jsonModule
 import urllib.parse
 import urllib.error as urllib_error
-
-import logging
-from ansible.module_utils.urls import open_url, socket
+from ansible.module_utils.urls import socket
+from ansible.module_utils._text import to_native
 from ansible.module_utils.six.moves.urllib import parse as urlparse
 from ansible.module_utils.six.moves.http_client import HTTPException
-from ansible.module_utils._text import to_native, to_text
 
 try:
     from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
         Log,
-    )
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-        HiException,
     )
 
     from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
         Http,
         LogMessages,
     )
+    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.gateway.ansible_url import (
+        open_url,
+    )
 except ImportError:
     from common.hv_log import Log
-    from common.hv_exceptions import HiException
     from common.hv_constants import (
         Http,
         LogMessages,
     )
+    from gateway.ansible_url import open_url
 
 
 def get_with_log(class_name=""):
@@ -141,7 +140,7 @@ class HTTPClient(object):
                 params = urllib.parse.urlencode(params)
                 url = "{}?{}".format(url, params)
             response = open_url(
-                url,
+                url=url,
                 headers=headers,
                 # url_username=params.user if (params.session_id is None) else None,
                 # url_password=params.password if (params.session_id is None) else None,
@@ -160,25 +159,15 @@ class HTTPClient(object):
             err_str = str(err)
 
             # for 404, its the html text of the response page
-            logger.writeDebug("147 err response body={}", err_body)
-
-            # json loads would fail for:
-            # err response body=b'{\n  "message":"failure to get a peer from the ring-balancer",
-
-            # one way to check for the http err code
-            # if '503' in str(err_str):
-            #     raise Exception("Service Temporarily Unavailable.")
-            # if '404' in str(err_str):
-            #     # one way to check for the http err code
-            #     raise Exception(err_str)
+            logger.writeDebug(f"147 err response body={err_body}")
 
             text = err_body.decode("utf-8")
 
             try:
 
-                ## capture the error message. from porcelain response
+                #  capture the error message. from porcelain response
                 error_resp = jsonModule.loads(text)
-                logger.writeDebug("164 err error_resp={}", error_resp)
+                logger.writeDebug(f"164 err error_resp={error_resp}")
                 error_dtls = error_resp.get("error").get("message")
                 # problem above is that sometimes error is empty, but there is message
                 if error_dtls is None:
@@ -186,8 +175,8 @@ class HTTPClient(object):
 
             except Exception as err:
                 logger.writeDebug("170 err={}", err)
-                ## not able to json load the text
-                ## return based on the http error
+                #  not able to json load the text
+                #  return based on the http error
                 if int(http_err.status) >= 300:
                     # err_str includes the http error string
                     raise Exception(f"{err_str} -> {url}")
@@ -221,7 +210,7 @@ class HTTPClient(object):
                 httpResponse.ok = False
             httpResponse.status_code = response.status
             logger.writeDebug(response.status)
-            if bytes != None:
+            if bytes:
                 httpResponse.content = text
                 return httpResponse
             httpResponse._json = jsonModule.loads(text)

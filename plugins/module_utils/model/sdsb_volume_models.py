@@ -21,6 +21,7 @@ class QosParamSpec:
     upper_limit_for_transfer_rate_mb_per_sec: Optional[int] = None
     upper_alert_allowable_time_in_sec: Optional[int] = None
 
+
 @dataclass
 class VolumeSpec:
     id: Optional[str] = None
@@ -28,7 +29,7 @@ class VolumeSpec:
     nickname: Optional[str] = None
     capacity: Optional[str] = None
     state: Optional[str] = None
-    capacity_saving: Optional[str] = None  
+    capacity_saving: Optional[str] = None
     pool_name: Optional[str] = None
     compute_nodes: Optional[List[str]] = None
     qos_param: Optional[QosParamSpec] = None
@@ -64,10 +65,13 @@ class Lun:
     lun: int
     serverId: str
 
+
 @dataclass
 class ComputeNodeSummaryInfo:
     id: str
     name: str
+
+
 @dataclass
 class SDSBVolumeInfo(SingleBaseClass):
 
@@ -98,7 +102,7 @@ class SDSBVolumeInfo(SingleBaseClass):
     vpsName: str
     naaId: str
     qosParam: QosParam
-    computeNodesInfo:List[ComputeNodeSummaryInfo]
+    computeNodesInfo: List[ComputeNodeSummaryInfo]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -112,15 +116,15 @@ class SDSBVolumesInfo(BaseDataClass):
     data: List[SDSBVolumeInfo]
 
 
-
 @dataclass
 class SDSBVolumeAndComputeNodeInfo(SingleBaseClass):
-    volumeInfo:SDSBVolumeInfo
+    volumeInfo: SDSBVolumeInfo
     computeNodeInfo: List[ComputeNodeSummaryInfo]
 
     def to_dict(self):
         return asdict(self)
-    
+
+
 @dataclass
 class SDSBVolumeAndComputeNodeList(BaseDataClass):
     data: List[SDSBVolumeAndComputeNodeInfo]

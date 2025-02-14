@@ -1,20 +1,10 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 
-__metaclass__ = type
-import json
-
-from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
-    StorageSystem,
-    StorageSystemManager,
+    Utils,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
-)
-
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import Utils
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_storagemanager import (
     StorageManager,
 )
@@ -28,6 +18,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     camel_to_snake_case_dict_array,
     camel_to_snake_case_dict,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 
 logger = Log()
@@ -73,10 +66,9 @@ def formatCapacityMB(valueMB, round_digits=4):
     return str(round(ivalue, round_digits)) + "MB"
 
 
-def formatCapacity(value, round_digits=4):
+def formatCapacity(value, round_digits=4, valueInMB=False):
 
     Utils.logger.writeDebug("formatCapacity, value={}", value)
-    oneK = 1024
 
     ivalue = float(value)
     # Utils.logger.writeParam('formatCapacity, ivalue={}', ivalue)
@@ -84,11 +76,11 @@ def formatCapacity(value, round_digits=4):
         return "0"
 
     valueMB = ivalue / 1024 / 1024
-    if valueMB > 0:
+    if valueMB > 0 and valueInMB is False:
         logger.writeDebug("41 formatCapacity, valueMB={}", valueMB)
         return formatCapacityMB(valueMB)
 
-    return str(round(ivalue, round_digits)) + "MB"
+    return str(round(valueMB, round_digits)) + "MB"
 
 
 def formatPg(pgs):
@@ -96,6 +88,8 @@ def formatPg(pgs):
     logger.writeEnterSDK(funcName)
     try:
         for pg in pgs:
+            pg["totalCapacity_mb"] = formatCapacity(pg["totalCapacity"], 4, True)
+            pg["freeCapacity_mb"] = formatCapacity(pg["freeCapacity"], 4, True)
             pg["totalCapacity"] = formatCapacity(pg["totalCapacity"])
             pg["freeCapacity"] = formatCapacity(pg["freeCapacity"])
         logger.writeExitSDK(funcName)
@@ -121,24 +115,22 @@ def runPlaybook(module):
     logger.writeDebug("20230606 storage_serial={}", storage_serial)
 
     partnerId = CommonConstants.PARTNER_ID
-     
-    ########################################################
+
     # True: test the rest of the module using api_token
-    
-    if False:
-        ucpManager = UcpManager(
-            management_address,
-            management_username,
-            management_password,
-            api_token,
-            partnerId,
-            subscriberId,
-            storage_serial,
-        )    
-        api_token = ucpManager.getAuthTokenOnly()
-        management_username = ''
-    ########################################################
-    
+
+    # if False:
+    #     ucpManager = UcpManager(
+    #         management_address,
+    #         management_username,
+    #         management_password,
+    #         api_token,
+    #         partnerId,
+    #         subscriberId,
+    #         storage_serial,
+    #     )
+    #     api_token = ucpManager.getAuthTokenOnly()
+    #     management_username = ""
+
     storageSystem = None
     try:
         storageSystem = StorageManager(
@@ -159,7 +151,7 @@ def runPlaybook(module):
 
     partnerId = CommonConstants.PARTNER_ID
     subscriberId = CommonConstants.SUBSCRIBER_ID
-    ## check the healthStatus=onboarding
+    #  check the healthStatus=onboarding
     ucpManager = UcpManager(
         management_address,
         management_username,
@@ -185,5 +177,10 @@ def runPlaybook(module):
         paritygroup_details = storageSystem.getAllParityGroups()
         formatPg(paritygroup_details)
         paritygroup_details = camel_to_snake_case_dict_array(paritygroup_details)
-
-    module.exit_json(paritygroup=paritygroup_details)
+    registration_message = validate_ansible_product_registration()
+    data = {
+        "parity_group": paritygroup_details,
+    }
+    if registration_message:
+        data["user_consent_required"] = registration_message
+    module.exit_json(**data)

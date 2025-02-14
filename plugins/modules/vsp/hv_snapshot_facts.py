@@ -11,25 +11,28 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_snapshot_facts
-short_description: Retrieves snapshot information from from Hitachi VSP storage systems.
+short_description: Retrieves snapshot information from Hitachi VSP storage systems.
 description:
-  - This module retrieves information about snapshots from from Hitachi VSP storage systems.
+  - This module retrieves information about snapshots from Hitachi VSP storage systems.
+  - This module is supported for both direct and gateway connection types.
+  - For direct connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snapshot_facts.yml)
+  - For gateway connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/snapshot_facts.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
-    required: true
+    required: false
     suboptions:
       serial:
         description:
           - The serial number of the storage system.
         type: str
-        required: true
+        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
@@ -40,72 +43,87 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication.This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication.This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
-        no_log: true
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct']
+        choices: ['direct', 'gateway']
         default: 'direct'
+      api_token:
+        description: API token for authentication.This is a required field for gateway connection type.
+        type: str
+        required: false
+      subscriber_id:
+        description: This field is valid for gateway connection type only.This is an optional field and only needed to support multi-tenancy environment.
+        type: str
+        required: false
   spec:
     description:
       - Specification for the snapshot facts to be gathered.
     type: dict
-    required: true
+    required: false
     suboptions:
       primary_volume_id:
-        description:
-          - The primary volume identifier. If not provided, it will be omitted.
-        type: str
+        description: The primary volume identifier. If not provided, it will be omitted.
+        type: int
         required: false
       mirror_unit_id:
-        description:
-          - The mirror unit identifier. If not provided, it will be omitted.
-        type: str
+        description: The mirror unit identifier. If not provided, it will be omitted.
+        type: int
         required: false
 """
 
 EXAMPLES = """
-  - name: Gather snapshot facts with primary volume and mirror unit ID
-    hv_snapshot_facts:
-      storage_system_info:
-        serial: '1234567890'
-      connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
-        connection_type: "direct"
-      spec:
-        primary_volume_id: 525
-        mirror_unit_id: 10
-  - name: Gather snapshot facts with only primary volume
-    hv_snapshot_facts:
-      storage_system_info:
-        serial: '1234567890'
-      connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
-        connection_type: "direct"
-      spec:
-        primary_volume_id: 'volume1'
-        
-  - name: Gather snapshot facts without specific volume or mirror unit ID
-    hv_snapshot_facts:
-      storage_system_info:
-        serial: '1234567890'
-      connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
-        connection_type: "direct"
+- name: Get all snapshot pairs
+  hv_snapshot_facts:
+    storage_system_info:
+      serial: '1234567890'
+    connection_info:
+      address: gateway.company.com
+      connection_type: "gateway"
+      api_token: "api_token_value"
+
+- name: Gather snapshot facts with primary volume and mirror unit ID
+  hv_snapshot_facts:
+    storage_system_info:
+      serial: '1234567890'
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+      connection_type: "direct"
+    spec:
+      primary_volume_id: 525
+      mirror_unit_id: 10
+
+- name: Gather snapshot facts with only primary volume
+  hv_snapshot_facts:
+    storage_system_info:
+      serial: '1234567890'
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+      connection_type: "direct"
+    spec:
+      primary_volume_id: 'volume1'
+
+- name: Gather snapshot facts without specific volume or mirror unit ID
+  hv_snapshot_facts:
+    storage_system_info:
+      serial: '1234567890'
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+      connection_type: "direct"
 """
 
 RETURN = """
@@ -142,28 +160,22 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     VSPParametersManager,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    StateValue,
     ConnectionTypes,
-    CommonConstants,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_snapshot_reconciler import (
     VSPHtiSnapshotReconciler,
-    SnapshotCommonPropertiesExtractor,
 )
-
-try:
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_logger import (
-        MessageID,
-    )
-
-    HAS_MESSAGE_ID = True
-except ImportError as error:
-    HAS_MESSAGE_ID = False
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-
-
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log_decorator import (
     LogDecorator,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
+    ModuleMessage,
 )
 
 
@@ -172,13 +184,12 @@ class VSPHtiSnapshotFactManager:
 
     def __init__(self):
         self.logger = Log()
+        self.argument_spec = VSPSnapshotArguments().get_snapshot_fact_args()
+        self.module = AnsibleModule(
+            argument_spec=self.argument_spec,
+            supports_check_mode=True,
+        )
         try:
-            self.argument_spec = VSPSnapshotArguments().get_snapshot_fact_args()
-            self.module = AnsibleModule(
-                argument_spec=self.argument_spec,
-                supports_check_mode=True,
-                # can be added mandotary , optional mandatory arguments
-            )
 
             self.params_manager = VSPParametersManager(self.module.params)
             self.connection_info = self.params_manager.connection_info
@@ -189,50 +200,45 @@ class VSPHtiSnapshotFactManager:
             self.module.fail_json(msg=str(e))
 
     def apply(self):
+        self.logger.writeInfo("=== Start of Snapshot Facts ===")
         snapshot_data = None
-        self.logger.writeInfo(
-            f"{self.params_manager.connection_info.connection_type} connection type"
-        )
+        registration_message = validate_ansible_product_registration()
+
         try:
 
             snapshot_data = self.get_snapshot_facts()
-        
+
             if snapshot_data:
                 for snapshot in snapshot_data:
-                    # thinImagePropertiesDto = None
-                    # dto = snapshot.get('thin_image_properties_dto')
-                    # if dto and isinstance(dto, dict) :
-                    #     thinImagePropertiesDto = dto
-                    # else:
-                    #     del snapshot['thin_image_properties_dto']
-                        
-                    # dto = snapshot.get('thin_image_properties')
-                    # if dto and isinstance(dto, dict) :
-                    #     thinImagePropertiesDto = dto
-                    # else:
-                    #     del snapshot['thin_image_properties']
-                    
-                    if not isinstance(snapshot, dict) :
-                      break
-                        
-                    snapshot['can_cascade'] = False
-                    snapshot['is_cloned'] = ''
-                    snapshot['is_data_reduction_force_copy'] = False
-                    if True :
-                        ttype = snapshot.get('type')
-                        if ttype == 'CASCADE':
-                            snapshot['is_data_reduction_force_copy'] = True
-                            snapshot['can_cascade'] = True
-                            snapshot['is_cloned'] = False
-                        elif ttype == 'CLONE':
-                            snapshot['is_data_reduction_force_copy'] = True
-                            snapshot['can_cascade'] = True
-                            snapshot['is_cloned'] = True
-                    
-        except Exception as e:
-            self.module.fail_json(msg=str(e))
+                    if not isinstance(snapshot, dict):
+                        break
 
-        self.module.exit_json(data=snapshot_data)
+                    snapshot["can_cascade"] = False
+                    snapshot["is_cloned"] = ""
+                    snapshot["is_data_reduction_force_copy"] = False
+                    ttype = snapshot.get("type")
+                    if ttype == "CASCADE":
+                        snapshot["is_data_reduction_force_copy"] = True
+                        snapshot["can_cascade"] = True
+                        snapshot["is_cloned"] = False
+                    elif ttype == "CLONE":
+                        snapshot["is_data_reduction_force_copy"] = True
+                        snapshot["can_cascade"] = True
+                        snapshot["is_cloned"] = True
+
+        except Exception as e:
+            self.logger.writeError(str(e))
+            self.logger.writeInfo("=== End of Snapshot Facts ===")
+            self.module.fail_json(msg=str(e))
+        data = {
+            "snapshots": snapshot_data,
+        }
+        if registration_message:
+            data["user_consent_required"] = registration_message
+
+        self.logger.writeInfo(f"{data}")
+        self.logger.writeInfo("=== End of Snapshot Facts ===")
+        self.module.exit_json(**data)
 
     def get_snapshot_facts(self):
         reconciler = VSPHtiSnapshotReconciler(
@@ -242,15 +248,13 @@ class VSPHtiSnapshotFactManager:
         if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
             found = reconciler.check_storage_in_ucpsystem()
             if not found:
-                self.module.fail_json(
-                    "The storage system is still onboarding or refreshing, Please try after sometime"
-                )
+                raise ValueError(ModuleMessage.STORAGE_SYSTEM_ONBOARDING.value)
 
         result = reconciler.get_snapshot_facts(self.spec)
         return result
 
 
-def main():
+def main(module=None):
 
     obj_store = VSPHtiSnapshotFactManager()
     obj_store.apply()

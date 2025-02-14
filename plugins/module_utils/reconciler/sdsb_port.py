@@ -1,17 +1,15 @@
-
-import json
 try:
     from ..provisioner.sdsb_port_provisioner import SDSBPortProvisioner
     from ..provisioner.sdsb_port_auth_provisioner import SDSBPortAuthProvisioner
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
-    from ..model.sdsb_port_models import *
+    from ..model.sdsb_port_models import SDSBPortDetailInfoList, SDSBPortDetailInfo
 except ImportError:
     from provisioner.sdsb_port_provisioner import SDSBPortProvisioner
     from provisioner.sdsb_port_auth_provisioner import SDSBPortAuthProvisioner
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
-    from model.sdsb_port_models import *
+    from model.sdsb_port_models import SDSBPortDetailInfoList, SDSBPortDetailInfo
 
 logger = Log()
 
@@ -37,15 +35,19 @@ class SDSBPortReconciler:
 
         for port in ports:
             port_id = port.id
-            pd = self.get_detail_port(port_id)           
+            pd = self.get_detail_port(port_id)
             port_detail_list.append(pd)
         logger.writeDebug("RC:get_compute_ports:port_detail_list={}", port_detail_list)
         return port_detail_list
 
-    @log_entry_exit    
+    @log_entry_exit
     def get_detail_port(self, port_id):
         port = self.provisioner.get_port_by_id(port_id)
         port_auth_info = self.port_auth_prov.get_port_auth_settings(port_id)
         chap_user_info = self.port_auth_prov.get_port_chap_users(port_id)
-        pd = SDSBPortDetailInfo(portInfo=port, portAuthInfo=port_auth_info, chapUsersInfo=chap_user_info.data)
+        pd = SDSBPortDetailInfo(
+            portInfo=port,
+            portAuthInfo=port_auth_info,
+            chapUsersInfo=chap_user_info.data,
+        )
         return pd

@@ -1,10 +1,11 @@
 import re
+
 try:
     from ..provisioner.sdsb_volume_provisioner import SDSBVolumeProvisioner
     from ..provisioner.sdsb_pool_provisioner import SDSBPoolProvisioner
     from ..provisioner.sdsb_vps_provisioner import SDSBVpsProvisioner
     from ..provisioner.sdsb_compute_node_provisioner import SDSBComputeNodeProvisioner
-    from ..model.sdsb_volume_models import *
+    from ..model.sdsb_volume_models import ComputeNodeSummaryInfo
     from ..common.hv_constants import StateValue
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
@@ -14,7 +15,7 @@ except ImportError:
     from provisioner.sdsb_volume_provisioner import SDSBVolumeProvisioner
     from provisioner.sdsb_pool_provisioner import SDSBPoolProvisioner
     from provisioner.sdsb_compute_node_provisioner import SDSBComputeNodeProvisioner
-    from model.sdsb_volume_models import *
+    from model.sdsb_volume_models import ComputeNodeSummaryInfo
     from common.hv_constants import StateValue
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
@@ -26,10 +27,12 @@ except ImportError:
 logger = Log()
 moduleName = "SDS Block Volume"
 
+
 class SDSBVolumeSubstates:
     """
     Enum class for SDSB Volume Substates
     """
+
     ADD_COMPUTE_NODE = "add_compute_node"
     REMOVE_COMPUTE_NODE = "remove_compute_node"
 
@@ -60,7 +63,9 @@ class SDSBVolumeReconciler:
                     logger.writeDebug(
                         "RC:=== spec.id is not None but volume is None ==="
                     )
-                    raise ValueError(SDSBVolValidationMsg.VOL_ID_ABSENT.value.format(spec.id))
+                    raise ValueError(
+                        SDSBVolValidationMsg.VOL_ID_ABSENT.value.format(spec.id)
+                    )
 
             else:
                 # this could be a create or an update
@@ -93,7 +98,9 @@ class SDSBVolumeReconciler:
                 volume = self.get_volume_by_name(spec.name)
                 logger.writeDebug("RC:volume={}", volume)
                 if volume is None:
-                    raise ValueError(SDSBVolValidationMsg.VOLUME_NOT_FOUND.value.format(spec.name))
+                    raise ValueError(
+                        SDSBVolValidationMsg.VOLUME_NOT_FOUND.value.format(spec.name)
+                    )
                 volume_id = volume.id
                 # compue_node_id = self.delete_compute_node_by_id(compute_node.id)
                 # return compute_node.nickname
@@ -106,19 +113,20 @@ class SDSBVolumeReconciler:
             else:
                 return "Could not delete volume."
 
-
     @log_entry_exit
     def get_pool_id(self, pool_name):
-        pool_details = SDSBPoolProvisioner(self.connection_info).get_pool_by_name(pool_name)
+        pool_details = SDSBPoolProvisioner(self.connection_info).get_pool_by_name(
+            pool_name
+        )
         if pool_details:
             return pool_details.id
         else:
             return None
-        
+
     @log_entry_exit
-    def get_vps_id(self,vps_name):
+    def get_vps_id(self, vps_name):
         vps_details = SDSBVpsProvisioner(self.connection_info).get_vps_by_name(vps_name)
-        
+
         if vps_details and "system" not in vps_details.id.lower():
             return vps_details.id
         else:
@@ -133,7 +141,7 @@ class SDSBVolumeReconciler:
             compute_node = cn_prov.get_compute_node_by_id(id)
             cnsi = ComputeNodeSummaryInfo(id, compute_node.nickname)
             cn_summary_list.append(cnsi)
-        
+
         return cn_summary_list
 
     @log_entry_exit
@@ -143,23 +151,31 @@ class SDSBVolumeReconciler:
         for vol in volumes.data:
             if vol.numberOfConnectingServers > 0:
                 vol.computeNodesInfo = self.get_compute_nodes_summary(vol.id)
-            
 
         # return volumes
         return volumes
- 
+
     @log_entry_exit
     def get_all_volume_names(self):
         return self.provisioner.get_all_volume_names()
-    
+
     @log_entry_exit
     def _is_data_reduction_effects_empty(self, dre):
 
         logger.writeDebug("RC:_is_data_reduction_effects_empty:dre={}", dre)
-        logger.writeDebug("RC:_is_data_reduction_effects_empty:dre.dataReductionRate={}", dre["dataReductionRate"])
-        if not dre["dataReductionRate"] and not dre["dataReductionCapacity"] and not dre["compressedCapacity"] \
-        and not dre["reclaimedCapacity"] and not dre["systemDataCapacity"] and not dre["preCapacityDataReductionWithoutSystemData"] \
-        and not dre["postCapacityDataReduction"] :
+        logger.writeDebug(
+            "RC:_is_data_reduction_effects_empty:dre.dataReductionRate={}",
+            dre["dataReductionRate"],
+        )
+        if (
+            not dre["dataReductionRate"]
+            and not dre["dataReductionCapacity"]
+            and not dre["compressedCapacity"]
+            and not dre["reclaimedCapacity"]
+            and not dre["systemDataCapacity"]
+            and not dre["preCapacityDataReductionWithoutSystemData"]
+            and not dre["postCapacityDataReduction"]
+        ):
             return True
         else:
             return False
@@ -175,7 +191,7 @@ class SDSBVolumeReconciler:
 
     @log_entry_exit
     def get_volume_by_name(self, vol_name):
-        vol= self.provisioner.get_volume_by_name(vol_name)
+        vol = self.provisioner.get_volume_by_name(vol_name)
         return vol
 
     @log_entry_exit
@@ -183,37 +199,51 @@ class SDSBVolumeReconciler:
         pool_id = None
         if spec.pool_name and spec.vps_name:
             raise ValueError(SDSBVolValidationMsg.POOL_VPS_BOTH.value)
-        
+
         if spec.pool_name is None and spec.vps_name is None:
             raise ValueError(SDSBVolValidationMsg.POOL_OR_VPS_ID.value)
-        
+
         logger.writeDebug("RC:create_sdsb_volume:spec={}", spec)
 
-        
         if spec.pool_name:
             pool_id = self.get_pool_id(spec.pool_name)
             if not pool_id:
-                raise ValueError(SDSBVolValidationMsg.POOL_NAME_NOT_FOUND.value.format(spec.pool_name))
+                raise ValueError(
+                    SDSBVolValidationMsg.POOL_NAME_NOT_FOUND.value.format(
+                        spec.pool_name
+                    )
+                )
         else:
             spec.vps_id = self.get_vps_id(spec.vps_name)
             if not spec.vps_id:
-                raise ValueError(SDSBVpsValidationMsg.VPS_NAME_ABSENT.value.format(spec.vps_name))
-            
+                raise ValueError(
+                    SDSBVpsValidationMsg.VPS_NAME_ABSENT.value.format(spec.vps_name)
+                )
+
         if spec.capacity is None:
-            raise  ValueError(SDSBVolValidationMsg.CAPACITY.value)
-        
+            raise ValueError(SDSBVolValidationMsg.CAPACITY.value)
+
         capacity = self.get_size_mb(spec.capacity)
         savings = self.get_saving_setting(spec.capacity_saving)
 
-        if spec.state is not None and spec.state.lower() == SDSBVolumeSubstates.REMOVE_COMPUTE_NODE:
+        if (
+            spec.state is not None
+            and spec.state.lower() == SDSBVolumeSubstates.REMOVE_COMPUTE_NODE
+        ):
             raise ValueError(SDSBVolValidationMsg.CONTRADICT_INFO.value)
 
-        vol_id = self.create_volume(pool_id, spec.name, capacity, savings, spec.qos_param, spec.vps_id)
+        vol_id = self.create_volume(
+            pool_id, spec.name, capacity, savings, spec.qos_param, spec.vps_id
+        )
         if not vol_id:
             raise Exception("Failed to create volume")
 
         if spec.compute_nodes is not None and len(spec.compute_nodes) > 0:
-            logger.writeDebug("RC:create_sdsb_volume:spec.compute_nodes={} vol_id={}", spec.compute_nodes, vol_id)
+            logger.writeDebug(
+                "RC:create_sdsb_volume:spec.compute_nodes={} vol_id={}",
+                spec.compute_nodes,
+                vol_id,
+            )
             self.add_volume_to_compute_nodes(spec.compute_nodes, vol_id)
 
         cn_summary = self.get_compute_nodes_summary(vol_id)
@@ -224,11 +254,10 @@ class SDSBVolumeReconciler:
 
         # return self.get_volume_by_id(vol_id)
         return vol
-        
 
     @log_entry_exit
     def get_compute_node_ids(self, compute_nodes):
-        cn_prov = SDSBComputeNodeProvisioner(self.connection_info)   
+        cn_prov = SDSBComputeNodeProvisioner(self.connection_info)
         cn_ids = []
         for cn in compute_nodes:
             cn_detail = cn_prov.get_compute_node_by_name(cn)
@@ -238,13 +267,12 @@ class SDSBVolumeReconciler:
 
         return cn_ids
 
-
     @log_entry_exit
     def add_volume_to_compute_nodes(self, compute_nodes, vol_id):
-        
+
         cn_ids = self.get_compute_node_ids(compute_nodes)
         if len(cn_ids) != len(compute_nodes):
-            raise  ValueError(SDSBVolValidationMsg.COMPUTE_NODES_EXIST.value)
+            raise ValueError(SDSBVolValidationMsg.COMPUTE_NODES_EXIST.value)
 
         cn_prov = SDSBComputeNodeProvisioner(self.connection_info)
         for id in cn_ids:
@@ -258,7 +286,7 @@ class SDSBVolumeReconciler:
             sizetype = match.group(2).upper().strip() or "MB"
             logger.writeInfo("RC:get_size_mb sizetype={}", sizetype)
             if sizetype not in ("GB", "TB", "MB"):
-                raise  ValueError(SDSBVolValidationMsg.CAPACITY_UNITS.value) 
+                raise ValueError(SDSBVolValidationMsg.CAPACITY_UNITS.value)
             else:
                 size = float(match.group(1))
                 if sizetype == "TB":
@@ -271,22 +299,23 @@ class SDSBVolumeReconciler:
     def get_saving_setting(self, capacity_saving):
         if not capacity_saving:
             return "Disabled"
-        
+
         if capacity_saving.lower() not in ("disabled", "compression"):
             raise ValueError(SDSBVolValidationMsg.SAVING_SETTING.value)
-        
+
         if capacity_saving.lower() == "disabled":
             return "Disabled"
         else:
             return "Compression"
 
-    @log_entry_exit        
+    @log_entry_exit
     def create_volume(self, pool_id, name, capacity, savings, qos_param, vps_id):
-        
-        volume =  self.provisioner.create_volume(pool_id, name, capacity, savings, qos_param=qos_param, vps_id=vps_id)
+
+        volume = self.provisioner.create_volume(
+            pool_id, name, capacity, savings, qos_param=qos_param, vps_id=vps_id
+        )
         self.connection_info.changed = True
         return volume
-
 
     @log_entry_exit
     def get_volume_compute_node_ids(self, vol_id):
@@ -304,7 +333,9 @@ class SDSBVolumeReconciler:
         server_ids = self.get_volume_compute_node_ids(vol_id)
         for id in server_ids:
             logger.writeDebug(
-                "RC:detach_compute_nodes_from_volume: server_id={} vol_id={}", id, vol_id
+                "RC:detach_compute_nodes_from_volume: server_id={} vol_id={}",
+                id,
+                vol_id,
             )
             # detach the volume from the compute node
             self.detach_volume_from_compute_node(id, vol_id)
@@ -346,10 +377,12 @@ class SDSBVolumeReconciler:
                 self.update_remove_compute_nodes(volume_data.id, spec.compute_nodes)
             else:
                 raise Exception(
-                    "Invalid state provided in the spec. Valid states in the spec are : {}, and {}",
-                    SDSBVolumeSubstates.ADD_COMPUTE_NODE,
-                    SDSBVolumeSubstates.REMOVE_COMPUTE_NODE
+                    "Invalid state provided in the spec. Valid states in the spec are: {}, and {}".format(
+                        SDSBVolumeSubstates.ADD_COMPUTE_NODE,
+                        SDSBVolumeSubstates.REMOVE_COMPUTE_NODE,
+                    )
                 )
+
         cn_summary = self.get_compute_nodes_summary(volume_data.id)
         vol = self.get_volume_by_id(volume_data.id)
 
@@ -357,7 +390,7 @@ class SDSBVolumeReconciler:
 
         vol.computeNodesInfo = cn_summary
         return vol
-        #return self.get_volume_by_id(volume_data.id)
+        # return self.get_volume_by_id(volume_data.id)
 
     @log_entry_exit
     def update_add_compute_nodes(self, volume_id, compute_nodes):
@@ -397,7 +430,9 @@ class SDSBVolumeReconciler:
         for id in cn_ids:
             if id in server_ids:
                 logger.writeDebug(
-                    "RC:update_remove_compute_nodes: server_id={} vol_id={}", id, volume_id
+                    "RC:update_remove_compute_nodes: server_id={} vol_id={}",
+                    id,
+                    volume_id,
                 )
                 # detach the volume from the compute node
                 self.detach_volume_from_compute_node(id, volume_id)
@@ -411,16 +446,19 @@ class SDSBVolumeReconciler:
             expand_val = size_mb - (
                 volume_data.totalCapacity if volume_data.totalCapacity else 0
             )
-            logger.writeDebug(
-                    "RC:expand_volume_capacity:expand_val={}", expand_val
-            )
-            if (expand_val > 0):
+            logger.writeDebug("RC:expand_volume_capacity:expand_val={}", expand_val)
+            if expand_val > 0:
                 vps_id = None
-                if volume_data.vpsId is not None and "system" not in volume_data.vpsId.lower():
+                if (
+                    volume_data.vpsId is not None
+                    and "system" not in volume_data.vpsId.lower()
+                ):
                     vps_id = volume_data.vpsId
-                self.provisioner.expand_volume_capacity(volume_data.id, expand_val, vps_id)
+                self.provisioner.expand_volume_capacity(
+                    volume_data.id, expand_val, vps_id
+                )
                 self.connection_info.changed = True
-            elif (expand_val < 0):
+            elif expand_val < 0:
                 raise ValueError(SDSBVolValidationMsg.INVALID_CAPACITY.value)
             else:
                 pass
@@ -428,9 +466,17 @@ class SDSBVolumeReconciler:
 
     @log_entry_exit
     def _is_same_qos(self, system_qos, spec_qos):
-        if (system_qos['upperLimitForIops'] == spec_qos.upper_limit_for_iops) \
-        and (system_qos['upperLimitForTransferRate'] == spec_qos.upper_limit_for_transfer_rate_mb_per_sec) \
-        and (system_qos['upperAlertAllowableTime'] == spec_qos.upper_alert_allowable_time_in_sec) :
+        if (
+            (system_qos["upperLimitForIops"] == spec_qos.upper_limit_for_iops)
+            and (
+                system_qos["upperLimitForTransferRate"]
+                == spec_qos.upper_limit_for_transfer_rate_mb_per_sec
+            )
+            and (
+                system_qos["upperAlertAllowableTime"]
+                == spec_qos.upper_alert_allowable_time_in_sec
+            )
+        ):
             return True
         else:
             return False
@@ -442,21 +488,30 @@ class SDSBVolumeReconciler:
         new_nickname = None
         vps_id = None
         qos_param = None
-        if (spec.name and spec.name != volume_data.name):
+        if spec.name and spec.name != volume_data.name:
             new_name = spec.name
-        if (spec.nickname and spec.nickname != volume_data.nickname):
+        if spec.nickname and spec.nickname != volume_data.nickname:
             new_nickname = spec.nickname
         logger.writeDebug(
             "RC:update_volume:new_name= {}, new_nickname={}", new_name, new_nickname
         )
         if volume_data.vpsId is not None and "system" not in volume_data.vpsId.lower():
             vps_id = volume_data.vpsId
-        if volume_data.qosParam is not None and spec.qos_param is not None and not self._is_same_qos(volume_data.qosParam,spec.qos_param):
+        if (
+            volume_data.qosParam is not None
+            and spec.qos_param is not None
+            and not self._is_same_qos(volume_data.qosParam, spec.qos_param)
+        ):
             qos_param = spec.qos_param
         logger.writeDebug(
-            "RC:update_volume:vps_id= {}, volume_data.qosParam={}, spec.qos_param={}", vps_id, volume_data.qosParam, spec.qos_param
-        )    
+            "RC:update_volume:vps_id= {}, volume_data.qosParam={}, spec.qos_param={}",
+            vps_id,
+            volume_data.qosParam,
+            spec.qos_param,
+        )
         if new_name or new_nickname or vps_id or qos_param:
-            self.provisioner.update_volume(volume_data.id, new_name, new_nickname, qos_param, vps_id)
+            self.provisioner.update_volume(
+                volume_data.id, new_name, new_nickname, qos_param, vps_id
+            )
             self.connection_info.changed = True
         return

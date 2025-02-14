@@ -31,10 +31,12 @@ class ComputeNodeSpec:
     host_nqns: Optional[List[str]] = None
     should_delete_all_volumes: Optional[bool] = False
 
+
 @dataclass
 class HBAPorts:
     portId: str
     portName: str
+
 
 @dataclass
 class Path:
@@ -143,10 +145,12 @@ class IscsiInformation:
 class SDSBComputeNodesInfo(BaseDataClass):
     data: List[SDSBComputeNodeInfo]
 
+
 @dataclass
 class VolumeSummaryInfo:
     id: str
     name: str
+
 
 @dataclass
 class SDSBComputeNodeAndVolumeInfo(SingleBaseClass):
@@ -155,7 +159,8 @@ class SDSBComputeNodeAndVolumeInfo(SingleBaseClass):
 
     def to_dict(self):
         return asdict(self)
-    
+
+
 @dataclass
 class SDSBComputeNodeAndVolumeList(BaseDataClass):
     data: List[SDSBComputeNodeAndVolumeInfo]

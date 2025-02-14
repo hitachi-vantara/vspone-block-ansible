@@ -1,87 +1,85 @@
+---
 ####################################################################
 # Example :  Storagesystem  Playbook
 ####################################################################
 - name: StorageSystem Module
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_uai_gateway_variables.yml
 
   tasks:
-####################################################################
-# Task 0 : Get UAI gateway token
-####################################################################
+    ####################################################################
+    # Task 0 : Get UAI gateway token
+    ####################################################################
     - name: Get UAI gateway token
-      hv_uaig_token_fact:
+      hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
-      ignore_errors: False
+      ignore_errors: false
 
-####################################################################
-# Task 1 : Add storage system
-####################################################################      
+    ####################################################################
+    # Task 1 : Add storage system
+    ####################################################################
     - name: Add storage system
-      hv_storagesystem:
+      hitachivantara.vspone_block.vsp.hv_storagesystem:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
           address: "{{ storage_address }}"
           username: "{{ vault_storage_username }}"
           password: "{{ vault_storage_secret }}"
-        state: "{{ state_present }}"
+        state: present
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Add storage system with remote gateway address
-####################################################################
+    ####################################################################
+    # Task 2 : Add storage system with remote gateway address
+    ####################################################################
     - name: Add storage system with remote gateway address
-      hv_storagesystem:
+      hitachivantara.vspone_block.vsp.hv_storagesystem:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
           address: "{{ storage_address }}"
           username: "{{ vault_storage_username }}"
           password: "{{ vault_storage_secret }}"
-          remote_gateway_address: "{{ storagesystem_remote_gateway_address_2 }}"
-        state: "{{ state_present }}"
+          remote_gateway_address: 10.10.10.10
+        state: present
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 3 : Delete storage system
-####################################################################
+    ####################################################################
+    # Task 3 : Delete storage system
+    ####################################################################
     - name: Delete storage system
-      hv_storagesystem:
+      hitachivantara.vspone_block.vsp.hv_storagesystem:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_absent }}"
+        state: absent
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

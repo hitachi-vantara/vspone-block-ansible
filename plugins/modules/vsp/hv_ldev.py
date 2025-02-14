@@ -14,10 +14,14 @@ short_description: Manages logical devices (LDEVs) on Hitachi VSP storage system
 description:
   - This module allows for the creation, modification, or deletion of logical devices (LDEVs) on Hitachi VSP storage systems.
   - It supports operations such as creating a new LDEV, updating an existing LDEV, or deleting a LDEV.
+  - This module is supported for both direct and gateway connection types.
+  - For direct connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/ldev.yml)
+  - For gateway connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/ldev.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   state:
     description: The desired state of the LDEV.
@@ -28,12 +32,12 @@ options:
   storage_system_info:
     description: Information about the Hitachi storage system.
     type: dict
-    required: true
+    required: false
     suboptions:
       serial:
         description: Serial number of the Hitachi storage system.
         type: str
-        required: true
+        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
@@ -58,7 +62,7 @@ options:
         choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for 'gateway' connection type).
+        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
@@ -76,7 +80,7 @@ options:
         required: false
       parity_group:
         description: ID of the parity_group where the LDEV will be created. Options pool_id and parity_group_id are mutually exclusive.
-        type: int
+        type: str
         required: false
       size:
         description: Size of the LDEV. Can be specified in units such as GB, TB, or MB (e.g., '10GB', '5TB', '100MB', 200).
@@ -87,7 +91,8 @@ options:
         type: int
         required: false
       name:
-        description: Name of the LDEV (optional).
+        description: Name of the LDEV (optional).If not given,
+          It will create the name will contain with prefix value "smrha-<ldev_id>".
         type: str
         required: false
       capacity_saving:
@@ -98,11 +103,11 @@ options:
         description: Specify whether to create a data reduction shared volume( Default =True for thin image advance direct connect).
         type: bool
         required: false
-      nvm_subsystem_name: 
+      nvm_subsystem_name:
         description: Specify whether the LDEV created will be part of an NVM subsystem.
         type: str
         required: false
-      state: 
+      state:
         description: This state is valid only when nvm_subsystem_name is specified.
         type: str
         required: false
@@ -112,38 +117,89 @@ options:
         description: List of host nqns to add to or remove from the LDEV depending on the state value.
         type: list
         required: false
+        elements: str
       is_relocation_enabled:
         description: Specify whether to enable the tier relocation setting for the HDT volume.
         type: bool
         required: false
       tier_level_for_new_page_allocation:
         description: Specify which tier of the HDT pool will be prioritized when a new page is allocated.
-        type: bool
+        type: str
         required: false
-      tier_level:
-        description: Tier level, a value from 0 to 31.
-        type: int
+      tiering_policy:
+        description: Tiering policy for the LDEV.
+        type: dict
         required: false
-      tier1_allocation_rate_min:
-        description: Tier1 min, a value from 1 to 100.
-        type: int
-        required: false
-      tier1_allocation_rate_max:
-        description: Tier1 max, a value from 1 to 100.
-        type: int
-        required: false
-      tier3_allocation_rate_min:
-        description: Tier3 min, a value from 1 to 100.
-        type: int
-        required: false
-      tier3_allocation_rate_max:
-        description: Tier3 max, a value from 1 to 100.
+        suboptions:
+          tier_level:
+            description: Tier level, a value from 0 to 31.
+            type: int
+            required: false
+          tier1_allocation_rate_min:
+            description: Tier1 min, a value from 1 to 100.
+            type: int
+            required: false
+          tier1_allocation_rate_max:
+            description: Tier1 max, a value from 1 to 100.
+            type: int
+            required: false
+          tier3_allocation_rate_min:
+            description: Tier3 min, a value from 1 to 100.
+            type: int
+            required: false
+          tier3_allocation_rate_max:
+            description: Tier3 max, a value from 1 to 100.
+            type: int
+            required: false
+      vldev_id:
+        description: Specify the virtual LDEV id.
         type: int
         required: false
       force:
-        description: Force delete. Delete the ldev and removes the ldev from hostgroups, iscsi targets or NVM subsystem namespace.
+        description: Force delete. Delete the LDEV and removes the LDEV from hostgroups, iscsi targets or NVM subsystem namespace.
         type: bool
         required: false
+      should_shred_volume_enable:
+        description: it shreds an LDEV (basic volume) or DP volume. Overwrite the volume three times with dummy data.
+        type: bool
+        required: false
+      qos_settings:
+        description: QoS settings for the LDEV (Only available for direct connection type).
+        type: dict
+        required: false
+        suboptions:
+          upper_iops:
+            description: Upper IOPS limit.
+            type: int
+            required: false
+          lower_iops:
+            description: Lower IOPS limit.
+            type: int
+            required: false
+          upper_transfer_rate:
+            description: Upper transfer rate limit.
+            type: int
+            required: false
+          lower_transfer_rate:
+            description: Lower transfer rate limit.
+            type: int
+            required: false
+          upper_alert_allowable_time:
+            description: Upper alert allowable time.
+            type: int
+            required: false
+          lower_alert_allowable_time:
+            description: Lower alert allowable time.
+            type: int
+            required: false
+          response_priority:
+            description: Response priority.
+            type: int
+            required: false
+          response_alert_allowable_time:
+            description: Response alert allowable time.
+            type: int
+            required: false
 """
 
 EXAMPLES = """
@@ -162,7 +218,7 @@ EXAMPLES = """
       size: "10GB"
       name: "New_LDEV"
       capacity_saving: "compression_deduplication"
-      data_reduction_share: True
+      data_reduction_share: true
 
 - name: Update an existing LDEV
   hv_ldev:
@@ -176,6 +232,40 @@ EXAMPLES = """
         subscriber_id: "sub123"
     spec:
       ldev_id: 123
+      size: "5TB"
+      capacity_saving: "disabled"
+
+- name: Create a new LDEV and assign vLDEV
+  hv_ldev:
+    state: present
+    storage_system_info:
+      serial: "ABC123"
+      connection_info:
+        address: gateway.company.com
+        api_token: "api_token_value"
+        connection_type: "gateway"
+        subscriber_id: "sub123"
+    spec:
+      pool_id: 1
+      size: "10GB"
+      name: "New_LDEV"
+      vldev_id: 456
+      capacity_saving: "compression_deduplication"
+      data_reduction_share: true
+
+- name: Update an existing LDEV with vLDEV
+  hv_ldev:
+    state: present
+    storage_system_info:
+      serial: "ABC123"
+      connection_info:
+        address: gateway.company.com
+        api_token: "api_token_value"
+        connection_type: "gateway"
+        subscriber_id: "sub123"
+    spec:
+      ldev_id: 123
+      vldev_id: 234
       size: "5TB"
       capacity_saving: "disabled"
 
@@ -194,7 +284,7 @@ EXAMPLES = """
       size: "10GB"
       name: "New_LDEV"
       capacity_saving: "compression_deduplication"
-      data_reduction_share: True
+      data_reduction_share: true
       state: "add_host_nqn"
       nvm_subsystem_name: "nvm_subsystem_01"
       host_nqns: ["nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa39"]
@@ -227,7 +317,6 @@ EXAMPLES = """
         subscriber_id: "sub123"
     spec:
       ldev_id: 123
-      
 - name: Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
   hv_ldev:
     state: absent
@@ -241,6 +330,28 @@ EXAMPLES = """
     spec:
       ldev_id: 123
       force: true
+
+- name: Update the qos settings for an existing LDEV
+  hv_ldev:
+    state: absent
+    storage_system_info:
+      serial: "ABC123"
+      connection_info:
+        address: gateway.company.com
+        username: "admin"
+        password: "passw0rd"
+        connection_type: "direct"
+    spec:
+      ldev_id: 123
+      qos_settings:
+        upper_iops: 1000
+        lower_iops: 500
+        upper_transfer_rate: 1000
+        lower_transfer_rate: 500
+        upper_alert_allowable_time: 1000
+        lower_alert_allowable_time: 500
+        response_priority: 1000
+        response_alert_allowable_time: 1000
 """
 
 RETURN = """
@@ -248,7 +359,7 @@ ldevs:
   description: Info of a logical device (LDEV).
   returned: success
   type: dict
-  sample: 
+  sample:
     ldev_id: 123
     deduplication_compression_mode: "Enabled"
     emulation_type: "Fibre Channel"
@@ -278,18 +389,11 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
     StateValue,
     ConnectionTypes,
-    CommonConstants,
 )
 import ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ldev_runner as runner
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler import (
     vsp_volume,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    StateValue,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
-    camel_to_snake_case_dict,
 )
 
 try:
@@ -298,26 +402,29 @@ try:
     )
 
     HAS_MESSAGE_ID = True
-except ImportError as error:
+except ImportError:
     HAS_MESSAGE_ID = False
 
 
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
     HiException,
 )
-
-logger = Log()
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
+)
 
 
 class VSPVolume:
     def __init__(self):
 
+        self.logger = Log()
         self.argument_spec = VSPVolumeArguments().volume()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
-            # can be added mandotary , optional mandatory arguments
         )
 
         try:
@@ -327,21 +434,21 @@ class VSPVolume:
             self.serial = params_manager.get_serial()
             self.state = params_manager.get_state()
         except Exception as e:
-            logger.writeError(f"An error occurred during initialization: {str(e)}")
+            self.logger.writeError(f"An error occurred during initialization: {str(e)}")
             self.module.fail_json(msg=str(e))
 
     def apply(self):
-
-        logger.writeInfo(f"{self.connection_info.connection_type} connection type")
+        self.logger.writeInfo("=== Start of LDEV operation ===")
+        registration_message = validate_ansible_product_registration()
 
         try:
-            comment = None
+            comment = ""
             isGateway = False
             if self.connection_info.connection_type.lower() == ConnectionTypes.GATEWAY:
                 isGateway = True
                 volume_data = self.gateway_volume()
-                # logger.writeDebug("20240726 volume_data, is partner? inject here?={}", volume_data)
-                ## volume_data={'changed': False, 'lun': None, 'comment': 'LUN not found. (Perhaps it has already been deleted?)', 'skipped': True}
+                # self.logger.writeDebug("20240726 volume_data, is partner? inject here?={}", volume_data)
+                #  volume_data={'changed': False, 'lun': None, 'comment': 'LUN not found. (Perhaps it has already been deleted?)', 'skipped': True}
                 self.connection_info.changed = volume_data.get("changed")
             else:
                 volume_data = self.direct_volume()
@@ -353,25 +460,48 @@ class VSPVolume:
                 volume_response = "Volume deleted"
             else:
                 if isinstance(volume_data, str):
-                  volume_response = volume_data
-                else:    
-                  if isinstance(volume_data, dict):
-                    comment = volume_data.get("comment", None)
-                  volume_response = self.extract_volume_properties(volume_data)
+                    volume_response = volume_data
+                else:
+                    if isinstance(volume_data, dict):
+                        comment = volume_data.get("comment", None)
+                    volume_response = self.extract_volume_properties(volume_data)
                 # if isGateway :
                 #   volume_dict = volume_data.get("lun")
                 #   if volume_dict:
+                if self.spec.should_shred_volume_enable:
+                    comment = "Volume shredded successfully," + comment
+
+                if self.spec.vldev_id:
+                    vldev_id = self.spec.vldev_id
+                    if comment is None:
+                        comment = ""
+                    else:
+                        comment = comment + " "
+                    if vldev_id == -1:
+                        comment = "Unassigned vldev_id successfully." + comment
+                    else:
+                        comment = (
+                            "Assigned vldev_id "
+                            + str(self.spec.vldev_id)
+                            + " successfully."
+                            + comment
+                        )
 
         except Exception as e:
-            logger.writeError(f"An error occurred: {str(e)}")
+            self.logger.writeError(f"An error occurred: {str(e)}")
+            self.logger.writeInfo("=== End of LDEV operation ===")
             self.module.fail_json(msg=str(e))
 
-        response = {"changed": self.connection_info.changed, "data": volume_response}
+        response = {"changed": self.connection_info.changed, "volume": volume_response}
         if comment:
             response["comment"] = comment
 
-        self.module.exit_json(**response)
+        if registration_message:
+            response["user_consent_required"] = registration_message
 
+        self.logger.writeInfo(f"{response}")
+        self.logger.writeInfo("=== End of LDEV operation ===")
+        self.module.exit_json(**response)
 
     def direct_volume(self):
 
@@ -388,22 +518,19 @@ class VSPVolume:
             return runner.runPlaybook(self.module)
         except HiException as ex:
             if HAS_MESSAGE_ID:
-                logger.writeAMException(MessageID.ERR_OPERATION_LUN)
+                self.logger.writeAMException(MessageID.ERR_OPERATION_LUN)
             else:
-                logger.writeAMException("0X0000")
-            self.module.fail_json(msg=ex.format())
+                self.logger.writeAMException("0X0000")
+            raise Exception(ex.format())
         except Exception as ex:
-            logger.writeError(
-                f"An error occurred during gateway volume operation: {str(ex)}"
-            )
-            self.module.fail_json(msg=str(ex))
+            raise Exception(str(ex))
 
     def extract_volume_properties(self, volume_data):
         if not volume_data:
             return None
 
-        # logger.writeDebug('20240726 volume_data={}',volume_data)
-        logger.writeDebug("115 type={}", type(volume_data))
+        # self.logger.writeDebug('20240726 volume_data={}',volume_data)
+        self.logger.writeDebug("115 type={}", type(volume_data))
         if isinstance(volume_data, dict):
             volume_dict = volume_data.get("lun")
         else:
@@ -413,7 +540,7 @@ class VSPVolume:
         )[0]
 
 
-def main():
+def main(module=None):
     """
     :return: None
     """

@@ -1,4 +1,9 @@
-import json
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2021, [ Hitachi Vantara ]
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
@@ -7,19 +12,22 @@ DOCUMENTATION = """
 module: hv_sds_block_compute_node
 short_description: Manages Hitachi SDS block storage system compute nodes.
 description:
-  - This module allows for the creation, updation and deletion of compute node, 
+  - This module allows for the creation, update and deletion of compute node,
     adding iqn initiators to compute node, remove iqn initiators from compute node,
     attach volumes to compute node, detach volumes from compute node.
   - It supports various compute node operations based on the specified task level.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/compute_node.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   state:
     description: The level of the compute node task. Choices are 'present', 'absent'.
     type: str
-    required: true
+    required: false
+    choices: ['present', 'absent']
+    default: 'present'
   connection_info:
     description: Information required to establish a connection to the storage system.
     required: true
@@ -61,21 +69,27 @@ options:
         type: str
         required: false
       state:
-        description: The state of the compute node task. Choices are 'add_iscsi_initiator', 'remove_iscsi_initiator', 'attach_volume', 'detach_volume', 'add_host_nqn','remove_host_nqn'.
+        description: The state of the compute node task. Choices are 'add_iscsi_initiator',
+          'remove_iscsi_initiator', 'attach_volume', 'detach_volume', 'add_host_nqn',
+          'remove_host_nqn'.
         type: str
         required: false
+        choices: ['add_iscsi_initiator', 'remove_iscsi_initiator', 'attach_volume', 'detach_volume', 'add_host_nqn', 'remove_host_nqn']
       iscsi_initiators:
         description: The array of iSCSI Initiators.
         type: list
         required: false
+        elements: str
       host_nqns:
         description: The array of NQN Initiators.
         type: list
         required: false
+        elements: str
       volumes:
         description: The array of name of volumes.
         type: list
         required: false
+        elements: str
       should_delete_all_volumes:
         description: Will delete the volumes that are not attached to any compute node.
         type: bool
@@ -141,7 +155,7 @@ EXAMPLES = """
       name: "computenode1"
       os_type: "VMWARE"
       iscsi_initiators: ["iqn.1991-05.com.hitachi:test-iscsi-iqn3", "iqn.1991-05.com.hitachi:test-iscsi-iqn4"]
-  
+
 - name: Remove iqn initiators from compute node
   hv_sds_block_compute_node:
     state: present
@@ -185,7 +199,7 @@ data:
   description: The compute node information.
   returned: always
   type: dict
-  elements: dict/list
+  elements: dict
   sample:
     {
       "compute_node_info": {
@@ -231,7 +245,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconc
     SDSBComputeNodeReconciler,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_properties_extractor import (
-    ComputeNodePropertiesExtractor,
     ComputeNodeAndVolumePropertiesExtractor,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
@@ -240,6 +253,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
     SDSBComputeNodeArguments,
     SDSBParametersManager,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 
 logger = Log()
@@ -255,7 +271,6 @@ class SDSBComputeNodeManager:
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
-            # can be added mandotary , optional mandatory arguments
         )
 
         params_manager = SDSBParametersManager(self.module.params)
@@ -270,6 +285,7 @@ class SDSBComputeNodeManager:
     def apply(self):
         compute_node = None
         compute_node_data_extracted = None
+        registration_message = validate_ansible_product_registration()
 
         logger.writeInfo(f"{self.connection_info.connection_type} connection type")
         try:
@@ -285,13 +301,13 @@ class SDSBComputeNodeManager:
             else:
                 output_dict = compute_node.to_dict()
                 logger.writeDebug(
-                  f"MOD:hv_sds_block_compute_node:output_dict= {output_dict}"
+                    f"MOD:hv_sds_block_compute_node:output_dict= {output_dict}"
                 )
                 compute_node_data_extracted = (
                     ComputeNodeAndVolumePropertiesExtractor().extract_dict(output_dict)
                 )
                 logger.writeDebug(
-                  f"MOD:hv_sds_block_compute_node:compute_node_data_extracted= {compute_node_data_extracted}"
+                    f"MOD:hv_sds_block_compute_node:compute_node_data_extracted= {compute_node_data_extracted}"
                 )
         except Exception as e:
             self.module.fail_json(msg=str(e))
@@ -300,6 +316,8 @@ class SDSBComputeNodeManager:
             "changed": self.connection_info.changed,
             "data": compute_node_data_extracted,
         }
+        if registration_message:
+            response["user_consent_required"] = registration_message
         # self.module.exit_json(compute_nodes=compute_node_data_extracted)
         self.module.exit_json(**response)
 

@@ -1,13 +1,13 @@
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
-    from ..model.sdsb_chap_user_models import *
+    from ..model.sdsb_chap_user_models import SDSBChapUsersInfo
     from ..common.ansible_common import log_entry_exit
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
-    from model.sdsb_chap_user_models import *
+    from model.sdsb_chap_user_models import SDSBChapUsersInfo
     from common.ansible_common import log_entry_exit
 
 
@@ -38,7 +38,7 @@ class SDSBChapUserProvisioner:
     @log_entry_exit
     def get_chap_user_by_name(self, name):
         return self.gateway.get_chap_user_by_name(name)
-    
+
     @log_entry_exit
     def delete_chap_user_by_id(self, id):
         return self.gateway.delete_chap_user_by_id(id)

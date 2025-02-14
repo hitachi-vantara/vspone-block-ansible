@@ -1,32 +1,44 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2021, [ Hitachi Vantara ]
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
 from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = '''
+
+DOCUMENTATION = """
 ---
 module: hv_shadow_image_pair
 short_description: Manages shadow image pairs on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, deletion, splitting, syncing and restoring of shadow image pairs on Hitachi VSP storage systems.
   - It supports various shadow image pairs operations based on the specified task level.
+  - This module is supported for both direct and gateway connection types.
+  - For direct connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/shadow_image_pair.yml)
+  - For gateway connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/shadow_image_pair.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   state:
     description: The level of the shadow image pairs task. Choices are 'present', 'absent', 'split', 'restore', 'sync'.
     type: str
-    required: true
+    required: false
+    choices: ['present', 'absent', 'split', 'restore', 'sync']
+    default: 'present'
   storage_system_info:
     description: Information about the Hitachi storage system.
     type: dict
-    required: true
+    required: false
     suboptions:
       serial:
         description: Serial number of the Hitachi storage system.
         type: str
-        required: true
+        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     required: true
@@ -37,11 +49,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication.This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication.This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -51,7 +63,7 @@ options:
         choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
+        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
@@ -96,19 +108,13 @@ options:
         description: Enable read write.
         type: bool
         required: false
-      copy_pace:
-        description: Copy pace.
-        type: str
-        required: false
-        choices: ['SLOW', 'MEDIUM', 'FAST']
       pair_id:
         description: Pair Id.
         type: str
         required: false
-    
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 - name: Create a shadow image pair
   hv_shadow_image_pair:
     state: "present"
@@ -155,7 +161,6 @@ EXAMPLES = '''
       primary_volume_id: 274
       secondary_volume_id: 277
       enable_quick_mode: true
-      copy_pace: "FAST"
 
 - name: Create and Auto-Split shadow image pair
   hv_shadow_image_pair:
@@ -186,7 +191,6 @@ EXAMPLES = '''
       primary_volume_id: 274
       secondary_volume_id: 277
       enable_quick_mode: true
-      copy_pace: "FAST"
 
 - name: Delete shadow image pair
   hv_shadow_image_pair:
@@ -201,9 +205,9 @@ EXAMPLES = '''
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
-'''
+"""
 
-RETURN = '''
+RETURN = """
 data:
   description: Newly created shadow image pair object.
   returned: success
@@ -227,9 +231,12 @@ data:
         "subscriber_id": "subscriber123",
         "svol_access_mode": "READONLY"
     }
-'''
+"""
 
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
+    ConnectionTypes,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPShadowImagePairArguments,
     VSPParametersManager,
@@ -241,33 +248,28 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconc
     vsp_shadow_image_pair_reconciler,
 )
 
-
-try:
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_logger import (
-        MessageID,
-    )
-
-    HAS_MESSAGE_ID = True
-except ImportError as error:
-    HAS_MESSAGE_ID = False
-
-
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
 )
-
-logger = Log()
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    operation_constants,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
+    ModuleMessage,
+)
 
 
 class VSPShadowImagePairManager:
     def __init__(self):
 
+        self.logger = Log()
         self.argument_spec = VSPShadowImagePairArguments().shadow_image_pair()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
-            # can be added mandotary , optional mandatory arguments
         )
 
         try:
@@ -277,13 +279,12 @@ class VSPShadowImagePairManager:
             self.state = self.params_manager.get_state()
             if self.state is None:
                 self.state = StateValue.PRESENT
-            logger.writeInfo(f"State: {self.state}")
+            self.logger.writeDebug(f"State: {self.state}")
 
             self.spec = self.params_manager.set_shadow_image_pair_spec()
-            # print("Spec: "+self.spec)
-            logger.writeInfo(f"Spec: {self.spec}")
+
         except Exception as e:
-            logger.writeError(f"An error occurred during initialization: {str(e)}")
+            self.logger.writeError(f"An error occurred during initialization: {str(e)}")
             self.module.fail_json(msg=str(e))
 
     def shadow_image_pair(self):
@@ -292,31 +293,50 @@ class VSPShadowImagePairManager:
             self.params_manager.storage_system_info.serial,
             self.spec,
         )
+        if self.connection_info.connection_type.lower() == ConnectionTypes.GATEWAY:
+            oob = reconciler.is_out_of_band()
+            if oob is True:
+                raise ValueError(ModuleMessage.OOB_NOT_SUPPORTED.value)
+
         return reconciler.shadow_image_pair_module(self.state)
 
     def apply(self):
-
-        logger.writeInfo(
+        self.logger.writeInfo("=== Start of Shadow Image operation. ===")
+        registration_message = validate_ansible_product_registration()
+        self.logger.writeInfo(
             f"{self.params_manager.connection_info.connection_type} connection type"
         )
         shadow_image_resposne = None
-        try:            
+        try:
             shadow_image_resposne = self.shadow_image_pair()
 
         except Exception as e:
-            logger.writeError(f"An error occurred: {str(e)}")
+            self.logger.writeError(f"An error occurred: {str(e)}")
+            self.logger.writeInfo("=== End of Shadow Image operation. ===")
             self.module.fail_json(msg=str(e))
-
+        operation = operation_constants(self.module.params["state"])
+        msg = (
+            f"Shadow image pair {operation} successfully."
+            if not isinstance(shadow_image_resposne, str)
+            else shadow_image_resposne
+        )
         response = {
             "changed": self.connection_info.changed,
-            "data": shadow_image_resposne,
+            "data": (
+                shadow_image_resposne
+                if not isinstance(shadow_image_resposne, str)
+                else None
+            ),
+            "msg": msg,
         }
+        if registration_message:
+            response["registration_message"] = registration_message
+        self.logger.writeInfo(f"{response}")
+        self.logger.writeInfo("=== End of Shadow Image operation. ===")
         self.module.exit_json(**response)
 
-    
 
-
-def main():
+def main(module=None):
 
     obj_store = VSPShadowImagePairManager()
     obj_store.apply()

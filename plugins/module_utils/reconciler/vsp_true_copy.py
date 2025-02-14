@@ -1,93 +1,194 @@
-from typing import Optional, List, Dict, Any
+from typing import Any
+
 try:
     from ..common.ansible_common import (
         log_entry_exit,
         camel_to_snake_case,
-        get_response_key,
         volume_id_to_hex_format,
+        get_default_value,
     )
     from ..common.hv_log import Log
-    from ..common.hv_constants import *
+    from ..common.hv_constants import ConnectionTypes, StateValue
     from ..provisioner.vsp_true_copy_provisioner import VSPTrueCopyProvisioner
-    from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
-    from ..model.vsp_true_copy_models import TrueCopySpec
+    from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg, TrueCopyFailedMsg
+    from ..model.vsp_true_copy_models import (
+        VSPTrueCopyPairInfoList,
+        VSPTrueCopyPairInfo,
+    )
+    from ..common.uaig_utils import UAIGResourceID
 
 
 except ImportError:
     from common.ansible_common import (
         log_entry_exit,
         camel_to_snake_case,
-        get_response_key,
         volume_id_to_hex_format,
+        get_default_value,
     )
     from common.hv_log import Log
-    from common.hv_constants import *
+    from common.hv_constants import ConnectionTypes, StateValue
     from provisioner.vsp_true_copy_provisioner import VSPTrueCopyProvisioner
-    from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
-    from model.vsp_true_copy_models import TrueCopySpec
+    from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg, TrueCopyFailedMsg
+    from model.vsp_true_copy_models import VSPTrueCopyPairInfoList, VSPTrueCopyPairInfo
+    from common.uaig_utils import UAIGResourceID
 
 
 logger = Log()
+
+
 class VSPTrueCopyReconciler:
-    def __init__(self, connection_info, serial, state=None):
+    def __init__(
+        self, connection_info, serial, state=None, secondary_connection_info=None
+    ):
 
         self.connection_info = connection_info
         self.storage_serial_number = serial
+        self.secondary_connection_info = None
         self.provisioner = VSPTrueCopyProvisioner(connection_info, serial)
         if state:
             self.state = state
+        if secondary_connection_info:
+            self.secondary_connection_info = secondary_connection_info
 
     @log_entry_exit
     def delete_true_copy(self, spec):
-        if spec.primary_volume_id is None:
-            raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
-        return self.provisioner.delete_true_copy_pair(spec.primary_volume_id)
+        self.validate_tc_spec_for_ops(spec)
+        try:
+            pair_id, comment = self.provisioner.delete_true_copy_pair(spec)
+            return pair_id, comment
+        except Exception as e:
+            logger.writeError("RC:delete_true_copy:exception={}", e)
+            self.connection_info.changed = False
+            comment = TrueCopyFailedMsg.DELETE_PAIR_FAILED.value + str(e)
+            # return None, str(e)
+            return None, comment
+
+    @log_entry_exit
+    def validate_tc_spec_for_ops_resize(self, spec: Any) -> None:
+        self.validate_tc_spec_for_ops(spec)
+        if spec.new_volume_size is None:
+            raise ValueError(VSPTrueCopyValidateMsg.NEW_VOLUME_SIZE.value)
+        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
+            if spec.secondary_storage_serial_number is None:
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.SECONDARY_STORAGE_SN_NEEDED.value
+                )
+
+    @log_entry_exit
+    def validate_tc_spec_for_ops(self, spec: Any) -> None:
+        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
+            if spec.primary_volume_id is None:
+                raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
+
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            if spec.primary_volume_id:
+                if spec.copy_group_name is None:
+                    raise ValueError(VSPTrueCopyValidateMsg.COPY_GROUP_NAME.value)
+
+            if spec.copy_group_name:
+                if spec.copy_pair_name is None and spec.primary_volume_id is None:
+                    raise ValueError(
+                        VSPTrueCopyValidateMsg.PVOL_ID_OR_CP_NAME_NEEDED_WITH_CG_NAME.value
+                    )
 
     @log_entry_exit
     def resync_true_copy(self, spec):
-        if spec.primary_volume_id is None:
-            raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
-        return self.provisioner.resync_true_copy_pair(spec.primary_volume_id)
+        self.validate_tc_spec_for_ops(spec)
+        return self.provisioner.resync_true_copy_pair(spec)
 
     @log_entry_exit
     def split_true_copy(self, spec):
-        if spec.primary_volume_id is None:
-            raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
-        return self.provisioner.split_true_copy_pair(spec.primary_volume_id)
+        self.validate_tc_spec_for_ops(spec)
+        return self.provisioner.split_true_copy_pair(spec)
 
     @log_entry_exit
     def swap_split_true_copy(self, spec):
-        if spec.primary_volume_id is None:
-            raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
-        return self.provisioner.swap_split_true_copy_pair(spec.primary_volume_id)
+        self.validate_tc_spec_for_ops(spec)
+        return self.provisioner.swap_split_true_copy_pair(spec)
 
     @log_entry_exit
     def swap_resync_true_copy(self, spec):
-        if spec.primary_volume_id is None:
-            raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
-        return self.provisioner.swap_resync_true_copy_pair(spec.primary_volume_id)
+        self.validate_tc_spec_for_ops(spec)
+        return self.provisioner.swap_resync_true_copy_pair(spec)
+
+    @log_entry_exit
+    def resize_true_copy(self, spec):
+        self.validate_tc_spec_for_ops_resize(spec)
+        return self.provisioner.resize_true_copy_copy_pair(spec)
 
     @log_entry_exit
     def create_true_copy(self, spec):
         logger.writeDebug("RC:create_true_copy:spec={} ", spec)
-        if spec.primary_volume_id is None:
-            raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
-        if spec.secondary_hostgroups is None:
-            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS.value)
-        
+        self.validate_create_spec(spec)
 
-        pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
-        logger.writeDebug("RC:create_true_copy:pvol={} ", pvol)
-        if not pvol:
-            raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(spec.primary_volume_id))
-        
-        pvol_v2 = self.provisioner.get_volume_by_id_v2(pvol.storageId, pvol.resourceId)
-        if pvol_v2.pathCount < 1:
-            raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_NO_PATH.value.format(spec.primary_volume_id))
+        # This is for gateway
+        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
+            try:
+                pvol_v2 = self.provisioner.get_volume_by_id_v2(
+                    UAIGResourceID().storage_resourceId(self.storage_serial_number),
+                    UAIGResourceID().ldev_resourceId(
+                        self.storage_serial_number, spec.primary_volume_id
+                    ),
+                )
+                if pvol_v2.pathCount < 1:
+                    raise ValueError(
+                        VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_NO_PATH.value.format(
+                            spec.primary_volume_id
+                        )
+                    )
+            except Exception as e:
+                logger.writeError("RC:create_true_copy:exception={}", e)
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
+                        spec.primary_volume_id
+                    )
+                )
+        else:
+            pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
+            logger.writeDebug("RC:create_true_copy:pvol={} ", pvol)
+            if not pvol:
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
+                        spec.primary_volume_id
+                    )
+                )
 
-        
+            copy_group = self.provisioner.get_copy_group_by_name(spec)
+            if copy_group:
+                spec.is_new_copy_group = False
+            else:
+                spec.is_new_copy_group = True
+
         return self.provisioner.create_true_copy(spec=spec)
 
+    @log_entry_exit
+    def validate_create_spec(self, spec: Any) -> None:
+        """
+        Validate the TrueCopy specification.
+        """
+        # These are commom for both direct and gateway
+
+        if spec.primary_volume_id is None:
+            raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
+
+        if spec.secondary_pool_id is None:
+            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_POOL_ID.value)
+
+        if spec.secondary_hostgroups is None:
+            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS.value)
+
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            if self.secondary_connection_info is None:
+                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_CONNECTION_INFO.value)
+            else:
+                spec.secondary_connection_info = self.secondary_connection_info
+            if spec.copy_group_name is None:
+                raise ValueError(VSPTrueCopyValidateMsg.COPY_GROUP_NAME.value)
+            if spec.copy_pair_name is None:
+                raise ValueError(VSPTrueCopyValidateMsg.COPY_PAIR_NAME.value)
+        else:
+            if spec.secondary_storage_serial_number is None:
+                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_STORAGE_SN.value)
 
     @log_entry_exit
     def reconcile_true_copy(self, spec: Any) -> Any:
@@ -95,38 +196,54 @@ class VSPTrueCopyReconciler:
         Reconcile the TrueCopy based on the desired state in the specification.
         """
         state = self.state.lower()
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            if self.secondary_connection_info is None:
+                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_CONNECTION_INFO.value)
+            else:
+                spec.secondary_connection_info = self.secondary_connection_info
+
         resp_data = None
         if state == StateValue.ABSENT:
-            _ , comment = self.delete_true_copy(spec)
+            unused, comment = self.delete_true_copy(spec)
             # msg = "Truecopy pair {} has been deleted successfully.".format(result)
-            return 
+            return comment
         elif state == StateValue.PRESENT:
-            if spec.secondary_storage_serial_number is None:
-                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_STORAGE_SN.value)
-            if spec.secondary_pool_id is None:
-                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_POOL_ID.value)
             resp_data = self.create_true_copy(spec=spec)
-            
         elif state == StateValue.SPLIT:
             resp_data = self.split_true_copy(spec)
-        elif state == StateValue.SYNC:
+        elif state == StateValue.RE_SYNC:
             resp_data = self.resync_true_copy(spec)
         elif state == StateValue.SWAP_SPLIT:
             resp_data = self.swap_split_true_copy(spec)
-            self.connection_info.changed = True
         elif state == StateValue.SWAP_RESYNC:
             resp_data = self.swap_resync_true_copy(spec)
-            self.connection_info.changed = True
+        elif state == StateValue.RESIZE:
+            resp_data = self.resize_true_copy(spec)
 
         if resp_data:
-            logger.writeDebug("RC:resp_data={}  state={}", resp_data, state)            
+            logger.writeDebug("RC:resp_data={}  state={}", resp_data, state)
+            if isinstance(resp_data, dict):
+                if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
+                    resp_data.pop("resource_id", None)
+                    resp_data.pop("storage_id", None)
+                return resp_data
 
             resp_in_dict = resp_data.to_dict()
-
-            return TrueCopyInfoExtractor(self.storage_serial_number).extract([resp_in_dict])
+            logger.writeDebug("RC:reconcile_true_copy:tc_pairs={}", resp_in_dict)
+            if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+                # resp_in_dict["serialNumber"] = self.storage_serial_number
+                # resp_in_dict["remoteSerialNumber"] = spec.secondary_storage_serial_number
+                remote_serial = spec.secondary_storage_serial_number
+                return DirectTrueCopyInfoExtractor(
+                    self.storage_serial_number, remote_serial
+                ).extract([resp_in_dict])
+            else:
+                return TrueCopyInfoExtractor(self.storage_serial_number).extract(
+                    [resp_in_dict]
+                )
         else:
             return None
-    
+
     @log_entry_exit
     def check_storage_in_ucpsystem(self) -> bool:
         """
@@ -135,31 +252,90 @@ class VSPTrueCopyReconciler:
         return self.provisioner.check_storage_in_ucpsystem()
 
     @log_entry_exit
-    def get_all_tc_pairs(self):
-        tc_pairs = self.provisioner.get_all_tc_pairs(self.storage_serial_number)
-        extracted_data = TrueCopyInfoExtractor(self.storage_serial_number).extract(tc_pairs)
-        return extracted_data
-    
-    def get_true_copy_facts(self, spec=None):
-
-        tc_pairs = self.provisioner.get_true_copy_facts(spec)
-        logger.writeDebug("RC:get_true_copy_facts:tc_pairs={}", tc_pairs)
-        # if spec.primary_volume_id is None:
-        #     extracted_data = TrueCopyInfoExtractor(self.storage_serial_number).extract(tc_pairs.data_to_list())
-        # else:
-        if tc_pairs:
-            extracted_data = TrueCopyInfoExtractor(self.storage_serial_number).extract(tc_pairs.data_to_list())
+    def get_all_tc_pairs(self, spec):
+        tc_pairs = self.provisioner.get_true_copy_facts(self.storage_serial_number)
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            extracted_data = TrueCopyInfoExtractor(self.storage_serial_number).extract(
+                tc_pairs
+            )
         else:
-            extracted_data = {}
+            remote_serial = spec.secondary_storage_serial_number
+            extracted_data = DirectTrueCopyInfoExtractor(
+                self.storage_serial_number, remote_serial
+            ).extract(tc_pairs)
         return extracted_data
-    
+
+    @log_entry_exit
+    def validate_tc_fact_spec(self, spec: Any) -> None:
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            if self.secondary_connection_info is None:
+                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_CONNECTION_INFO.value)
+            else:
+                spec.secondary_connection_info = self.secondary_connection_info
+
+    def get_true_copy_facts(self, spec=None, serial=None):
+
+        tc_pairs = self.provisioner.get_true_copy_facts(spec, serial)
+        logger.writeDebug("RC:get_true_copy_facts:tc_pairs={}", tc_pairs)
+
+        if tc_pairs is None:
+            return []
+        else:
+            if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+                # tc_pairs = self.convert_primary_secondary_on_volume_type(tc_pairs.data)
+                remote_serial = spec.secondary_storage_serial_number
+                # cg_list_dict = tc_pairs.data_to_list()
+                # self.get_other_attributes(spec, cg_list_dict)
+
+                # data = tc_pairs.data
+                # if isinstance(data, DirectSpecificCopyGroupInfo):
+                #     extracted_data = DirectCopyGroupInfoExtractor(self.storage_serial_number, remote_serial).extract([data.to_dict()])
+
+                # if isinstance(data, list):
+                #     extracted_data = DirectCopyGroupInfoExtractor(self.storage_serial_number, remote_serial).extract(data.data_to_list())
+                extracted_data = DirectTrueCopyInfoExtractor(
+                    self.storage_serial_number, remote_serial
+                ).extract(tc_pairs.data_to_list())
+            else:
+                if isinstance(tc_pairs, VSPTrueCopyPairInfo):
+                    extracted_data = TrueCopyInfoExtractor(
+                        self.storage_serial_number
+                    ).extract([tc_pairs.to_dict()])
+                else:
+                    extracted_data = TrueCopyInfoExtractor(
+                        self.storage_serial_number
+                    ).extract(tc_pairs.data_to_list())
+
+        return extracted_data
+
+    @log_entry_exit
+    def convert_primary_secondary_on_volume_type(self, pairs):
+        items = []
+        for item in pairs:
+            if item.primaryOrSecondary == "S-VOL":
+                tmp = item.ldevId
+                tmp2 = item.serialNumber
+                item.serialNumber = item.remoteSerialNumber
+                item.ldevId = item.remoteLdevId
+                item.remoteSerialNumber = tmp2
+                item.remoteLdevId = tmp
+
+            items.append(item)
+
+        return VSPTrueCopyPairInfoList(data=items)
+
+    @log_entry_exit
+    def is_out_of_band(self):
+        return self.provisioner.is_out_of_band()
+
+
 class TrueCopyInfoExtractor:
     def __init__(self, serial):
         self.storage_serial_number = serial
         self.common_properties = {
             # "resourceId": str,
             "consistencyGroupId": int,
-            "storageId": str,
+            # "storageId": str,
             "entitlementStatus": str,
             # "copyPaceTrackSize": int,
             "copyRate": int,
@@ -180,17 +356,22 @@ class TrueCopyInfoExtractor:
             "secondaryVolumeStorageId": int,
             "status": str,
             "svolAccessMode": str,
-            "type": str,
+            # "type": str,
             # "secondaryVirtualHexVolumeId": int,
             "partnerId": str,
             "subscriberId": str,
+        }
+
+        self.parameter_mapping = {
+            "primary_volume_storage_id": "primary_storage_serial",
+            "secondary_volume_storage_id": "secondary_storage_serial",
         }
 
     def fix_bad_camel_to_snake_conversion(self, key):
         new_key = key.replace("v_s_m", "vsm")
         return new_key
 
-    @log_entry_exit  
+    @log_entry_exit
     def extract(self, responses):
         new_items = []
         for response in responses:
@@ -203,19 +384,30 @@ class TrueCopyInfoExtractor:
                 if "v_s_m" in cased_key:
                     cased_key = self.fix_bad_camel_to_snake_conversion(cased_key)
                 if response_key is not None:
+                    if cased_key in self.parameter_mapping.keys():
+                        cased_key = self.parameter_mapping[cased_key]
                     new_dict[cased_key] = value_type(response_key)
                 else:
                     # Handle missing keys by assigning default values
-                    default_value = (
-                        "" if value_type == str else -1 if value_type == int else False
-                    )
+                    default_value = get_default_value(value_type)
+                    new_dict[cased_key] = default_value
             new_dict["partner_id"] = "apiadmin"
-            if new_dict.get("primary_hex_volume_id") == "" or new_dict.get("primary_hex_volume_id") == None:
-                new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("primary_volume_id"))
-            if new_dict.get("secondary_hex_volume_id") == "" or new_dict.get("secondary_hex_volume_id") == None :
-                new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("secondary_volume_id"))
+            if (
+                new_dict.get("primary_hex_volume_id") == ""
+                or new_dict.get("primary_hex_volume_id") is None
+            ):
+                new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+                    new_dict.get("primary_volume_id")
+                )
+            if (
+                new_dict.get("secondary_hex_volume_id") == ""
+                or new_dict.get("secondary_hex_volume_id") is None
+            ):
+                new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+                    new_dict.get("secondary_volume_id")
+                )
             new_items.append(new_dict)
-        
+
         return new_items
 
     @log_entry_exit
@@ -230,17 +422,172 @@ class TrueCopyInfoExtractor:
                 cased_key = self.fix_bad_camel_to_snake_conversion(cased_key)
             if response_key is not None:
                 new_dict[cased_key] = value_type(response_key)
+                if cased_key in self.parameter_mapping.keys():
+                    cased_key = self.parameter_mapping[cased_key]
             else:
                 # Handle missing keys by assigning default values
-                default_value = (
-                    "" if value_type == str else -1 if value_type == int else False
-                )
+                default_value = get_default_value(value_type)
                 new_dict[cased_key] = default_value
         new_dict["partner_id"] = "apiadmin"
-        if new_dict.get("primary_hex_volume_id") == "" or new_dict.get("primary_hex_volume_id") == None:
-            new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("primary_volume_id"))
-        if new_dict.get("secondary_hex_volume_id") == "" or new_dict.get("secondary_hex_volume_id") == None :
-            new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("secondary_volume_id")) 
-    
+        if (
+            new_dict.get("primary_hex_volume_id") == ""
+            or new_dict.get("primary_hex_volume_id") is None
+        ):
+            new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+                new_dict.get("primary_volume_id")
+            )
+        if (
+            new_dict.get("secondary_hex_volume_id") == ""
+            or new_dict.get("secondary_hex_volume_id") is None
+        ):
+            new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+                new_dict.get("secondary_volume_id")
+            )
+
         return new_dict
-    
+
+
+class DirectTrueCopyInfoExtractor:
+    def __init__(self, serial, remote_serial=None):
+        self.storage_serial_number = serial
+        self.remote_serial_number = remote_serial
+        self.common_properties = {
+            "copyGroupName": str,
+            # "remoteMirrorCopyGroupId": str,
+            # "remoteStorageDeviceId": str,
+            # "localDeviceGroupName": str,
+            # "remoteDeviceGroupName": str,
+            "replicationType": str,
+            # "copyGroupName": str,
+            "copyPairName": str,
+            # "consistencyGroupId": int,
+            # "copyRate": int,
+            # "ldevId": int,
+            "fenceLevel": str,
+            "pvolLdevId": int,
+            "svolLdevId": int,
+            "primaryHexVolumeId": str,
+            "pvolStatus": str,
+            "svolStatus": str,
+            "consistencyGroupId": int,
+            # "pvolIOMode" : str,
+            # "svolIOMode" : str,
+            "pvolStorageDeviceId": str,
+            "svolStorageDeviceId": str,
+            "copyProgressRate": int,
+            "remoteMirrorCopyPairId": str,
+            # "pvolDifferenceDataManagement": str,
+            # "svolDifferenceDataManagement": str,
+            # "pvolProcessingStatus": str,
+            # "svolProcessingStatus": str,
+            # "pvolJournalId" : int,
+            # "svolJournalId" : int,
+            # "remoteSerialNumber": str,
+            # "remoteStorageTypeId": str,
+            # "remoteLdevId": int,
+            "primaryOrSecondary": str,
+            "secondaryHexVolumeId": str,
+            # "muNumber": int,
+            "status": str,
+            # "serialNumber": str,
+            "svolAccessMode": str,
+            # "storageTypeId": str,
+            # "isMainframe": bool,
+            # "copyPairs": list,
+            "entitlementStatus": str,
+            "partnerId": str,
+            "subscriberId": str,
+        }
+
+        self.parameter_mapping = {
+            # "ldev_id": "primary_volume_id",
+            "pvol_ldev_id": "primary_volume_id",
+            "svol_ldev_id": "secondary_volume_id",
+            # "remote_ldev_id": "secondary_volume_id",
+            # "mu_number": "mirror_unit_id",
+            # "remote_serial_number": "secondary_storage_serial",
+            # "serial_number": "primary_storage_serial",
+            # "remote_storage_type_id": "secondary_storage_type_id",
+        }
+
+    def fix_bad_camel_to_snake_conversion(self, key):
+        new_key = key.replace("v_s_m", "vsm")
+        return new_key
+
+    @log_entry_exit
+    def extract(self, responses):
+        new_items = []
+        for response in responses:
+            new_dict = {"storage_serial_number": self.storage_serial_number}
+            # new_dict["primary_storage_serial"] = self.storage_serial_number
+            # new_dict["secondary_storage_serial"] = self.remote_serial_number
+            for key, value_type in self.common_properties.items():
+                # Get the corresponding key from the response or its mapped key
+                response_key = response.get(key)
+                # Assign the value based on the response key and its data type
+                cased_key = camel_to_snake_case(key)
+                if cased_key in self.parameter_mapping.keys():
+                    cased_key = self.parameter_mapping[cased_key]
+                if response_key is not None:
+                    new_dict[cased_key] = response_key
+                else:
+                    # Handle missing keys by assigning default values
+                    default_value = get_default_value(value_type)
+                    new_dict[cased_key] = default_value
+            if new_dict.get("primary_hex_volume_id") == "":
+                if (
+                    new_dict.get("primary_volume_id") is not None
+                    and new_dict.get("primary_volume_id") != ""
+                ):
+                    new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+                        new_dict.get("primary_volume_id")
+                    )
+            if new_dict.get("secondary_hex_volume_id") == "":
+                if (
+                    new_dict.get("secondary_volume_id") is not None
+                    and new_dict.get("secondary_volume_id") != ""
+                ):
+                    new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+                        new_dict.get("secondary_volume_id")
+                    )
+            if new_dict["replication_type"] == "TC":
+                new_dict.pop("replication_type", None)
+                new_items.append(new_dict)
+
+        return new_items
+
+    @log_entry_exit
+    def extract_dict(self, response):
+        new_dict = {"storage_serial_number": self.storage_serial_number}
+        for key, value_type in self.common_properties.items():
+            # Get the corresponding key from the response or its mapped key
+            response_key = response.get(key)
+            # Assign the value based on the response key and its data type
+            cased_key = camel_to_snake_case(key)
+            if cased_key in self.parameter_mapping.keys():
+                cased_key = self.parameter_mapping[cased_key]
+            if response_key is not None:
+                new_dict[cased_key] = value_type(response_key)
+            else:
+                # Handle missing keys by assigning default values
+                default_value = get_default_value(value_type)
+                new_dict[cased_key] = default_value
+
+            if new_dict.get("primary_hex_volume_id") == "":
+                if (
+                    new_dict.get("primary_volume_id") is not None
+                    and new_dict.get("primary_volume_id") != ""
+                ):
+                    new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+                        new_dict.get("primary_volume_id")
+                    )
+            if new_dict.get("secondary_hex_volume_id") == "":
+                if (
+                    new_dict.get("secondary_volume_id") is not None
+                    and new_dict.get("secondary_volume_id") != ""
+                ):
+                    new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+                        new_dict.get("secondary_volume_id")
+                    )
+
+        return new_dict

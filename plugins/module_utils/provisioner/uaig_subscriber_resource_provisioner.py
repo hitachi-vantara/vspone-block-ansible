@@ -1,5 +1,3 @@
-import time
-
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
@@ -13,6 +11,8 @@ except ImportError:
     from common.hv_log import Log
 
 logger = Log()
+
+
 class SubscriberResourceProvisioner:
 
     def __init__(self, connectionInfo):
@@ -26,7 +26,7 @@ class SubscriberResourceProvisioner:
         data = self.gateway.get_subscriber_resource_facts(subscriberId)
         data = self.replace_device_id_with_serial(data)
         return data
-    
+
     @log_entry_exit
     def replace_device_id_with_serial(self, data):
         dev_id_to_serial_map = {}
@@ -39,5 +39,5 @@ class SubscriberResourceProvisioner:
                 device_info = self.gateway.get_device_by_id(device_id)
                 dev_id_to_serial_map["deviceId"] = device_info["serialNumber"]
                 item["deviceId"] = device_info["serialNumber"]
-        
+
         return data

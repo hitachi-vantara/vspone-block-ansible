@@ -1,13 +1,14 @@
+---
 namespace: hitachivantara
 name: vspone_block
-version: 3.1.111
+version: 3.2.1
 readme: README.md
 authors:
-  - Hitachi Vantara Ansible Team 
-description: Ansible Modules to manage Hitachi Storage and Data Services (Block, File etc.)
-  using the Hitachi VSP One platform. These modules provide a simplified and
-  automated way to configure and manage Hitachi storage systems, enabling
-  seamless integration with Ansible playbooks and workflows.
+  - Hitachi Vantara Ansible Team
+description: >
+  Ansible Modules to manage Hitachi Storage and Data Services (Block, File, etc.) using the Hitachi VSP One platform.
+  These modules provide a simplified and automated way to configure and manage Hitachi storage systems,
+  enabling seamless integration with Ansible playbooks and workflows.
 license:
   - GPL-3.0-or-later
 tags:
@@ -24,10 +25,21 @@ repository: https://github.com/hitachi-vantara/vspone-block-ansible
 documentation: https://github.com/hitachi-vantara/vspone-block-ansible
 issues: https://github.com/hitachi-vantara/vspone-block-ansible/issues
 build_ignore:
-  - tests/integration/  # Example: Ignore integration tests
+  - tests/integration/ # Example: Ignore integration tests
   - .git
   - collection_build.sh
   - .pylintrc
   - .gitignore
   - Dockerfile
   - pylint_run_report.txt
+  - .rabi
+  - plugins/module_utils/unit_test
+  - scripts
+  - .vscode
+  - spec
+  - version.txt
+  - lambda_package
+  - run_linter.py
+  - lint_report.txt
+  - sanity_test_report.txt
+  

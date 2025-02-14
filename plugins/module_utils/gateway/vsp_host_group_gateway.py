@@ -1,28 +1,43 @@
-import json
-from typing import NamedTuple
 import concurrent.futures
-import threading
 
 try:
     from ..common.vsp_constants import Endpoints
     from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
     from ..common.hv_log import Log
-    from ..common.ansible_common import log_entry_exit, convert_hex_to_dec
+    from ..common.ansible_common import log_entry_exit
     from ..common.ansible_common import dicts_to_dataclass_list
-    from ..model.vsp_host_group_models import *
-    from ..common.hv_constants import *
-    from ..message.vsp_host_group_msgs import *
+    from ..model.vsp_host_group_models import (
+        VSPHostGroupUAIG,
+        VSPHostGroupsUAIG,
+        VSPOneHostGroupInfo,
+        VSPHostGroupInfo,
+        VSPHostGroupsInfo,
+        VSPLunResponse,
+        VSPPortResponse,
+        VSPWwnResponse,
+    )
+    from ..common.hv_constants import CommonConstants, VSPHostGroupConstant
+    from ..message.vsp_host_group_msgs import VSPHostGroupMessage
     from ..common.uaig_constants import Endpoints as UAIGEndpoints
     from ..common.uaig_utils import UAIGResourceID
-except ImportError as ie:
+except ImportError:
     from common.vsp_constants import Endpoints
     from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
     from common.hv_log import Log
-    from common.ansible_common import log_entry_exit, convert_hex_to_dec
+    from common.ansible_common import log_entry_exit
     from common.ansible_common import dicts_to_dataclass_list
-    from model.vsp_host_group_models import *
-    from common.hv_constants import *
-    from message.vsp_host_group_msgs import *
+    from model.vsp_host_group_models import (
+        VSPHostGroupUAIG,
+        VSPHostGroupsUAIG,
+        VSPOneHostGroupInfo,
+        VSPHostGroupInfo,
+        VSPHostGroupsInfo,
+        VSPLunResponse,
+        VSPPortResponse,
+        VSPWwnResponse,
+    )
+    from common.hv_constants import CommonConstants, VSPHostGroupConstant
+    from message.vsp_host_group_msgs import VSPHostGroupMessage
     from common.uaig_constants import Endpoints as UAIGEndpoints
     from common.uaig_utils import UAIGResourceID
 
@@ -99,21 +114,28 @@ gHostMode = {
 class VSPHostGroupDirectGateway:
     def __init__(self, connection_info):
         self.rest_api = VSPConnectionManager(
-            connection_info.address, connection_info.username, connection_info.password
+            connection_info.address,
+            connection_info.username,
+            connection_info.password,
+            connection_info.api_token,
         )
         self.end_points = Endpoints
         self.serial = None
 
     @log_entry_exit
+    def set_serial(self, serial):
+        self.serial = serial
+
+    @log_entry_exit
     def get_ports(self):
-        logger = Log()
+        Log()
         end_point = self.end_points.GET_PORTS
         resp = self.rest_api.read(end_point)
         return dicts_to_dataclass_list(resp["data"], VSPPortResponse)
 
     @log_entry_exit
     def get_one_port(self, port_id):
-        logger = Log()
+        Log()
         end_point = self.end_points.GET_ONE_PORT.format(port_id)
         resp = self.rest_api.read(end_point)
         return VSPPortResponse(**resp)
@@ -184,15 +206,41 @@ class VSPHostGroupDirectGateway:
         tmpHg["hostModeOptions"] = []
         if host_mode_options:
             for option in host_mode_options:
+
+                option_txt = ""
                 if option in g_raidHostModeOptions:
-                    tmpHg["hostModeOptions"].append(
-                        {
-                            "hostModeOption": g_raidHostModeOptions[option],
-                            "hostModeOptionNumber": option,
-                        }
-                    )
+                    option_txt = g_raidHostModeOptions[option]
+
+                tmpHg["hostModeOptions"].append(
+                    {
+                        "hostModeOption": option_txt,
+                        "hostModeOptionNumber": option,
+                    }
+                )
 
         return tmpHg
+
+    @log_entry_exit
+    def get_all_hgs(self):
+        logger = Log()
+
+        end_points = self.end_points.POST_HOST_GROUPS
+        retry = 0
+        resp = None
+        max_retry = 20
+        while retry < max_retry:
+            try:
+                resp = self.rest_api.read(end_points)
+                if resp:
+                    return VSPHostGroupsInfo(
+                        dicts_to_dataclass_list(resp["data"], VSPHostGroupInfo)
+                    )
+            except Exception as e:
+                if retry == max_retry - 1:
+                    logger.writeError(f"Failed to get all host groups: {e}")
+            finally:
+                retry += 1
+        return
 
     @log_entry_exit
     def get_host_groups(self, ports_input, name_input, is_get_wwns, is_get_luns):
@@ -229,6 +277,30 @@ class VSPHostGroupDirectGateway:
                 lstHg.append(tmpHg)
 
         return VSPHostGroupsInfo(dicts_to_dataclass_list(lstHg, VSPHostGroupInfo))
+
+    @log_entry_exit
+    def get_host_groups_of_a_port(self, port_id):
+        Log()
+        lstHg = []
+        end_point = self.end_points.GET_HOST_GROUPS.format(
+            "?portId={}&detailInfoType=resourceGroup".format(port_id)
+        )
+        resp = self.rest_api.read(end_point)
+        for hg in resp["data"]:
+            tmpHg = self.parse_host_group(hg, None, None)
+            lstHg.append(tmpHg)
+
+            return VSPHostGroupsInfo(dicts_to_dataclass_list(lstHg, VSPHostGroupInfo))
+        return None
+
+    @log_entry_exit
+    def get_hg_by_id(self, object_id):
+        Log()
+        end_point = self.end_points.GET_HOST_GROUP_BY_ID.format(object_id)
+        resp = self.rest_api.read(end_point)
+        return resp
+        # retHg = self.parse_host_group(resp, True, True)
+        # return VSPOneHostGroupInfo(VSPHostGroupInfo(**retHg))
 
     @log_entry_exit
     def get_one_host_group(self, port_id, name):
@@ -420,6 +492,7 @@ class VSPHostGroupUAIGateway:
     @log_entry_exit
     def set_serial(self, serial):
         self.serial = serial
+        self.set_resource_id()
 
     @log_entry_exit
     def set_resource_id(self, serial=None):

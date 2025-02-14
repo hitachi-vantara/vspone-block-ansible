@@ -1,14 +1,4 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-__metaclass__ = type
-
-import json
-from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
-    StorageSystem,
-    HostMode,
-    StorageSystemManager,
     Utils,
 )
 
@@ -18,13 +8,18 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_sto
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ucpmanager import (
     UcpManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
     CommonConstants,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     camel_to_snake_case_dict_array,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 
 logger = Log()
@@ -44,7 +39,7 @@ def runPlaybook(module):
     management_username = connection_info.get("username", None)
     management_password = connection_info.get("password", None)
     subscriberId = connection_info.get("subscriber_id", None)
-    auth_token = connection_info.get('api_token', None)
+    auth_token = connection_info.get("api_token", None)
     result = {}
 
     storage_system_info = module.params["storage_system_info"]
@@ -54,23 +49,8 @@ def runPlaybook(module):
 
     logger.writeDebug("40 storage_serial={}", storage_serial)
     logger.writeDebug("40 subscriberId={}", subscriberId)
-    
-    ########################################################
+
     # True: test the rest of the module using api_token
-    
-    if False:
-        ucpManager = UcpManager(
-            management_address,
-            management_username,
-            management_password,
-            auth_token,
-            partnerId,
-            subscriberId,
-            storage_serial,
-        )    
-        auth_token = ucpManager.getAuthTokenOnly()
-        management_username = ''
-    ########################################################    
 
     storageSystem = None
     try:
@@ -85,12 +65,14 @@ def runPlaybook(module):
             subscriberId,
         )
     except Exception as ex:
+        logger.writeError(str(ex))
+        logger.writeInfo("=== End of Host Group Facts ===")
         module.fail_json(msg=str(ex))
 
     if not storageSystem.isStorageSystemInUcpSystem():
         raise Exception("Storage system is not under the management system.")
 
-    ## check the healthStatus=onboarding
+    #  check the healthStatus=onboarding
     ucpManager = UcpManager(
         management_address,
         management_username,
@@ -140,14 +122,14 @@ def runPlaybook(module):
         hostGroups = hostGroups2
 
     if ports:
-        ## apply port filter
+        #  apply port filter
         portSet = set(ports)
         hostGroups = [group for group in hostGroups if group["port"] in portSet]
         if len(hostGroups) == 0:
             result["comment"] = "No hostgroup is found with the given ports"
 
     if name is not None:
-        ## apply name filter
+        #  apply name filter
         logger.writeParam("name={}", data["name"])
         # hostGroups = [group for group in hostGroups if group['hostGroupName'] == name]
         logger.writeDebug(hostGroups)
@@ -157,7 +139,7 @@ def runPlaybook(module):
         logger.writeDebug(hostGroups)
 
     if lun is not None:
-        ## apply lun filter
+        #  apply lun filter
         logger.writeParam("apply filter, lun={}", data["lun"])
         hostGroupsNew = []
         for hg in hostGroups:
@@ -168,9 +150,9 @@ def runPlaybook(module):
                     if "ldevId" in lunPath:
                         # logger.writeDebug('lunPath[ldevId]={}', lunPath['ldevId'])
                         if lun == str(lunPath["ldevId"]):
-                            ## found the lun in the lunPaths, return the whole lunPaths,
-                            ## if you only want to return the matching lun instead of the whole list,
-                            ## then you need to add more code here
+                            #  found the lun in the lunPaths, return the whole lunPaths,
+                            #  if you only want to return the matching lun instead of the whole list,
+                            #  then you need to add more code here
                             logger.writeDebug(
                                 "found lun in lunPaths={}", hg["lunPaths"]
                             )
@@ -189,7 +171,7 @@ def runPlaybook(module):
         #         hostGroups = [group for group in hostGroups if group['port'
         #                                                              ] in portSet]
 
-    ## prepare output, apply filters
+    #  prepare output, apply filters
     for hg in hostGroups:
 
         if hg.get("hostModeOptions", None) is None:
@@ -238,4 +220,10 @@ def runPlaybook(module):
 
     result["hostGroups"] = camel_to_snake_case_dict_array(hostGroups)
     logger.writeExitModule(moduleName)
+    registration_message = validate_ansible_product_registration()
+    if registration_message:
+        result["user_consent_required"] = registration_message
+
+    logger.writeInfo(f"{result}")
+    logger.writeInfo("=== End of Host Group Facts ===")
     module.exit_json(**result)

@@ -4,26 +4,28 @@ try:
         camel_to_snake_case,
         camel_array_to_snake_case,
         camel_dict_to_snake_case,
+        generate_random_name_prefix_string,
+        convert_hex_to_dec,
+        get_default_value,
     )
     from ..common.hv_log import Log
-    from ..common.hv_exceptions import HiException
-    from ..model.vsp_host_group_models import *
-    from ..common.ansible_common import convert_hex_to_dec
-    from ..common.hv_constants import *
-    from ..message.vsp_host_group_msgs import *
+    from ..model.vsp_host_group_models import VSPModifyHostGroupProvResponse
+    from ..common.hv_constants import VSPHostGroupConstant, StateValue
+    from ..message.vsp_host_group_msgs import VSPHostGroupMessage
 except ImportError:
     from provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
     from common.ansible_common import (
         camel_to_snake_case,
         camel_array_to_snake_case,
         camel_dict_to_snake_case,
+        generate_random_name_prefix_string,
+        convert_hex_to_dec,
+        get_default_value,
     )
     from common.hv_log import Log
-    from common.hv_exceptions import HiException
-    from model.vsp_host_group_models import *
-    from common.ansible_common import convert_hex_to_dec
-    from common.hv_constants import *
-    from message.vsp_host_group_msgs import *
+    from model.vsp_host_group_models import VSPModifyHostGroupProvResponse
+    from common.hv_constants import VSPHostGroupConstant, StateValue
+    from message.vsp_host_group_msgs import VSPHostGroupMessage
 
 
 class VSPHostGroupReconciler:
@@ -34,7 +36,6 @@ class VSPHostGroupReconciler:
         self.hostGroupSpec = hostGroupSpec
         self.provisioner = VSPHostGroupProvisioner(self.connectionInfo)
         self.provisioner.serial = serial
-
 
     def pre_check_port(self, port):
         logger = Log()
@@ -49,11 +50,13 @@ class VSPHostGroupReconciler:
             found = [x for x in sports if x.portId == port]
             logger.writeDebug("210found={}", found)
             if found is None or len(found) == 0:
-                raise Exception(VSPHostGroupMessage.PORT_NOT_IN_SYSTEM.value.format(port))
+                raise Exception(
+                    VSPHostGroupMessage.PORT_NOT_IN_SYSTEM.value.format(port)
+                )
 
     def pre_check_wwns(self, subobjState, wwns, result):
         logger = Log()
-        newWWN = None
+        newWWN = set()
         if wwns == "":
             wwns = None
         if wwns is not None:
@@ -73,16 +76,10 @@ class VSPHostGroupReconciler:
                 wwns = None
                 result["comments"].append(VSPHostGroupMessage.IGNORE_WWNS.value)
 
-        if wwns is not None:
-            # upper case the wwns playbook input since the response from services are in upper (SIEAN 280)
-            wwns2 = []
-            for wwn in wwns:
-                # SIEAN 284 - in case wwn is all number
-                wwn = str(wwn)
-                wwns2.append(wwn.upper())
-            newWWN = set(map(str, wwns2))
-        else:
-            newWWN = set([])
+        if wwns:
+            # Convert WWNs to uppercase and ensure they are strings, removing duplicates
+            newWWN = {str(wwn).upper() for wwn in wwns}
+
         return newWWN
 
     def pre_check_luns(self, subobjState, luns, result):
@@ -101,7 +98,7 @@ class VSPHostGroupReconciler:
 
         parsedLuns = []
         if luns:
-            for _, lun in enumerate(luns):
+            for unused, lun in enumerate(luns):
                 logger.writeDebug(lun)
                 if lun is not None and ":" in str(lun):
                     logger.writeDebug(lun)
@@ -132,7 +129,7 @@ class VSPHostGroupReconciler:
         ):
             raise Exception(VSPHostGroupMessage.SPEC_STATE_INVALID.value)
 
-        ############# support the new subobjState keywords ###########
+        # support the new subobjState keywords
         logger.writeDebug("subobjState={}", subobjState)
         if (
             subobjState == VSPHostGroupConstant.STATE_ADD_WWN
@@ -175,7 +172,9 @@ class VSPHostGroupReconciler:
         self.provisioner.delete_host_group(hg, spec.delete_all_luns)
         result["changed"] = True
         result["hostGroup"] = None
-        result["comment"] = VSPHostGroupMessage.DELETE_SUCCESSFULLY.value.format(hg.hostGroupName)
+        result["comment"] = VSPHostGroupMessage.DELETE_SUCCESSFULLY.value.format(
+            hg.hostGroupName
+        )
 
     def handle_set_host_mode(self, subobjState, hg, hostmodename, hostoptlist, result):
         logger = Log()
@@ -196,7 +195,7 @@ class VSPHostGroupReconciler:
             oldlist = set(hgHMO)
             newlist = set(hostoptlist)
             addlist = newlist - oldlist
-            dellist = oldlist & newlist
+            oldlist & newlist
 
             if subobjState == StateValue.PRESENT:
                 # # add = new - old
@@ -299,8 +298,6 @@ class VSPHostGroupReconciler:
         subobjState = data.state
         port = data.port
         hgName = data.name
-        if not hgName:
-            raise Exception("name is required.")
         hostmodename = data.host_mode
         hostoptlist = data.host_mode_options
         logger.writeDebug(hostoptlist)
@@ -321,13 +318,15 @@ class VSPHostGroupReconciler:
         logger.writeParam("hostoptlist={}", hostoptlist)
         logger.writeParam("newWWN={}", newWWN)
         logger.writeParam("ldevs={}", newLun)
-        hostGroups = []
         # get all hgs
         # see if all the (hg,port)s are created
-        hostGroup = self.provisioner.get_one_host_group(port, hgName).data
+        hostGroup = None
+        if hgName:
+            hostGroup = self.provisioner.get_one_host_group(port, hgName).data
         logger.writeInfo("hostGroup = {}", hostGroup)
         result["changed"] = False
-
+        if hgName is None and state != StateValue.ABSENT:
+            hgName = generate_random_name_prefix_string()
         if not hostGroup:
 
             # No host groups found
@@ -335,11 +334,14 @@ class VSPHostGroupReconciler:
             # In this case, if state is absent, we do nothing.
 
             if state == StateValue.ABSENT:
+                if hgName is None:
+                    raise Exception(VSPHostGroupMessage.HG_NAME_EMPTY.value)
                 logger.writeInfo("No host groups found, state is absent, no change")
-                result["comment"] = (VSPHostGroupMessage.HG_HAS_BEEN_DELETED.value)
+                result["comment"] = VSPHostGroupMessage.HG_HAS_BEEN_DELETED.value
 
             if state != StateValue.ABSENT:
                 logger.writeDebug("Create Mode =========== ")
+
                 if not port:
                     raise Exception(VSPHostGroupMessage.PORTS_PARAMETER_INVALID.value)
                 else:
@@ -358,12 +360,11 @@ class VSPHostGroupReconciler:
             logger.writeDebug("Delete hgs from the list  =========== ")
             if hostGroup is None:
                 logger.writeInfo("No host group found, state is absent, no change")
-                result["comment"] = (
-                    VSPHostGroupMessage.HG_HAS_BEEN_DELETED.value
-                )
+                result["comment"] = VSPHostGroupMessage.HG_HAS_BEEN_DELETED.value
             else:
                 if len(hostGroup.lunPaths) > 0 and not spec.delete_all_luns:
-                    result["comment"] = VSPHostGroupMessage.LDEVS_PRESENT.value
+                    # result["comment"] = VSPHostGroupMessage.LDEVS_PRESENT.value
+                    raise Exception(VSPHostGroupMessage.LDEVS_PRESENT.value)
                 else:
                     # Handle delete host group
                     self.delete_host_group(spec, hostGroup, result)
@@ -439,15 +440,7 @@ class VSPHostGroupCommonPropertiesExtractor:
                     if (
                         key != "wwns" and key != "lunPaths"
                     ):  # Do not add default value for wwns and lunPaths because they are in query
-                        default_value = (
-                            ""
-                            if value_type == str
-                            else (
-                                -1
-                                if value_type == int
-                                else [] if value_type == list else False
-                            )
-                        )
+                        default_value = get_default_value(value_type)
                         new_dict[cased_key] = default_value
             new_items.append(new_dict)
         new_items = camel_array_to_snake_case(new_items)

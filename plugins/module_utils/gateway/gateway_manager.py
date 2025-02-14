@@ -6,62 +6,65 @@ from abc import ABC, abstractmethod
 import json
 import time
 import urllib.error as urllib_error
-
-from ansible.module_utils.urls import open_url, socket
-
+from ansible.module_utils.urls import socket
 
 try:
     from ..common.hv_api_constants import API
     from ..common.hv_log import Log
-    from ..common.ansible_common import log_entry_exit
-    from ..common.hv_exceptions import *
     from ..common.vsp_constants import Endpoints
+    from .ansible_url import open_url
+    from ..message.common_msgs import CommonMessage
 except ImportError:
     from common.hv_api_constants import API
     from common.hv_log import Log
-    from common.ansible_common import log_entry_exit
-    from common.hv_exceptions import *
     from common.vsp_constants import Endpoints
-
+    from .ansible_url import open_url
+    from message.common_msgs import CommonMessage
 
 logger = Log()
 moduleName = "Gateway Manager"
 OPEN_URL_TIMEOUT = 600
+
+
 class SessionObject:
     def __init__(self, session_id, token):
         self.session_id = session_id
         self.token = token
         self.create_time = time.time()
-        self.expiry_time  = self.create_time +  240
+        self.expiry_time = self.create_time + 240
+
 
 class ConnectionManager(ABC):
-    def __init__(self, address, username, password):
+    retryCount = 0
+    server_busy_msg = "The server might be temporarily busy"
+
+    def __init__(self, address, username=None, password=None, token=None):
         self.address = address
         self.username = username
         self.password = password
+        self.token = token
         self.base_url = None
 
         if not self.base_url:
             self.base_url = self.form_base_url()
 
     @abstractmethod
-    def form_base_url(self):
-        pass
+    def form_base_url(self) -> str:
+        return ""
 
-    def getAuthToken(self):
-        pass
+    def getAuthToken(self) -> dict[str, str]:
+        return {}
 
-    def get_job(self):
+    def get_job(self, job_id) -> dict:
         """get job method"""
-        return
+        return {}
 
-    @log_entry_exit
     def _load_response(self, response):
         """returns dict if json, native string otherwise"""
         try:
             text = response.read().decode("utf-8")
-            if not ("token" in text):
-                logger.writeDebug(text)
+            if "token" not in text:
+                logger.writeDebug(f"{text[:500]} ...")
             msg = {}
             raw_message = json.loads(text)
             if not len(raw_message):
@@ -73,7 +76,6 @@ class ConnectionManager(ABC):
         except ValueError:
             return text
 
-    @log_entry_exit
     def _make_request(self, method, end_point, data=None):
 
         url = self.base_url + "/" + end_point
@@ -108,40 +110,55 @@ class ConnectionManager(ABC):
                 force_basic_auth=True,
                 validate_certs=False,
             )
-        except (urllib_error.HTTPError, socket.timeout) as err:
-            error_resp = json.loads(err.read().decode())
-            if error_resp.get("errorSource"):
-                msg = {}
-                msg[API.CODE] = err.code
-                msg[API.CAUSE] = (
-                    error_resp[API.CAUSE] if error_resp.get(API.CAUSE) else ""
-                )
-                msg[API.SOLUTION] = (
-                    error_resp[API.SOLUTION] if error_resp.get(API.SOLUTION) else ""
-                )
-                msg[API.MESSAGE] = (
-                    error_resp[API.MESSAGE] if error_resp.get(API.MESSAGE) else ""
-                )
-                raise Exception(msg)
-            else:
-                msg = {"code": err.code, "msg": err.msg}
-                raise Exception(msg)
-        except Exception as e:
-            logger.writeDebug("Exception = {}", e)
-            raise Exception(e)
+        except socket.timeout as t_err:
+            logger.writeError(f"ConnectionManager._make_request - TimeoutError {t_err}")
+            raise Exception(t_err)
+        except urllib_error.HTTPError as err:
+            logger.writeError(f"ConnectionManager._make_request - HTTPError {err}")
+
+            if err.code == 503:
+                # 503 Service Unavailable
+                # wait for 5 mins and try to re-authenticate, we will retry 5 times
+                if self.retryCount < 5:
+                    logger.writeDebug(
+                        f"{self.server_busy_msg}, wait for 5 mins and try to generate session token again."
+                    )
+                    time.sleep(300)
+                    self.retryCount += 1
+                    return self._make_request(method, end_point, data)
+                else:
+                    if hasattr(err, "read"):
+                        error_resp = json.loads(err.read().decode())
+                        logger.writeDebug(
+                            f"ConnectionManager.error_resp - error_resp {error_resp}"
+                        )
+                        error_dtls = (
+                            error_resp.get("message")
+                            if error_resp.get("message")
+                            else error_resp.get("errorMessage")
+                        )
+                        if error_resp.get("cause"):
+                            error_dtls = error_dtls + " " + error_resp.get("cause")
+
+                        if error_resp.get("solution"):
+                            error_dtls = error_dtls + " " + error_resp.get("solution")
+
+                        raise Exception(error_dtls)
+            raise Exception(err)
+        except Exception as err:
+            logger.writeException(err)
+            raise err
 
         if response.status not in (200, 201, 202):
             error_msg = json.loads(response.read())
-            logger.writeDebug("error_msg = {}", error_msg)
+            logger.writeError("error_msg = {}", error_msg)
             raise Exception(error_msg, response.status)
 
         return self._load_response(response)
 
-    @log_entry_exit
     def create(self, endpoint, data):
         return self._make_request(method="POST", end_point=endpoint, data=data)
 
-    @log_entry_exit
     def _process_job(self, job_id):
         response = None
         retryCount = 0
@@ -173,7 +190,6 @@ class ConnectionManager(ABC):
         logger.writeDebug("resourceId = {}", resourceId)
         return resourceId
 
-    @log_entry_exit
     def post(self, endpoint, data):
 
         post_response = self._make_request(method="POST", end_point=endpoint, data=data)
@@ -181,8 +197,6 @@ class ConnectionManager(ABC):
         job_id = post_response[API.JOB_ID]
         return self._process_job(job_id)
 
-
-    @log_entry_exit
     def patch(self, endpoint, data):
         patch_response = self._make_request(
             method="PATCH", end_point=endpoint, data=data
@@ -190,7 +204,6 @@ class ConnectionManager(ABC):
         job_id = patch_response[API.JOB_ID]
         return self._process_job(job_id)
 
-    @log_entry_exit
     def job_exception_text(self, job_response):
 
         keys = job_response[API.ERROR].keys()
@@ -204,22 +217,29 @@ class ConnectionManager(ABC):
             result_text += job_response[API.ERROR][API.CAUSE] + " "
         if API.SOLUTION in keys:
             result_text += job_response[API.ERROR][API.SOLUTION] + " "
+        if API.SOLUTION_TYPE in keys:
+            result_text += job_response[API.ERROR][API.SOLUTION_TYPE] + " "
+        if API.ERROR_CODE in keys:
+            error_value = job_response[API.ERROR][API.ERROR_CODE]
+            result_text += " " + "errorCode : " + str(error_value) + " "
+        if API.DETAIL_CODE in keys:
+            result_text += (
+                "detailCode : " + job_response[API.ERROR][API.DETAIL_CODE] + " "
+            )
 
         return result_text
 
-    @log_entry_exit
     def read(self, endpoint):
         return self._make_request("GET", endpoint)
 
-    @log_entry_exit
     def get(self, endpoint):
         return self._make_request("GET", endpoint)
 
-    @log_entry_exit
     def update(self, endpoint, data):
-        return self._make_request("PUT", endpoint, data)
+        put_response = self._make_request(method="PUT", end_point=endpoint, data=data)
+        job_id = put_response[API.JOB_ID]
+        return self._process_job(job_id)
 
-    @log_entry_exit
     def delete(self, endpoint, data=None):
         delete_response = self._make_request(
             method="DELETE", end_point=endpoint, data=data
@@ -227,13 +247,12 @@ class ConnectionManager(ABC):
         job_id = delete_response[API.JOB_ID]
         return self._process_job(job_id)
 
+
 class SDSBConnectionManager(ConnectionManager):
 
-    @log_entry_exit
     def form_base_url(self):
         return f"https://{self.address}/ConfigurationManager/simple"
 
-    @log_entry_exit
     def get_job(self, job_id):
         end_point = "v1/objects/jobs/" + job_id
         return self._make_request("GET", end_point)
@@ -241,9 +260,16 @@ class SDSBConnectionManager(ConnectionManager):
 
 class VSPConnectionManager(ConnectionManager):
     session = None
+    retryCount = 0
+    session_expired_msg = "The specified token is invalid"
 
-    @log_entry_exit
     def getAuthToken(self):
+        logger.writeDebug("Entering VSPConnectionManager.getAuthToken")
+
+        if self.token is not None:
+
+            return {"Authorization": "Session {0}".format(self.token)}
+
         headers = {}
         if self.session:
             if self.session.expiry_time > time.time():
@@ -252,58 +278,103 @@ class VSPConnectionManager(ConnectionManager):
         else:
             end_point = Endpoints.SESSIONS
             try:
-                response = self._make_request(method="POST", end_point=end_point, data=None)
-
+                response = self._make_request(
+                    method="POST", end_point=end_point, data=None
+                )
             except Exception as e:
                 # can be due to wrong address or kong is not ready
-                logger.writeDebug(e)
-                raise Exception(
+                logger.writeException(e)
+                err_msg = (
                     "Failed to establish a connection, please check the Management System address or the credentials."
+                    + str(e)
                 )
+                raise Exception(err_msg)
+
             session_id = response.get(API.SESSION_ID)
             token = response.get(API.TOKEN)
+            logger.writeDebug(
+                f"VSPConnectionManager.getAuthToken session id = {session_id} token = {token}"
+            )
             if self.session:
                 previous_session_id = self.session.session_id
-                try: 
+                try:
                     self.delete_session(previous_session_id)
                 except Exception:
-                    logger.writeDebug("could not delete previous session id = {}", previous_session_id)
-                    # do not throw exception as this session is not active 
+                    logger.writeDebug(
+                        "could not delete previous session id = {}", previous_session_id
+                    )
+                    # do not throw exception as this session is not active
 
             self.session = SessionObject(session_id, token)
+            self.token = token
             headers = {"Authorization": "Session {0}".format(token)}
         return headers
 
-    @log_entry_exit
+    def get_lock_session_token(self):
+        end_point = Endpoints.SESSIONS
+        try:
+            response = self._make_request(method="POST", end_point=end_point, data=None)
+
+        except Exception as e:
+            # can be due to wrong address or kong is not ready
+            logger.writeException(e)
+            err_msg = (
+                "Failed to establish a connection, please check the Management System address or the credentials."
+                + str(e)
+            )
+            raise Exception(err_msg)
+
+        session_id = response.get(API.SESSION_ID)
+        token = response.get(API.TOKEN)
+        logger.writeDebug(
+            "get_lock_session_token session id = {} token = {}", session_id, token
+        )
+        return session_id, token
+
     def form_base_url(self):
         return f"https://{self.address}/ConfigurationManager"
 
-    @log_entry_exit
     def get_job(self, job_id):
         end_point = "v1/objects/jobs/{}".format(job_id)
-        return self._make_request("GET", end_point)
+        return self._make_vsp_request("GET", end_point)
 
-    @log_entry_exit
-    def create(self, endpoint, data):
-        return self._make_vsp_request(method="POST", end_point=endpoint, data=data)
-    
-    @log_entry_exit
-    def read(self, endpoint):
-        return self._make_vsp_request("GET", endpoint)
+    def create(self, endpoint, data, token=None):
+        return self._make_vsp_request(
+            method="POST", end_point=endpoint, data=data, token=token
+        )
 
-    @log_entry_exit
-    def update(self, endpoint, data):
-        return self._make_vsp_request("PUT", endpoint, data)
-    
-    @log_entry_exit
-    def get(self, endpoint):
-        return self._make_vsp_request("GET", endpoint)
-    
-    @log_entry_exit
+    def read(self, endpoint, headers_input=None, token=None):
+        return self._make_vsp_request(
+            "GET", endpoint, headers_input=headers_input, token=token
+        )
+
+    def update(self, endpoint, data, headers_input=None, token=None):
+        put_response = self._make_vsp_request(
+            method="PUT",
+            end_point=endpoint,
+            data=data,
+            headers_input=headers_input,
+            token=token,
+        )
+        job_id = put_response[API.JOB_ID]
+        return self._process_job(job_id)
+
+    def get(self, endpoint, headers_input=None, token=None):
+        return self._make_vsp_request(
+            "GET", endpoint, data=None, headers_input=headers_input, token=token
+        )
+
+    def get_with_headers(self, end_point, headers_input=None):
+        return self._make_vsp_request("GET", end_point, None, headers_input)
+
+    def delete_with_headers(self, end_point, headers=None):
+        response = self._make_vsp_request("DELETE", end_point, None, headers)
+        job_id = response[API.JOB_ID]
+        return self._process_job(job_id)
+
     def pegasus_get(self, endpoint):
         return self._make_vsp_request("GET", endpoint)
 
-    @log_entry_exit
     def pegasus_post(self, endpoint, data):
         post_response = self._make_vsp_request("POST", endpoint, data)
 
@@ -319,8 +390,21 @@ class VSPConnectionManager(ConnectionManager):
         job_id = post_response[0].get("statusResource").split("/")[-1]
         return self._process_pegasus_job(job_id)
 
+    def pegasus_post_header(self, endpoint, data, headers_input):
+        post_response = self._make_vsp_request("POST", endpoint, data, headers_input)
 
-    @log_entry_exit
+        """
+        Sample job response
+        [
+            {
+                "statusResource": "/ConfigurationManager/simple/v1/objects/command-status/3"
+            }
+        ]
+        """
+
+        job_id = post_response[0].get("statusResource").split("/")[-1]
+        return self._process_pegasus_job(job_id)
+
     def _process_pegasus_job(self, job_id):
         response = None
         retryCount = 0
@@ -352,26 +436,38 @@ class VSPConnectionManager(ConnectionManager):
     def get_pegasus_job(self, job_id):
         url = Endpoints.PEGASUS_JOB
         return self._make_vsp_request("GET", url.format(job_id))
-    
-    
-    @log_entry_exit
-    def delete(self, endpoint, data=None):
+
+    def delete(self, endpoint, data=None, headers_input=None, token=None):
         delete_response = self._make_vsp_request(
-            method="DELETE", end_point=endpoint, data=data
+            method="DELETE",
+            end_point=endpoint,
+            data=data,
+            headers_input=headers_input,
+            token=token,
         )
         job_id = delete_response[API.JOB_ID]
         return self._process_job(job_id)
 
-    @log_entry_exit
-    def post(self, endpoint, data):
+    def post(self, endpoint, data, headers_input=None, token=None):
 
-        post_response = self._make_vsp_request(method="POST", end_point=endpoint, data=data)
+        post_response = self._make_vsp_request(
+            method="POST",
+            end_point=endpoint,
+            data=data,
+            headers_input=headers_input,
+            token=token,
+        )
         logger.writeDebug("post_response = {}", post_response)
         job_id = post_response[API.JOB_ID]
         return self._process_job(job_id)
 
+    def post_wo_job(self, endpoint, data=None, headers_input=None):
+        post_response = self._make_vsp_request(
+            method="POST", end_point=endpoint, data=data, headers_input=headers_input
+        )
+        logger.writeDebug("post_response = {}", post_response)
+        return
 
-    @log_entry_exit
     def patch(self, endpoint, data):
         patch_response = self._make_vsp_request(
             method="PATCH", end_point=endpoint, data=data
@@ -379,20 +475,30 @@ class VSPConnectionManager(ConnectionManager):
         job_id = patch_response[API.JOB_ID]
         return self._process_job(job_id)
 
-        
-    @log_entry_exit
-    def _make_vsp_request(self, method, end_point, data=None, headers_input=None):
+    def _make_vsp_request(
+        self, method, end_point, data=None, headers_input=None, token=None
+    ):
 
-        logger.writeDebug("VSPConnectionManager._make_vsp_request")
+        logger.writeDebug(
+            f"VSPConnectionManager._make_vsp_request token= {token} self.token = {self.token}"
+        )
 
         url = self.base_url + "/" + end_point
+        headers = {}
+        if token is None and self.token is None:
+            headers = self.getAuthToken()
+        else:
+            if token:
+                headers = {"Authorization": "Session {0}".format(token)}
+            elif self.token:
+                headers = {"Authorization": "Session {0}".format(self.token)}
 
-        headers = self.getAuthToken()
         headers["Content-Type"] = "application/json"
         if headers_input is not None:
             headers.update(headers_input)
-        
+
         logger.writeDebug("url = {}", url)
+        logger.writeDebug("headers = {}", headers)
         TIME_OUT = 300
         if data is not None:
             data = json.dumps(data)
@@ -411,16 +517,46 @@ class VSPConnectionManager(ConnectionManager):
                 validate_certs=False,
                 timeout=TIME_OUT,
             )
-        except (urllib_error.HTTPError, socket.timeout) as err:
-            error_resp = json.loads(err.read().decode())
-            error_dtls = (
-                error_resp.get("message")
-                if error_resp.get("message")
-                else error_resp.get("errorMessage")
+        except socket.timeout as t_err:
+            logger.writeError(str(t_err))
+            raise Exception(t_err)
+        except urllib_error.HTTPError as err:
+            logger.writeError(
+                f"VSPConnectionManager._make_vsp_request - HTTPError {err}"
             )
-            raise Exception(error_dtls)
-        except Exception as err:
+            if hasattr(err, "read"):
+                error_resp = json.loads(err.read().decode())
+                logger.writeDebug(
+                    f"VSPConnectionManager.error_resp - error_resp {error_resp}"
+                )
+                error_dtls = (
+                    error_resp.get("message")
+                    if error_resp.get("message")
+                    else error_resp.get("errorMessage")
+                )
+                if error_resp.get("cause"):
+                    error_dtls = error_dtls + " " + error_resp.get("cause")
+
+                if error_resp.get("solution"):
+                    error_dtls = error_dtls + " " + error_resp.get("solution")
+
+                if self.session_expired_msg in error_dtls and self.retryCount < 5:
+                    logger.writeDebug(
+                        "The specified token is invalid, trying to re-authenticate."
+                    )
+                    self.token = None
+                    self.session.expiry_time = 0
+                    self.retryCount += 1
+                    return self._make_vsp_request(
+                        method, end_point, data, headers_input, token=None
+                    )
+
+                else:
+                    raise Exception(error_dtls)
             raise Exception(err)
+        except Exception as err:
+            logger.writeException(err)
+            raise err
 
         if response.status not in (200, 201, 202):
             raise Exception(
@@ -428,39 +564,38 @@ class VSPConnectionManager(ConnectionManager):
             )
         return self._load_response(response)
 
-    @log_entry_exit
     def delete_current_session(self):
         session_id = self.session.session_id
         self.delete_session(session_id)
 
-    @log_entry_exit
     def delete_session(self, session_id):
-        try: 
+        try:
             endpoint = Endpoints.DELETE_SESSION.format(session_id)
             self.delete(endpoint)
         except Exception:
-            raise Exception("Could not dicard the session.")
-        
-    def __del__(self):
-        logger.writeDebug("VSPConnectionManager - Destructor called.")    
-        if self.session:
-            try: 
-               self.delete_current_session()
-            except Exception:
-                raise Exception("Could not dicard the current session.")
+            logger.writeDebug(
+                "VSPConnectionManager.delete_session - Could not discard the session."
+            )
+            # raise Exception("Could not dicard the session.")
 
+    # def __del__(self):
+    #     logger.writeDebug("VSPConnectionManager - Destructor called.")
+    #     if self.session:
+    #         try:
+    #            self.delete_current_session()
+    #         except Exception:
+    #             logger.writeDebug("VSPConnectionManager.__del__ - Could not dicard the current session.")
+    # raise Exception("Could not dicard the current session.")
 
-    @log_entry_exit
     def set_base_url_for_vsp_one_server(self):
-        self.base_url =  "https://{self.address}/ConfigurationManager/simple"
+        self.base_url = "https://{self.address}/ConfigurationManager/simple"
 
-    @log_entry_exit
     def get_base_url(self):
         return self.base_url
 
-    @log_entry_exit
     def set_base_url(self, url):
-        self.base_url =  url
+        self.base_url = url
+
 
 class UAIGConnectionManager:
     def __init__(self, address, username=None, password=None, token=None):
@@ -478,18 +613,16 @@ class UAIGConnectionManager:
         if not token:
             self.token = self.get_auth_token()
 
-    @log_entry_exit
     def form_base_url(self):
         return f"https://{self.address}/porcelain"
 
-    @log_entry_exit
     def _make_login_request(self, method, url, data):
         # url = self.base_url + endpoint
         logger.writeDebug("UAIGConnectionManager._make_login_request")
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
 
         USER_AGENT = "automation-module"
-
+        body = None
         if data is not None:
             body = json.dumps(data)
         try:
@@ -506,8 +639,35 @@ class UAIGConnectionManager:
                 timeout=OPEN_URL_TIMEOUT,
                 http_agent=USER_AGENT,
             )
-        except (urllib_error.URLError, socket.timeout) as err:
-            raise Exception(err)
+        except socket.timeout as t_err:
+            logger.writeError(str(t_err))
+            raise Exception(t_err)
+        except urllib_error.HTTPError as err:
+            if not hasattr(err, "read"):
+                logger.writeDebug(f"err={err}")
+                # 'TimeoutError' object has no attribute 'read'
+                raise Exception("TimeoutError")
+
+            error_resp = json.loads(err.read().decode())
+
+            logger.writeDebug(f"error_resp={error_resp}")
+            if isinstance(error_resp.get("error"), str):
+                ss = "Internal system error: "
+                ss = ss + error_resp.get("error")
+                raise Exception(ss)
+
+            #  puma error messages are not consistent
+            error_dtls = (
+                error_resp.get("error").get("message")
+                if error_resp.get("error")
+                else (
+                    error_resp.get("detail")
+                    if error_resp.get("detail")
+                    else error_resp.get("message")
+                )
+            )
+            raise Exception(error_dtls)
+            # raise Exception(err)
         except Exception as err:
             raise Exception(err)
 
@@ -518,7 +678,6 @@ class UAIGConnectionManager:
 
         return self._load_response(response)
 
-    @log_entry_exit
     def _make_request(self, method, end_point, data=None, headers_input=None):
 
         logger.writeDebug("UAIGConnectionManager._make_request")
@@ -530,7 +689,7 @@ class UAIGConnectionManager:
         headers["Content-Type"] = "application/json"
         if headers_input is not None:
             headers.update(headers_input)
-            
+
         logger.writeDebug(f"url={url}")
         logger.writeDebug(f"headers_input={headers_input}")
 
@@ -552,25 +711,32 @@ class UAIGConnectionManager:
                 validate_certs=False,
                 timeout=OPEN_URL_TIMEOUT,
             )
-        except (urllib_error.HTTPError, socket.timeout) as err:
-            error_resp = json.loads(err.read().decode())
-            
-            ##  error_resp={'timestamp': '2024-08-06T07:34:53.089+00:00', 'status': 400, 'error': 'Bad Request', 'path': '/porcelain/v2/storage/devices/storage-e51aa8e9806a70a036a77fec150d1407/hurpair/replpair-b3d13a38398466d44dcfec17b010cf89/split'}
-            logger.writeDebug(f"error_resp={error_resp}")
-            if isinstance(error_resp.get("error"), str):
-                ss = 'Internal system error: '
-                ss = ss + error_resp.get("error")
-                raise Exception(ss)
-            
-            ## puma error messages are not consistent
-            ## error_resp={'type': 'about:blank', 'title': 'Bad Request', 'status': 400, 'detail': 'Validation failure', 'instance': '/porcelain/v2/storage/devices/storage-e51aa8e9806a70a036a77fec150d1407/hurpair/replpair-b3d13a38398466d44dcfec17b010cf89/swap-resync'}            
-            error_dtls = (
-                error_resp.get("error").get("message")
-                if error_resp.get("error")
-                else error_resp.get("detail") if error_resp.get("detail")  else error_resp.get("message")
-            )
-            raise Exception(error_dtls)
+        except socket.timeout as t_err:
+            logger.writeError(str(t_err))
+            raise Exception(t_err)
+        except urllib_error.HTTPError as err:
+            logger.writeError(f"UAIGConnectionManager._make_request - HTTPError {err}")
+
+            if not hasattr(err, "read"):
+                error_resp = json.loads(err.read().decode())
+                logger.writeDebug(
+                    f"UAIGConnectionManager.error_resp - error_resp {error_resp}"
+                )
+                error_dtls = (
+                    error_resp.get("message")
+                    if error_resp.get("message")
+                    else error_resp.get("errorMessage")
+                )
+                if error_resp.get("cause"):
+                    error_dtls = error_dtls + " " + error_resp.get("cause")
+
+                if error_resp.get("solution"):
+                    error_dtls = error_dtls + " " + error_resp.get("solution")
+                else:
+                    raise Exception(error_dtls)
+            raise Exception(err)
         except Exception as err:
+            logger.writeException(err)
             raise Exception(err)
 
         if response.status not in (200, 201, 202):
@@ -579,14 +745,13 @@ class UAIGConnectionManager:
             )
         return self._load_response(response)
 
-    @log_entry_exit
     def _load_response(self, response):
         """returns dict if json, native string otherwise"""
-        
+
         try:
             text = response.read().decode("utf-8")
-            if not ("token" in text):
-                logger.writeDebug(text)
+            if "token" not in text:
+                logger.writeDebug(text[:500] + " ...")
             msg = {}
             raw_message = json.loads(text)
             # logger.writeDebug(raw_message)
@@ -600,7 +765,6 @@ class UAIGConnectionManager:
         except ValueError:
             return text
 
-    @log_entry_exit
     def get_auth_token(self):
         funcName = "UAIGConnectionManager:get_auth_token"
         # self.logger.writeEnterSDK(funcName)
@@ -613,11 +777,9 @@ class UAIGConnectionManager:
         try:
             response = self.login(url=url, data=body)
         except Exception as e:
-            # can be due to wrong address or kong is not ready
-            logger.writeDebug(e)
-            raise Exception(
-                "Failed to establish a connection, please check the Management System address or the credentials."
-            )
+            err_msg = CommonMessage.FAILED_CONNECTION.value + str(e)
+            logger.writeException(err_msg)
+            raise Exception(err_msg)
 
         token = None
         if response[API.MESSAGE] == API.SUCCESS:
@@ -630,24 +792,22 @@ class UAIGConnectionManager:
         self.token = token
         return token
 
-    @log_entry_exit
     def get_auth_header(self):
         headers = {"Authorization": "Bearer {0}".format(self.token)}
         return headers
 
-    @log_entry_exit
     def login(self, url, data):
         return self._make_login_request(method="POST", url=url, data=data)
 
-    @log_entry_exit
     def get(self, end_point, headers_input=None):
         return self._make_request("GET", end_point, None, headers_input)
 
-    @log_entry_exit
+    def getV3(self, end_point, body=None, headers_input=None):
+        return self._make_request("GET", end_point, body, headers_input)
+
     def update(self, end_point, data=None):
         return self._make_request(method="PUT", end_point=end_point, data=data)
 
-    @log_entry_exit
     def _process_task(self, task_id, resource_id):
         response = None
         retryCount = 0
@@ -674,8 +834,8 @@ class UAIGConnectionManager:
                     descriptions = ", ".join(descriptions)
                     raise Exception(f"{task_name} {task_status}, {descriptions}")
                 else:
-                    ## failed with no task event
-                    raise Exception(f"Task failed and no event details.")
+                    #  failed with no task event
+                    raise Exception("Task failed and no event details.")
             else:
                 retryCount = retryCount + 1
                 time.sleep(10)
@@ -683,10 +843,10 @@ class UAIGConnectionManager:
         if response is None:
             raise Exception("Timeout Error! The tasks was not completed in 10 minutes")
 
-        return response        
+        return response
 
-    ## UCA-1347, we are seeing invaild grid from porcelain (urpair-xxx, should be hurpair-xxx)
-    ## this version will get the pvol and mirror-id from the subtask
+    #  UCA-1347, we are seeing invaild grid from porcelain (urpair-xxx, should be hurpair-xxx)
+    #  this version will get the pvol and mirror-id from the subtask
     def _process_task_ext_v3(self, task_id, resource_id):
         response = None
         retryCount = 0
@@ -711,32 +871,30 @@ class UAIGConnectionManager:
                     self.raiseMappedExceptions(descriptions)
                     # raise Exception(task_name + " " + task_status + " " + descriptions[0])
                     description0 = self._get_description(descriptions)
-                    raise Exception(f"{task_name} {task_status}, {description0}")                
+                    raise Exception(f"{task_name} {task_status}, {description0}")
                 else:
-                    ## failed with no task event
-                    raise Exception(f"Task failed and no event details.")
+                    #  failed with no task event
+                    raise Exception("Task failed and no event details.")
             else:
                 retryCount = retryCount + 1
                 time.sleep(10)
 
         if response is None:
             raise Exception("Timeout Error! The tasks was not completed in 10 minutes")
-        
+
         pvol = None
         svol = None
-        
-        ## 20240912 - look for pvol and mirror id in the subtask
+
+        #  20240912 - look for pvol and mirror id in the subtask
         task_events = task_response[API.DATA].get("events")
         if len(task_events):
-            descriptions = [
-                element.get("description") for element in task_events
-            ]
-            pvol, svol = self._get_hur_pvol(descriptions)       
+            descriptions = [element.get("description") for element in task_events]
+            pvol, svol = self._get_hur_pvol(descriptions)
 
-        return pvol, svol        
-    
-    ## this version will return the GRID in the additional attributes if available
-    @log_entry_exit
+        return pvol, svol
+
+    #  this version will return the GRID in the additional attributes if available
+
     def _process_task_ext(self, task_id, resource_id):
         response = None
         retryCount = 0
@@ -761,10 +919,10 @@ class UAIGConnectionManager:
                     self.raiseMappedExceptions(descriptions)
                     # raise Exception(task_name + " " + task_status + " " + descriptions[0])
                     description0 = self._get_description(descriptions)
-                    raise Exception(f"{task_name} {task_status}, {description0}")                
+                    raise Exception(f"{task_name} {task_status}, {description0}")
                 else:
-                    ## failed with no task event
-                    raise Exception(f"Task failed and no event details.")
+                    #  failed with no task event
+                    raise Exception("Task failed and no event details.")
             else:
                 retryCount = retryCount + 1
                 time.sleep(10)
@@ -772,18 +930,19 @@ class UAIGConnectionManager:
         if response is None:
             raise Exception("Timeout Error! The tasks was not completed in 10 minutes")
 
-        ## 20240808 - look for the additional attributes
-        additionalAttributes = task_response[API.DATA].get("additionalAttributes",None)
+        #  20240808 - look for the additional attributes
+        additionalAttributes = task_response[API.DATA].get("additionalAttributes", None)
         logger.writeDebug("additionalAttributes = {}", additionalAttributes)
         if additionalAttributes and len(additionalAttributes):
             items = [
-                element.get("id") for element in additionalAttributes
-                if element.get("type") == 'resource'
+                element.get("id")
+                for element in additionalAttributes
+                if element.get("type") == "resource"
             ]
             if len(items):
-                response = items[0]          
+                response = items[0]
 
-        return response        
+        return response
 
     # 20240904 subtask
     def _get_description(self, descriptions):
@@ -791,17 +950,17 @@ class UAIGConnectionManager:
         # get the subtask id
         # fetch it, then return the top most
         # if anything goes wrong, the top of the input descriptions is returned
-        
+
         subtask = None
-        
-        ## caller ensures descriptions is proper
+
+        #  caller ensures descriptions is proper
         description0 = descriptions[0]
         for desc in descriptions:
-            if "Initiated subtask" in desc :
+            if "Initiated subtask" in desc:
                 ss = desc[:-1]
                 ss = ss.split(" ")
                 if len(ss) < 3:
-                    ## unexpected error
+                    #  unexpected error
                     break
                 subtask = ss[2]
 
@@ -811,35 +970,33 @@ class UAIGConnectionManager:
 
         task_response = self.get_task(subtask)
         logger.writeDebug("subtask_response = {}", task_response)
-        
+
         # just return the top of the descriptions
         task_events = task_response[API.DATA].get("events")
         if len(task_events):
-            descriptions = [
-                element.get("description") for element in task_events
-            ]
+            descriptions = [element.get("description") for element in task_events]
             # make sure this is what we want here
             # self.raiseMappedExceptions(descriptions)
-            description0 = "Task event details: "+", ".join(descriptions)
-            
+            description0 = "Task event details: " + ", ".join(descriptions)
+
         logger.writeDebug("description0 = {}", description0)
         return description0
 
     # 20240912 get hur pvol and mirror id
     def _get_hur_pvol(self, descriptions):
-        
+
         subtask = None
         pvol = None
         svol = None
-        
-        ## caller ensures descriptions is proper
-        description0 = descriptions[0]
+
+        #  caller ensures descriptions is proper
+        descriptions[0]
         for desc in descriptions:
-            if "Initiated subtask" in desc :
-                ss = desc.replace("."," ")
+            if "Initiated subtask" in desc:
+                ss = desc.replace(".", " ")
                 ss = ss.split(" ")
                 if len(ss) < 3:
-                    ## unexpected error
+                    #  unexpected error
                     break
                 subtask = ss[2]
 
@@ -849,30 +1006,27 @@ class UAIGConnectionManager:
 
         task_response = self.get_task(subtask)
         logger.writeDebug("subtask_response = {}", task_response)
-        
+
         # let's find the pvol and mirror id
         # Successfully created HUR Pair with primary volume 1956, secondary volume 213
         task_events = task_response[API.DATA].get("events")
         if len(task_events):
-            descriptions = [
-                element.get("description") for element in task_events
-            ]
+            descriptions = [element.get("description") for element in task_events]
             for desc in descriptions:
-                if "Successfully created HUR Pair with primary volume" in desc :
-                    ss = desc.replace(",","")
+                if "Successfully created HUR Pair with primary volume" in desc:
+                    ss = desc.replace(",", "")
                     ss = ss.split(" ")
                     if len(ss) < 11:
-                        ## unexpected error
+                        #  unexpected error
                         break
                     pvol = ss[7]
                     svol = ss[10]
                     break
-            
+
         logger.writeDebug("pvol = {}", pvol)
         logger.writeDebug("svol = {}", svol)
         return pvol, svol
 
-    @log_entry_exit
     def _process_task_subtask(self, task_id, resource_id):
         response = None
         retryCount = 0
@@ -899,8 +1053,8 @@ class UAIGConnectionManager:
                     description0 = self._get_description(descriptions)
                     raise Exception(f"{task_name} {task_status}, {description0}")
                 else:
-                    ## failed with no task event
-                    raise Exception(f"Task failed and no event details.")
+                    #  failed with no task event
+                    raise Exception("Task failed and no event details.")
             else:
                 retryCount = retryCount + 1
                 time.sleep(10)
@@ -908,46 +1062,41 @@ class UAIGConnectionManager:
         if response is None:
             raise Exception("Timeout Error! The tasks was not completed in 10 minutes")
 
-        ## 20240808 - look for the additional attributes
-        additionalAttributes = task_response[API.DATA].get("additionalAttributes",None)
+        #  20240808 - look for the additional attributes
+        additionalAttributes = task_response[API.DATA].get("additionalAttributes", None)
         logger.writeDebug("additionalAttributes = {}", additionalAttributes)
         if additionalAttributes and len(additionalAttributes):
             items = [
-                element.get("id") for element in additionalAttributes
-                if element.get("type") == 'resource'
+                element.get("id")
+                for element in additionalAttributes
+                if element.get("type") == "resource"
             ]
             if len(items):
-                response = items[0]          
+                response = items[0]
 
-        return response        
+        return response
 
-    @log_entry_exit
     def raiseMappedExceptions(self, descriptions):
-        
+
         if not descriptions:
             return
-        
-        #######################################################################
-        
+
         # 202407 raiseMappedExceptions
-        
-        ## we can keep adding new known messages to search in the task event descriptions
-        ## and return a desired (mapped) message for ansible users
-        
+
+        #  we can keep adding new known messages to search in the task event descriptions
+        #  and return a desired (mapped) message for ansible users
+
         msg1 = "No consistent volume ID available in the hostgroups: ."
         msg2 = "Unable to present volume to host group"
-        
+
         # if msg1 is found in the task descriptions then
-        # raise msg2 exception        
+        # raise msg2 exception
         for description in descriptions:
             if description == msg1:
                 raise Exception(msg2)
-            
-        #######################################################################
-            
-    @log_entry_exit
+
     def post(self, endpoint, data, headers_input=None):
-        
+
         post_response = self._make_request(
             method="POST", end_point=endpoint, data=data, headers_input=headers_input
         )
@@ -962,7 +1111,7 @@ class UAIGConnectionManager:
         return self._process_task(task_id, resource_id)
 
     # 20240904 subtask
-    @log_entry_exit
+
     def post_subtask_ext(self, endpoint, data, headers_input=None):
 
         post_response = self._make_request(
@@ -978,9 +1127,9 @@ class UAIGConnectionManager:
 
         return self._process_task_subtask(task_id, resource_id)
 
-    ## this version of post would have extra processing in the task,
-    ## it would look for the GRID from the additional attributes      
-    @log_entry_exit
+    #  this version of post would have extra processing in the task,
+    #  it would look for the GRID from the additional attributes
+
     def post_ext(self, endpoint, data, headers_input=None):
 
         post_response = self._make_request(
@@ -1011,7 +1160,6 @@ class UAIGConnectionManager:
 
         return self._process_task_ext_v3(task_id, resource_id)
 
-    @log_entry_exit
     def patch(self, endpoint, data=None, headers_input=None):
 
         post_response = self._make_request(
@@ -1025,10 +1173,25 @@ class UAIGConnectionManager:
         else:
             task_id = post_response.get(API.TASK_ID)
             resource_id = post_response.get(API.RESOURCE_ID)
-        
+
         return self._process_task(task_id, resource_id)
 
-    @log_entry_exit
+    def put(self, endpoint, data=None, headers_input=None):
+
+        post_response = self._make_request(
+            method="PUT", end_point=endpoint, data=data, headers_input=headers_input
+        )
+        if post_response.get(API.DATA) is not None:
+            task_id = post_response[API.DATA].get(API.TASK_ID)
+            resource_id = post_response[API.DATA].get(
+                API.RESOURCE_ID
+            )  # there's no resource_id from porcelain's task info
+        else:
+            task_id = post_response.get(API.TASK_ID)
+            resource_id = post_response.get(API.RESOURCE_ID)
+
+        return self._process_task(task_id, resource_id)
+
     def delete(self, endpoint, data=None, headers_input=None):
 
         post_response = self._make_request(
@@ -1045,10 +1208,6 @@ class UAIGConnectionManager:
 
         return self._process_task(task_id, resource_id)
 
-
-    @log_entry_exit
     def get_task(self, task_id):
         end_point = "v2/tasks/{}".format(task_id)
         return self._make_request("GET", end_point)
-
-

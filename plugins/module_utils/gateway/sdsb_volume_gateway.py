@@ -2,14 +2,14 @@ try:
     from ..common.sdsb_constants import SDSBlockEndpoints
     from ..common.ansible_common import dicts_to_dataclass_list
     from .gateway_manager import SDSBConnectionManager
-    from ..model.sdsb_volume_models import *
+    from ..model.sdsb_volume_models import SDSBVolumesInfo, SDSBVolumeInfo
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
 except ImportError:
     from common.sdsb_constants import SDSBlockEndpoints
     from common.ansible_common import dicts_to_dataclass_list
     from .gateway_manager import SDSBConnectionManager
-    from model.sdsb_volume_models import *
+    from model.sdsb_volume_models import SDSBVolumesInfo, SDSBVolumeInfo
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
 
@@ -36,7 +36,7 @@ class SDSBVolumeDirectGateway:
         num_of_digits,
         savings,
         qos_param,
-        vps_id
+        vps_id,
     ):
 
         end_point = SDSBlockEndpoints.POST_VOLUMES
@@ -117,7 +117,7 @@ class SDSBVolumeDirectGateway:
         if vps_id is not None:
             payload = {}
             payload["vpsId"] = vps_id
-            
+
         volume_data = self.connection_manager.delete(end_point, payload)
         return volume_data
 
@@ -136,7 +136,7 @@ class SDSBVolumeDirectGateway:
             payload["qosParam"] = self._make_qos_param_req(qos_param)
         if vps_id is not None:
             payload["vpsId"] = vps_id
-            
+
         self.connection_manager.patch(end_point, payload)
 
     @log_entry_exit

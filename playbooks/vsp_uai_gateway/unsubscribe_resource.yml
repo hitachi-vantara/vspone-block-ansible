@@ -1,45 +1,58 @@
+---
 ####################################################################
 # Example :  Unsubscribe Resource Playbook
 ####################################################################
 - name: Unsubscribe Resources
   hosts: localhost
-  collections:
-    - hitachivantara.vspone_block.vsp
   gather_facts: false
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_uai_gateway_variables.yml
-  
+
   tasks:
-####################################################################
-# Task 0 : Get UAI gateway token
-####################################################################
+    ####################################################################
+    # Task 0 : Get UAI gateway token
+    ####################################################################
     - name: Get UAI gateway token
-      hv_uaig_token_fact:
+      hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
-      ignore_errors: False
+      ignore_errors: false
 
-####################################################################
-# Task 1 : Unsubscribe resources for the specific subscriber
-####################################################################
+    ####################################################################
+    # Task 1 : Unsubscribe resources for the specific subscriber
+    ####################################################################
     - name: Unsubscribe resources for the specific subscriber
-      hv_gateway_unsubscribe_resource:
+      hitachivantara.vspone_block.vsp.hv_gateway_unsubscribe_resource:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: 12345
+          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          resources: "{{ unsubscribe_resource_resources_1 }}"
+          resources:
+            - type: hostgroup
+              values:
+                - CL3-C, test-001
+                - CLA-1, test-005
+            - type: volume
+              values: [5015, 5016]
+            - type: port
+              values: [CL5-A, CL1-A]
+            - type: iscsitarget
+              values:
+                - CL4-C, iscsi-AnsibleAuto349605
+                - CL4-C, Ansible-CreateISCSI-62117
+            - type: storagepool
+              values: [1HDP8]
 
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

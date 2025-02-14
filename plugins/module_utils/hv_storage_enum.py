@@ -1,9 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# Copyright: (c) 2020, Hewlett Packard Enterprise Development LP.
-
-__metaclass__ = type
-
 from re import match
 
 try:
@@ -161,7 +155,7 @@ try:
         VSP_5X00 = 7
         VSP_5X00H = 8
         VSP_EX00 = 9
-        UKNOWN = 10
+        UNKNOWN = 10
 
         @classmethod
         def fromString(cls, value):
@@ -332,9 +326,8 @@ try:
         def getName(cls, num):
             return cls.values[num]
 
-except ImportError as error:
+except ImportError:
 
     # Output expected ImportErrors.
-    # print("enum module not found")
 
     pass

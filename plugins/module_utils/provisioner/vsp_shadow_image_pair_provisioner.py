@@ -3,9 +3,12 @@ import time
 try:
     from ..common.ansible_common import log_entry_exit
     from ..gateway.gateway_factory import GatewayFactory
-    from ..gateway.vsp_shadow_image_pair_gateway import VSPShadowImagePairUAIGateway
     from ..common.hv_constants import GatewayClassTypes, ConnectionTypes
-    from ..model.vsp_shadow_image_pair_models import *
+    from ..common.hv_log import Log
+    from ..model.vsp_shadow_image_pair_models import (
+        VSPShadowImagePairsInfo,
+        VSPShadowImagePairInfo,
+    )
     from ..common.ansible_common import dicts_to_dataclass_list
     from ..common.vsp_constants import VolumePayloadConst, PairStatus
     from .vsp_volume_prov import VSPVolumeProvisioner
@@ -13,14 +16,19 @@ try:
 
 except ImportError:
     from common.ansible_common import log_entry_exit
-    from gateway.vsp_shadow_image_pair_gateway import VSPShadowImagePairUAIGateway
     from common.hv_constants import GatewayClassTypes, ConnectionTypes
+    from common.hv_log import Log
     from gateway.gateway_factory import GatewayFactory
-    from model.vsp_shadow_image_pair_models import *
+    from model.vsp_shadow_image_pair_models import (
+        VSPShadowImagePairsInfo,
+        VSPShadowImagePairInfo,
+    )
     from common.ansible_common import dicts_to_dataclass_list
     from .vsp_volume_prov import VSPVolumeProvisioner
     from common.vsp_constants import VolumePayloadConst, PairStatus
     from message.vsp_shadow_image_pair_msgs import VSPShadowImagePairValidateMsg
+
+logger = Log()
 
 
 class VSPShadowImagePairProvisioner:
@@ -30,8 +38,11 @@ class VSPShadowImagePairProvisioner:
             connection_info, GatewayClassTypes.VSP_SHADOW_IMAGE_PAIR
         )
         self.connection_info = connection_info
+        self.config_gw = GatewayFactory.get_gateway(
+            connection_info, GatewayClassTypes.VSP_CONFIG_MAP
+        )
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            ## 20240820 for direct only
+            #  20240820 for direct only
             self.vol_provisioner = VSPVolumeProvisioner(connection_info)
 
     @log_entry_exit
@@ -42,19 +53,23 @@ class VSPShadowImagePairProvisioner:
             )
         else:
             shadow_image_pairs = self.gateway.get_all_shadow_image_pairs(serial)
+            shadow_image_pairs = shadow_image_pairs.data_to_list()
 
-        return shadow_image_pairs.data_to_list()
+        return shadow_image_pairs
 
     @log_entry_exit
     def create_shadow_image_pair(self, serial, createShadowImagePairSpec):
 
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            ## 20240820 for direct only
+            #  20240820 for direct only
             pvol = self.vol_provisioner.get_volume_by_ldev(
                 createShadowImagePairSpec.pvol
             )
             if pvol.emulationType == VolumePayloadConst.NOT_DEFINED:
-                raise ValueError(VSPShadowImagePairValidateMsg.PVOL_NOT_FOUND.value)
+                err_msg = VSPShadowImagePairValidateMsg.PVOL_NOT_FOUND.value
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
+
             createShadowImagePairSpec.is_data_reduction_force_copy = (
                 True
                 if pvol.dataReductionMode
@@ -88,48 +103,57 @@ class VSPShadowImagePairProvisioner:
         shadow_image_list = []
         shadow_image_pair = None
         for sip in shadow_image_pairs.data_to_list():
-            print("pvol = " + str(pvol))
             if sip.get("primaryVolumeId") == pvol:
                 shadow_image_list.append(sip)
             if svol is not None:
                 if sip.get("secondaryVolumeId") == svol:
                     shadow_image_pair = sip
                     return shadow_image_pair
-                
+
         if svol is not None:
             return None
-        
-        return VSPShadowImagePairsInfo(
+
+        data = VSPShadowImagePairsInfo(
             dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo)
         )
+        return data.data_to_list()
+
+    @log_entry_exit
+    def is_out_of_band(self):
+        return self.config_gw.is_out_of_band()
 
     @log_entry_exit
     def split_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-        _ = self.gateway.split_shadow_image_pair(serial, updateShadowImagePairSpec)
+        unused = self.gateway.split_shadow_image_pair(serial, updateShadowImagePairSpec)
         return self.get_si_pair_with_latest_data(
             serial, updateShadowImagePairSpec.pair_id, PairStatus.PSUS
         )
 
     @log_entry_exit
     def resync_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-        _ = self.gateway.resync_shadow_image_pair(serial, updateShadowImagePairSpec)
+        unused = self.gateway.resync_shadow_image_pair(
+            serial, updateShadowImagePairSpec
+        )
         return self.get_si_pair_with_latest_data(
             serial, updateShadowImagePairSpec.pair_id, PairStatus.PAIR
         )
 
     @log_entry_exit
     def restore_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-        _ = self.gateway.restore_shadow_image_pair(serial, updateShadowImagePairSpec)
+        unused = self.gateway.restore_shadow_image_pair(
+            serial, updateShadowImagePairSpec
+        )
 
         return self.get_si_pair_with_latest_data(
             serial, updateShadowImagePairSpec.pair_id, PairStatus.PAIR
         )
+
     @log_entry_exit
     def get_si_pair_with_latest_data(self, serial, pair_id, type):
         pair = None
         count = 0
 
-        while  count < 10:
+        while count < 10:
             pair = self.gateway.get_shadow_image_pair_by_id(serial, pair_id)
 
             if (
@@ -144,5 +168,7 @@ class VSPShadowImagePairProvisioner:
 
     @log_entry_exit
     def delete_shadow_image_pair(self, serial, deleteShadowImagePairSpec):
-        _ = self.gateway.delete_shadow_image_pair(serial, deleteShadowImagePairSpec)
+        unused = self.gateway.delete_shadow_image_pair(
+            serial, deleteShadowImagePairSpec
+        )
         return "Shadow image pair is deleted."

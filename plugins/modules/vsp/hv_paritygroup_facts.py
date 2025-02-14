@@ -3,6 +3,7 @@
 # Copyright: (c) 2021, [ Hitachi Vantara ]
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
@@ -12,23 +13,27 @@ DOCUMENTATION = """
 module: hv_paritygroup_facts
 short_description: retrieves information about parity groups from Hitachi VSP storage systems.
 description:
-     - This module gathers facts about parity groups from Hitachi VSP storage systems.
+  - This module gathers facts about parity groups from Hitachi VSP storage systems.
+  - This module is supported for both direct and gateway connection types.
+  - For direct connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/paritygroup_facts.yml)
+  - For gateway connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/paritygroup_facts.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   storage_system_info:
     description:
       - Information about the storage system.
     type: dict
-    required: true
+    required: false
     suboptions:
       serial:
         description:
           - The serial number of the storage system.
         type: str
-        required: true
+        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
@@ -53,7 +58,7 @@ options:
         choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
+        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
@@ -64,7 +69,7 @@ options:
     description:
       - Specification for the parity group facts to be gathered.
     type: dict
-    required: true
+    required: false
     suboptions:
       parity_group_id:
         description:
@@ -93,12 +98,12 @@ EXAMPLES = """
           username: "admin"
           password: "secret"
           connection_type: "direct"
-
 """
 
 RETURN = """
 paritygroup:
-  description: The parity group information.
+  description:
+    - The parity group information.
   returned: always
   type: list
   elements: dict
@@ -120,7 +125,6 @@ paritygroup:
       total_capacity: "5.16TB"
 """
 
-import json
 
 try:
     from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_messages import (
@@ -128,9 +132,11 @@ try:
     )
 
     HAS_MESSAGE_ID = True
-except ImportError as error:
+except ImportError:
     HAS_MESSAGE_ID = False
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
     HiException,
 )
@@ -150,26 +156,33 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     camel_array_to_snake_case,
     camel_dict_to_snake_case,
 )
-
-logger = Log()
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
+    ModuleMessage,
+)
 
 
 class VspParityGroupFactManager:
     def __init__(self):
         # VSPStoragePoolArguments
+        self.logger = Log()
         self.argument_spec = VSPParityGroupArguments().parity_group_fact()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
-            # can be added mandotary , optional mandatory arguments
         )
         try:
             self.params_manager = VSPParametersManager(self.module.params)
             self.spec = self.params_manager.get_parity_group_fact_spec()
         except Exception as e:
+            self.logger.writeException(e)
             self.module.fail_json(msg=str(e))
 
     def apply(self):
+        self.logger.writeInfo("=== Start of Parity Group Facts ===")
+        registration_message = validate_ansible_product_registration()
         try:
             if (
                 self.params_manager.connection_info.connection_type.lower()
@@ -188,7 +201,13 @@ class VspParityGroupFactManager:
                     snake_case_parity_group_data = camel_dict_to_snake_case(
                         parity_group_data_extracted
                     )
-                    self.module.exit_json(paritygroup=snake_case_parity_group_data)
+                    data = {"parity_group": snake_case_parity_group_data}
+                    if registration_message:
+                        data["user_consent_required"] = registration_message
+
+                    self.logger.writeInfo(f"{data}")
+                    self.logger.writeInfo("=== End of Parity Group Facts ===")
+                    self.module.exit_json(**data)
                 else:
                     all_parity_groups = self.direct_all_parity_groups_read()
                     parity_groups_list = all_parity_groups.data_to_list()
@@ -198,15 +217,24 @@ class VspParityGroupFactManager:
                     snake_case_parity_groups_data = camel_array_to_snake_case(
                         parity_groups_data_extracted
                     )
-                    self.module.exit_json(paritygroup=snake_case_parity_groups_data)
+                    data = {"parity_groups": snake_case_parity_groups_data}
+                    if registration_message:
+                        data["user_consent_required"] = registration_message
+
+                    self.logger.writeInfo(f"{data}")
+                    self.logger.writeInfo("=== End of Parity Group Facts ===")
+                    self.module.exit_json(**data)
 
         except HiException as ex:
             if HAS_MESSAGE_ID:
-                logger.writeAMException(MessageID.ERR_GetParityGroups)
+                self.logger.writeAMException(MessageID.ERR_GetParityGroups)
             else:
-                logger.writeAMException("0x0000")
+                self.logger.writeAMException("0x0000")
+            self.logger.writeInfo("=== End of Parity Group Facts ===")
             self.module.fail_json(msg=ex.format())
         except Exception as ex:
+            self.logger.writeException(ex)
+            self.logger.writeInfo("=== End of Parity Group Facts ===")
             self.module.fail_json(msg=str(ex))
 
     def direct_all_parity_groups_read(self):
@@ -214,7 +242,7 @@ class VspParityGroupFactManager:
             self.params_manager.connection_info
         ).get_all_parity_groups()
         if result is None:
-            self.module.fail_json("Couldn't read parity groups.")
+            raise ValueError(ModuleMessage.PARITY_GROUP_NOT_FOUND.value)
         return result
 
     def direct_parity_group_read(self, pg_id):
@@ -222,7 +250,7 @@ class VspParityGroupFactManager:
             self.params_manager.connection_info
         ).get_parity_group(pg_id)
         if result is None:
-            self.module.fail_json("Couldn't read parity group.")
+            raise ValueError(ModuleMessage.PARITY_GROUP_NOT_FOUND.value)
         return result
 
     def gateway_parity_group_read(self):

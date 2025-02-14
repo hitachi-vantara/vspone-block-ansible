@@ -1,25 +1,14 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# Copyright: (c) 2020, Hewlett Packard Enterprise Development LP.
-
-__metaclass__ = type
-
-import json
 import time
-
 
 try:
     from .common.hv_log import Log
-    from .common.hv_exceptions import HiException
     from .common.hv_http_client import HTTPClient as requests
     from .common.hv_constants import CommonConstants
-    from .common.uaig_utils import UAIGResourceID
 except ImportError:
     from common.hv_log import Log
-    from common.hv_exceptions import HiException
     from common.hv_http_client import HTTPClient as requests
     from common.hv_constants import CommonConstants
-    from common.uaig_utils import UAIGResourceID
+
 
 class UcpManager:
 
@@ -67,7 +56,7 @@ class UcpManager:
         #     raise Exception(self.sessionId, "Management System is not configured.")
 
     def getAuthTokenOnly(self):
-        #funcName = "hv_ucpmanager:getAuthTokenOnly"
+        # funcName = "hv_ucpmanager:getAuthTokenOnly"
         # self.logger.writeEnterSDK(funcName)
 
         if self.api_token is not None:
@@ -194,16 +183,16 @@ class UcpManager:
             self.logger.writeInfo("132 create ucp response={}", response)
             if response.ok:
                 resposeJson = response.json()
-                data = resposeJson["data"]
+                resposeJson["data"]
                 self.logger.writeInfo("resposeJson={}", resposeJson)
                 taskId = resposeJson["data"].get("taskId")
                 self.logger.writeInfo("taskId={}", taskId)
                 self.checkTaskStatus(taskId)
                 time.sleep(3)
                 self.logger.writeExitSDK(funcName)
-            elif "HIJSONFAULT" in response.headers:
-                self.logger.writeInfo("HIJSONFAULT response={}", response)
-                Utils.raiseException(self.sessionId, response)
+            # elif "HIJSONFAULT" in response.headers:
+            #     self.logger.writeInfo("HIJSONFAULT response={}", response)
+            #     Utils.raiseException(self.sessionId, response)
             else:
                 self.logger.writeInfo("Response Exception response={}", response)
                 str = "{0}".format(response)
@@ -215,14 +204,14 @@ class UcpManager:
 
         return name, serial_number
 
-    ## helper func
+    #  helper func
     def getUcpSystemByGateway(self, gatewayIp):
         funcName = "UcpManager:getUcpSystemByGateway"
         self.logger.writeEnterSDK(funcName)
 
         gatewayLast5 = gatewayIp.replace(".", "")[-5:]
         ucp_name = "ucp-{0}".format(gatewayLast5)
-        ucp_serial = "Logical-UCP-{0}".format(gatewayLast5)
+        "Logical-UCP-{0}".format(gatewayLast5)
 
         systems = self.getAllUcpSystem()
         system = next((x for x in systems if x.get("name") == ucp_name), None)
@@ -256,7 +245,7 @@ class UcpManager:
         self.logger.writeExitSDK(funcName)
         return resourceId
 
-    ## serial and be ucp.name or ucp.serial
+    #  serial and be ucp.name or ucp.serial
     def getUcpSystem(self, serial):
         funcName = "UcpManager:getUcpSystem"
         self.logger.writeEnterSDK(funcName)
@@ -302,9 +291,9 @@ class UcpManager:
             systems = authResponse.get("data")
             self.logger.writeExitSDK(funcName)
             return systems
-        elif "HIJSONFAULT" in response.headers:
-            self.logger.writeInfo("raiseException={}", response)
-            Utils.raiseException(self.sessionId, response)
+        # elif "HIJSONFAULT" in response.headers:
+        #     self.logger.writeInfo("raiseException={}", response)
+        #     Utils.raiseException(self.sessionId, response)
         else:
             self.logger.writeInfo("throwException={}", response)
             self.throwException(response)
@@ -355,23 +344,23 @@ class UcpManager:
         description = None
         if response.ok:
             self.logger.writeDebug("TaskResponse={}", response.json())
-            status = response.json()["data"].get("status")
+            response.json()["data"].get("status")
             name = response.json()["data"].get("name")
             events = response.json()["data"].get("events")
             if len(events):
                 descriptions = [element.get("description") for element in events]
-                
+
                 self.logger.writeDebug("-".join(descriptions))
                 description = events[-1].get("description")
                 self.logger.writeDebug(description)
                 self.logger.writeExitSDK(funcName)
-                
+
                 description0 = "No descriptions"
-                
+
                 if len(descriptions):
                     description0 = self._get_description(descriptions)
-                
-                ## return only the first message
+
+                #  return only the first message
                 return description0
             else:
                 self.logger.writeExitSDK(funcName)
@@ -387,21 +376,21 @@ class UcpManager:
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
         description = None
-        
+
         if response.ok:
             self.logger.writeDebug("taskResponse={}", response.json())
-            status = response.json()["data"].get("status")
+            response.json()["data"].get("status")
             name = response.json()["data"].get("name")
             events = response.json()["data"].get("events")
             if len(events):
                 descriptions = [element.get("description") for element in events]
-                
+
                 self.logger.writeDebug("-".join(descriptions))
                 description = events[-1].get("description")
                 self.logger.writeDebug(description)
                 self.logger.writeExitSDK(funcName)
-                
-                ## return only the first message and see
+
+                #  return only the first message and see
                 return descriptions[0]
             else:
                 self.logger.writeExitSDK(funcName)
@@ -414,25 +403,25 @@ class UcpManager:
         url = self.getUrl(urlPath)
         return requests.get(
             url, headers=headers, verify=self.shouldVerifySslCertification
-        )  
-                
+        )
+
     # 20240904 _get_description
     def _get_description(self, descriptions):
         # find the first subtask in the descriptions
         # get the subtask id
         # fetch it, then return the top most
         # if anything goes wrong, the top of the input descriptions is returned
-        
+
         subtask = None
-        
-        ## caller ensures descriptions is proper
+
+        #  caller ensures descriptions is proper
         description0 = descriptions[0]
         for desc in descriptions:
-            if "Initiated subtask" in desc :
-                ss = desc.replace("."," ")
+            if "Initiated subtask" in desc:
+                ss = desc.replace(".", " ")
                 ss = ss.split(" ")
                 if len(ss) < 3:
-                    ## unexpected error
+                    #  unexpected error
                     break
                 subtask = ss[2]
 
@@ -442,17 +431,15 @@ class UcpManager:
         self.logger.writeDebug("subtask = {}", subtask)
         task_response = self.get_task(subtask)
         self.logger.writeDebug("subtask_response = {}", task_response)
-        
+
         if task_response.ok:
             # just return the top of the descriptions
             task_events = task_response.json()["data"].get("events")
             if len(task_events):
-                descriptions = [
-                    element.get("description") for element in task_events
-                ]
+                descriptions = [element.get("description") for element in task_events]
                 self.logger.writeDebug("subtask descriptions = {}", descriptions)
-                description0 = "Task event details: "+", ".join(descriptions)
-            
+                description0 = "Task event details: " + ", ".join(descriptions)
+
         self.logger.writeDebug("description0 = {}", description0)
         return description0
 
@@ -468,7 +455,7 @@ class UcpManager:
         description = None
         if response.ok:
             self.logger.writeDebug("getFailedTaskResponse={}", response.json())
-            status = response.json()["data"].get("status")
+            response.json()["data"].get("status")
             name = response.json()["data"].get("name")
             events = response.json()["data"].get("events")
             if len(events):
@@ -510,7 +497,6 @@ class UcpManager:
 
         self.logger.writeExitSDK(funcName)
         return status
-
 
     # 20240904 checkTaskSubtaskStatus, extends checkTaskStatus
     def checkTaskSubtaskStatus(self, taskId):
@@ -560,15 +546,15 @@ class UcpManager:
 
         if response.ok:
             resposeJson = response.json()
-            data = resposeJson["data"]
+            resposeJson["data"]
             self.logger.writeInfo("resposeJson={}", resposeJson)
             taskId = resposeJson["data"].get("taskId")
             self.logger.writeInfo("taskId={}", taskId)
             self.checkTaskStatus(taskId)
             self.logger.writeExitSDK(funcName)
-        elif "HIJSONFAULT" in response.headers:
-            self.logger.writeInfo("HIJSONFAULT response={}", response)
-            Utils.raiseException(self.sessionId, response)
+        # elif "HIJSONFAULT" in response.headers:
+        #     self.logger.writeInfo("HIJSONFAULT response={}", response)
+        #     Utils.raiseException(self.sessionId, response)
         else:
             self.logger.writeInfo("Unknown Exception response={}", response)
             raise Exception(
@@ -607,16 +593,16 @@ class UcpManager:
 
         if response.ok:
             resposeJson = response.json()
-            data = resposeJson["data"]
+            resposeJson["data"]
             self.logger.writeInfo("resposeJson={}", resposeJson)
             taskId = resposeJson["data"].get("taskId")
             self.logger.writeInfo("taskId={}", taskId)
             self.checkTaskStatus(taskId)
             time.sleep(2)
             self.logger.writeExitSDK(funcName)
-        elif "HIJSONFAULT" in response.headers:
-            self.logger.writeInfo("HIJSONFAULT response={}", response)
-            Utils.raiseException(self.sessionId, response)
+        # elif "HIJSONFAULT" in response.headers:
+        #     self.logger.writeInfo("HIJSONFAULT response={}", response)
+        #     Utils.raiseException(self.sessionId, response)
         else:
             self.logger.writeInfo("Unknown Exception response={}", response)
             raise Exception(
@@ -675,7 +661,7 @@ class UcpManager:
         self.logger.writeEnterSDK(funcName)
         self.logger.writeExitSDK(funcName)
         return ucp["storageDevices"]
-    
+
     def getStorageDevicesWithRefresh(self, ucp):
         funcName = "UcpManager:getStorageDevicesWithRefresh"
         self.logger.writeEnterSDK(funcName)
@@ -703,9 +689,6 @@ class UcpManager:
             self.logger.writeInfo("throwException={}", response)
             self.throwException(response)
 
-    #################################################################
-    #################################################################
-
     def getAllLuns(self):
 
         funcName = "UcpManager:getAllLuns"
@@ -730,13 +713,13 @@ class UcpManager:
         headers["PartnerId"] = self.partnerId
         if self.subscriberId:
             headers["subscriberId"] = self.subscriberId
-        self.logger.writeDebug("497 headers={}", headers)
+        # self.logger.writeDebug("497 headers={}", headers)
 
         response = requests.get(
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
 
-        ## too much to dump
+        #  too much to dump
         # self.logger.writeDebug('response.json()={}', response.json())
         self.logger.writeExitSDK(funcName)
         if response.ok:
@@ -752,7 +735,7 @@ class UcpManager:
         funcName = "UcpManager:getStorageSystemResourceIdInISP"
         self.logger.writeEnterSDK(funcName)
         headers = self.getAuthToken()
-        self.logger.writeParam("headers={}", headers)
+        # self.logger.writeParam("headers={}", headers)
 
         urlPath = "v2/storage/devices"
         url = self.getUrl(urlPath)
@@ -765,13 +748,16 @@ class UcpManager:
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x["serialNumber"]))
-            self.logger.writeInfo(self.serial)
-            self.logger.writeInfo(int(x["serialNumber"]) == self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]))
+            self.logger.writeDebug(self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]) == self.serial)
             if str(x["serialNumber"]) == str(self.serial):
                 system = x
                 break
         if system is None:
+            self.logger.writeError(
+                f"Invalid serial = {self.serial}, please check once and try again."
+            )
             raise Exception(
                 "Invalid serial = {0}, please check once and try again.".format(
                     self.serial
@@ -790,7 +776,7 @@ class UcpManager:
         headers = self.getAuthToken()
 
         self.logger.writeDebug("url={}", url)
-        self.logger.writeDebug("headers={}", headers)
+        # self.logger.writeDebug("headers={}", headers)
         response = requests.get(
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
@@ -827,7 +813,7 @@ class UcpManager:
         headers["PartnerId"] = "apiadmin"
         if self.subscriberId:
             headers["subscriberId"] = self.subscriberId
-        self.logger.writeDebug("537 headers={}", headers)
+        # self.logger.writeDebug("537 headers={}", headers)
 
         # urlPath = 'v3/storage/{0}/volumes/details?fromLdevId={1}&toLdevId={2}&refresh=false'.format(resourceId,str(0),str(int(ldevid)*2))
         # MT - the above does not always work with newly created luns, works with the fixed values and it is fast
@@ -844,7 +830,7 @@ class UcpManager:
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
 
-        ## too much to dump
+        #  too much to dump
         # self.logger.writeDebug('response.json()={}', response.json())
         self.logger.writeDebug("20230620 response.ok={}", response.ok)
         if response.ok:
@@ -884,7 +870,7 @@ class UcpManager:
             url, headers=headers, verify=self.shouldVerifySslCertification
         )
 
-        ## too much to dump
+        #  too much to dump
         # self.logger.writeDebug('response.json()={}', response.json())
         self.logger.writeDebug("20230620 response.ok={}", response.ok)
         if response.ok:
@@ -984,7 +970,7 @@ class UcpManager:
         body = {"capacity": size}
         self.logger.writeInfo("body={}", body)
         headers = self.getAuthToken()
-        self.logger.writeInfo("headers={}", headers)
+        # self.logger.writeInfo("headers={}", headers)
         response = requests.patch(
             url, json=body, headers=headers, verify=self.shouldVerifySslCertification
         )
@@ -1000,10 +986,8 @@ class UcpManager:
             self.logger.writeDebug("response={}", response)
             raise Exception(response)
 
-    #############################################################################
-
-    ## handles attach SS to UCP and
-    ## add SS to ISP then UCP, for this you need the SS login info
+    #  handles attach SS to UCP and
+    #  add SS to ISP then UCP, for this you need the SS login info
     def addStorageSystem(
         self,
         storage_serial,
@@ -1013,9 +997,9 @@ class UcpManager:
         username,
         password,
         useOutOfBandConnection,
-        ucpID, 
+        ucpID,
     ):
-        
+
         self.logger.writeDebug("system serial={}", ucpID)
 
         funcName = "UcpManager:addStorageSystem"
@@ -1035,9 +1019,9 @@ class UcpManager:
         self.logger.writeDebug("674 serial={}", ucpID)
         # self.logger.writeDebug('674 theUCP={}', theUCP)
         self.registerPartner()
-        
+
         if theUCP is None:
-            self.logger.writeDebug('we should never get here')
+            self.logger.writeDebug("we should never get here")
 
             # # need to add UCP if it is not already created
             # # sng,a2.4 - create default UCP
@@ -1053,7 +1037,7 @@ class UcpManager:
             # )
 
         if theUCP is None:
-            ## we don't have a UCP?
+            #  we don't have a UCP?
             raise Exception("The System is not ready.")
 
         ucp_model = theUCP["model"]
@@ -1195,7 +1179,7 @@ class UcpManager:
                 system = self.waitForUCPinSS(ucp_serial)
 
             self.logger.writeInfo("system={}", system)
-      
+
             return self.formatStorageSystem(system)
         else:
             self.logger.writeInfo("response err={}", response.json())
@@ -1265,9 +1249,9 @@ class UcpManager:
             time.sleep(5)
             self.logger.writeExitSDK(funcName)
             return response
-        elif "HIJSONFAULT" in response.headers:
-            self.logger.writeInfo("HIJSONFAULT response={}", response)
-            Utils.raiseException(self.sessionId, response)
+        # elif "HIJSONFAULT" in response.headers:
+        #     self.logger.writeInfo("HIJSONFAULT response={}", response)
+        #     Utils.raiseException(self.sessionId, response)
         else:
             self.logger.writeInfo("Unknown Exception response={}", response.json())
             self.throwException(response)
@@ -1301,9 +1285,11 @@ class UcpManager:
                 self.logger.writeExitSDK(funcName)
             else:
                 self.logger.writeDebug("failed response={}", response)
-        except:
+        except (ValueError, TypeError):
             self.logger.writeDebug("registerPartner already")
-            pass
+        except Exception as ex:
+            self.logger.writeDebug("type of exception={}", type(ex))
+            self.logger.writeDebug("registerPartner already")
 
     # a2.4 MT support registerSubscriber
     def registerSubscriber(self):
@@ -1338,9 +1324,8 @@ class UcpManager:
                 self.logger.writeExitSDK(funcName)
             else:
                 self.logger.writeDebug("failed response={}", response)
-        except:
+        except (ValueError, TypeError):
             self.logger.writeDebug("registerSubscriber already")
-            pass
 
     # def findStorageSystemMT(self, storage_serial):
     #     funcName = "UcpManager:findStorageSystemMT"
@@ -1368,7 +1353,7 @@ class UcpManager:
     #                 ucpSystems = storage.get("ucpSystems", None)
     #                 self.logger.writeDebug("1065 resourceId={}", resourceId)
     #                 self.logger.writeDebug("ucpSystems={}", ucpSystems)
-    #                 ## its ucp serial not ucp name here
+    #                 #  its ucp serial not ucp name here
     #                 for ucpSerial in ucpSystems:
     #                     if ucpSerial == CommonConstants.UCP_SERIAL:
     #                         return resourceId
@@ -1391,25 +1376,25 @@ class UcpManager:
         # removeStorageDevice
         self.logger.writeInfo("2.4 removeStorageDevice")
 
-        ## not able to use findStorageSystemMT,
-        ## since /v3/storage is not working properly,
-        ## at times it does not return all the onboarded ss,
-        ## so we will use v2 to get storage_resourceId
+        #  not able to use findStorageSystemMT,
+        #  since /v3/storage is not working properly,
+        #  at times it does not return all the onboarded ss,
+        #  so we will use v2 to get storage_resourceId
 
-        ## find the storage_serial in v3 get SS
+        #  find the storage_serial in v3 get SS
         # storage_resourceId = self.findStorageSystemMT(storage_serial)
 
-        ## if ss not in any ucp, this will return NONE
-        storage_resourceId, _ = self.getStorageSystemResourceId()
+        #  if ss not in any ucp, this will return NONE
+        storage_resourceId, unused = self.getStorageSystemResourceId()
         if storage_resourceId is None:
             self.logger.writeInfo(
                 "1102 Idempotent, {} is not in the system, assume it is already deleted.",
                 storage_serial,
             )
             return
-        
+
         mcpResourceId = self.getUcpSystemResourceIdByName(CommonConstants.UCP_NAME)
-        
+
         headers = self.getAuthToken()
         # self.logger.writeParam('headers={}', headers)
 
@@ -1420,12 +1405,12 @@ class UcpManager:
         # a2.4 20240504 MT removeStorageDevice
         # in 2.3, it supports ss in many ucp
         # in 2.4, only one, so we just delete v3 storage here
-        ## need ucp and storage resourceID to delete
+        #  need ucp and storage resourceID to delete
 
-        ## this is not working, we get
-        ## "message":"Storage not registered with partner"
-        ## we also see v3/storage is not working
-        ## we have use v2/to delete
+        #  this is not working, we get
+        #  "message":"Storage not registered with partner"
+        #  we also see v3/storage is not working
+        #  we have use v2/to delete
         urlPath = "v3/storage/{0}?isDelete=true&ucpSystemId={1}".format(
             storage_resourceId, mcpResourceId
         )
@@ -1470,18 +1455,18 @@ class UcpManager:
         isInUCP = True
         attached = True
         while isInUCP:
-            ## if ss not in any ucp, this will return NONE
+            #  if ss not in any ucp, this will return NONE
             system = self.getStorageSystem()
             if system is None:
                 attached = False
                 isInUCP = False
                 break
             ucps = system["ucpSystems"]
-            if not ucp_serial in ucps:
+            if ucp_serial not in ucps:
                 isInUCP = False
                 if len(ucps) == 0:
-                    ## this storage is no longer attached to any UCPs
-                    ## we can remove it from ISP also
+                    #  this storage is no longer attached to any UCPs
+                    #  we can remove it from ISP also
                     attached = False
             self.logger.writeInfo("Storage system is updating ...")
 
@@ -1537,7 +1522,6 @@ class UcpManager:
 
         return None
 
-
     # 2.4 MT removeStorageSystem
     # RKD : the function argument ucp_serial is not needed, it finds the ucp serial based on the storage serial number
     def removeStorageSystem(self, storage_serial, ucp_serial):
@@ -1548,7 +1532,9 @@ class UcpManager:
         self.logger.writeDebug("ucp_serial={}", ucp_serial)
         ucp_serial_list = self.getUcpSerialForTheStorageSerial(storage_serial)
         if ucp_serial_list is None:
-            raise Exception(f"Could not find UAI gateway for storage serial {storage_serial}.")
+            raise Exception(
+                f"Could not find UAI gateway for storage serial {storage_serial}."
+            )
         ucp_serial = ucp_serial_list[0]
         self.logger.writeDebug("RD ucp_serial={}", ucp_serial)
         self.serial = storage_serial
@@ -1567,18 +1553,18 @@ class UcpManager:
         isInUCP = True
         attached = True
         while isInUCP:
-            ## if ss not in any ucp, this will return NONE
+            #  if ss not in any ucp, this will return NONE
             system = self.getStorageSystem()
             if system is None:
                 attached = False
                 isInUCP = False
                 break
             ucps = system["ucpSystems"]
-            if not ucp_serial in ucps:
+            if ucp_serial not in ucps:
                 isInUCP = False
                 if len(ucps) == 0:
-                    ## this storage is no longer attached to any UCPs
-                    ## we can remove it from ISP also
+                    #  this storage is no longer attached to any UCPs
+                    #  we can remove it from ISP also
                     attached = False
             self.logger.writeInfo("Storage system is updating ...")
 
@@ -1597,18 +1583,16 @@ class UcpManager:
         headers = self.getAuthToken()
         # self.logger.writeParam('headers={}', headers)
 
-        ## we need to untag then v2 delete
+        #  we need to untag then v2 delete
         try:
             self.untag()
         except Exception as e:
-            ## ignore exception from untag for now
+            #  ignore exception from untag for now
             self.logger.writeDebug("1256 Exception={}", e)
 
         self.logger.writeEnterSDK(funcName)
 
-        ## skip delete from isp for now, takes too long
-        if False:
-            return
+        #  skip delete from isp for now, takes too long
 
         urlPath = "v2/storage/devices/{0}".format(resourceId)
         url = self.getUrl(urlPath)
@@ -1631,44 +1615,41 @@ class UcpManager:
             self.logger.writeInfo("Unknown Exception response={}", response.json())
             self.throwException(response)
 
-        ##############################################################################
-
         self.logger.writeEnterSDK(funcName)
 
-        if True:
-            return
+        return
 
-        ## we have untag it?
-        urlPath = "v3/storage/{0}?isDelete=true&ucpSystemId={1}".format(
-            storage_resourceId, mcpResourceId
-        )
-        url = self.getUrl(urlPath)
-        self.logger.writeParam("url={}", url)
+        # #  we have untag it?
+        # urlPath = "v3/storage/{0}?isDelete=true&ucpSystemId={1}".format(
+        #     storage_resourceId, mcpResourceId
+        # )
+        # url = self.getUrl(urlPath)
+        # self.logger.writeParam("url={}", url)
 
-        # raise Exception("WIP")
+        # # raise Exception("WIP")
 
-        response = requests.delete(
-            url, headers=headers, verify=self.shouldVerifySslCertification
-        )
-        if response.ok:
-            resJson = response.json()
-            self.logger.writeInfo("response={}", resJson)
-            resourceId = resJson["data"].get("resourceId")
-            self.logger.writeInfo("resourceId={}", resourceId)
-            taskId = response.json()["data"].get("taskId")
-            self.logger.writeInfo("taskId={}", taskId)
-            self.checkTaskStatus(taskId)
-            time.sleep(5)
-        else:
-            self.logger.writeInfo("Unknown Exception response={}", response.json())
-            self.throwException(response)
+        # response = requests.delete(
+        #     url, headers=headers, verify=self.shouldVerifySslCertification
+        # )
+        # if response.ok:
+        #     resJson = response.json()
+        #     self.logger.writeInfo("response={}", resJson)
+        #     resourceId = resJson["data"].get("resourceId")
+        #     self.logger.writeInfo("resourceId={}", resourceId)
+        #     taskId = response.json()["data"].get("taskId")
+        #     self.logger.writeInfo("taskId={}", taskId)
+        #     self.checkTaskStatus(taskId)
+        #     time.sleep(5)
+        # else:
+        #     self.logger.writeInfo("Unknown Exception response={}", response.json())
+        #     self.throwException(response)
 
     def removeStorageSystemFromUCP(self, ucp_serial):
         funcName = "UcpManager:removeStorageSystemFromUCP"
         self.logger.writeEnterSDK(funcName)
         systems = self.getAllStorageSystems()
 
-        self.logger.writeDebug('systems={}', systems)
+        self.logger.writeDebug("systems={}", systems)
 
         system = None
         for x in systems:
@@ -1702,7 +1683,8 @@ class UcpManager:
             self.management_address,
             self.management_username,
             self.management_password,
-            self.api_token)
+            self.api_token,
+        )
         theUCP = ucpManager.getUcpSystem(ucp_serial)
         if theUCP is None:
             raise Exception("The System is not found")
@@ -1710,7 +1692,9 @@ class UcpManager:
 
         # 2.4 MT removeStorageSystemFromUCP
         # urlPath = "v2/systems/{0}/device/{1}".format(resourceIdUCP, resourceId)
-        urlPath = "v3/storage/{0}?ucpSystemId={1}&isDelete=true".format(resourceId, resourceIdUCP)
+        urlPath = "v3/storage/{0}?ucpSystemId={1}&isDelete=true".format(
+            resourceId, resourceIdUCP
+        )
         url = self.getUrl(urlPath)
 
         self.logger.writeParam("url={}", url)
@@ -1747,22 +1731,22 @@ class UcpManager:
         # get storage in each UCP
         urlPath = "v2/storage/devices"
         url = self.getUrl(urlPath)
-        self.logger.writeInfo("url={}", url)
+        self.logger.writeDebug("url={}", url)
 
         ucp_systems = self.getAllUcpSystem()
-        self.logger.writeInfo(
+        self.logger.writeDebug(
             "getAllStorageSystems, loop thru each ucp and get list of storages"
         )
 
         storage_systems = []
         for ucp in ucp_systems:
             sn = str(ucp.get("serialNumber"))
-            self.logger.writeInfo(sn)
+            self.logger.writeDebug(sn)
             body = {"ucpSystem": sn}
-            self.logger.writeInfo("body={}", body)
+            self.logger.writeDebug("body={}", body)
             headers = self.getAuthToken()
 
-            self.logger.writeInfo("getAllStorageSystems for ucp_serial={}", sn)
+            self.logger.writeDebug("getAllStorageSystems for ucp_serial={}", sn)
             response = requests.get(
                 url,
                 headers=headers,
@@ -1774,8 +1758,8 @@ class UcpManager:
                 authResponse = response.json()
                 systems = authResponse.get("data")
                 storage_systems.extend(systems)
-            elif "HIJSONFAULT" in response.headers:
-                Utils.raiseException(self.sessionId, response)
+            # elif "HIJSONFAULT" in response.headers:
+            #     Utils.raiseException(self.sessionId, response)
             else:
                 self.throwException(response)
 
@@ -1794,15 +1778,15 @@ class UcpManager:
                 break
 
         hs = ""
-        self.logger.writeInfo("system={}", system)
+        self.logger.writeDebug("system={}", system)
         if system is not None:
             hs = system["healthStatus"]
 
-        self.logger.writeInfo("healthStatus={}", hs)
+        self.logger.writeDebug("healthStatus={}", hs)
         self.logger.writeExitSDK(funcName)
         return hs == "ONBOARDING"
 
-    def getStorageSystem(self):
+    def getStorageSystem(self, refresh=False):
         """
         docstring
         """
@@ -1814,13 +1798,27 @@ class UcpManager:
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x["serialNumber"]))
-            self.logger.writeInfo(self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]))
+            self.logger.writeDebug(self.serial)
             if str(x["serialNumber"]) == str(self.serial):
                 system = x
                 break
 
-        result = self.formatStorageSystem(system)
+        self.logger.writeDebug("zsystem={}", system)
+
+        systems_all = self.fetchStorageSystems(system, refresh)
+        self.logger.writeDebug("1344 system={}", systems_all)
+
+        if refresh is True:
+            result = self.formatStorageSystem(systems_all)
+        else:
+            for x in systems_all:
+                self.logger.writeDebug(int(x["serialNumber"]))
+                self.logger.writeDebug(self.serial)
+                if str(x["serialNumber"]) == str(self.serial):
+                    system = x
+                    break
+            result = self.formatStorageSystem(system)
 
         self.logger.writeExitSDK(funcName)
         return result
@@ -1849,12 +1847,21 @@ class UcpManager:
         return storageSystem
 
     # fetch the SS CRs
-    def fetchStorageSystems(self):
+    def fetchStorageSystems(self, system=None, refresh=False):
         funcName = "UcpManager:fetchStorageSystems"
         self.logger.writeEnterSDK(funcName)
 
         headers = self.getAuthToken()
         urlPath = "v2/storage/devices"
+        if system is not None:
+            resourceId = system.get("resourceId", None)
+            ucp = system.get("ucpSystems")[0]
+            urlPath = "v2/storage/devices?ucpSystem={}".format(ucp)
+        if refresh is True:
+            urlPath = "v2/storage/devices/{}?ucpSystem={}&refresh=true".format(
+                resourceId, ucp
+            )
+
         url = self.getUrl(urlPath)
         self.logger.writeParam("url={}", url)
         response = requests.get(
@@ -1868,10 +1875,13 @@ class UcpManager:
             # self.logger.writeDebug('ISP response Json={}', authResponse)
             data = authResponse.get("data")
             # storage_systems.extend(data.get('storageDevices'))
-            storage_systems = data
+            if refresh is True:
+                return data
+            else:
+                storage_systems = data
 
-        elif "HIJSONFAULT" in response.headers:
-            Utils.raiseException(self.sessionId, response)
+        # elif "HIJSONFAULT" in response.headers:
+        #     Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
@@ -1907,8 +1917,6 @@ class UcpManager:
 
         self.logger.writeExitSDK(funcName)
         return system
-
-    ##################################################################################
 
     # a2.4 MT getPorts
     def getPorts(self):
@@ -1959,24 +1967,28 @@ class UcpManager:
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif "HIJSONFAULT" in response.headers:
-            Utils.raiseException(self.sessionId, response)
+        # elif "HIJSONFAULT" in response.headers:
+        #     Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
-            
+
     def convertJournalPoolsData(self, data):
         self.logger.writeInfo("convertJournalPoolsData={}", data)
         tmp_journal_pools = []
-        
+
         for x in data:
             tmp_journal_pool = {}
 
             # Using .get() everywhere to handle missing keys safely
-            tmp_journal_pool["dataOverflowWatchSeconds"] = x.get("dataOverflowWatchSeconds")
+            tmp_journal_pool["dataOverflowWatchSeconds"] = x.get(
+                "dataOverflowWatchSeconds"
+            )
             tmp_journal_pool["isCacheModeEnabled"] = x.get("isCacheModeEnabled")
             tmp_journal_pool["journalId"] = x.get("journalPoolId")  # Used .get()
             tmp_journal_pool["logicalUnitIds"] = x.get("logicalUnitIds")
-            tmp_journal_pool["logicalUnitIdsHexFormat"] = x.get("logicalUnitIdsHexFormat")
+            tmp_journal_pool["logicalUnitIdsHexFormat"] = x.get(
+                "logicalUnitIdsHexFormat"
+            )
             tmp_journal_pool["mirrorUnitId"] = x.get("mirrorUnitId")
             tmp_journal_pool["timerType"] = x.get("timerType")
             tmp_journal_pool["totalCapacity"] = x.get("totalCapacity")
@@ -1984,20 +1996,21 @@ class UcpManager:
 
             # Check for optional fields using .get() with default values
             tmp_journal_pool["mpBladeId"] = x.get("mpBladeId", -1)
-            tmp_journal_pool["isInflowControlEnabled"] = x.get("isInflowControlEnabled", False)
+            tmp_journal_pool["isInflowControlEnabled"] = x.get(
+                "isInflowControlEnabled", False
+            )
             tmp_journal_pool["usageRate"] = x.get("usageRate", -1)
             tmp_journal_pool["journalStatus"] = x.get("journalStatus", "")
 
             tmp_journal_pools.append(tmp_journal_pool)
-            
+
         return tmp_journal_pools
 
-   
     def getJournalPools(self):
         funcName = "UcpManager:getJournalPools"
         self.logger.writeEnterSDK(funcName)
 
-        ## 2.4 MT getJournalPools
+        #  2.4 MT getJournalPools
         # the ucpSystem here can be anything,
         # but you have to have something else it will not work
         (resourceId, ucp) = self.getStorageSystemResourceId()
@@ -2014,8 +2027,6 @@ class UcpManager:
         if response.ok:
             self.logger.writeInfo("getJournalPools={}", response.json())
             return self.convertJournalPoolsData(response.json()["data"])
-        elif "HIJSONFAULT" in response.headers:
-            Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
@@ -2037,8 +2048,6 @@ class UcpManager:
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif "HIJSONFAULT" in response.headers:
-            Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
@@ -2059,8 +2068,6 @@ class UcpManager:
         self.logger.writeExitSDK(funcName)
         if response.ok:
             return response.json()
-        elif "HIJSONFAULT" in response.headers:
-            Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
@@ -2082,8 +2089,6 @@ class UcpManager:
         if response.ok:
             self.logger.writeInfo("pools={}", response.json())
             return response.json()["data"]
-        elif "HIJSONFAULT" in response.headers:
-            Utils.raiseException(self.sessionId, response)
         else:
             self.throwException(response)
 
@@ -2100,14 +2105,17 @@ class UcpManager:
 
         system = None
         for x in systems:
-            self.logger.writeInfo(int(x["serialNumber"]))
-            self.logger.writeInfo(self.serial)
-            self.logger.writeInfo(int(x["serialNumber"]) == self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]))
+            self.logger.writeDebug(self.serial)
+            self.logger.writeDebug(int(x["serialNumber"]) == self.serial)
 
             if str(x["serialNumber"]) == str(self.serial):
                 system = x
                 break
         if system is None:
+            self.logger.writeDebug(
+                f"Invalid serial = {self.serial}, please check once and try again."
+            )
             raise Exception(
                 "Invalid serial = {0}, please check once and try again.".format(
                     self.serial
@@ -2122,7 +2130,7 @@ class UcpManager:
 
         funcName = "UcpManager:untag"
         self.logger.writeEnterSDK(funcName)
-        
+
         mcpResourceId = self.getUcpSystemResourceIdByName(CommonConstants.UCP_NAME)
         (resourceId, ucp) = self.getStorageSystemResourceId()
 
@@ -2144,18 +2152,18 @@ class UcpManager:
         if response.ok:
             pass
         else:
-            ## ignore exception from untag for now
+            #  ignore exception from untag for now
             self.logger.writeDebug("1724 failed response={}", response)
             # self.throwException(response)
 
         self.logger.writeExitSDK(funcName)
 
-    ## a2.4 MT WIP tag
+    #  a2.4 MT WIP tag
     def tag(self):
 
         funcName = "UcpManager:tag"
         self.logger.writeEnterSDK(funcName)
-        
+
         mcpResourceId = self.getUcpSystemResourceIdByName(CommonConstants.UCP_NAME)
         (resourceId, ucp) = self.getStorageSystemResourceId()
 
@@ -2177,7 +2185,7 @@ class UcpManager:
         if response.ok:
             pass
         else:
-            ## ignore exception from untag for now
+            #  ignore exception from untag for now
             self.logger.writeDebug("1724 failed response={}", response)
             # self.throwException(response)
 

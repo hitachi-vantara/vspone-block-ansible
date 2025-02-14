@@ -1,31 +1,34 @@
 from typing import Optional, Any
 import time
+from typing import List, Dict
 
 try:
     from ..common.ansible_common import log_entry_exit
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes, ConnectionTypes
     from ..common.hv_log import Log
-    from ..common.hv_log_decorator import LogDecorator
-    from ..common.vsp_constants import PairStatus, VolumePayloadConst, DefaultValues
-    from ..common.ansible_common import is_pegasus_model
+    from ..common.vsp_constants import (
+        PairStatus,
+        VolumePayloadConst,
+        DEFAULT_NAME_PREFIX,
+    )
     from ..message.vsp_snapshot_msgs import VSPSnapShotValidateMsg
     from ..model.vsp_volume_models import CreateVolumeSpec
     from ..model.vsp_host_group_models import VSPHostGroupInfo
     from ..model.vsp_snapshot_models import DirectSnapshotInfo, UAIGSnapshotInfo
     from .vsp_volume_prov import VSPVolumeProvisioner
     from .vsp_host_group_provisioner import VSPHostGroupProvisioner
+    from ..common.uaig_utils import UAIGResourceID
     from ..gateway.vsp_snapshot_gateway import (
-        VSPHtiSnapshotDirectGateway,
         VSPHtiSnapshotUaiGateway,
     )
+    from ..gateway.vsp_volume import VSPVolumeUAIGateway
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes, ConnectionTypes
     from common.hv_log import Log
-    from common.hv_log_decorator import LogDecorator
-    from common.vsp_constants import PairStatus, VolumePayloadConst, DefaultValues
-    from common.ansible_common import is_pegasus_model
+    from common.vsp_constants import PairStatus, VolumePayloadConst, DEFAULT_NAME_PREFIX
+    from common.uaig_utils import UAIGResourceID
     from message.vsp_snapshot_msgs import VSPSnapShotValidateMsg
     from model.vsp_volume_models import CreateVolumeSpec
     from .vsp_volume_prov import VSPVolumeProvisioner
@@ -34,26 +37,26 @@ except ImportError:
     from model.vsp_host_group_models import VSPHostGroupInfo
     from model.vsp_snapshot_models import DirectSnapshotInfo, UAIGSnapshotInfo
     from gateway.vsp_snapshot_gateway import (
-        VSPHtiSnapshotDirectGateway,
         VSPHtiSnapshotUaiGateway,
     )
-
-
-from typing import Optional, List, Dict, Any
+    from gateway.vsp_volume import VSPVolumeUAIGateway
 
 
 # @LogDecorator.debug_methods
 class VSPHtiSnapshotProvisioner:
-    def __init__(self, connection_info, serial: str = None):
+    def __init__(self, connection_info, serial=None):
         self.logger = Log()
         self.gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_SNAPSHOT
         )
         self.connection_info = connection_info
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            self.vol_provisioner = VSPVolumeProvisioner(self.connection_info)
+        self.config_gw = GatewayFactory.get_gateway(
+            connection_info, GatewayClassTypes.VSP_CONFIG_MAP
+        )
+        self.vol_provisioner = VSPVolumeProvisioner(self.connection_info)
         if connection_info.connection_type == ConnectionTypes.GATEWAY:
             self.gateway = VSPHtiSnapshotUaiGateway(connection_info)
+            self.serial_number = serial
             self.gateway.set_storage_serial_number(serial)
 
     @log_entry_exit
@@ -77,19 +80,18 @@ class VSPHtiSnapshotProvisioner:
             return resp.data_to_list()
 
     @log_entry_exit
-    def get_one_snapshot(self, pvol: int, mirror_unit_id: int) -> Dict[str, Any]:
+    def get_one_snapshot(self, pvol: int, mirror_unit_id: int):
 
         if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
             snapshots = self.gateway.get_snapshot_by_pvol(pvol)
-            # self.logger.writeDebug(f"20240719 snapshots={snapshots}")
             snapshot = [
                 ssp for ssp in snapshots.data if ssp.mirrorUnitId == mirror_unit_id
             ]
             if not snapshot:
                 msg = f"Snapshot Pair with Primary volume Id {pvol} and Mirror unit Id {mirror_unit_id} is not present"
-                self.logger.writeDebug(msg)
+                self.logger.writeError(msg)
                 raise Exception(msg)
-            # self.logger.writeDebug(f"20240801 expect good poolID here: {snapshot[0]}")
+
             return snapshot[0]
         else:
             try:
@@ -104,22 +106,24 @@ class VSPHtiSnapshotProvisioner:
                     raise ValueError(str(e))
 
     @log_entry_exit
-    def create_snapshot(self, spec) -> Dict[str, Any]:
+    def create_snapshot(self, spec):
         if spec.mirror_unit_id:
             ssp = self.get_one_snapshot(spec.pvol, spec.mirror_unit_id)
             if ssp:
                 return self.add_remove_svol_to_snapshot(spec, ssp)
-            
+
         if spec.snapshot_group_name is None:
-            raise ValueError(VSPSnapShotValidateMsg.SNAPSHOT_GRP_NAME.value)
-        
+            err_msg = VSPSnapShotValidateMsg.SNAPSHOT_GRP_NAME.value
+            self.logger.writeError(err_msg)
+            raise ValueError(err_msg)
+
         if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
             return self.create_gateway_snapshot(spec)
         else:
             return self.create_direct_snapshot(spec)
 
     @log_entry_exit
-    def add_remove_svol_to_snapshot(self, spec, ssp) -> Dict[str, Any]:
+    def add_remove_svol_to_snapshot(self, spec, ssp):
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
             if spec.svol is not None and spec.svol == -1 and ssp.svolLdevId is not None:
                 self.gateway.unassign_svol_to_snapshot(spec.pvol, spec.mirror_unit_id)
@@ -132,18 +136,20 @@ class VSPHtiSnapshotProvisioner:
                 and spec.svol is not None
                 and spec.svol != ssp.svolLdevId
             ):
-                ## remove the svol from the snapshot first
+                #  remove the svol from the snapshot first
                 self.gateway.unassign_svol_to_snapshot(spec.pvol, spec.mirror_unit_id)
-                ## assign the new svol to the snapshot
+                #  assign the new svol to the snapshot
                 self.gateway.assign_svol_to_snapshot(
                     spec.pvol, spec.mirror_unit_id, spec.svol
                 )
             else:
                 return ssp
+        else:
+            pass
         return self.get_one_snapshot(spec.pvol, spec.mirror_unit_id)
 
     @log_entry_exit
-    def create_direct_snapshot(self, spec) -> Dict[str, Any]:
+    def create_direct_snapshot(self, spec):
         svol_id, port = self.create_snapshot_svol(spec)
         try:
             result = self.gateway.create_snapshot(
@@ -155,6 +161,7 @@ class VSPHtiSnapshotProvisioner:
                 spec.is_data_reduction_force_copy,
                 spec.can_cascade,
                 svol_id,
+                spec.is_clone,
             )
         except Exception as e:
 
@@ -163,7 +170,7 @@ class VSPHtiSnapshotProvisioner:
             self.vol_provisioner.delete_volume(
                 svol_id, spec.is_data_reduction_force_copy
             )
-
+            self.logger.writeException(e)
             raise e
         self.logger.writeDebug(f"mirror_unit_id and pvol_id: {result}")
         mu_id = result.split(",")[1]
@@ -172,13 +179,15 @@ class VSPHtiSnapshotProvisioner:
         return ssp
 
     @log_entry_exit
-    def create_snapshot_svol(self, spec) -> int:
+    def create_snapshot_svol(self, spec):
         hg_info = None
         hg_provisioner = VSPHostGroupProvisioner(self.connection_info)
 
         pvol = self.vol_provisioner.get_volume_by_ldev(spec.pvol)
         if pvol.emulationType == VolumePayloadConst.NOT_DEFINED:
-            raise ValueError(VSPSnapShotValidateMsg.PVOL_NOT_FOUND.value)
+            err_msg = VSPSnapShotValidateMsg.PVOL_NOT_FOUND.value
+            self.logger.writeError(err_msg)
+            raise ValueError(err_msg)
 
         # Check if vvol or normal lun is required to create
         pool_id = (
@@ -202,23 +211,38 @@ class VSPHtiSnapshotProvisioner:
         vol_spec = CreateVolumeSpec(
             pool_id=pool_id,
             size=pvol.byteFormatCapacity.replace(" ", "").replace(".00", ""),
+            block_size=pvol.blockCapacity,
             data_reduction_share=data_reduction_share,
             capacity_saving=capacity_saving,
         )
 
         svol_id = self.vol_provisioner.create_volume(vol_spec)
 
+        if pvol.label is not None and pvol.label != "":
+            svol_name = pvol.label
+        else:
+            svol_name = f"{DEFAULT_NAME_PREFIX}-{pvol.ldevId}"
+        self.vol_provisioner.change_volume_settings(svol_id, name=svol_name)
+
         # set the data reduction force copy to true
         spec.is_data_reduction_force_copy = (
             True
             if pvol.dataReductionMode
             and pvol.dataReductionMode != VolumePayloadConst.DISABLED
-            else False
+            and spec.is_data_reduction_force_copy is None
+            else spec.is_data_reduction_force_copy
         )
-        spec.can_cascade = spec.is_data_reduction_force_copy
+        spec.can_cascade = (
+            spec.is_data_reduction_force_copy
+            if spec.can_cascade is None
+            else spec.can_cascade
+        )
 
         if pvol.ports is None and capacity_saving == VolumePayloadConst.DISABLED:
-            raise ValueError(VSPSnapShotValidateMsg.PVOL_IS_NOT_IN_HG.value)
+            err_msg = VSPSnapShotValidateMsg.PVOL_IS_NOT_IN_HG.value
+            self.logger.writeError(err_msg)
+            raise ValueError(err_msg)
+
         elif pvol.ports is not None and len(pvol.ports) > 0:
 
             hg_info = pvol.ports[0]
@@ -235,13 +259,27 @@ class VSPHtiSnapshotProvisioner:
         return svol_id, hg_info
 
     @log_entry_exit
-    def create_gateway_snapshot(self, spec) -> Dict[str, Any]:
+    def create_gateway_snapshot(self, spec):
+
+        storage_id = UAIGResourceID().storage_resourceId(self.serial_number)
+        ldev_resource_id = UAIGResourceID().ldev_resourceId(
+            self.serial_number, spec.pvol
+        )
+        try:
+            pvol = self.vol_provisioner.get_volume_by_ldev_uaig(
+                storage_id, ldev_resource_id
+            )
+        except Exception as e:
+            self.logger.writeException(e)
+            raise e  # ValueError(VSPSnapShotValidateMsg.PVOL_NOT_FOUND.value)
 
         allocate_consistency_group = spec.allocate_consistency_group or False
         enable_quick_mode = spec.enable_quick_mode or False
         consistency_group_id = spec.consistency_group_id or -1
         is_clone = spec.is_clone or False
-        dataReductionForceCopy = spec.is_data_reduction_force_copy or False
+        dataReductionForceCopy = spec.is_data_reduction_force_copy or pvol.isDRS
+        can_cascade = spec.can_cascade or dataReductionForceCopy
+
         snapshotGroupName = spec.snapshot_group_name or ""
         self.logger.writeDebug(f"dataReductionForceCopy: {dataReductionForceCopy}")
         result = self.gateway.create_snapshot(
@@ -253,13 +291,32 @@ class VSPHtiSnapshotProvisioner:
             is_clone,
             dataReductionForceCopy,
             snapshotGroupName,
+            can_cascade,
         )
         mirror_unit_id = self.find_mirror_unit_id(result)
         self.logger.writeDebug(f"mirror_unit_id: {mirror_unit_id}")
         ssp = self.get_one_snapshot(spec.pvol, mirror_unit_id)
         # self.logger.writeDebug(f"20240801 after prov.get_one_snapshot, ssp: {ssp}")
+
+        self.change_svol_name(pvol, ssp.secondaryVolumeId)
+
         self.connection_info.changed = True
         return ssp
+
+    @log_entry_exit
+    def change_svol_name(self, pvol, svol_id):
+        vol_gateway = VSPVolumeUAIGateway(self.connection_info)
+        storage_resourceId = UAIGResourceID().storage_resourceId(self.serial_number)
+        ldev_resourceId = UAIGResourceID().ldev_resourceId(self.serial_number, svol_id)
+        if pvol.name is not None and pvol.name != "":
+            svol_name = pvol.name
+        else:
+            svol_name = f"{DEFAULT_NAME_PREFIX}-{pvol.ldevId}"
+
+        response = vol_gateway.update_volume(
+            storage_resourceId, ldev_resourceId, lu_name=svol_name
+        )
+        return response
 
     @log_entry_exit
     def find_mirror_unit_id(self, task_info: Dict[str, Any]) -> int:
@@ -267,8 +324,8 @@ class VSPHtiSnapshotProvisioner:
             if attribute.get("type") == "mirrorUnitId":
                 return int(attribute.get("id"))
 
-        ## if mirror unit ID not found yet,
-        ## see if it has gone thru entitlement
+        #  if mirror unit ID not found yet,
+        #  see if it has gone thru entitlement
         return self.get_mirror_unit_id_tagged(task_info)
 
     @log_entry_exit
@@ -289,10 +346,12 @@ class VSPHtiSnapshotProvisioner:
                 data = self.gateway.get_one_snapshot_by_resourceId(snapshot_resourceId)
                 return int(data.mirrorUnitId)
 
-        raise ValueError("Mirror Unit ID not found in task info")
+        err_msg = VSPSnapShotValidateMsg.MIRROR_UNIT_ID_NOT_FOUND.value
+        self.logger.writeError(err_msg)
+        raise ValueError(err_msg)
 
     @log_entry_exit
-    def auto_split_snapshot(self, spec) -> Dict[str, Any]:
+    def auto_split_snapshot(self, spec):
         spec.auto_split = True
         ssp = self.create_snapshot(spec)
         mirror_unit_id = (
@@ -304,24 +363,22 @@ class VSPHtiSnapshotProvisioner:
         return resp
 
     @log_entry_exit
-    def delete_snapshot(self, pvol: int, mirror_unit_id: int) -> Dict[str, Any]:
+    def delete_snapshot(self, pvol: int, mirror_unit_id: int):
         try:
-            ssp = self.get_one_snapshot(pvol, mirror_unit_id)
+            self.get_one_snapshot(pvol, mirror_unit_id)
         except ValueError as e:
             return str(e)
-        result = self.gateway.delete_snapshot(pvol, mirror_unit_id)
+        self.gateway.delete_snapshot(pvol, mirror_unit_id)
         self.connection_info.changed = True
         return
 
     @log_entry_exit
-    def resync_snapshot(
-        self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool
-    ) -> Dict[str, Any]:
+    def resync_snapshot(self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool):
         ssp = self.get_one_snapshot(pvol, mirror_unit_id)
         if ssp.status == PairStatus.PAIR:
             return ssp
         enable_quick_mode = enable_quick_mode or False
-        _ = self.gateway.resync_snapshot(pvol, mirror_unit_id, enable_quick_mode)
+        unused = self.gateway.resync_snapshot(pvol, mirror_unit_id, enable_quick_mode)
 
         retryCount = 0
         while retryCount < 30:
@@ -336,13 +393,16 @@ class VSPHtiSnapshotProvisioner:
         return ssp
 
     @log_entry_exit
-    def clone_snapshot(self, pvol: int, mirror_unit_id: int, svol: int) -> Dict[str, Any]:
-        # ssp = self.get_one_snapshot(pvol, mirror_unit_id)
-        # if ssp.status == PairStatus.PAIR:
-        #     return ssp
-        resp_data = self.gateway.clone_snapshot(pvol, mirror_unit_id)
-        # self.logger.writeError(f"20240719 resp_data: {resp_data}")
-        ssp = f"Snapshot cloned successfully for {pvol} and mirror unit id {mirror_unit_id}"
+    def clone_snapshot(self, pvol: int, mirror_unit_id: int, svol: int):
+
+        ssp = self.get_one_snapshot(pvol, mirror_unit_id)
+        svol = (
+            ssp.svolLdevId
+            if isinstance(ssp, DirectSnapshotInfo)
+            else ssp.secondaryVolumeId
+        )
+        unused = self.gateway.clone_snapshot(pvol, mirror_unit_id)
+        ssp = f"Snapshot cloned successfully to secondary volume {svol}"
         self.connection_info.changed = True
         return ssp
 
@@ -365,36 +425,65 @@ class VSPHtiSnapshotProvisioner:
                 return sg
 
     @log_entry_exit
-    def split_snapshots_by_gid(self, spec):
-        return self.gateway.split_snapshot_using_ssg(spec.snapshot_group_id)
+    def split_snapshots_by_gid(self, spec, first_snapshot):
+        if first_snapshot.status == PairStatus.PSUS:
+            # UCA-2602 for the case where the snapshot is already in PAIR status, do nothing, removed the check
+            pass
+        try:
+            data = self.gateway.split_snapshot_using_ssg(spec.snapshot_group_id)
+        except Exception as e:
+            self.logger.writeError(f"An error occurred: {str(e)}")
+            if "KART30000-E" in str(e) or "The command ended abnormally" in str(e):
+                msg = (
+                    f"Split Snapshot Pairs with Snapshot Group Id {spec.snapshot_group_id} failed ",
+                    "Check if the snapshot group created in CTG mode or snapshot group contains two or more pairs that have the same volume as the P-VOL.",
+                )
+                error = {"msg": str(e), "cause": msg}
+                raise ValueError(str(error))
+            else:
+                raise e
+        self.connection_info.changed = True
+        return data
 
     @log_entry_exit
-    def restore_snapshots_by_gid(self, spec):
-        return self.gateway.restore_snapshot_using_ssg(
+    def restore_snapshots_by_gid(self, spec, first_snapshot):
+
+        if first_snapshot.status == PairStatus.PAIR:
+            # UCA-2602 for the case where the snapshot is already in PAIR status, do nothing, removed the check
+            pass
+        data = self.gateway.restore_snapshot_using_ssg(
             spec.snapshot_group_id, spec.auto_split
         )
+        self.connection_info.changed = True
+        return data
 
     @log_entry_exit
-    def resync_snapshots_by_gid(self, spec):
-        return self.gateway.resync_snapshot_using_ssg(spec.snapshot_group_id)
+    def resync_snapshots_by_gid(self, spec, first_snapshot):
+
+        if first_snapshot.status == PairStatus.PAIR:
+            # UCA-2602 for the case where the snapshot is already in PAIR status, do nothing, removed the check
+            pass
+        data = self.gateway.resync_snapshot_using_ssg(spec.snapshot_group_id)
+        self.connection_info.changed = True
+        return data
 
     @log_entry_exit
-    def delete_snapshots_by_gid(self, spec):
-        return self.gateway.delete_snapshot_using_ssg(spec.snapshot_group_id)
+    def delete_snapshots_by_gid(self, spec, *args):
+        data = self.gateway.delete_snapshot_using_ssg(spec.snapshot_group_id)
+        self.connection_info.changed = True
+        return data
 
     @log_entry_exit
-    def split_snapshot(
-        self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool
-    ) -> Dict[str, Any]:
+    def split_snapshot(self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool):
 
         ssp = self.get_one_snapshot(pvol, mirror_unit_id)
 
         if ssp.status == PairStatus.PSUS:
             return ssp
         enable_quick_mode = enable_quick_mode or False
-        _ = self.gateway.split_snapshot(pvol, mirror_unit_id, enable_quick_mode)
+        unused = self.gateway.split_snapshot(pvol, mirror_unit_id, enable_quick_mode)
 
-        ## 20240816 - SPLIT: poll every 20 seconds for 10 mins for split status before returning
+        #  20240816 - SPLIT: poll every 20 seconds for 10 mins for split status before returning
         retryCount = 0
         while retryCount < 30:
             ssp = self.get_one_snapshot(pvol, mirror_unit_id)
@@ -410,12 +499,12 @@ class VSPHtiSnapshotProvisioner:
     @log_entry_exit
     def restore_snapshot(
         self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool, auto_split: bool
-    ) -> Dict[str, Any]:
+    ):
         ssp = self.get_one_snapshot(pvol, mirror_unit_id)
         if ssp.status == PairStatus.PAIR and auto_split is not True:
             return ssp
         enable_quick_mode = enable_quick_mode or False
-        _ = self.gateway.restore_snapshot(
+        unused = self.gateway.restore_snapshot(
             pvol=pvol,
             mirror_unit_id=mirror_unit_id,
             enable_quick_mode=enable_quick_mode,
@@ -423,7 +512,7 @@ class VSPHtiSnapshotProvisioner:
         )
 
         retryCount = 0
-        while retryCount < 30:
+        while retryCount < 3:
             ssp = self.get_one_snapshot(pvol, mirror_unit_id)
             if ssp.status == PairStatus.PAIR:
                 break
@@ -437,3 +526,7 @@ class VSPHtiSnapshotProvisioner:
     @log_entry_exit
     def check_storage_in_ucpsystem(self) -> bool:
         return self.gateway.check_storage_in_ucpsystem()
+
+    @log_entry_exit
+    def is_out_of_band(self):
+        return self.config_gw.is_out_of_band()

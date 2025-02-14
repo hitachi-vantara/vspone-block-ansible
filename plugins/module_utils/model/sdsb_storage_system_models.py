@@ -1,5 +1,5 @@
-from dataclasses import dataclass, asdict, fields
-from typing import Optional, List
+from dataclasses import dataclass
+from typing import List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass

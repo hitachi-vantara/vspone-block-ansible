@@ -3,35 +3,36 @@
 # Copyright: (c) 2021, [ Hitachi Vantara ]
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-ANSIBLE_METADATA = {
-    "metadata_version": "1.1",
-    "supported_by": "certified",
-    "status": ["stableinterface"],
-}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: hv_hg_facts
 short_description: Retrieves host group information from a specified Hitachi VSP storage system.
 description:
-     - This module fetches detailed information about host groups configured within a given Hitachi VSP storage system.
+  - This module fetches detailed information about host groups configured within a given Hitachi VSP storage system.
+  - This module is supported for both direct and gateway connection types.
+  - For direct connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/hostgroup_facts.yml)
+  - For gateway connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/hostgroup_facts.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   storage_system_info:
     description:
       - Information about the Hitachi storage system.
     type: dict
-    required: true
+    required: false
     suboptions:
       serial:
         description: Serial number of the Hitachi storage system.
         type: str
-        required: true
+        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
@@ -42,11 +43,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -56,11 +57,11 @@ options:
         choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
+        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description: Token value to access UAI gateway. This is a required field for gateway connection type.
         type: str
         required: false
   spec:
@@ -76,16 +77,22 @@ options:
         description: Filters the host groups to those associated with the specified Storage FC ports.
         type: list
         required: false
+        elements: str
       query:
         description: Determines what information to return about the host groups. Can specify 'wwns' for HBA WWNs, 'ldevs' for mapped LDEVs, or both.
         type: list
         elements: str
         required: false
         choices: ['wwns', 'ldevs']
-'''
+        default: []
+      lun:
+        description: Filters the host groups to those associated with the specified LUN.
+        type: int
+        required: false
+"""
 
 EXAMPLES = """
-- name:  Show ldevs/wwns for hostgroups
+- name: Show LDEVs/WWNs for host groups for gateway connection
   tasks:
     - hv_hg_facts:
         storage_system_info:
@@ -96,13 +103,13 @@ EXAMPLES = """
           connection_type: "gateway"
           subscriber_id: "sub123"
         spec:
-          query: [ 'wwns', 'ldevs' ]
+          query: ['wwns', 'ldevs']
           name: 'test-ansible-hg-1'
-          ports: [ 'CL1-A', 'CL2-B' ]
+          ports: ['CL1-A', 'CL2-B']
       register: result
     - debug: var=result.hostGroups
-    
-- name: Get Host Groups
+
+- name: Get Host Groups of specific ports for gateway connection
   tasks:
     - hv_hg_facts:
         storage_system_info:
@@ -111,20 +118,45 @@ EXAMPLES = """
           address: gateway.company.com
           api_token: "api token value"
           connection_type: "gateway"
-          subscriber_id: "sub123"
         spec:
-          ports: [ 'CL1-A', 'CL2-B' ]
+          ports: ['CL1-A', 'CL2-B']
+      register: result
+    - debug: var=result.hostGroups
+
+- name: Get all host groups for direct connection
+  tasks:
+    - hv_hg_facts:
+        storage_system_info:
+          serial: "ABC123"
+        connection_info:
+          address: storage1.company.com
+          username: "dummy_user"
+          password: "dummy_password"
+      register: result
+    - debug: var=result.hostGroups
+
+- name: Get Host Groups of specific ports for direct connection
+  tasks:
+    - hv_hg_facts:
+        storage_system_info:
+          serial: "ABC123"
+        connection_info:
+          address: storage1.company.com
+          username: "dummy_user"
+          password: "dummy_password"
+        spec:
+          ports: ['CL1-A', 'CL2-B']
       register: result
     - debug: var=result.hostGroups
 """
 
-RETURN = '''
+RETURN = """
 hostGroups:
   type: list
   description: List of host groups retrieved from the storage system.
   returned: always
   elements: dict
-  sample: [
+  sample:
     {
       "entitlement_status": "assigned",
       "host_group_id": 93,
@@ -162,90 +194,72 @@ hostGroups:
         }
       ]
     }
-  ]
-'''
-
-import json
-from dataclasses import dataclass, asdict
+"""
+from ansible.module_utils.basic import AnsibleModule
 
 import ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_hg_facts_runner as runner
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_infra import (
-    StorageSystem,
-    HostMode,
-    StorageSystemManager,
-)
+
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPHostGroupArguments,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    StateValue,
     ConnectionTypes,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler import (
     vsp_host_group,
 )
-
-try:
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_logger import (
-        MessageID,
-    )
-
-    HAS_MESSAGE_ID = True
-except ImportError as error:
-    HAS_MESSAGE_ID = False
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
     HiException,
 )
-
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPParametersManager,
 )
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
-    dicts_to_dataclass_list,
+    validate_ansible_product_registration,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.model.vsp_host_group_models import *
-
-logger = Log()
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
+    ModuleMessage,
+)
 
 
 class VSPHostGroupFactsManager:
     def __init__(self):
-
+        self.logger = Log()
         self.argument_spec = VSPHostGroupArguments().host_group_facts()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
-            # can be added mandotary , optional mandatory arguments
         )
 
-        self.params = VSPParametersManager(self.module.params)
-        self.serial_number = self.params.storage_system_info.serial
+        try:
+            self.params = VSPParametersManager(self.module.params)
+            self.serial_number = self.params.storage_system_info.serial
+            self.spec = self.params.get_host_group_spec()
+            self.connection_info = self.params.get_connection_info()
 
-        parameterManager = VSPParametersManager(self.module.params)
-        self.spec = parameterManager.get_host_group_spec()
-        self.connection_info = parameterManager.get_connection_info()
+        except Exception as e:
+            self.logger.writeException(e)
+            self.module.fail_json(msg=str(e))
 
     def apply(self):
-        logger = Log()
+        self.logger.writeInfo("=== Start of Host Group Facts ===")
+        registration_message = validate_ansible_product_registration()
         host_group_data = None
-        logger.writeInfo(
-            f"{self.params.connection_info.connection_type} connection type"
-        )
+        host_group_data_extracted = {}
         try:
             if (
                 self.params.connection_info.connection_type.lower()
                 == ConnectionTypes.DIRECT
             ):
                 host_group_data = self.direct_host_group_read()
-                logger.writeDebug(f"host_group_data= {host_group_data}")
+                self.logger.writeDebug(f"host_group_data= {host_group_data}")
                 host_group_data_result = (
-                vsp_host_group.VSPHostGroupCommonPropertiesExtractor(
-                    self.serial_number
-                  ).extract(host_group_data)
+                    vsp_host_group.VSPHostGroupCommonPropertiesExtractor(
+                        self.serial_number
+                    ).extract(host_group_data)
                 )
                 host_group_data_extracted = {"hostGroups": host_group_data_result}
 
@@ -255,16 +269,21 @@ class VSPHostGroupFactsManager:
             ):
                 host_group_list = self.gateway_host_group_read()
                 host_group_data = {host_group_list}
-                logger.writeDebug(f"host_group_data= {host_group_data}")
+                self.logger.writeDebug(f"host_group_data= {host_group_data}")
                 host_group_data_extracted = (
-                vsp_host_group.VSPHostGroupCommonPropertiesExtractor(
-                    self.serial_number
-                  ).extract_dict(host_group_data)
+                    vsp_host_group.VSPHostGroupCommonPropertiesExtractor(
+                        self.serial_number
+                    ).extract_dict(host_group_data)
                 )
 
         except Exception as e:
+            self.logger.writeError(str(e))
+            self.logger.writeInfo("=== End of Host Group Facts ===")
             self.module.fail_json(msg=str(e))
-
+        if registration_message:
+            host_group_data_extracted["user_consent_required"] = registration_message
+        self.logger.writeInfo(f"{host_group_data_extracted}")
+        self.logger.writeInfo("=== End of Host Group Facts ===")
         self.module.exit_json(**host_group_data_extracted)
 
     def direct_host_group_read(self):
@@ -272,7 +291,7 @@ class VSPHostGroupFactsManager:
             self.connection_info, self.serial_number
         ).get_host_groups(self.spec)
         if result is None:
-            self.module.fail_json("Couldn't read host group ")
+            raise ValueError(ModuleMessage.HOST_GROUP_NOT_FOUND.value)
         return result.data_to_list()
 
     def gateway_host_group_read(self):
@@ -280,9 +299,9 @@ class VSPHostGroupFactsManager:
         try:
             return runner.runPlaybook(self.module)
         except HiException as ex:
-            self.module.fail_json(msg=ex.format())
+            raise Exception(ex.format())
         except Exception as ex:
-            self.module.fail_json(msg=str(ex))
+            raise Exception(str(ex))
 
 
 def main(module=None):

@@ -15,12 +15,20 @@ class LogDecorator:
     """Class containing logging functionalities and decorators."""
 
     @staticmethod
-    def log(self, message):
+    def log(message):
+        # Get the caller frame from the stack
         caller_frame = inspect.stack()[2]
+
+        # Extract filename and line number
         filename = os.path.basename(caller_frame.filename)
         line_number = caller_frame.lineno
+
+        # Get the method or function name from the caller frame
+        method_name = caller_frame.function
+
+        # Log the message
         logger.writeDebug(
-            f"{filename}:{self.__class__.__name__}.{self._current_method}:[{line_number}] {message}"
+            f"{filename}:{LogDecorator.__name__}.{method_name}:[{line_number}] {message}"
         )
 
     @staticmethod
@@ -37,37 +45,22 @@ class LogDecorator:
                 self._current_method = func.__name__
                 arg_list = [repr(a) for a in args]
                 arg_list += [f"{k}={v!r}" for k, v in kwargs.items()]
-                LogDecorator.log(self, f"ENTER: Params:({', '.join(arg_list)})")
-                # arg_list = [f"{k}={v!r}" for k, v in kwargs.items()]
-                # arg_list += [f"arg{i}={a!r}" for i, a in enumerate(args)]
-                # LogDecorator.log(self, f"ENTER: Params:({', '.join(arg_list)})")
-
-                # _self = args[0]  # Extract 'self' from args
-                # self._current_method = func.__name__
-                # sig = inspect.signature(func)
-                # arg_list = []
-                # bound_args = sig.bind(*args, **kwargs)
-                # for param_name, param_value in bound_args.arguments.items():
-                #     if param_name != 'self':  # Exclude 'self' from the log message
-                #         arg_list.append(f"{param_name}={param_value!r}")
-                # LogDecorator.log(self, f"ENTER: Params:({', '.join(arg_list)})")
+                LogDecorator.log(f"ENTER: Params:({', '.join(arg_list)})")
 
                 result = func(self, *args, **kwargs)
 
                 if isinstance(result, bytes):
                     LogDecorator.log(
-                        self, f"EXIT: Result is a bytes object and cannot be logged."
+                        "EXIT: Result is a bytes object and cannot be logged."
                     )
                 elif isinstance(result, str):
                     max_chars = 1000
                     if len(result) > max_chars:
                         result = LogDecorator.truncate_string(result, max_chars)
-                        LogDecorator.log(
-                            self, f"EXIT: Result:   .....truncated"
-                        )
-                    LogDecorator.log(self, f"EXIT:")
+                        LogDecorator.log("EXIT: Result:   .....truncated")
+                    LogDecorator.log("EXIT:")
                 else:
-                    LogDecorator.log(self, f"EXIT: ")
+                    LogDecorator.log("EXIT: ")
                 return result
 
             return wrapper

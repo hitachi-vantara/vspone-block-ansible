@@ -1,6 +1,3 @@
-import time
-from typing import Optional, List, Dict, Any
-
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
@@ -10,8 +7,6 @@ try:
     from ..common.vsp_constants import UnSubscribeResourceTypes
     from .vsp_storage_pool_provisioner import VSPStoragePoolProvisioner
     from .vsp_shadow_image_pair_provisioner import VSPShadowImagePairProvisioner
-
-
     from ..provisioner.vsp_iscsi_target_provisioner import VSPIscsiTargetProvisioner
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
@@ -62,20 +57,18 @@ class VSPUnsubscribeProvisioner:
         for hg_info in hg_names:
             ss = hg_info.split(",")
             port = ss[0]
-            name =  ss[1]
-            if port == None or port == "":
-                err_list.append(f"Port name is not provided.")
-            if name == None or name == "":
-                err_list.append(f"Host Group name is not provided.")
-            if port == None or port == "" or name == None or name == "":
+            name = ss[1]
+            if port is None or port == "":
+                err_list.append("Port name is not provided.")
+            if name is None or name == "":
+                err_list.append("Host Group name is not provided.")
+            if port is None or port == "" or name is None or name == "":
                 continue
             hg = self.get_hg_by_port_and_name(port.strip(), name.strip())
             if hg is None:
                 err_list.append(f"Did not find Host Group {name} on port {port}.")
             else:
-                success_list.append(
-                    f"Found Host Group {name} on port {port}."
-                )
+                success_list.append(f"Found Host Group {name} on port {port}.")
                 try:
                     result = self.gateway.untag_subscriber_resource(
                         self.serial, hg.resourceId, hg.type
@@ -160,7 +153,9 @@ class VSPUnsubscribeProvisioner:
                     success_list.append(f"Found Pool with name {name}. ")
                     try:
                         result = self.gateway.untag_subscriber_resource(
-                            self.serial, pool.resourceId, UnSubscribeResourceTypes.STORAGE_POOL
+                            self.serial,
+                            pool.resourceId,
+                            UnSubscribeResourceTypes.STORAGE_POOL,
                         )
                         success_list.append(
                             f"Successfully unsubscribed Pool with name {name}. "
@@ -174,7 +169,7 @@ class VSPUnsubscribeProvisioner:
                 err_list.append(str(ex))
 
         return err_list, success_list
-    
+
     @log_entry_exit
     def unsubscribe_iscsi_targets(self, iscsi_targets):
         err_list = []
@@ -182,22 +177,30 @@ class VSPUnsubscribeProvisioner:
         for iscsi_info in iscsi_targets:
             ss = iscsi_info.split(",")
             port = ss[0]
-            name =  ss[1]
-            if port == None or port == "":
-                err_list.append(f"Port name is not provided.")
-            if name == None or name == "":
-                err_list.append(f"ISCSI target name is not provided.")
-            if port == None or port == "" or name == None or name == "":
+            name = ss[1]
+            if port is None or port == "":
+                err_list.append("Port name is not provided.")
+            if name is None or name == "":
+                err_list.append("ISCSI target name is not provided.")
+            if port is None or port == "" or name is None or name == "":
                 continue
             try:
-                iscsi_target = self.get_iscsi_target_by_port_and_name(port.strip(), name.strip())
+                iscsi_target = self.get_iscsi_target_by_port_and_name(
+                    port.strip(), name.strip()
+                )
                 if iscsi_target is None:
-                    err_list.append(f"Did not find ISCSI Target with name {name} on port {port}.")
+                    err_list.append(
+                        f"Did not find ISCSI Target with name {name} on port {port}."
+                    )
                 else:
-                    success_list.append(f"Found ISCSI Target with name {name} on port {port}.")
+                    success_list.append(
+                        f"Found ISCSI Target with name {name} on port {port}."
+                    )
                     try:
                         result = self.gateway.untag_subscriber_resource(
-                            self.serial, iscsi_target.resourceId, UnSubscribeResourceTypes.ISCSI_TARGET
+                            self.serial,
+                            iscsi_target.resourceId,
+                            UnSubscribeResourceTypes.ISCSI_TARGET,
                         )
                         success_list.append(
                             f"Successfully unsubscribed ISCSI Target with name {name} on port {port}."
@@ -261,8 +264,6 @@ class VSPUnsubscribeProvisioner:
                 err_list.extend(e_list)
                 success_list.extend(s_list)
 
-            
-
             if x["type"].lower() == UnSubscribeResourceTypes.STORAGE_POOL.lower():
                 e_list, s_list = self.unsubscribe_pool(x["values"])
                 err_list.extend(e_list)
@@ -273,7 +274,7 @@ class VSPUnsubscribeProvisioner:
                 err_list.extend(e_list)
                 success_list.extend(s_list)
 
-            ## Keep port always at the end as it is used by other resources
+            #  Keep port always at the end as it is used by other resources
             if x["type"].lower() == UnSubscribeResourceTypes.PORT:
                 e_list, s_list = self.unsubscribe_port(x["values"])
                 err_list.extend(e_list)
@@ -303,7 +304,6 @@ class VSPUnsubscribeProvisioner:
 
             if hg.port == port and hg.hostGroupName == name:
                 return hg
-
 
         return None
 
@@ -340,13 +340,17 @@ class VSPUnsubscribeProvisioner:
         storage_pool = pool_prov.get_storage_pool_by_name_or_id(pool_name=name)
 
         return storage_pool
-    
+
     @log_entry_exit
     def get_iscsi_target_by_port_and_name(self, port, name):
         iscsi_prov = VSPIscsiTargetProvisioner(self.connection_info)
         iscsi_targets = iscsi_prov.get_all_iscsi_targets(self.serial)
         for iscsi_target in iscsi_targets.data:
-            if iscsi_target.iscsiName == name  and iscsi_target.portId == port and iscsi_target.subscriberId == self.connection_info.subscriber_id:
+            if (
+                iscsi_target.iscsiName == name
+                and iscsi_target.portId == port
+                and iscsi_target.subscriberId == self.connection_info.subscriber_id
+            ):
                 return iscsi_target
         return None
 

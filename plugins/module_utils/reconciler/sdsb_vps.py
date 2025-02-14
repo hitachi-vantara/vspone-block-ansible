@@ -2,15 +2,21 @@ try:
     from ..provisioner.sdsb_vps_provisioner import SDSBVpsProvisioner
     from ..common.hv_constants import StateValue
     from ..common.hv_log import Log
-    from ..common.ansible_common import camel_to_snake_case, log_entry_exit
-    from ..model.sdsb_vps_models import *
+    from ..common.ansible_common import (
+        camel_to_snake_case,
+        log_entry_exit,
+        get_default_value,
+    )
     from ..message.sdsb_vps_msgs import SDSBVpsValidationMsg
 except ImportError:
     from provisioner.sdsb_vps_provisioner import SDSBVpsProvisioner
     from common.hv_constants import StateValue
     from common.hv_log import Log
-    from common.ansible_common import camel_to_snake_case, log_entry_exit
-    from model.sdsb_vps_models import *
+    from common.ansible_common import (
+        camel_to_snake_case,
+        log_entry_exit,
+        get_default_value,
+    )
     from message.sdsb_vps_msgs import SDSBVpsValidationMsg
 
 logger = Log()
@@ -45,38 +51,47 @@ class SDSBVpsReconciler:
 
     @log_entry_exit
     def create_sdsb_vps(self, spec):
-        if spec.name is None or spec.upper_limit_for_number_of_servers is None or spec.volume_settings is None:
+        if (
+            spec.name is None
+            or spec.upper_limit_for_number_of_servers is None
+            or spec.volume_settings is None
+        ):
             raise ValueError(SDSBVpsValidationMsg.CREATE_REQD_FIELDS.value)
-        
-        if spec.upper_limit_for_number_of_servers < 0 or spec.upper_limit_for_number_of_servers > 1024:
+
+        if (
+            spec.upper_limit_for_number_of_servers < 0
+            or spec.upper_limit_for_number_of_servers > 1024
+        ):
             raise ValueError(SDSBVpsValidationMsg.INVALID_NUMBER_OF_SERVERS.value)
 
         vps_id = self.create_vps(spec)
         if not vps_id:
             raise Exception("Failed to create VPS")
 
-        vps_info =  self.get_vps_by_id(vps_id)
+        vps_info = self.get_vps_by_id(vps_id)
         logger.writeDebug("RC:create_sdsb_vps:vps_info = {}", vps_info)
         return VpsPropertiesExtractor().extract_dict(vps_info.to_dict())
 
-    @log_entry_exit   
+    @log_entry_exit
     def create_vps(self, spec):
         self.connection_info.changed = True
         return self.provisioner.create_vps(spec)
-    
+
     @log_entry_exit
     def update_sdsb_vps(self, vps, spec):
-        logger.writeDebug("RC:update_sdsb_vps:spec.capacity_saving = {}", spec.capacity_saving)
-        if spec.capacity_saving: 
-            if vps.volumeSettings['savingSettingOfVolume'] == spec.capacity_saving:
+        logger.writeDebug(
+            "RC:update_sdsb_vps:spec.capacity_saving = {}", spec.capacity_saving
+        )
+        if spec.capacity_saving:
+            if vps.volumeSettings["savingSettingOfVolume"] == spec.capacity_saving:
                 return VpsPropertiesExtractor().extract_dict(vps.to_dict())
                 # raise ValueError(SDSBVpsValidationMsg.SAME_SAVING_SETTING.value)
-            
+
         vps_id = self.update_vps(vps.id, spec)
         if not vps_id:
             raise Exception("Failed to update VPS.")
 
-        vps_info =  self.get_vps_by_id(vps_id)
+        vps_info = self.get_vps_by_id(vps_id)
         logger.writeDebug("RC:update_sdsb_vps:vps_info = {}", vps_info)
         return VpsPropertiesExtractor().extract_dict(vps_info.to_dict())
 
@@ -84,7 +99,7 @@ class SDSBVpsReconciler:
     def update_vps(self, id, spec):
         self.connection_info.changed = True
         return self.provisioner.update_vps(id, spec)
-    
+
     @log_entry_exit
     def reconcile_vps(self, state, spec):
 
@@ -114,39 +129,49 @@ class SDSBVpsReconciler:
                         return self.update_sdsb_vps(vps, spec)
                     else:
                         # this is a create
-                        raise ValueError(SDSBVpsValidationMsg.FEATURE_NOT_SUPPORTED.value.format("Create VPS"))
-                        return self.create_sdsb_vps(spec)
+                        raise ValueError(
+                            SDSBVpsValidationMsg.FEATURE_NOT_SUPPORTED.value.format(
+                                "Create VPS"
+                            )
+                        )
+                        # return self.create_sdsb_vps(spec)
                 else:
                     raise ValueError(SDSBVpsValidationMsg.NO_NAME_ID.value)
 
         if state.lower() == StateValue.ABSENT:
-            raise ValueError(SDSBVpsValidationMsg.FEATURE_NOT_SUPPORTED.value.format("Delete VPS"))
-            logger.writeDebug("RC:=== Delete VPS ===")
-            logger.writeDebug("RC:state = {}", state)
-            logger.writeDebug("RC:spec = {}", spec)
-            if spec.id is not None:
-                # user provided an id of the VPS, so this must be a delete
-                vps = self.get_vps_by_id(spec.id)
-                if vps is None:
-                    raise ValueError(SDSBVpsValidationMsg.INVALID_VPS_ID.value)
-                vps_id = spec.id
-            elif spec.name is not None:
-                # user provided an VPS name, so this must be a delete
-                vps = self.get_vps_by_name(spec.name)
-                if vps is None:
-                    self.connection_info.changed = False
-                    raise ValueError(SDSBVpsValidationMsg.VPS_NAME_ABSENT.value.format(spec.name))
-                logger.writeDebug("RC:VPS 2={}", vps)
-                vps_id = vps.id
-            else:
-                raise ValueError(SDSBVpsValidationMsg.NO_NAME_ID.value)
+            raise ValueError(
+                SDSBVpsValidationMsg.FEATURE_NOT_SUPPORTED.value.format("Delete VPS")
+            )
+        # comment out the following code block
+        # logger.writeDebug("RC:=== Delete VPS ===")
+        # logger.writeDebug("RC:state = {}", state)
+        # logger.writeDebug("RC:spec = {}", spec)
+        # if spec.id is not None:
+        #     # user provided an id of the VPS, so this must be a delete
+        #     vps = self.get_vps_by_id(spec.id)
+        #     if vps is None:
+        #         raise ValueError(SDSBVpsValidationMsg.INVALID_VPS_ID.value)
+        #     vps_id = spec.id
+        # elif spec.name is not None:
+        #     # user provided an VPS name, so this must be a delete
+        #     vps = self.get_vps_by_name(spec.name)
+        #     if vps is None:
+        #         self.connection_info.changed = False
+        #         raise ValueError(
+        #             SDSBVpsValidationMsg.VPS_NAME_ABSENT.value.format(spec.name)
+        #         )
+        #     logger.writeDebug("RC:VPS 2={}", vps)
+        #     vps_id = vps.id
+        # else:
+        #     raise ValueError(SDSBVpsValidationMsg.NO_NAME_ID.value)
 
-            vps_id = self.delete_vps_by_id(vps_id)
-            if vps_id is not None:
-                return "VPS has been deleted successfully."
-            else:
-                self.connection_info.changed = False
-                return "Could not delete VPS, ensure VPS ID is valid. "
+        # vps_id = self.delete_vps_by_id(vps_id)
+        # if vps_id is not None:
+        #     return "VPS has been deleted successfully."
+        # else:
+        #     self.connection_info.changed = False
+        #     return "Could not delete VPS, ensure VPS ID is valid. "
+
 
 class VpsPropertiesExtractor:
     def __init__(self):
@@ -179,7 +204,7 @@ class VpsPropertiesExtractor:
             "totalUpperLimitForNumberOfVolumeServerConnections": int,
         }
         self.parameter_mapping = {
-            "saving_setting_of_volume" : "capacity_saving_of_volume"
+            "saving_setting_of_volume": "capacity_saving_of_volume"
         }
 
     @log_entry_exit
@@ -198,22 +223,14 @@ class VpsPropertiesExtractor:
                 if value_type == dict:
                     value = self.change_keys(value)
                 if value is None:
-                    default_value = (
-                        ""
-                        if value_type == str
-                        else (
-                            -1
-                            if value_type == int
-                            else [] if value_type == list else False
-                        )
-                    )
+                    default_value = get_default_value(value_type)
                     value = default_value
                 new_dict[key] = value
         return new_dict
 
     @log_entry_exit
     def extract(self, input_data):
-        logger.writeDebug("RC:extract:input_data = {}", input_data)        
+        logger.writeDebug("RC:extract:input_data = {}", input_data)
         new_items = []
         if input_data and input_data.data:
             responses = input_data.data
@@ -224,7 +241,7 @@ class VpsPropertiesExtractor:
 
                     # Get the corresponding key from the response or its mapped key
                     response_key = response.get(key)
-                    logger.writeDebug('r key={} value_type={}', key, value_type)
+                    logger.writeDebug("r key={} value_type={}", key, value_type)
                     if value_type == dict:
                         response_key = self.change_keys(response_key)
 
@@ -236,18 +253,13 @@ class VpsPropertiesExtractor:
                             new_dict[new_key] = value_type(response_key)
                         else:
                             new_dict[key] = value_type(response_key)
-                            logger.writeDebug('RC:extract:value_type(response_key)={}', value_type(response_key))
+                            logger.writeDebug(
+                                "RC:extract:value_type(response_key)={}",
+                                value_type(response_key),
+                            )
                     else:
                         # Handle missing keys by assigning default values
-                        default_value = (
-                            ""
-                            if value_type == str
-                            else (
-                                -1
-                                if value_type == int
-                                else [] if value_type == list else False
-                            )
-                        )
+                        default_value = get_default_value(value_type)
                         new_dict[key] = default_value
                 new_items.append(new_dict)
         # new_items = camel_array_to_snake_case(new_items)
@@ -275,15 +287,7 @@ class VpsPropertiesExtractor:
                     new_dict[key] = value_type(response_key)
             else:
                 # Handle missing keys by assigning default values
-                default_value = (
-                    ""
-                    if value_type == str
-                    else (
-                        -1
-                        if value_type == int
-                        else [] if value_type == list else False
-                    )
-                )
+                default_value = get_default_value(value_type)
                 new_dict[key] = default_value
         # new_dict = camel_dict_to_snake_case(new_dict)
         return new_dict
@@ -308,15 +312,7 @@ class VpsPropertiesExtractor:
                     new_dict[key] = value_type(response_key)
             else:
                 # Handle missing keys by assigning default values
-                default_value = (
-                    ""
-                    if value_type == str
-                    else (
-                        -1
-                        if value_type == int
-                        else [] if value_type == list else False
-                    )
-                )
+                default_value = get_default_value(value_type)
                 new_dict[key] = default_value
         # new_dict = camel_dict_to_snake_case(new_dict)
         return new_dict

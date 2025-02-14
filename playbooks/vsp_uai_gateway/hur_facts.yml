@@ -1,101 +1,99 @@
+---
 ####################################################################
 # Example :  Hitachi Universal Replicator (HUR) Facts playbook
 ####################################################################
 - name: HUR facts
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_uai_gateway_variables.yml
 
   tasks:
-####################################################################
-# Task 0 : Get UAI gateway token
-####################################################################
+    ####################################################################
+    # Task 0 : Get UAI gateway token
+    ####################################################################
     - name: Get UAI gateway token
-      hv_uaig_token_fact:
+      hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
-      ignore_errors: False
+      ignore_errors: false
 
-#####################################################################
-# Task 1 : Get all HUR pairs
-######################################################################
+    #####################################################################
+    # Task 1 : Get all HUR pairs
+    #####################################################################
     - name: Get all HUR pairs
-      hv_hur_facts:
+      hitachivantara.vspone_block.vsp.hv_hur_facts:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-#####################################################################
-# Task 2 : Get HUR pair using primary volume Id and mirror unit Id
-######################################################################      
+    #####################################################################
+    # Task 2 : Get HUR pair using primary volume Id and mirror unit Id
+    #####################################################################
     - name: Get HUR pair using primary volume Id and mirror unit Id
-      hv_hur_facts:
+      hitachivantara.vspone_block.vsp.hv_hur_facts:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          primary_volume_id: "{{ hur_facts_primary_volume_id_2 }}"
-          mirror_unit_id: "{{ hur_facts_mirror_unit_id_2 }}"
+          primary_volume_id: 1234
+          mirror_unit_id: 1
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-#####################################################################
-# Task 3 : Get HUR pair using primary volume Id
-######################################################################
+    #####################################################################
+    # Task 3 : Get HUR pairs using primary volume Id
+    ######################################################################
     - name: Get HUR pair using only primary volume Id
-      hv_hur_facts:
+      hitachivantara.vspone_block.vsp.hv_hur_facts:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          primary_volume_id: "{{ hur_facts_primary_volume_id_3 }}"
+          primary_volume_id: 1234
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-#####################################################################
-# Task 4 : Get HUR pair using secondary volume Id
-######################################################################
+    #####################################################################
+    # Task 4 : Get HUR pairs using secondary volume Id
+    ######################################################################
     - name: Get HUR pair using secondary volume Id
-      hv_hur_facts:
+      hitachivantara.vspone_block.vsp.hv_hur_facts:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          secondary_volume_id: "{{ hur_facts_secondary_volume_id_4 }}"
+          secondary_volume_id: 2345
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

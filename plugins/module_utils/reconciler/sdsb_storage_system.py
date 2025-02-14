@@ -1,15 +1,11 @@
-from typing import List
-
 try:
     from ..common.ansible_common import log_entry_exit
     from ..provisioner.sdsb_storage_system_provisioner import (
         SDSBStorageSystemProvisioner,
     )
-    from ..model.sdsb_storage_system_models import *
 except ImportError:
     from common.ansible_common import log_entry_exit
     from provisioner.sdsb_storage_system_provisioner import SDSBStorageSystemProvisioner
-    from model.sdsb_storage_system_models import *
 
 
 class SDSBStorageSystemReconciler:

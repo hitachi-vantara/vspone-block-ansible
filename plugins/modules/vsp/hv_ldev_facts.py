@@ -8,28 +8,32 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: hv_ldev_facts
 short_description: Retrieves information about logical devices (LDEVs) from Hitachi VSP storage systems.
 description:
   - This module retrieves information about logical devices (LDEVs) from Hitachi VSP storage systems.
   - It provides details such as LDEV IDs, names, and other relevant information.
+  - This module is supported for both direct and gateway connection types.
+  - For direct connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/ldev_facts.yml)
+  - For gateway connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/ldev_facts.yml)
 version_added: '3.0.0'
 author:
-  - Hitachi Vantara, LTD. VERSION 3.0.0
-requirements:
+  - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   storage_system_info:
     description:
       - Information about the Hitachi storage system.
     type: dict
-    required: true
+    required: false
     suboptions:
       serial:
         description: Serial number of the Hitachi storage system.
         type: str
-        required: true
+        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
@@ -54,7 +58,7 @@ options:
         choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description: Subscriber ID for multi-tenancy (required for "gateway" connection type).
+        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
@@ -91,9 +95,9 @@ options:
         type: bool
         required: false
         default: false
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 - name: Retrieve information about all LDEVs
   hv_ldev_facts:
     storage_system_info:
@@ -117,9 +121,9 @@ EXAMPLES = '''
       connection_type: "direct"
     spec:
       ldev_id: 123
-'''
+"""
 
-RETURN = '''
+RETURN = """
 ldevs:
   description: List of logical devices (LDEVs) managed by the module.
   returned: success
@@ -163,7 +167,7 @@ ldevs:
       "virtual_storage_device_id": "1111"
     }
   ]
-'''
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
@@ -171,12 +175,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     VSPParametersManager,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    StateValue,
     ConnectionTypes,
 )
-
 import ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ldev_facts_runner as runner
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler import (
     vsp_volume,
 )
@@ -188,20 +189,26 @@ try:
     )
 
     HAS_MESSAGE_ID = True
-except ImportError as error:
+except ImportError:
     HAS_MESSAGE_ID = False
 
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import Log
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
     HiException,
 )
-
-logger = Log()
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
+    ModuleMessage,
+)
 
 
 class VSPVolumeFactManager:
     def __init__(self):
-
+        self.logger = Log()
         self.argument_spec = VSPVolumeArguments().volume_fact()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
@@ -217,23 +224,33 @@ class VSPVolumeFactManager:
             self.module.fail_json(msg=str(e))
 
     def apply(self):
+        self.logger.writeInfo("=== Start of LDEV Facts ===")
+        registration_message = validate_ansible_product_registration()
 
         volume_data = None
-        logger.writeInfo(f"{self.connection_info.connection_type} connection type")
-        try:
 
+        try:
             if self.connection_info.connection_type.lower() == ConnectionTypes.GATEWAY:
                 volume_data = self.gateway_volume_read()
-                logger.writeDebug("63 volume_data={}", volume_data)
+                self.logger.writeDebug("63 volume_data={}", volume_data)
             else:
                 volume_data = self.direct_volume_read()
             volume_data_extracted = vsp_volume.VolumeCommonPropertiesExtractor(
-                  self.serial
+                self.serial
             ).extract(volume_data)
         except Exception as e:
+            self.logger.writeException(e)
+            self.logger.writeInfo("=== End of LDEV Facts ===")
             self.module.fail_json(msg=str(e))
 
-        self.module.exit_json(data=volume_data_extracted)
+        data = {"volumes": volume_data_extracted}
+
+        if registration_message:
+            data["user_consent_required"] = registration_message
+
+        self.logger.writeInfo(f"{data}")
+        self.logger.writeInfo("=== End of LDEV Facts ===")
+        self.module.exit_json(**data)
 
     def direct_volume_read(self):
 
@@ -243,7 +260,7 @@ class VSPVolumeFactManager:
         ).get_volumes(self.spec)
 
         if not result:
-            self.module.fail_json("Couldn't read volume ")
+            raise ValueError(ModuleMessage.VOLUME_NOT_FOUND.value)
         return result.data_to_list()
 
     def gateway_volume_read(self):
@@ -260,16 +277,15 @@ class VSPVolumeFactManager:
             return runner.runPlaybook(self.module)
         except HiException as ex:
             if HAS_MESSAGE_ID:
-                logger.writeAMException(MessageID.ERR_OPERATION_LUN)
+                self.logger.writeAMException(MessageID.ERR_OPERATION_LUN)
             else:
-                logger.writeAMException("0X0000")
-            self.module.fail_json(msg=ex.format())
+                self.logger.writeAMException("0X0000")
+            raise Exception(ex.format())
         except Exception as ex:
-            self.module.fail_json(msg=str(ex))
+            raise Exception(str(ex))
 
 
-def main():
-    """ """
+def main(module=None):
     obj_store = VSPVolumeFactManager()
     obj_store.apply()
 

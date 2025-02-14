@@ -3,9 +3,13 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
+    from ..common.hv_log import Log
 
 except ImportError:
-    from common_base_models import BaseDataClass, SingleBaseClass
+    from .common_base_models import BaseDataClass, SingleBaseClass
+    from common.hv_log import Log
+
+logger = Log()
 
 
 @dataclass
@@ -14,8 +18,9 @@ class VolumeFactSpec:
     name: Optional[str] = None
     count: Optional[int] = None
     end_ldev_id: Optional[int] = None
-    start_ldev_id: Optional[str] = None
+    start_ldev_id: Optional[int] = None
     is_detailed: Optional[bool] = None
+
 
 @dataclass
 class TieringPolicySpec:
@@ -25,12 +30,44 @@ class TieringPolicySpec:
     tier3_allocation_rate_min: Optional[int] = None
     tier3_allocation_rate_max: Optional[int] = None
 
+
+@dataclass
+class VolumeQosParamsOutput:
+    upperIops: Optional[int] = field(default=-1)
+    upperTransferRate: Optional[int] = field(default=-1)
+    upperAlertAllowableTime: Optional[int] = field(default=-1)
+    upperAlertTime: Optional[int] = field(default=-1)
+    lowerIops: Optional[int] = field(default=-1)
+    lowerTransferRate: Optional[int] = field(default=-1)
+    lowerAlertAllowableTime: Optional[str] = field(default=-1)
+    lowerAlertTime: Optional[int] = field(default=-1)
+    responsePriority: Optional[int] = field(default=-1)
+    targetResponseTime: Optional[int] = field(default=-1)
+    responseAlertAllowableTime: Optional[int] = field(default=-1)
+    responseAlertTime: Optional[int] = field(default=-1)
+
+
+@dataclass
+class VolumeQosParamsSpec:
+    upper_iops: int = None
+    upper_transfer_rate: int = None
+    upper_alert_allowable_time: int = None
+    lower_iops: int = None
+    lower_transfer_rate: int = None
+    lower_alert_allowable_time: int = None
+    response_priority: int = None
+    response_alert_allowable_time: int = None
+
+
 @dataclass
 class CreateVolumeSpec:
     data_reduction_share: Optional[bool] = None
     name: Optional[str] = None
     size: Optional[str] = None
+    block_size: Optional[int] = None
     ldev_id: Optional[str] = None
+    # sng20241205 vldev_id
+    vldev_id: Optional[str] = None
     pool_id: Optional[int] = None
     capacity_saving: Optional[str] = None
     parity_group: Optional[str] = None
@@ -41,6 +78,12 @@ class CreateVolumeSpec:
     nvm_subsystem_name: Optional[str] = None
     host_nqns: Optional[List[str]] = None
     state: Optional[str] = None
+    should_shred_volume_enable: Optional[bool] = None
+    qos_settings: Optional[VolumeQosParamsSpec] = None
+
+    def __post_init__(self):
+        if self.qos_settings:
+            self.qos_settings = VolumeQosParamsSpec(**self.qos_settings)
 
 
 @dataclass
@@ -64,12 +107,14 @@ class VSPVolumePortInfo(SingleBaseClass):
     id: Optional[int] = None
     name: Optional[str] = None
 
+
 @dataclass
 class VSPVolumeNvmSubsystenInfo(SingleBaseClass):
     id: Optional[int] = None
     name: Optional[str] = None
     ports: Optional[List[str]] = None
     host_nqns: Optional[List[str]] = None
+
 
 @dataclass
 class VSPVolumeInfo(SingleBaseClass):
@@ -113,6 +158,19 @@ class VSPVolumeInfo(SingleBaseClass):
     canonicalName: Optional[str] = None
     storageSerialNumber: Optional[str] = None
     isDataReductionShareEnabled: Optional[bool] = None
+    qosSettings: Optional[VolumeQosParamsOutput] = None
+    virtualLdevId: Optional[int] = None
+    isCommandDevice: Optional[bool] = None
+    isSecurityEnabled: Optional[bool] = None
+    isUserAuthenticationEnabled: Optional[bool] = None
+    isDeviceGroupDefinitionEnabled: Optional[bool] = None
+
+    tierLevel: Optional[int] = None
+    tierLevelForNewPageAllocation: Optional[str] = None
+    tier1AllocationRateMin: Optional[int] = None
+    tier1AllocationRateMax: Optional[int] = None
+    tier3AllocationRateMin: Optional[int] = None
+    tier3AllocationRateMax: Optional[int] = None
 
     def __init__(self, **kwargs):
         try:
@@ -125,6 +183,8 @@ class VSPVolumeInfo(SingleBaseClass):
         super().__init__(**kwargs)
         try:
             storage_info = get_basic_storage_details()
+            if storage_info is None:
+                return
             self.storageSerialNumber = storage_info.serialNumber
             if storage_info.firstWWN and self.canonicalName is None:
                 self.canonicalName = NAIDCalculator(
@@ -133,15 +193,21 @@ class VSPVolumeInfo(SingleBaseClass):
                     storage_info.model,
                 ).calculate_naid(kwargs.get("ldevId", None))
 
-            self.isDataReductionShareEnabled = True if "DRS" in self.attributes else None
-        except:
-            pass
+            self.isDataReductionShareEnabled = (
+                True if "DRS" in self.attributes else None
+            )
+
+            if self.qosSettings is not None:
+                self.qosSettings = VolumeQosParamsOutput(**self.qosSettings)
+
+        except Exception as ex:
+            logger.writeDebug(f"MODEL: exception in initializing VSPVolumeInfo {ex}")
+        return
 
 
 @dataclass
 class VSPVolumesInfo(BaseDataClass):
-    data: List[VSPVolumeInfo]
-
+    data: List[VSPVolumeInfo] = None
 
 
 @dataclass
@@ -155,9 +221,11 @@ class VSPVolumeDetailInfo(SingleBaseClass):
     def to_dict(self):
         return asdict(self)
 
+
 @dataclass
 class VSPVolumeDetailInfoList(BaseDataClass):
     data: List[VSPVolumeDetailInfo]
+
 
 @dataclass
 class VSPStorageVolumeUAIGInfo(SingleBaseClass):
@@ -166,6 +234,7 @@ class VSPStorageVolumeUAIGInfo(SingleBaseClass):
     totalCapacity: int = 0
     usedCapacity: int = 0
     poolName: str = None
+
 
 @dataclass
 class VSPStorageVolumeUAIG(SingleBaseClass):
@@ -177,15 +246,18 @@ class VSPStorageVolumeUAIG(SingleBaseClass):
     subscriberId: str = None
     storageVolumeInfo: VSPStorageVolumeUAIGInfo = None
 
+
 @dataclass
 class VSPStorageVolumesUAIG(BaseDataClass):
     data: List[VSPStorageVolumeUAIG] = None
+
 
 @dataclass
 class PortGroups:
     group: int = -1
     lun: int = -1
     port: str = None
+
 
 @dataclass
 class Policy:
@@ -195,13 +267,15 @@ class Policy:
     tier3AllocRateMin: int = -1
     tier3AllocRateMax: int = -1
 
+
 @dataclass
 class TieringPropertiesDto:
     policy: Policy = None
     tier1UsedCapacityMB: int = -1
     tier2UsedCapacityMB: int = -1
-    tier3UsedCapacityMB:int = -1
+    tier3UsedCapacityMB: int = -1
     tierLevelForNewPageAlloc: str = None
+
 
 @dataclass
 class VSPVolume_V2:
@@ -242,6 +316,21 @@ class VSPVolume_V2:
     nvmNamespaceId: int = -1
     nvmSubsystemId: int = -1
     tieringPropertiesDto: TieringPropertiesDto = None
+    isTieringRelocation: Optional[bool] = None
 
     def to_dict(self):
         return asdict(self)
+
+
+@dataclass
+class VSPUndefinedVolumeInfo:
+    ldevId: int = 0
+    emulationType: str = None
+    ssid: str = None
+    resourceGroupId: int = 0
+    virtualLdevId: int = 0
+
+
+@dataclass
+class VSPUndefinedVolumeInfoList(BaseDataClass):
+    data: List[VSPUndefinedVolumeInfo] = None

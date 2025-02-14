@@ -1,6 +1,5 @@
 try:
     from ..common.uaig_constants import Endpoints
-    from ..common.ansible_common import dicts_to_dataclass_list
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from .gateway_manager import UAIGConnectionManager
@@ -8,7 +7,6 @@ try:
 except ImportError:
     from common.uaig_constants import Endpoints
     from common.hv_constants import GatewayConstant
-    from common.ansible_common import dicts_to_dataclass_list
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from .gateway_manager import UAIGConnectionManager
@@ -22,7 +20,10 @@ class PasswordUAIGateway:
         self.logger.writeEnterSDK(funcName)
 
         self.connectionManager = UAIGConnectionManager(
-            connection_info.address, connection_info.username, connection_info.password, connection_info.api_token
+            connection_info.address,
+            connection_info.username,
+            connection_info.password,
+            connection_info.api_token,
         )
 
     @log_entry_exit
@@ -43,22 +44,20 @@ class PasswordUAIGateway:
             self.logger.writeDebug("{} Response={}", funcName, data)
             self.logger.writeExitSDK(funcName)
             return data
-        except:
+        except (ValueError, TypeError):
             return "Failed to update admin password"
-    
+
     @log_entry_exit
     def get_admin_user(self):
         end_point = Endpoints.GET_USERS
         try:
             user_data = self.connectionManager.get(end_point)
             self.logger.writeDebug("Response={}", user_data)
-            self.logger.writeDebug(
-                "GW:get_admin_user:user_data={}", user_data
-            )            
+            self.logger.writeDebug("GW:get_admin_user:user_data={}", user_data)
             users = user_data["data"].get("users")
             for user in users:
                 if user["username"] == GatewayConstant.ADMIN_USER_NAME:
                     return user
-        except:
+        except (ValueError, TypeError):
             return "Failed to get admin user"
         return {}

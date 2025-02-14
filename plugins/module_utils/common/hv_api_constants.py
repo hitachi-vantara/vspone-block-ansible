@@ -36,8 +36,10 @@ class API:
     DATA_REDUCTION_MODE_DISABLED = "disabled"
     DRIVE_CAPACITY = "driveCapacity"
     DRIVE_IDS = "driveIds"
+    DETAIL_CODE = "detailCode"
 
     ERROR = "error"
+    ERROR_CODE = "errorCode"
     EXTERNAL_PARITY_GROUP_ID = "externalParityGroupId"
     EXTERNAL_PATH_GROUP_ID = "externalPathGroupId"
     EXTERNAL_PORT_DEFAULT = 3260
@@ -106,6 +108,7 @@ class API:
     SNAPSHOT_GROUP_NAME = "snapshotGroupName"
     SNAPSHOT_POOL_ID = "snapshotPoolId"
     SOLUTION = "solution"
+    SOLUTION_TYPE = "solutionType"
     START_ID = "startId"
     START_NUMBER = "startNumber"
     STATE = "state"

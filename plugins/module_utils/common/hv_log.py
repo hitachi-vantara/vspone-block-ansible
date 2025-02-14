@@ -1,21 +1,18 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-__metaclass__ = type
-
 import logging
 import os
 import sys
 import configparser
 import ast
 import inspect
+import uuid
+import logging.config
+import logging.handlers
 
 try:
-    from enum import Enum
-except ImportError as error:
+    pass
+except ImportError:
     pass
 
-from logging.config import fileConfig
 from time import gmtime, strftime
 
 try:
@@ -29,37 +26,52 @@ try:
     )
 
     HAS_MESSAGE_ID = True
-except ImportError as error:
+except ImportError:
     from .ansible_common import get_ansible_home_dir
 
     HAS_MESSAGE_ID = False
 
-import logging
-import logging.config
-import logging.handlers
-import os
+UUID = ""
 
 
 def setup_logging(logger):
+    # Generate a UUID
+    global UUID
+    unique_id = str(uuid.uuid4())
+    UUID = unique_id
     # Define the log directory and ensure it exists
     os.makedirs(ANSIBLE_LOG_PATH, exist_ok=True)
 
     # Define the log file path
     log_file = os.path.join(ANSIBLE_LOG_PATH, LOGFILE_NAME)
 
+    # Custom formatter to include uuid and module_name
+    class CustomFormatter(logging.Formatter):
+        def __init__(self, fmt=None, datefmt=None):
+            super().__init__(fmt, datefmt)
+            self.uuid = UUID
+
+        def format(self, record):
+            # Add UUID and module_name to each log record
+            record.uuid = self.uuid
+            return super().format(record)
+
     # Logging configuration dictionary
     logging_config = {
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            "logfileformatter": {"format": "%(asctime)s - %(levelname)s - %(message)s"},
+            # Updated the formatter to include uuid and module_name placeholders
+            "logfileformatter": {
+                "format": "%(asctime)s - %(levelname)s - %(uuid)s - %(message)s"
+            },
         },
         "handlers": {
             "console": {
                 "class": "logging.StreamHandler",
-                "level": "DEBUG",
+                "level": "INFO",
                 "formatter": "logfileformatter",
-                "stream": "ext://sys.stderr"
+                "stream": "ext://sys.stderr",
             },
         },
         "loggers": {
@@ -80,21 +92,23 @@ def setup_logging(logger):
         log_file, mode="a", maxBytes=5242880, backupCount=20
     )
 
-    # Use the existing formatter from the configuration
-    formatter = logging_config["formatters"]["logfileformatter"]["format"]
-    log_handler.setFormatter(logging.Formatter(formatter))
+    # Use the custom formatter
+    formatter = CustomFormatter(
+        fmt=logging_config["formatters"]["logfileformatter"]["format"]
+    )
+    log_handler.setFormatter(formatter)
 
     # Add the handler to the root logger
     root_logger = logging.getLogger()
     root_logger.addHandler(log_handler)
 
-    # Add the handler to the hv_logger
     logger.addHandler(log_handler)
 
 
 class Log:
 
     logger = None
+    module_name = None
 
     @staticmethod
     def getHomePath():
@@ -127,9 +141,10 @@ class Log:
 
         return path
 
-    def __init__(self):
+    def __init__(self, name=None):
 
         if not Log.logger:
+
             Log.logger = logging.getLogger("hv_logger")
             setup_logging(Log.logger)
 
@@ -169,7 +184,7 @@ class Log:
                     ]  # Use ast.literal_eval to safely parse the args tuple
                     log_dir = os.path.dirname(log_file_path)
                     os.makedirs(log_dir, exist_ok=True)
-                except (ValueError, SyntaxError) as e:
+                except (ValueError, SyntaxError):
                     raise ValueError(f"Error parsing log file path from args: {args}")
 
     def writeException(self, exception, messageID=None, *args):
@@ -189,7 +204,6 @@ class Log:
 
     def writeAMException(self, messageID, *args):
 
- 
         messageID = self.getMessageIDString(messageID, "E", "ERROR")
         if args:
             messageID = messageID.format(*args)
@@ -342,7 +356,6 @@ class Log:
         if args:
             messageID = messageID.format(*args)
 
-        message = messageID
         msg = "MODULE " + messageID
         self.logger.error(msg)
 
@@ -352,7 +365,6 @@ class Log:
         if args:
             messageID = messageID.format(*args)
 
-        message = messageID
         msg = "SDK " + messageID
         self.logger.error(msg)
 

@@ -1,11 +1,10 @@
+---
 ####################################################################
 # Example : StorageSystem Facts Playbook
 ####################################################################
 - name: StorageSystem Facts
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.sds_block
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
@@ -16,15 +15,16 @@
       address: "{{ storage_address }}"
       username: "{{ vault_storage_username }}"
       password: "{{ vault_storage_secret }}"
-  
+
   tasks:
-####################################################################
-# Task 1 : Get storage system facts
-####################################################################
+    ####################################################################
+    # Task 1 : Get storage system facts
+    ####################################################################
     - name: Get storage system facts
-      hv_sds_block_storage_system_fact:
+      hitachivantara.vspone_block.sds_block.hv_sds_block_storage_system_facts:
         connection_info: "{{ connection_info }}"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

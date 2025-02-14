@@ -1,0 +1,476 @@
+---
+####################################################################
+# Example : NVM Subsystems  Playbook
+####################################################################
+- name: NVM Subsystems Management
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task 1 : Create an NVM Subsystem with a specific ID
+    ####################################################################
+    - name: Create an NVM Subsystem
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          id: 222
+          ports: ["CL1-B", "CL1-D"]
+          host_mode: "VMWARE_EX"
+          enable_namespace_security: true
+          host_nqns:
+            - nqn: "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12345"
+              nickname: "test_nvm_nqn_12345"
+            - nqn: "nqn.2014-08.com.vmware:nvme:esxi-59-60"
+              nickname: "test_nvm_nqn_5960"
+            - nqn: nqn.2014-08.com.vmware:nvme:esxi-59-61
+          namespaces:
+            - ldev_id: 357
+              nickname: "rd_namespace_2222"
+              paths:
+                - "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12345"
+                - "nqn.2014-08.com.vmware:nvme:esxi-59-60"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 2 : Create an NVM Subsystem with a free ID
+    ####################################################################
+    - name: Create an NVM Subsystem with a free ID
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          ports: ["CL1-B", "CL1-D"]
+          host_mode: "VMWARE_EX"
+          enable_namespace_security: true
+          host_nqns:
+            - nqn: "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12345"
+              nickname: "test_nvm_nqn_12345"
+            - nqn: "nqn.2014-08.com.vmware:nvme:esxi-59-60"
+              nickname: "test_nvm_nqn_5960"
+            - nqn: nqn.2014-08.com.vmware:nvme:esxi-59-61
+          namespaces:
+            - ldev_id: 357
+              nickname: "rd_namespace_2222"
+              paths:
+                - "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12345"
+                - "nqn.2014-08.com.vmware:nvme:esxi-59-60"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 3 : Add host NQNs to an NVM Subsystem with a specific ID
+    ####################################################################
+    - name: Add host NQNs to an NVM Subsystem with a specific ID
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          state: "add_host_nqn"
+          id: 222
+          host_nqns:
+            - nqn: "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12346"
+              nickname: "test_nvm_nqn_12346"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 4 : Add host NQNs to an NVM Subsystem with a specific Name
+    ####################################################################
+    - name: Add host NQNs to an NVM Subsystem with a specific Name
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          state: "add_host_nqn"
+          name: "test_nvm_subsystem_222"
+          host_nqns:
+            - nqn: "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12346"
+              nickname: "test_nvm_nqn_12346"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task 5 : Add namespaces and namespace paths to an NVM Subsystem with a specific ID
+    #####################################################################################
+    - name: Add namespaces and namespace paths to an NVM Subsystem with a specific ID
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          state: "add_namespace"
+          id: 222
+          namespaces:
+            - ldev_id: 358
+              nickname: "rd_namespace_2223"
+              paths:
+                - "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12346"
+                - "nqn.2014-08.com.vmware:nvme:esxi-59-61"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #######################################################################################
+    # Task 6 : Add namespaces and namespace paths to an NVM Subsystem with a specific Name
+    #######################################################################################
+    - name: Add namespaces and namespace paths to an NVM Subsystem with a specific Name
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          state: "add_namespace"
+          name: "test_nvm_subsystem_222"
+          namespaces:
+            - ldev_id: 359
+              nickname: "rd_namespace_2224"
+              paths:
+                - "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12347"
+                - "nqn.2014-08.com.vmware:nvme:esxi-59-62"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 7 : Add ports to an NVM Subsystem with a specific ID
+    ####################################################################
+    - name: Add ports to an NVM Subsystem with a specific ID
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          state: "add_port"
+          id: 222
+          ports: ["CL1-B", "CL1-D"]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 8 : Add ports to an NVM Subsystem with a specific Name
+    ####################################################################
+    - name: Add ports to an NVM Subsystem with a specific Name
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          state: "add_port"
+          name: "test_nvm_subsystem_222"
+          ports: ["CL1-B", "CL1-D"]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################
+    # Task 9 : Remove ports from an NVM Subsystem with a specific Name or ID
+    #########################################################################
+    - name: Remove ports from an NVM Subsystem with a specific Name or ID
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          state: "remove_port"
+          id: 222
+          name: "test_nvm_subsystem_222"
+          ports: ["CL1-B", "CL1-D"]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task 10 : Remove namespace paths from an NVM Subsystem with specific Id or Name
+    #####################################################################################
+    - name: Remove namespace paths from an NVM Subsystem with specific Id or Name
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          id: "{{ nvm_subsystem_facts_id_10 }}"
+          state: "{{ substate_remove_namespace_path }}"
+          namespaces:
+            - ldev_id: 358
+              nickname: "rd_namespace_2223"
+              paths:
+                - "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12346"
+                - "nqn.2014-08.com.vmware:nvme:esxi-59-61"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task 11 : Remove namespace from an NVM Subsystem with specific Id or Name
+    #####################################################################################
+    # This task will first remove the namespace paths from the NVM Subsystem for the
+    # ldev_ids provided in namespaces.
+    # Then it will remove the namespace from the NVM Subsystem if no namespace paths
+    # are left.
+    # If namespace paths are left, the task will fail.
+    # In that case, use force option to remove the namespace or remove all the paths
+    # using playbook.
+    - name: Remove namespace from an NVM Subsystem with specific Id or Name
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          id: 222
+          name: "test_nvm_subsystem_222"
+          state: "remove_namespace"
+          namespaces:
+            - ldev_id: 359
+              nickname: "rd_namespace_2224"
+              paths:
+                - "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12347"
+                - "nqn.2014-08.com.vmware:nvme:esxi-59-62"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ########################################################################################
+    # Task 12 : Remove namespace from an NVM Subsystem with specific Id or Name using force
+    ########################################################################################
+    # This task will remove all the namespace paths from the NVM Subsystem for the
+    # ldev_ids provided in namespaces.
+    # Then it will remove the namespace from the NVM Subsystem.
+    - name: Remove namespace from an NVM Subsystem with specific Id or Name using force
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          id: 222
+          name: "test_nvm_subsystem_222"
+          state: "remove_namespace"
+          force: true
+          namespaces:
+            - ldev_id: 359
+              nickname: "rd_namespace_2224"
+              paths:
+                - "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12347"
+                - "nqn.2014-08.com.vmware:nvme:esxi-59-62"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task 13 : Remove host NQNs from an NVM Subsystem with a specific Id or Name
+    #####################################################################################
+    # This task will try to remove the host NQNs from the NVM Subsystem.
+    # If the host NQNs are present in the namespace paths, the task will fail.
+    # In that case, use force option to remove the host NQNs or remove the
+    # namespace paths using playbook.
+    - name: Remove host NQNs from an NVM Subsystem with specific Id or Name
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          id: 222
+          name: "test_nvm_subsystem_222"
+          state: "remove_host_nqn"
+          host_nqns:
+            - nqn: "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12345"
+            - nqn: "nqn.2014-08.com.vmware:nvme:esxi-59-60"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ##########################################################################################
+    # Task 14 : Remove host NQNs from an NVM Subsystem with a specific Id or Name using force
+    ##########################################################################################
+    # This task will try to remove the host NQNs from the NVM Subsystem forcefully.
+    - name: Remove host NQNs from an NVM Subsystem with a specific Id or Name using force
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          id: 222
+          name: "test_nvm_subsystem_222"
+          state: "remove_host_nqn"
+          force: true
+          host_nqns:
+            - nqn: "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12345"
+            - nqn: "nqn.2014-08.com.vmware:nvme:esxi-59-60"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task 15 : Update host NQNs nickname of an NVM Subsystem with a specific Id or Name
+    #####################################################################################
+    - name: Update host NQNs nickname of an NVM Subsystem with a specific Id or Name
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          state: "add_host_nqn"
+          name: "test_nvm_subsystem_222"
+          id: 222
+          host_nqns:
+            - nqn: "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12345"
+              nickname: "test_nvm_nqn_12345_updated"
+            - nqn: "nqn.2014-08.com.vmware:nvme:esxi-59-60"
+              nickname: "test_nvm_nqn_5960_updated"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #######################################################################################
+    # Task 16 : Update namespace nicknames of an NVM Subsystem with a specific Id or Name
+    #######################################################################################
+    - name: Update namespace nicknames of an NVM Subsystem with a specific Id or Name
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        spec:
+          state: "add_namespace"
+          name: "test_nvm_subsystem_222"
+          id: 222
+          namespaces:
+            - ldev_id: 358
+              nickname: "rd_namespace_2223_updated"
+            - ldev_id: 359
+              nickname: "rd_namespace_2224_updated"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #######################################################################################
+    # Task 17 : Delete an NVM Subsystem with a specific Id
+    #######################################################################################
+    # This task will try to delete an NVN subsystem, but it will fail if it has namespaces
+    # and namespace paths.
+    # In that case, use force option to delete the NVM subsystem or remove the namespaces
+    # and namespace paths using playbook.
+    - name: Delete an NVM Subsystem with a specific Id
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ substate_absent }}"
+        spec:
+          id: 222
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task 18 : Delete an NVM Subsystem with a specific Id forcefully
+    #####################################################################################
+    # This task will try to delete an NVN subsystem forcefully.
+    - name: Delete an NVM Subsystem with a specific Id forcefully
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "{{ substate_absent }}"
+        spec:
+          id: 222
+          force: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task 19 : Delete an NVM Subsystem with a specific Name
+    #####################################################################################
+    # This task will try to delete an NVN subsystem, but it will fail if it has namespaces
+    # and namespace paths.
+    # In that case, use force option to delete the NVM subsystem or remove the namespaces
+    # and namespace paths using playbook.
+    - name: Delete an NVM Subsystem with a specific Name
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "absent"
+        spec:
+          name: "test_nvm_subsystem_222"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task 20 : Delete an NVM Subsystem with a specific Name forcefully
+    #####################################################################################
+    # This task will try to delete an NVN subsystem forcefully.
+    - name: Delete an NVM Subsystem with a specific Name forcefully
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "absent"
+        spec:
+          name: "test_nvm_subsystem_222"
+          force: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

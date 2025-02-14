@@ -1,15 +1,13 @@
+---
 ####################################################################
 # Example : Compute Port Facts Playbook
 ####################################################################
 - name: Compute Port Facts
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.sds_block
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - sds_block_variables.yml
 
   vars:
     # Common connection info for all tasks
@@ -17,42 +15,46 @@
       address: "{{ storage_address }}"
       username: "{{ vault_storage_username }}"
       password: "{{ vault_storage_secret }}"
-  
+
   tasks:
-####################################################################
-# Task 1 : Get all compute ports
-####################################################################
+    ####################################################################
+    # Task 1 : Get all compute ports
+    ####################################################################
     - name: Get all compute ports
-      hv_sds_block_port_facts:
+      hitachivantara.vspone_block.sds_block.hv_sds_block_port_facts:
         connection_info: "{{ connection_info }}"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Get compute nodes by names
-####################################################################
+    ####################################################################
+    # Task 2 : Get compute nodes by names
+    ####################################################################
     - name: Get compute port by name
-      hv_sds_block_port_facts:
+      hitachivantara.vspone_block.sds_block.hv_sds_block_port_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          name: "{{ compute_port_facts_name_2 }}"
+          name: "iqn_1994-04_jp_co_hitachi:rsd_sph_t_0a85a_002"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-##########################################################################
-# Task 3 : Get compute port by nicknames
-##########################################################################
+    ##########################################################################
+    # Task 3 : Get compute port by nicknames
+    ##########################################################################
     - name: Get compute port by nicknames
-      hv_sds_block_port_facts:
+      hitachivantara.vspone_block.sds_block.hv_sds_block_port_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          nicknames: "{{ compute_port_facts_nicknames_3 }}"
+          nicknames:
+            - "000-iSCSI-000"
+            - "001-iSCSI-001"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
-

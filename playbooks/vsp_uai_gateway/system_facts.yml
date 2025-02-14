@@ -1,56 +1,56 @@
+---
 ####################################################################
 # Example :  System Facts Playbook
 ####################################################################
 - name: Get the System details
   hosts: localhost
   gather_facts: false
-  collections:
-    - hitachivantara.vspone_block.vsp
 
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_uai_gateway_variables.yml
 
   tasks:
-####################################################################
-# Task 0 : Get UAI gateway token
-####################################################################
+    ####################################################################
+    # Task 0 : Get UAI gateway token
+    ####################################################################
     - name: Get UAI gateway token
-      hv_uaig_token_fact:
+      hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
-      ignore_errors: False
-      
-####################################################################
-# Task 1 : Get all storages
-####################################################################
+      ignore_errors: false
+
+    ####################################################################
+    # Task 1 : Get all storages
+    ####################################################################
     - name: Get all storages
-      hv_system_facts:
+      hitachivantara.vspone_block.vsp.hv_system_facts:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-####################################################################
-# Task 2 : Get all storages with hard refresh
-####################################################################
+    ####################################################################
+    # Task 2 : Get all storages with hard refresh
+    ####################################################################
     - name: Get all storages with hard refresh
-      hv_system_facts:
+      hitachivantara.vspone_block.vsp.hv_system_facts:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
         spec:
-          refresh: "{{ system_facts_refresh_2 }}"
+          refresh: true
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

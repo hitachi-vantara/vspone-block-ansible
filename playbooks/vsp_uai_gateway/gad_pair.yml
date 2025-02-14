@@ -1,161 +1,195 @@
+---
 ####################################################################
 # Example :  Global-active device (GAD) Pair  playbook
 ####################################################################
 - name: GAD - Global Active Device Pair
   hosts: localhost
-  collections:
-    - hitachivantara.vspone_block.vsp
+
   gather_facts: false
   vars_files:
     - ../ansible_vault_vars/ansible_vault_gateway_var.yml
     - ../ansible_vault_vars/ansible_vault_storage_var.yml
-    - vsp_uai_gateway_variables.yml
 
   tasks:
-####################################################################
-# Task 0 : Get UAI gateway token
-####################################################################
+    ####################################################################
+    # Task 0 : Get UAI gateway token
+    ####################################################################
     - name: Get UAI gateway token
-      hv_uaig_token_fact:
+      hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
           address: "{{ uai_gateway_address }}"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
-      ignore_errors: False
+      ignore_errors: false
 
-#####################################################################
-# Task 1 : Create GAD pair with single server configuration
-#####################################################################
+    #####################################################################
+    # Task 1 : Create GAD pair with single server configuration
+    #####################################################################
     - name: Create GAD pair with single server configuration
-      hv_gad:
+      hitachivantara.vspone_block.vsp.hv_gad:
         storage_system_info:
-          serial: '{{ storage_serial }}'
+          serial: "{{ storage_serial }}"
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         spec:
-          primary_storage_serial_number: "{{ gad_primary_storage_serial_number_1 }}"
-          secondary_storage_serial_number: "{{ gad_secondary_storage_serial_number_1 }}"
-          primary_volume_id: "{{ gad_primary_volume_id_1 }}"
-          secondary_pool_id: "{{ gad_secondary_pool_id_1 }}"
-          secondary_hostgroups: "{{ gad_secondary_hostgroups_1 }}"
-          quorum_disk_id: "{{ gad_quorum_disk_id_1 }}"
-          allocate_new_consistency_group: "{{ gad_allocate_new_consistency_group_1 }}"
+          primary_storage_serial_number: "{{ storage_serial }}"
+          secondary_storage_serial_number: "{{ secondary_storage_serial }}"
+          primary_volume_id: 123
+          secondary_pool_id: 3
+          secondary_hostgroup:
+            name: remote-hostgroup
+            port: CL1-A
+          primary_resource_group_name: primary_resource_group
+          quorum_disk_id: 10
+          allocate_new_consistency_group: true
       register: result
-    - debug:
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
-#####################################################################
-# Task 2 : Create GAD pair with  server cluster configuration
-#####################################################################
+
+    #####################################################################
+    # Task 2 : Create GAD pair with  server cluster configuration
+    #####################################################################
     - name: Create GAD pair with  server cluster configuration
-      hv_gad:
+      hitachivantara.vspone_block.vsp.hv_gad:
         storage_system_info:
-          serial: '{{ storage_serial }}'
+          serial: "{{ storage_serial }}"
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         spec:
-          primary_storage_serial_number: "{{ gad_primary_storage_serial_number_2 }}"
-          secondary_storage_serial_number: "{{ gad_secondary_storage_serial_number_2 }}"
-          primary_volume_id: "{{ gad_primary_volume_id_2 }}"
-          secondary_pool_id: "{{ gad_secondary_pool_id_2 }}"
-          secondary_hostgroups: "{{ gad_secondary_hostgroups_2 }}"
-          quorum_disk_id: "{{ gad_quorum_disk_id_2 }}"
-          allocate_new_consistency_group: "{{ gad_allocate_new_consistency_group_2 }}"
+          primary_storage_serial_number: "{{ storage_serial }}"
+          secondary_storage_serial_number: "{{ secondary_storage_serial }}"
+          primary_volume_id: 123
+          secondary_pool_id: 3
+          primary_hostgroups:
+            name: local-hostgroup
+            port: CL2-A
+          secondary_hostgroup:
+            name: remote-hostgroup
+            port: CL1-A
+          quorum_disk_id: 10
+          allocate_new_consistency_group: true
       register: result
- 
-    - debug:
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-#####################################################################
-# Task 3 : Create GAD pair with cross path server configuration
-#####################################################################
+    #####################################################################
+    # Task 3 : Create GAD pair with cross path server configuration
+    #####################################################################
     - name: Create GAD pair with cross path server configuration
-      hv_gad:
-        storage_system_info:
-          serial: '{{ storage_serial }}'
-        connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
-          api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
-        spec:
-          primary_storage_serial_number: "{{ gad_primary_storage_serial_number_3 }}"
-          secondary_storage_serial_number: "{{ gad_secondary_storage_serial_number_3 }}"
-          primary_volume_id: "{{ gad_primary_volume_id_3 }}"
-          secondary_pool_id: "{{ gad_secondary_pool_id_3 }}"
-          primary_hostgroups: "{{ gad_primary_hostgroups_3 }}"
-          secondary_hostgroups: "{{ gad_secondary_hostgroups_3 }}"
-          quorum_disk_id: "{{ gad_quorum_disk_id_3 }}"
-          set_alua_mode: "{{ gad_set_alua_mode_3 }}"
-          allocate_new_consistency_group: "{{ gad_allocate_new_consistency_group_3 }}"
-      register: result
- 
-    - debug:
-        var: result
-
-#####################################################################
-# Task 4 : Split GAD pair
-#####################################################################
-    - name: Split GAD pair 
-      hv_gad:
-        connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
-          api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
+      hitachivantara.vspone_block.vsp.hv_gad:
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_split }}"
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
         spec:
-          primary_volume_id: "{{ gad_primary_volume_id_4 }}"
+          primary_storage_serial_number: "{{ storage_serial }}"
+          secondary_storage_serial_number: "{{ secondary_storage_serial }}"
+          primary_volume_id: 123
+          secondary_pool_id: 3
+          primary_hostgroups:
+            name: local-hostgroup
+            port: CL2-A
+          secondary_hostgroup:
+            name: remote-hostgroup
+            port: CL1-A
+          quorum_disk_id: 10
+          set_alua_mode: true
+          allocate_new_consistency_group: true
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-#####################################################################
-# Task 5 : Resync GAD pair
-#####################################################################
+    #####################################################################
+    # Task 4 : Split GAD pair
+    #####################################################################
+    - name: Split GAD pair
+      hitachivantara.vspone_block.vsp.hv_gad:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: split
+        spec:
+          primary_volume_id: 123
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task 5 : Resync GAD pair
+    #####################################################################
     - name: Resync GAD pair
-      hv_gad:
+      hitachivantara.vspone_block.vsp.hv_gad:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_resync }}"
+        state: resync
         spec:
-          primary_volume_id: "{{ gad_primary_volume_id_5 }}"
+          primary_volume_id: 123
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result
 
-
-#####################################################################
-# Task 6 : Delete GAD pair
-#####################################################################
+    #####################################################################
+    # Task 6 : Delete GAD pair
+    #####################################################################
     - name: Delete GAD pair
-      hv_gad:
+      hitachivantara.vspone_block.vsp.hv_gad:
         connection_info:
           connection_type: "{{ connection_type }}"
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
-          subscriber_id: "{{ subscriber_id }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_absent }}"
+        state: absent
         spec:
-          primary_volume_id: "{{ gad_primary_volume_id_6 }}"
+          primary_volume_id: 123
       register: result
 
-    - debug:
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task 7 : Resize GAD pair
+    ######################################################################
+    - name: Resize GAD pair
+      hitachivantara.vspone_block.vsp.hv_gad:
+        connection_info:
+          connection_type: "{{ connection_type }}"
+          address: "{{ uai_gateway_address }}"
+          api_token: "{{ result_token.api_token.token }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: resize
+        spec:
+          primary_volume_id: 123
+          new_volume_size: 4000
+          secondary_storage_serial_number: "{{ secondary_storage_serial }}"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
         var: result

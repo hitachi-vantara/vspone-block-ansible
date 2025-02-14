@@ -1,17 +1,11 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-__metaclass__ = type
-
 import logging
 import os.path
 
 try:
-    from enum import Enum
-except ImportError as error:
+    pass
+except ImportError:
 
     # Output expected ImportErrors.
-    # print("enum module not found")
 
     pass
 
@@ -26,9 +20,8 @@ try:
 
     HAS_REQUESTS = True
     HAS_MESSAGE_ID = True
-except ImportError as error:
+except ImportError:
     HAS_MESSAGE_ID = False
-
 
 
 class Logger:
@@ -37,7 +30,6 @@ class Logger:
 
     def __init__(self):
         if not self.logger:
-
 
             config = "/opt/hpe/ansible/logger.config"
             if os.path.exists(config):
@@ -53,7 +45,6 @@ class Logger:
                     "/var/log/hitachivantara/ansible.log", maxBytes=2048, backupCount=5
                 )
                 self.logger.addHandler(handler)
-
 
             resources = "/opt/hitachivantara/ansible/messages.properties"
             self.messageIDs = {}

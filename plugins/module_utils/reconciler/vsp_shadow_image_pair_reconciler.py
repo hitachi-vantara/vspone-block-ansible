@@ -6,9 +6,10 @@ try:
         snake_to_camel_case,
         log_entry_exit,
         volume_id_to_hex_format,
+        get_default_value,
     )
     from ..common.hv_constants import (
-        CommonConstants, StateValue,
+        StateValue,
     )
     from ..common.hv_log import Log
     from ..common.hv_constants import ConnectionTypes
@@ -20,13 +21,13 @@ except ImportError:
         snake_to_camel_case,
         log_entry_exit,
         volume_id_to_hex_format,
+        get_default_value,
     )
-    from common.hv_constants import (
-        CommonConstants, StateValue
-    )
+    from common.hv_constants import StateValue
     from common.hv_log import Log
     from common.hv_constants import ConnectionTypes
 logger = Log()
+
 
 class VSPShadowImagePairReconciler:
 
@@ -50,7 +51,7 @@ class VSPShadowImagePairReconciler:
     def shadow_image_pair_module(self, state):
 
         shadow_image_response = None
-        
+
         shadow_image_data = None
         try:
             shadow_image_data = self.shadow_image_pair_get_by_pvol_and_svol(
@@ -61,7 +62,6 @@ class VSPShadowImagePairReconciler:
         pairId = None
         if shadow_image_data is not None:
             pairId = shadow_image_data.get("resourceId")
-        print(f"Pair Id: {pairId}")
         if pairId is not None:
             self.shadowImagePairSpec.pair_id = pairId
         try:
@@ -80,7 +80,6 @@ class VSPShadowImagePairReconciler:
                         shadow_image_response = shadow_image_data
                         self.connectionInfo.changed = False
                     else:
-                        print(f"---spec-- {self.shadowImagePairSpec}")
                         shadow_image_response = self.shadow_image_pair_split(
                             self.shadowImagePairSpec
                         )
@@ -127,13 +126,16 @@ class VSPShadowImagePairReconciler:
                     shadow_image_response = "Shadow image pair is not available."
                     self.connectionInfo.changed = False
 
-        except Exception as e:            
+        except Exception as e:
             logger.writeError(f"An error occurred: {str(e)}")
-            if self.connectionInfo.connection_type is None or self.connectionInfo.connection_type == ConnectionTypes.DIRECT:
+            if (
+                self.connectionInfo.connection_type is None
+                or self.connectionInfo.connection_type == ConnectionTypes.DIRECT
+            ):
                 if e.args is not list:
                     for elm in e.args[0]:
-                        if 'message' == elm:
-                            raise Exception(e.args[0]['message'])
+                        if "message" == elm:
+                            raise Exception(e.args[0]["message"])
                     raise Exception(e.args[0])
                     # if e.args[0]['message'] is not None:
                     #     raise Exception(e.args[0]['message'])
@@ -144,15 +146,15 @@ class VSPShadowImagePairReconciler:
                     #         raise Exception(e.args[0]['message'])
                     # except Exception as ex:
                     #     raise Exception(ex.args)
-                elif 'message' in e.args[0]:
-                    raise Exception(e.args[0].get('message'))
-                
+                elif "message" in e.args[0]:
+                    raise Exception(e.args[0].get("message"))
+
                 else:
                     raise Exception(e)
             logger.writeError(f"An error occurred: {str(e)}")
             raise Exception(str(e))
-            
-            #self.module.fail_json(msg=str(e))
+
+            # self.module.fail_json(msg=str(e))
         shadow_image_response = (
             ShadowImagePairPropertyExtractor(self.serial).extract_object(
                 shadow_image_response
@@ -161,7 +163,7 @@ class VSPShadowImagePairReconciler:
             else shadow_image_response
         )
         return shadow_image_response
-    
+
     @log_entry_exit
     def shadow_image_pair_create(self, shadowImagePairSpec):
         data = self.provisioner.create_shadow_image_pair(
@@ -203,6 +205,10 @@ class VSPShadowImagePairReconciler:
             self.serial, shadowImagePairSpec
         )
         return data
+
+    @log_entry_exit
+    def is_out_of_band(self):
+        return self.provisioner.is_out_of_band()
 
 
 class ShadowImagePairPropertyExtractor:
@@ -246,9 +252,7 @@ class ShadowImagePairPropertyExtractor:
                     new_dict[key] = value_type(response_key)
                 else:
                     # Handle missing keys by assigning default values
-                    default_value = (
-                        "" if value_type == str else -1 if value_type == int else False
-                    )
+                    default_value = get_default_value(value_type)
                     new_dict[key] = default_value
 
             for key, value_type in self.common_properties.items():
@@ -266,16 +270,16 @@ class ShadowImagePairPropertyExtractor:
                         new_dict[key] = self.serial
                     else:
                         # Handle missing keys by assigning default values
-                        default_value = (
-                            ""
-                            if value_type == str
-                            else -1 if value_type == int else False
-                        )
+                        default_value = get_default_value(value_type)
                         new_dict[key] = default_value
             if new_dict.get("primary_hex_volume_id") == "":
-                new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("primary_volume_id"))
+                new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+                    new_dict.get("primary_volume_id")
+                )
             if new_dict.get("secondary_hex_volume_id") == "":
-                new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("secondary_volume_id"))
+                new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+                    new_dict.get("secondary_volume_id")
+                )
             new_items.append(new_dict)
         return new_items
 
@@ -290,12 +294,10 @@ class ShadowImagePairPropertyExtractor:
             response_key = response.get(cased_key)
 
             if response_key is not None:
-                    new_dict[key] = value_type(response_key)
+                new_dict[key] = value_type(response_key)
             else:
                 # Handle missing keys by assigning default values
-                default_value = (
-                    "" if value_type == str else -1 if value_type == int else False
-                )
+                default_value = get_default_value(value_type)
                 new_dict[key] = default_value
         for key, value_type in self.common_properties.items():
             # Assign the value based on the response key and its data type
@@ -311,13 +313,15 @@ class ShadowImagePairPropertyExtractor:
                     new_dict[key] = self.serial
                 else:
                     # Handle missing keys by assigning default values
-                    default_value = (
-                        "" if value_type == str else -1 if value_type == int else False
-                    )
+                    default_value = get_default_value(value_type)
                     new_dict[key] = default_value
 
         if new_dict.get("primary_hex_volume_id") == "":
-            new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("primary_volume_id"))
+            new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+                new_dict.get("primary_volume_id")
+            )
         if new_dict.get("secondary_hex_volume_id") == "":
-            new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("secondary_volume_id"))
+            new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+                new_dict.get("secondary_volume_id")
+            )
         return new_dict

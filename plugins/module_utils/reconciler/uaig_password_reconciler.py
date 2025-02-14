@@ -1,25 +1,14 @@
 try:
     from ..provisioner.uaig_password_provisioner import GatewayPasswordProvisioner
-    from ..hv_ucpmanager import UcpManager
-    from ..common.ansible_common import (
-        camel_to_snake_case,
-        snake_to_camel_case,
-        camel_array_to_snake_case,
-    )
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
 except ImportError:
     from provisioner.uaig_password_provisioner import GatewayPasswordProvisioner
-    from hv_ucpmanager import UcpManager
-    from common.ansible_common import (
-        camel_to_snake_case,
-        snake_to_camel_case,
-        camel_array_to_snake_case,
-    )
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
 
 logger = Log()
+
 
 class GatewayPasswordReconciler:
 
@@ -31,16 +20,22 @@ class GatewayPasswordReconciler:
     def gateway_password(self, spec):
         user = self.get_admin_user()
 
-        logger.writeDebug('RC:gateway_password:user={}', user)
+        logger.writeDebug("RC:gateway_password:user={}", user)
         if not user.get("id"):
             return "Missing admin user"
         else:
-            logger.writeDebug('RC:gateway_password:connection_info.changed={}', self.connection_info.changed)   
+            logger.writeDebug(
+                "RC:gateway_password:connection_info.changed={}",
+                self.connection_info.changed,
+            )
             ret_val = self.provisioner.gateway_password(spec.password, user)
             self.connection_info.changed = True
-            logger.writeDebug('RC:gateway_password:connection_info.changed={}', self.connection_info.changed)
+            logger.writeDebug(
+                "RC:gateway_password:connection_info.changed={}",
+                self.connection_info.changed,
+            )
             return ret_val
 
-    @log_entry_exit    
+    @log_entry_exit
     def get_admin_user(self):
         return self.provisioner.get_admin_user()

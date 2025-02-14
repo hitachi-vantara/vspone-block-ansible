@@ -1,13 +1,15 @@
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, asdict
 from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from ..common.ansible_common import dicts_to_dataclass_list
+    from .vsp_true_copy_models import DirectTrueCopyPairInfo, DirectTrueCopyPairInfoList
+    from ..model.common_base_models import ConnectionInfo
 
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from common.ansible_common import dicts_to_dataclass_list
+    from .vsp_true_copy_models import DirectTrueCopyPairInfo, DirectTrueCopyPairInfoList
+    from model.common_base_models import ConnectionInfo
 
 
 @dataclass
@@ -20,7 +22,8 @@ class HurHostGroupSpec:
     def to_dict(self):
         return asdict(self)
 
-## 20240812 tag.HUR
+
+#  20240812 tag.HUR
 @dataclass
 class HurFactSpec(SingleBaseClass):
     primary_volume_id: Optional[int] = None
@@ -28,9 +31,31 @@ class HurFactSpec(SingleBaseClass):
     pvol: Optional[int] = None
     mirror_unit_id: Optional[int] = None
 
+    secondary_storage_serial_number: Optional[str] = None
+    secondary_connection_info: Optional[ConnectionInfo] = None
+    copy_group_name: Optional[str] = None
+    copy_pair_name: Optional[str] = None
+    local_device_group_name: Optional[str] = None
+    remote_device_group_name: Optional[str] = None
+
+    def __post_init__(self, **kwargs):
+        if self.secondary_connection_info:
+            self.secondary_connection_info = ConnectionInfo(
+                **self.secondary_connection_info
+            )
+
+
 @dataclass
 class HurSpec(SingleBaseClass):
     primary_volume_id: Optional[int] = None
+    secondary_volume_id: Optional[int] = None
+    copy_group_name: Optional[str] = None
+    copy_pair_name: Optional[str] = None
+    fence_level: Optional[str] = None
+    local_device_group_name: Optional[str] = None
+    remote_device_group_name: Optional[str] = None
+    do_initial_copy: Optional[bool] = None
+    is_data_reduction_force_copy: Optional[bool] = None
     consistency_group_id: Optional[int] = None
     enable_delta_resync: Optional[bool] = None
     allocate_new_consistency_group: Optional[bool] = None
@@ -40,14 +65,30 @@ class HurSpec(SingleBaseClass):
     primary_volume_journal_id: Optional[int] = None
     secondary_volume_journal_id: Optional[int] = None
     mirror_unit_id: Optional[int] = None
+    do_delta_resync_suspend: Optional[bool] = None
+    is_new_group_creation: Optional[bool] = None
+    secondary_connection_info: Optional[ConnectionInfo] = None
+    # remote_connection_info: Optional[ConnectionInfo] = None
+    # secondary_storage_connection_info: Optional[ConnectionInfo] = None
+    is_svol_readwriteable: Optional[bool] = False
+    svolOperationMode: Optional[str] = None
+    doSwapSvol: Optional[bool] = None
+    new_volume_size: Optional[str] = None
+    begin_secondary_volume_id: Optional[int] = None
+    end_secondary_volume_id: Optional[int] = None
 
-    #Making a single hg
+    # Making a single hg
     secondary_hostgroup: Optional[HurHostGroupSpec] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if "secondary_hostgroup" in kwargs and kwargs.get("secondary_hostgroup") is not None:
-            self.secondary_hostgroups = [HurHostGroupSpec(**kwargs.get("secondary_hostgroup"))]
+        if (
+            "secondary_hostgroup" in kwargs
+            and kwargs.get("secondary_hostgroup") is not None
+        ):
+            self.secondary_hostgroups = [
+                HurHostGroupSpec(**kwargs.get("secondary_hostgroup"))
+            ]
 
 
 @dataclass
@@ -59,39 +100,44 @@ class VSPHurPairInfo(SingleBaseClass):
     mirrorUnitId: int
     pairName: str
     primaryVolumeId: int
-    
+
     primaryVolumeStorageId: int
     secondaryVolumeId: int
-    
+
     secondaryVolumeStorageId: int
     status: str
     svolAccessMode: str
     type: str
-    
+
     # primaryHexVolumeId: Optional[str] = None
     # secondaryHexVolumeId: Optional[str] = None
     entitlementStatus: Optional[str] = None
     partnerId: Optional[str] = None
     subscriberId: Optional[str] = None
-    
+    primaryJournalPoolId: Optional[int] = None
+    secondaryJournalPoolId: Optional[int] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        
-        ## 20240814 Porcelain DTO: VSPHurPairInfo
-        ## hur_pair_info is from v3 response
+
+        #  20240814 Porcelain DTO: VSPHurPairInfo
+        #  hur_pair_info is from v3 response
         hur_pair_info = kwargs.get("hurPairInfo")
-        
-        ## flattern the struct from v3
+
+        #  flattern the struct from v3
         if hur_pair_info:
             for field in self.__dataclass_fields__.keys():
                 if not getattr(self, field):
                     setattr(self, field, hur_pair_info.get(field, None))
-                    
 
     def to_dict(self):
         return asdict(self)
-    
+
+
 @dataclass
 class VSPHurPairInfoList(BaseDataClass):
     data: List[VSPHurPairInfo]
+
+
+DirectHurPairInfo = DirectTrueCopyPairInfo
+DirectHurPairInfoList = DirectTrueCopyPairInfoList

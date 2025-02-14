@@ -1,6 +1,6 @@
 try:
-    from ..common.hv_constants import ConnectionTypes, StateValue
-    from ..model.common_base_models import ConnectionInfo   
+    from ..common.hv_constants import ConnectionTypes
+    from ..model.common_base_models import ConnectionInfo
     from ..model.sdsb_volume_models import VolumeFactSpec, VolumeSpec
     from ..model.sdsb_compute_node_models import ComputeNodeFactSpec, ComputeNodeSpec
     from ..model.sdsb_chap_user_models import ChapUserFactSpec, ChapUserSpec
@@ -11,7 +11,7 @@ try:
     from ..message.sdsb_volume_msgs import SDSBVolValidationMsg
     from ..common.sdsb_constants import AutomationConstants
 except ImportError:
-    from common.hv_constants import ConnectionTypes, StateValue
+    from common.hv_constants import ConnectionTypes
     from model.common_base_models import ConnectionInfo
     from model.sdsb_volume_models import VolumeFactSpec, VolumeSpec
     from model.sdsb_compute_node_models import ComputeNodeFactSpec, ComputeNodeSpec
@@ -23,8 +23,8 @@ except ImportError:
     from message.sdsb_volume_msgs import SDSBVolValidationMsg
     from common.sdsb_constants import AutomationConstants
 
-#########################################################
-### SDSB Parameter manager ###
+
+# SDSB Parameter manager
 class SDSBParametersManager:
 
     def __init__(self, params):
@@ -97,7 +97,6 @@ class SDSBParametersManager:
             input_spec = PortAuthSpec()
         return input_spec
 
-
     def get_vps_fact_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
             input_spec = VpsFactSpec(**self.params["spec"])
@@ -120,28 +119,26 @@ class SDSBCommonParameters:
         return {
             "required": True,
             "type": "dict",
-            "description": "Information for establishing the connection.",
             "options": {
                 "address": {
                     "required": True,
                     "type": "str",
-                    "description": "The management address of the storage system.",
                 },
                 "username": {
                     "required": True,
                     "type": "str",
-                    "description": "The username for authentication.",
                 },
                 "password": {
                     "required": True,
                     "type": "str",
-                    "description": "The password or authentication key.",
+                    "no_log": True,
                 },
                 "connection_type": {
                     "required": False,
                     "type": "str",
-                    "description": "The type of connection.",
-                    "choices": ["gateway", "direct"],
+                    "choices": [
+                        "direct"
+                    ],  # Removed gateway connection type as it is not supported
                     "default": "direct",
                 },
             },
@@ -161,13 +158,8 @@ class UAIGTokenArguments:
 
     common_arguments = {
         "connection_info": SDSBCommonParameters.get_connection_info(),
-        "spec": {
-            "required": False,
-            "type": "dict",
-            "description": "Specifications for the task.",
-            "options": {},
-        },
     }
+    common_arguments["connection_info"]["options"].pop("connection_type")
 
     @classmethod
     def get_arguments(cls):
@@ -187,7 +179,6 @@ class SDSBComputeNodeArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
@@ -198,17 +189,14 @@ class SDSBComputeNodeArguments:
             "id": {
                 "required": False,
                 "type": "str",
-                "description": "The id of the compute node.",
             },
             "name": {
                 "required": False,
                 "type": "str",
-                "description": "The name of the compute node.",
             },
             "os_type": {
                 "required": False,
                 "type": "str",
-                "description": "The OS type of the compute node.",
             },
             "state": {
                 "required": False,
@@ -221,30 +209,17 @@ class SDSBComputeNodeArguments:
                     "add_host_nqn",
                     "remove_host_nqn",
                 ],
-                "description": "The sate of the compute node task.",
             },
-            "iscsi_initiators": {
-                "required": False,
-                "type": "list",
-                "description": "The array of iSCSI Initiators.",
-            },
-            "host_nqns": {
-                "required": False,
-                "type": "list",
-                "description": "The array of NVME Initiators.",
-            },
-            "volumes": {
-                "required": False,
-                "type": "list",
-                "description": "The array of name of volumes.",
-            },
+            "iscsi_initiators": {"required": False, "type": "list", "elements": "str"},
+            "host_nqns": {"required": False, "type": "list", "elements": "str"},
+            "volumes": {"required": False, "type": "list", "elements": "str"},
             "should_delete_all_volumes": {
                 "required": False,
                 "type": "bool",
-                "description": "Will delete the volumes that are not attached to any compute node.",
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = True
         return cls.common_arguments
 
     @classmethod
@@ -253,12 +228,11 @@ class SDSBComputeNodeArguments:
             "names": {
                 "required": False,
                 "type": "list",
-                "description": "The names of the compute nodes.",
+                "elements": "str",
             },
             "hba_name": {
                 "required": False,
                 "type": "str",
-                "description": "A WWN or an iSCSI name",
             },
             # "vps_name": {
             #     "required": False,
@@ -267,6 +241,8 @@ class SDSBComputeNodeArguments:
             # },
         }
         cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments.pop("state")
+        cls.common_arguments["spec"]["required"] = False
         return cls.common_arguments
 
 
@@ -283,7 +259,6 @@ class SDSBVolumeArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
@@ -294,38 +269,31 @@ class SDSBVolumeArguments:
             "id": {
                 "required": False,
                 "type": "str",
-                "description": "The id of the volume.",
             },
             "name": {
                 "required": False,
                 "type": "str",
-                "description": "The name of the volume.",
             },
             "nickname": {
                 "required": False,
                 "type": "str",
-                "description": "The nickname of the volume.",
             },
             "capacity": {
                 "required": False,
                 "type": "str",
-                "description": "The capacity of the volume.",
             },
             "capacity_saving": {
                 "required": False,
                 "type": "str",
-                "description": "Settings of the data reduction function. Disabled or  Compression.",
             },
             "pool_name": {
                 "required": False,
                 "type": "str",
-                "description": "The name of the storage pool where the volume is created..",
-            },            
-            "vps_name": {
-                "required": False,
-                "type": "str",
-                "description": "The Name of the operation-target virtual private storage",
-            },            
+            },
+            # "vps_name": {
+            #     "required": False,
+            #     "type": "str",
+            # },
             "state": {
                 "required": False,
                 "type": "str",
@@ -333,14 +301,13 @@ class SDSBVolumeArguments:
                     "add_compute_node",
                     "remove_compute_node",
                 ],
-                "description": "The state of the volume task.",
             },
             "compute_nodes": {
                 "required": False,
                 "type": "list",
-                "description": "The array of name of compute nodes to which the volume is attached.",
+                "elements": "str",
             },
-            "qos_param":{
+            "qos_param": {
                 "required": False,
                 "type": "dict",
                 "options": {
@@ -356,11 +323,11 @@ class SDSBVolumeArguments:
                         "required": False,
                         "type": "int",
                     },
-
-                }
-            }
+                },
+            },
         }
         cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = True
         return cls.common_arguments
 
     @classmethod
@@ -370,26 +337,26 @@ class SDSBVolumeArguments:
                 "required": False,
                 "type": "int",
                 "default": 500,
-                "description": "The maximum number of obtained volume information items.",
             },
             "names": {
                 "required": False,
                 "type": "list",
-                "description": "The names of the volumes.",
+                "elements": "str",
             },
             "nicknames": {
                 "required": False,
                 "type": "list",
-                "description": "The nickname of the volume.",
+                "elements": "str",
             },
             "capacity_saving": {
                 "required": False,
                 "type": "str",
                 "choices": ["Disabled", "Compression"],
-                "description": "Settings of the data reduction function for volumes.",
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments.pop("state")
+        cls.common_arguments["spec"]["required"] = False
         return cls.common_arguments
 
 
@@ -400,7 +367,6 @@ class SDSBPortArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
@@ -411,17 +377,18 @@ class SDSBPortArguments:
             "nicknames": {
                 "required": False,
                 "type": "list",
-                "description": "The names of the compute nodes.",
+                "elements": "str",
             },
             "names": {
                 "required": False,
                 "type": "list",
-                "description": "A WWN or an iSCSI name",
+                "elements": "str",
             },
-            #'protocol': {'required': False, 'type': 'str', 'description': 'Compute nodes that belongs to this vps'},
+            # 'protocol': {'required': False, 'type': 'str', 'description': 'Compute nodes that belongs to this vps'},
         }
         cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
+
 
 class SDSBPortAuthArguments:
 
@@ -436,17 +403,16 @@ class SDSBPortAuthArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
+
     @classmethod
     def port_auth(cls):
         spec_options = {
             "port_name": {
                 "required": False,
                 "type": "str",
-                "description": "Port name.",
             },
             "state": {
                 "required": False,
@@ -455,7 +421,6 @@ class SDSBPortAuthArguments:
                     "add_chap_user",
                     "remove_chap_user",
                 ],
-                "description": "The sate of the port authorization task.",
             },
             "authentication_mode": {
                 "required": False,
@@ -465,21 +430,21 @@ class SDSBPortAuthArguments:
                     "CHAP_complying_with_initiator_setting",
                     "None",
                 ],
-                "description": "Authentication mode.",
             },
             "is_discovery_chap_authentication": {
                 "required": False,
                 "type": "bool",
-                "description": "When true is specified, CHAP authentication at the time of discovery is enabled..",
             },
             "target_chap_users": {
                 "required": False,
                 "type": "list",
-                "description": "List of target CHAP user name.",
-            },           
+                "elements": "str",
+            },
         }
         cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = True
         return cls.common_arguments
+
 
 class SDSBChapUserArguments:
 
@@ -494,40 +459,38 @@ class SDSBChapUserArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
+
     @classmethod
     def chap_user(cls):
         spec_options = {
             "id": {
                 "required": False,
                 "type": "str",
-                "description": "The id of the CHAP user.",
             },
             "target_chap_user_name": {
                 "required": False,
                 "type": "str",
-                "description": "Target CHAP user name.",
             },
             "target_chap_secret": {
                 "required": False,
                 "type": "str",
-                "description": "Target CHAP user secret.",
+                "no_log": True,
             },
             "initiator_chap_user_name": {
                 "required": False,
                 "type": "str",
-                "description": "Initiator CHAP user name.",
             },
             "initiator_chap_secret": {
                 "required": False,
                 "type": "str",
-                "description": "Initiator CHAP user secret.",
-            },            
+                "no_log": True,
+            },
         }
         cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = True
         return cls.common_arguments
 
     @classmethod
@@ -536,15 +499,16 @@ class SDSBChapUserArguments:
             "id": {
                 "required": False,
                 "type": "str",
-                "description": "The id of the CHAP user.",
             },
             "target_chap_user_name": {
                 "required": False,
                 "type": "str",
-                "description": "Target CHAP user name.",
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = False
+        cls.common_arguments.pop("state")
+
         return cls.common_arguments
 
 
@@ -552,12 +516,11 @@ class SDSBStorageSystemArguments:
 
     common_arguments = {
         "connection_info": SDSBCommonParameters.get_connection_info(),
-        "spec": {
-            "required": False,
-            "type": "dict",
-            "description": "Specifications for the task.",
-            "options": {},
-        },
+        # "spec": {
+        #     "required": False,
+        #     "type": "dict",
+        #     "options": {},
+        # },# commented out as it is not used
     }
 
     @classmethod
@@ -578,57 +541,58 @@ class SDSBVpsArguments:
         "spec": {
             "required": False,
             "type": "dict",
-            "description": "Specifications for the task.",
             "options": {},
         },
     }
+
     @classmethod
     def vps(cls):
         spec_options = {
-            "id": {
+            "vps_name": {
                 "required": False,
                 "type": "str",
-                "description": "The id of the VPS.",
             },
-            "name": {
+            "vps_id": {
                 "required": False,
                 "type": "str",
-                "description": "Name of the VPS.",
             },
-            "upper_limit_for_number_of_user_groups": {
-                "required": False,
-                "type": "int",
-                "description": "Upper limit for number of user groups.",
-            },
-            "upper_limit_for_number_of_users": {
-                "required": False,
-                "type": "int",
-                "description": "Upper limit for number of users.",
-            },
-            "upper_limit_for_number_of_sessions": {
-                "required": False,
-                "type": "int",
-                "description": "Upper limit for number of sessions.",
-            },
-            "upper_limit_for_number_of_servers": {
-                "required": False,
-                "type": "int",
-                "description": "Upper limit for number of servers.",
-            },
-            "volume_settings": {
-                "required": False,
-                "type": "list",
-                "description": "Volume Settings.",
-            },
+            # "id": {
+            #     "required": False,
+            #     "type": "str",
+            # },
+            # "name": {
+            #     "required": False,
+            #     "type": "str",
+            # },
+            # "upper_limit_for_number_of_user_groups": {
+            #     "required": False,
+            #     "type": "int",
+            # },
+            # "upper_limit_for_number_of_users": {
+            #     "required": False,
+            #     "type": "int",
+            # },
+            # "upper_limit_for_number_of_sessions": {
+            #     "required": False,
+            #     "type": "int",
+            # },
+            # "upper_limit_for_number_of_servers": {
+            #     "required": False,
+            #     "type": "int",
+            # },
+            # "volume_settings": {
+            #     "required": False,
+            #     "type": "list",
+            # },
             "capacity_saving": {
                 "required": False,
                 "type": "str",
                 "choices": ["Disabled", "Compression"],
                 "default": "Disabled",
-                "description": "VPS Volume ADR Settings.",
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = True
         return cls.common_arguments
 
     @classmethod
@@ -637,22 +601,20 @@ class SDSBVpsArguments:
             "id": {
                 "required": False,
                 "type": "str",
-                "description": "The id of the VPS.",
             },
             "name": {
                 "required": False,
                 "type": "str",
-                "description": "VPS name.",
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments.pop("state")
+        cls.common_arguments["spec"]["required"] = False
         return cls.common_arguments
-    
 
-##############################################################
-### Validator functions ###
+
+# Validator functions
 class SDSBSpecValidators:
-
 
     @staticmethod
     def validate_connection_info(conn_info: ConnectionInfo):
@@ -660,27 +622,52 @@ class SDSBSpecValidators:
         if conn_info.connection_type == ConnectionTypes.DIRECT and conn_info.api_token:
             raise ValueError(SDSBConnectionValidationMsg.DIRECT_API_TOKEN_ERROR.value)
         elif conn_info.username and conn_info.password and conn_info.api_token:
-            raise ValueError(SDSBConnectionValidationMsg.BOTH_API_TOKEN_USER_DETAILS.value)
+            raise ValueError(
+                SDSBConnectionValidationMsg.BOTH_API_TOKEN_USER_DETAILS.value
+            )
         elif (
             not conn_info.username
             and not conn_info.password
             and not conn_info.api_token
         ):
-            raise ValueError(SDSBConnectionValidationMsg.NOT_API_TOKEN_USER_DETAILS.value)
-    
+            raise ValueError(
+                SDSBConnectionValidationMsg.NOT_API_TOKEN_USER_DETAILS.value
+            )
+
     @staticmethod
     def validate_volume_spec(state, input_spec: VolumeSpec):
 
         if input_spec.qos_param:
             if input_spec.qos_param.upper_limit_for_iops:
-                if input_spec.qos_param.upper_limit_for_iops != -1 :
-                     if input_spec.qos_param.upper_limit_for_iops < AutomationConstants.QOS_UPPER_LIMIT_IOPS_MIN or input_spec.qos_param.upper_limit_for_iops > AutomationConstants.QOS_UPPER_LIMIT_IOPS_MAX:
-                        raise ValueError(SDSBVolValidationMsg.QOS_UPPER_LIMIT_IOPS_OUT_OF_RANGE.value)
+                if input_spec.qos_param.upper_limit_for_iops != -1:
+                    if (
+                        input_spec.qos_param.upper_limit_for_iops
+                        < AutomationConstants.QOS_UPPER_LIMIT_IOPS_MIN
+                        or input_spec.qos_param.upper_limit_for_iops
+                        > AutomationConstants.QOS_UPPER_LIMIT_IOPS_MAX
+                    ):
+                        raise ValueError(
+                            SDSBVolValidationMsg.QOS_UPPER_LIMIT_IOPS_OUT_OF_RANGE.value
+                        )
             if input_spec.qos_param.upper_limit_for_transfer_rate_mb_per_sec:
-                if input_spec.qos_param.upper_limit_for_transfer_rate_mb_per_sec != -1 :
-                     if input_spec.qos_param.upper_limit_for_transfer_rate_mb_per_sec < AutomationConstants.QOS_UPPER_LIMIT_XFER_RATE_MIN or input_spec.qos_param.upper_limit_for_transfer_rate_mb_per_sec > AutomationConstants.QOS_UPPER_LIMIT_XFER_RATE_MAX:
-                        raise ValueError(SDSBVolValidationMsg.QOS_UPPER_LIMIT_XFER_RATE_OUT_OF_RANGE.value)
+                if input_spec.qos_param.upper_limit_for_transfer_rate_mb_per_sec != -1:
+                    if (
+                        input_spec.qos_param.upper_limit_for_transfer_rate_mb_per_sec
+                        < AutomationConstants.QOS_UPPER_LIMIT_XFER_RATE_MIN
+                        or input_spec.qos_param.upper_limit_for_transfer_rate_mb_per_sec
+                        > AutomationConstants.QOS_UPPER_LIMIT_XFER_RATE_MAX
+                    ):
+                        raise ValueError(
+                            SDSBVolValidationMsg.QOS_UPPER_LIMIT_XFER_RATE_OUT_OF_RANGE.value
+                        )
             if input_spec.qos_param.upper_alert_allowable_time_in_sec:
-                if input_spec.qos_param.upper_alert_allowable_time_in_sec != -1 :
-                     if input_spec.qos_param.upper_alert_allowable_time_in_sec < AutomationConstants.QOS_UPPER_ALERT_ALLOWABLE_TIME_OUT_MIN or input_spec.qos_param.upper_alert_allowable_time_in_sec > AutomationConstants.QOS_UPPER_ALERT_ALLOWABLE_TIME_OUT_MAX:
-                        raise ValueError(SDSBVolValidationMsg.QOS_UPPER_ALERT_ALLOWABLE_TIME_OUT_OF_RANGE.value)
+                if input_spec.qos_param.upper_alert_allowable_time_in_sec != -1:
+                    if (
+                        input_spec.qos_param.upper_alert_allowable_time_in_sec
+                        < AutomationConstants.QOS_UPPER_ALERT_ALLOWABLE_TIME_OUT_MIN
+                        or input_spec.qos_param.upper_alert_allowable_time_in_sec
+                        > AutomationConstants.QOS_UPPER_ALERT_ALLOWABLE_TIME_OUT_MAX
+                    ):
+                        raise ValueError(
+                            SDSBVolValidationMsg.QOS_UPPER_ALERT_ALLOWABLE_TIME_OUT_OF_RANGE.value
+                        )

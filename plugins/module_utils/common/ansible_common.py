@@ -1,18 +1,35 @@
 import os
 import functools
 import re
+import string
+import random
 from typing import List
 
 
 try:
-    from .vsp_constants import PEGASUS_MODELS
+    from .vsp_constants import PEGASUS_MODELS, DEFAULT_NAME_PREFIX
     from .hv_constants import TARGET_SUB_DIRECTORY
-    from .ansible_common_constants import ANSIBLE_LOG_PATH, LOGFILE_NAME
+    from .ansible_common_constants import (
+        ANSIBLE_LOG_PATH,
+        LOGFILE_NAME,
+        # REGISTRATION_FILE_NAME,
+        # REGISTRATION_FILE_PATH,
+        USER_CONSENT_FILE_PATH,
+        CONSENT_FILE_NAME,
+    )
+    from ..message.common_msgs import CommonMessage
 except ImportError:
-    from hv_constants import TARGET_SUB_DIRECTORY
-    from vsp_constants import PEGASUS_MODELS
-    from .ansible_common_constants import ANSIBLE_LOG_PATH, LOGFILE_NAME
-
+    from .hv_constants import TARGET_SUB_DIRECTORY
+    from .vsp_constants import PEGASUS_MODELS, DEFAULT_NAME_PREFIX
+    from .ansible_common_constants import (
+        ANSIBLE_LOG_PATH,
+        LOGFILE_NAME,
+        # REGISTRATION_FILE_NAME,
+        # REGISTRATION_FILE_PATH,
+        USER_CONSENT_FILE_PATH,
+        CONSENT_FILE_NAME,
+    )
+    from message.common_msgs import CommonMessage
 
 
 def get_logger_file():
@@ -109,14 +126,22 @@ def convert_to_bytes(size_str: str, block_size=512) -> int:
         raise ValueError("Invalid size format")
 
 
+def convert_mb_to_gb(size_str: str):
+    size_str = size_str.strip().upper()
+
+    value, unit = size_str[:-2], size_str[-2:]
+    if unit == "MB":
+        return f"{float('{:.2f}'.format(int(value) / 1024))}GB"
+    else:
+        return size_str
+
+
 def log_entry_exit(func):
     try:
         from .hv_log import Log
     except ImportError:
         from hv_log import Log
 
-        ##importing here to avoid circular import error
-    # This is helper functions to log and handle exception from each level
     logger = Log()
 
     @functools.wraps(func)
@@ -128,7 +153,7 @@ def log_entry_exit(func):
         # result = func(*args, **kwargs)
 
         try:
-            ## 202408 - common break point
+            #  202408 - common break point
             result = func(*args, **kwargs)
         except Exception as e:
             logger.writeError(f"Exception in {module_name}:{func_name} - {e}")
@@ -155,6 +180,18 @@ def get_response_key(response, *keys):
         if response_key is not None:
             return response_key
     return None
+
+
+def get_default_value(value_type):
+    return (
+        ""
+        if value_type == str
+        else (
+            -1
+            if value_type == int
+            else [] if value_type == list else ("" if value_type == bool else False)
+        )
+    )
 
 
 def get_ansible_home_dir():
@@ -211,20 +248,19 @@ def volume_id_to_hex_format(vol_id):
     # Combine the hexadecimal values into the desired format
     hex_format = f"{part1_hex}:{part2_hex}:{part3_hex}"
 
-    return hex_format
+    return hex_format.upper()
 
 
 def is_pegasus_model(storage_info) -> bool:
     return any(sub in storage_info.model for sub in PEGASUS_MODELS)
 
 
-
 def calculate_naid(wwn_any_port, serial_number, lun, array_family=7):
-    wwn_any_port = int(wwn_any_port,16)
+    wwn_any_port = int(wwn_any_port, 16)
     # Mask and adjustment based on array family
     wwn_mask_and = 0xFFFFFF00
     serial_number_mask_or = 0x00000000
-    
+
     if array_family == 0:  # ARRAY_FAMILY_DF
         wwn_mask_and = 0xFFFFFFF0
     elif array_family == 2:  # ARRAY_FAMILY_HM700
@@ -262,26 +298,26 @@ def calculate_naid(wwn_any_port, serial_number, lun, array_family=7):
 
     # Construct high bytes
     high_bytes = (
-        (0x60 << 56) |
-        (0x06 << 48) |
-        (0x0e << 40) |
-        (0x80 << 32) |
-        ((wwn_part >> 24) & 0xFF) << 24 |
-        ((wwn_part >> 16) & 0xFF) << 16 |
-        ((wwn_part >> 8) & 0xFF) << 8 |
-        (wwn_part & 0xFF)
+        (0x60 << 56)
+        | (0x06 << 48)
+        | (0x0E << 40)
+        | (0x80 << 32)
+        | ((wwn_part >> 24) & 0xFF) << 24
+        | ((wwn_part >> 16) & 0xFF) << 16
+        | ((wwn_part >> 8) & 0xFF) << 8
+        | (wwn_part & 0xFF)
     )
 
     # Construct low bytes
     low_bytes = (
-        ((serial_number >> 24) & 0xFF) << 56 |
-        ((serial_number >> 16) & 0xFF) << 48 |
-        ((serial_number >> 8) & 0xFF) << 40 |
-        (serial_number & 0xFF) << 32 |
-        0x00 << 24 |
-        0x00 << 16 |
-        ((lun >> 8) & 0xFF) << 8 |
-        (lun & 0xFF)
+        ((serial_number >> 24) & 0xFF) << 56
+        | ((serial_number >> 16) & 0xFF) << 48
+        | ((serial_number >> 8) & 0xFF) << 40
+        | (serial_number & 0xFF) << 32
+        | 0x00 << 24
+        | 0x00 << 16
+        | ((lun >> 8) & 0xFF) << 8
+        | (lun & 0xFF)
     )
 
     # Format NAID
@@ -290,4 +326,68 @@ def calculate_naid(wwn_any_port, serial_number, lun, array_family=7):
     return naid
 
 
+def validate_ansible_product_registration():
 
+    if not os.path.exists(os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)):
+        return CommonMessage.USER_CONSENT_MISSING.value
+    return
+
+
+def convert_decimal_size_to_bytes(size_str, block_size=512):
+    # Define a regular expression to capture the numeric value and the unit
+    match = re.match(r"^([0-9.]+)([a-zA-Z]+)$", size_str)
+
+    # If the regex didn't match, raise an error
+    if not match:
+        raise ValueError(f"Invalid size format: {size_str}")
+
+    # Parse the numeric part (the size value)
+    value = float(match.group(1))
+
+    # Get the unit part (e.g., "GB", "MB")
+    unit = match.group(2).upper()
+
+    # Convert to bytes based on the unit
+    if unit == "B":
+        return int(value) / block_size
+    elif unit == "KB":
+        return int(value * 1024) / block_size
+    elif unit == "MB":
+        return int(value * 1024 * 1024) / block_size
+    elif unit == "GB":
+        return int(value * 1024 * 1024 * 1024) / block_size
+    elif unit == "TB":
+        return int(value * 1024 * 1024 * 1024 * 1024) / block_size
+    else:
+        raise ValueError(f"Unsupported unit: {unit}")
+
+
+# this function is used to do auto name assignment,
+# not cryptographic or security-sensitive usage
+#
+# this security scan error can be disregarded moving forward,
+# name collisions are not a concern in this context and
+# switching to secrets is not necessary
+#
+def generate_random_name_prefix_string(length=10):
+    return f"{DEFAULT_NAME_PREFIX}-" + "".join(random.choices(string.digits, k=length))
+
+
+def convert_to_mb(value):
+    if isinstance(value, str):
+        value = value.strip()  # Remove any extra spaces
+        if "GB" in value:
+            # Extract number part and convert to MB
+            num = float(value.replace("GB", "").strip())
+            return num * 1024
+        elif "TB" in value:
+            num = float(value.replace("TB", "").strip())
+            return num * 1024 * 1024
+        elif "MB" in value:
+            return float(value.replace("MB", "").strip())
+    elif isinstance(value, (int, float)):
+        return value
+    else:
+        raise ValueError(
+            "Invalid input format. Please provide a value in GB, TB, or MB."
+        )

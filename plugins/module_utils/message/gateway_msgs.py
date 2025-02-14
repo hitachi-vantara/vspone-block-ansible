@@ -13,8 +13,8 @@ class GatewayValidationMsg(Enum):
     QUOTA_LIMIT = "Minimum value of quota limit should be 1."
     HARD_LIMIT_GREATER = "Hard limit can not be less than or equal to soft limit."
 
-    SUBSCRIBER_ID_FOR_RESOURCE_MISSING = "Subscriber ID is missing. Provide subscriber_id in the connection_info."
+    SUBSCRIBER_ID_FOR_RESOURCE_MISSING = (
+        "Subscriber ID is missing. Provide subscriber_id in the connection_info."
+    )
     UNSUPPORTED_RESOURCE_TYPE = "This type {} is not supported. Supported types are {}."
     PROVIDE_RESOURCE_VALUE = "Provide a resource value."
-
-
