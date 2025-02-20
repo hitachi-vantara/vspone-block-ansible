@@ -12,7 +12,7 @@ DOCUMENTATION = """
 ---
 module: hv_truecopy
 short_description: Manages TrueCopy pairs on Hitachi VSP storage systems.
-description: >
+description:
   - This module allows for the creation, deletion, splitting, re-syncing and resizing of TrueCopy pairs for
     both direct and gateway connections on Hitachi VSP storage systems.
   - It also allows swap-splitting and swap-resyncing operations of TrueCopy pairs for direct connection on
@@ -30,7 +30,14 @@ author:
 options:
   state:
     description:
-      - The level of the TrueCopy pairs task. Choices are 'present', 'absent', 'resize', 'resync', 'split', 'swap-split', 'swap-resync'.
+      - The level of the TrueCopy pairs task.
+      - 'present is used to create or update a TrueCopy pair.'
+      - 'absent is used to delete a TrueCopy pair.'
+      - 'resize is used to increase the size of the volumes of a TrueCopy pair.'
+      - 'resync is used to re-sync a TrueCopy pair.'
+      - 'split is used to split a TrueCopy pair.'
+      - 'swap-split is used to swap-split a TrueCopy pair. (Supported for direct connection only)'
+      - 'swap-resync is used to swap-resync a TrueCopy pair. (Supported for direct connection only)'
     type: str
     required: false
     choices: ['present', 'absent', 'resize', 'resync', 'split', 'swap_split', 'swap_resync']
@@ -59,16 +66,16 @@ options:
         required: true
       username:
         description:
-          - Username for authentication.
+          - Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
         description:
-          - Password for authentication.
+          - Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       api_token:
-        description: Value of the lock token to operate on locked resources.
+        description: This fieild is used to pass the value of the lock token of the secondary storage to operate on locked resources.
         type: str
         required: false
   connection_info:
@@ -104,7 +111,9 @@ options:
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway for gateway connection. Value of the lock token to operate on locked resources for direct connection.
+        description:
+          Token value to access UAI gateway for gateway connection. This is a required field for gateway connection type.
+          This fieild is used for direct connection type to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
   spec:
@@ -255,30 +264,30 @@ EXAMPLES = """
   hv_truecopy:
     state: "present"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 11
       consistency_group_id: -1
       fence_level: 'NEVER'
       allocate_new_consistency_group: false
-      secondary_storage_serial_number: 123456
+      secondary_storage_serial_number: 811145
       secondary_pool_id: 1
 
 - name: Split a TrueCopy pair for gateway connection
   hv_truecopy:
     state: "split"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 11
 
@@ -286,12 +295,12 @@ EXAMPLES = """
   hv_truecopy:
     state: "resync"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 11
 
@@ -299,12 +308,12 @@ EXAMPLES = """
   hv_truecopy:
     state: "absent"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 11
 
@@ -312,7 +321,7 @@ EXAMPLES = """
   hv_truecopy:
     state: "present"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: 172.1.1.126
       username: "admin"
@@ -336,7 +345,7 @@ EXAMPLES = """
   hv_truecopy:
     state: "split"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: 172.1.1.126
       username: "admin"
@@ -353,7 +362,7 @@ EXAMPLES = """
   hv_truecopy:
     state: "resync"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: 172.1.1.126
       username: "admin"
@@ -370,7 +379,7 @@ EXAMPLES = """
   hv_truecopy:
     state: "swap_split"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: 172.1.1.126
       username: "admin"
@@ -387,7 +396,7 @@ EXAMPLES = """
   hv_truecopy:
     state: "swap_resync"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: 172.1.1.126
       username: "admin"
@@ -404,7 +413,7 @@ EXAMPLES = """
   hv_truecopy:
     state: "swap_resync"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: 172.1.1.126
       username: "admin"
@@ -421,7 +430,7 @@ EXAMPLES = """
   hv_truecopy:
     state: "resize"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: 172.1.1.126
       username: "admin"

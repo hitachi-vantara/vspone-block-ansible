@@ -59,7 +59,7 @@ logger = Log()
 class VSPTrueCopyDirectGateway(VSPReplicationPairsDirectGateway):
 
     @log_entry_exit
-    def get_all_true_copy_pairs(self, serial):
+    def get_all_true_copy_pairs(self, serial=None):
         end_point = GET_TRUE_COPY_PAIRS_DIRECT
         tc_data = self.connection_manager.get(end_point)
         logger.writeDebug("GW-Direct:get_all_true_copy_pairs:data={}", tc_data)

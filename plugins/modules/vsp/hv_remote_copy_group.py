@@ -47,11 +47,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -148,7 +148,6 @@ options:
         type: str
         required: false
         choices: ['NEVER', 'DATA', 'STATUS']
-        default: 'NEVER'
       copy_pace:
         description: copy pace.
         type: int

@@ -299,7 +299,7 @@ EXAMPLES = """
       connection_type: "gateway"
       address: gateway.company.com
       api_token: "api_token"
-      subscriber_id: 12345
+      subscriber_id: 811150
     state: present
     spec:
       state: attach_ldev
@@ -351,7 +351,7 @@ Iscsi targets info:
       "partner_id": "partnerid",
       "port_id": "CL4-C",
       "resource_group_id": 0,
-      "subscriber_id": "12345"
+      "subscriber_id": "811150"
     }
   }
 """

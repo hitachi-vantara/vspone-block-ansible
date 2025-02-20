@@ -58,6 +58,7 @@
           serial: "{{ storage_serial }}"
         spec:
           ports: ["CL1-B", "CL1-D"]
+          name: "test_nvm_subsystem_222"
           host_mode: "VMWARE_EX"
           enable_namespace_security: true
           host_nqns:
@@ -203,6 +204,8 @@
     #########################################################################
     # Task 9 : Remove ports from an NVM Subsystem with a specific Name or ID
     #########################################################################
+    # This exanple uses name, if you want to use id, uncomment id from
+    # the playbook and comment out the name.
     - name: Remove ports from an NVM Subsystem with a specific Name or ID
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
@@ -210,7 +213,7 @@
           serial: "{{ storage_serial }}"
         spec:
           state: "remove_port"
-          id: 222
+          # id: 222
           name: "test_nvm_subsystem_222"
           ports: ["CL1-B", "CL1-D"]
       register: result
@@ -220,7 +223,7 @@
         var: result
 
     #####################################################################################
-    # Task 10 : Remove namespace paths from an NVM Subsystem with specific Id or Name
+    # Task 10 : Remove namespace paths from an NVM Subsystem with specific ID
     #####################################################################################
     - name: Remove namespace paths from an NVM Subsystem with specific Id or Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
@@ -228,8 +231,8 @@
         storage_system_info:
           serial: "{{ storage_serial }}"
         spec:
-          id: "{{ nvm_subsystem_facts_id_10 }}"
-          state: "{{ substate_remove_namespace_path }}"
+          id: 222
+          state: "remove_namespace_path"
           namespaces:
             - ldev_id: 358
               nickname: "rd_namespace_2223"
@@ -245,6 +248,8 @@
     #####################################################################################
     # Task 11 : Remove namespace from an NVM Subsystem with specific Id or Name
     #####################################################################################
+    # This exanple uses id, if you want to use name, uncomment name from
+    # the playbook and comment out the id.
     # This task will first remove the namespace paths from the NVM Subsystem for the
     # ldev_ids provided in namespaces.
     # Then it will remove the namespace from the NVM Subsystem if no namespace paths
@@ -259,7 +264,7 @@
           serial: "{{ storage_serial }}"
         spec:
           id: 222
-          name: "test_nvm_subsystem_222"
+          # name: "test_nvm_subsystem_222"
           state: "remove_namespace"
           namespaces:
             - ldev_id: 359
@@ -276,6 +281,8 @@
     ########################################################################################
     # Task 12 : Remove namespace from an NVM Subsystem with specific Id or Name using force
     ########################################################################################
+    # This exanple uses id, if you want to use name, uncomment name from
+    # the playbook and comment out the id.
     # This task will remove all the namespace paths from the NVM Subsystem for the
     # ldev_ids provided in namespaces.
     # Then it will remove the namespace from the NVM Subsystem.
@@ -286,7 +293,7 @@
           serial: "{{ storage_serial }}"
         spec:
           id: 222
-          name: "test_nvm_subsystem_222"
+          # name: "test_nvm_subsystem_222"
           state: "remove_namespace"
           force: true
           namespaces:
@@ -304,6 +311,8 @@
     #####################################################################################
     # Task 13 : Remove host NQNs from an NVM Subsystem with a specific Id or Name
     #####################################################################################
+    # This exanple uses id, if you want to use name, uncomment name from
+    # the playbook and comment out the id.
     # This task will try to remove the host NQNs from the NVM Subsystem.
     # If the host NQNs are present in the namespace paths, the task will fail.
     # In that case, use force option to remove the host NQNs or remove the
@@ -315,7 +324,7 @@
           serial: "{{ storage_serial }}"
         spec:
           id: 222
-          name: "test_nvm_subsystem_222"
+          # name: "test_nvm_subsystem_222"
           state: "remove_host_nqn"
           host_nqns:
             - nqn: "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12345"
@@ -329,6 +338,8 @@
     ##########################################################################################
     # Task 14 : Remove host NQNs from an NVM Subsystem with a specific Id or Name using force
     ##########################################################################################
+    # This exanple uses id, if you want to use name, uncomment name from
+    # the playbook and comment out the id.
     # This task will try to remove the host NQNs from the NVM Subsystem forcefully.
     - name: Remove host NQNs from an NVM Subsystem with a specific Id or Name using force
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
@@ -337,7 +348,7 @@
           serial: "{{ storage_serial }}"
         spec:
           id: 222
-          name: "test_nvm_subsystem_222"
+          # name: "test_nvm_subsystem_222"
           state: "remove_host_nqn"
           force: true
           host_nqns:
@@ -352,6 +363,8 @@
     #####################################################################################
     # Task 15 : Update host NQNs nickname of an NVM Subsystem with a specific Id or Name
     #####################################################################################
+    # This exanple uses id, if you want to use name, uncomment name from
+    # the playbook and comment out the id.
     - name: Update host NQNs nickname of an NVM Subsystem with a specific Id or Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
@@ -359,7 +372,7 @@
           serial: "{{ storage_serial }}"
         spec:
           state: "add_host_nqn"
-          name: "test_nvm_subsystem_222"
+          # name: "test_nvm_subsystem_222"
           id: 222
           host_nqns:
             - nqn: "nqn.2014-08.com.ucpa-sc-hv:nvme:test-12345"
@@ -375,6 +388,8 @@
     #######################################################################################
     # Task 16 : Update namespace nicknames of an NVM Subsystem with a specific Id or Name
     #######################################################################################
+    # This exanple uses id, if you want to use name, uncomment name from
+    # the playbook and comment out the id.
     - name: Update namespace nicknames of an NVM Subsystem with a specific Id or Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
@@ -382,7 +397,7 @@
           serial: "{{ storage_serial }}"
         spec:
           state: "add_namespace"
-          name: "test_nvm_subsystem_222"
+          # name: "test_nvm_subsystem_222"
           id: 222
           namespaces:
             - ldev_id: 358
@@ -407,7 +422,7 @@
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ substate_absent }}"
+        state: "absent"
         spec:
           id: 222
       register: result
@@ -425,7 +440,7 @@
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ substate_absent }}"
+        state: "absent"
         spec:
           id: 222
           force: true

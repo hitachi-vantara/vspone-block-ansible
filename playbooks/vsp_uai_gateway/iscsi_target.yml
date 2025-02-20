@@ -17,7 +17,7 @@
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
@@ -29,11 +29,11 @@
     - name: Create iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           name: iscsi-target-server
@@ -57,11 +57,11 @@
     - name: Update iscsi target host mode and host mode options
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           name: iscsi-target-server
@@ -80,11 +80,11 @@
     - name: Add chap users to iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           state: add_chap_user
@@ -107,11 +107,11 @@
     - name: Remove chap user from iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           state: remove_chap_user
@@ -132,11 +132,11 @@
     - name: Add iqn initiators to iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           state: add_iscsi_initiator
@@ -157,11 +157,11 @@
     - name: Remove iqn initiators from iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           state: remove_iscsi_initiator
@@ -181,11 +181,11 @@
     - name: Attach ldevs to iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           state: attach_ldev
@@ -204,11 +204,11 @@
     - name: Detach ldevs from iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           state: detach_ldev
@@ -227,11 +227,11 @@
     - name: Delete iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: absent
         spec:
           name: iscsi-target-server

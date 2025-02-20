@@ -44,11 +44,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -62,7 +62,7 @@ options:
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description: Token value to access UAI gateway. This is a required field for gateway connection type.
         type: str
         required: false
   spec:
@@ -71,7 +71,7 @@ options:
     required: false
     suboptions:
       ldev_id:
-        description: ID of the specific LDEV to retrieve information for (Works only for gateway connection type).
+        description: ID of the specific LDEV to retrieve information for.
         type: int
         required: false
       start_ldev_id:
@@ -101,19 +101,19 @@ EXAMPLES = """
 - name: Retrieve information about all LDEVs
   hv_ldev_facts:
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
     connection_info:
       address: gateway.company.com
       api_token: "api token value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       count: 10
 
 - name: Retrieve information about a specific LDEV
   hv_ldev_facts:
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
     connection_info:
       address: storage1.company.com
       username: "admin"

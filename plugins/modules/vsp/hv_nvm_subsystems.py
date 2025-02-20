@@ -7,7 +7,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-
 DOCUMENTATION = """
 ---
 module: hv_nvm_subsystems
@@ -42,11 +41,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -78,8 +77,7 @@ options:
     suboptions:
       name:
         description:
-          - The name of the NVM subsystem.If not given,
-            It will create the name will contain with prefix value "smrha-<10 digit random number>".
+          - The name of the NVM subsystem.If not given, it assigns the name of the NVM subsytem to "smrha-<10 digit random number>".
         type: str
         required: false
       id:
@@ -142,17 +140,18 @@ options:
       state:
         description:
           - The specific operation to perform on the NVM subsystem.
+          - 'add_port : Add ports to the NVM subsystem.'
+          - 'remove_port : Remove ports from the NVM subsystem.'
+          - 'add_host_nqn : Add host NQNs to the NVM subsystem.'
+          - 'remove_host_nqn : Remove host NQNs from the NVM subsystem.'
+          - 'add_namespace : Add namespaces to the NVM subsystem.'
+          - 'remove_namespace : Remove namespaces from the NVM subsystem.'
+          - 'add_namespace_path : Add paths to the namespace.'
+          - 'remove_namespace_path : Remove paths from the namespace.'
         type: str
         required: false
         choices:
-          - add_port
-          - remove_port
-          - add_host_nqn
-          - remove_host_nqn
-          - add_namespace
-          - remove_namespace
-          - add_namespace_path
-          - remove_namespace_path
+          ['add_port', 'remove_port', 'add_host_nqn', 'remove_host_nqn', 'add_namespace', 'remove_namespace', 'add_namespace_path', 'remove_namespace_path']
 """
 
 EXAMPLES = """
@@ -221,9 +220,9 @@ EXAMPLES = """
           username: "admin"
           password: "secret"
           connection_type: "direct"
-        state: "{{ substate_absent }}"
+        state: "absent"
         spec:
-          id: "{{ nvm_subsystems_id_18 }}"
+          id: "nvm_subsystems_id_18"
           force: true
 """
 

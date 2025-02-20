@@ -16,7 +16,7 @@
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
@@ -28,11 +28,11 @@
     - name: Get all TrueCopy pairs
       hitachivantara.vspone_block.vsp.hv_truecopy_facts:
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
-          connection_type: "{{ connection_type }}"
+          connection_type: "gateway"
       register: result
 
     - name: Debug the result variable
@@ -45,11 +45,11 @@
     - name: Get TrueCopy pair by primary volume ID
       hitachivantara.vspone_block.vsp.hv_truecopy_facts:
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
-          connection_type: "{{ connection_type }}"
+          connection_type: "gateway"
         spec:
           primary_volume_id: 123
       register: result
@@ -64,11 +64,11 @@
     - name: Get TrueCopy pair by secondary volume ID
       hitachivantara.vspone_block.vsp.hv_truecopy_facts:
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
-          connection_type: "{{ connection_type }}"
+          connection_type: "gateway"
         spec:
           secondary_volume_id: 456
       register: result

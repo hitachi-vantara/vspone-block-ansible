@@ -1942,8 +1942,8 @@ class VSPHurArguments:
             "fence_level": {
                 "required": False,
                 "type": "str",
-                "choices": ["ASYNC", "NEVER", "DATA", "STATUS"],
-                "default": "NEVER",
+                "choices": ["ASYNC"],
+                "default": "ASYNC",
             },
             "local_device_group_name": {
                 "required": False,
@@ -2141,7 +2141,6 @@ class VSPRemoteCopyGroupArguments:
                     "STATUS",
                     "NEVER",
                 ],
-                "default": "NEVER",
             },
             "copy_pace": {
                 "required": False,

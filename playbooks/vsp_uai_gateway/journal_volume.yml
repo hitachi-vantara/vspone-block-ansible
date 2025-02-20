@@ -17,7 +17,7 @@
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
@@ -28,11 +28,11 @@
     - name: Create a Journal Volume using required details
       hitachivantara.vspone_block.vsp.hv_journal_volume:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           journal_id: 37
@@ -50,11 +50,11 @@
     - name: Update a Journal Volume using other details
       hitachivantara.vspone_block.vsp.hv_journal_volume:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: update
         spec:
           journal_id: 37
@@ -73,11 +73,11 @@
     - name: Expand Journal Volume
       hitachivantara.vspone_block.vsp.hv_journal_volume:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: expand_journal_volume
         spec:
           journal_id: 37
@@ -94,11 +94,11 @@
     - name: Shrink Journal Volume
       hitachivantara.vspone_block.vsp.hv_journal_volume:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: shrink_journal_volume
         spec:
           journal_id: 37
@@ -115,11 +115,11 @@
     - name: Delete Journal Volume by ID
       hitachivantara.vspone_block.vsp.hv_journal_volume:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: absent
         spec:
           journal_id: 37

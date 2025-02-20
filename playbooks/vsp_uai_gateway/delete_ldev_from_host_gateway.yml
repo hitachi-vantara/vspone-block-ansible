@@ -17,7 +17,7 @@
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
@@ -29,10 +29,10 @@
     - name: Detach ldevs from hostgroup with gateway connection
       hitachivantara.vspone_block.vsp.hv_hg:
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         connection_info:
           connection_type: "gateway"
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         state: present
         spec:
@@ -52,9 +52,9 @@
     - name: Delete ldev with gateway connection
       hitachivantara.vspone_block.vsp.hv_ldev:
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
           connection_type: "gateway"
         state: absent

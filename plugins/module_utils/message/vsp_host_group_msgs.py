@@ -16,6 +16,7 @@ class VSPHostGroupMessage(Enum):
     WWNS_INVALID = "Input wwns is invalid. It must be an array."
     DELETE_SUCCESSFULLY = "Hostgroup {} is deleted successfully."
     HG_NAME_EMPTY = "The host group name parameter cannot be empty."
+    HG_CREATE_FAILED = "Host group create failed. "
 
 
 class VSPHostGroupValidationMsg(Enum):

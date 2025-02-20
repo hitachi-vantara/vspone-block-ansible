@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_disk_drive_facts
-short_description: retrieves information about hard drives from Hitachi VSP storage systems.
+short_description: Retrieves information about hard drives from Hitachi VSP storage systems.
 description:
     - This module gathers facts about hard drives from Hitachi VSP storage systems.
     - This module is supported only for direct connection to the storage system.

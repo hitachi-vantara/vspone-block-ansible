@@ -17,7 +17,7 @@
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
@@ -29,11 +29,11 @@
     - name: Create snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           primary_volume_id: 100
@@ -52,11 +52,11 @@
     - name: Split snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: split
         spec:
           primary_volume_id: 100
@@ -73,11 +73,11 @@
     - name: Resync snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: sync
         spec:
           primary_volume_id: 100
@@ -94,11 +94,11 @@
     - name: Create and Auto-Split snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: split
         spec:
           primary_volume_id: 100
@@ -116,11 +116,11 @@
     - name: Restore snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: restore
         spec:
           primary_volume_id: 100
@@ -137,11 +137,11 @@
     - name: Create snapshot pair using existing consistency group
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           primary_volume_id: 100
@@ -160,11 +160,11 @@
     - name: Create snapshot advanced cascade pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           primary_volume_id: 100
@@ -185,11 +185,11 @@
     - name: Create snapshot advanced clone pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           primary_volume_id: 100
@@ -209,11 +209,11 @@
     - name: Create clone volume using snapshot advanced clone pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: clone
         spec:
           primary_volume_id: 100
@@ -230,11 +230,11 @@
     - name: Delete snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: absent
         spec:
           primary_volume_id: 100

@@ -90,13 +90,13 @@ data:
     {
         "resource_value": "CL1-A",
         "storage_serial": "50015",
-        "subscriber_id": "12345",
+        "subscriber_id": "811150",
         "type": "Port"
     },
     {
         "resource_value": "5015",
         "storage_serial": "50015",
-        "subscriber_id": "12345",
+        "subscriber_id": "811150",
         "total_capacity": 1073741824,
         "type": "Volume"
     }

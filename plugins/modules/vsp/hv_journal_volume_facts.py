@@ -20,7 +20,7 @@ description:
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/journal_volume_facts.yml)
   - For gateway connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/journal_volume_facts.yml)
-version_added: '3.0.0'
+version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 options:
@@ -45,11 +45,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -63,7 +63,7 @@ options:
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description: Token value to access UAI gateway. This is a required field for gateway connection type.
         type: str
         required: false
   spec:
@@ -97,12 +97,12 @@ EXAMPLES = """
 - name: Retrieve information about all Journal Volumes
   hv_journal_volume_facts:
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
     connection_info:
       address: gateway.company.com
       api_token: "api token value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       journal_id: 10
 """

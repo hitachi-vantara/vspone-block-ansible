@@ -265,14 +265,14 @@ EXAMPLES = """
   hv_gad:
     state: "present"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
-      primary_storage_serial_number: 12345
+      primary_storage_serial_number: 811150
       secondary_storage_serial_number: 12346
       primary_volume_id: 11
       secondary_pool_id: 1
@@ -295,12 +295,12 @@ EXAMPLES = """
   hv_gad:
     state: "split"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 11
 
@@ -308,12 +308,12 @@ EXAMPLES = """
   hv_gad:
     state: "resync"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 11
 
@@ -321,7 +321,7 @@ EXAMPLES = """
   hv_gad:
     state: "swap_split"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
@@ -337,7 +337,7 @@ EXAMPLES = """
   hv_gad:
     state: "swap_resync"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
@@ -353,12 +353,12 @@ EXAMPLES = """
   hv_gad:
     state: "resize"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
         copy_group_name: "gad_copy_group_name_9"
         copy_pair_name: "gad_copy_pair_name_9"
@@ -368,12 +368,12 @@ EXAMPLES = """
   hv_gad:
     state: "absent"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 11
 """

@@ -17,7 +17,7 @@
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
@@ -29,11 +29,11 @@
     - name: Get all journal volumes
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
       register: result
 
     - name: Debug the result variable
@@ -46,11 +46,11 @@
     - name: Get specific journal volumes
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         spec:
           is_free_journal_pool_id: true
           free_journal_pool_id_count: 10
@@ -65,11 +65,11 @@
     - name: Get specific journal volumes
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         spec:
           is_mirror_not_used: true
       register: result
@@ -83,11 +83,11 @@
     - name: Get specific journal volumes
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         spec:
           journal_id: 10
       register: result

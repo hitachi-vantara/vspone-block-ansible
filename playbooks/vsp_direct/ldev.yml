@@ -233,7 +233,7 @@
         var: result
 
     #########################################################################################################
-    # Task 12 : Configuring QoS settings for a  existing volume
+    # Task 12 : Configuring QoS settings for an existing volume
     #########################################################################################################
     - name: It configures the QoS settings for a specified volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -340,6 +340,24 @@
         spec:
           ldev_id: 11
           vldev_id: 10
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task 17 : Unset virtual ldev from  the volume
+    #########################################################################################################
+    - name: It configures the virtual ldev for a volume.
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        state: "present"
+        spec:
+          ldev_id: 11
+          vldev_id: -1
 
       register: result
     - name: Debug the result variable

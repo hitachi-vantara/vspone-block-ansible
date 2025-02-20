@@ -140,7 +140,7 @@ EXAMPLES = """
 - name: Get all HUR pairs for direct connection
   hv_truecopy_facts:
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
     connection_info:
       address: gateway.company.com
       username: "admin"
@@ -149,17 +149,17 @@ EXAMPLES = """
 - name: Get all HUR pairs for gateway connection for a specific subscriber
   hv_truecopy_facts:
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 12345
+      subscriber_id: 811150
 
 - name: Gather HUR facts with primary volume and mirror unit ID for direct connection
   hv_hur_facts:
     storage_system_info:
-      serial: "1234567890"
+      serial: "811150"
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -171,12 +171,12 @@ EXAMPLES = """
 - name: Gather HUR facts with primary volume and mirror unit ID for gateway connection
   hv_hur_facts:
     storage_system_info:
-      serial: "1234567890"
+      serial: "811150"
     connection_info:
       address: storage1.company.com
       api_token: "xxx"
       connection_type: "gateway"
-      subscriber_id: 12345
+      subscriber_id: 811150
     spec:
       primary_volume_id: 111
       mirror_unit_id: 10
@@ -184,7 +184,7 @@ EXAMPLES = """
 - name: Gather HUR facts for a specific primary volume for direct connection
   hv_hur_facts:
     storage_system_info:
-      serial: "1234567890"
+      serial: "811150"
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -195,19 +195,19 @@ EXAMPLES = """
 - name: Gather HUR facts for a specific primary volume for gateway connection
   hv_hur_facts:
     storage_system_info:
-      serial: "1234567890"
+      serial: "811150"
     connection_info:
       address: storage1.company.com
       api_token: "xxx"
       connection_type: "gateway"
-      subscriber_id: 12345
+      subscriber_id: 811150
     spec:
       primary_volume_id: 111
 
 - name: Gather HUR facts for a specific secondary volume for direct connection
   hv_hur_facts:
     storage_system_info:
-      serial: "1234567890"
+      serial: "811150"
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -218,12 +218,12 @@ EXAMPLES = """
 - name: Gather HUR facts for a specific secondary volume for gateway connection
   hv_hur_facts:
     storage_system_info:
-      serial: "1234567890"
+      serial: "811150"
     connection_info:
       address: storage1.company.com
       api_token: "xxx"
       connection_type: "gateway"
-      subscriber_id: 12345
+      subscriber_id: 811150
     spec:
       secondary_volume_id: 111
 """

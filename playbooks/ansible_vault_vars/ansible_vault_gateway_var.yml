@@ -6,5 +6,4 @@ uai_gateway_address: <your_gateway_ip_address_or_fqdn> # Example: uai_gateway1.c
 vault_gateway_api_token: <your_gateway_token> # Use playbook uai_gateway_token.yml to generate a UAI Gateway Token
 vault_gateway_username: <your_gateway_username> # Gateway user name is admin
 vault_gateway_secret: <your_gateway_password> # Default password for admin is "overrunsurveysroutewarnssent"
-subscriber_id: <your_gateway_subscriber_id> # Example: 12345
-connection_type: gateway
+subscriber_id: <your_gateway_subscriber_id> # Example: 811150

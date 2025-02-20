@@ -16,7 +16,7 @@
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
@@ -28,17 +28,16 @@
     - name: Create HUR pair
       hitachivantara.vspone_block.vsp.hv_hur:
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         spec:
           primary_volume_id: 123
           primary_volume_journal_id: 1
           secondary_volume_journal_id: 2
           secondary_pool_id: 3
-          allocate_new_consistency_group: true
           secondary_storage_serial_number: 23456
           secondary_hostgroup:
             name: remote-hostgroup-1
@@ -58,11 +57,11 @@
     - name: Split HUR pair
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: split
         spec:
           primary_volume_id: 123
@@ -80,11 +79,11 @@
     - name: Resync HUR pair
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: resync
         spec:
           primary_volume_id: 123
@@ -101,11 +100,11 @@
     - name: Delete HUR pair
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: absent
         spec:
           primary_volume_id: 123
@@ -116,61 +115,17 @@
       ansible.builtin.debug:
         var: result
 
-    ######################################################################
-    # Task 5 : Swap-Split HUR pair
-    ######################################################################
-    - name: Swap-Split HUR pair
-      hitachivantara.vspone_block.vsp.hv_hur:
-        connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
-          api_token: "{{ result_token.api_token.token }}"
-        storage_system_info:
-          serial: 23456
-        state: swap_split
-        spec:
-          primary_volume_id: 123
-          mirror_unit_id: 1
-          secondary_storage_serial_number: "{{ storage_serial }}"
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
     #####################################################################
-    # Task 6 : Swap-Resync HUR pair
-    ######################################################################
-    - name: Swap-Resync HUR pair
-      hitachivantara.vspone_block.vsp.hv_hur:
-        connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
-          api_token: "{{ result_token.api_token.token }}"
-        storage_system_info:
-          serial: 23456
-        state: swap_resync
-        spec:
-          primary_volume_id: 123
-          mirror_unit_id: 1
-          secondary_storage_serial_number: "{{ storage_serial }}"
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    #####################################################################
-    # Task 7 : Resize HUR pair
+    # Task 5 : Resize HUR pair
     ######################################################################
     - name: Resize HUR pair
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: resize
         spec:
           primary_volume_id: 123

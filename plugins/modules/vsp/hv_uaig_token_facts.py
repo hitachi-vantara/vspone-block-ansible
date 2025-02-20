@@ -31,11 +31,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.This is a required field for token generation.
+        description: Username for authentication. This is a required field for token generation.
         type: str
         required: true
       password:
-        description: Password for authentication.This is a required field for token generation.
+        description: Password for authentication. This is a required field for token generation.
         type: str
         required: true
 """

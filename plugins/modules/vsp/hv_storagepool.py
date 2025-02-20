@@ -54,12 +54,12 @@ options:
         required: true
       username:
         description:
-          - Username for authentication.
+          - Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
         description:
-          - Password for authentication.
+          - Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -76,7 +76,7 @@ options:
         required: false
       api_token:
         description:
-          - Token to access UAI gateway (either 'username, password' or api_token is required).
+          - Token to access UAI gateway. This is a required field for gateway connection type.
         type: str
         required: false
   spec:
@@ -106,8 +106,8 @@ options:
           - HRT
           - HTI
       should_enable_deduplication:
-        description: >
-          Whether to enable deduplication for the pool. This feature is applicable to the following models:
+        description:
+          - Whether to enable deduplication for the pool. This feature is applicable to the following models
           - VSP G200
           - VSP G400
           - VSP F400
@@ -170,7 +170,7 @@ EXAMPLES = """
           api_token: "api_token"
           connection_type: "gateway"
         storage_system_info:
-          - serial: "123456"
+          - serial: "811150"
         state: "present"
         spec:
           name: "test_pool"
@@ -191,7 +191,7 @@ EXAMPLES = """
           username: "gateway"
           password: "password"
         storage_system_info:
-          - serial: "123456"
+          - serial: "811150"
         state: "present"
         spec:
           name: "test_pool"
@@ -213,7 +213,7 @@ EXAMPLES = """
           connection_type: "gateway"
 
         storage_system_info:
-          - serial: "123456"
+          - serial: "811150"
         state: "present"
         spec:
           name: "test_pool"
@@ -232,7 +232,7 @@ EXAMPLES = """
           connection_type: "gateway"
 
         storage_system_info:
-          - serial: "123456"
+          - serial: "811150"
 
         state: "absent"
         spec:

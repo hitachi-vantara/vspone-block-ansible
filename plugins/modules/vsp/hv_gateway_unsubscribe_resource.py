@@ -103,10 +103,10 @@ data:
   sample: [
         "error": [
             "Did not find Host Group test-001.",
-            "Unable to untag Host Group test-005 from subscriber 12345 since it is already attached to volumes.",
-            "Failed to untag storage volume 5015 from subscriber 12345 as it is tagged to a host group or iSCSI target",
-            "Failed to untag storage volume 5016 from subscriber 12345 as it is tagged to a host group or iSCSI target",
-            "Host group is present in Port CL5-A that tagged to the subscriber 12345",
+            "Unable to untag Host Group test-005 from subscriber 811150 since it is already attached to volumes.",
+            "Failed to untag storage volume 5015 from subscriber 811150 as it is tagged to a host group or iSCSI target",
+            "Failed to untag storage volume 5016 from subscriber 811150 as it is tagged to a host group or iSCSI target",
+            "Host group is present in Port CL5-A that tagged to the subscriber 811150",
             "Did not find Port with ID CL1-A.",
             "Storage is not registered",
             "Resource not found",

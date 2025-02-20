@@ -48,11 +48,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       api_token:
@@ -80,11 +80,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication to the secondary storage system.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication to the secondary storage system.
         type: str
         required: false
       api_token:

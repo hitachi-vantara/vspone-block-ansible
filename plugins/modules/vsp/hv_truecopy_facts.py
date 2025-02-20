@@ -48,17 +48,17 @@ DOCUMENTATION = """
           required: true
         username:
           description:
-            - Username for authentication.
+            - Username for authentication. This field is valid for direct connection type only, and it is a required field.
           type: str
           required: false
         password:
           description:
-            - Password for authentication.
+            - Password for authentication. This field is valid for direct connection type only, and it is a required field.
           type: str
           required: false
         api_token:
           description:
-            - Token value to access UAI gateway.
+            - This fieild is used to pass the value of the lock token of the secondary storage to operate on locked resources.
           type: str
           required: false
     connection_info:
@@ -144,7 +144,7 @@ EXAMPLES = """
 - name: Get all TrueCopy pairs for direct connection
   hv_truecopy_facts:
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
     connection_info:
       address: gateway.company.com
       username: "admin"
@@ -153,7 +153,7 @@ EXAMPLES = """
 - name: Get all TrueCopy pairs for gateway connection for a specific subscriber
   hv_truecopy_facts:
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
@@ -163,7 +163,7 @@ EXAMPLES = """
 - name: Retrieve TrueCopy pair information for a specific volume for direct connection
   hv_truecopy_facts:
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
     connection_info:
       address: gateway.company.com
       username: "admin"
@@ -174,12 +174,12 @@ EXAMPLES = """
 - name: Retrieve TrueCopy pair information for a specific volume for gateway connection
   hv_truecopy_facts:
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 12345
     spec:
       primary_volume_id: 123
 """

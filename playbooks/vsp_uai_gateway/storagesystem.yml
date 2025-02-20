@@ -17,7 +17,7 @@
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
@@ -29,14 +29,14 @@
     - name: Add storage system
       hitachivantara.vspone_block.vsp.hv_storagesystem:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
-          address: "{{ storage_address }}"
-          username: "{{ vault_storage_username }}"
-          password: "{{ vault_storage_secret }}"
+          serial: "811150"
+          address: "10.10.10.11"
+          username: "username"
+          password: "samplePassword"
         state: present
       register: result
 
@@ -50,14 +50,14 @@
     - name: Add storage system with remote gateway address
       hitachivantara.vspone_block.vsp.hv_storagesystem:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
-          address: "{{ storage_address }}"
-          username: "{{ vault_storage_username }}"
-          password: "{{ vault_storage_secret }}"
+          serial: "811150"
+          address: "10.10.10.11"
+          username: "username"
+          password: "samplePassword"
           remote_gateway_address: 10.10.10.10
         state: present
       register: result
@@ -72,11 +72,11 @@
     - name: Delete storage system
       hitachivantara.vspone_block.vsp.hv_storagesystem:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: absent
       register: result
 

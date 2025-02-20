@@ -41,7 +41,7 @@
     ####################################################################
     # Task 2 : Get GAD pair using secondary volume Id
     ####################################################################
-    - name: Get GAD pair using only primary volume Id
+    - name: Get GAD pair using secondary volume Id
       hitachivantara.vspone_block.vsp.hv_gad_facts:
         secondary_connection_info: "{{ secondary_connection_info }}"
         connection_info: "{{ connection_info }}"
@@ -75,7 +75,7 @@
     ####################################################################
     # Task 4 : Get all GAD pairs from all copy groups
     ####################################################################
-    - name: Get GAD pair using only primary volume Id
+    - name: Get all GAD pairs from all copy groups
       hitachivantara.vspone_block.vsp.hv_gad_facts:
         secondary_connection_info: "{{ secondary_connection_info }}"
         connection_info: "{{ connection_info }}"

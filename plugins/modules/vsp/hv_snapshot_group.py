@@ -11,14 +11,14 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_snapshot_group
-short_description: Manages snapshots on Hitachi VSP storage systems.
+short_description: Manages snapshots in units of snapshot groups on Hitachi VSP storage systems.
 description:
   - This module allows for the deletion, splitting, syncing, and restoring of snapshots on Hitachi VSP storage systems.
   - It supports various snapshot operations based on the specified task level.
   - This module is supported only for direct connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snapshot_group.yml)
-version_added: '3.1.0'
+version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 options:
@@ -87,7 +87,7 @@ EXAMPLES = """
 - name: Split snapshots using snapshot group name
   hv_snapshot_group:
     storage_system_info:
-      serial: '1234567890'
+      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -100,7 +100,7 @@ EXAMPLES = """
 - name: Restore snapshots using snapshot group name
   hv_snapshot_group:
     storage_system_info:
-      serial: '1234567890'
+      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -113,7 +113,7 @@ EXAMPLES = """
 - name: Resync snapshots using snapshot group name
   hv_snapshot_group:
     storage_system_info:
-      serial: '1234567890'
+      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -126,7 +126,7 @@ EXAMPLES = """
 - name: Delete snapshots using snapshot group name
   hv_snapshot_group:
     storage_system_info:
-      serial: '1234567890'
+      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "admin"

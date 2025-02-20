@@ -23,7 +23,7 @@
     - name: Set port authentication mode
       hitachivantara.vspone_block.sds_block.hv_sds_block_compute_port_authentication:
         connection_info: "{{ connection_info }}"
-        state: "{{ state_present }}"
+        state: "present"
         spec:
           port_name: "iqn_1994-04_jp_co_hitachi:rsd_sph_t_0a85a_000"
           authentication_mode: "CHAP"

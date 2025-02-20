@@ -6,6 +6,7 @@ try:
     from ..common.ansible_common import convert_hex_to_dec
     from ..common.uaig_utils import UAIGResourceID
     from ..common.ansible_common import log_entry_exit
+    from ..message.vsp_host_group_msgs import VSPHostGroupMessage
 
 
 except ImportError:
@@ -15,6 +16,7 @@ except ImportError:
     from common.ansible_common import convert_hex_to_dec
     from common.uaig_utils import UAIGResourceID
     from common.ansible_common import log_entry_exit
+    from message.vsp_host_group_msgs import VSPHostGroupMessage
 
 
 class VSPHostGroupProvisioner:
@@ -104,9 +106,15 @@ class VSPHostGroupProvisioner:
 
     @log_entry_exit
     def create_host_group(self, port, name, wwns, luns, host_mode, host_mode_options):
-        self.gateway.create_host_group(
-            port, name, wwns, luns, host_mode, host_mode_options
-        )
+        logger = Log()
+        try:
+            self.gateway.create_host_group(
+                port, name, wwns, luns, host_mode, host_mode_options
+            )
+        except Exception as e:
+            err_msg = VSPHostGroupMessage.HG_CREATE_FAILED.value + str(e)
+            logger.writeError(err_msg)
+            raise Exception(err_msg)
 
     @log_entry_exit
     def delete_host_group(self, hg, is_delete_all_luns):

@@ -44,11 +44,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -62,7 +62,7 @@ options:
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description: Token value to access UAI gateway. This is a required field for gateway connection type.
         type: str
         required: false
   spec:
@@ -91,7 +91,7 @@ EXAMPLES = """
   tasks:
     - hv_storagesystem_facts:
         storage_system_info:
-          serial: '1234567890'
+          serial: '811150'
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -108,14 +108,14 @@ EXAMPLES = """
   tasks:
     - hv_storagesystem_facts:
         storage_system_info:
-          serial: '1234567890'
+          serial: '811150'
         connection_info:
           address: storage1.company.com
           username: "admin"
           password: "secret"
           connection_type: "direct"
         spec:
-          query: "{{ query }}"
+          query: "quorumdisks"
 """
 
 RETURN = """
@@ -160,7 +160,7 @@ storage_system_info:
     "model": "VSP_5100H",
     "operational_status": "Normal",
     "resource_state": "Healthy",
-    "serial_number": "1234567890",
+    "serial_number": "811150",
     "syslog_config": {
       "syslog_servers": [
         {
