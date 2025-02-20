@@ -67,7 +67,9 @@ options:
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description:
+          Token value to access UAI gateway. This is a required field for gateway connection type.
+          This fieild is used for direct connection type to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
   spec:
@@ -119,12 +121,12 @@ EXAMPLES = """
   hv_shadow_image_pair:
     state: "present"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
@@ -135,12 +137,12 @@ EXAMPLES = """
   hv_shadow_image_pair:
     state: "split"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
@@ -151,12 +153,12 @@ EXAMPLES = """
   hv_shadow_image_pair:
     state: "sync"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
@@ -166,12 +168,12 @@ EXAMPLES = """
   hv_shadow_image_pair:
     state: "split"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
@@ -181,12 +183,12 @@ EXAMPLES = """
   hv_shadow_image_pair:
     state: "restore"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
@@ -196,12 +198,12 @@ EXAMPLES = """
   hv_shadow_image_pair:
     state: "absent"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
@@ -227,7 +229,7 @@ data:
         "secondary_hex_volume_id": "00:01:17",
         "secondary_volume_id": 279,
         "status": "PAIR",
-        "storage_serial_number": "123456",
+        "storage_serial_number": "811150",
         "subscriber_id": "subscriber123",
         "svol_access_mode": "READONLY"
     }

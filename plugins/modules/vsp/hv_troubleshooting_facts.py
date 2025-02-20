@@ -42,32 +42,38 @@ options:
                 type: str
                 required: true
             username:
-                description: Username for authentication.
+                description: Username for authentication for the remote gateway host.
                 type: str
                 required: true
             password:
-                description: Password for authentication.
+                description: Password for authentication for the remote gateway host.
                 type: str
                 required: true
 """
 
 EXAMPLES = """
 tasks:
-  - name: Collect log bundle including UAI gateway logs
-    hv_troubleshooting_facts:
-      uai_gateway_address: gateway.company.com
-      api_token: "api_token_value"
+  - name: Collect LogBundle including Local and Remote UAI gateway logs
+    hitachivantara.vspone_block.vsp.hv_troubleshooting_facts:
+      uai_gateway_address: "172.25.99.99"
+      api_token: apitokenvalue
+      remote_gateway_host_connection_info:
+        - address: remotegateway1.company.com
+          username: admin
+          password: login-password
     register: result
-    no_log: true
-  - debug:
+
+  - name: Debug the result variable
+    ansible.builtin.debug:
       var: result
 
   - name: Collect log bundle for direct only
-    hv_troubleshooting_facts: {}  # Use an empty dictionary if no parameters are required
+    hitachivantara.vspone_block.vsp.hv_troubleshooting_facts:
     register: result
-    no_log: true
+    # no_log: true
 
-  - debug:
+  - name: Debug the result variable
+    ansible.builtin.debug:
       var: result
 """
 

@@ -96,7 +96,7 @@ EXAMPLES = """
       api_token: "eyJhbGciOiJS......"
       connection_type: "gateway"
     spec:
-      subscriber_id: "12345"
+      subscriber_id: "811150"
       name: "Testsub123"
       soft_limit: "70"
       hard_limit: "80"
@@ -110,7 +110,7 @@ EXAMPLES = """
       api_token: "eyJhbGciOiJS......"
       connection_type: "gateway"
     spec:
-      subscriber_id: "12345"
+      subscriber_id: "811150"
 
 - name: Update a subscriber
   hv_gateway_subscriber:
@@ -120,7 +120,7 @@ EXAMPLES = """
       api_token: "eyJhbGciOiJS......"
       connection_type: "gateway"
     spec:
-      subscriber_id: "12345"
+      subscriber_id: "811150"
       quota_limit: "30"
 """
 

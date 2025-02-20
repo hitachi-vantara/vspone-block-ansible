@@ -22,7 +22,7 @@
     # Task 1 : Get all snapshot pairs using group name
     ####################################################################
     - name: Get one snapshot pairs using group name
-      hitachivantara.vspone_block.vsp.hv_snapshot_group_fact:
+      hitachivantara.vspone_block.vsp.hv_snapshot_group_facts:
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"

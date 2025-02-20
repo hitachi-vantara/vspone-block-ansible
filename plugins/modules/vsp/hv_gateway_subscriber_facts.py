@@ -66,7 +66,7 @@ EXAMPLES = """
       api_token: "eyJhbGciOiJS......"
       connection_type: "gateway"
     spec:
-      subscriber_id: "12345"
+      subscriber_id: "811150"
 
 - name: Retrieve information about a specific subscriber
   hv_gateway_subscriber_facts:
@@ -93,7 +93,7 @@ data:
         "quota_limit_in_gb": "90",
         "soft_limit_in_percent": "80",
         "state": "NORMAL",
-        "subscriber_id": "12345",
+        "subscriber_id": "811150",
         "time": 1716260209,
         "type": "subscriber",
         "used_quota_in_gb": "0.1953125",

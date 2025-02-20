@@ -64,7 +64,7 @@ class VSPTrueCopyProvisioner:
 
     @log_entry_exit
     def get_all_replication_pairs(self, serial=None):
-        return self.gateway.get_all_replication_pairs(serial)
+        return self.gateway.get_all_replication_pairs(self.serial)
 
     @log_entry_exit
     def get_tc_for_primary_vol_id(self, primary_vol_id):
@@ -104,6 +104,8 @@ class VSPTrueCopyProvisioner:
             logger.writeDebug(f"PROV:sng20241218 :serial= {serial}")
             if spec is not None and spec.primary_volume_id is not None:
                 return self.get_tc_for_primary_vol_id(spec.primary_volume_id)
+            elif spec is not None and spec.secondary_volume_id is not None:
+                return self.get_tc_for_secondary_vol_id(spec.secondary_volume_id)
             return self.gateway.get_all_true_copy_pairs(serial)
         else:
             tc_pairs = self.get_all_tc_pairs_direct(spec=spec)

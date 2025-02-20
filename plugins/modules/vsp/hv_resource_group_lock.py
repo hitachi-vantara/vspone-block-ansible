@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_resource_group_lock
-short_description: This module allows the locking and unlocking of resource groups on Hitachi VSP storage systems.
+short_description: Allows the locking and unlocking of resource groups on Hitachi VSP storage systems.
 description:
     - This module allows the locking and unlocking of resource groups on Hitachi VSP storage systems.
     - This module is supported for both direct and gateway connection types.
@@ -144,7 +144,7 @@ EXAMPLES = """
       hitachivantara.vspone_block.vsp.hv_ldevs:
         connection_info:
           address: storage1.company.com
-          api_token: "{{ response.locked_resource_groups.lock_token }}"
+          api_token: api_token_value
         spec:
         pool_id: 0
         size: 2GB
@@ -159,13 +159,47 @@ EXAMPLES = """
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
           address: storage1.company.com
-          api_token: "{{ response.locked_resource_groups.lock_token }}"
+          api_token: api_token_value
         state: absent
       register: result
 
     - name: Debug lock resource group result
       ansible.builtin.debug:
         var: result
+
+    - name: Lock Resource Group by name for gateway connection type
+      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
+        connection_info:
+            connection_type: gateway
+            address: uai_gateway1.company.co
+            api_token: api_token_value
+        storage_system_info:
+            serial: 810050
+            state: present
+        spec:
+            name: test_VSM_13
+      register: lock_resource_group_result
+
+    - name: Debug lock resource group result
+      ansible.builtin.debug:
+        var: lock_resource_group_result
+
+    - name: Unlock Resource Group by name for gateway connection type
+      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
+        connection_info:
+            connection_type: gateway
+            address: uai_gateway1.company.co
+            api_token: api_token_value
+        storage_system_info:
+            serial: 810050
+        state: absent
+        spec:
+            name: test_VSM_13
+      register: unlock_resource_group_result
+
+    - name: Debug unlock resource group result
+      ansible.builtin.debug:
+        var: unlock_resource_group_result
 """
 
 RETURN = """

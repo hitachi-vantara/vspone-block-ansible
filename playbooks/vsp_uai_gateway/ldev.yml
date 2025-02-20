@@ -17,7 +17,7 @@
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
@@ -29,11 +29,11 @@
     - name: Create ldev
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           ldev_id: 345
@@ -52,11 +52,11 @@
     - name: Expand size of ldev
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           ldev_id: 345
@@ -73,11 +73,11 @@
     - name: Create ldev using parity group and auto free ldev id selection
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           parity_group: 1-1
@@ -95,11 +95,11 @@
     - name: Create ldev with capacity saving and auto free ldev id selection
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           pool_id: 15
@@ -113,11 +113,11 @@
     - name: Create ldev with capacity saving and data_reduction_share
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           pool_id: 15
@@ -132,11 +132,11 @@
     - name: Create ldev with volume tiering
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           pool_id: 15
@@ -161,11 +161,11 @@
     - name: Delete ldev
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: absent
         spec:
           ldev_id: 345
@@ -181,11 +181,11 @@
     - name: Force delete ldev removes the ldev from hostgroups, or iscsi targets
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: absent
         spec:
           ldev_id: 345
@@ -202,11 +202,11 @@
     - name: It configures the virtual ldev for a new volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           pool_id: 15
@@ -224,15 +224,36 @@
     - name: It configures the virtual ldev for a volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           ldev_id: 345
           vldev_id: 346
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task 11 : Unset virtual ldev from  the volume
+    #########################################################################################################
+    - name: It configures the virtual ldev for a volume.
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info:
+          connection_type: "gateway"
+          address: "192.178.123.123"
+          api_token: "{{ result_token.api_token.token }}"
+        storage_system_info:
+          serial: "811150"
+        state: present
+        spec:
+          ldev_id: 345
+          vldev_id: -1
 
       register: result
     - name: Debug the result variable

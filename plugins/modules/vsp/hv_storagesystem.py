@@ -42,11 +42,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: true
       password:
-        description: Password for authentication.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: true
       remote_gateway_address:
@@ -63,11 +63,15 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description:
+          Username for authentication. This field is valid for direct connection type only, and it is a required field.
+          Not needed for this module.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description:
+          Password for authentication. This field is valid for direct connection type only, and it is a required field.
+          Not needed for this module.
         type: str
         required: false
       connection_type:
@@ -80,7 +84,7 @@ options:
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description: Token value to access UAI gateway. This is a required field for gateway connection type.
         type: str
         required: false
 """
@@ -90,7 +94,7 @@ EXAMPLES = """
   tasks:
     - hv_storagesystem:
         storage_system_info:
-          serial: "ABC123"
+          serial: "811150"
           address: storage1.company.com
           username: "username"
           password: "password"
@@ -98,7 +102,7 @@ EXAMPLES = """
           address: gateway.company.com
           api_token: "api token value"
           connection_type: "gateway"
-          subscriber_id: "sub123"
+          subscriber_id: 811150
         state: present
       register: result
     - debug: var=result
@@ -107,12 +111,12 @@ EXAMPLES = """
   tasks:
     - hv_storagesystem:
         storage_system_info:
-          serial: "ABC123"
+          serial: "811150"
         connection_info:
           address: gateway.company.com
           api_token: "api token value"
           connection_type: "gateway"
-          subscriber_id: "sub123"
+          subscriber_id: 811150
         state: absent
       register: result
     - debug: var=result
@@ -528,14 +532,28 @@ def main(module=None):
 
 def formatSS(storageSystem):
     logger.writeDebug("storageSystem={}", storageSystem)
-    del storageSystem["freeCapacity"]
-    del storageSystem["freeCapacityInMb"]
-    del storageSystem["freePoolCapacity"]
-    del storageSystem["freePoolCapacityInMb"]
-    del storageSystem["totalCapacity"]
-    del storageSystem["totalCapacityInMb"]
-    del storageSystem["totalPoolCapacity"]
-    del storageSystem["totalPoolCapacityInMb"]
+    if storageSystem.get("freeCapacity"):
+        del storageSystem["freeCapacity"]
+
+    if storageSystem.get("totalCapacity"):
+        del storageSystem["totalCapacity"]
+    if storageSystem.get("freeCapacityInMb"):
+        del storageSystem["freeCapacityInMb"]
+    if storageSystem.get("freePoolCapacity"):
+        del storageSystem["freePoolCapacity"]
+
+    if storageSystem.get("freePoolCapacityInMb"):
+        del storageSystem["freePoolCapacityInMb"]
+
+    if storageSystem["totalCapacityInMb"]:
+        del storageSystem["totalCapacityInMb"]
+
+    if storageSystem.get("totalPoolCapacity"):
+        del storageSystem["totalPoolCapacity"]
+
+    if storageSystem.get("totalPoolCapacityInMb"):
+        del storageSystem["totalPoolCapacityInMb"]
+
     return camel_to_snake_case_dict(storageSystem)
 
 

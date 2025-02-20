@@ -16,7 +16,7 @@
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
@@ -28,15 +28,15 @@
     - name: Get specific journal volumes (Primary and Secondary)
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
           serial: "{{ item.storage_serial }}"
         spec:
           is_mirror_not_used: true
       with_items:
-        - {name: "primaryjournal", storage_serial: "{{ storage_serial }}"}
+        - {name: "primaryjournal", storage_serial: "811150"}
         - {name: "secondaryjournal", storage_serial: 23456}
       register: journal_volumes
     #####################################################################
@@ -45,10 +45,10 @@
     - name: Create HUR pair and debug result
       hitachivantara.vspone_block.vsp.hv_hur:
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         spec:
           primary_volume_id: 123
@@ -60,7 +60,6 @@
           secondary_hostgroup:
             name: remote-hostgroup-1
             port: CL1-A
-          secondary_hostroup: "{{ secondary_hostgroup_for_jp1 }}"
           mirror_unit_id: 1
       when:
         journal_volumes.results | length > 1 and

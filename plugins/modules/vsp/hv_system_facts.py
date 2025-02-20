@@ -28,17 +28,19 @@ options:
     suboptions:
       address:
         description:
-          - IP address or hostname of the UAI gateway.
+          IP address or hostname of the UAI gateway.
         type: str
         required: true
       username:
         description:
-          - Username for authentication.
+          Username for authentication. This field is valid for direct connection type only, and it is a required field.
+          Not needed for this module.
         type: str
         required: false
       password:
         description:
-          - Password for authentication.
+          Password for authentication. This field is valid for direct connection type only, and it is a required field.
+          Not needed for this module.
         type: str
         required: false
       connection_type:
@@ -51,7 +53,7 @@ options:
         default: gateway
       api_token:
         description:
-          - Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+          - Token value to access UAI gateway. This is a required field for gateway connection type.
         type: str
         required: false
       subscriber_id:
@@ -80,8 +82,8 @@ EXAMPLES = """
     - hv_system_facts:
         connection_info:
           address: gateway.company.com
-          username: "{{management_username}}"
-          password: "{{management_key}}"
+          username: "ucpa"
+          password: "password"
       register: result
     - debug: var=result
 """

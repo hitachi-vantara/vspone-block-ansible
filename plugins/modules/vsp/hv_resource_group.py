@@ -56,12 +56,12 @@ options:
                 required: true
             username:
                 description:
-                    - Username for authentication.
+                    - Username for authentication. This field is valid for direct connection type only, and it is a required field.
                 type: str
                 required: false
             password:
                 description:
-                    - Password for authentication.
+                    - Password for authentication. This field is valid for direct connection type only, and it is a required field.
                 type: str
                 required: false
             connection_type:
@@ -72,7 +72,8 @@ options:
                 choices: ['direct', 'gateway']
                 default: 'direct'
             api_token:
-                description: Value of the lock token to operate on locked resources.
+                description: Either Token value to access UAI gateway for gateway connection type or
+                    value of the lock token to operate on locked resources for direct connection type.
                 type: str
                 required: false
             subscriber_id:
@@ -176,6 +177,8 @@ options:
             state:
                 description:
                     - Operation to be performed on the resources in the resource group.
+                    - 'add_resource :  To add resources to the resource group.'
+                    - 'remove_resource : To remove resources from the resource group.'
                 type: str
                 required: false
                 choices: ['add_resource', 'remove_resource']

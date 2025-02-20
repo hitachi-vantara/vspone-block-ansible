@@ -60,11 +60,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -406,7 +406,7 @@ hostGroups:
     "port": "CL1-A",
     "resource_group_id": 0,
     "storage_id": "storage-39f4eef0175c754bb90417358b0133c3",
-    "subscriber_id": "12345",
+    "subscriber_id": "811150",
     "wwns": [
       {
         "id": "1212121212121212",

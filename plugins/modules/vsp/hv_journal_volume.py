@@ -50,11 +50,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -68,7 +68,7 @@ options:
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description: Token value to access UAI gateway. This is a required field for gateway connection type.
         type: str
         required: false
   spec:
@@ -116,7 +116,7 @@ EXAMPLES = """
           api_token: "api_token"
           connection_type: "gateway"
         storage_system_info:
-          - serial: "123456"
+          - serial: "811150"
         state: "present"
         spec:
           journal_id: "35"
@@ -131,7 +131,7 @@ EXAMPLES = """
           connection_type: "gateway"
 
         storage_system_info:
-          - serial: "123456"
+          - serial: "811150"
         state: "present"
         spec:
           journal_id: "35"
@@ -146,7 +146,7 @@ EXAMPLES = """
           connection_type: "gateway"
 
         storage_system_info:
-          - serial: "123456"
+          - serial: "811150"
 
         state: "absent"
         spec:

@@ -28,7 +28,7 @@
     - name: Lock Resource Group by name
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
-          connection_type: "{{ connection_type }}"
+          connection_type: gateway
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
@@ -48,7 +48,7 @@
     - name: Lock Resource Group by id
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
-          connection_type: "{{ connection_type }}"
+          connection_type: gateway
           address: "{{ uai_gateway_address }}"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:

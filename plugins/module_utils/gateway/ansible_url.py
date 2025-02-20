@@ -404,7 +404,7 @@ def process_request(apig_body):
         # Prepare the request body
         body = json.dumps(apig_body.to_dict())
         # # log.writeDebug(f"Processing request... {body}")
-        # log.writeDebug(f"Processing request APIG_URL... {APIG_URL}")
+        log.writeDebug(f"Processing request APIG_URL... {APIG_URL}")
 
         # Make a request using open_url from Ansible module
         response = open_request(

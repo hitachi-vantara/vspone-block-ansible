@@ -119,7 +119,7 @@ EXAMPLES = """
       connection_type: "gateway"
       address: gateway.example.com
       api_token: "dummy_api_token"
-      subscriber_id: 12345
+      subscriber_id: 811150
     storage_system_info:
       serial: 40014
   register: result
@@ -130,7 +130,7 @@ EXAMPLES = """
       connection_type: "gateway"
       address: gateway.example.com
       api_token: "dummy_api_token"
-      subscriber_id: 12345
+      subscriber_id: 811150
     storage_system_info:
       serial: 40014
     spec:
@@ -143,7 +143,7 @@ EXAMPLES = """
       connection_type: "gateway"
       address: gateway.example.com
       api_token: "dummy_api_token"
-      subscriber_id: 12345
+      subscriber_id: 811150
     storage_system_info:
       serial: 40014
     spec:
@@ -194,7 +194,7 @@ Iscsi targets info:
         "partner_id": "partnerid",
         "port_id": "CL4-C",
         "resource_group_id": 0,
-        "subscriber_id": "12345"
+        "subscriber_id": "811150"
       }
     ]
 """

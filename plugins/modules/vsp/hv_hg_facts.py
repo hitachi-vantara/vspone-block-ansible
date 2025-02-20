@@ -96,12 +96,12 @@ EXAMPLES = """
   tasks:
     - hv_hg_facts:
         storage_system_info:
-          serial: "ABC123"
+          serial: "811150"
         connection_info:
           address: gateway.company.com
           api_token: "api token value"
           connection_type: "gateway"
-          subscriber_id: "sub123"
+          subscriber_id: 811150
         spec:
           query: ['wwns', 'ldevs']
           name: 'test-ansible-hg-1'
@@ -113,7 +113,7 @@ EXAMPLES = """
   tasks:
     - hv_hg_facts:
         storage_system_info:
-          serial: "ABC123"
+          serial: "811150"
         connection_info:
           address: gateway.company.com
           api_token: "api token value"
@@ -127,7 +127,7 @@ EXAMPLES = """
   tasks:
     - hv_hg_facts:
         storage_system_info:
-          serial: "ABC123"
+          serial: "811150"
         connection_info:
           address: storage1.company.com
           username: "dummy_user"
@@ -139,7 +139,7 @@ EXAMPLES = """
   tasks:
     - hv_hg_facts:
         storage_system_info:
-          serial: "ABC123"
+          serial: "811150"
         connection_info:
           address: storage1.company.com
           username: "dummy_user"
@@ -186,7 +186,7 @@ hostGroups:
       "port": "CL1-A",
       "resource_group_id": 0,
       "storage_id": "storage-39f4eef0175c754bb90417358b0133c3",
-      "subscriber_id": "12345",
+      "subscriber_id": "811150",
       "wwns": [
         {
           "id": "1212121212121212",

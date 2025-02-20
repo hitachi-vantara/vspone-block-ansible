@@ -63,7 +63,7 @@
         spec:
           copy_group_name: "copy_group_name_2"
           copy_pair_name: "copy_pair_name_2"
-
+          primary_volume_id: 6
           primary_storage_serial_number: 800010
           secondary_storage_serial_number: 800011
           secondary_pool_id: 1
@@ -94,8 +94,8 @@
         secondary_connection_info: "{{ secondary_connection_info }}"
 
         spec:
-          copy_group_name: "{{ gad_copy_group_name_3 }}"
-          copy_pair_name: "{{ gad_copy_pair_name_3 }}"
+          copy_group_name: "gad_copy_group_name_3"
+          copy_pair_name: "gad_copy_pair_name_3"
 
           primary_storage_serial_number: 800010
           secondary_storage_serial_number: 800011
@@ -236,7 +236,7 @@
         secondary_connection_info: "{{ secondary_connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_resize }}"
+        state: "resize"
         spec:
           copy_group_name: "copy_group_name_1"
           copy_pair_name: "copy_pair_name_1"

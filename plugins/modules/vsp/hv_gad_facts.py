@@ -130,21 +130,21 @@ EXAMPLES = """
   hv_gad_facts:
     state: "present"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
 - name: Get GAD pairs by primary volume id
   hv_gad_facts:
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       primary_volume_id: 11
 """

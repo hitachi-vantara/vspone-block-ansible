@@ -171,9 +171,9 @@ class VSPGadPairDirectGateway(VSPReplicationPairsDirectGateway):
         if is_new_group_creation:
             payload["muNumber"] = mu_number
 
-        if spec.quorum_disk_id:
+        if spec.quorum_disk_id is not None:
             payload["quorumDiskId"] = spec.quorum_disk_id
-        if spec.path_group_id:
+        if spec.path_group_id is not None:
             payload["pathGroupId"] = spec.path_group_id
         if spec.local_device_group_name:
             payload["localDeviceGroupName"] = spec.local_device_group_name
@@ -418,7 +418,7 @@ class GADPairUAIGateway:
             payload[GADPairConst.VIRTUAL_RESOURCE_GROUP_PAYLOAD] = {
                 GADPairConst.NAME: spec.secondary_resource_group_name
             }
-        if spec.quorum_disk_id:
+        if spec.quorum_disk_id is not None:
             payload[GADPairConst.QUORUM_DISK_ID] = spec.quorum_disk_id
 
         endPoint = UAIGEndpoints.POST_GAD_PAIR

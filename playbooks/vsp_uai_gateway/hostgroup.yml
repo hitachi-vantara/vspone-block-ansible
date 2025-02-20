@@ -17,7 +17,7 @@
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
@@ -29,11 +29,11 @@
     - name: Create hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           name: hostgroup-server
@@ -56,11 +56,11 @@
     - name: Update host mode and host mode options
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           state: set_host_mode_and_hmo
@@ -80,11 +80,11 @@
     - name: Remove host mode options
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           state: absent
@@ -103,11 +103,11 @@
     - name: Add wwns to hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           state: add_wwn
@@ -128,11 +128,11 @@
     - name: Remove wwns from hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           state: remove_wwn
@@ -152,11 +152,11 @@
     - name: Present ldevs to hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           state: present_ldev
@@ -175,11 +175,11 @@
     - name: Unpresent ldevs from hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: present
         spec:
           state: unpresent_ldev
@@ -198,11 +198,11 @@
     - name: Delete hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: absent
         spec:
           name: hostgroup-server

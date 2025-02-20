@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_disk_drive
-short_description: Change disk drive settings from Hitachi VSP storage systems.
+short_description: Changes disk drive settings from Hitachi VSP storage systems.
 description:
     - This module changes disk drive setiings from Hitachi VSP storage systems.
     - This module is supported only for direct connection to the storage system.
@@ -96,7 +96,7 @@ EXAMPLES = """
           api_token: "api_token"
           connection_type: "direct"
         storage_system_info:
-          - serial: "123456"
+          - serial: "811150"
         state: "present"
         spec:
           drive_location_id: "0-16"

@@ -31,7 +31,7 @@
         secondary_connection_info: "{{ secondary_connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_split }}"
+        state: "split"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
           remote_device_group_name: "hur_remote_device_group_name_1"
@@ -55,7 +55,7 @@
         secondary_connection_info: "{{ secondary_connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_split }}"
+        state: "split"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
           remote_device_group_name: "hur_remote_device_group_name_1"
@@ -79,7 +79,7 @@
         secondary_connection_info: "{{ secondary_connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_split }}"
+        state: "split"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
           remote_device_group_name: "hur_remote_device_group_name_1"
@@ -101,7 +101,7 @@
         secondary_connection_info: "{{ secondary_connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_swap_split }}"
+        state: "swap_split"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
           remote_device_group_name: "hur_remote_device_group_name_1"
@@ -196,7 +196,7 @@
         secondary_connection_info: "{{ secondary_connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "{{ state_swap_resync }}"
+        state: "swap_resync"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
           remote_device_group_name: "hur_remote_device_group_name_1"

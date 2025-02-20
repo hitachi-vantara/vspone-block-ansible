@@ -267,47 +267,49 @@ class VSPConnectionManager(ConnectionManager):
         logger.writeDebug("Entering VSPConnectionManager.getAuthToken")
 
         if self.token is not None:
-
+            logger.writeDebug("VSPConnectionManager.getAuthToken:self.token is not None")
             return {"Authorization": "Session {0}".format(self.token)}
 
         headers = {}
         if self.session:
+            logger.writeDebug("VSPConnectionManager.getAuthToken:self.session is not None")
             if self.session.expiry_time > time.time():
                 headers = {"Authorization": "Session {0}".format(self.session.token)}
                 return headers
-        else:
-            end_point = Endpoints.SESSIONS
-            try:
-                response = self._make_request(
-                    method="POST", end_point=end_point, data=None
-                )
-            except Exception as e:
-                # can be due to wrong address or kong is not ready
-                logger.writeException(e)
-                err_msg = (
-                    "Failed to establish a connection, please check the Management System address or the credentials."
-                    + str(e)
-                )
-                raise Exception(err_msg)
 
-            session_id = response.get(API.SESSION_ID)
-            token = response.get(API.TOKEN)
-            logger.writeDebug(
-                f"VSPConnectionManager.getAuthToken session id = {session_id} token = {token}"
+        end_point = Endpoints.SESSIONS
+        try:
+            logger.writeDebug("VSPConnectionManager.getAuthToken:generate a new session")
+            response = self._make_request(
+                method="POST", end_point=end_point, data=None
             )
-            if self.session:
-                previous_session_id = self.session.session_id
-                try:
-                    self.delete_session(previous_session_id)
-                except Exception:
-                    logger.writeDebug(
-                        "could not delete previous session id = {}", previous_session_id
-                    )
-                    # do not throw exception as this session is not active
+        except Exception as e:
+            # can be due to wrong address or kong is not ready
+            logger.writeException(e)
+            err_msg = (
+                "Failed to establish a connection, please check the Management System address or the credentials."
+                + str(e)
+            )
+            raise Exception(err_msg)
 
-            self.session = SessionObject(session_id, token)
-            self.token = token
-            headers = {"Authorization": "Session {0}".format(token)}
+        session_id = response.get(API.SESSION_ID)
+        token = response.get(API.TOKEN)
+        logger.writeDebug(
+            f"VSPConnectionManager.getAuthToken session id = {session_id} token = {token}"
+        )
+        if self.session and self.session.expiry_time > 0:
+            previous_session_id = self.session.session_id
+            try:
+                self.delete_session(previous_session_id)
+            except Exception:
+                logger.writeDebug(
+                    "could not delete previous session id = {}", previous_session_id
+                )
+                # do not throw exception as this session is not active
+
+        self.session = SessionObject(session_id, token)
+        self.token = token
+        headers = {"Authorization": "Session {0}".format(token)}
         return headers
 
     def get_lock_session_token(self):
@@ -476,7 +478,7 @@ class VSPConnectionManager(ConnectionManager):
         return self._process_job(job_id)
 
     def _make_vsp_request(
-        self, method, end_point, data=None, headers_input=None, token=None
+        self, method, end_point, data=None, headers_input=None, token=None, retry=False
     ):
 
         logger.writeDebug(
@@ -500,7 +502,7 @@ class VSPConnectionManager(ConnectionManager):
         logger.writeDebug("url = {}", url)
         logger.writeDebug("headers = {}", headers)
         TIME_OUT = 300
-        if data is not None:
+        if data is not None and retry is False:
             data = json.dumps(data)
             logger.writeDebug("data = {}", data)
         try:
@@ -548,7 +550,7 @@ class VSPConnectionManager(ConnectionManager):
                     self.session.expiry_time = 0
                     self.retryCount += 1
                     return self._make_vsp_request(
-                        method, end_point, data, headers_input, token=None
+                        method, end_point, data, headers_input, token=None, retry=True
                     )
 
                 else:

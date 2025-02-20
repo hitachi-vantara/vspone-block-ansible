@@ -205,9 +205,14 @@ class GADPairProvisioner:
             return pair
         except Exception as ex:
             # if the GAD creation fails, delete the secondary volume
-            if secondary_vol_id:
-                rr_prov.delete_volume(secondary_vol_id, spec)
             err_msg = GADFailedMsg.PAIR_CREATION_FAILED.value + str(ex)
+            if "0C1B" in str(ex):
+                err_msg = GADFailedMsg.PAIR_CREATION_FAILED.value + "The specified port is in the NVMe mode. This feature is not supported."
+            try:
+                if secondary_vol_id:
+                    rr_prov.delete_volume(secondary_vol_id, spec)
+            except Exception as del_err:
+                err_msg = err_msg + str(del_err)
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 

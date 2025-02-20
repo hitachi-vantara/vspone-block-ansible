@@ -2,17 +2,10 @@
 
 The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of Ansible modules for managing Hitachi VSP One SDS Block and Hitachi VSP One series systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
-## Changelog
-
-View the changelog [here](Changelog).
-
 ## Hardware requirements
 
 - VSP One SDS Block v1.14
-- VSP One Block 20
-- VSP One Block 24
-- VSP One Block 26
-- VSP One Block 28
+- VSP One Block 20, 24, 26, 28
 - VSP 5100, 5500, 5100H, 5500H, 5200, 5600, 5200H, 5600H (SAS)
 - VSP 5100, 5500, 5100H, 5500H, 5200, 5600, 5200H, 5600H (NVMe)
 - VSP E590, E790, E990, E1090,
@@ -24,11 +17,6 @@ View the changelog [here](Changelog).
 - Red Hat Ansible Core - 2.16, 2.17, 2.18
 - Python - 3.9 or higher
 - Hitachi UAI Gateway 4.7 for using Gateway Connection
-
-## Supported operating systems
-
-- Oracle Enterprise Linux 8.9 or higher
-- Red Hat Enterprise Linux 8.9 or higher
 
 ## Recommended Host configuration
 
@@ -117,10 +105,10 @@ To upgrade the collection to the latest available version, run the following com
 ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 ```
 
-If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 3.2.0. If you encounter any issues, please report them in this [repository](https://github.com/hitachi-vantara/vspone-block-ansible/issues). Use the following syntax to install version 3.2.0:
+If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 3.2.1. If you encounter any issues, please report them in this [repository](https://github.com/hitachi-vantara/vspone-block-ansible/issues). Use the following syntax to install version 3.2.0:
 
 ```bash
-ansible-galaxy collection install hitachivantara.vspone_block:==3.2.0
+ansible-galaxy collection install hitachivantara.vspone_block:==3.2.1
 ```
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.

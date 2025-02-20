@@ -43,11 +43,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -84,7 +84,7 @@ EXAMPLES = """
 - name: Get all snapshot pairs
   hv_snapshot_facts:
     storage_system_info:
-      serial: '1234567890'
+      serial: '811150'
     connection_info:
       address: gateway.company.com
       connection_type: "gateway"
@@ -93,7 +93,7 @@ EXAMPLES = """
 - name: Gather snapshot facts with primary volume and mirror unit ID
   hv_snapshot_facts:
     storage_system_info:
-      serial: '1234567890'
+      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
@@ -106,7 +106,7 @@ EXAMPLES = """
 - name: Gather snapshot facts with only primary volume
   hv_snapshot_facts:
     storage_system_info:
-      serial: '1234567890'
+      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
@@ -118,7 +118,7 @@ EXAMPLES = """
 - name: Gather snapshot facts without specific volume or mirror unit ID
   hv_snapshot_facts:
     storage_system_info:
-      serial: '1234567890'
+      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"

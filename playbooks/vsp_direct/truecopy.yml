@@ -121,7 +121,7 @@
         var: result
 
     ################################################################################
-    # Task 5 : Split TrueCopy pair by copy_group_namne and primary volume ID
+    # Task 5 : Split TrueCopy pair by copy_group_name and primary volume ID
     ################################################################################
     - name: Split TrueCopy pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
@@ -181,7 +181,7 @@
         var: result
 
     #####################################################################################
-    # Task 8 : Swap-Split TrueCopy pair by copy_group_namne and primary volume ID
+    # Task 8 : Swap-Split TrueCopy pair by copy_group_name and primary volume ID
     #####################################################################################
     - name: Swap-Split TrueCopy pair
       hitachivantara.vspone_block.vsp.hv_truecopy:

@@ -253,7 +253,7 @@ class VSPTrueCopyReconciler:
 
     @log_entry_exit
     def get_all_tc_pairs(self, spec):
-        tc_pairs = self.provisioner.get_true_copy_facts(self.storage_serial_number)
+        tc_pairs = self.provisioner.get_true_copy_facts(spec=spec, serial=self.storage_serial_number)
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
             extracted_data = TrueCopyInfoExtractor(self.storage_serial_number).extract(
                 tc_pairs
@@ -273,9 +273,9 @@ class VSPTrueCopyReconciler:
             else:
                 spec.secondary_connection_info = self.secondary_connection_info
 
-    def get_true_copy_facts(self, spec=None, serial=None):
+    def get_true_copy_facts(self, spec=None):
 
-        tc_pairs = self.provisioner.get_true_copy_facts(spec, serial)
+        tc_pairs = self.provisioner.get_true_copy_facts(spec, self.storage_serial_number)
         logger.writeDebug("RC:get_true_copy_facts:tc_pairs={}", tc_pairs)
 
         if tc_pairs is None:

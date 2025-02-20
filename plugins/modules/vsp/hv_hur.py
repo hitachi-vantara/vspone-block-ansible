@@ -26,6 +26,7 @@ author:
 options:
   state:
     description: The level of the HUR pairs task. Choices are 'present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync'.
+      Note 'swap_split' and 'swap_resync' are supported for direct connection type only.
     type: str
     required: false
     choices: ['present', 'absent', 'split', 'resync', 'resize', 'swap_split', 'swap_resync']
@@ -158,8 +159,8 @@ options:
             the primary volume when the pair is suspended because of an error. This is an optional field for both direct and gateway connections.
         type: str
         required: false
-        choices: ['ASYNC', 'NEVER', 'DATA', 'STATUS']
-        default: 'NEVER'
+        choices: ['ASYNC']
+        default: 'ASYNC'
       allocate_new_consistency_group:
         description: Specify whether to allocate a new consistency group.
         type: bool
@@ -197,8 +198,8 @@ options:
         required: false
       new_volume_size:
         description: New volume size.
-        "required": false
-        "type": "str"
+        type: str
+        required: false
       begin_secondary_volume_id:
         description: >
           Specify beginning ldev id for Ldev range for svol. This is used only for gateway connection and is an optional field during
@@ -232,12 +233,12 @@ EXAMPLES = """
   hv_hur:
     state: "present"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       copy_group_name: hur_copy_group_name_1
       copy_pair_name: hur_copy_pair_name_1
@@ -257,12 +258,12 @@ EXAMPLES = """
   hv_hur:
     state: "present"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       copy_group_name: "hur_copy_group_name_1"
       copy_pair_name: "hur_copy_pair_name_2"
@@ -277,12 +278,12 @@ EXAMPLES = """
   hv_hur:
     state: "split"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       local_device_group_name: hur_local_device_group_name_3
       remote_device_group_name: hur_remote_device_group_name_3
@@ -294,44 +295,12 @@ EXAMPLES = """
   hv_hur:
     state: "resync"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
-    spec:
-      local_device_group_name: hur_local_device_group_name_3
-      remote_device_group_name: hur_remote_device_group_name_3
-      copy_group_name: hur_copy_group_name_3
-      copy_pair_name: hur_copy_pair_name_3
-
-- name: Swap Split HUR pair
-  hv_hur:
-    state: "swap_split"
-    storage_system_info:
-      serial: 123456
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: "sub123"
-    spec:
-      local_device_group_name: hur_local_device_group_name_3
-      remote_device_group_name: hur_remote_device_group_name_3
-      copy_group_name: hur_copy_group_name_3
-      copy_pair_name: hur_copy_pair_name_3
-
-- name: Swap Resync HUR pair
-  hv_hur:
-    state: "swap_resync"
-    storage_system_info:
-      serial: 123456
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       local_device_group_name: hur_local_device_group_name_3
       remote_device_group_name: hur_remote_device_group_name_3
@@ -342,12 +311,12 @@ EXAMPLES = """
   hv_hur:
     state: "absent"
     storage_system_info:
-      serial: 123456
+      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: "sub123"
+      subscriber_id: 811150
     spec:
       local_device_group_name: hur_local_device_group_name_3
       remote_device_group_name: hur_remote_device_group_name_3
@@ -363,7 +332,7 @@ data:
   elements: dict
   sample:
     {
-  "consistency_group_id": 9,
+      "consistency_group_id": 9,
       "copy_group_name": "HUR_TEST_GROUP_ZM_1",
       "copy_pair_name": "HUR_TEST_PAIR_ZM_3",
       "fence_level": "ASYNC",

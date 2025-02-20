@@ -85,7 +85,7 @@ EXAMPLES = """
       connection_type: "direct"
 
     storage_system_info:
-      serial: 123456
+      serial: 811150
 
 - name: Retrieve information about a specific shadow image pair
   hv_shadow_image_pair_facts:
@@ -96,7 +96,7 @@ EXAMPLES = """
       connection_type: "direct"
 
     storage_system_info:
-      serial: 123456
+      serial: 811150
 
     spec:
       primary_volume_id: 274
@@ -122,7 +122,7 @@ data:
         "secondary_hex_volume_id": "00:01:17",
         "secondary_volume_id": 279,
         "status": "PAIR",
-        "storage_serial_number": "123456",
+        "storage_serial_number": "811150",
         "subscriber_id": "subscriber123",
         "svol_access_mode": "READONLY"
     }

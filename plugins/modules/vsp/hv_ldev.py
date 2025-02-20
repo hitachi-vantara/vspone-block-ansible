@@ -48,11 +48,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -66,7 +66,7 @@ options:
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description: Token value to access UAI gateway. This is a required field for gateway connection type.
         type: str
         required: false
   spec:
@@ -91,16 +91,21 @@ options:
         type: int
         required: false
       name:
-        description: Name of the LDEV (optional).If not given,
-          It will create the name will contain with prefix value "smrha-<ldev_id>".
+        description: Name of the LDEV (optional). If not given, it assigns the name of the LDEV to "smrha-<ldev_id>".
         type: str
         required: false
       capacity_saving:
-        description: Whether capacity saving is (compression, compression_deduplication or disabled). Default is disabled.
+        description: >
+          Whether to enable the capacity saving functions. Valid value is one of the following three options:
+          - 1. compression -  Enable the capacity saving function (compression).
+          - 2. compression_deduplication - Enable the capacity saving function (compression and deduplication).
+          - 3 disabled - Disable the capacity saving function (compression and deduplication)
+          Default value is disabled.
         type: str
         required: false
       data_reduction_share:
-        description: Specify whether to create a data reduction shared volume( Default =True for thin image advance direct connect).
+        description: Specify whether to create a data reduction shared volume.
+          This value is set to true for Thin Image Advance when the connect type is direct.
         type: bool
         required: false
       nvm_subsystem_name:
@@ -108,7 +113,10 @@ options:
         type: str
         required: false
       state:
-        description: This state is valid only when nvm_subsystem_name is specified.
+        description:
+          - State of the NVM subsystems task. This is valid only when nvm_subsystem_name is specified.
+          - 'add_host_nqn : Add the host NQNs to the LDEV.'
+          - 'remove_host_nqn : Remove the host NQNs from the LDEV.'
         type: str
         required: false
         choices: ['add_host_nqn', 'remove_host_nqn']
@@ -160,11 +168,11 @@ options:
         type: bool
         required: false
       should_shred_volume_enable:
-        description: it shreds an LDEV (basic volume) or DP volume. Overwrite the volume three times with dummy data.
+        description: It shreds an LDEV (basic volume) or DP volume. Overwrites the volume three times with dummy data.
         type: bool
         required: false
       qos_settings:
-        description: QoS settings for the LDEV (Only available for direct connection type).
+        description: QoS settings for the LDEV. This is available for direct connection type only.
         type: dict
         required: false
         suboptions:
@@ -207,12 +215,12 @@ EXAMPLES = """
   hv_ldev:
     state: present
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         api_token: "api_token_value"
         connection_type: "gateway"
-        subscriber_id: "sub123"
+        subscriber_id: 811150
     spec:
       pool_id: 1
       size: "10GB"
@@ -224,12 +232,12 @@ EXAMPLES = """
   hv_ldev:
     state: present
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         api_token: "api_token_value"
         connection_type: "gateway"
-        subscriber_id: "sub123"
+        subscriber_id: 811150
     spec:
       ldev_id: 123
       size: "5TB"
@@ -239,12 +247,12 @@ EXAMPLES = """
   hv_ldev:
     state: present
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         api_token: "api_token_value"
         connection_type: "gateway"
-        subscriber_id: "sub123"
+        subscriber_id: 811150
     spec:
       pool_id: 1
       size: "10GB"
@@ -257,12 +265,12 @@ EXAMPLES = """
   hv_ldev:
     state: present
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         api_token: "api_token_value"
         connection_type: "gateway"
-        subscriber_id: "sub123"
+        subscriber_id: 811150
     spec:
       ldev_id: 123
       vldev_id: 234
@@ -273,7 +281,7 @@ EXAMPLES = """
   hv_ldev:
     state: present
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         username: "admin"
@@ -293,7 +301,7 @@ EXAMPLES = """
   hv_ldev:
     state: present
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         username: "admin"
@@ -309,24 +317,24 @@ EXAMPLES = """
   hv_ldev:
     state: absent
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         api_token: "api_token_value"
         connection_type: "gateway"
-        subscriber_id: "sub123"
+        subscriber_id: 811150
     spec:
       ldev_id: 123
 - name: Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
   hv_ldev:
     state: absent
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         api_token: "api_token_value"
         connection_type: "gateway"
-        subscriber_id: "sub123"
+        subscriber_id: 811150
     spec:
       ldev_id: 123
       force: true
@@ -335,7 +343,7 @@ EXAMPLES = """
   hv_ldev:
     state: absent
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         username: "admin"

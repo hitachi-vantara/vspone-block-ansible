@@ -17,7 +17,7 @@
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
-          address: "{{ uai_gateway_address }}"
+          address: "192.178.123.123"
           username: "{{ vault_gateway_username }}"
           password: "{{ vault_gateway_secret }}"
       register: result_token
@@ -29,11 +29,11 @@
     - name: Create a Resource Group without any resources
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         spec:
           name: rd_rg_01
       register: result
@@ -48,11 +48,11 @@
     - name: Create a Resource Group with virtual storage serial number of VSM
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         spec:
           name: rd_rg_02
           virtual_storage_serial: 10075
@@ -69,11 +69,11 @@
     - name: Create a Resource Group with ldevs
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         spec:
           name: rd_rg_03
           ldevs: [100, 150, 200]
@@ -90,11 +90,11 @@
     - name: Create a Resource Group with above resources
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         spec:
           name: rd_rg_04
           ldevs: [100, 150, 200]
@@ -117,11 +117,11 @@
     - name: Create a Resource Group with storage pool IDs, and parity groups
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         spec:
           name: rd_rg_05
           storage_pool_ids: [1, 2]
@@ -139,11 +139,11 @@
     - name: Add the above resources to an existing Resource Group by ID
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         spec:
           state: add_resource
           id: 5
@@ -167,11 +167,11 @@
     - name: Add the above resources to an existing Resource Group by Name
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         spec:
           state: add_resource
           name: rd_rg_04
@@ -198,13 +198,13 @@
     - name: Remove resources from an existing Resource Group by ID
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         spec:
-          state: "{{ substate_remove_resource }}"
+          state: "remove_resource"
           id: 5
           ldevs: [300, 400]
           ports: [CL1-C]
@@ -226,11 +226,11 @@
     - name: Remove resources from an existing Resource Group by Name
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         spec:
           state: remove_resource
           name: rd_rg_04
@@ -258,11 +258,11 @@
     - name: Delete a Resource Group
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: absent
         spec:
           name: rd_rg_04
@@ -278,11 +278,11 @@
     - name: Delete a Resource Group by ID forcefully
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
-          connection_type: "{{ connection_type }}"
-          address: "{{ uai_gateway_address }}"
+          connection_type: "gateway"
+          address: "192.178.123.123"
           api_token: "{{ result_token.api_token.token }}"
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "811150"
         state: absent
         spec:
           name: rd_rg_05

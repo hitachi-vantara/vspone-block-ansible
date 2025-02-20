@@ -128,7 +128,7 @@ EXAMPLES = """
   hv_snapshot:
     state: present
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         username: "username"
@@ -143,7 +143,7 @@ EXAMPLES = """
   hv_snapshot:
     state: present
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         username: "username"
@@ -160,7 +160,7 @@ EXAMPLES = """
   hv_snapshot:
     state: present
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         username: "username"
@@ -177,7 +177,7 @@ EXAMPLES = """
   hv_snapshot:
     state: clone
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         username: "username"
@@ -191,7 +191,7 @@ EXAMPLES = """
   hv_snapshot:
     state: absent
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         username: "username"
@@ -205,7 +205,7 @@ EXAMPLES = """
   hv_snapshot:
     state: split
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         username: "username"
@@ -219,7 +219,7 @@ EXAMPLES = """
   hv_snapshot:
     state: split
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         api_token: "api_token_value"
@@ -232,7 +232,7 @@ EXAMPLES = """
   hv_snapshot:
     state: resync
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         username: "username"
@@ -246,7 +246,7 @@ EXAMPLES = """
   hv_snapshot:
     state: restore
     storage_system_info:
-      serial: "ABC123"
+      serial: "811150"
       connection_info:
         address: gateway.company.com
         username: "username"

@@ -10,14 +10,14 @@ __metaclass__ = type
 
 DOCUMENTATION = """
 ---
-module: hv_snapshot_group_fact
-short_description: Retrieves snapshot information from from Hitachi VSP storage systems.
+module: hv_snapshot_group_facts
+short_description: Retrieves snapshot information in units of snapshot groups from Hitachi VSP storage systems.
 description:
-  - This module retrieves information about snapshots from from Hitachi VSP storage systems.
+  - This module retrieves information about snapshots in units of snapshot groups from Hitachi VSP storage systems.
   - This module is supported only for direct connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snapshot_group_facts.yml)
-version_added: '3.1.0'
+version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 options:
@@ -42,11 +42,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -74,9 +74,9 @@ options:
 
 EXAMPLES = """
 - name: Gather snapshot facts with primary volume and mirror unit ID
-  hv_snapshot_group_fact:
+  hv_snapshot_group_facts:
     storage_system_info:
-      serial: '1234567890'
+      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "admin"

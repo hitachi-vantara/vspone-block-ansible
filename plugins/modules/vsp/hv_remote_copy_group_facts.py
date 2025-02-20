@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_remote_copy_group_facts
-short_description: Retrieves Copy Groups information from Hitachi VSP storage systems.
+short_description: Retrieves Remote Copy Groups information from Hitachi VSP storage systems.
 description:
   - This module retrieves information about Copy Groups from Hitachi VSP storage systems.
   - This module is supported only for direct connection type.
@@ -41,11 +41,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.
+        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.
+        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
         type: str
         required: false
       api_token:
@@ -145,7 +145,7 @@ copygroups:
         "remote_device_group_name": "copygroup1S_",
         "remote_mirror_copy_group_id": "A34000811112,copygroup1,copygroup1P_,copygroup1S_",
         "remote_storage_device_id": "A34000811112",
-        "storage_serial_number": "8101111"
+        "storage_serial_number": "811150"
     }
 """
 
