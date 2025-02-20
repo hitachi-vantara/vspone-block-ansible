@@ -24,64 +24,64 @@
 ### Enhancements
 
 - **hv_gad_facts:**
-    *  Renamed module name from `hv_gad_fact` to `hv_gad_facts`
-    * GAD Pair facts for direct connection type is added.
+  - Renamed module name from `hv_gad_fact` to `hv_gad_facts`
+  - GAD Pair facts for direct connection type is added.
 - **hv_gad:**
-    * Create, Split, Swap-Split, Resync, Swap-Resync, and  Delete operations are added for GAD Pair for direct connection type.
-    * Increase GAD Pair Volumes size is added for both direct and gateway connection types.
-    * SVOL name will be same as PVOL name if PVOL name is not empty during GAD Pair creation.
-    * Auto-generated name `smrha-<LDEV id>` for SVOL if PVOL does not have any name during GAD Pair creation.
-    * SVOL ID will be the same as PVOL ID if LDEV ID is available during GAD Pair creation.
-    * SVOL ID will be the same as PVOL ID if SVOL ID range is not specified and LDEV ID is available during HUR Pair creation.
+  - Create, Split, Swap-Split, Resync, Swap-Resync, and  Delete operations are added for GAD Pair for direct connection type.
+  - Increase GAD Pair Volumes size is added for both direct and gateway connection types.
+  - SVOL name will be same as PVOL name if PVOL name is not empty during GAD Pair creation.
+  - Auto-generated name `smrha-<LDEV id>` for SVOL if PVOL does not have any name during GAD Pair creation.
+  - SVOL ID will be the same as PVOL ID if LDEV ID is available during GAD Pair creation.
+  - SVOL ID will be the same as PVOL ID if SVOL ID range is not specified and LDEV ID is available during HUR Pair creation.
 - **hv_hg:**
-    * Auto-generated name `smrha-<random_alphanumeric_value>` for Create hostgroup task when name is not provided.
+  - Auto-generated name `smrha-<random_alphanumeric_value>` for Create hostgroup task when name is not provided.
 - **hv_hur_fact:**
-    * HUR Pair facts for direct connection type is added.
+  - HUR Pair facts for direct connection type is added.
 - **hv_hur:**
-    * Create, Split, Swap-Split, Resync, Swap-Resync, and  Delete operations are added for HUR Pair for direct connection type.
-    * Increase HUR Pair Volumes size is added for both direct and gateway connection types.
-    * Optional parameter Mirror Unit ID input added for HUR pair creation.
-    * Optional boolean parameter (is_svol_readwriteable) is added to control the READWRITE access mode of the secondary volume after the Split operation of the HUR Pair.
-    * Optional parameters to support fixed range of LDEV IDs for Secondary LDEV in HUR Pair creation.
-    * SVOL name will be the same as PVOL name if PVOL name is not empty during HUR Pair creation.
-    * Auto-generated name `smrha-<LDEV id>` for SVOL if PVOL does not have any name during HUR Pair creation.
+  - Create, Split, Swap-Split, Resync, Swap-Resync, and  Delete operations are added for HUR Pair for direct connection type.
+  - Increase HUR Pair Volumes size is added for both direct and gateway connection types.
+  - Optional parameter Mirror Unit ID input added for HUR pair creation.
+  - Optional boolean parameter (is_svol_readwriteable) is added to control the READWRITE access mode of the secondary volume after the Split operation of the HUR Pair.
+  - Optional parameters to support fixed range of LDEV IDs for Secondary LDEV in HUR Pair creation.
+  - SVOL name will be the same as PVOL name if PVOL name is not empty during HUR Pair creation.
+  - Auto-generated name `smrha-<LDEV id>` for SVOL if PVOL does not have any name during HUR Pair creation.
 - **hv_iscsi_target:**
-    * Auto-generated name `smrha-<random_alphanumeric_value>` for Create iSCSI target task when name is not provided.
+  - Auto-generated name `smrha-<random_alphanumeric_value>` for Create iSCSI target task when name is not provided.
 - **hv_ldev_facts:**
-    * Encryption status is added in the LDEV facts.
+  - Encryption status is added in the LDEV facts.
 - **hv_ldev:**
-    * Added QoS settings for an existing volume (direct only).
-    * Added Shredding option for an existing LDEV (direct only).
-    * Set virtual LDEV ID to an existing LDEV.
-    * Set tiering policy to an existing LDEV.
-    * Auto-generated name `smrha-<LDEV id>` for Create LDEV task when name is not provided.
+  - Added QoS settings for an existing volume (direct only).
+  - Added Shredding option for an existing LDEV (direct only).
+  - Set virtual LDEV ID to an existing LDEV.
+  - Set tiering policy to an existing LDEV.
+  - Auto-generated name `smrha-<LDEV id>` for Create LDEV task when name is not provided.
 - **hv_snapshot:**
-    * SVOL name will be same as PVOL name if PVOL name is not empty during Snapshot creation.
-    * Auto-generated name `smrha-<LDEV id>` for SVOL if PVOL does not have any name during Snapshot creation.
+  - SVOL name will be same as PVOL name if PVOL name is not empty during Snapshot creation.
+  - Auto-generated name `smrha-<LDEV id>` for SVOL if PVOL does not have any name during Snapshot creation.
 - **hv_storagepool_facts:**
-    * Encryption status is added in the storage pool facts.
+  - Encryption status is added in the storage pool facts.
 - **hv_system_facts:**
-    * Optional parameter refresh added in the system facts to control force refresh.
+  - Optional parameter refresh added in the system facts to control force refresh.
 - **hv_truecopy_fact:**
-    * TrueCopy Pair facts for direct connection type is added.
+  - TrueCopy Pair facts for direct connection type is added.
 - **hv_truecopy:**
-    * Create, Split, Swap-Split, Resync, Swap-Resync, and  Delete operations are added for TrueCopy Pair for direct connection type.
-    * Increase TrueCopy Pair Volumes size is added for both direct and gateway connection types.
-    * Optional boolean parameter (is_svol_readwriteable) is added to control the READWRITE access mode of the secondary volume after the Split operation of the TrueCopy Pair.
-    * Optional parameters to support fixed range of LDEV IDs for Secondary LDEV in TrueCopy Pair creation.
-    * SVOL ID will be the same as PVOL ID if SVOL ID range is not specified and LDEV ID is available during TrueCopy Pair creation.
-    * SVOL name will be the same as PVOL name if PVOL name is not empty during TrueCopy Pair creation.
-    * Auto-generated name `smrha-<LDEV id>` for SVOL if PVOL does not have any name during TrueCopy Pair creation.
+  - Create, Split, Swap-Split, Resync, Swap-Resync, and  Delete operations are added for TrueCopy Pair for direct connection type.
+  - Increase TrueCopy Pair Volumes size is added for both direct and gateway connection types.
+  - Optional boolean parameter (is_svol_readwriteable) is added to control the READWRITE access mode of the secondary volume after the Split operation of the TrueCopy Pair.
+  - Optional parameters to support fixed range of LDEV IDs for Secondary LDEV in TrueCopy Pair creation.
+  - SVOL ID will be the same as PVOL ID if SVOL ID range is not specified and LDEV ID is available during TrueCopy Pair creation.
+  - SVOL name will be the same as PVOL name if PVOL name is not empty during TrueCopy Pair creation.
+  - Auto-generated name `smrha-<LDEV id>` for SVOL if PVOL does not have any name during TrueCopy Pair creation.
 - **Others:**
-    * Enhanced Log file messages.
-    * Warning / Error messages added for unsupported OOB features executed on OOB setup.
-    * Usage information collection to AWS with users consent.
-    * Renamed module name from `hv_gateway_subscriber_fact` to `hv_gateway_subscriber_facts`
-    * Renamed module name from `hv_uaig_token_fact` to `hv_uaig_token_facts`
+  - Enhanced Log file messages.
+  - Warning / Error messages added for unsupported OOB features executed on OOB setup.
+  - Usage information collection to AWS with users consent.
+  - Renamed module name from `hv_gateway_subscriber_fact` to `hv_gateway_subscriber_facts`
+  - Renamed module name from `hv_uaig_token_fact` to `hv_uaig_token_facts`
 
 ## [3.1.0] - Release Date: 2024-10-07
 
-### New Modules
+### New Modules [3.1.0]
 
 - **hv_sds_block_vps_fact:** Retrieves information about Virtual Private Storages (VPS) of Hitachi SDS block storage system.
 - **hv_sds_block_vps:** Manages Hitachi SDS block storage system Virtual Private Storages (VPS) volume ADR setting.
@@ -101,32 +101,32 @@
 ### Enhancements
 
 - **hv_sds_block_compute_node:**
-    * Manage Compute Node with NVMe-TCP connection
+  - Manage Compute Node with NVMe-TCP connection
 - **hv_sds_block_compute_node_facts:**
-    * Get Compute Node with NVMe-TCP details
+  - Get Compute Node with NVMe-TCP details
 - **hv_sds_block_volume:**
-    * Create and Update Volume with QoS Settings
+  - Create and Update Volume with QoS Settings
 - **hv_sds_block_volume_facts:**
-    * Get NVMe-TCP volume details
-    * Get detailed information [Compute Node, and QoS Settings] for a Volume
+  - Get NVMe-TCP volume details
+  - Get detailed information [Compute Node, and QoS Settings] for a Volume
 - **Others:**
-    * Renamed module name from `hv_lun` to `hv_ldev`.
-    * Renamed parameter `lun` to `ldev` across all applicable playbooks.
-    * Renamed parameter `pvol` to `primary_volume_id` across all applicable playbooks.
-    * Renamed parameter `svol` to `secondary_volume_id` across all applicable playbooks.
+  - Renamed module name from `hv_lun` to `hv_ldev`.
+  - Renamed parameter `lun` to `ldev` across all applicable playbooks.
+  - Renamed parameter `pvol` to `primary_volume_id` across all applicable playbooks.
+  - Renamed parameter `svol` to `secondary_volume_id` across all applicable playbooks.
 - **hv_ldev:**
-    * Using a single workflow, delete a volume attached to a host or iSCSI target.
-    * Using a single workflow, delete a volume attached to a host via NVMe-TCP (available only for direct connection type).
-    * Using a single workflow, provision and attach a NVMe-TCP volume to host (available only for direct connection type).
-    * Get LDEV with NAA details (available only for direct connection type).
-    * Create LDEV with Data-Reduction-Share enabled (available only for gateway connection type).
-    * Apply tiering policy for a new or existing HDT volume (available only for gateway connection type).
+  - Using a single workflow, delete a volume attached to a host or iSCSI target.
+  - Using a single workflow, delete a volume attached to a host via NVMe-TCP (available only for direct connection type).
+  - Using a single workflow, provision and attach a NVMe-TCP volume to host (available only for direct connection type).
+  - Get LDEV with NAA details (available only for direct connection type).
+  - Create LDEV with Data-Reduction-Share enabled (available only for gateway connection type).
+  - Apply tiering policy for a new or existing HDT volume (available only for gateway connection type).
 - **hv_ldev_facts:**
-    * Get detailed information [Snapshot, Hostgroup, iSCSI target, NVM Subsystem] for an LDEV (available only for direct connection type).
+  - Get detailed information [Snapshot, Hostgroup, iSCSI target, NVM Subsystem] for an LDEV (available only for direct connection type).
 - **hv_snapshot:**
-    * Auto SVOL mapping during Thin Image creation (available only for direct connection type).
-    * Create and Delete Thin Image Clone Pair (available only for gateway connection type).
-    * Manage Thin Image Advanced Pair (available only for gateway connection type).
+  - Auto SVOL mapping during Thin Image creation (available only for direct connection type).
+  - Create and Delete Thin Image Clone Pair (available only for gateway connection type).
+  - Manage Thin Image Advanced Pair (available only for gateway connection type).
 
 ## [3.0.1]
 
