@@ -22,4 +22,3 @@ lint_report.txt
 run_linter.py
 test_ansible_doc.sh
 sanity_test_report.txt
-CHANGELOG.md
