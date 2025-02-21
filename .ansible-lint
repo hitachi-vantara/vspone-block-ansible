@@ -1,0 +1,6 @@
+---
+# .ansible-lint
+skip_list:
+  - fqcn[deep] # Skip the 'fqcn[deep]' warning
+  # - fqcn[keyword]
+  - command-instead-of-module
