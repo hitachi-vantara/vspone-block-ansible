@@ -38,11 +38,11 @@ The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of
 
 ## Changelog
 
-View the changelog [here](docs/CHANGELOG.md).
+View the changelog [here](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/docs/CHANGELOG.md).
 
 ## Available Modules
 
-For a detailed list of available modules, please refer to the [Modules Documentation](docs/MODULES.md).
+For a detailed list of available modules, please refer to the [Modules Documentation](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/docs/MODULES.md).
 
 ## Installation
 
@@ -80,7 +80,7 @@ See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guid
 
 ## Troubleshooting
 
-For troubleshooting tips and common issues, please refer to the [Troubleshooting Guide](docs/TROUBLESHOOTING.md).
+For troubleshooting tips and common issues, please refer to the [Troubleshooting Guide](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/docs/TROUBLESHOOTING.md).
 
 ## License
 
