@@ -3,11 +3,11 @@ name: Publish Ansible Collection
 on:
   push:
     tags:
-      - "*"  # Triggers when a tag like v1.0.0 is pushed
+      - "*" # Triggers when a tag like v1.0.0 is pushed
 
 permissions:
   contents: write
-  actions: read  # Ensure workflow status can be read
+  actions: read # Ensure workflow status can be read
 
 jobs:
   verify_tests:
@@ -21,7 +21,7 @@ jobs:
           response=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                            -H "Accept: application/vnd.github.v3+json" \
                            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ansible-test.yml/runs?branch=main&status=completed")
-          
+
           # Extract the conclusion (status) of the latest workflow run
           latest_status=$(echo "$response" | jq -r '.workflow_runs[0].conclusion')
 
@@ -32,9 +32,6 @@ jobs:
             echo "❌ Tests failed or not completed. Skipping publish."
             exit 1
           fi
-          
-          run_id=$(echo "$response" | jq -r '.workflow_runs[0].id')
-          echo "::set-output name=run_id::$run_id"
 
   publish:
     name: Publish Collection
@@ -42,13 +39,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
       - name: Install Ansible
-        run: pip install ansible --disable-pip-version-check
+        run: pip install ansible-core --disable-pip-version-check
 
       - name: Build Ansible Collection
         run: ansible-galaxy collection build --force
@@ -58,6 +58,6 @@ jobs:
           # Find the extracted .tar.gz file (dynamic filename)
           COLLECTION_FILE=$(ls *.tar.gz)
           echo "Found collection file: $COLLECTION_FILE"
-          
+
           # Publish to Ansible Galaxy using the extracted tarball
           ansible-galaxy collection publish "$COLLECTION_FILE" --api-key ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
