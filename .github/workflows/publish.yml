@@ -60,4 +60,4 @@ jobs:
           echo "Found collection file: $COLLECTION_FILE"
 
           # Publish to Ansible Galaxy using the extracted tarball
-          ansible-galaxy collection publish "$COLLECTION_FILE" --api-key ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
+          ansible-galaxy collection publish --token ${{ secrets.ANSIBLE_GALAXY_API_KEY }} $COLLECTION_FILE
