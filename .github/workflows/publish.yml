@@ -42,27 +42,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Download Collection Artifact
-        uses: actions/download-artifact@v4
+      - name: Set Up Python
+        uses: actions/setup-python@v4
         with:
-          name: collection-tarball
-          path: dist/
-          run-id: ${{ github.event.workflow_run.run_id }}
+          python-version: "3.10"
 
-      - name: Extract .tar.gz from .zip
-        run: |
-          # Change to the directory where the artifact is downloaded
-          cd dist
-          # Unzip the artifact to get the tarball
-          unzip collection-tarball.zip
-          # List the extracted files to confirm the presence of the tarball
-          ls -la
+      - name: Install Ansible
+        run: pip install ansible --disable-pip-version-check
 
-      - name: Install Ansible Galaxy CLI
-        run: pip install ansible-core
+      - name: Build Ansible Collection
+        run: ansible-galaxy collection build --force
 
       - name: Publish to Ansible Galaxy
         run: |
