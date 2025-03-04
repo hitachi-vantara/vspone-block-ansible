@@ -13,9 +13,6 @@ jobs:
   verify_tests:
     name: Verify Test Results
     runs-on: ubuntu-latest
-    outputs:
-      run_id: ${{ steps.check-tests.outputs.run_id }}  # Ensure the run ID is outputted
-
     steps:
       - name: Check Last CI Workflow Status
         id: check-tests
@@ -53,7 +50,7 @@ jobs:
         with:
           name: collection-tarball
           path: dist/
-          run-id: ${{ needs.verify_tests.outputs.run_id }}
+          run-id: ${{ github.event.workflow_run.run_id }}
 
       - name: Extract .tar.gz from .zip
         run: |

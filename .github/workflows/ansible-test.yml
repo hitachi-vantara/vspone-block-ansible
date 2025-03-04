@@ -12,7 +12,7 @@ jobs:
     name: Build Collection Artifact
     runs-on: ubuntu-latest
     outputs:
-      run_id: ${{ steps.upload.outputs.run_id }}  # Output the run-id to be used later
+      run_id: ${{ github.run_id }}   # Output the run-id to be used later
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
