@@ -15,7 +15,7 @@ description: >
   - This module allows for the splitting, swap-splitting, re-syncing, swap-resyncing and deletion of Remote Copy Group on Hitachi VSP storage systems.
   - It supports various remote copy pairs operations based on the specified task level.
   - The module supports the following replication types: HUR, TC, GAD.
-  - This module is supported only for direct connection type.
+  - This module is supported only for C(direct) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/remote_copy_group.yml)
 version_added: '3.2.0'
@@ -29,7 +29,7 @@ attributes:
     support: full
 options:
   state:
-    description: The level of the Remote Copy Group pairs task. Choices are 'present', 'absent', 'split', 'resync', 'swap_split', 'swap-resync'.
+    description: The level of the Remote Copy Group pairs task. Choices are C(present), C(absent), C(split), C(resync), C(swap_split), C(swap_resync).
     type: str
     required: false
     choices: ['present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync']
@@ -53,22 +53,31 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system, Only direct connection is supported.
+        description: Type of connection to the storage system, Only C(direct) connection is supported.
         type: str
         required: false
         choices: ['direct', 'gateway']
         default: 'direct'
+      api_token:
+          description: api_token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
+          type: str
+          required: false
+      subscriber_id:
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
+          Not needed for this module.
+        type: str
+        required: false
   secondary_connection_info:
     description:
-      - Information required to establish a connection to the secondary storage system. Required for direct connection only.
+      - Information required to establish a connection to the secondary storage system. Required for C(direct) connection only.
     required: true
     type: dict
     suboptions:

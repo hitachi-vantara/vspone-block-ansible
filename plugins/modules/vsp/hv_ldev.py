@@ -14,10 +14,10 @@ short_description: Manages logical devices (LDEVs) on Hitachi VSP storage system
 description:
   - This module allows for the creation, modification, or deletion of logical devices (LDEVs) on Hitachi VSP storage systems.
   - It supports operations such as creating a new LDEV, updating an existing LDEV, or deleting a LDEV.
-  - This module is supported for both direct and gateway connection types.
+  - This module is supported for both C(direct) and C(gateway) connection types.
   - For direct connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/ldev.yml)
-  - For gateway connection type examples, go to URL
+  - For C(gateway) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/ldev.yml)
 version_added: '3.0.0'
 author:
@@ -50,15 +50,16 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
+          the storage system (if connection_type is C(direct)).
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -68,11 +69,11 @@ options:
         choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway. This is a required field for gateway connection type.
+        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
         type: str
         required: false
   spec:
@@ -111,7 +112,7 @@ options:
         required: false
       data_reduction_share:
         description: Specify whether to create a data reduction shared volume.
-          This value is set to true for Thin Image Advance when the connect type is direct.
+          This value is set to true for Thin Image Advance when the connect type is C(direct).
         type: bool
         required: false
       nvm_subsystem_name:
@@ -178,7 +179,7 @@ options:
         type: bool
         required: false
       qos_settings:
-        description: QoS settings for the LDEV. This is available for direct connection type only.
+        description: QoS settings for the LDEV. This is available for C(direct) connection type only.
         type: dict
         required: false
         suboptions:

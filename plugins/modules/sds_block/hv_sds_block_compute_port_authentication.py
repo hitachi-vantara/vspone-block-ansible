@@ -27,7 +27,7 @@ attributes:
     support: full
 options:
   state:
-    description: The level of the compute port authentication task. Choices are 'present'.
+    description: The level of the compute port authentication task. Choices are C(present) and C(absent).
     type: str
     required: false
     choices: ['present', 'absent']
@@ -65,12 +65,12 @@ options:
         type: str
         required: false
       state:
-        description: The state of the port authorization task. Choices are 'add_chap_user', 'remove_chap_user'.
+        description: The state of the port authorization task. Choices are C(add_chap_user) and C(remove_chap_user).
         type: str
         required: false
         choices: ['add_chap_user', 'remove_chap_user']
       authentication_mode:
-        description: Authentication mode. Choices are 'CHAP', 'CHAP_complying_with_initiator_setting', 'None'.
+        description: Authentication mode. Choices are C(CHAP), C(CHAP_complying_with_initiator_setting), and C(None).
         type: str
         required: false
         choices: ['CHAP', 'CHAP_complying_with_initiator_setting', 'None']
@@ -90,7 +90,7 @@ EXAMPLES = """
   hv_sds_block_compute_port_authentication:
     state: present
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       api_token: "api_token_value"
       connection_type: "direct"
     spec:

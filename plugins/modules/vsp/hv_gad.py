@@ -15,14 +15,14 @@ short_description: Manages GAD pairs on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, deletion, splitting, and resynchronization of GAD pairs on Hitachi VSP storage systems.
   - It supports various GAD pairs operations based on the specified task level.
-  - This module is supported for both direct and gateway connection types.
-  - To delete the pair in direct connection type, it must be in split state.
-  - To swap_split the pair in direct connection type, it must be in pair state.
-  - You cannot swap_split the pair in direct connection type that is registered to a consistency group.
-  - swap_split and swap_resync operations are supported only for direct connection type.
-  - For direct connection type examples, go to URL
+  - This module is supported for both C(direct) and C(gateway) connection types.
+  - To delete the pair in C(direct) connection type, it must be in split state.
+  - To swap_split the pair in C(direct) connection type, it must be in pair state.
+  - You cannot swap_split the pair in C(direct) connection type that is registered to a consistency group.
+  - swap_split and swap_resync operations are supported only for C(direct) connection type.
+  - For C(direct) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/gad_pair.yml)
-  - For gateway connection type examples, go to URL
+  - For C(gateway) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/gad_pair.yml)
 version_added: '3.1.0'
 author:
@@ -37,7 +37,7 @@ options:
   state:
     description:
       - The level of the GAD pairs task.
-      - Choices are 'present', 'absent', 'split', 'resync, 'resize', 'swap-split', 'swap-resync'.
+      - Choices are C(present), C(absent), C(split), C(resync), C(resize), C(swap-split), C(swap-resync).
     type: str
     choices: ['present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync', 'resize']
     required: false
@@ -63,11 +63,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -77,7 +77,7 @@ options:
         choices: ['gateway', 'direct']
         default: "direct"
       subscriber_id:
-        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
@@ -86,7 +86,7 @@ options:
         required: false
   secondary_connection_info:
     description:
-      - Information required to establish a connection to the secondary storage system. Required for direct connection only.
+      - Information required to establish a connection to the secondary storage system. Required for C(direct) connection only.
     required: false
     type: dict
     suboptions:
@@ -192,15 +192,15 @@ options:
             type: bool
             required: false
       local_device_group_name:
-        description: The device group name in the local storage system. Valid for direct connection only.
+        description: The device group name in the local storage system. Valid for C(direct) connection only.
         type: str
         required: false
       remote_device_group_name:
-        description: The device group name in the remote storage system. Valid for direct connection only.
+        description: The device group name in the remote storage system. Valid for C(direct) connection only.
         type: str
         required: false
       copy_pair_name:
-        description: The name for the pair in the copy group. Valid for direct connection only.
+        description: The name for the pair in the copy group. Valid for C(direct) connection only.
         type: str
         required: false
       path_group_id:
@@ -208,7 +208,7 @@ options:
         type: int
         required: false
       copy_group_name:
-        description: The name for the copy group. Valid for direct connection only.
+        description: The name for the copy group. Valid for C(direct) connection only.
         type: str
         required: false
       copy_pace:
@@ -252,14 +252,14 @@ options:
         required: false
       begin_secondary_volume_id:
         description: >
-          Specify beginning ldev id for Ldev range for svol. This is used only for gateway connection and is an optional field during
+          Specify beginning ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during
           create operation. If this field is specified, end_secondary_volume_id must also be specified.
           If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
         required: false
         type: int
       end_secondary_volume_id:
         description: >
-          Specify end ldev id for Ldev range for svol. This is used only for gateway connection and is an optional field during create operation.
+          Specify end ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during create operation.
           If this field is specified, begin_secondary_volume_id must also be specified.
           If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
         required: false

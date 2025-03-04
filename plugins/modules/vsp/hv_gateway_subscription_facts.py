@@ -15,7 +15,7 @@ short_description: Retrieves information about resources of a subscriber on Hita
 description:
   - This module retrieves information about resources of a subscriber.
   - It provides details about resources of a subscriber such as type, value and other relevant information.
-  - This module is supported only for gateway connection type.
+  - This module is supported only for C(gateway) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/subscription_facts.yml)
 version_added: '3.1.0'
@@ -44,7 +44,7 @@ options:
         default: 'gateway'
         choices: ['gateway']
       subscriber_id:
-        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
@@ -52,12 +52,12 @@ options:
         type: str
         required: false
       username:
-        description: Username for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
           Not needed for this module.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
           Not needed for this module.
         type: str
         required: false

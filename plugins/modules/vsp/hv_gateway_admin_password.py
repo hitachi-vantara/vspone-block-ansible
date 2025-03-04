@@ -35,7 +35,7 @@ options:
         type: str
         required: true
       api_token:
-        description: Token value to access UAI gateway.This is a required field for gateway connection type.
+        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
         type: str
         required: true
   spec:

@@ -14,10 +14,10 @@ short_description: Collects the log bundles for Hitachi ansible modules host and
 description:
     - This module collects all logs from the different services and all the relevant configuration files
        for further troubleshooting. The log bundle is a zip archive that contains this information.
-    - This module is supported for both direct and gateway connection types.
-    - For direct connection type examples, go to URL
+    - This module is supported for both C(direct) and C(gateway) connection types.
+    - For C(direct) connection type examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/tools/logbundle_direct_connection.yml)
-    - For gateway connection type examples, go to URL
+    - For C(gateway) connection type examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/tools/logbundle_gateway_connection.yml)
 version_added: '3.0.0'
 author:
@@ -34,7 +34,7 @@ options:
         type: str
         required: false
     api_token:
-        description: Token value to access UAI gateway (required for authentication either 'username,password' or api_token).
+        description: Token value to access UAI gateway.
         type: str
         required: false
     remote_gateway_host_connection_info:

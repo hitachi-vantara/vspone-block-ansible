@@ -15,7 +15,7 @@ short_description: Manages snapshots in units of snapshot groups on Hitachi VSP 
 description:
   - This module allows for the deletion, splitting, syncing, and restoring of snapshots on Hitachi VSP storage systems.
   - It supports various snapshot operations based on the specified task level.
-  - This module is supported only for direct connection type.
+  - This module is supported only for C(direct) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snapshot_group.yml)
 version_added: '3.2.0'
@@ -50,19 +50,20 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway) ) or the storage system (if connection_type is C(direct) ).
+        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway) ) or
+          the storage system (if connection_type is C(direct)).
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system ( C(direct) only).
+        description: Type of connection to the storage system. Only C(direct) connection type is supported.
         type: str
         required: false
         choices: ['direct']

@@ -13,7 +13,7 @@ module: hv_gateway_unsubscribe_resource
 short_description: Manages un-subscription of resources for a subscriber on Hitachi VSP storage systems.
 description:
   - This module unsubscribes different resources for a subscriber.
-  - This module is supported only for gateway connection type.
+  - This module is supported only for C(gateway) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/unsubscribe_resource.yml)
 version_added: '3.1.0'
@@ -42,7 +42,7 @@ options:
         choices: ['gateway', 'direct']
         default: 'gateway'
       subscriber_id:
-        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:

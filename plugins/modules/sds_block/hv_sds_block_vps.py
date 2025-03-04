@@ -80,7 +80,7 @@ EXAMPLES = """
 - name: Update VPS Volume ADR setting by VPS Id
   hv_sds_block_chap_user:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -92,7 +92,7 @@ EXAMPLES = """
 - name: Update VPS Volume ADR setting by VPS name
   hv_sds_block_chap_user_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"

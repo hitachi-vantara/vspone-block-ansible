@@ -13,7 +13,7 @@ module: hv_remote_storage_registration_facts
 short_description: Retrieves remote storage registration information from Hitachi VSP storage systems.
 description:
   - This module retrieves remote storage registration information from Hitachi VSP storage systems.
-  - This module is supported only for direct connection type.
+  - This module is supported only for C(direct) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/remote_storage_registration_facts.yml)
 version_added: '3.2.0'
@@ -47,11 +47,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       api_token:
@@ -59,14 +59,14 @@ options:
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system. Only direct connection is supported.
+        description: Type of connection to the storage system. Only C(direct) connection is supported.
         type: str
         required: false
         choices: ['direct', 'gateway']
         default: 'direct'
       subscriber_id:
         description:
-          - This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
+          - This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
             Not needed for this operation.
         type: str
         required: false

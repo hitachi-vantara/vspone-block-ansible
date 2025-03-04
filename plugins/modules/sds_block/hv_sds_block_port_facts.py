@@ -71,7 +71,7 @@ EXAMPLES = """
 - name: Retrieve information about all compute ports
   hv_sds_block_port_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -79,7 +79,7 @@ EXAMPLES = """
 - name: Retrieve information about compute ports by compute node name
   hv_sds_block_port_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -90,7 +90,7 @@ EXAMPLES = """
 - name: Retrieve information about compute ports by names
   hv_sds_block_port_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -100,7 +100,7 @@ EXAMPLES = """
 """
 
 RETURN = """
-ports:
+ansible_facts:
   description: A list of compute ports.
   returned: always
   type: list

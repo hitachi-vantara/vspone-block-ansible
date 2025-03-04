@@ -56,7 +56,7 @@ EXAMPLES = """
 - name: Testing Get Storage System
   hv_sds_block_storage_system_facts:
       connection_info:
-          address: vssb.company.com
+          address: sdsb.company.com
           username: "admin"
           password: "secret"
           connection_type: "direct"

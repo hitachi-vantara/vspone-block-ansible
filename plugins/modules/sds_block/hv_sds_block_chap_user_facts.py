@@ -69,7 +69,7 @@ EXAMPLES = """
 - name: Retrieve information about all CHAP users
   hv_sds_block_chap_user_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -77,7 +77,7 @@ EXAMPLES = """
 - name: Retrieve information about a specific CHAP user by ID
   hv_sds_block_chap_user_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -87,7 +87,7 @@ EXAMPLES = """
 - name: Retrieve information about a specific CHAP user by name
   hv_sds_block_chap_user_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
