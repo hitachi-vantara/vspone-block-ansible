@@ -3,36 +3,39 @@ name: Publish Ansible Collection
 on:
   push:
     tags:
-      - "*" # Triggers when a tag like v1.0.0 is pushed
+      - "*"  # Triggers when a tag like v1.0.0 is pushed
 
 permissions:
   contents: write
-  actions: read # Ensure workflow status can be read
+  actions: read  # Ensure workflow status can be read
 
 jobs:
   verify_tests:
     name: Verify Test Results
     runs-on: ubuntu-latest
     outputs:
-      run_id: ${{ steps.check-tests.outputs.run_id }} # Ensure the run ID is outputted
+      run_id: ${{ steps.check-tests.outputs.run_id }}  # Ensure the run ID is outputted
 
     steps:
       - name: Check Last CI Workflow Status
         id: check-tests
         run: |
+          # Fetch the latest CI workflow status for the ansible-test job
           response=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                            -H "Accept: application/vnd.github.v3+json" \
                            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ansible-test.yml/runs?branch=main&status=completed")
-
+          
+          # Extract the conclusion (status) of the latest workflow run
           latest_status=$(echo "$response" | jq -r '.workflow_runs[0].conclusion')
 
           echo "Latest test run status: $latest_status"
 
+          # If the tests did not pass, skip the publish job
           if [[ "$latest_status" != "success" ]]; then
             echo "❌ Tests failed or not completed. Skipping publish."
             exit 1
           fi
-
+          
           run_id=$(echo "$response" | jq -r '.workflow_runs[0].id')
           echo "::set-output name=run_id::$run_id"
 
@@ -69,6 +72,6 @@ jobs:
           # Find the extracted .tar.gz file (dynamic filename)
           COLLECTION_FILE=$(ls *.tar.gz)
           echo "Found collection file: $COLLECTION_FILE"
-
+          
           # Publish to Ansible Galaxy using the extracted tarball
           ansible-galaxy collection publish "$COLLECTION_FILE" --api-key ${{ secrets.ANSIBLE_GALAXY_API_KEY }}

@@ -12,7 +12,7 @@ jobs:
     name: Build Collection Artifact
     runs-on: ubuntu-latest
     outputs:
-      run_id: ${{ steps.upload.outputs.run_id }}   # Output the run-id to be used later
+      run_id: ${{ steps.upload.outputs.run_id }}  # Output the run-id to be used later
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -32,8 +32,8 @@ jobs:
         run: ls -la  # Make sure the .tar.gz file exists
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
         id: upload  # Add an ID to reference the step
+        uses: actions/upload-artifact@v4
         with:
           name: collection-tarball
           path: "*.tar.gz"  # Change if using a build directory
