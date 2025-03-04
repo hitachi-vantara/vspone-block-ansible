@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main # Restricts PRs to only target 'main'
   schedule:
     - cron: "0 6 * * *" # Runs daily at 06:00 UTC
 
