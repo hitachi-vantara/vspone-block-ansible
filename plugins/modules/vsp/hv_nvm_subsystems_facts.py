@@ -20,6 +20,12 @@ description:
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description:
@@ -55,15 +61,6 @@ options:
         required: false
         choices: ['direct', 'gateway']
         default: 'direct'
-      subscriber_id:
-        description:
-          - This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Value of the lock token to operate on locked resources for direct connection.
-        type: str
-        required: false
   spec:
     description: Specification for the NVM subsystems facts to be gathered.
     type: dict
@@ -101,40 +98,128 @@ EXAMPLES = """
           name: "Nvm_subsystem_01"
 """
 
-RETURN = """
-nvm_subsystems:
-  description: The NVM subsystem information.
+RETURN = r"""
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the NVM subsystems.
   returned: always
-  type: list
-  elements: dict
-  sample:
-    storage_serial_number: "810005"
-    host_nqn_info:
-        - host_nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"
-          host_nqn_nickname: "my_host_nqn_40"
-    namespace_paths_info:
-        - host_nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"
-          ldev_id: 11101
-          ldev_hex_id: "00:2b:5c"
-          namespace_id: 3
-    namespaces_info:
-        - block_capacity: 23068672
-          capacity_in_unit: "11.00 G"
-          ldev_id: 11101
-          ldev_hex_id: "00:2b:5c"
-          namespace_id: 3
-          namespace_nickname: "nickname"
-    nvm_subsystem_info:
-        host_mode: "VMWARE_EX"
-        namespace_security_setting: "Enable"
-        nvm_subsystem_id: 1000
-        nvm_subsystem_name: "nvm_tcp_01"
-        resource_group_id: 0
-        t10pi_mode: "Disable"
-    port:
-        - port_id: "CL1-D"
-          port_type: "NVME_TCP"
+  type: dict
+  contains:
+    nvm_subsystems:
+      description: The NVM subsystem information.
+      type: list
+      elements: dict
+      contains:
+        storage_serial_number:
+          description: The serial number of the storage system.
+          type: str
+          sample: "810005"
+        host_nqn_info:
+          description: List of host NQN information.
+          type: list
+          elements: dict
+          contains:
+            host_nqn:
+              description: Host NQN.
+              type: str
+              sample: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"
+            host_nqn_nickname:
+              description: Nickname for the host NQN.
+              type: str
+              sample: "my_host_nqn_40"
+        namespace_paths_info:
+          description: List of namespace paths information.
+          type: list
+          elements: dict
+          contains:
+            host_nqn:
+              description: Host NQN.
+              type: str
+              sample: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"
+            ldev_id:
+              description: Logical device ID.
+              type: int
+              sample: 11101
+            ldev_hex_id:
+              description: Logical device hex ID.
+              type: str
+              sample: "00:2b:5c"
+            namespace_id:
+              description: Namespace ID.
+              type: int
+              sample: 3
+        namespaces_info:
+          description: List of namespaces information.
+          type: list
+          elements: dict
+          contains:
+            block_capacity:
+              description: Block capacity of the namespace.
+              type: int
+              sample: 23068672
+            capacity_in_unit:
+              description: Capacity in human-readable unit.
+              type: str
+              sample: "11.00 G"
+            ldev_id:
+              description: Logical device ID.
+              type: int
+              sample: 11101
+            ldev_hex_id:
+              description: Logical device hex ID.
+              type: str
+              sample: "00:2b:5c"
+            namespace_id:
+              description: Namespace ID.
+              type: int
+              sample: 3
+            namespace_nickname:
+              description: Nickname for the namespace.
+              type: str
+              sample: "nickname"
+        nvm_subsystem_info:
+          description: Information about the NVM subsystem.
+          type: dict
+          contains:
+            host_mode:
+              description: Host mode.
+              type: str
+              sample: "VMWARE_EX"
+            namespace_security_setting:
+              description: Namespace security setting.
+              type: str
+              sample: "Enable"
+            nvm_subsystem_id:
+              description: NVM subsystem ID.
+              type: int
+              sample: 1000
+            nvm_subsystem_name:
+              description: NVM subsystem name.
+              type: str
+              sample: "nvm_tcp_01"
+            resource_group_id:
+              description: Resource group ID.
+              type: int
+              sample: 0
+            t10pi_mode:
+              description: T10PI mode.
+              type: str
+              sample: "Disable"
+        port:
+          description: List of port information.
+          type: list
+          elements: dict
+          contains:
+            port_id:
+              description: Port ID.
+              type: str
+              sample: "CL1-D"
+            port_type:
+              description: Port type.
+              type: str
+              sample: "NVME_TCP"
 """
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_nvme import (
     VSPNvmeReconciler,

@@ -23,9 +23,15 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
-    description: The level of the shadow image pairs task. Choices are 'present', 'absent', 'split', 'restore', 'sync'.
+    description: The level of the shadow image pairs task. Choices are C(present), C(absent), C(split), C(restore), C(sync).
     type: str
     required: false
     choices: ['present', 'absent', 'split', 'restore', 'sync']
@@ -45,7 +51,7 @@ options:
     type: dict
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway) ) or the storage system (if connection_type is C(direct) ).
         type: str
         required: true
       username:
@@ -214,25 +220,67 @@ data:
   description: Newly created shadow image pair object.
   returned: success
   type: dict
-  elements: dict
-  sample:
-    {
-        "consistency_group_id": -1,
-        "copy_pace_track_size": "MEDIUM",
-        "copy_rate": 100,
-        "entitlement_status": "assigned",
-        "mirror_unit_id": -1,
-        "partner_id": "partner123",
-        "primary_hex_volume_id": "00:01:12",
-        "primary_volume_id": 274,
-        "resource_id": "localpair-2749fed78e8d23a61ed17a8af71c85f8",
-        "secondary_hex_volume_id": "00:01:17",
-        "secondary_volume_id": 279,
-        "status": "PAIR",
-        "storage_serial_number": "811150",
-        "subscriber_id": "subscriber123",
-        "svol_access_mode": "READONLY"
-    }
+  contains:
+    consistency_group_id:
+      description: Consistency group id.
+      type: int
+      sample: -1
+    copy_pace_track_size:
+      description: Copy pace track size.
+      type: str
+      sample: "MEDIUM"
+    copy_rate:
+      description: Copy rate.
+      type: int
+      sample: 100
+    entitlement_status:
+      description: Entitlement status.
+      type: str
+      sample: "assigned"
+    mirror_unit_id:
+      description: Mirror unit id.
+      type: int
+      sample: -1
+    partner_id:
+      description: Partner id.
+      type: str
+      sample: "partner123"
+    primary_hex_volume_id:
+      description: Primary hex volume id.
+      type: str
+      sample: "00:01:12"
+    primary_volume_id:
+      description: Primary volume id.
+      type: int
+      sample: 274
+    resource_id:
+      description: Resource id.
+      type: str
+      sample: "localpair-2749fed78e8d23a61ed17a8af71c85f8"
+    secondary_hex_volume_id:
+      description: Secondary hex volume id.
+      type: str
+      sample: "00:01:17"
+    secondary_volume_id:
+      description: Secondary volume id.
+      type: int
+      sample: 279
+    status:
+      description: Status.
+      type: str
+      sample: "PAIR"
+    storage_serial_number:
+      description: Storage serial number.
+      type: str
+      sample: "811150"
+    subscriber_id:
+      description: Subscriber id.
+      type: str
+      sample: "subscriber123"
+    svol_access_mode:
+      description: Svol access mode.
+      type: str
+      sample: "READONLY"
 """
 
 from ansible.module_utils.basic import AnsibleModule

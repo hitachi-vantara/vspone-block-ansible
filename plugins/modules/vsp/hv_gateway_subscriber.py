@@ -20,6 +20,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
     description: The level of the subscriber task. Choices are 'present', 'absent'.
@@ -129,22 +135,55 @@ data:
   description: Newly created subscriber object.
   returned: success
   type: dict
-  elements: dict
-  sample:
-    {
-        "hard_limit_in_percent": "80",
-        "message": "",
-        "name": "Test1234",
-        "partner_id": "apiadmin",
-        "quota_limit_in_gb": "20",
-        "soft_limit_in_percent": "70",
-        "state": "",
-        "subscriber_id": "1234",
-        "time": 1716272732,
-        "type": "subscriber",
-        "used_quota_in_gb": "",
-        "used_quota_in_percent": -1
-    }
+  contains:
+    hard_limit_in_percent:
+      description: Hard limit in percent for the subscriber.
+      type: str
+      sample: "80"
+    message:
+      description: Message related to the subscriber operation.
+      type: str
+      sample: ""
+    name:
+      description: Name of the subscriber.
+      type: str
+      sample: "Test1234"
+    partner_id:
+      description: Partner ID associated with the subscriber.
+      type: str
+      sample: "apiadmin"
+    quota_limit_in_gb:
+      description: Quota limit in GB for the subscriber.
+      type: str
+      sample: "20"
+    soft_limit_in_percent:
+      description: Soft limit in percent for the subscriber.
+      type: str
+      sample: "70"
+    state:
+      description: State of the subscriber.
+      type: str
+      sample: ""
+    subscriber_id:
+      description: Unique identifier for the subscriber.
+      type: str
+      sample: "1234"
+    time:
+      description: Timestamp of the subscriber operation.
+      type: int
+      sample: 1716272732
+    type:
+      description: Type of the subscriber.
+      type: str
+      sample: "subscriber"
+    used_quota_in_gb:
+      description: Used quota in GB for the subscriber.
+      type: str
+      sample: ""
+    used_quota_in_percent:
+      description: Used quota in percent for the subscriber.
+      type: int
+      sample: -1
 """
 
 

@@ -23,6 +23,12 @@ description:
 version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description:
@@ -107,28 +113,104 @@ EXAMPLES = """
       journal_id: 10
 """
 
-RETURN = """
-ldevs:
-  description: List of Journal Volume managed by the module.
-  returned: success
-  type: list
-  elements: dict
-  sample: [
-    {
-      "journalId": 0,
-      "muNumber": 1,
-      "consistencyGroupId": 5,
-      "journalStatus": "PJSF",
-      "numOfActivePaths": 1,
-      "usageRate": 0,
-      "qMarker": "575cc653",
-      "qCount": 0,
-      "byteFormatCapacity": "1.88 G",
-      "blockCapacity": 3956736,
-      "numOfLdevs": 1,
-      "firstLdevId": 513
-    }
-  ]
+RETURN = r"""
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the Journal Volumes.
+  returned: always
+  type: dict
+  contains:
+    journal_volumes:
+      description: List of Journal Volumes managed by the module.
+      returned: success
+      type: list
+      elements: dict
+      contains:
+        data_overflow_watch_seconds:
+          description: Data overflow watch in seconds.
+          type: int
+          sample: 60
+        first_ldev_id:
+          description: First LDEV ID of the Journal Volume.
+          type: int
+          sample: 1992
+        is_cache_mode_enabled:
+          description: Indicates if cache mode is enabled.
+          type: bool
+          sample: true
+        is_inflow_control_enabled:
+          description: Indicates if inflow control is enabled.
+          type: bool
+          sample: false
+        journal_id:
+          description: Journal ID of the Journal Volume.
+          type: int
+          sample: 37
+        journal_status:
+          description: Status of the Journal Volume.
+          type: str
+          sample: "PJNN"
+        mirror_unit_ids:
+          description: List of mirror unit IDs.
+          type: list
+          elements: dict
+          contains:
+            consistency_group_id:
+              description: Consistency group ID.
+              type: int
+              sample: 0
+            copy_pace:
+              description: Copy pace.
+              type: str
+              sample: "L"
+            copy_speed:
+              description: Copy speed.
+              type: int
+              sample: 256
+            is_data_copying:
+              description: Indicates if data copying is in progress.
+              type: bool
+              sample: true
+            journal_status:
+              description: Status of the journal.
+              type: str
+              sample: "SMPL"
+            mu_number:
+              description: Mirror unit number.
+              type: int
+              sample: 0
+            path_blockade_watch_in_minutes:
+              description: Path blockade watch in minutes.
+              type: int
+              sample: 5
+        mp_blade_id:
+          description: MP Blade ID of the Journal Volume.
+          type: int
+          sample: 1
+        num_of_active_paths:
+          description: Number of active paths.
+          type: int
+          sample: 2
+        num_of_ldevs:
+          description: Number of LDEVs.
+          type: int
+          sample: 1
+        q_count:
+          description: Queue count.
+          type: int
+          sample: 0
+        q_marker:
+          description: Queue marker.
+          type: str
+          sample: "00000002"
+        total_capacity_mb:
+          description: Total capacity in MB.
+          type: int
+          sample: 19
+        usage_rate:
+          description: Usage rate.
+          type: int
+          sample: 0
 """
 
 from ansible.module_utils.basic import AnsibleModule

@@ -99,29 +99,7 @@
         var: result
 
     #####################################################################
-    # Task 4 : Swap-Split HUR pair
-    ######################################################################
-    - name: Swap-Split HUR pair
-      hitachivantara.vspone_block.vsp.hv_hur:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
-        state: "swap_split"
-        spec:
-          local_device_group_name: "hur_local_device_group_name_1"
-          remote_device_group_name: "hur_remote_device_group_name_1"
-          copy_group_name: "hur_copy_group_name_1"
-          copy_pair_name: "hur_copy_pair_name_1"
-
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    #####################################################################
-    # Task 5 : Resync HUR pair
+    # Task 4 : Resync HUR pair
     ######################################################################
     - name: Resync HUR pair
       hitachivantara.vspone_block.vsp.hv_hur:
@@ -143,14 +121,38 @@
         var: result
 
     #####################################################################
+    # Task 5 : Swap-Split HUR pair
+    # Storages need to be swapped before swap-split operation. Please specify connection_info and secondary_connection_info accordingly.
+    ######################################################################
+    - name: Swap-Split HUR pair
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage Connection info
+        secondary_connection_info: "{{ connection_info }}" # Local Storage Connection info
+        storage_system_info:
+          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
+        state: "swap_split"
+        spec:
+          local_device_group_name: "hur_local_device_group_name_1"
+          remote_device_group_name: "hur_remote_device_group_name_1"
+          copy_group_name: "hur_copy_group_name_1"
+          copy_pair_name: "hur_copy_pair_name_1"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
     # Task 6 : Swap-Resync HUR pair
+    # Similar connection info details as per swap-split
     ######################################################################
     - name: Swap-Resync HUR pair
       hitachivantara.vspone_block.vsp.hv_hur:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage Connection info
+        secondary_connection_info: "{{ connection_info }}" # Local Storage Connection info
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
         state: "swap_resync"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"

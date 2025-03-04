@@ -23,9 +23,15 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
-    description: The level of the snapshot task. Choices are 'present', 'absent', 'split', 'sync', 'restore', 'clone'.
+    description: The level of the snapshot task. Choices are C(present), C(absent), C(split), C(sync), C(restore), C(clone).
     type: str
     required: false
     choices: ['present', 'absent', 'split', 'sync', 'restore', 'clone']
@@ -45,7 +51,7 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway) ) or the storage system (if connection_type is C(direct) .)
         type: str
         required: true
       username:
@@ -84,12 +90,12 @@ options:
         type: int
         required: false
       snapshot_group_name:
-        description: Name of the snapshot group (required for 'direct' connection type and thin image advance).
+        description: Name of the snapshot group (required for C(direct) connection type and thin image advance).
         type: str
         required: false
       is_data_reduction_force_copy:
         description: Specify whether to forcibly create a pair for a volume for which the capacity saving function is enabled
-          (Required for 'direct' connection type and thin image advance, Default is True when capacity savings is not 'disabled').
+          (Required for C(direct) connection type and thin image advance, Default is True when capacity savings is not 'disabled').
         required: false
         type: bool
       is_clone:
@@ -97,7 +103,7 @@ options:
         required: false
         type: bool
       can_cascade:
-        description: Specify whether the pair can be cascaded. (Required for 'direct' connection type and thin image advance,
+        description: Specify whether the pair can be cascaded. (Required for C(direct) connection type and thin image advance,
           Default is True when capacity savings is not 'disabled', Lun may not required to add to any host group when is it true).
         required: false
         type: bool
@@ -263,25 +269,79 @@ snapshots:
   returned: always
   type: list
   elements: dict
-  sample:
-    - storage_serial_number: 810050
-      primary_volume_id: 1030
-      primary_hex_volume_id: "00:04:06"
-      secondary_volume_id: 1031
-      secondary_hex_volume_id: "00:04:07"
-      svol_access_mode: ""
-      pool_id: 12
-      consistency_group_id: -1
-      mirror_unit_id: 3
-      copy_rate: -1
-      copy_pace_track_size: ""
-      status: "PAIR"
-      type: ""
-      snapshot_id: "1030,3"
-      is_consistency_group: true
-      primary_or_secondary: "P-VOL"
-      snapshot_group_name: "NewNameSPG"
-      can_cascade: true
+  contains:
+    storage_serial_number:
+      description: Serial number of the storage system.
+      type: int
+      sample: 810050
+    primary_volume_id:
+      description: ID of the primary volume.
+      type: int
+      sample: 1030
+    primary_hex_volume_id:
+      description: Hexadecimal ID of the primary volume.
+      type: str
+      sample: "00:04:06"
+    secondary_volume_id:
+      description: ID of the secondary volume.
+      type: int
+      sample: 1031
+    secondary_hex_volume_id:
+      description: Hexadecimal ID of the secondary volume.
+      type: str
+      sample: "00:04:07"
+    svol_access_mode:
+      description: Access mode of the secondary volume.
+      type: str
+      sample: ""
+    pool_id:
+      description: ID of the pool where the snapshot is allocated.
+      type: int
+      sample: 12
+    consistency_group_id:
+      description: ID of the consistency group.
+      type: int
+      sample: -1
+    mirror_unit_id:
+      description: ID of the mirror unit.
+      type: int
+      sample: 3
+    copy_rate:
+      description: Copy rate of the snapshot.
+      type: int
+      sample: -1
+    copy_pace_track_size:
+      description: Copy pace track size.
+      type: str
+      sample: ""
+    status:
+      description: Status of the snapshot.
+      type: str
+      sample: "PAIR"
+    type:
+      description: Type of the snapshot.
+      type: str
+      sample: ""
+    snapshot_id:
+      description: ID of the snapshot.
+      type: str
+      sample: "1030,3"
+    is_consistency_group:
+      description: Indicates if the snapshot is part of a consistency group.
+      type: bool
+      sample: true
+    primary_or_secondary:
+      description: Indicates if the volume is primary or secondary.
+      type: str
+      sample: "P-VOL"
+    snapshot_group_name:
+      description: Name of the snapshot group.
+      type: str
+      sample: "NewNameSPG"
+    can_cascade:
+      description: Indicates if the snapshot can be cascaded.
+      type: bool
+      sample: true
 """
 
 

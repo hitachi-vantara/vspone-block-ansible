@@ -22,6 +22,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
     uai_gateway_address:
         description: IP address or hostname of the UAI gateway. If not provided, UAI gateway logs will not be included in the log bundle.
@@ -652,11 +658,11 @@ def main(module=None):
                 logger.writeInfo(f"Copied usages files to {temp_usages_dir}")
                 # comment out the registration files
 
-                if os.path.exists(consent_dir):
-                    shutil.copytree(consent_dir, os.path.join(tempdir, "user_consent"))
-                    logger.writeInfo(
-                        f"Copied user_consent files to {tempdir}/user_consent"
-                    )
+            if os.path.exists(consent_dir):
+                shutil.copytree(consent_dir, os.path.join(tempdir, "user_consent"))
+                logger.writeInfo(
+                    f"Copied user_consent files to {tempdir}/user_consent"
+                )
         except Exception as e:
             logger.writeInfo(e)
 

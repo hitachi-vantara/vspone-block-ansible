@@ -19,6 +19,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
     description: The level of the compute port authentication task. Choices are 'present'.
@@ -98,72 +104,193 @@ data:
   description: The compute port information.
   returned: always
   type: dict
-  elements: dict
-  sample:
-    {
-      "chap_users_info": [
-          {
-              "id": "a083ca8f-e925-474a-b63b-d9b06b2d02ad",
-              "initiator_chap_user_name": "",
-              "target_chap_user_name": "RD-chap-user-1"
-          },
-          {
-              "id": "342fac65-d0f8-4fc6-9afc-5adaddca23c5",
-              "initiator_chap_user_name": "chapuser1",
-              "target_chap_user_name": "newchapuser2"
-          }
-      ],
-      "port_auth_info": {
-          "auth_mode": "CHAP",
-          "id": "0f13e320-53e7-4088-aa11-418636b58376",
-          "is_discovery_chap_auth": false,
-          "is_mutual_chap_auth": true
-      },
-      "port_info": {
-          "configured_port_speed": "Auto",
-          "fc_information": null,
-          "id": "0f13e320-53e7-4088-aa11-418636b58376",
-          "interface_name": "eth2",
-          "iscsi_information": {
-              "delayed_ack": true,
-              "ip_mode": "ipv4",
-              "ipv4_information": {
-                  "address": "10.76.34.52",
-                  "default_gateway": "10.76.34.1",
-                  "subnet_mask": "255.255.255.0"
-              },
-              "ipv6_information": {
-                  "default_gateway": "",
-                  "global_address1": "",
-                  "global_address_mode": "Manual",
-                  "linklocal_address": "",
-                  "linklocal_address_mode": "Auto",
-                  "subnet_prefix_length1": 0
-              },
-              "is_isns_client_enabled": false,
-              "isns_servers": [
-                  {
-                      "index": 1,
-                      "port": 3205,
-                      "server_name": ""
-                  }
-              ],
-              "mac_address": "b4:96:91:c8:76:0c",
-              "mtu_size": 9000
-          },
-          "name": "iqn.1994-04.jp.co.hitachi:rsd.sph.t.0a85a.001",
-          "nickname": "001-iSCSI-001",
-          "nvme_tcp_information": null,
-          "port_speed": "25G",
-          "port_speed_duplex": "25Gbps Full",
-          "protection_domain_id": "645c36b6-da9e-44bb-b711-430e06c7ad2b",
-          "protocol": "iSCSI",
-          "status": "Normal",
-          "status_summary": "Normal",
-          "storage_node_id": "c3be292d-fe72-48c9-8780-3a0cbb5fbff6",
-          "type": "Universal"
-      }
-  }
+  contains:
+    chap_users_info:
+      description: List of CHAP users information.
+      type: list
+      elements: dict
+      contains:
+        id:
+          description: Unique identifier for the CHAP user.
+          type: str
+          sample: "a083ca8f-e925-474a-b63b-d9b06b2d02ad"
+        initiator_chap_user_name:
+          description: Initiator CHAP user name.
+          type: str
+          sample: ""
+        target_chap_user_name:
+          description: Target CHAP user name.
+          type: str
+          sample: "RD-chap-user-1"
+    port_auth_info:
+      description: Port authentication information.
+      type: dict
+      contains:
+        auth_mode:
+          description: Authentication mode.
+          type: str
+          sample: "CHAP"
+        id:
+          description: Unique identifier for the port authentication.
+          type: str
+          sample: "0f13e320-53e7-4088-aa11-418636b58376"
+        is_discovery_chap_auth:
+          description: Indicates if discovery CHAP authentication is enabled.
+          type: bool
+          sample: false
+        is_mutual_chap_auth:
+          description: Indicates if mutual CHAP authentication is enabled.
+          type: bool
+          sample: true
+    port_info:
+      description: Port information.
+      type: dict
+      contains:
+        configured_port_speed:
+          description: Configured port speed.
+          type: str
+          sample: "Auto"
+        fc_information:
+          description: Fibre Channel information.
+          type: dict
+          sample: null
+        id:
+          description: Unique identifier for the port.
+          type: str
+          sample: "0f13e320-53e7-4088-aa11-418636b58376"
+        interface_name:
+          description: Interface name.
+          type: str
+          sample: "eth2"
+        iscsi_information:
+          description: iSCSI information.
+          type: dict
+          contains:
+            delayed_ack:
+              description: Indicates if delayed ACK is enabled.
+              type: bool
+              sample: true
+            ip_mode:
+              description: IP mode.
+              type: str
+              sample: "ipv4"
+            ipv4_information:
+              description: IPv4 information.
+              type: dict
+              contains:
+                address:
+                  description: IPv4 address.
+                  type: str
+                  sample: "10.76.34.52"
+                default_gateway:
+                  description: Default gateway.
+                  type: str
+                  sample: "10.76.34.1"
+                subnet_mask:
+                  description: Subnet mask.
+                  type: str
+                  sample: "255.255.255.0"
+            ipv6_information:
+              description: IPv6 information.
+              type: dict
+              contains:
+                default_gateway:
+                  description: Default gateway.
+                  type: str
+                  sample: ""
+                global_address1:
+                  description: Global address 1.
+                  type: str
+                  sample: ""
+                global_address_mode:
+                  description: Global address mode.
+                  type: str
+                  sample: "Manual"
+                linklocal_address:
+                  description: Link-local address.
+                  type: str
+                  sample: ""
+                linklocal_address_mode:
+                  description: Link-local address mode.
+                  type: str
+                  sample: "Auto"
+                subnet_prefix_length1:
+                  description: Subnet prefix length.
+                  type: int
+                  sample: 0
+            is_isns_client_enabled:
+              description: Indicates if iSNS client is enabled.
+              type: bool
+              sample: false
+            isns_servers:
+              description: List of iSNS servers.
+              type: list
+              elements: dict
+              contains:
+                index:
+                  description: Index of the iSNS server.
+                  type: int
+                  sample: 1
+                port:
+                  description: Port of the iSNS server.
+                  type: int
+                  sample: 3205
+                server_name:
+                  description: Name of the iSNS server.
+                  type: str
+                  sample: ""
+            mac_address:
+              description: MAC address.
+              type: str
+              sample: "b4:96:91:c8:76:0c"
+            mtu_size:
+              description: MTU size.
+              type: int
+              sample: 9000
+        name:
+          description: Port name.
+          type: str
+          sample: "iqn.1994-04.jp.co.hitachi:rsd.sph.t.0a85a.001"
+        nickname:
+          description: Port nickname.
+          type: str
+          sample: "001-iSCSI-001"
+        nvme_tcp_information:
+          description: NVMe over TCP information.
+          type: dict
+          sample: null
+        port_speed:
+          description: Port speed.
+          type: str
+          sample: "25G"
+        port_speed_duplex:
+          description: Port speed duplex.
+          type: str
+          sample: "25Gbps Full"
+        protection_domain_id:
+          description: Protection domain ID.
+          type: str
+          sample: "645c36b6-da9e-44bb-b711-430e06c7ad2b"
+        protocol:
+          description: Protocol.
+          type: str
+          sample: "iSCSI"
+        status:
+          description: Port status.
+          type: str
+          sample: "Normal"
+        status_summary:
+          description: Port status summary.
+          type: str
+          sample: "Normal"
+        storage_node_id:
+          description: Storage node ID.
+          type: str
+          sample: "c3be292d-fe72-48c9-8780-3a0cbb5fbff6"
+        type:
+          description: Port type.
+          type: str
+          sample: "Universal"
 """
 
 from ansible.module_utils.basic import AnsibleModule

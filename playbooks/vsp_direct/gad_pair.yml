@@ -187,13 +187,14 @@
 
     ####################################################################
     # Task 7 : Swap-Split GAD pair
+    # Storages need to be swapped before swap-split operation. Please specify connection_info and secondary_connection_info accordingly.
     ####################################################################
     - name: Swap-Split GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
+        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
         state: "swap_split"
         spec:
           copy_group_name: "copy_group_name_1"
@@ -208,13 +209,14 @@
 
     ####################################################################
     # Task 8 : Swap-Resync GAD pair
+    # Similar storage conection details as per swap-split operation
     ####################################################################
     - name: Swap-Resync GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
+        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "{{ secondary_storage_serial }}"  # Remote Storage Serial number
         state: "swap_resync"
         spec:
           copy_group_name: "copy_group_name_1"

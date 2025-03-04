@@ -19,6 +19,12 @@ description:
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -100,27 +106,35 @@ data:
   returned: success
   type: list
   elements: dict
-  sample: [
-        "error": [
-            "Did not find Host Group test-001.",
-            "Unable to untag Host Group test-005 from subscriber 811150 since it is already attached to volumes.",
-            "Failed to untag storage volume 5015 from subscriber 811150 as it is tagged to a host group or iSCSI target",
-            "Failed to untag storage volume 5016 from subscriber 811150 as it is tagged to a host group or iSCSI target",
-            "Host group is present in Port CL5-A that tagged to the subscriber 811150",
-            "Did not find Port with ID CL1-A.",
-            "Storage is not registered",
-            "Resource not found",
-            "Unable to find the resource. localpair-6764f2c78f8f53a1766ad716a65206f8."
-        ],
-        "info": [
-            "Found 1 Host Group(s) called test-005. ",
-            "Found Volume with LDEV ID 5015. ",
-            "Found Volume with LDEV ID 5016. ",
-            "Found Port with ID CL5-A. ",
-            "Found shadowimage with ID localpair-6764f2c78f8f53a1766ad716a65206f7. "
-        ]
-  ]
+  contains:
+    error:
+      description: List of error messages encountered during the un-subscription process.
+      type: list
+      elements: str
+      sample: [
+        "Did not find Host Group test-001.",
+        "Unable to untag Host Group test-005 from subscriber 811150 since it is already attached to volumes.",
+        "Failed to untag storage volume 5015 from subscriber 811150 as it is tagged to a host group or iSCSI target",
+        "Failed to untag storage volume 5016 from subscriber 811150 as it is tagged to a host group or iSCSI target",
+        "Host group is present in Port CL5-A that tagged to the subscriber 811150",
+        "Did not find Port with ID CL1-A.",
+        "Storage is not registered",
+        "Resource not found",
+        "Unable to find the resource. localpair-6764f2c78f8f53a1766ad716a65206f8."
+      ]
+    info:
+      description: List of informational messages encountered during the un-subscription process.
+      type: list
+      elements: str
+      sample: [
+        "Found 1 Host Group(s) called test-005.",
+        "Found Volume with LDEV ID 5015.",
+        "Found Volume with LDEV ID 5016.",
+        "Found Port with ID CL5-A.",
+        "Found shadowimage with ID localpair-6764f2c78f8f53a1766ad716a65206f7."
+      ]
 """
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPUnsubscriberArguments,

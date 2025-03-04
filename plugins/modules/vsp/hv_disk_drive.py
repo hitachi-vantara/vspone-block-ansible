@@ -20,6 +20,12 @@ description:
 version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
     description: The level of the Disk Drives task.
@@ -103,27 +109,62 @@ EXAMPLES = """
           is_spared_drive: true
 """
 
-RETURN = """
+RETURN = r"""
 disk_drive:
   description: Disk drive managed by the module.
   returned: success
   type: list
   elements: dict
-  sample:
-    {
-      "copyback_mode": true,
-      "drive_type": "SSD",
-      "free_capacity": "5.16TB",
-      "is_accelerated_compression": false,
-      "is_encryption_enabled": true,
-      "is_pool_array_group": false,
-      "ldev_ids": [],
-      "parity_group_id": "1-10",
-      "raid_level": "RAID5",
-      "resource_group_id": -1,
-      "status": "",
-      "total_capacity": "5.16TB"
-    }
+  contains:
+    copyback_mode:
+      description: Indicates if copyback mode is enabled.
+      type: bool
+      sample: true
+    drive_type:
+      description: Type of the drive.
+      type: str
+      sample: "SSD"
+    free_capacity:
+      description: Free capacity of the drive.
+      type: str
+      sample: "5.16TB"
+    is_accelerated_compression:
+      description: Indicates if accelerated compression is enabled.
+      type: bool
+      sample: false
+    is_encryption_enabled:
+      description: Indicates if encryption is enabled.
+      type: bool
+      sample: true
+    is_pool_array_group:
+      description: Indicates if the drive is part of a pool array group.
+      type: bool
+      sample: false
+    ldev_ids:
+      description: List of LDEV IDs associated with the drive.
+      type: list
+      elements: int
+      sample: []
+    parity_group_id:
+      description: ID of the parity group.
+      type: str
+      sample: "1-10"
+    raid_level:
+      description: RAID level of the drive.
+      type: str
+      sample: "RAID5"
+    resource_group_id:
+      description: ID of the resource group.
+      type: int
+      sample: -1
+    status:
+      description: Status of the drive.
+      type: str
+      sample: ""
+    total_capacity:
+      description: Total capacity of the drive.
+      type: str
+      sample: "5.16TB"
 """
 
 from ansible.module_utils.basic import AnsibleModule

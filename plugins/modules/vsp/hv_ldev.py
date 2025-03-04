@@ -22,6 +22,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
     description: The desired state of the LDEV.
@@ -362,30 +368,178 @@ EXAMPLES = """
         response_alert_allowable_time: 1000
 """
 
-RETURN = """
-ldevs:
-  description: Info of a logical device (LDEV).
-  returned: success
-  type: dict
-  sample:
-    ldev_id: 123
-    deduplication_compression_mode: "Enabled"
-    emulation_type: "Fibre Channel"
-    name: "LDEV1"
-    parity_group_id: "PG1"
-    pool_id: 1
-    resource_group_id: 1
-    status: "Online"
-    total_capacity: "10 GB"
-    used_capacity: "5 GB"
-    path_count: 2
-    provision_type: "Thin Provisioning"
-    logical_unit_id_hex_format: "0x123456789ABCDEF"
-    canonical_name: "naa.123456789ABCDEF"
-    dedup_compression_progress: 100
-    dedup_compression_status: "Completed"
-    is_alua: true
-    is_data_reduction_share_enabled: true
+RETURN = r"""
+ansible_facts:
+    description: >
+        Dictionary containing the discovered properties of the storage volumes.
+    returned: always
+    type: dict
+    contains:
+        volumes:
+            description: List of storage volumes with their attributes.
+            type: list
+            elements: dict
+            contains:
+                canonical_name:
+                    description: Unique identifier for the volume.
+                    type: str
+                    sample: "naa.60060e8028274200508027420000000a"
+                dedup_compression_progress:
+                    description: Progress percentage of deduplication and compression.
+                    type: int
+                    sample: -1
+                dedup_compression_status:
+                    description: Status of deduplication and compression.
+                    type: str
+                    sample: "DISABLED"
+                deduplication_compression_mode:
+                    description: Mode of deduplication and compression.
+                    type: str
+                    sample: "disabled"
+                emulation_type:
+                    description: Emulation type of the volume.
+                    type: str
+                    sample: "OPEN-V-CVS-CM"
+                entitlement_status:
+                    description: Entitlement status of the volume.
+                    type: str
+                    sample: ""
+                hostgroups:
+                    description: List of host groups associated with the volume.
+                    type: list
+                    elements: str
+                    sample: []
+                is_alua:
+                    description: Indicates if ALUA is enabled.
+                    type: bool
+                    sample: false
+                is_command_device:
+                    description: Indicates if the volume is a command device.
+                    type: bool
+                    sample: false
+                is_data_reduction_share_enabled:
+                    description: Indicates if data reduction share is enabled.
+                    type: bool
+                    sample: false
+                is_device_group_definition_enabled:
+                    description: Indicates if device group definition is enabled.
+                    type: bool
+                    sample: false
+                is_encryption_enabled:
+                    description: Indicates if encryption is enabled.
+                    type: bool
+                    sample: false
+                is_security_enabled:
+                    description: Indicates if security is enabled.
+                    type: bool
+                    sample: false
+                is_user_authentication_enabled:
+                    description: Indicates if user authentication is enabled.
+                    type: bool
+                    sample: false
+                is_write_protected:
+                    description: Indicates if the volume is write-protected.
+                    type: bool
+                    sample: false
+                is_write_protected_by_key:
+                    description: Indicates if the volume is write-protected by key.
+                    type: bool
+                    sample: false
+                iscsi_targets:
+                    description: List of associated iSCSI targets.
+                    type: list
+                    elements: str
+                    sample: []
+                ldev_id:
+                    description: Logical Device ID.
+                    type: int
+                    sample: 10
+                logical_unit_id_hex_format:
+                    description: Logical Unit ID in hexadecimal format.
+                    type: str
+                    sample: "00:00:0A"
+                name:
+                    description: Name of the volume.
+                    type: str
+                    sample: "snewar-cmd"
+                num_of_ports:
+                    description: Number of ports associated with the volume.
+                    type: int
+                    sample: 1
+                nvm_subsystems:
+                    description: List of associated NVM subsystems.
+                    type: list
+                    elements: str
+                    sample: []
+                parity_group_id:
+                    description: Parity group ID of the volume.
+                    type: str
+                    sample: ""
+                partner_id:
+                    description: Partner ID associated with the volume.
+                    type: str
+                    sample: ""
+                path_count:
+                    description: Number of paths to the volume.
+                    type: int
+                    sample: 1
+                pool_id:
+                    description: Pool ID where the volume resides.
+                    type: int
+                    sample: 0
+                provision_type:
+                    description: Provisioning type of the volume.
+                    type: str
+                    sample: "CMD,CVS,HDP"
+                qos_settings:
+                    description: Quality of Service settings for the volume.
+                    type: dict
+                    sample: {}
+                resource_group_id:
+                    description: Resource group ID of the volume.
+                    type: int
+                    sample: 0
+                snapshots:
+                    description: List of snapshots associated with the volume.
+                    type: list
+                    elements: str
+                    sample: []
+                status:
+                    description: Current status of the volume.
+                    type: str
+                    sample: "NML"
+                storage_serial_number:
+                    description: Serial number of the storage system.
+                    type: str
+                    sample: "810050"
+                subscriber_id:
+                    description: Subscriber ID associated with the volume.
+                    type: str
+                    sample: ""
+                tiering_policy:
+                    description: Tiering policy applied to the volume.
+                    type: dict
+                    sample: {}
+                total_capacity:
+                    description: Total capacity of the volume.
+                    type: str
+                    sample: "50.00MB"
+                total_capacity_in_mb:
+                    description: Total capacity of the volume in megabytes.
+                    type: str
+                    sample: "50.0 MB"
+                used_capacity:
+                    description: Used capacity of the volume.
+                    type: str
+                    sample: "0.00B"
+                used_capacity_in_mb:
+                    description: Used capacity of the volume in megabytes.
+                    type: str
+                    sample: "0.0 MB"
+                virtual_ldev_id:
+                    description: Virtual Logical Device ID.
+                    type: int
+                    sample: -1
 """
 
 from ansible.module_utils.basic import AnsibleModule

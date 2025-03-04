@@ -19,6 +19,12 @@ description:
 version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description:
@@ -118,46 +124,58 @@ EXAMPLES = """
 """
 
 RETURN = """
-remote_storage:
-  description: A list information about the storage systems registered on the REST API server.
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the remote storage registration.
   returned: always
-  type: list
-  elements: dict
-  sample:
-    {
-        "storages_registered_in_local": [
-            {
-                "communication_modes": [
-                    {
-                        "communicationMode": "lanConnectionMode"
-                    }
-                ],
-                "ctl1_ip": "172.0.0.127",
-                "ctl2_ip": "172.0.0.128",
-                "dkc_type": "Local",
-                "model": "VSP E1090H",
-                "rest_server_ip": "172.0.0.2",
-                "rest_server_port": 443,
-                "serial_number": 710036,
-                "storage_device_id": "938000710036"
-            },
-            {
-                "communication_modes": [
-                    {
-                        "communicationMode": "lanConnectionMode"
-                    }
-                ],
-                "ctl1_ip": "172.0.0.131",
-                "ctl2_ip": "172.0.0.132",
-                "dkc_type": "Remote",
-                "model": "VSP E1090H",
-                "rest_server_ip": "172.0.0.3",
-                "rest_server_port": 443,
-                "serial_number": 710035,
-                "storage_device_id": "938000710035"
-            }
-        ],
-    }
+  type: dict
+  contains:
+    remote_storage:
+      description: A list of information about the storage systems registered on the REST API server.
+      type: list
+      elements: dict
+      contains:
+        communication_modes:
+          description: List of communication modes for the storage system.
+          type: list
+          elements: dict
+          contains:
+            communicationMode:
+              description: Mode of communication.
+              type: str
+              sample: "lanConnectionMode"
+        ctl1_ip:
+          description: IP address of controller 1.
+          type: str
+          sample: "172.0.0.127"
+        ctl2_ip:
+          description: IP address of controller 2.
+          type: str
+          sample: "172.0.0.128"
+        dkc_type:
+          description: Type of the storage system.
+          type: str
+          sample: "Local"
+        model:
+          description: Model of the storage system.
+          type: str
+          sample: "VSP E1090H"
+        rest_server_ip:
+          description: IP address of the REST API server.
+          type: str
+          sample: "172.0.0.2"
+        rest_server_port:
+          description: Port of the REST API server.
+          type: int
+          sample: 443
+        serial_number:
+          description: Serial number of the storage system.
+          type: str
+          sample: "710036"
+        storage_device_id:
+          description: Unique identifier for the storage device.
+          type: str
+          sample: "938000710036"
 """
 
 

@@ -31,6 +31,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
     description:
@@ -309,51 +315,117 @@ EXAMPLES = """
   register: result
 """
 
-RETURN = """
-Iscsi targets info:
-  description: The iscsi targets information.
+RETURN = r"""
+iscsi_target_info:
+  description: >
+    Dictionary containing the discovered properties of the iSCSI targets.
   returned: always
   type: dict
-  sample: {
-    "changed": true,
-    "failed": false,
-    "iscsi_target": {
-      "auth_param": {
-        "authentication_mode": "BOTH",
-        "is_chap_enabled": true,
-        "is_chap_required": false,
-        "is_mutual_auth": false
-      },
-      "chap_users": [
-        "chapuser1"
-      ],
-      "host_mode": {
-        "host_mode": "VMWARE",
-        "host_mode_options": [
-          {
-            "raid_option": "EXTENDED_COPY",
-            "raid_option_number": 54
-          }
-        ]
-      },
-      "iqn": "iqn.rest.example.of.iqn.host",
-      "iqn_initiators": [
-        "iqn.2014-04.jp.co.hitachi:xxx.h70.i.62510.1a.ff"
-      ],
-      "iscsi_id": 1,
-      "iscsi_name": "iscsi-name",
-      "logical_units": [
-        {
-          "host_lun_id": 0,
-          "logical_unit_id": 1
-        }
-      ],
-      "partner_id": "partnerid",
-      "port_id": "CL4-C",
-      "resource_group_id": 0,
-      "subscriber_id": "811150"
-    }
-  }
+  contains:
+    changed:
+      description: Indicates if any changes were made.
+      type: bool
+      sample: true
+    failed:
+      description: Indicates if the operation failed.
+      type: bool
+      sample: false
+    iscsi_target:
+      description: Details of the iSCSI target.
+      type: dict
+      contains:
+        auth_param:
+          description: Authentication parameters.
+          type: dict
+          contains:
+            authentication_mode:
+              description: Mode of authentication.
+              type: str
+              sample: "BOTH"
+            is_chap_enabled:
+              description: Indicates if CHAP is enabled.
+              type: bool
+              sample: true
+            is_chap_required:
+              description: Indicates if CHAP is required.
+              type: bool
+              sample: false
+            is_mutual_auth:
+              description: Indicates if mutual authentication is enabled.
+              type: bool
+              sample: false
+        chap_users:
+          description: List of CHAP users.
+          type: list
+          elements: str
+          sample: ["chapuser1"]
+        host_mode:
+          description: Host mode details.
+          type: dict
+          contains:
+            host_mode:
+              description: Host mode.
+              type: str
+              sample: "VMWARE"
+            host_mode_options:
+              description: List of host mode options.
+              type: list
+              elements: dict
+              contains:
+                raid_option:
+                  description: RAID option.
+                  type: str
+                  sample: "EXTENDED_COPY"
+                raid_option_number:
+                  description: RAID option number.
+                  type: int
+                  sample: 54
+        iqn:
+          description: IQN of the iSCSI target.
+          type: str
+          sample: "iqn.rest.example.of.iqn.host"
+        iqn_initiators:
+          description: List of IQN initiators.
+          type: list
+          elements: str
+          sample: ["iqn.2014-04.jp.co.hitachi:xxx.h70.i.62510.1a.ff"]
+        iscsi_id:
+          description: ID of the iSCSI target.
+          type: int
+          sample: 1
+        iscsi_name:
+          description: Name of the iSCSI target.
+          type: str
+          sample: "iscsi-name"
+        logical_units:
+          description: List of logical units.
+          type: list
+          elements: dict
+          contains:
+            host_lun_id:
+              description: Host LUN ID.
+              type: int
+              sample: 0
+            logical_unit_id:
+              description: Logical unit ID.
+              type: int
+              sample: 1
+        partner_id:
+          description: Partner ID.
+          type: str
+          sample: "partnerid"
+        port_id:
+          description: Port ID.
+          type: str
+          sample: "CL4-C"
+        resource_group_id:
+          description: Resource group ID.
+          type: int
+          sample: 0
+        subscriber_id:
+          description: Subscriber ID.
+          type: str
+          sample: "811150"
 """
 
 from dataclasses import asdict

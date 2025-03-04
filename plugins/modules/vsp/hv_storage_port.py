@@ -20,6 +20,12 @@ description:
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description:
@@ -103,29 +109,80 @@ storagePort:
   returned: always
   type: list
   elements: dict
-  sample:
-    - fabric_mode: true
-      ipv4_address: ""
-      ipv4_gateway_address: ""
-      ipv4_subnetmask: ""
-      iscsi_window_size: ""
-      keep_alive_timer: -1
-      loop_id: "CE"
-      lun_security_setting: false
-      mac_address: ""
-      port_attributes:
-        - "TAR"
-        - "MCU"
-        - "RCU"
-        - "ELUN"
-      port_connection: "PtoP"
-      port_id: "CL8-B"
-      port_mode: "FCP-SCSI"
-      port_speed: "AUT"
-      port_type: "FIBRE"
-      storage_serial_number: "715035"
-      tcp_port: ""
-      wwn: "50060e8028274271"
+  contains:
+    fabric_mode:
+      description: Indicates if the port is in fabric mode.
+      type: bool
+      sample: true
+    ipv4_address:
+      description: IPv4 address of the port.
+      type: str
+      sample: ""
+    ipv4_gateway_address:
+      description: IPv4 gateway address of the port.
+      type: str
+      sample: ""
+    ipv4_subnetmask:
+      description: IPv4 subnet mask of the port.
+      type: str
+      sample: ""
+    iscsi_window_size:
+      description: iSCSI window size.
+      type: str
+      sample: ""
+    keep_alive_timer:
+      description: Keep alive timer value.
+      type: int
+      sample: -1
+    loop_id:
+      description: Loop ID of the port.
+      type: str
+      sample: "CE"
+    lun_security_setting:
+      description: Indicates if LUN security setting is enabled.
+      type: bool
+      sample: false
+    mac_address:
+      description: MAC address of the port.
+      type: str
+      sample: ""
+    port_attributes:
+      description: List of port attributes.
+      type: list
+      elements: str
+      sample: ["TAR", "MCU", "RCU", "ELUN"]
+    port_connection:
+      description: Type of port connection.
+      type: str
+      sample: "PtoP"
+    port_id:
+      description: Port ID.
+      type: str
+      sample: "CL8-B"
+    port_mode:
+      description: Operating mode of the port.
+      type: str
+      sample: "FCP-SCSI"
+    port_speed:
+      description: Speed of the port.
+      type: str
+      sample: "AUT"
+    port_type:
+      description: Type of the port.
+      type: str
+      sample: "FIBRE"
+    storage_serial_number:
+      description: Serial number of the storage system.
+      type: str
+      sample: "715035"
+    tcp_port:
+      description: TCP port number.
+      type: str
+      sample: ""
+    wwn:
+      description: World Wide Name of the port.
+      type: str
+      sample: "50060e8028274271"
 """
 
 

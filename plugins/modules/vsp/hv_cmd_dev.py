@@ -7,7 +7,7 @@
 __metaclass__ = type
 
 
-DOCUMENTATION = """
+DOCUMENTATION = r"""
 ---
 module: hv_cmd_dev
 short_description: Manages command devices on Hitachi VSP storage systems.
@@ -20,6 +20,12 @@ description:
 version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
     state:
         description: The level of the resource group task.
@@ -59,7 +65,7 @@ options:
                 description: Type of connection to the storage system (Only direct connect available).
                 type: str
                 required: false
-                choices: ['direct']
+                choices: [direct]
                 default: 'direct'
     spec:
         description:
@@ -91,91 +97,209 @@ options:
 
 EXAMPLES = """
 - name: Enable a Command Device
-  tasks:
-    - hv_cmd_dev:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        spec:
-          ldev_id: 98
-          is_security_enabled: false
-          is_user_authentication_enabled: false
-          is_device_group_definition_enabled: false
+  hv_cmd_dev:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    spec:
+      ldev_id: 98
+      is_security_enabled: false
+      is_user_authentication_enabled: false
+      is_device_group_definition_enabled: false
 
 - name: Update the settings of a Command Device
-  tasks:
-    - hv_cmd_dev:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        spec:
-          ldev_id: 98
-          is_security_enabled: true
-          is_user_authentication_enabled: true
-          is_device_group_definition_enabled: true
+  hv_cmd_dev:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    spec:
+      ldev_id: 98
+      is_security_enabled: true
+      is_user_authentication_enabled: true
+      is_device_group_definition_enabled: true
 
 - name: Disable a Command Device
-  tasks:
-    - hv_cmd_dev:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        state: absent
-        spec:
-          ldev_id: 98
-          is_security_enabled: false
-          is_user_authentication_enabled: false
-          is_device_group_definition_enabled: false
+  hv_cmd_dev:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    state: absent
+    spec:
+      ldev_id: 98
+      is_security_enabled: false
+      is_user_authentication_enabled: false
+      is_device_group_definition_enabled: false
 """
 
-RETURN = """
+RETURN = r"""
 command_device:
-  description: The command device information.
-  returned: always except when state is absent
-  type: list
-  elements: dict
-  sample:
-    {   canonical_name: "naa.60060e80089c4f0000509c4f00000062",
-        dedup_compression_progress: -1,
-        dedup_compression_status: "DISABLED",
-        deduplication_compression_mode: "disabled",
-        emulation_type: "OPEN-V-CVS-CM",
-        entitlement_status: "",
-        hostgroups: [],
-        is_alua: false,
-        is_command_device: true,
-        is_data_reduction_share_enabled: false,
-        is_device_group_definition_enabled: true,
-        is_encryption_enabled: false,
-        is_security_enabled: true,
-        is_user_authentication_enabled: true,
-        is_write_protected: false,
-        is_write_protected_by_key: false,
-        iscsi_targets: [],
-        ldev_id: 98,
-        logical_unit_id_hex_format: "00:00:62",
-        name: "",
-        num_of_ports: 0,
-        nvm_subsystems: [{   id: 0, name: "NVM-1", ports: ["CL2-H"]}],
-        parity_group_id: "",
-        partner_id: "",
-        path_count: 0,
-        pool_id: 0,
-        provision_type: "CMD,CVS,HDP",
-        qos_settings: {},
-        resource_group_id: 0,
-        snapshots: [],
-        status: "NML",
-        storage_serial_number: "40015",
-        subscriber_id: "",
-        total_capacity: "1.00GB",
-        used_capacity: "0.00B",
-        virtual_ldev_id: -1,
-    }
+    description: The command device information.
+    returned: always except when state is absent
+    type: list
+    elements: dict
+    contains:
+        canonical_name:
+            description: Unique identifier for the command device.
+            type: str
+            sample: "naa.60060e80089c4f0000509c4f00000062"
+        dedup_compression_progress:
+            description: Progress percentage of deduplication and compression.
+            type: int
+            sample: -1
+        dedup_compression_status:
+            description: Status of deduplication and compression.
+            type: str
+            sample: "DISABLED"
+        deduplication_compression_mode:
+            description: Mode of deduplication and compression.
+            type: str
+            sample: "disabled"
+        emulation_type:
+            description: Emulation type of the command device.
+            type: str
+            sample: "OPEN-V-CVS-CM"
+        entitlement_status:
+            description: Entitlement status of the command device.
+            type: str
+            sample: ""
+        hostgroups:
+            description: List of host groups associated with the command device.
+            type: list
+            elements: dict
+        is_alua:
+            description: Indicates if ALUA is enabled.
+            type: bool
+            sample: false
+        is_command_device:
+            description: Indicates if it is a command device.
+            type: bool
+            sample: true
+        is_data_reduction_share_enabled:
+            description: Indicates if data reduction share is enabled.
+            type: bool
+            sample: false
+        is_device_group_definition_enabled:
+            description: Indicates if device group definition is enabled.
+            type: bool
+            sample: true
+        is_encryption_enabled:
+            description: Indicates if encryption is enabled.
+            type: bool
+            sample: false
+        is_security_enabled:
+            description: Indicates if security is enabled.
+            type: bool
+            sample: true
+        is_user_authentication_enabled:
+            description: Indicates if user authentication is enabled.
+            type: bool
+            sample: true
+        is_write_protected:
+            description: Indicates if the command device is write-protected.
+            type: bool
+            sample: false
+        is_write_protected_by_key:
+            description: Indicates if the command device is write-protected by key.
+            type: bool
+            sample: false
+        iscsi_targets:
+            description: List of iSCSI targets associated with the command device.
+            type: list
+            elements: dict
+        ldev_id:
+            description: The ID of the LDEV.
+            type: int
+            sample: 98
+        logical_unit_id_hex_format:
+            description: Logical unit ID in hexadecimal format.
+            type: str
+            sample: "00:00:62"
+        name:
+            description: Name of the command device.
+            type: str
+            sample: ""
+        num_of_ports:
+            description: Number of ports associated with the command device.
+            type: int
+            sample: 0
+        nvm_subsystems:
+            description: List of NVM subsystems associated with the command device.
+            type: list
+            elements: dict
+            contains:
+                id:
+                    description: ID of the NVM subsystem.
+                    type: int
+                    sample: 0
+                name:
+                    description: Name of the NVM subsystem.
+                    type: str
+                    sample: "NVM-1"
+                ports:
+                    description: List of ports associated with the NVM subsystem.
+                    type: list
+                    elements: str
+                    sample: ["CL2-H"]
+        parity_group_id:
+            description: ID of the parity group.
+            type: str
+            sample: ""
+        partner_id:
+            description: ID of the partner.
+            type: str
+            sample: ""
+        path_count:
+            description: Number of paths associated with the command device.
+            type: int
+            sample: 0
+        pool_id:
+            description: ID of the pool.
+            type: int
+            sample: 0
+        provision_type:
+            description: Provision type of the command device.
+            type: str
+            sample: "CMD,CVS,HDP"
+        qos_settings:
+            description: Quality of Service settings for the command device.
+            type: dict
+        resource_group_id:
+            description: ID of the resource group.
+            type: int
+            sample: 0
+        snapshots:
+            description: List of snapshots associated with the command device.
+            type: list
+            elements: dict
+        status:
+            description: Status of the command device.
+            type: str
+            sample: "NML"
+        storage_serial_number:
+            description: Serial number of the storage system.
+            type: str
+            sample: "40015"
+        subscriber_id:
+            description: ID of the subscriber.
+            type: str
+            sample: ""
+        total_capacity:
+            description: Total capacity of the command device.
+            type: str
+            sample: "1.00GB"
+        used_capacity:
+            description: Used capacity of the command device.
+            type: str
+            sample: "0.00B"
+        virtual_ldev_id:
+            description: ID of the virtual LDEV.
+            type: int
+            sample: -1
 """
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_cmd_dev import (
     VSPCmdDevReconciler,

@@ -22,6 +22,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description:
@@ -118,62 +124,169 @@ EXAMPLES = """
           query: "quorumdisks"
 """
 
-RETURN = """
+RETURN = r"""
 storage_system_info:
   description: The storage system information.
   returned: always
   type: dict
-  elements: dict
-  sample: {
-    "controller_address": "192.168.1.101",
-    "device_limits": {
-      "external_group_number_range": {
-        "is_valid": true,
-        "max_value": 255,
-        "min_value": 1
-      },
-      "external_group_sub_number_range": {
-        "is_valid": true,
-        "max_value": 255,
-        "min_value": 1
-      },
-      "parity_group_number_range": {
-        "is_valid": true,
-        "max_value": 1,
-        "min_value": 1
-      },
-      "parity_group_sub_number_range": {
-        "is_valid": true,
-        "max_value": 32,
-        "min_value": 1
-      }
-    },
-    "free_capacity": "15.92 TB",
-    "free_capacity_in_mb": 16696806,
-    "free_gad_consistency_group_id": -1,
-    "free_local_clone_consistency_group_id": 2,
-    "free_remote_clone_consistency_group_id": 3,
-    "health_description": "",
-    "health_status": "Normal",
-    "management_address": "192.168.1.100",
-    "microcode_version": "83-05-02/00",
-    "model": "VSP_5100H",
-    "operational_status": "Normal",
-    "resource_state": "Healthy",
-    "serial_number": "811150",
-    "syslog_config": {
-      "syslog_servers": [
-        {
-          "id": 1,
-          "syslog_server_address": "192.168.0.187",
-          "syslog_server_port": 514
-        }
-      ],
-      "detailed": true
-    },
-    "total_capacity": "27.62 TB",
-    "total_capacity_in_mb": 28958728,
-  }
+  contains:
+    controller_address:
+      description: IP address of the controller.
+      type: str
+      sample: "192.168.1.101"
+    device_limits:
+      description: Limits for various device parameters.
+      type: dict
+      contains:
+        external_group_number_range:
+          description: Range for external group numbers.
+          type: dict
+          contains:
+            is_valid:
+              description: Indicates if the range is valid.
+              type: bool
+              sample: true
+            max_value:
+              description: Maximum value of the range.
+              type: int
+              sample: 255
+            min_value:
+              description: Minimum value of the range.
+              type: int
+              sample: 1
+        external_group_sub_number_range:
+          description: Range for external group sub-numbers.
+          type: dict
+          contains:
+            is_valid:
+              description: Indicates if the range is valid.
+              type: bool
+              sample: true
+            max_value:
+              description: Maximum value of the range.
+              type: int
+              sample: 255
+            min_value:
+              description: Minimum value of the range.
+              type: int
+              sample: 1
+        parity_group_number_range:
+          description: Range for parity group numbers.
+          type: dict
+          contains:
+            is_valid:
+              description: Indicates if the range is valid.
+              type: bool
+              sample: true
+            max_value:
+              description: Maximum value of the range.
+              type: int
+              sample: 1
+            min_value:
+              description: Minimum value of the range.
+              type: int
+              sample: 1
+        parity_group_sub_number_range:
+          description: Range for parity group sub-numbers.
+          type: dict
+          contains:
+            is_valid:
+              description: Indicates if the range is valid.
+              type: bool
+              sample: true
+            max_value:
+              description: Maximum value of the range.
+              type: int
+              sample: 32
+            min_value:
+              description: Minimum value of the range.
+              type: int
+              sample: 1
+    free_capacity:
+      description: Free capacity of the storage system.
+      type: str
+      sample: "15.92 TB"
+    free_capacity_in_mb:
+      description: Free capacity in megabytes.
+      type: int
+      sample: 16696806
+    free_gad_consistency_group_id:
+      description: Free GAD consistency group ID.
+      type: int
+      sample: -1
+    free_local_clone_consistency_group_id:
+      description: Free local clone consistency group ID.
+      type: int
+      sample: 2
+    free_remote_clone_consistency_group_id:
+      description: Free remote clone consistency group ID.
+      type: int
+      sample: 3
+    health_description:
+      description: Description of the health status.
+      type: str
+      sample: ""
+    health_status:
+      description: Health status of the storage system.
+      type: str
+      sample: "Normal"
+    management_address:
+      description: Management IP address of the storage system.
+      type: str
+      sample: "192.168.1.100"
+    microcode_version:
+      description: Microcode version of the storage system.
+      type: str
+      sample: "83-05-02/00"
+    model:
+      description: Model of the storage system.
+      type: str
+      sample: "VSP_5100H"
+    operational_status:
+      description: Operational status of the storage system.
+      type: str
+      sample: "Normal"
+    resource_state:
+      description: Resource state of the storage system.
+      type: str
+      sample: "Healthy"
+    serial_number:
+      description: Serial number of the storage system.
+      type: str
+      sample: "811150"
+    syslog_config:
+      description: Syslog configuration of the storage system.
+      type: dict
+      contains:
+        syslog_servers:
+          description: List of syslog servers.
+          type: list
+          elements: dict
+          contains:
+            id:
+              description: ID of the syslog server.
+              type: int
+              sample: 1
+            syslog_server_address:
+              description: Address of the syslog server.
+              type: str
+              sample: "192.168.0.187"
+            syslog_server_port:
+              description: Port of the syslog server.
+              type: int
+              sample: 514
+        detailed:
+          description: Indicates if detailed logging is enabled.
+          type: bool
+          sample: true
+    total_capacity:
+      description: Total capacity of the storage system.
+      type: str
+      sample: "27.62 TB"
+    total_capacity_in_mb:
+      description: Total capacity in megabytes.
+      type: int
+      sample: 28958728
 """
 
 from dataclasses import asdict

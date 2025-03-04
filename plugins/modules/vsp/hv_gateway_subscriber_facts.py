@@ -20,6 +20,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -78,27 +84,66 @@ EXAMPLES = """
       subscriber_id: "1234"
 """
 
-RETURN = """
-data:
-  description: List of subscribers belonging to partner apiadmin.
-  returned: success
-  type: list
-  elements: dict
-  sample:
-    {
-        "hard_limit_in_percent": "90",
-        "message": "",
-        "name": "TestSubscriber",
-        "partner_id": "apiadmin",
-        "quota_limit_in_gb": "90",
-        "soft_limit_in_percent": "80",
-        "state": "NORMAL",
-        "subscriber_id": "811150",
-        "time": 1716260209,
-        "type": "subscriber",
-        "used_quota_in_gb": "0.1953125",
-        "used_quota_in_percent": 0.2170139
-    }
+RETURN = r"""
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the subscribers.
+  returned: always
+  type: dict
+  contains:
+    subscriber_data:
+      description: List of subscribers with their attributes.
+      type: list
+      elements: dict
+      contains:
+        hard_limit_in_percent:
+          description: Hard limit percentage for the subscriber.
+          type: str
+          sample: "90"
+        message:
+          description: Message related to the subscriber.
+          type: str
+          sample: ""
+        name:
+          description: Name of the subscriber.
+          type: str
+          sample: "TestSubscriber"
+        partner_id:
+          description: Partner ID associated with the subscriber.
+          type: str
+          sample: "apiadmin"
+        quota_limit_in_gb:
+          description: Quota limit in GB for the subscriber.
+          type: str
+          sample: "90"
+        soft_limit_in_percent:
+          description: Soft limit percentage for the subscriber.
+          type: str
+          sample: "80"
+        state:
+          description: State of the subscriber.
+          type: str
+          sample: "NORMAL"
+        subscriber_id:
+          description: Unique identifier for the subscriber.
+          type: str
+          sample: "811150"
+        time:
+          description: Timestamp of the subscriber data.
+          type: int
+          sample: 1716260209
+        type:
+          description: Type of the subscriber.
+          type: str
+          sample: "subscriber"
+        used_quota_in_gb:
+          description: Used quota in GB for the subscriber.
+          type: str
+          sample: "0.1953125"
+        used_quota_in_percent:
+          description: Used quota percentage for the subscriber.
+          type: float
+          sample: 0.2170139
 """
 
 

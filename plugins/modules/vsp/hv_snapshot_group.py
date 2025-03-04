@@ -21,9 +21,15 @@ description:
 version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
-    description: The level of the snapshot task. Choices are 'absent', 'split', 'sync', 'restore', 'clone'.
+    description: The level of the snapshot task. Choices are C(absent), C(split), C(sync), C(restore), C(clone).
     type: str
     required: true
     choices: ['absent', 'split', 'sync', 'restore', 'clone']
@@ -44,7 +50,7 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway) ) or the storage system (if connection_type is C(direct) ).
         type: str
         required: true
       username:
@@ -56,7 +62,7 @@ options:
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system (direct only).
+        description: Type of connection to the storage system ( C(direct) only).
         type: str
         required: false
         choices: ['direct']
@@ -139,33 +145,94 @@ EXAMPLES = """
 
 RETURN = """
 snapshots:
-  description: A list of snapshots gathered from the storage system.
+  description: >
+    A list of snapshots gathered from the storage system.
   returned: always
   type: list
   elements: dict
-  sample:
-    - snapshot_group_id: "SampleNameSPG"
-      snapshot_group_name: "SampleNameSPG"
-      snapshots:
-        - storage_serial_number: 810050
-          primary_volume_id: 1030
-          primary_hex_volume_id: "00:04:06"
-          secondary_volume_id: 1031
-          secondary_hex_volume_id: "00:04:07"
-          svol_access_mode: ""
-          pool_id: 12
-          consistency_group_id: -1
-          mirror_unit_id: 3
-          copy_rate: -1
-          copy_pace_track_size: ""
-          status: "PAIR"
-          type: ""
-          snapshot_id: "1030,3"
-          is_consistency_group: true
-          primary_or_secondary: "P-VOL"
-          can_cascade: true
+  contains:
+    snapshot_group_id:
+      description: Unique identifier for the snapshot group.
+      type: str
+      sample: "SampleNameSPG"
+    snapshot_group_name:
+      description: Name of the snapshot group.
+      type: str
+      sample: "SampleNameSPG"
+    snapshots:
+      description: List of snapshots within the group.
+      type: list
+      elements: dict
+      contains:
+        storage_serial_number:
+          description: Serial number of the storage system.
+          type: int
+          sample: 810050
+        primary_volume_id:
+          description: Identifier for the primary volume.
+          type: int
+          sample: 1030
+        primary_hex_volume_id:
+          description: Hexadecimal identifier for the primary volume.
+          type: str
+          sample: "00:04:06"
+        secondary_volume_id:
+          description: Identifier for the secondary volume.
+          type: int
+          sample: 1031
+        secondary_hex_volume_id:
+          description: Hexadecimal identifier for the secondary volume.
+          type: str
+          sample: "00:04:07"
+        svol_access_mode:
+          description: Access mode of the secondary volume.
+          type: str
+          sample: ""
+        pool_id:
+          description: Identifier for the pool.
+          type: int
+          sample: 12
+        consistency_group_id:
+          description: Identifier for the consistency group.
+          type: int
+          sample: -1
+        mirror_unit_id:
+          description: Identifier for the mirror unit.
+          type: int
+          sample: 3
+        copy_rate:
+          description: Copy rate for the snapshot.
+          type: int
+          sample: -1
+        copy_pace_track_size:
+          description: Track size for the copy pace.
+          type: str
+          sample: ""
+        status:
+          description: Status of the snapshot.
+          type: str
+          sample: "PAIR"
+        type:
+          description: Type of the snapshot.
+          type: str
+          sample: ""
+        snapshot_id:
+          description: Identifier for the snapshot.
+          type: str
+          sample: "1030,3"
+        is_consistency_group:
+          description: Indicates if the snapshot is part of a consistency group.
+          type: bool
+          sample: true
+        primary_or_secondary:
+          description: Indicates if the volume is primary or secondary.
+          type: str
+          sample: "P-VOL"
+        can_cascade:
+          description: Indicates if the snapshot can cascade.
+          type: bool
+          sample: true
 """
-
 
 from ansible.module_utils.basic import AnsibleModule
 

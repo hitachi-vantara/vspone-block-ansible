@@ -23,6 +23,12 @@ description:
 version_added: '3.2.0'
 author:
     - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
     state:
         description:
@@ -294,31 +300,72 @@ EXAMPLES = """
 
 RETURN = """
 resource_groups:
-  description: The resource group information.
-  returned: always
-  type: list
-  elements: dict
-  sample:
-    -   id: 4
-        name: "my_resource_group"
-        lock_status: "Unlocked"
+    description: The resource group information.
+    returned: always
+    type: list
+    elements: dict
+    contains:
+        id:
+            description: The ID of the resource group.
+            type: int
+            sample: 4
+        name:
+            description: The name of the resource group.
+            type: str
+            sample: "my_resource_group"
+        lock_status:
+            description: The lock status of the resource group.
+            type: str
+            sample: "Unlocked"
         host_groups:
-            -   id: 1
-                name: "my_host_group_1"
-                port: "CL1-A"
-            -   id: 2
-                name: "my_host_group_2"
-                port: "CL1-A"
+            description: List of host groups in the resource group.
+            type: list
+            elements: dict
+            contains:
+                id:
+                    description: The ID of the host group.
+                    type: int
+                    sample: 1
+                name:
+                    description: The name of the host group.
+                    type: str
+                    sample: "my_host_group_1"
+                port:
+                    description: The port name associated with the host group.
+                    type: str
+                    sample: "CL1-A"
         iscsi_targets:
-            -   id: 1
-                name: "my_iscsi_target_1"
-                port: "CL1-C"
-            -   id: 2
-                name: "my_iscsi_target_2"
-                port: "CL1-C"
-        ldevs: [1, 2, 3]
-        parity_groups: ["PG1", "PG2"]
-        ports: ["CL1-A", "CL1-C"]
+            description: List of iSCSI targets in the resource group.
+            type: list
+            elements: dict
+            contains:
+                id:
+                    description: The ID of the iSCSI target.
+                    type: int
+                    sample: 1
+                name:
+                    description: The name of the iSCSI target.
+                    type: str
+                    sample: "my_iscsi_target_1"
+                port:
+                    description: The port name associated with the iSCSI target.
+                    type: str
+                    sample: "CL1-C"
+        ldevs:
+            description: List of LDEVs in the resource group.
+            type: list
+            elements: int
+            sample: [1, 2, 3]
+        parity_groups:
+            description: List of parity groups in the resource group.
+            type: list
+            elements: str
+            sample: ["PG1", "PG2"]
+        ports:
+            description: List of ports in the resource group.
+            type: list
+            elements: str
+            sample: ["CL1-A", "CL1-C"]
 """
 
 from ansible.module_utils.basic import AnsibleModule

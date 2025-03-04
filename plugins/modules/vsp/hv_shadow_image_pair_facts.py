@@ -23,6 +23,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description: Information about the Hitachi storage system.
@@ -108,25 +114,67 @@ data:
   returned: success
   type: list
   elements: dict
-  sample: [
-    {
-        "consistency_group_id": -1,
-        "copy_pace_track_size": "MEDIUM",
-        "copy_rate": 100,
-        "entitlement_status": "assigned",
-        "mirror_unit_id": -1,
-        "partner_id": "partner123",
-        "primary_hex_volume_id": "00:01:12",
-        "primary_volume_id": 274,
-        "resource_id": "localpair-2749fed78e8d23a61ed17a8af71c85f8",
-        "secondary_hex_volume_id": "00:01:17",
-        "secondary_volume_id": 279,
-        "status": "PAIR",
-        "storage_serial_number": "811150",
-        "subscriber_id": "subscriber123",
-        "svol_access_mode": "READONLY"
-    }
-  ]
+  contains:
+    consistency_group_id:
+      description: Consistency group ID.
+      type: int
+      sample: -1
+    copy_pace_track_size:
+      description: Copy pace track size.
+      type: str
+      sample: "MEDIUM"
+    copy_rate:
+      description: Copy rate.
+      type: int
+      sample: 100
+    entitlement_status:
+      description: Entitlement status.
+      type: str
+      sample: "assigned"
+    mirror_unit_id:
+      description: Mirror unit ID.
+      type: int
+      sample: -1
+    partner_id:
+      description: Partner ID.
+      type: str
+      sample: "partner123"
+    primary_hex_volume_id:
+      description: Primary hex volume ID.
+      type: str
+      sample: "00:01:12"
+    primary_volume_id:
+      description: Primary volume ID.
+      type: int
+      sample: 274
+    resource_id:
+      description: Resource ID.
+      type: str
+      sample: "localpair-2749fed78e8d23a61ed17a8af71c85f8"
+    secondary_hex_volume_id:
+      description: Secondary hex volume ID.
+      type: str
+      sample: "00:01:17"
+    secondary_volume_id:
+      description: Secondary volume ID.
+      type: int
+      sample: 279
+    status:
+      description: Status of the shadow image pair.
+      type: str
+      sample: "PAIR"
+    storage_serial_number:
+      description: Storage serial number.
+      type: str
+      sample: "811150"
+    subscriber_id:
+      description: Subscriber ID.
+      type: str
+      sample: "subscriber123"
+    svol_access_mode:
+      description: SVol access mode.
+      type: str
+      sample: "READONLY"
 """
 
 

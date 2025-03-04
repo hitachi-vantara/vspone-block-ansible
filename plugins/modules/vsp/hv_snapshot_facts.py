@@ -22,6 +22,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description: Information about the storage system.
@@ -127,30 +133,89 @@ EXAMPLES = """
 """
 
 RETURN = """
-snapshots:
-  description: A list of snapshots gathered from the storage system.
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the snapshots.
   returned: always
-  type: list
-  elements: dict
-  sample:
-    - storage_serial_number: 810050
-      primary_volume_id: 1030
-      primary_hex_volume_id: "00:04:06"
-      secondary_volume_id: 1031
-      secondary_hex_volume_id: "00:04:07"
-      svol_access_mode: ""
-      pool_id: 12
-      consistency_group_id: -1
-      mirror_unit_id: 3
-      copy_rate: -1
-      copy_pace_track_size: ""
-      status: "PAIR"
-      type: ""
-      snapshot_id: "1030,3"
-      is_consistency_group: true
-      primary_or_secondary: "P-VOL"
-      snapshot_group_name: "NewNameSPG"
-      can_cascade: true
+  type: dict
+  contains:
+    snapshots:
+      description: A list of snapshots gathered from the storage system.
+      type: list
+      elements: dict
+      contains:
+        storage_serial_number:
+          description: Serial number of the storage system.
+          type: int
+          sample: 810050
+        primary_volume_id:
+          description: Identifier of the primary volume.
+          type: int
+          sample: 1030
+        primary_hex_volume_id:
+          description: Hexadecimal identifier of the primary volume.
+          type: str
+          sample: "00:04:06"
+        secondary_volume_id:
+          description: Identifier of the secondary volume.
+          type: int
+          sample: 1031
+        secondary_hex_volume_id:
+          description: Hexadecimal identifier of the secondary volume.
+          type: str
+          sample: "00:04:07"
+        svol_access_mode:
+          description: Access mode of the secondary volume.
+          type: str
+          sample: ""
+        pool_id:
+          description: Identifier of the pool.
+          type: int
+          sample: 12
+        consistency_group_id:
+          description: Identifier of the consistency group.
+          type: int
+          sample: -1
+        mirror_unit_id:
+          description: Identifier of the mirror unit.
+          type: int
+          sample: 3
+        copy_rate:
+          description: Copy rate of the snapshot.
+          type: int
+          sample: -1
+        copy_pace_track_size:
+          description: Track size for copy pace.
+          type: str
+          sample: ""
+        status:
+          description: Status of the snapshot.
+          type: str
+          sample: "PAIR"
+        type:
+          description: Type of the snapshot.
+          type: str
+          sample: ""
+        snapshot_id:
+          description: Identifier of the snapshot.
+          type: str
+          sample: "1030,3"
+        is_consistency_group:
+          description: Indicates if the snapshot is part of a consistency group.
+          type: bool
+          sample: true
+        primary_or_secondary:
+          description: Indicates if the volume is primary or secondary.
+          type: str
+          sample: "P-VOL"
+        snapshot_group_name:
+          description: Name of the snapshot group.
+          type: str
+          sample: "NewNameSPG"
+        can_cascade:
+          description: Indicates if the snapshot can cascade.
+          type: bool
+          sample: true
 """
 
 from ansible.module_utils.basic import AnsibleModule

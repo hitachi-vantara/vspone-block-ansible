@@ -19,6 +19,12 @@ description:
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -101,41 +107,117 @@ vps:
   description: Attributes of the VPS.
   returned: always
   type: dict
-  elements: dict
-  sample:
-    {
-
-        "id": "d2c1fa60-5c41-486a-9551-ec41c74d9f01",
-        "name": "VPS_01",
-        "number_of_hbas_created": 0,
-        "number_of_servers_created": 0,
-        "number_of_sessions_created": 0,
-        "number_of_user_groups_created": 0,
-        "number_of_users_created": 0,
-        "number_of_volume_server_connections_created": 0,
-        "upper_limit_for_number_of_hbas": 400,
-        "upper_limit_for_number_of_servers": 100,
-        "upper_limit_for_number_of_sessions": 436,
-        "upper_limit_for_number_of_user_groups": 256,
-        "upper_limit_for_number_of_users": 256,
-        "upper_limit_for_number_of_volume_server_connections": 100,
-        "volume_settings": {
-            "capacity_of_volumes_created": 0,
-            "capacity_saving_of_volume": "Compression",
-            "number_of_volumes_created": 0,
-            "pool_id": "f5ef8935-ed38-4894-a90b-f821ab6d3d89",
-            "qos_param": {
-                "upper_alert_allowable_time_of_volume": -1,
-                "upper_limit_for_iops_of_volume": -1,
-                "upper_limit_for_transfer_rate_of_volume": -1
-            },
-            "saving_mode_of_volume": "Inline",
-            "upper_limit_for_capacity_of_single_volume": -1,
-            "upper_limit_for_capacity_of_volumes": 100,
-            "upper_limit_for_number_of_volumes": 50
-        }
-    }
+  contains:
+    id:
+      description: ID of the VPS.
+      type: str
+      sample: "d2c1fa60-5c41-486a-9551-ec41c74d9f01"
+    name:
+      description: Name of the VPS.
+      type: str
+      sample: "VPS_01"
+    number_of_hbas_created:
+      description: Number of HBAs created.
+      type: int
+      sample: 0
+    number_of_servers_created:
+      description: Number of servers created.
+      type: int
+      sample: 0
+    number_of_sessions_created:
+      description: Number of sessions created.
+      type: int
+      sample: 0
+    number_of_user_groups_created:
+      description: Number of user groups created.
+      type: int
+      sample: 0
+    number_of_users_created:
+      description: Number of users created.
+      type: int
+      sample: 0
+    number_of_volume_server_connections_created:
+      description: Number of volume server connections created.
+      type: int
+      sample: 0
+    upper_limit_for_number_of_hbas:
+      description: Upper limit for the number of HBAs.
+      type: int
+      sample: 400
+    upper_limit_for_number_of_servers:
+      description: Upper limit for the number of servers.
+      type: int
+      sample: 100
+    upper_limit_for_number_of_sessions:
+      description: Upper limit for the number of sessions.
+      type: int
+      sample: 436
+    upper_limit_for_number_of_user_groups:
+      description: Upper limit for the number of user groups.
+      type: int
+      sample: 256
+    upper_limit_for_number_of_users:
+      description: Upper limit for the number of users.
+      type: int
+      sample: 256
+    upper_limit_for_number_of_volume_server_connections:
+      description: Upper limit for the number of volume server connections.
+      type: int
+      sample: 100
+    volume_settings:
+      description: Settings for the volumes.
+      type: dict
+      contains:
+        capacity_of_volumes_created:
+          description: Capacity of volumes created.
+          type: int
+          sample: 0
+        capacity_saving_of_volume:
+          description: Capacity saving mode of the volume.
+          type: str
+          sample: "Compression"
+        number_of_volumes_created:
+          description: Number of volumes created.
+          type: int
+          sample: 0
+        pool_id:
+          description: Pool ID associated with the volume.
+          type: str
+          sample: "f5ef8935-ed38-4894-a90b-f821ab6d3d89"
+        qos_param:
+          description: Quality of Service parameters for the volume.
+          type: dict
+          contains:
+            upper_alert_allowable_time_of_volume:
+              description: Upper alert allowable time of the volume.
+              type: int
+              sample: -1
+            upper_limit_for_iops_of_volume:
+              description: Upper limit for IOPS of the volume.
+              type: int
+              sample: -1
+            upper_limit_for_transfer_rate_of_volume:
+              description: Upper limit for transfer rate of the volume.
+              type: int
+              sample: -1
+        saving_mode_of_volume:
+          description: Saving mode of the volume.
+          type: str
+          sample: "Inline"
+        upper_limit_for_capacity_of_single_volume:
+          description: Upper limit for the capacity of a single volume.
+          type: int
+          sample: -1
+        upper_limit_for_capacity_of_volumes:
+          description: Upper limit for the capacity of volumes.
+          type: int
+          sample: 100
+        upper_limit_for_number_of_volumes:
+          description: Upper limit for the number of volumes.
+          type: int
+          sample: 50
 """
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_vps import (
     SDSBVpsReconciler,

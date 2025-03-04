@@ -20,6 +20,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -92,47 +98,92 @@ EXAMPLES = """
 """
 
 RETURN = """
-compute_nodes:
-  description: A list of compute nodes.
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the compute nodes.
   returned: always
-  type: list
-  elements: dict
-  sample: [
-      {
-        "compute_node_info": {
-            "id": "ca1beba6-4392-4d21-a161-3e3e94fb45e2",
-            "lun": -1,
-            "nickname": "spc-iqn.1994-05.com.redhat:5475aab33df5",
-            "number_of_paths": -1,
-            "number_of_volumes": 2,
-            "os_type": "Linux",
-            "paths": [
-                {
-                    "hba_name": "iqn.1994-05.com.redhat:5475aab33df5",
-                    "port_ids": [
-                        "932962b5-ab61-429f-ba06-cd976e1a8f97",
-                        "181d4ed3-ae8a-418d-9deb-72a4eb1e2204",
-                        "0f13e320-53e7-4088-aa11-418636b58376"
-                    ]
-                }
-            ],
-            "total_capacity_mb": 90112,
-            "used_capacity_mb": 4998,
-            "vps_id": "(system)",
-            "vps_name": "(system)"
-        },
-        "volume_info": [
-            {
-                "id": "3ac02c92-05f0-4eba-9c00-3503afc18290",
-                "name": "spc-a879277ec4"
-            },
-            {
-                "id": "c792486a-283f-4ac0-b98a-ff0ebd021057",
-                "name": "spc-147090e05b"
-            }
-        ]
-      }
-  ]
+  type: dict
+  contains:
+    compute_nodes:
+      description: A list of compute nodes.
+      type: list
+      elements: dict
+      contains:
+        compute_node_info:
+          description: Information about the compute node.
+          type: dict
+          contains:
+            id:
+              description: Unique identifier for the compute node.
+              type: str
+              sample: "ca1beba6-4392-4d21-a161-3e3e94fb45e2"
+            lun:
+              description: Logical Unit Number.
+              type: int
+              sample: -1
+            nickname:
+              description: Nickname of the compute node.
+              type: str
+              sample: "spc-iqn.1994-05.com.redhat:5475aab33df5"
+            number_of_paths:
+              description: Number of paths.
+              type: int
+              sample: -1
+            number_of_volumes:
+              description: Number of volumes.
+              type: int
+              sample: 2
+            os_type:
+              description: Operating system type.
+              type: str
+              sample: "Linux"
+            paths:
+              description: List of paths.
+              type: list
+              elements: dict
+              contains:
+                hba_name:
+                  description: HBA name.
+                  type: str
+                  sample: "iqn.1994-05.com.redhat:5475aab33df5"
+                port_ids:
+                  description: List of port IDs.
+                  type: list
+                  elements: str
+                  sample: [
+                    "932962b5-ab61-429f-ba06-cd976e1a8f97",
+                    "181d4ed3-ae8a-418d-9deb-72a4eb1e2204",
+                    "0f13e320-53e7-4088-aa11-418636b58376"
+                  ]
+            total_capacity_mb:
+              description: Total capacity in MB.
+              type: int
+              sample: 90112
+            used_capacity_mb:
+              description: Used capacity in MB.
+              type: int
+              sample: 4998
+            vps_id:
+              description: VPS ID.
+              type: str
+              sample: "(system)"
+            vps_name:
+              description: VPS name.
+              type: str
+              sample: "(system)"
+        volume_info:
+          description: Information about the volumes.
+          type: list
+          elements: dict
+          contains:
+            id:
+              description: Unique identifier for the volume.
+              type: str
+              sample: "3ac02c92-05f0-4eba-9c00-3503afc18290"
+            name:
+              description: Name of the volume.
+              type: str
+              sample: "spc-a879277ec4"
 """
 
 from ansible.module_utils.basic import AnsibleModule

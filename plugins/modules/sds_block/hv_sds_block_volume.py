@@ -20,6 +20,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
     description: The level of the volume task. Choices are 'present', 'absent'.
@@ -240,55 +246,160 @@ data:
   description: The volume information.
   returned: always
   type: dict
-  elements: dict
-  sample:
-    {
-      "compute_node_info": [
-          {
-              "id": "4f9041aa-ab2f-4789-af2e-df4a0178a4d3",
-              "name": "asishtest"
-          }
-      ],
-      "volume_info": {
-          "data_reduction_effects": {
-              "post_capacity_data_reduction": 0,
-              "pre_capacity_data_reduction_without_system_data": 0,
-              "system_data_capacity": 0
-          },
-          "data_reduction_progress_rate": false,
-          "data_reduction_status": "Disabled",
-          "full_allocated": false,
-          "id": "ef69d5c6-ed7c-4302-959f-b8b8a7382f3b",
-          "naa_id": "60060e810a85a000600a85a000000017",
-          "name": "vol010",
-          "nickname": "vol010",
-          "number_of_connecting_servers": 1,
-          "number_of_snapshots": 0,
-          "pool_id": "cb9f7ecf-ceba-4d8e-808b-9c7bc3e59c03",
-          "pool_name": "SP01",
-          "protection_domain_id": "645c36b6-da9e-44bb-b711-430e06c7ad2b",
-          "qos_param": {
-              "upper_alert_allowable_time": -1,
-              "upper_alert_time": false,
-              "upper_limit_for_iops": -1,
-              "upper_limit_for_transfer_rate": -1
-          },
-          "saving_mode": false,
-          "capacity_saving": "Disabled",
-          "snapshot_attribute": "-",
-          "snapshot_status": false,
-          "status": "Normal",
-          "status_summary": "Normal",
-          "storage_controller_id": "fc22f6d3-2bd3-4df5-b5db-8a728e301af9",
-          "total_capacity_mb": 120,
-          "used_capacity_mb": 0,
-          "volume_number": 23,
-          "volume_type": "Normal",
-          "vps_id": "(system)",
-          "vps_name": "(system)"
-        }
-    }
-
+  contains:
+    compute_node_info:
+      description: List of compute nodes to which the volume is attached.
+      type: list
+      elements: dict
+      contains:
+        id:
+          description: Unique identifier for the compute node.
+          type: str
+          sample: "4f9041aa-ab2f-4789-af2e-df4a0178a4d3"
+        name:
+          description: Name of the compute node.
+          type: str
+          sample: "asishtest"
+    volume_info:
+      description: Detailed information about the volume.
+      type: dict
+      contains:
+        data_reduction_effects:
+          description: Data reduction effects on the volume.
+          type: dict
+          contains:
+            post_capacity_data_reduction:
+              description: Post capacity data reduction.
+              type: int
+              sample: 0
+            pre_capacity_data_reduction_without_system_data:
+              description: Pre capacity data reduction without system data.
+              type: int
+              sample: 0
+            system_data_capacity:
+              description: System data capacity.
+              type: int
+              sample: 0
+        data_reduction_progress_rate:
+          description: Data reduction progress rate.
+          type: bool
+          sample: false
+        data_reduction_status:
+          description: Data reduction status.
+          type: str
+          sample: "Disabled"
+        full_allocated:
+          description: Whether the volume is fully allocated.
+          type: bool
+          sample: false
+        id:
+          description: Unique identifier for the volume.
+          type: str
+          sample: "ef69d5c6-ed7c-4302-959f-b8b8a7382f3b"
+        naa_id:
+          description: NAA identifier for the volume.
+          type: str
+          sample: "60060e810a85a000600a85a000000017"
+        name:
+          description: Name of the volume.
+          type: str
+          sample: "vol010"
+        nickname:
+          description: Nickname of the volume.
+          type: str
+          sample: "vol010"
+        number_of_connecting_servers:
+          description: Number of servers connected to the volume.
+          type: int
+          sample: 1
+        number_of_snapshots:
+          description: Number of snapshots of the volume.
+          type: int
+          sample: 0
+        pool_id:
+          description: Pool identifier where the volume is created.
+          type: str
+          sample: "cb9f7ecf-ceba-4d8e-808b-9c7bc3e59c03"
+        pool_name:
+          description: Name of the storage pool.
+          type: str
+          sample: "SP01"
+        protection_domain_id:
+          description: Protection domain identifier.
+          type: str
+          sample: "645c36b6-da9e-44bb-b711-430e06c7ad2b"
+        qos_param:
+          description: Quality of service parameters for the volume.
+          type: dict
+          contains:
+            upper_alert_allowable_time:
+              description: Upper alert allowable time.
+              type: int
+              sample: -1
+            upper_alert_time:
+              description: Upper alert time.
+              type: bool
+              sample: false
+            upper_limit_for_iops:
+              description: Upper limit for IOPS.
+              type: int
+              sample: -1
+            upper_limit_for_transfer_rate:
+              description: Upper limit for transfer rate.
+              type: int
+              sample: -1
+        saving_mode:
+          description: Whether the saving mode is enabled.
+          type: bool
+          sample: false
+        capacity_saving:
+          description: Capacity saving status.
+          type: str
+          sample: "Disabled"
+        snapshot_attribute:
+          description: Snapshot attribute.
+          type: str
+          sample: "-"
+        snapshot_status:
+          description: Snapshot status.
+          type: bool
+          sample: false
+        status:
+          description: Status of the volume.
+          type: str
+          sample: "Normal"
+        status_summary:
+          description: Summary of the volume status.
+          type: str
+          sample: "Normal"
+        storage_controller_id:
+          description: Storage controller identifier.
+          type: str
+          sample: "fc22f6d3-2bd3-4df5-b5db-8a728e301af9"
+        total_capacity_mb:
+          description: Total capacity of the volume in MB.
+          type: int
+          sample: 120
+        used_capacity_mb:
+          description: Used capacity of the volume in MB.
+          type: int
+          sample: 0
+        volume_number:
+          description: Volume number.
+          type: int
+          sample: 23
+        volume_type:
+          description: Type of the volume.
+          type: str
+          sample: "Normal"
+        vps_id:
+          description: VPS identifier.
+          type: str
+          sample: "(system)"
+        vps_name:
+          description: VPS name.
+          type: str
+          sample: "(system)"
 """
 
 from ansible.module_utils.basic import AnsibleModule

@@ -139,68 +139,8 @@
       ansible.builtin.debug:
         var: result
 
-    ##########################################################################
-    # Task 6 : Swap-Split TrueCopy pair by copy_group_name and copy_pair_name
-    ##########################################################################
-    - name: Swap-Split TrueCopy pair
-      hitachivantara.vspone_block.vsp.hv_truecopy:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
-        state: "swap_split"
-        spec:
-          copy_group_name: "tc-copy-group-1"
-          copy_pair_name: "tc-copy-pair-1"
-
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    ##########################################################################
-    # Task 7 : Swap-Split TrueCopy pair
-    ##########################################################################
-    - name: Swap-Split TrueCopy pair
-      hitachivantara.vspone_block.vsp.hv_truecopy:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
-        state: "swap_split"
-        spec:
-          copy_group_name: "tc-copy-group-2"
-          copy_pair_name: "tc-copy-pair-2"
-          local_device_group_name: "ansible-local-device-group-1"
-          remote_device_group_name: "ansible-remote-device-group-1"
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    #####################################################################################
-    # Task 8 : Swap-Split TrueCopy pair by copy_group_name and primary volume ID
-    #####################################################################################
-    - name: Swap-Split TrueCopy pair
-      hitachivantara.vspone_block.vsp.hv_truecopy:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
-        state: "swap_split"
-        spec:
-          copy_group_name: "tc-copy-group-2"
-          primary_volume_id: 188
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
     #######################################################################
-    # Task 9 : Resync TrueCopy pair by copy_group_name and copy_pair_name
+    # Task 6 : Resync TrueCopy pair by copy_group_name and copy_pair_name
     #######################################################################
     - name: Resync TrueCopy pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
@@ -219,7 +159,7 @@
         var: result
 
     #####################################################################
-    # Task 10 : Resync TrueCopy pair
+    # Task 7 : Resync TrueCopy pair
     ######################################################################
     - name: Resync TrueCopy pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
@@ -240,7 +180,7 @@
         var: result
 
     ##################################################################################
-    # Task 11 : Resync TrueCopy pair by copy_group_name and primary volume ID
+    # Task 8 : Resync TrueCopy pair by copy_group_name and primary volume ID
     ##################################################################################
     - name: Resync TrueCopy pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
@@ -258,15 +198,79 @@
       ansible.builtin.debug:
         var: result
 
+    ##########################################################################
+    # Task 9 : Swap-Split TrueCopy pair by copy_group_name and copy_pair_name
+    #          Storages need to be swapped before swap-split operation. Please specify       connection_info and secondary_connection_info accordingly.
+    ##########################################################################
+    - name: Swap-Split TrueCopy pair
+      hitachivantara.vspone_block.vsp.hv_truecopy:
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
+        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
+        storage_system_info:
+          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial Number
+        state: "swap_split"
+        spec:
+          copy_group_name: "tc-copy-group-1"
+          copy_pair_name: "tc-copy-pair-1"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ##########################################################################
+    # Task 10 : Swap-Split TrueCopy pair
+    #          Storages need to be swapped before swap-split operation. Please specify       connection_info and secondary_connection_info accordingly.
+    ##########################################################################
+    - name: Swap-Split TrueCopy pair
+      hitachivantara.vspone_block.vsp.hv_truecopy:
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
+        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
+        storage_system_info:
+          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
+        state: "swap_split"
+        spec:
+          copy_group_name: "tc-copy-group-2"
+          copy_pair_name: "tc-copy-pair-2"
+          local_device_group_name: "ansible-local-device-group-1"
+          remote_device_group_name: "ansible-remote-device-group-1"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task 11 : Swap-Split TrueCopy pair by copy_group_name and primary volume ID
+    #          Storages need to be swapped before swap-split operation. Please specify       connection_info and secondary_connection_info accordingly.
+    #####################################################################################
+    - name: Swap-Split TrueCopy pair
+      hitachivantara.vspone_block.vsp.hv_truecopy:
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
+        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
+        storage_system_info:
+          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
+        state: "swap_split"
+        spec:
+          copy_group_name: "tc-copy-group-2"
+          primary_volume_id: 188
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
     ############################################################################
     # Task 12 : Swap-Resync TrueCopy pair by copy_group_name and copy_pair_name
+    # Similar connection info details as per swap-split
     ############################################################################
     - name: Swap-Resync TrueCopy pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
+        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
         state: "swap_resync"
         spec:
           copy_group_name: "tc-copy-group-1"
@@ -279,13 +283,14 @@
 
     ############################################################################
     # Task 13 : Swap-Resync TrueCopy pair
+    # Similar connection info details as per swap-split
     ############################################################################
     - name: Swap-Resync TrueCopy pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
+        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
         state: "swap_resync"
         spec:
           copy_group_name: "tc-copy-group-2"
@@ -300,13 +305,14 @@
 
     #######################################################################################
     # Task 14 : Swap-Resync TrueCopy pair by copy_group_name and primary volume ID
+    # Similar connection info details as per swap-split
     #######################################################################################
     - name: Swap-Resync TrueCopy pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
+        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
         storage_system_info:
-          serial: "{{ storage_serial }}"
+          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
         state: "swap_resync"
         spec:
           copy_group_name: "tc-copy-group-2"

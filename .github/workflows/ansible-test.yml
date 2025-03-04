@@ -1,0 +1,61 @@
+name: Ansible Collection CI Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    - cron: '0 6 * * *'  # Runs daily at 06:00 UTC
+
+jobs:
+  build:
+    name: Build Collection Artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Build Ansible Collection
+        run: ansible-galaxy collection build --force
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: collection-tarball
+          path: "*.tar.gz"
+
+  sanity:
+    name: Sanity Tests (Ⓐ ${{ matrix.ansible }})
+    needs: build
+    strategy:
+      matrix:
+        ansible: [ "stable-2.16", "stable-2.17", "stable-2.18", "devel" ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Run Sanity Tests
+        uses: ansible-community/ansible-test-gh-action@release/v1
+        with:
+          ansible-core-version: ${{ matrix.ansible }}
+          testing-type: sanity
+          pull-request-change-detection: false
+
+  check:
+    name: Check All Tests
+    needs: sanity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure All Tests Passed
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
