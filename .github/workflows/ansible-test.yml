@@ -25,6 +25,9 @@ jobs:
 
       - name: Build Ansible Collection
         run: ansible-galaxy collection build --force
+      
+      - name: List build directory contents  # Debug step
+        run: ls -la  # Make sure the .tar.gz file exists
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
