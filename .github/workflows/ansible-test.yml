@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set Up Python
         uses: actions/setup-python@v4
@@ -28,7 +28,7 @@ jobs:
         run: ansible-galaxy collection build --force
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: collection-tarball
           path: "*.tar.gz"
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Run Sanity Tests
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
