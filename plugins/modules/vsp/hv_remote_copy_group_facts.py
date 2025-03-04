@@ -19,6 +19,12 @@ description:
 version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description:
@@ -131,22 +137,46 @@ EXAMPLES = """
       should_include_remote_replication_pairs: true
 """
 
-RETURN = """
-copygroups:
-  description: A list of copy groups gathered from the storage system.
+RETURN = r"""
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the remote copy groups.
   returned: always
-  type: list
-  elements: dict
-  sample:
-    {
-        "copy_group_name": "copygroup1",
-        "local_device_group_name": "copygroup1P_",
-        "mirror_unit_id": 0,
-        "remote_device_group_name": "copygroup1S_",
-        "remote_mirror_copy_group_id": "A34000811112,copygroup1,copygroup1P_,copygroup1S_",
-        "remote_storage_device_id": "A34000811112",
-        "storage_serial_number": "811150"
-    }
+  type: dict
+  contains:
+    copygroups:
+      description: A list of copy groups gathered from the storage system.
+      type: list
+      elements: dict
+      contains:
+        copy_group_name:
+          description: The name of the copy group.
+          type: str
+          sample: "copygroup1"
+        local_device_group_name:
+          description: The name of the local device group.
+          type: str
+          sample: "copygroup1P_"
+        mirror_unit_id:
+          description: The ID of the mirror unit.
+          type: int
+          sample: 0
+        remote_device_group_name:
+          description: The name of the remote device group.
+          type: str
+          sample: "copygroup1S_"
+        remote_mirror_copy_group_id:
+          description: The ID of the remote mirror copy group.
+          type: str
+          sample: "A34000811112,copygroup1,copygroup1P_,copygroup1S_"
+        remote_storage_device_id:
+          description: The ID of the remote storage device.
+          type: str
+          sample: "A34000811112"
+        storage_serial_number:
+          description: The serial number of the storage system.
+          type: str
+          sample: "811150"
 """
 
 

@@ -27,6 +27,12 @@ description:
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
     description:
@@ -383,33 +389,99 @@ data:
   description: Newly created GAD pair object.
   returned: success
   type: dict
-  elements: dict
-  sample:
-    {
-        "consistency_group_id": 1,
-        "copy_pace_track_size": -1,
-        "copy_rate": 0,
-        "mirror_unit_id": 1,
-        "pair_name": "",
-        "primary_hex_volume_id": "00:00:01",
-        "primary_v_s_m_resource_group_name": "",
-        "primary_virtual_hex_volume_id": "00:00:01",
-        "primary_virtual_storage_id": "",
-        "primary_virtual_volume_id": -1,
-        "primary_volume_id": 1,
-        "primary_volume_storage_id": 811111,
-        "secondary_hex_volume_id": "00:00:02",
-        "secondary_v_s_m_resource_group_name": "",
-        "secondary_virtual_hex_volume_id": -1,
-        "secondary_virtual_storage_id": "",
-        "secondary_virtual_volume_id": -1,
-        "secondary_volume_id": 2,
-        "secondary_volume_storage_id": 811112,
-        "status": "PAIR",
-        "storage_serial_number": "811111",
-        "svol_access_mode": "READONLY",
-        "type": "GAD"
-    }
+  contains:
+    consistency_group_id:
+      description: Consistency Group ID.
+      type: int
+      sample: 1
+    copy_pace_track_size:
+      description: Copy pace track size.
+      type: int
+      sample: -1
+    copy_rate:
+      description: Copy rate.
+      type: int
+      sample: 0
+    mirror_unit_id:
+      description: Mirror unit ID.
+      type: int
+      sample: 1
+    pair_name:
+      description: Pair name.
+      type: str
+      sample: ""
+    primary_hex_volume_id:
+      description: Primary hex volume ID.
+      type: str
+      sample: "00:00:01"
+    primary_v_s_m_resource_group_name:
+      description: Primary VSM resource group name.
+      type: str
+      sample: ""
+    primary_virtual_hex_volume_id:
+      description: Primary virtual hex volume ID.
+      type: str
+      sample: "00:00:01"
+    primary_virtual_storage_id:
+      description: Primary virtual storage ID.
+      type: str
+      sample: ""
+    primary_virtual_volume_id:
+      description: Primary virtual volume ID.
+      type: int
+      sample: -1
+    primary_volume_id:
+      description: Primary volume ID.
+      type: int
+      sample: 1
+    primary_volume_storage_id:
+      description: Primary volume storage ID.
+      type: int
+      sample: 811111
+    secondary_hex_volume_id:
+      description: Secondary hex volume ID.
+      type: str
+      sample: "00:00:02"
+    secondary_v_s_m_resource_group_name:
+      description: Secondary VSM resource group name.
+      type: str
+      sample: ""
+    secondary_virtual_hex_volume_id:
+      description: Secondary virtual hex volume ID.
+      type: int
+      sample: -1
+    secondary_virtual_storage_id:
+      description: Secondary virtual storage ID.
+      type: str
+      sample: ""
+    secondary_virtual_volume_id:
+      description: Secondary virtual volume ID.
+      type: int
+      sample: -1
+    secondary_volume_id:
+      description: Secondary volume ID.
+      type: int
+      sample: 2
+    secondary_volume_storage_id:
+      description: Secondary volume storage ID.
+      type: int
+      sample: 811112
+    status:
+      description: Status of the GAD pair.
+      type: str
+      sample: "PAIR"
+    storage_serial_number:
+      description: Storage serial number.
+      type: str
+      sample: "811111"
+    svol_access_mode:
+      description: SVOL access mode.
+      type: str
+      sample: "READONLY"
+    type:
+      description: Type of the GAD pair.
+      type: str
+      sample: "GAD"
 """
 
 

@@ -27,6 +27,12 @@ description:
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
     description:
@@ -445,36 +451,96 @@ EXAMPLES = """
       new_volume_size: 4GB
 """
 
-RETURN = """
+RETURN = r"""
 data:
   description: Newly created TrueCopy pair object for direct connection.
   returned: success
   type: dict
-  elements: dict
-  sample:
-        {
-          "consistency_group_id": -1,
-          "copy_group_name": "TC_TEST_1107",
-          "copy_pair_name": "rd_copy_pair_202",
-          "copy_progress_rate": -1,
-          "entitlement_status": "",
-          "fence_level": "NEVER",
-          "partner_id": "",
-          "primary_hex_volume_id": "00:02:77",
-          "primary_or_secondary": "",
-          "primary_volume_id": 631,
-          "pvol_status": "PAIR",
-          "pvol_storage_device_id": "A34000810045",
-          "remote_mirror_copy_pair_id": "A34000810045,TC_TEST_1107,TC_TEST_1107P_,TC_TEST_1107S_,rd_copy_pair_202",
-          "secondary_hex_volume_id": "00:00:ca",
-          "secondary_volume_id": 202,
-          "status": "",
-          "storage_serial_number": "810050",
-          "subscriber_id": "",
-          "svol_access_mode": "",
-          "svol_status": "PAIR",
-          "svol_storage_device_id": "A34000810050"
-    }
+  contains:
+    consistency_group_id:
+      description: Consistency Group ID.
+      type: int
+      sample: -1
+    copy_group_name:
+      description: Name of the copy group.
+      type: str
+      sample: "TC_TEST_1107"
+    copy_pair_name:
+      description: Name of the copy pair.
+      type: str
+      sample: "rd_copy_pair_202"
+    copy_progress_rate:
+      description: Copy progress rate.
+      type: int
+      sample: -1
+    entitlement_status:
+      description: Entitlement status.
+      type: str
+      sample: ""
+    fence_level:
+      description: Fence level.
+      type: str
+      sample: "NEVER"
+    partner_id:
+      description: Partner ID.
+      type: str
+      sample: ""
+    primary_hex_volume_id:
+      description: Primary hex volume ID.
+      type: str
+      sample: "00:02:77"
+    primary_or_secondary:
+      description: Primary or secondary.
+      type: str
+      sample: ""
+    primary_volume_id:
+      description: Primary volume ID.
+      type: int
+      sample: 631
+    pvol_status:
+      description: PVOL status.
+      type: str
+      sample: "PAIR"
+    pvol_storage_device_id:
+      description: PVOL storage device ID.
+      type: str
+      sample: "A34000810045"
+    remote_mirror_copy_pair_id:
+      description: Remote mirror copy pair ID.
+      type: str
+      sample: "A34000810045,TC_TEST_1107,TC_TEST_1107P_,TC_TEST_1107S_,rd_copy_pair_202"
+    secondary_hex_volume_id:
+      description: Secondary hex volume ID.
+      type: str
+      sample: "00:00:ca"
+    secondary_volume_id:
+      description: Secondary volume ID.
+      type: int
+      sample: 202
+    status:
+      description: Status.
+      type: str
+      sample: ""
+    storage_serial_number:
+      description: Storage serial number.
+      type: str
+      sample: "810050"
+    subscriber_id:
+      description: Subscriber ID.
+      type: str
+      sample: ""
+    svol_access_mode:
+      description: SVOL access mode.
+      type: str
+      sample: ""
+    svol_status:
+      description: SVOL status.
+      type: str
+      sample: "PAIR"
+    svol_storage_device_id:
+      description: SVOL storage device ID.
+      type: str
+      sample: "A34000810050"
 """
 
 from ansible.module_utils.basic import AnsibleModule

@@ -19,6 +19,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   connection_info:
     description:
@@ -89,22 +95,57 @@ EXAMPLES = """
 """
 
 RETURN = """
-storages:
-  description: a list of storage system information.
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the storage systems.
   returned: always
-  type: list
-  elements: dict
-  sample:
-    - address: "196.168.0.126"
-      entitlement_status: "assigned"
-      gateway_address: "196.168.0.50"
-      health_status: "NORMAL"
-      microcode_version: "93-07-23-80/01"
-      model: "VSP E1090H"
-      partner_id: "partnerid"
-      resource_id: "storage-12d27566fa9feb38f728801ae15997b3"
-      resource_state: "Normal"
-      serial_number: "715036"
+  type: dict
+  contains:
+    storages:
+      description: List of storage systems with their attributes.
+      type: list
+      elements: dict
+      contains:
+        address:
+          description: IP address or hostname of the storage system.
+          type: str
+          sample: "196.168.0.126"
+        entitlement_status:
+          description: Entitlement status of the storage system.
+          type: str
+          sample: "assigned"
+        gateway_address:
+          description: IP address or hostname of the gateway.
+          type: str
+          sample: "196.168.0.50"
+        health_status:
+          description: Health status of the storage system.
+          type: str
+          sample: "NORMAL"
+        microcode_version:
+          description: Microcode version of the storage system.
+          type: str
+          sample: "93-07-23-80/01"
+        model:
+          description: Model of the storage system.
+          type: str
+          sample: "VSP E1090H"
+        partner_id:
+          description: Partner ID associated with the storage system.
+          type: str
+          sample: "partnerid"
+        resource_id:
+          description: Resource ID of the storage system.
+          type: str
+          sample: "storage-12d27566fa9feb38f728801ae15997b3"
+        resource_state:
+          description: Resource state of the storage system.
+          type: str
+          sample: "Normal"
+        serial_number:
+          description: Serial number of the storage system.
+          type: str
+          sample: "715036"
 """
 
 import ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ucp_facts_runner as runner

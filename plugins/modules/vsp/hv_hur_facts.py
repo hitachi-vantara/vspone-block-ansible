@@ -22,6 +22,12 @@ description:
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description:
@@ -229,36 +235,105 @@ EXAMPLES = """
 """
 
 RETURN = """
-hurs:
-  description: A list of hurs gathered from the storage system.
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the HURs.
   returned: always
-  type: list
-  elements: dict
-  sample:
-    {
-        "consistency_group_id": 1,
-        "copy_pace_track_size": -1,
-        "copy_rate": 0,
-        "mirror_unit_id": 1,
-        "primary_hex_volume_id": "00:00:01",
-        "primary_v_s_m_resource_group_name": "",
-        "primary_virtual_hex_volume_id": "00:00:01",
-        "primary_virtual_storage_id": "",
-        "primary_virtual_volume_id": -1,
-        "primary_volume_id": 1,
-        "primary_volume_storage_id": 811111,
-        "secondary_hex_volume_id": "00:00:02",
-        "secondary_v_s_m_resource_group_name": "",
-        "secondary_virtual_hex_volume_id": -1,
-        "secondary_virtual_storage_id": "",
-        "secondary_virtual_volume_id": -1,
-        "secondary_volume_id": 2,
-        "secondary_volume_storage_id": 811112,
-        "status": "PAIR",
-        "storage_serial_number": "811111",
-        "svol_access_mode": "READONLY",
-        "type": "HUR"
-    }
+  type: dict
+  contains:
+    hurs:
+      description: A list of HURs gathered from the storage system.
+      type: list
+      elements: dict
+      contains:
+        consistency_group_id:
+          description: ID of the consistency group.
+          type: int
+          sample: 1
+        copy_pace_track_size:
+          description: Size of the copy pace track.
+          type: int
+          sample: -1
+        copy_rate:
+          description: Rate of the copy process.
+          type: int
+          sample: 0
+        mirror_unit_id:
+          description: ID of the mirror unit.
+          type: int
+          sample: 1
+        primary_hex_volume_id:
+          description: Hexadecimal ID of the primary volume.
+          type: str
+          sample: "00:00:01"
+        primary_v_s_m_resource_group_name:
+          description: Name of the primary VSM resource group.
+          type: str
+          sample: ""
+        primary_virtual_hex_volume_id:
+          description: Hexadecimal ID of the primary virtual volume.
+          type: str
+          sample: "00:00:01"
+        primary_virtual_storage_id:
+          description: ID of the primary virtual storage.
+          type: str
+          sample: ""
+        primary_virtual_volume_id:
+          description: ID of the primary virtual volume.
+          type: int
+          sample: -1
+        primary_volume_id:
+          description: ID of the primary volume.
+          type: int
+          sample: 1
+        primary_volume_storage_id:
+          description: Storage ID of the primary volume.
+          type: int
+          sample: 811111
+        secondary_hex_volume_id:
+          description: Hexadecimal ID of the secondary volume.
+          type: str
+          sample: "00:00:02"
+        secondary_v_s_m_resource_group_name:
+          description: Name of the secondary VSM resource group.
+          type: str
+          sample: ""
+        secondary_virtual_hex_volume_id:
+          description: Hexadecimal ID of the secondary virtual volume.
+          type: str
+          sample: -1
+        secondary_virtual_storage_id:
+          description: ID of the secondary virtual storage.
+          type: str
+          sample: ""
+        secondary_virtual_volume_id:
+          description: ID of the secondary virtual volume.
+          type: int
+          sample: -1
+        secondary_volume_id:
+          description: ID of the secondary volume.
+          type: int
+          sample: 2
+        secondary_volume_storage_id:
+          description: Storage ID of the secondary volume.
+          type: int
+          sample: 811112
+        status:
+          description: Status of the HUR.
+          type: str
+          sample: "PAIR"
+        storage_serial_number:
+          description: Serial number of the storage system.
+          type: str
+          sample: "811111"
+        svol_access_mode:
+          description: Access mode of the secondary volume.
+          type: str
+          sample: "READONLY"
+        type:
+          description: Type of the HUR.
+          type: str
+          sample: "HUR"
 """
 
 from ansible.module_utils.basic import AnsibleModule

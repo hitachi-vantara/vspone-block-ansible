@@ -20,6 +20,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -89,19 +95,30 @@ EXAMPLES = """
       target_chap_user_name: "chapuser1"
 """
 
-RETURN = """
-chap_users:
-  description: A list of CHAP users.
+RETURN = r"""
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the CHAP users.
   returned: always
-  type: list
-  elements: dict
-  sample: [
-    {
-      "id": "464e1fd1-9892-4134-866c-6964ce786676",
-      "initiator_chap_user_name": "chapuser1",
-      "target_chap_user_name": "newchapuser2"
-    }
-  ]
+  type: dict
+  contains:
+    chap_users:
+      description: List of CHAP users with their attributes.
+      type: list
+      elements: dict
+      contains:
+        id:
+          description: Unique identifier for the CHAP user.
+          type: str
+          sample: "464e1fd1-9892-4134-866c-6964ce786676"
+        initiator_chap_user_name:
+          description: Initiator CHAP user name.
+          type: str
+          sample: "chapuser1"
+        target_chap_user_name:
+          description: Target CHAP user name.
+          type: str
+          sample: "newchapuser2"
 """
 from ansible.module_utils.basic import AnsibleModule
 

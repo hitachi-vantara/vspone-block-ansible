@@ -22,6 +22,12 @@ description:
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description:
@@ -35,7 +41,7 @@ options:
         type: str
         required: false
   state:
-    description: The level of the storage pool task. Choices are 'present', 'absent' .
+    description: The level of the storage pool task. Choices are C(present), C(absent) .
     type: str
     required: false
     choices: ['present', 'absent']
@@ -239,43 +245,124 @@ EXAMPLES = """
           name: "test_pool"
 """
 
-RETURN = """
-storagePool:
-  description: The storage pool information.
+RETURN = r"""
+storage_pool:
+  description: >
+    The storage pool information.
   returned: always
   type: list
   elements: dict
-  sample:
-    - deduplication_enabled: false
-      depletion_threshold_rate: 80
-      dp_volumes:
-        - logical_unit_id: 0
-          size: "21.00 GB"
-        - logical_unit_id: 3
-          size: "21.00 GB"
-      free_capacity: 6297747456
-      free_capacity_in_units: "5.87 GB"
-      ldev_ids:
-        - 1285
-      pool_id: 48
-      pool_name: "test_pool"
-      pool_type: "HDP"
-      replication_data_released_rate: -1
-      replication_depletion_alert_rate: -1
-      replication_usage_rate: -1
-      resource_group_id: -1
-      status: "NORMAL"
-      subscription_limit_rate: -1
-      subscription_rate: 0
-      subscription_warning_rate: -1
-      total_capacity: 6297747456
-      total_capacity_in_units: "5.87 GB"
-      utilization_rate: 0
-      virtual_volume_count: 0
-      warning_threshold_rate: 70
-      is_encrypted: true
-      subscriber_id: "subscriber_id"
-      partner_id: "partner_id"
+  contains:
+    deduplication_enabled:
+      description: Indicates if deduplication is enabled.
+      type: bool
+      sample: false
+    depletion_threshold_rate:
+      description: Depletion threshold rate for the pool.
+      type: int
+      sample: 80
+    dp_volumes:
+      description: List of DP volumes in the pool.
+      type: list
+      elements: dict
+      contains:
+        logical_unit_id:
+          description: Logical unit ID of the volume.
+          type: int
+          sample: 0
+        size:
+          description: Size of the volume.
+          type: str
+          sample: "21.00 GB"
+    free_capacity:
+      description: Free capacity of the pool in bytes.
+      type: int
+      sample: 6297747456
+    free_capacity_in_units:
+      description: Free capacity of the pool in human-readable units.
+      type: str
+      sample: "5.87 GB"
+    ldev_ids:
+      description: List of LDEV IDs in the pool.
+      type: list
+      elements: int
+      sample: [1285]
+    pool_id:
+      description: ID of the pool.
+      type: int
+      sample: 48
+    pool_name:
+      description: Name of the pool.
+      type: str
+      sample: "test_pool"
+    pool_type:
+      description: Type of the pool.
+      type: str
+      sample: "HDP"
+    replication_data_released_rate:
+      description: Replication data released rate.
+      type: int
+      sample: -1
+    replication_depletion_alert_rate:
+      description: Replication depletion alert rate.
+      type: int
+      sample: -1
+    replication_usage_rate:
+      description: Replication usage rate.
+      type: int
+      sample: -1
+    resource_group_id:
+      description: ID of the resource group the pool belongs to.
+      type: int
+      sample: -1
+    status:
+      description: Status of the pool.
+      type: str
+      sample: "NORMAL"
+    subscription_limit_rate:
+      description: Subscription limit rate.
+      type: int
+      sample: -1
+    subscription_rate:
+      description: Subscription rate.
+      type: int
+      sample: 0
+    subscription_warning_rate:
+      description: Subscription warning rate.
+      type: int
+      sample: -1
+    total_capacity:
+      description: Total capacity of the pool in bytes.
+      type: int
+      sample: 6297747456
+    total_capacity_in_units:
+      description: Total capacity of the pool in human-readable units.
+      type: str
+      sample: "5.87 GB"
+    utilization_rate:
+      description: Utilization rate of the pool.
+      type: int
+      sample: 0
+    virtual_volume_count:
+      description: Number of virtual volumes in the pool.
+      type: int
+      sample: 0
+    warning_threshold_rate:
+      description: Warning threshold rate for the pool.
+      type: int
+      sample: 70
+    is_encrypted:
+      description: Indicates if the pool is encrypted.
+      type: bool
+      sample: true
+    subscriber_id:
+      description: Subscriber ID for multi-tenancy environments.
+      type: str
+      sample: "subscriber_id"
+    partner_id:
+      description: Partner ID associated with the pool.
+      type: str
+      sample: "partner_id"
 """
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (

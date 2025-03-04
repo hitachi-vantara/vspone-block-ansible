@@ -23,9 +23,15 @@ description:
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
-    description: The level of the HUR pairs task. Choices are 'present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync'.
+    description: The level of the HUR pairs task. Choices are C(present), C(absent), C(split), C(resync), C(swap_split), C(swap_resync) .
       Note 'swap_split' and 'swap_resync' are supported for direct connection type only.
     type: str
     required: false
@@ -324,36 +330,96 @@ EXAMPLES = """
       copy_pair_name: hur_copy_pair_name_3
 """
 
-RETURN = """
+RETURN = r"""
 data:
   description: Newly created HUR pair object.
   returned: success
   type: dict
-  elements: dict
-  sample:
-    {
-      "consistency_group_id": 9,
-      "copy_group_name": "HUR_TEST_GROUP_ZM_1",
-      "copy_pair_name": "HUR_TEST_PAIR_ZM_3",
-      "fence_level": "ASYNC",
-      "mirror_unit_number": 2,
-      "pvol_difference_data_management": "S",
-      "pvol_journal_id": 12,
-      "pvol_ldev_id": 1848,
-      "pvol_processing_status": "N",
-      "pvol_status": "PAIR",
-      "pvol_storage_device_id": "900000040014",
-      "pvol_storage_serial_number": "40014",
-      "remote_mirror_copy_pair_id": "900000040015,HUR_TEST_GROUP_ZM_1,HUR_TEST_GROUP_ZM_1P_,HUR_TEST_GROUP_ZM_1S_,HUR_TEST_PAIR_ZM_3",
-      "replication_type": "UR",
-      "svol_difference_data_management": "S",
-      "svol_journal_id": 32,
-      "svol_ldev_id": 1978,
-      "svol_processing_status": "N",
-      "svol_status": "PAIR",
-      "svol_storage_device_id": "900000040015",
-      "svol_storage_serial_number": 40015
-    }
+  contains:
+    consistency_group_id:
+      description: Consistency group ID.
+      type: int
+      sample: 9
+    copy_group_name:
+      description: Name of the copy group.
+      type: str
+      sample: "HUR_TEST_GROUP_ZM_1"
+    copy_pair_name:
+      description: Name of the copy pair.
+      type: str
+      sample: "HUR_TEST_PAIR_ZM_3"
+    fence_level:
+      description: Fence level setting.
+      type: str
+      sample: "ASYNC"
+    mirror_unit_number:
+      description: Mirror unit number.
+      type: int
+      sample: 2
+    pvol_difference_data_management:
+      description: Difference data management for primary volume.
+      type: str
+      sample: "S"
+    pvol_journal_id:
+      description: Journal ID for primary volume.
+      type: int
+      sample: 12
+    pvol_ldev_id:
+      description: LDEV ID for primary volume.
+      type: int
+      sample: 1848
+    pvol_processing_status:
+      description: Processing status for primary volume.
+      type: str
+      sample: "N"
+    pvol_status:
+      description: Status of primary volume.
+      type: str
+      sample: "PAIR"
+    pvol_storage_device_id:
+      description: Storage device ID for primary volume.
+      type: str
+      sample: "900000040014"
+    pvol_storage_serial_number:
+      description: Storage serial number for primary volume.
+      type: str
+      sample: "40014"
+    remote_mirror_copy_pair_id:
+      description: Remote mirror copy pair ID.
+      type: str
+      sample: "900000040015,HUR_TEST_GROUP_ZM_1,HUR_TEST_GROUP_ZM_1P_,HUR_TEST_GROUP_ZM_1S_,HUR_TEST_PAIR_ZM_3"
+    replication_type:
+      description: Replication type.
+      type: str
+      sample: "UR"
+    svol_difference_data_management:
+      description: Difference data management for secondary volume.
+      type: str
+      sample: "S"
+    svol_journal_id:
+      description: Journal ID for secondary volume.
+      type: int
+      sample: 32
+    svol_ldev_id:
+      description: LDEV ID for secondary volume.
+      type: int
+      sample: 1978
+    svol_processing_status:
+      description: Processing status for secondary volume.
+      type: str
+      sample: "N"
+    svol_status:
+      description: Status of secondary volume.
+      type: str
+      sample: "PAIR"
+    svol_storage_device_id:
+      description: Storage device ID for secondary volume.
+      type: str
+      sample: "900000040015"
+    svol_storage_serial_number:
+      description: Storage serial number for secondary volume.
+      type: str
+      sample: "40015"
 """
 
 

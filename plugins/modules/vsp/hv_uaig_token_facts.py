@@ -20,6 +20,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   connection_info:
     description: Information required to establish a connection to the UAI gateway.
@@ -50,16 +56,20 @@ EXAMPLES = """
 """
 
 RETURN = """
-data:
-  description: List of subscribers belonging to partner apiadmin.
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the API token.
   returned: always
   type: dict
-  elements: dict
-  sample:
+  contains:
     api_token:
-      token: "eyJhbGci..."
-      changed: false
-      failed: false
+      description: API token for the gateway.
+      type: dict
+      contains:
+        token:
+          description: The retrieved API token.
+          type: str
+          sample: "eyJhbGci..."
 """
 
 

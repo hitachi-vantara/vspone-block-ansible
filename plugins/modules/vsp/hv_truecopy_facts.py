@@ -22,6 +22,12 @@ DOCUMENTATION = """
   version_added: '3.1.0'
   author:
     - Hitachi Vantara LTD (@hitachi-vantara)
+  requirements:
+    - python >= 3.8
+  attributes:
+    check_mode:
+      description: Determines if the module should run in check mode.
+      support: full
   options:
     storage_system_info:
       description:
@@ -185,33 +191,89 @@ EXAMPLES = """
 """
 
 RETURN = """
-truecopy_pairs:
-  description: a list of TrueCopy pairs information for gateway connection.
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the TrueCopy pairs.
   returned: always
-  type: list
-  elements: dict
-  sample: [
-    {
-      "consistency_group_id": -1,
-      "copy_rate": 100,
-      "entitlement_status": "unassigned",
-      "mirror_unit_id": 0,
-      "pair_name": "",
-      "partner_id": "apiadmin",
-      "primary_hex_volume_id": "00:05:01",
-      "primary_volume_id": 1281,
-      "primary_volume_storage_id": 810050,
-      "resource_id": "replpair-037f68f4f56351b2de6a68ff5dc0cdeb",
-      "secondary_hex_volume_id": "00:00:82",
-      "secondary_volume_id": 130,
-      "secondary_volume_storage_id": 810045,
-      "status": "PSUS",
-      "storage_id": "storage-b2c93d5e8fadb70b208341b0e19c6527",
-      "storage_serial_number": "810050",
-      "svol_access_mode": "READWRITE",
-      "type": "truecopypair"
-    }
-  ]
+  type: dict
+  contains:
+    truecopy_pairs:
+      description: A list of TrueCopy pairs information for gateway connection.
+      type: list
+      elements: dict
+      contains:
+        consistency_group_id:
+          description: ID of the consistency group.
+          type: int
+          sample: -1
+        copy_rate:
+          description: Copy rate of the TrueCopy pair.
+          type: int
+          sample: 100
+        entitlement_status:
+          description: Entitlement status of the TrueCopy pair.
+          type: str
+          sample: "unassigned"
+        mirror_unit_id:
+          description: ID of the mirror unit.
+          type: int
+          sample: 0
+        pair_name:
+          description: Name of the TrueCopy pair.
+          type: str
+          sample: ""
+        partner_id:
+          description: ID of the partner.
+          type: str
+          sample: "apiadmin"
+        primary_hex_volume_id:
+          description: Hexadecimal ID of the primary volume.
+          type: str
+          sample: "00:05:01"
+        primary_volume_id:
+          description: ID of the primary volume.
+          type: int
+          sample: 1281
+        primary_volume_storage_id:
+          description: Storage ID of the primary volume.
+          type: int
+          sample: 810050
+        resource_id:
+          description: Resource ID of the TrueCopy pair.
+          type: str
+          sample: "replpair-037f68f4f56351b2de6a68ff5dc0cdeb"
+        secondary_hex_volume_id:
+          description: Hexadecimal ID of the secondary volume.
+          type: str
+          sample: "00:00:82"
+        secondary_volume_id:
+          description: ID of the secondary volume.
+          type: int
+          sample: 130
+        secondary_volume_storage_id:
+          description: Storage ID of the secondary volume.
+          type: int
+          sample: 810045
+        status:
+          description: Status of the TrueCopy pair.
+          type: str
+          sample: "PSUS"
+        storage_id:
+          description: Storage ID of the TrueCopy pair.
+          type: str
+          sample: "storage-b2c93d5e8fadb70b208341b0e19c6527"
+        storage_serial_number:
+          description: Serial number of the storage.
+          type: str
+          sample: "810050"
+        svol_access_mode:
+          description: Access mode of the secondary volume.
+          type: str
+          sample: "READWRITE"
+        type:
+          description: Type of the TrueCopy pair.
+          type: str
+          sample: "truecopypair"
 """
 
 from ansible.module_utils.basic import AnsibleModule

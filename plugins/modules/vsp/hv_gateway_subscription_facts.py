@@ -21,6 +21,12 @@ description:
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -81,26 +87,37 @@ EXAMPLES = """
 """
 
 RETURN = """
-data:
-  description: List of subscribers belonging to partner apiadmin.
-  returned: success
-  type: list
-  elements: dict
-  sample: [
-    {
-        "resource_value": "CL1-A",
-        "storage_serial": "50015",
-        "subscriber_id": "811150",
-        "type": "Port"
-    },
-    {
-        "resource_value": "5015",
-        "storage_serial": "50015",
-        "subscriber_id": "811150",
-        "total_capacity": 1073741824,
-        "type": "Volume"
-    }
-  ]
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the subscriber resources.
+  returned: always
+  type: dict
+  contains:
+    subscriber_data:
+      description: List of subscribers belonging to partner apiadmin.
+      type: list
+      elements: dict
+      contains:
+        resource_value:
+          description: Value of the resource.
+          type: str
+          sample: "CL1-A"
+        storage_serial:
+          description: Serial number of the Hitachi storage system.
+          type: str
+          sample: "50015"
+        subscriber_id:
+          description: ID of the subscriber.
+          type: str
+          sample: "811150"
+        type:
+          description: Type of the resource.
+          type: str
+          sample: "Port"
+        total_capacity:
+          description: Total capacity of the resource (if applicable).
+          type: int
+          sample: 1073741824
 """
 
 

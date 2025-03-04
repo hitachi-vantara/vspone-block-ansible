@@ -19,6 +19,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -57,38 +63,82 @@ EXAMPLES = """
 """
 
 
-RETURN = """
-storagesystem:
-  description: The storage system information.
+RETURN = r"""
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the storage system.
   returned: always
   type: dict
-  elements: dict
-  sample: {
-    "efficiency_data_reduction": 100,
-    "free_pool_capacity_in_mb": 9518292,
-    "health_statuses": [
-      {
-        "protection_domain_id": "",
-        "status": "Normal",
-        "type": "License"
-      },
-      {
-        "protection_domain_id": "gsfd1234-123a-wer2-f234-123456789012",
-        "status": "Normal",
-        "type": "Pool"
-      }
-    ],
-    "number_of_compute_ports": 3,
-    "number_of_drives": 36,
-    "number_of_fault_domains": 1,
-    "number_of_storage_pools": 1,
-    "number_of_total_servers": 16,
-    "number_of_total_storage_nodes": 0,
-    "number_of_total_volumes": 14,
-    "total_efficiency": 210,
-    "total_pool_capacity_in_mb": 9519048,
-    "used_pool_capacity_in_mb": 756
-  }
+  contains:
+    storagesystem:
+      description: The storage system information.
+      type: dict
+      contains:
+        efficiency_data_reduction:
+          description: Efficiency data reduction percentage.
+          type: int
+          sample: 100
+        free_pool_capacity_in_mb:
+          description: Free pool capacity in megabytes.
+          type: int
+          sample: 9518292
+        health_statuses:
+          description: List of health statuses.
+          type: list
+          elements: dict
+          contains:
+            protection_domain_id:
+              description: Protection domain identifier.
+              type: str
+              sample: ""
+            status:
+              description: Health status.
+              type: str
+              sample: "Normal"
+            type:
+              description: Type of health status.
+              type: str
+              sample: "License"
+        number_of_compute_ports:
+          description: Number of compute ports.
+          type: int
+          sample: 3
+        number_of_drives:
+          description: Number of drives.
+          type: int
+          sample: 36
+        number_of_fault_domains:
+          description: Number of fault domains.
+          type: int
+          sample: 1
+        number_of_storage_pools:
+          description: Number of storage pools.
+          type: int
+          sample: 1
+        number_of_total_servers:
+          description: Number of total servers.
+          type: int
+          sample: 16
+        number_of_total_storage_nodes:
+          description: Number of total storage nodes.
+          type: int
+          sample: 0
+        number_of_total_volumes:
+          description: Number of total volumes.
+          type: int
+          sample: 14
+        total_efficiency:
+          description: Total efficiency percentage.
+          type: int
+          sample: 210
+        total_pool_capacity_in_mb:
+          description: Total pool capacity in megabytes.
+          type: int
+          sample: 9519048
+        used_pool_capacity_in_mb:
+          description: Used pool capacity in megabytes.
+          type: int
+          sample: 756
 """
 
 

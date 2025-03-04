@@ -19,6 +19,12 @@ description:
 version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description:
@@ -54,15 +60,6 @@ options:
         required: false
         choices: ['direct', 'gateway']
         default: 'direct'
-      subscriber_id:
-        description:
-          - This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Value of the lock token to operate on locked resources for direct connection.
-        type: str
-        required: false
   state:
     description: The desired state of the NVM subsystem.
     type: str
@@ -232,34 +229,117 @@ nvm_subsystems:
   returned: always
   type: list
   elements: dict
-  sample:
-    storage_serial_number: "810005"
+  contains:
+    storage_serial_number:
+      description: The serial number of the storage system.
+      type: str
+      sample: "810005"
     host_nqn_info:
-        - host_nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"
-          host_nqn_nickname: "my_host_nqn_40"
+      description: List of host NQNs and their nicknames.
+      type: list
+      elements: dict
+      contains:
+        host_nqn:
+          description: The host NQN.
+          type: str
+          sample: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"
+        host_nqn_nickname:
+          description: The nickname of the host NQN.
+          type: str
+          sample: "my_host_nqn_40"
     namespace_paths_info:
-        - host_nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"
-          ldev_id: 11101
-          ldev_hex_id: "00:2b:5c"
-          namespace_id: 3
+      description: List of namespace paths information.
+      type: list
+      elements: dict
+      contains:
+        host_nqn:
+          description: The host NQN.
+          type: str
+          sample: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"
+        ldev_id:
+          description: The LDEV ID of the namespace.
+          type: int
+          sample: 11101
+        ldev_hex_id:
+          description: The hexadecimal ID of the LDEV.
+          type: str
+          sample: "00:2b:5c"
+        namespace_id:
+          description: The ID of the namespace.
+          type: int
+          sample: 3
     namespaces_info:
-        - block_capacity: 23068672
-          capacity_in_unit: "11.00 G"
-          ldev_id: 11101
-          ldev_hex_id: "00:2b:5c"
-          namespace_id: 3
-          namespace_nickname: "nickname"
+      description: List of namespaces information.
+      type: list
+      elements: dict
+      contains:
+        block_capacity:
+          description: The block capacity of the namespace.
+          type: int
+          sample: 23068672
+        capacity_in_unit:
+          description: The capacity of the namespace in human-readable format.
+          type: str
+          sample: "11.00 G"
+        ldev_id:
+          description: The LDEV ID of the namespace.
+          type: int
+          sample: 11101
+        ldev_hex_id:
+          description: The hexadecimal ID of the LDEV.
+          type: str
+          sample: "00:2b:5c"
+        namespace_id:
+          description: The ID of the namespace.
+          type: int
+          sample: 3
+        namespace_nickname:
+          description: The nickname of the namespace.
+          type: str
+          sample: "nickname"
     nvm_subsystem_info:
-        host_mode: "VMWARE_EX"
-        namespace_security_setting: "Enable"
-        nvm_subsystem_id: 1000
-        nvm_subsystem_name: "nvm_tcp_01"
-        resource_group_id: 0
-        t10pi_mode: "Disable"
+      description: Information about the NVM subsystem.
+      type: dict
+      contains:
+        host_mode:
+          description: The host mode of the NVM subsystem.
+          type: str
+          sample: "VMWARE_EX"
+        namespace_security_setting:
+          description: The namespace security setting.
+          type: str
+          sample: "Enable"
+        nvm_subsystem_id:
+          description: The ID of the NVM subsystem.
+          type: int
+          sample: 1000
+        nvm_subsystem_name:
+          description: The name of the NVM subsystem.
+          type: str
+          sample: "nvm_tcp_01"
+        resource_group_id:
+          description: The resource group ID of the NVM subsystem.
+          type: int
+          sample: 0
+        t10pi_mode:
+          description: The T10PI mode of the NVM subsystem.
+          type: str
+          sample: "Disable"
     port:
-        - port_id: "CL1-D"
-          port_type: "NVME_TCP"
+      description: List of ports of the NVM subsystem.
+      type: list
+      elements: dict
+      contains:
+        port_id:
+          description: The ID of the port.
+          type: str
+          sample: "CL1-D"
+        port_type:
+          description: The type of the port.
+          type: str
+          sample: "NVME_TCP"
 """
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_nvme import (
     VSPNvmeReconciler,

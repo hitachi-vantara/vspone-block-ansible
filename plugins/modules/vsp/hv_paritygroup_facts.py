@@ -22,6 +22,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description:
@@ -101,28 +107,70 @@ EXAMPLES = """
 """
 
 RETURN = """
-paritygroup:
-  description:
-    - The parity group information.
+ansible_facts:
+  description: >
+    Dictionary containing the discovered properties of the parity groups.
   returned: always
-  type: list
-  elements: dict
-  sample:
-    - copyback_mode: false
-      drive_type: "SSD"
-      free_capacity: "357.00GB"
-      is_accelerated_compression: false
-      is_encryption_enabled: false
-      is_pool_array_group: false
-      ldev_ids:
-        - 6
-        - 7
-      parity_group_id: "1-1"
-      raid_level: "RAID5"
-      resource_group_id: -1
-      resource_id: ""
-      status: "NORMAL"
-      total_capacity: "5.16TB"
+  type: dict
+  contains:
+    parity_groups:
+      description: List of parity groups with their attributes.
+      type: list
+      elements: dict
+      contains:
+        copyback_mode:
+          description: Indicates if copyback mode is enabled.
+          type: bool
+          sample: false
+        drive_type:
+          description: Type of drive.
+          type: str
+          sample: "SSD"
+        free_capacity:
+          description: Free capacity of the parity group.
+          type: str
+          sample: "357.00GB"
+        is_accelerated_compression:
+          description: Indicates if accelerated compression is enabled.
+          type: bool
+          sample: false
+        is_encryption_enabled:
+          description: Indicates if encryption is enabled.
+          type: bool
+          sample: false
+        is_pool_array_group:
+          description: Indicates if it is a pool array group.
+          type: bool
+          sample: false
+        ldev_ids:
+          description: List of LDEV IDs.
+          type: list
+          elements: int
+          sample: [6, 7]
+        parity_group_id:
+          description: The parity group ID.
+          type: str
+          sample: "1-1"
+        raid_level:
+          description: RAID level of the parity group.
+          type: str
+          sample: "RAID5"
+        resource_group_id:
+          description: Resource group ID.
+          type: int
+          sample: -1
+        resource_id:
+          description: Resource ID.
+          type: str
+          sample: ""
+        status:
+          description: Status of the parity group.
+          type: str
+          sample: "NORMAL"
+        total_capacity:
+          description: Total capacity of the parity group.
+          type: str
+          sample: "5.16TB"
 """
 
 

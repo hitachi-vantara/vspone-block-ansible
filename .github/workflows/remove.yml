@@ -1,0 +1,23 @@
+name: Remove Ansible Collection Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to remove from Ansible Galaxy"
+        required: true
+
+jobs:
+  remove:
+    name: Remove Collection from Galaxy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove Collection from Ansible Galaxy
+        env:
+          COLLECTION_NAMESPACE: hitachivantara
+          COLLECTION_NAME: vspone_block
+          VERSION: ${{ github.event.inputs.version }}
+          API_KEY: ${{ secrets.ANSIBLE_COLLECTIONS_TOKEN }}
+        run: |
+          curl -X DELETE "https://galaxy.ansible.com/api/v3/plugin/ansible/content/published/collections/index/${COLLECTION_NAMESPACE}/${COLLECTION_NAME}/versions/${VERSION}/" \
+            -H "Authorization: Token $API_KEY"

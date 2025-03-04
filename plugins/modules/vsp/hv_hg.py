@@ -31,6 +31,12 @@ description:
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
     description:
@@ -373,48 +379,87 @@ EXAMPLES = """
 
 RETURN = """
 hostGroups:
-  type: dict
   description: Info of host group.
   returned: always
-  elements: dict
-  sample: {
-    "entitlement_status": "assigned",
-    "host_group_id": 93,
-    "host_group_name": "ansible-test-hg",
-    "host_mode": "STANDARD",
-    "host_mode_options": [
-        {
-            "host_mode_option": "EXTENDED_COPY",
-            "host_mode_option_number": 54
-        },
-        {
-            "host_mode_option": "VSTORAGE_APIS_ON_T10_STANDARDS",
-            "host_mode_option_number": 63
-        }
-    ],
-    "lun_paths": [
-      {
-        "ldevId": 166,
-        "lunId": 0
-      },
-      {
-        "ldevId": 206,
-        "lunId": 1
-      }
-    ],
-    "partner_id": "partnerid",
-    "port": "CL1-A",
-    "resource_group_id": 0,
-    "storage_id": "storage-39f4eef0175c754bb90417358b0133c3",
-    "subscriber_id": "811150",
-    "wwns": [
-      {
-        "id": "1212121212121212",
-        "name": ""
-      }
-    ]
-  }
+  type: dict
+  contains:
+    entitlement_status:
+      description: Entitlement status of the host group.
+      type: str
+      sample: "assigned"
+    host_group_id:
+      description: ID of the host group.
+      type: int
+      sample: 93
+    host_group_name:
+      description: Name of the host group.
+      type: str
+      sample: "ansible-test-hg"
+    host_mode:
+      description: Host mode of the host group.
+      type: str
+      sample: "STANDARD"
+    host_mode_options:
+      description: List of host mode options for the host group.
+      type: list
+      elements: dict
+      contains:
+        host_mode_option:
+          description: Name of the host mode option.
+          type: str
+          sample: "EXTENDED_COPY"
+        host_mode_option_number:
+          description: Number of the host mode option.
+          type: int
+          sample: 54
+    lun_paths:
+      description: List of LUN paths for the host group.
+      type: list
+      elements: dict
+      contains:
+        ldevId:
+          description: ID of the logical device.
+          type: int
+          sample: 166
+        lunId:
+          description: ID of the LUN.
+          type: int
+          sample: 0
+    partner_id:
+      description: Partner ID associated with the host group.
+      type: str
+      sample: "partnerid"
+    port:
+      description: Port associated with the host group.
+      type: str
+      sample: "CL1-A"
+    resource_group_id:
+      description: Resource group ID associated with the host group.
+      type: int
+      sample: 0
+    storage_id:
+      description: Storage ID associated with the host group.
+      type: str
+      sample: "storage-39f4eef0175c754bb90417358b0133c3"
+    subscriber_id:
+      description: Subscriber ID associated with the host group.
+      type: str
+      sample: "811150"
+    wwns:
+      description: List of WWNs associated with the host group.
+      type: list
+      elements: dict
+      contains:
+        id:
+          description: ID of the WWN.
+          type: str
+          sample: "1212121212121212"
+        name:
+          description: Name of the WWN.
+          type: str
+          sample: ""
 """
+
 from ansible.module_utils.basic import AnsibleModule
 from dataclasses import asdict
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (

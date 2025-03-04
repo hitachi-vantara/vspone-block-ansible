@@ -22,6 +22,12 @@ description:
 version_added: '3.2.0'
 author:
     - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
     state:
         description:
@@ -64,12 +70,6 @@ options:
                 description: >
                     Provide api_token for gateway connection type. For direction connection type, this token is required
                     while working on locked resources. Proivde the lock_token value returned by lock resource group task.
-                type: str
-                required: false
-            subscriber_id:
-                description: >
-                    Subscription ID for the storage system. This is valid for multi-tenancy and when connection_type is
-                    gateway. Resource group locking is not supported for multi-tenancy.
                 type: str
                 required: false
             connection_type:

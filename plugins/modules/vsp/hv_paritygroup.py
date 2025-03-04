@@ -20,6 +20,12 @@ description:
 version_added: '3.2.0'
 author:
   - Hitachi Vantara, LTD. (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
     description:
@@ -56,19 +62,11 @@ options:
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system.
+        description: Type of connection to the storage system, Only direct connection is supported.
         type: str
         required: false
         choices: ['gateway', 'direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway. This is a required field for gateway connection type.
-        type: str
-        required: false
   spec:
     description:
       - Specification for the parity group facts to be gathered.
@@ -171,24 +169,64 @@ parity_group:
   returned: success
   type: list
   elements: dict
-  sample: [
-  {
-    "clpr_id": 0,
-    "copyback_mode": false,
-    "drive_type": "SSD",
-    "free_capacity": "5.16TB",
-    "is_accelerated_compression": false,
-    "is_encryption_enabled": true,
-    "is_pool_array_group": null,
-    "ldev_ids": [],
-    "parity_group_id": "1-10",
-    "raid_level": "RAID5",
-    "resource_group_id": null,
-    "resource_id": null,
-    "status": null,
-    "total_capacity": "5.16TB"
-  }
-  ]
+  contains:
+    clpr_id:
+      description: CLPR number.
+      type: int
+      sample: 0
+    copyback_mode:
+      description: Indicates if copyback mode is enabled.
+      type: bool
+      sample: false
+    drive_type:
+      description: Type of drive.
+      type: str
+      sample: "SSD"
+    free_capacity:
+      description: Free capacity of the parity group.
+      type: str
+      sample: "5.16TB"
+    is_accelerated_compression:
+      description: Indicates if accelerated compression is enabled.
+      type: bool
+      sample: false
+    is_encryption_enabled:
+      description: Indicates if encryption is enabled.
+      type: bool
+      sample: true
+    is_pool_array_group:
+      description: Indicates if it is a pool array group.
+      type: bool
+      sample: null
+    ldev_ids:
+      description: List of LDEV IDs.
+      type: list
+      elements: int
+      sample: []
+    parity_group_id:
+      description: Parity group ID.
+      type: str
+      sample: "1-10"
+    raid_level:
+      description: RAID level.
+      type: str
+      sample: "RAID5"
+    resource_group_id:
+      description: Resource group ID.
+      type: int
+      sample: null
+    resource_id:
+      description: Resource ID.
+      type: int
+      sample: null
+    status:
+      description: Status of the parity group.
+      type: str
+      sample: null
+    total_capacity:
+      description: Total capacity of the parity group.
+      type: str
+      sample: "5.16TB"
 """
 
 from ansible.module_utils.basic import AnsibleModule

@@ -21,6 +21,12 @@ description: >
 version_added: '3.2.0'
 author:
   - Hitachi Vantara, LTD. (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   state:
     description: The level of the Remote Copy Group pairs task. Choices are 'present', 'absent', 'split', 'resync', 'swap_split', 'swap-resync'.
@@ -55,21 +61,11 @@ options:
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system.
+        description: Type of connection to the storage system, Only direct connection is supported.
         type: str
         required: false
         choices: ['direct', 'gateway']
         default: 'direct'
-      api_token:
-        description: Value of the lock token to operate on locked resources.
-        type: str
-        required: false
-      subscriber_id:
-        description: >
-          Subscriber ID is required for gateway connection type to support multi-tenancy. Not needed for direct connection or
-          for gateway connection with single tenant. Not needed for this operation.
-        type: str
-        required: false
   secondary_connection_info:
     description:
       - Information required to establish a connection to the secondary storage system. Required for direct connection only.
@@ -386,86 +382,116 @@ data:
   description: Newly created remote copy group object.
   returned: success
   type: dict
-  elements: dict
-  sample:
-    {
-      "copy_group_name": "copygroupname001",
-      "copy_pairs": [
-          {
-              "consistency_group_id": 51,
-              "copy_group_name": "copygroupname001",
-              "copy_pair_name": "copypairname00190",
-              "fence_level": "ASYNC",
-              "pvol_difference_data_management": "S",
-              "pvol_i_o_mode": null,
-              "pvol_journal_id": 37,
-              "pvol_ldev_id": 1872,
-              "pvol_processing_status": "N",
-              "pvol_status": "PSUS",
-              "pvol_storage_device_id": "900000040014",
-              "quorum_disk_id": null,
-              "remote_mirror_copy_pair_id": "900000040015,copygroupname001,copygroupname001P_,copygroupname001S_,copypairname00190",
-              "replication_type": "UR",
-              "svol_difference_data_management": "S",
-              "svol_i_o_mode": null,
-              "svol_journal_id": 40,
-              "svol_ldev_id": 2180,
-              "svol_processing_status": "N",
-              "svol_status": "SSUS",
-              "svol_storage_device_id": "900000040015"
-          },
-          {
-              "consistency_group_id": 51,
-              "copy_group_name": "copygroupname001",
-              "copy_pair_name": "copypairname00191",
-              "fence_level": "ASYNC",
-              "pvol_difference_data_management": "S",
-              "pvol_i_o_mode": null,
-              "pvol_journal_id": 37,
-              "pvol_ldev_id": 1964,
-              "pvol_processing_status": "N",
-              "pvol_status": "PSUS",
-              "pvol_storage_device_id": "900000040014",
-              "quorum_disk_id": null,
-              "remote_mirror_copy_pair_id": "900000040015,copygroupname001,copygroupname001P_,copygroupname001S_,copypairname00191",
-              "replication_type": "UR",
-              "svol_difference_data_management": "S",
-              "svol_i_o_mode": null,
-              "svol_journal_id": 40,
-              "svol_ldev_id": 2182,
-              "svol_processing_status": "N",
-              "svol_status": "SSUS",
-              "svol_storage_device_id": "900000040015"
-          },
-          {
-              "consistency_group_id": 51,
-              "copy_group_name": "copygroupname001",
-              "copy_pair_name": "copypairname00193",
-              "fence_level": "ASYNC",
-              "pvol_difference_data_management": "S",
-              "pvol_i_o_mode": null,
-              "pvol_journal_id": 37,
-              "pvol_ldev_id": 1965,
-              "pvol_processing_status": "N",
-              "pvol_status": "PSUS",
-              "pvol_storage_device_id": "900000040014",
-              "quorum_disk_id": null,
-              "remote_mirror_copy_pair_id": "900000040015,copygroupname001,copygroupname001P_,copygroupname001S_,copypairname00193",
-              "replication_type": "UR",
-              "svol_difference_data_management": "S",
-              "svol_i_o_mode": null,
-              "svol_journal_id": 40,
-              "svol_ldev_id": 2184,
-              "svol_processing_status": "N",
-              "svol_status": "SSUS",
-              "svol_storage_device_id": "900000040015"
-          }
-      ],
-      "local_device_group_name": "copygroupname001P_",
-      "remote_device_group_name": "copygroupname001S_",
-      "remote_mirror_copy_group_id": "900000040015,copygroupname001,copygroupname001P_,copygroupname001S_",
-      "remote_storage_device_id": "900000040015"
-    }
+  contains:
+    copy_group_name:
+      description: Copy group name.
+      type: str
+      sample: "copygroupname001"
+    copy_pairs:
+      description: List of copy pairs in the copy group.
+      type: list
+      elements: dict
+      contains:
+        consistency_group_id:
+          description: Consistency group ID.
+          type: int
+          sample: 51
+        copy_group_name:
+          description: Copy group name.
+          type: str
+          sample: "copygroupname001"
+        copy_pair_name:
+          description: Copy pair name.
+          type: str
+          sample: "copypairname00190"
+        fence_level:
+          description: Fence level.
+          type: str
+          sample: "ASYNC"
+        pvol_difference_data_management:
+          description: PVOL difference data management.
+          type: str
+          sample: "S"
+        pvol_i_o_mode:
+          description: PVOL I/O mode.
+          type: str
+          sample: null
+        pvol_journal_id:
+          description: PVOL journal ID.
+          type: int
+          sample: 37
+        pvol_ldev_id:
+          description: PVOL LDEV ID.
+          type: int
+          sample: 1872
+        pvol_processing_status:
+          description: PVOL processing status.
+          type: str
+          sample: "N"
+        pvol_status:
+          description: PVOL status.
+          type: str
+          sample: "PSUS"
+        pvol_storage_device_id:
+          description: PVOL storage device ID.
+          type: str
+          sample: "900000040014"
+        quorum_disk_id:
+          description: Quorum disk ID.
+          type: str
+          sample: null
+        remote_mirror_copy_pair_id:
+          description: Remote mirror copy pair ID.
+          type: str
+          sample: "900000040015,copygroupname001,copygroupname001P_,copygroupname001S_,copypairname00190"
+        replication_type:
+          description: Replication type.
+          type: str
+          sample: "UR"
+        svol_difference_data_management:
+          description: SVOL difference data management.
+          type: str
+          sample: "S"
+        svol_i_o_mode:
+          description: SVOL I/O mode.
+          type: str
+          sample: null
+        svol_journal_id:
+          description: SVOL journal ID.
+          type: int
+          sample: 40
+        svol_ldev_id:
+          description: SVOL LDEV ID.
+          type: int
+          sample: 2180
+        svol_processing_status:
+          description: SVOL processing status.
+          type: str
+          sample: "N"
+        svol_status:
+          description: SVOL status.
+          type: str
+          sample: "SSUS"
+        svol_storage_device_id:
+          description: SVOL storage device ID.
+          type: str
+          sample: "900000040015"
+    local_device_group_name:
+      description: Local device group name.
+      type: str
+      sample: "copygroupname001P_"
+    remote_device_group_name:
+      description: Remote device group name.
+      type: str
+      sample: "copygroupname001S_"
+    remote_mirror_copy_group_id:
+      description: Remote mirror copy group ID.
+      type: str
+      sample: "900000040015,copygroupname001,copygroupname001P_,copygroupname001S_"
+    remote_storage_device_id:
+      description: Remote storage device ID.
+      type: str
+      sample: "900000040015"
 """
 
 from ansible.module_utils.basic import AnsibleModule
