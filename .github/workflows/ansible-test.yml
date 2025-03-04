@@ -34,6 +34,7 @@ jobs:
         with:
           name: collection-tarball
           path: "*.tar.gz"  # Change if using a build directory
+          retention-days: 10
 
   sanity:
     name: Sanity Tests (Ⓐ ${{ matrix.ansible }})

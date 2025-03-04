@@ -48,6 +48,7 @@ jobs:
         with:
           name: collection-tarball
           path: dist/
+          debug: true 
 
       - name: Extract .tar.gz from .zip
         run: |
