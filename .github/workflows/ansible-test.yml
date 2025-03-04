@@ -5,8 +5,10 @@ on:
     branches:
       - main
   pull_request:
+    branches:
+      - main # Restricts PRs to only target 'main'
   schedule:
-    - cron: '0 6 * * *'  # Runs daily at 06:00 UTC
+    - cron: "0 6 * * *" # Runs daily at 06:00 UTC
 
 jobs:
   build:
@@ -19,7 +21,7 @@ jobs:
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Install Ansible
         run: pip install ansible
@@ -38,7 +40,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        ansible: [ "stable-2.16", "stable-2.17", "stable-2.18", "devel" ]
+        ansible: ["stable-2.16", "stable-2.17", "stable-2.18", "devel"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
