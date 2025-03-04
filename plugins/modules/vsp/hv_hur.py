@@ -14,11 +14,11 @@ module: hv_hur
 short_description: Manages HUR pairs on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, deletion, splitting, swap splitting, re-syncing and swap-resyncing of HUR pairs on Hitachi VSP storage systems.
-  - This module is supported for both direct and gateway connection types.
-  - swap_split and swap_resync are supported for direct connection type only.
-  - For direct connection type examples, go to URL
+  - This module is supported for both C(direct) and C(gateway) connection types.
+  - swap_split and swap_resync are supported for C(direct) connection type only.
+  - For C(direct) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/hur.yml)
-  - For gateway connection type examples, go to URL
+  - For C(gateway) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/hur.yml)
 version_added: '3.1.0'
 author:
@@ -32,7 +32,7 @@ attributes:
 options:
   state:
     description: The level of the HUR pairs task. Choices are C(present), C(absent), C(split), C(resync), C(swap_split), C(swap_resync) .
-      Note 'swap_split' and 'swap_resync' are supported for direct connection type only.
+      Note C(swap_split) and C(swap_resync) are supported for C(direct) connection type only.
     type: str
     required: false
     choices: ['present', 'absent', 'split', 'resync', 'resize', 'swap_split', 'swap_resync']
@@ -73,15 +73,16 @@ options:
     type: dict
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway))
+          or the storage system (if connection_type is C(direct)).
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -91,7 +92,7 @@ options:
         choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
@@ -116,11 +117,11 @@ options:
         type: int
         required: false
       copy_group_name:
-        description: Name of the copy group. This is valid for direct connection type only and this is a required for create operation.
+        description: Name of the copy group. This is valid for C(direct) connection type only and this is a required for create operation.
         type: str
         required: false
       copy_pair_name:
-        description: Name of the copy pair. This is valid for direct connection type only and this is a required for create operation.
+        description: Name of the copy pair. This is valid for C(direct) connection type only and this is a required for create operation.
         type: str
         required: false
       consistency_group_id:
@@ -128,11 +129,11 @@ options:
         type: int
         required: false
       local_device_group_name:
-        description: Name of the local device group name. This is valid for direct connection type only and this is an optional field.
+        description: Name of the local device group name. This is valid for C(direct) connection type only and this is an optional field.
         type: str
         required: false
       remote_device_group_name:
-        description: Name of the remote device group name. This is valid for direct connection type only and this is an optional field..
+        description: Name of the remote device group name. This is valid for C(direct) connection type only and this is an optional field..
         type: str
         required: false
       mirror_unit_id:
@@ -151,18 +152,18 @@ options:
         suboptions:
           name:
             description:
-              - Name of the host group on the secondary storage system. This is required for create operation for both direct and gateway connections.
+              - Name of the host group on the secondary storage system. This is required for create operation for both C(direct) and C(gateway) connections.
             type: str
             required: true
           port:
             description:
-              - Port of the host group on the secondary storage system. This is required for create operation for both direct and gateway connections.
+              - Port of the host group on the secondary storage system. This is required for create operation for both C(direct) and C(gateway) connections.
             type: str
             required: true
       fence_level:
         description:
           - Specifies the primary volume fence level setting and determines if the host is denied access or continues to access
-            the primary volume when the pair is suspended because of an error. This is an optional field for both direct and gateway connections.
+            the primary volume when the pair is suspended because of an error. This is an optional field for both C(direct) and C(gateway) connections.
         type: str
         required: false
         choices: ['ASYNC']
@@ -208,27 +209,27 @@ options:
         required: false
       begin_secondary_volume_id:
         description: >
-          Specify beginning ldev id for Ldev range for svol. This is used only for gateway connection and is an optional field during
+          Specify beginning ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during
           create operation. If this field is specified, end_secondary_volume_id must also be specified.
           If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
         required: false
         type: int
       end_secondary_volume_id:
         description: >
-          Specify end ldev id for Ldev range for svol. This is used only for gateway connection and is an optional field during create operation.
+          Specify end ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during create operation.
           If this field is specified, begin_secondary_volume_id must also be specified.
           If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
         required: false
         type: int
       do_initial_copy:
         description:
-          - Perform initial copy. This is used only for direct connection and is an optional field during create operation.
+          - Perform initial copy. This is used only for C(direct) connection and is an optional field during create operation.
         type: bool
         required: false
         default: true
       is_data_reduction_force_copy:
         description:
-          - Force copy for data reduction. This is used for both direct and gateway connections and is an optional field during create operation.
+          - Force copy for data reduction. This is used for both C(direct) and C(gateway) connections and is an optional field during create operation.
         type: bool
         required: false
         default: false

@@ -14,10 +14,10 @@ DOCUMENTATION = """
   short_description: Retrieves TrueCopy pairs information from Hitachi VSP storage systems.
   description:
     - This module retrieves the TrueCopy pairs information from Hitachi VSP storage systems.
-    - This module is supported for both direct and gateway connection types.
-    - For direct connection type examples, go to URL
+    - This module is supported for both C(direct) and C(gateway) connection types.
+    - For C(direct) connection type examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/truecopy_facts.yml)
-    - For gateway connection type examples, go to URL
+    - For C(gateway) connection type examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/truecopy_facts.yml)
   version_added: '3.1.0'
   author:
@@ -42,8 +42,8 @@ DOCUMENTATION = """
           required: false
     secondary_connection_info:
       description: >
-        Information required to establish a connection to the secondary storage system. Required for direct connection only.
-        Not needed for gateway connection.
+        Information required to establish a connection to the secondary storage system. Required for C(direct) connection type only.
+        Not needed for C(gateway) connection type.
       required: false
       type: dict
       suboptions:
@@ -54,12 +54,12 @@ DOCUMENTATION = """
           required: true
         username:
           description:
-            - Username for authentication. This field is valid for direct connection type only, and it is a required field.
+            - Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
           type: str
           required: false
         password:
           description:
-            - Password for authentication. This field is valid for direct connection type only, and it is a required field.
+            - Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
           type: str
           required: false
         api_token:
@@ -80,17 +80,17 @@ DOCUMENTATION = """
           required: true
         username:
           description:
-            - Username for authentication. Required for direct connection. Not needed for gateway connection as it uses API token.
+            - Username for authentication. Required for C(direct) connection. Not needed for C(gateway) connection type as it uses API token.
           type: str
           required: false
         password:
           description:
-            - Password for authentication. Required for direct connection. Not needed for gateway connection as it uses API token.
+            - Password for authentication. Required for C(direct) connection. Not needed for C(gateway) connection type as it uses API token.
           type: str
           required: false
         connection_type:
           description:
-            - Type of connection to the storage system. Two types of connections are supported, 'direct' and 'gateway'.
+            - Type of connection to the storage system. Two types of connections are supported, C(direct) and C(gateway).
           type: str
           required: false
           choices:
@@ -99,13 +99,13 @@ DOCUMENTATION = """
           default: direct
         api_token:
           description:
-            - Token value to access UAI gateway for gateway connection..
+            - Token value to access UAI gateway for C(gateway) connection type.
           type: str
           required: false
         subscriber_id:
           description: >
-            Subscriber ID is required for gateway connection type to support multi-tenancy. Not needed for direct connection or
-            for gateway connection with single tenant.
+            Subscriber ID is required for C(gateway) connection type to support multi-tenancy. Not needed for C(direct) connection type
+            or for C(gateway) connection type with single tenant.
           type: str
           required: false
     spec:
@@ -126,22 +126,22 @@ DOCUMENTATION = """
           required: false
         copy_group_name:
           description:
-            - Name of the copy group to retrieve TrueCopy pair information for. Used only for direct connection.
+            - Name of the copy group to retrieve TrueCopy pair information for. Used only for C(direct) connection type.
           type: str
           required: false
         copy_pair_name:
           description:
-            - Name of the copy pair to retrieve TrueCopy pair information for. Used only for direct connection.
+            - Name of the copy pair to retrieve TrueCopy pair information for. Used only for C(direct) connection type.
           type: str
           required: false
         local_device_group_name:
           description:
-            - Name of the local device group to retrieve TrueCopy pair information for. Used only for direct connection.
+            - Name of the local device group to retrieve TrueCopy pair information for. Used only for C(direct) connection type.
           type: str
           required: false
         remote_device_group_name:
           description:
-            - Name of the remote device group to retrieve TrueCopy pair information for. Used only for direct connection.
+            - Name of the remote device group to retrieve TrueCopy pair information for. Used only for C(direct) connection type.
           type: str
           required: false
 """

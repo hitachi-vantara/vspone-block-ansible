@@ -72,7 +72,7 @@ options:
         elements: str
       capacity_saving:
         type: str
-        description: Settings of the data reduction function for volumes. Choices are 'Disabled', 'Compression'.
+        description: Settings of the data reduction function for volumes. Choices are C(Disabled) and C(Compression).
         required: false
         choices: ['Disabled', 'Compression']
 """
@@ -81,7 +81,7 @@ EXAMPLES = """
 - name: Get volumes by default count
   hv_sds_block_volume_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -89,7 +89,7 @@ EXAMPLES = """
 - name: Get volumes by count
   hv_sds_block_volume_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -100,7 +100,7 @@ EXAMPLES = """
 - name: Get volumes by names
   hv_sds_block_volume_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -111,7 +111,7 @@ EXAMPLES = """
 - name: Get volumes by other filters
   hv_sds_block_volume_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"

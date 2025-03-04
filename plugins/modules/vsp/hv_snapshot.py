@@ -15,10 +15,10 @@ short_description: Manages snapshots on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, deletion, splitting, syncing, and restoring of snapshots on Hitachi VSP storage systems.
   - It supports various snapshot operations based on the specified task level.
-  - This module is supported for both direct and gateway connection types.
-  - For direct connection type examples, go to URL
+  - This module is supported for both C(direct) and C(gateway) connection types.
+  - For C(direct) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snapshot.yml)
-  - For gateway connection type examples, go to URL
+  - For C(gateway) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/snapshot.yml)
 version_added: '3.0.0'
 author:
@@ -51,15 +51,16 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway) ) or the storage system (if connection_type is C(direct) .)
+        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway) ) or
+          the storage system (if connection_type is C(direct) .)
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -69,11 +70,11 @@ options:
         choices: ['direct', 'gateway']
         default: 'direct'
       api_token:
-        description: API token for authentication.This is a required field for gateway connection type.
+        description: API token for authentication. This is a required field for C(gateway) connection type.
         type: str
         required: false
       subscriber_id:
-        description: This field is valid for gateway connection type only.This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
   spec:

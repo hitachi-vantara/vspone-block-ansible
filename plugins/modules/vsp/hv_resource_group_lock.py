@@ -14,10 +14,10 @@ module: hv_resource_group_lock
 short_description: Allows the locking and unlocking of resource groups on Hitachi VSP storage systems.
 description:
     - This module allows the locking and unlocking of resource groups on Hitachi VSP storage systems.
-    - This module is supported for both direct and gateway connection types.
-    - For direct connection type examples, go to URL
+    - This module is supported for both C(direct) and C(gateway) connection types.
+    - For C(direct) connection type examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/resource_management_with_lock/vsp_direct)
-    - For gateway connection type examples, go to URL
+    - For C(gateway) connection type examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/resource_management_with_lock/vsp_uai_gateway)
 version_added: '3.2.0'
 author:
@@ -54,33 +54,38 @@ options:
         required: true
         suboptions:
             address:
-                description: IP address or hostname of either the UAI gateway (if connection_type is gateway)
-                  or the storage system (if connection_type is direct).
+                description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway))
+                  or the storage system (if connection_type is C(direct)).
                 type: str
                 required: true
             username:
-                description: Username for authentication. Required if connection_type is direct and api_token is not provided.
+                description: Username for authentication. Required if connection_type is C(direct) and api_token is not provided.
                 type: str
                 required: false
             password:
-                description: Password for authentication. Required if connection_type is direct and api_token is not provided.
+                description: Password for authentication. Required if connection_type is C(direct) and api_token is not provided.
                 type: str
                 required: false
             api_token:
                 description: >
-                    Provide api_token for gateway connection type. For direction connection type, this token is required
+                    Provide api_token for C(gateway) connection type. For C(direct)ion connection type, this token is required
                     while working on locked resources. Proivde the lock_token value returned by lock resource group task.
                 type: str
                 required: false
             connection_type:
-                description: Type of connection to the storage system. Two types of connections are supported, direct and gateway.
+                description: Type of connection to the storage system. Two types of connections are supported, C(direct) and C(gateway).
                 type: str
                 required: false
                 choices: ['direct', 'gateway']
                 default: 'direct'
+            subscriber_id:
+                description: This field is valid for C(gateway) connection type only. This is an optional field and only
+                    needed to support multi-tenancy environment. Not needed for this module.
+                type: str
+                required: false
 
     secondary_connection_info:
-        description: Information required to establish a connection to the remote storage system. This is required for direct connection only.
+        description: Information required to establish a connection to the remote storage system. This is required for C(direct) connection only.
         type: dict
         required: false
         suboptions:
@@ -89,11 +94,11 @@ options:
                 type: str
                 required: true
             username:
-                description: Username for authentication. Required if connection_type is direct and api_token is not provided.
+                description: Username for authentication. Required if connection_type is C(direct) and api_token is not provided.
                 type: str
                 required: false
             password:
-                description: Password for authentication. Required if connection_type is direct and api_token is not provided.
+                description: Password for authentication. Required if connection_type is C(direct) and api_token is not provided.
                 type: str
                 required: false
             api_token:
@@ -110,15 +115,15 @@ options:
             lock_timeout_sec:
                 description: >
                     The time that elapses before a lock timeout (in seconds). Specify a value from 0 to 7200.
-                    Default is 0. Valid for direct connection only.
+                    Default is 0. Valid for C(direct) connection only.
                 type: int
                 required: false
             name:
-                description: The name of the specific resource group to lock. Valid for gateway connection only.
+                description: The name of the specific resource group to lock. Valid for C(gateway) connection only.
                 type: str
                 required: false
             id:
-                description: The id of the specific resource group to lock. Valid for gateway connection only.
+                description: The id of the specific resource group to lock. Valid for C(gateway) connection only.
                 type: int
                 required: false
 """

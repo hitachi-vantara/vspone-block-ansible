@@ -14,15 +14,15 @@ module: hv_truecopy
 short_description: Manages TrueCopy pairs on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, deletion, splitting, re-syncing and resizing of TrueCopy pairs for
-    both direct and gateway connections on Hitachi VSP storage systems.
-  - It also allows swap-splitting and swap-resyncing operations of TrueCopy pairs for direct connection on
-    Hitachi VSP storage systems.
+    both C(direct) and C(gateway) connection types on Hitachi VSP storage systems.
+  - It also allows swap-splitting and swap-resyncing operations of TrueCopy pairs for C(direct) connection type
+    on Hitachi VSP storage systems.
   - It supports various TrueCopy pairs operations based on the specified task level.
-  - This module is supported for both direct and gateway connection types.
-  - swap_split and swap_resync are supported for direct connection type only.
-  - For direct connection type examples, go to URL
+  - This module is supported for both C(direct) and C(gateway) connection types.
+  - swap_split and swap_resync are supported for C(direct) connection type only.
+  - For C(direct) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/truecopy.yml)
-  - For gateway connection type examples, go to URL
+  - For C(gateway) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/truecopy.yml)
 version_added: '3.1.0'
 author:
@@ -37,13 +37,13 @@ options:
   state:
     description:
       - The level of the TrueCopy pairs task.
-      - 'present is used to create or update a TrueCopy pair.'
-      - 'absent is used to delete a TrueCopy pair.'
-      - 'resize is used to increase the size of the volumes of a TrueCopy pair.'
-      - 'resync is used to re-sync a TrueCopy pair.'
-      - 'split is used to split a TrueCopy pair.'
-      - 'swap-split is used to swap-split a TrueCopy pair. (Supported for direct connection only)'
-      - 'swap-resync is used to swap-resync a TrueCopy pair. (Supported for direct connection only)'
+      - C(present) is used to create or update a TrueCopy pair.
+      - C(absent) is used to delete a TrueCopy pair.
+      - C(resize) is used to increase the size of the volumes of a TrueCopy pair.
+      - C(resync) is used to re-sync a TrueCopy pair.
+      - C(split) is used to split a TrueCopy pair.
+      - C(swap-split) is used to swap-split a TrueCopy pair. Supported for C(direct) connection type only.
+      - C(swap-resync) is used to swap-resync a TrueCopy pair. Supported for C(direct) connection only.
     type: str
     required: false
     choices: ['present', 'absent', 'resize', 'resync', 'split', 'swap_split', 'swap_resync']
@@ -61,7 +61,8 @@ options:
         required: false
   secondary_connection_info:
     description:
-      - Information required to establish a connection to the secondary storage system. Required for direct connection only. Not needed for gateway connection.
+      - Information required to establish a connection to the secondary storage system.
+        Required for C(direct) connection type only. Not needed for C(gateway) connection type.
     required: false
     type: dict
     suboptions:
@@ -72,12 +73,12 @@ options:
         required: true
       username:
         description:
-          - Username for authentication. This field is valid for direct connection type only, and it is a required field.
+          - Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
         description:
-          - Password for authentication. This field is valid for direct connection type only, and it is a required field.
+          - Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       api_token:
@@ -96,30 +97,30 @@ options:
         required: true
       username:
         description:
-          - Username for authentication. Required for direct connection. Not needed for gateway connection as it uses API token.
+          - Username for authentication. Required for C(direct) connection type. Not needed for C(gateway) connection type as it uses API token.
         type: str
         required: false
       password:
         description:
-          - Password for authentication. Required for direct connection. Not needed for gateway connection as it uses API token.
+          - Password for authentication. Required for C(direct) connection. Not needed for C(gateway) connection type as it uses API token.
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system. Two types of connections are supported, 'direct' and 'gateway'.
+        description: Type of connection to the storage system. Two types of connections are supported, C(direct) and C(gateway).
         type: str
         required: false
         choices: ['direct', 'gateway']
         default: 'direct'
       subscriber_id:
         description: >
-          Subscriber ID is required for gateway connection type to support multi-tenancy. Not needed for direct connection or
-          for gateway connection with single tenant.
+          Subscriber ID is required for C(gateway) connection type to support multi-tenancy. Not needed for C(direct) connection type
+          or for C(gateway) connection type with single tenant.
         type: str
         required: false
       api_token:
         description:
-          Token value to access UAI gateway for gateway connection. This is a required field for gateway connection type.
-          This fieild is used for direct connection type to pass the value of the lock token to operate on locked resources.
+          Token value to access UAI gateway for C(gateway) connection type. This is a required field for C(gateway) connection type.
+          This fieild is used for C(direct) connection type to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
   spec:
@@ -129,38 +130,39 @@ options:
     suboptions:
       copy_group_name:
         description: >
-          Name of the copy group. This field is used only for direct connection. This is a required field for create operation.
+          Name of the copy group. This field is used only for C(direct) connection type. This is a required field for create operation.
           For other operations, this field is optional, but when provided, the time to complete the operation is faster.
         type: str
         required: false
       copy_pair_name:
         description: >
-          Name of the copy pair. This field is used only for direct connection. This is a required field for create operation.
+          Name of the copy pair. This field is used only for C(direct) connection type. This is a required field for create operation.
           For other operations, this field is optional, but when provided, the time to complete the operation is faster.
         type: str
         required: false
       remote_device_group_name:
-        description: Name of the remote device group. This field is used only for direct connection. This is an optional field.
+        description: Name of the remote device group. This field is used only for C(direct) connection type. This is an optional field.
         type: str
         required: false
       local_device_group_name:
-        description: Name of the local device group. This field is used only for direct connection. This is an optional field.
+        description: Name of the local device group. This field is used only for C(direct) connection type. This is an optional field.
         type: str
         required: false
       primary_volume_id:
         description:
-          - Primary volume ID. This is a required field for create operation for both direct and gateway connections.
+          - Primary volume ID. This is a required field for create operation for both C(direct) and C(gateway) connection types.
         type: int
         required: false
       consistency_group_id:
         description:
-          - Consistency Group ID, 0 to 255. This is an optional field for both direct and gateway connections.
+          - Consistency Group ID, 0 to 255. This is an optional field for both C(direct) and C(gateway) connection types.
         type: int
         required: false
       fence_level:
         description:
           - Specifies the primary volume fence level setting and determines if the host is denied access or continues to access
-            the primary volume when the pair is suspended because of an error. This is an optional field for both direct and gateway connections.
+            the primary volume when the pair is suspended because of an error. This is an optional field for both C(direct) and C(gateway)
+            connection types.
         type: str
         required: false
         choices: ['NEVER', 'DATA', 'STATUS']
@@ -168,18 +170,19 @@ options:
       allocate_new_consistency_group:
         description: >
           Allocate and assign a new consistency group ID, cannot be true if consistency_group_id is specified.
-          This is used only for gateway connection and is an optional field.
+          This is used only for C(gateway) connection type and is an optional field.
         type: bool
         required: false
         default: false
       secondary_storage_serial_number:
         description:
-          - Secondary storage serial number. This is used only for gateway connection and required for create.
+          - Secondary storage serial number. This is used only for C(gateway) connection type and required for create.
         type: int
         required: false
       secondary_pool_id:
         description:
-          - ID of the dynamic pool where the secondary volume will be created. This is required for create operation for both direct and gateway connections.
+          - ID of the dynamic pool where the secondary volume will be created. This is required for create operation
+            for both C(direct) and C(gateway) connection types.
         type: int
         required: false
       copy_pace:
@@ -199,42 +202,44 @@ options:
         suboptions:
           name:
             description:
-              - Name of the host group on the secondary storage system. This is required for create operation for both direct and gateway connections.
+              - Name of the host group on the secondary storage system. This is required for create operation for
+                both C(direct) and C(gateway) connection types.
             type: str
             required: true
           port:
             description:
-              - Port of the host group on the secondary storage system. This is required for create operation for both direct and gateway connections.
+              - Port of the host group on the secondary storage system. This is required for create operation for
+                both C(direct) and C(gateway) connection types.
             type: str
             required: true
       do_initial_copy:
         description:
-          - Perform initial copy. This is used only for direct connection and is an optional field during create operation.
+          - Perform initial copy. This is used only for C(direct) connection type and is an optional field during create operation.
         type: bool
         required: false
         default: true
       is_data_reduction_force_copy:
         description:
-          - Force copy for data reduction. This is used for both direct and gateway connections and is an optional field during create operation.
+          - Force copy for data reduction. This is used for both C(direct) and C(gateway) connection types and is an optional field during create operation.
         type: bool
         required: false
         default: false
       is_new_group_creation:
         description:
-          - Create a new copy group. This is used only for direct connection and is an optional field during create operation.
+          - Create a new copy group. This is used only for C(direct) connection type and is an optional field during create operation.
         type: bool
         required: false
         default: false
       path_group_id:
         description: >
-          This is used only for direct connection and is an optional field during create operation.
+          This is used only for C(direct) connection type and is an optional field during create operation.
           Specify the path group ID in the range from 0 to 255. If you are unsure don't use this parameter.
           If you omit this value or specify 0, the lowest path group ID in the specified path group is used.
         type: int
         required: false
       new_volume_size:
         description:
-          - Required only for resize operation for both direct and gateway connections. Value should be grater than the current volume size.
+          - Required only for resize operation for both C(direct) and C(gateway) connections types. Value should be grater than the current volume size.
         type: str
         required: false
       secondary_volume_id:
@@ -243,7 +248,7 @@ options:
         required: false
       is_consistency_group:
         description: >
-          This is used only for direct connection and is an optional field during create operation.
+          This is used only for C(direct) connection type and is an optional field during create operation.
           Depending on the value, this attribute specifies whether to register the new pair in a consistency group.
           If true, the new pair is registered in a consistency group. If false, the new pair is not registered in a consistency group.
         type: bool
@@ -251,14 +256,14 @@ options:
         default: false
       begin_secondary_volume_id:
         description: >
-          Specify beginning ldev id for Ldev range for svol. This is used only for gateway connection and is an optional field during
+          Specify beginning ldev id for Ldev range for svol. This is used only for C(gateway) connection type and is an optional field during
           create operation. If this field is specified, end_secondary_volume_id must also be specified.
           If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
         required: false
         type: int
       end_secondary_volume_id:
         description: >
-          Specify end ldev id for Ldev range for svol. This is used only for gateway connection and is an optional field during create operation.
+          Specify end ldev id for Ldev range for svol. This is used only for C(gateway) connection type and is an optional field during create operation.
           If this field is specified, begin_secondary_volume_id must also be specified.
           If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
         required: false

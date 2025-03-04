@@ -28,7 +28,7 @@ attributes:
     support: full
 options:
   state:
-    description: The level of the CHAP user task. Choices are 'present', 'absent'.
+    description: The level of the CHAP user task. Choices are C(present) and C(absent).
     type: str
     required: false
     choices: ['present', 'absent']
@@ -88,7 +88,7 @@ EXAMPLES = """
   hv_sds_block_chap_user:
     state: present
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -102,7 +102,7 @@ EXAMPLES = """
   hv_sds_block_chap_user:
     state: present
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -113,7 +113,7 @@ EXAMPLES = """
   hv_sds_block_chap_user:
     state:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -125,7 +125,7 @@ EXAMPLES = """
   hv_sds_block_chap_user:
     state:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       api_token: "api_token_value"
       connection_type: "direct"
     spec:
@@ -135,7 +135,7 @@ EXAMPLES = """
 """
 
 RETURN = r"""
-ansible_facts:
+chap_users:
   description: >
     Dictionary containing the discovered properties of the CHAP users.
   returned: always

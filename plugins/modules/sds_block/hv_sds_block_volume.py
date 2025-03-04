@@ -28,7 +28,7 @@ attributes:
     support: full
 options:
   state:
-    description: The level of the volume task. Choices are 'present', 'absent'.
+    description: The level of the volume task. Choices are C(present) and C(absent).
     type: str
     required: false
     choices: ['present', 'absent']
@@ -78,7 +78,7 @@ options:
         type: str
         required: false
       capacity_saving:
-        description: Settings of the data reduction function. Disabled or  Compression.
+        description: Settings of the data reduction function. C(Disabled) or  C(Compression).
         type: str
         required: false
       pool_name:
@@ -86,7 +86,7 @@ options:
         type: str
         required: false
       state:
-        description: The state of the volume task. Choices are 'add_compute_node', 'remove_compute_node'.
+        description: The state of the volume task. Choices are C(add_compute_node), C(remove_compute_node).
         type: str
         required: false
         choices: ['add_compute_node', 'remove_compute_node']
@@ -120,7 +120,7 @@ EXAMPLES = """
   hv_sds_block_volume:
     state: present
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
     spec:
@@ -133,7 +133,7 @@ EXAMPLES = """
   hv_sds_block_volume:
     state: present
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
     spec:
@@ -150,7 +150,7 @@ EXAMPLES = """
   hv_sds_block_volume:
     state: absent
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
     spec:
@@ -160,7 +160,7 @@ EXAMPLES = """
   hv_sds_block_volume:
     state: absent
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -171,7 +171,7 @@ EXAMPLES = """
   hv_sds_block_volume:
     state: present
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
     spec:
@@ -182,7 +182,7 @@ EXAMPLES = """
   hv_sds_block_volume:
     state: present
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
     spec:
@@ -193,7 +193,7 @@ EXAMPLES = """
   hv_sds_block_volume:
     state: present
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
     spec:
@@ -207,7 +207,7 @@ EXAMPLES = """
   hv_sds_block_volume:
     state: present
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
     spec:
@@ -219,7 +219,7 @@ EXAMPLES = """
   hv_sds_block_volume:
     state: present
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -232,7 +232,7 @@ EXAMPLES = """
   hv_sds_block_volume:
     state: present
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
     spec:

@@ -14,7 +14,7 @@ module: hv_storagesystem
 short_description: Manages Hitachi VSP storage systems.
 description:
   - This module manages Hitachi VSP storage systems.
-  - This module is supported only for gateway connection type.
+  - This module is supported only for C(gateway) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/storagesystem.yml)
 version_added: '3.0.0'
@@ -48,11 +48,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: true
       password:
-        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: true
       remote_gateway_address:
@@ -70,13 +70,13 @@ options:
         required: true
       username:
         description:
-          Username for authentication. This field is valid for direct connection type only, and it is a required field.
+          Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
           Not needed for this module.
         type: str
         required: false
       password:
         description:
-          Password for authentication. This field is valid for direct connection type only, and it is a required field.
+          Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
           Not needed for this module.
         type: str
         required: false
@@ -86,11 +86,11 @@ options:
         required: True
         choices: ['gateway']
       subscriber_id:
-        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway. This is a required field for gateway connection type.
+        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
         type: str
         required: false
 """

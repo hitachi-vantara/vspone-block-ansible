@@ -67,7 +67,7 @@ EXAMPLES = """
 - name: Retrieve information about all VPS
   hv_sds_block_vps_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -75,7 +75,7 @@ EXAMPLES = """
 - name: Retrieve information about a specific VPS by ID
   hv_sds_block_vps_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
@@ -86,7 +86,7 @@ EXAMPLES = """
 - name: Retrieve information about a specific VPS user by name
   hv_sds_block_vps_facts:
     connection_info:
-      address: vssb.company.com
+      address: sdsb.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"

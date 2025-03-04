@@ -13,8 +13,8 @@ DOCUMENTATION = """
 module: hv_paritygroup
 short_description: Create, delete parity group from Hitachi VSP storage systems.
 description:
-  - This module creates, delete parity group from Hitachi VSP storage systems. This is only supported for direct connection.
-  - This module is supported only for direct connection to the storage system.
+  - This module creates, delete parity group from Hitachi VSP storage systems.
+  - This module is supported only for C(direct) connection to the storage system.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/paritygroup.yml)
 version_added: '3.2.0'
@@ -39,7 +39,7 @@ options:
         type: str
         required: false
   state:
-    description: The level of the HUR pairs task. Choices are 'present', 'absent', 'update'.
+    description: The level of the HUR pairs task. Choices are C(present), C(absent), 'update'.
     type: str
     required: false
     choices: ['present', 'absent', 'update']
@@ -50,23 +50,33 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
+          the storage system (if connection_type is C(direct)).
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system, Only direct connection is supported.
+        description: Type of connection to the storage system, Only C(direct) connection is supported.
         type: str
         required: false
         choices: ['gateway', 'direct']
         default: 'direct'
+      api_token:
+          description: api_token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
+          type: str
+          required: false
+      subscriber_id:
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
+          Not needed for this module.
+        type: str
+        required: false
   spec:
     description:
       - Specification for the parity group facts to be gathered.

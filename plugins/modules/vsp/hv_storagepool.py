@@ -14,10 +14,10 @@ module: hv_storagepool
 short_description: Manage storage pool information on Hitachi VSP storage systems.
 description:
   - Create, update, or delete storage pool information on Hitachi VSP storage systems.
-  - This module is supported for both direct and gateway connection types.
-  - For direct connection type examples, go to URL
+  - This module is supported for both C(direct) and C(gateway) connection types.
+  - For C(direct) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storagepool.yml)
-  - For gateway connection type examples, go to URL
+  - For C(gateway) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/storagepool.yml)
 version_added: '3.1.0'
 author:
@@ -60,12 +60,12 @@ options:
         required: true
       username:
         description:
-          - Username for authentication. This field is valid for direct connection type only, and it is a required field.
+          - Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
         description:
-          - Password for authentication. This field is valid for direct connection type only, and it is a required field.
+          - Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -77,12 +77,12 @@ options:
         default: 'direct'
       subscriber_id:
         description:
-          - This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
+          - This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
         description:
-          - Token to access UAI gateway. This is a required field for gateway connection type.
+          - Token to access UAI gateway. This is a required field for C(gateway) connection type.
         type: str
         required: false
   spec:

@@ -14,7 +14,7 @@ short_description: Retrieves information about subscriber on Hitachi VSP storage
 description:
   - This module retrieves information about subscriber.
   - It provides details about a subscriber such as name, ID and other relevant information.
-  - This module is supported only for gateway connection type.
+  - This module is supported only for C(gateway) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/subscriber_facts.yml)
 version_added: '3.0.0'
@@ -60,7 +60,7 @@ options:
     suboptions:
       subscriber_id:
         type: str
-        description: ID of the specific subscriber to retrieve information for (Works only for gateway connection type).
+        description: ID of the specific subscriber to retrieve information for. Works for C(gateway) connection type only.
         required: false
 """
 

@@ -13,7 +13,7 @@ module: hv_system_facts
 short_description: Retrieves system information from Hitachi VSP storage systems.
 description:
   - This module retrieves the system information from Hitachi VSP storage systems.
-  - This module is supported only for gateway connection type.
+  - This module is supported only for C(gateway) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/system_facts.yml)
 version_added: '3.0.0'
@@ -39,13 +39,13 @@ options:
         required: true
       username:
         description:
-          Username for authentication. This field is valid for direct connection type only, and it is a required field.
+          Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
           Not needed for this module.
         type: str
         required: false
       password:
         description:
-          Password for authentication. This field is valid for direct connection type only, and it is a required field.
+          Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
           Not needed for this module.
         type: str
         required: false
@@ -59,12 +59,12 @@ options:
         default: gateway
       api_token:
         description:
-          - Token value to access UAI gateway. This is a required field for gateway connection type.
+          - Token value to access UAI gateway. This is a required field for C(gateway) connection type.
         type: str
         required: false
       subscriber_id:
         description:
-          - This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
+          - This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
   spec:
@@ -82,8 +82,7 @@ options:
 """
 
 EXAMPLES = """
--
-  name: Get all storage systems
+- name: Get all storage systems
   tasks:
     - hv_system_facts:
         connection_info:

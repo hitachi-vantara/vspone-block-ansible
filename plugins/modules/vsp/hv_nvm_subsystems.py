@@ -13,7 +13,7 @@ module: hv_nvm_subsystems
 short_description: Manages NVM subsystems on Hitachi VSP storage systems.
 description:
   - This module allows creation, deletion, and other operations on NVM subsystems on Hitachi VSP storage systems.
-  - This module is supported only for direct connection to the storage system.
+  - This module is supported only for C(direct) connection to the storage system.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/nvm_subsystems.yml)
 version_added: '3.2.0'
@@ -47,19 +47,28 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system. Only direct connection is supported.
+        description: Type of connection to the storage system. Only C(direct) connection is supported.
         type: str
         required: false
         choices: ['direct', 'gateway']
         default: 'direct'
+      api_token:
+          description: api_token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
+          type: str
+          required: false
+      subscriber_id:
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
+          Not needed for this module.
+        type: str
+        required: false
   state:
     description: The desired state of the NVM subsystem.
     type: str

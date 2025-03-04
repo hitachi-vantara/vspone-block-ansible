@@ -14,10 +14,10 @@ module: hv_hg_facts
 short_description: Retrieves host group information from a specified Hitachi VSP storage system.
 description:
   - This module fetches detailed information about host groups configured within a given Hitachi VSP storage system.
-  - This module is supported for both direct and gateway connection types.
-  - For direct connection type examples, go to URL
+  - This module is supported for both C(direct) and C(gateway) connection types.
+  - For C(direct) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/hostgroup_facts.yml)
-  - For gateway connection type examples, go to URL
+  - For C(gateway) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/hostgroup_facts.yml)
 version_added: '3.0.0'
 author:
@@ -45,15 +45,16 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
+          the storage system (if connection_type is C(direct)).
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -63,11 +64,11 @@ options:
         choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description: This field is valid for gateway connection type only. This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
-        description: Token value to access UAI gateway. This is a required field for gateway connection type.
+        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
         type: str
         required: false
   spec:
