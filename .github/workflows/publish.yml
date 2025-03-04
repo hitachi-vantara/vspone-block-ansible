@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Check Last Workflow Status
         id: check-tests
-        uses: octokit/request-action@v4.x
+        uses: octokit/request-action@v2.x
         with:
           route: GET /repos/{owner}/{repo}/actions/runs
         env:
