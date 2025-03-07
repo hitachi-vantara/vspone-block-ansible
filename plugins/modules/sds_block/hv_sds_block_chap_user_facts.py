@@ -67,7 +67,7 @@ options:
 
 EXAMPLES = """
 - name: Retrieve information about all CHAP users
-  hv_sds_block_chap_user_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -75,7 +75,7 @@ EXAMPLES = """
       connection_type: "direct"
 
 - name: Retrieve information about a specific CHAP user by ID
-  hv_sds_block_chap_user_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -85,7 +85,7 @@ EXAMPLES = """
       id: "464e1fd1-9892-4134-866c-6964ce786676"
 
 - name: Retrieve information about a specific CHAP user by name
-  hv_sds_block_chap_user_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"

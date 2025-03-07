@@ -126,7 +126,7 @@ options:
 
 EXAMPLES = """
 - name: Register Remote Storage
-  hv_remote_storage_registration:
+  hitachivantara.vspone_block.vsp.hv_remote_storage_registration:
     connection_info:
       address: 172.0.0.2
       username: "admin"
@@ -141,7 +141,7 @@ EXAMPLES = """
       rest_server_ip: 172.0.0.1
 
 - name: Unregister Remote Storage
-  hv_remote_storage_registration:
+  hitachivantara.vspone_block.vsp.hv_remote_storage_registration:
     connection_info:
       address: 172.0.0.2
       username: "admin"

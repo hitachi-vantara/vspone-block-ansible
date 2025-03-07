@@ -87,7 +87,7 @@ options:
 
 EXAMPLES = """
 - name: Set port authentication mode
-  hv_sds_block_compute_port_authentication:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_compute_port_authentication:
     state: present
     connection_info:
       address: sdsb.company.com

@@ -88,7 +88,7 @@ options:
 EXAMPLES = """
 - name: Get a specific parity group
   tasks:
-    - hv_paritygroup_facts:
+    - hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -99,7 +99,7 @@ EXAMPLES = """
 
 - name: Get all parity groups
   tasks:
-    - hv_paritygroup_facts:
+    - hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
         connection_info:
           address: storage1.company.com
           username: "admin"

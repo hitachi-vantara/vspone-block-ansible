@@ -164,7 +164,7 @@ EXAMPLES = """
 - name: Create an NVM Subsystem
   tasks:
     - name: Create NVM subsystem
-      hv_nvm_subsystems:
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -188,7 +188,7 @@ EXAMPLES = """
 - name: Add host NQNs to an NVM Subsystem with a specific ID
   tasks:
     - name: Add host NQNs
-      hv_nvm_subsystems:
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -204,7 +204,7 @@ EXAMPLES = """
 - name: Remove host NQNs from an NVM Subsystem with a specific ID
   tasks:
     - name: Remove host NQNs
-      hv_nvm_subsystems:
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -220,7 +220,7 @@ EXAMPLES = """
 - name: Delete an NVM Subsystem with a specific Id forcefully
   tasks:
     - name: Delete NVM Subsystem
-      hv_nvm_subsystems:
+      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info:
           address: storage1.company.com
           username: "admin"

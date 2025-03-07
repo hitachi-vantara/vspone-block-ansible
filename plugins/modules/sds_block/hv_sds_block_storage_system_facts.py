@@ -54,7 +54,7 @@ options:
 
 EXAMPLES = """
 - name: Testing Get Storage System
-  hv_sds_block_storage_system_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_storage_system_facts:
       connection_info:
           address: sdsb.company.com
           username: "admin"

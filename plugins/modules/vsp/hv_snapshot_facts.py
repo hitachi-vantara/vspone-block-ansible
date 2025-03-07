@@ -89,7 +89,7 @@ options:
 
 EXAMPLES = """
 - name: Get all snapshot pairs
-  hv_snapshot_facts:
+  hitachivantara.vspone_block.vsp.hv_snapshot_facts:
     storage_system_info:
       serial: '811150'
     connection_info:
@@ -98,7 +98,7 @@ EXAMPLES = """
       api_token: "api_token_value"
 
 - name: Gather snapshot facts with primary volume and mirror unit ID
-  hv_snapshot_facts:
+  hitachivantara.vspone_block.vsp.hv_snapshot_facts:
     storage_system_info:
       serial: '811150'
     connection_info:
@@ -111,7 +111,7 @@ EXAMPLES = """
       mirror_unit_id: 10
 
 - name: Gather snapshot facts with only primary volume
-  hv_snapshot_facts:
+  hitachivantara.vspone_block.vsp.hv_snapshot_facts:
     storage_system_info:
       serial: '811150'
     connection_info:
@@ -123,7 +123,7 @@ EXAMPLES = """
       primary_volume_id: 'volume1'
 
 - name: Gather snapshot facts without specific volume or mirror unit ID
-  hv_snapshot_facts:
+  hitachivantara.vspone_block.vsp.hv_snapshot_facts:
     storage_system_info:
       serial: '811150'
     connection_info:

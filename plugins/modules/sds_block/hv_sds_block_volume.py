@@ -117,7 +117,7 @@ options:
 
 EXAMPLES = """
 - name: Create volume
-  hv_sds_block_volume:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -130,7 +130,7 @@ EXAMPLES = """
       compute_nodes: ["CAPI123678", "ComputeNode-1"]
 
 - name: Create volume with QoS parameters
-  hv_sds_block_volume:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -147,7 +147,7 @@ EXAMPLES = """
       compute_nodes: ["CAPI123678", "ComputeNode-1"]
 
 - name: Delete volume by ID
-  hv_sds_block_volume:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
     state: absent
     connection_info:
       address: sdsb.company.com
@@ -157,7 +157,7 @@ EXAMPLES = """
       id: "df63a5d9-32ea-4ae1-879a-7c23fbc574db"
 
 - name: Delete volume by name
-  hv_sds_block_volume:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
     state: absent
     connection_info:
       address: sdsb.company.com
@@ -168,7 +168,7 @@ EXAMPLES = """
       name: "RD-volume-4"
 
 - name: Expand volume
-  hv_sds_block_volume:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -179,7 +179,7 @@ EXAMPLES = """
       capacity: 202
 
 - name: Update volume nickname
-  hv_sds_block_volume:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -190,7 +190,7 @@ EXAMPLES = """
       nickname: "RD-volume-0004"
 
 - name: Update volume QoS parameters
-  hv_sds_block_volume:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -204,7 +204,7 @@ EXAMPLES = """
         upper_alert_allowable_time_in_sec: 100
 
 - name: Update volume name
-  hv_sds_block_volume:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -216,7 +216,7 @@ EXAMPLES = """
       nickname: "RD-volume-0004"
 
 - name: Remove compute node
-  hv_sds_block_volume:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -229,7 +229,7 @@ EXAMPLES = """
       compute_nodes: ["ComputeNode-1"]
 
 - name: Add compute node
-  hv_sds_block_volume:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
     state: present
     connection_info:
       address: sdsb.company.com

@@ -88,7 +88,7 @@ options:
 EXAMPLES = """
 - name: Get all pools
   tasks:
-    - hv_storagepool_facts:
+    - hitachivantara.vspone_block.vsp.hv_storagepool_facts:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -97,7 +97,7 @@ EXAMPLES = """
 
 - name: Get all pools using UAI gateway
   tasks:
-    - hv_storagepool_facts:
+    - hitachivantara.vspone_block.vsp.hv_storagepool_facts:
         connection_info:
           address: storage1.company.com
           api_token: "api_token"
@@ -105,7 +105,7 @@ EXAMPLES = """
 
 - name: Get a specific pool
   tasks:
-    - hv_storagepool_facts:
+    - hitachivantara.vspone_block.vsp.hv_storagepool_facts:
         connection_info:
           address: storage1.company.com
           username: "admin"

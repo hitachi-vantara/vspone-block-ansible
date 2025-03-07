@@ -79,7 +79,7 @@ options:
 
 EXAMPLES = """
 - name: Get volumes by default count
-  hv_sds_block_volume_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -87,7 +87,7 @@ EXAMPLES = """
       connection_type: "direct"
 
 - name: Get volumes by count
-  hv_sds_block_volume_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -98,7 +98,7 @@ EXAMPLES = """
       count: 200
 
 - name: Get volumes by names
-  hv_sds_block_volume_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -109,7 +109,7 @@ EXAMPLES = """
       names: ['test-volume1', 'test-volume2']
 
 - name: Get volumes by other filters
-  hv_sds_block_volume_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_volume_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"

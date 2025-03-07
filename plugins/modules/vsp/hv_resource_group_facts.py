@@ -112,7 +112,7 @@ EXAMPLES = """
 - name: Get all Resource Groups
   tasks:
     - name: Get all resource groups
-      hv_resource_group_facts:
+      hitachivantara.vspone_block.vsp.hv_resource_group_facts:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -121,7 +121,7 @@ EXAMPLES = """
 - name: Get Resource Group by name
   tasks:
     - name: Get resource group by name
-      hv_resource_group_facts:
+      hitachivantara.vspone_block.vsp.hv_resource_group_facts:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -132,7 +132,7 @@ EXAMPLES = """
 - name: Get information about the Resource Groups specified in the query
   tasks:
     - name: Get resource group information by query
-      hv_resource_group_facts:
+      hitachivantara.vspone_block.vsp.hv_resource_group_facts:
         connection_info:
           address: storage1.company.com
           username: "admin"

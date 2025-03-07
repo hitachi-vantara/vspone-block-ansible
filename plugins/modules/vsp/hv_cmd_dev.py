@@ -97,7 +97,7 @@ options:
 
 EXAMPLES = """
 - name: Enable a Command Device
-  hv_cmd_dev:
+  hitachivantara.vspone_block.vsp.hv_cmd_dev:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -109,7 +109,7 @@ EXAMPLES = """
       is_device_group_definition_enabled: false
 
 - name: Update the settings of a Command Device
-  hv_cmd_dev:
+  hitachivantara.vspone_block.vsp.hv_cmd_dev:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -121,7 +121,7 @@ EXAMPLES = """
       is_device_group_definition_enabled: true
 
 - name: Disable a Command Device
-  hv_cmd_dev:
+  hitachivantara.vspone_block.vsp.hv_cmd_dev:
     connection_info:
       address: storage1.company.com
       username: "admin"

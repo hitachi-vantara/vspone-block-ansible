@@ -84,7 +84,7 @@ options:
 EXAMPLES = """
 - name: Get all storage systems
   tasks:
-    - hv_system_facts:
+    - hitachivantara.vspone_block.vsp.hv_system_facts:
         connection_info:
           address: gateway.company.com
           username: "ucpa"

@@ -95,7 +95,7 @@ options:
 
 EXAMPLES = """
 - name: Create a subscriber
-  hv_gateway_subscriber:
+  hitachivantara.vspone_block.vsp.hv_gateway_subscriber:
     state: present
     connection_info:
       address: gateway.company.com
@@ -109,7 +109,7 @@ EXAMPLES = """
       quota_limit: "20"
 
 - name: Delete a subscriber
-  hv_gateway_subscriber:
+  hitachivantara.vspone_block.vsp.hv_gateway_subscriber:
     state: absent
     connection_info:
       address: gateway.company.com
@@ -119,7 +119,7 @@ EXAMPLES = """
       subscriber_id: "811150"
 
 - name: Update a subscriber
-  hv_gateway_subscriber:
+  hitachivantara.vspone_block.vsp.hv_gateway_subscriber:
     state: present
     connection_info:
       address: gateway.company.com

@@ -170,7 +170,7 @@ options:
 EXAMPLES = """
 - name: Create Storage Pool
   tasks:
-    - hv_storagepool:
+    - hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info:
           address: storage1.company.com
           api_token: "api_token"
@@ -191,7 +191,7 @@ EXAMPLES = """
 
 - name: Create Storage Pool using  direct connection
   tasks:
-    - hv_storagepool:
+    - hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info:
           address: storage1.company.com
           username: "gateway"
@@ -212,7 +212,7 @@ EXAMPLES = """
 
 - name: Expand Storage Pool
   tasks:
-    - hv_storagepool:
+    - hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info:
           address: storage1.company.com
           api_token: "api_token"
@@ -231,7 +231,7 @@ EXAMPLES = """
 
 - name: Delete Storage Pool
   tasks:
-    - hv_storagepool:
+    - hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info:
           address: storage1.company.com
           api_token: "api_token"

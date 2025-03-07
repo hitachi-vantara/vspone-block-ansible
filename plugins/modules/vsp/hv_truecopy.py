@@ -272,7 +272,7 @@ options:
 
 EXAMPLES = """
 - name: Create a TrueCopy pair for gateway connection
-  hv_truecopy:
+  hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "present"
     storage_system_info:
       serial: 811150
@@ -290,7 +290,7 @@ EXAMPLES = """
       secondary_pool_id: 1
 
 - name: Split a TrueCopy pair for gateway connection
-  hv_truecopy:
+  hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "split"
     storage_system_info:
       serial: 811150
@@ -303,7 +303,7 @@ EXAMPLES = """
       primary_volume_id: 11
 
 - name: Resync a TrueCopy pair for gateway connection
-  hv_truecopy:
+  hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "resync"
     storage_system_info:
       serial: 811150
@@ -316,7 +316,7 @@ EXAMPLES = """
       primary_volume_id: 11
 
 - name: Delete a TrueCopy pair for gateway connection
-  hv_truecopy:
+  hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "absent"
     storage_system_info:
       serial: 811150
@@ -329,7 +329,7 @@ EXAMPLES = """
       primary_volume_id: 11
 
 - name: Create a TrueCopy pair for direct connection
-  hv_truecopy:
+  hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "present"
     storage_system_info:
       serial: 811150
@@ -353,7 +353,7 @@ EXAMPLES = """
         port: CL1-A
 
 - name: Split a TrueCopy pair for direct connection
-  hv_truecopy:
+  hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "split"
     storage_system_info:
       serial: 811150
@@ -370,7 +370,7 @@ EXAMPLES = """
       copy_pair_name: "copy_pair_name_1"
 
 - name: Resync a TrueCopy pair for direct connection
-  hv_truecopy:
+  hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "resync"
     storage_system_info:
       serial: 811150
@@ -387,7 +387,7 @@ EXAMPLES = """
       copy_pair_name: "copy_pair_name_1"
 
 - name: Swap-split a TrueCopy pair for direct connection
-  hv_truecopy:
+  hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "swap_split"
     storage_system_info:
       serial: 811150
@@ -404,7 +404,7 @@ EXAMPLES = """
       copy_pair_name: "copy_pair_name_1"
 
 - name: Swap-resync a TrueCopy pair for direct connection
-  hv_truecopy:
+  hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "swap_resync"
     storage_system_info:
       serial: 811150
@@ -421,7 +421,7 @@ EXAMPLES = """
       copy_pair_name: "copy_pair_name_1"
 
 - name: Delete a TrueCopy pair for direct connection
-  hv_truecopy:
+  hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "swap_resync"
     storage_system_info:
       serial: 811150
@@ -438,7 +438,7 @@ EXAMPLES = """
       copy_pair_name: "copy_pair_name_1"
 
 - name: Increase the size of the volumes of a TrueCopy pair for direct connection
-  hv_truecopy:
+  hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "resize"
     storage_system_info:
       serial: 811150

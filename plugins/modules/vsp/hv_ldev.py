@@ -219,7 +219,7 @@ options:
 
 EXAMPLES = """
 - name: Create a new LDEV
-  hv_ldev:
+  hitachivantara.vspone_block.vsp.hv_ldev:
     state: present
     storage_system_info:
       serial: "811150"
@@ -236,7 +236,7 @@ EXAMPLES = """
       data_reduction_share: true
 
 - name: Update an existing LDEV
-  hv_ldev:
+  hitachivantara.vspone_block.vsp.hv_ldev:
     state: present
     storage_system_info:
       serial: "811150"
@@ -251,7 +251,7 @@ EXAMPLES = """
       capacity_saving: "disabled"
 
 - name: Create a new LDEV and assign vLDEV
-  hv_ldev:
+  hitachivantara.vspone_block.vsp.hv_ldev:
     state: present
     storage_system_info:
       serial: "811150"
@@ -269,7 +269,7 @@ EXAMPLES = """
       data_reduction_share: true
 
 - name: Update an existing LDEV with vLDEV
-  hv_ldev:
+  hitachivantara.vspone_block.vsp.hv_ldev:
     state: present
     storage_system_info:
       serial: "811150"
@@ -285,7 +285,7 @@ EXAMPLES = """
       capacity_saving: "disabled"
 
 - name: Create ldev with free id and present to NVM System
-  hv_ldev:
+  hitachivantara.vspone_block.vsp.hv_ldev:
     state: present
     storage_system_info:
       serial: "811150"
@@ -305,7 +305,7 @@ EXAMPLES = """
       host_nqns: ["nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa39"]
 
 - name: Present existing volume to NVM System
-  hv_ldev:
+  hitachivantara.vspone_block.vsp.hv_ldev:
     state: present
     storage_system_info:
       serial: "811150"
@@ -321,7 +321,7 @@ EXAMPLES = """
       host_nqns: ["nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa39"]
 
 - name: Delete a LDEV
-  hv_ldev:
+  hitachivantara.vspone_block.vsp.hv_ldev:
     state: absent
     storage_system_info:
       serial: "811150"
@@ -333,7 +333,7 @@ EXAMPLES = """
     spec:
       ldev_id: 123
 - name: Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
-  hv_ldev:
+  hitachivantara.vspone_block.vsp.hv_ldev:
     state: absent
     storage_system_info:
       serial: "811150"
@@ -347,7 +347,7 @@ EXAMPLES = """
       force: true
 
 - name: Update the qos settings for an existing LDEV
-  hv_ldev:
+  hitachivantara.vspone_block.vsp.hv_ldev:
     state: absent
     storage_system_info:
       serial: "811150"

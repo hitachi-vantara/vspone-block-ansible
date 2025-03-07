@@ -201,7 +201,7 @@ EXAMPLES = """
 - name: Create a Resource Group with virtual storage serial number of VSM
   tasks:
     - name: Create resource group with virtual storage serial number
-      hv_resource_group:
+      hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -214,7 +214,7 @@ EXAMPLES = """
 - name: Get Resource Group by name
   tasks:
     - name: Get resource group by name
-      hv_resource_group:
+      hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -225,7 +225,7 @@ EXAMPLES = """
 - name: Create a Resource Group with LDEVs, parity groups, ports, and host groups
   tasks:
     - name: Create resource group with multiple resources
-      hv_resource_group:
+      hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -245,7 +245,7 @@ EXAMPLES = """
 - name: Add resources to an existing Resource Group by ID
   tasks:
     - name: Add resources to resource group
-      hv_resource_group:
+      hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -266,7 +266,7 @@ EXAMPLES = """
 - name: Remove resources from an existing Resource Group by ID
   tasks:
     - name: Remove resources from resource group
-      hv_resource_group:
+      hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -287,7 +287,7 @@ EXAMPLES = """
 - name: Delete a Resource Group by ID forcefully
   tasks:
     - name: Delete resource group forcefully
-      hv_resource_group:
+      hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info:
           address: storage1.company.com
           username: "admin"

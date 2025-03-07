@@ -88,7 +88,7 @@ options:
 EXAMPLES = """
 - name: Get all NVM subsystems
   tasks:
-    - hv_nvm_subsystems_facts:
+    - hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -97,7 +97,7 @@ EXAMPLES = """
 
 - name: Get a specific NVM subsystem
   tasks:
-    - hv_nvm_subsystems_facts:
+    - hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
         connection_info:
           address: storage1.company.com
           username: "admin"

@@ -76,7 +76,7 @@ options:
 EXAMPLES = """
 
 - name: Retrieve resource information about a specific subscriber
-  hv_gateway_subscription_facts:
+  hitachivantara.vspone_block.vsp.hv_gateway_subscription_facts:
     connection_info:
       address: gateway.company.com
       api_token: "eyJhbGciOiJS......"

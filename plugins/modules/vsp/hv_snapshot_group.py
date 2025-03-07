@@ -92,7 +92,7 @@ options:
 
 EXAMPLES = """
 - name: Split snapshots using snapshot group name
-  hv_snapshot_group:
+  hitachivantara.vspone_block.vsp.hv_snapshot_group:
     storage_system_info:
       serial: '811150'
     connection_info:
@@ -105,7 +105,7 @@ EXAMPLES = """
       snapshot_group_name: 'NewNameSPG'
 
 - name: Restore snapshots using snapshot group name
-  hv_snapshot_group:
+  hitachivantara.vspone_block.vsp.hv_snapshot_group:
     storage_system_info:
       serial: '811150'
     connection_info:
@@ -118,7 +118,7 @@ EXAMPLES = """
       snapshot_group_name: 'NewNameSPG'
 
 - name: Resync snapshots using snapshot group name
-  hv_snapshot_group:
+  hitachivantara.vspone_block.vsp.hv_snapshot_group:
     storage_system_info:
       serial: '811150'
     connection_info:
@@ -131,7 +131,7 @@ EXAMPLES = """
       snapshot_group_name: 'NewNameSPG'
 
 - name: Delete snapshots using snapshot group name
-  hv_snapshot_group:
+  hitachivantara.vspone_block.vsp.hv_snapshot_group:
     storage_system_info:
       serial: '811150'
     connection_info:

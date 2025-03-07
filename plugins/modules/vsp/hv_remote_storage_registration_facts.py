@@ -112,7 +112,7 @@ options:
 
 EXAMPLES = """
 - name: Remote Storage Registration Facts
-  hv_remote_storage_registration_facts:
+  hitachivantara.vspone_block.vsp.hv_remote_storage_registration_facts:
     connection_info:
       address: 172.0.0.2
       username: "admin"

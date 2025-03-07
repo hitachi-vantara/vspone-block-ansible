@@ -148,7 +148,7 @@ DOCUMENTATION = """
 
 EXAMPLES = """
 - name: Get all TrueCopy pairs for direct connection
-  hv_truecopy_facts:
+  hitachivantara.vspone_block.vsp.hv_truecopy_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
@@ -157,7 +157,7 @@ EXAMPLES = """
       password: "password"
 
 - name: Get all TrueCopy pairs for gateway connection for a specific subscriber
-  hv_truecopy_facts:
+  hitachivantara.vspone_block.vsp.hv_truecopy_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
@@ -167,7 +167,7 @@ EXAMPLES = """
       subscriber_id: 12345
 
 - name: Retrieve TrueCopy pair information for a specific volume for direct connection
-  hv_truecopy_facts:
+  hitachivantara.vspone_block.vsp.hv_truecopy_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
@@ -178,7 +178,7 @@ EXAMPLES = """
       primary_volume_id: 123
 
 - name: Retrieve TrueCopy pair information for a specific volume for gateway connection
-  hv_truecopy_facts:
+  hitachivantara.vspone_block.vsp.hv_truecopy_facts:
     storage_system_info:
       serial: "811150"
     connection_info:

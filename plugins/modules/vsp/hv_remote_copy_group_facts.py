@@ -111,14 +111,14 @@ options:
 
 EXAMPLES = """
 - name: Get all Copy Groups for direct connection
-  hv_copy_group_facts:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "password"
 
 - name: Get one Copy Group for direct connection
-  hv_copy_group_facts:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -127,7 +127,7 @@ EXAMPLES = """
       name: "copygroup1"
 
 - name: Get one Copy Group detail for direct connection
-  hv_copy_group_facts:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"

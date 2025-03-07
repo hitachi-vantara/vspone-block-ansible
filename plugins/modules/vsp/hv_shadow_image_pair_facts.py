@@ -84,7 +84,7 @@ options:
 
 EXAMPLES = """
 - name: Retrieve information about all shadow image pairs
-  hv_shadow_image_pair_facts:
+  hitachivantara.vspone_block.vsp.hitachivantara.vspone_block.vsp.hv_shadow_image_pair_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -95,7 +95,7 @@ EXAMPLES = """
       serial: 811150
 
 - name: Retrieve information about a specific shadow image pair
-  hv_shadow_image_pair_facts:
+  hitachivantara.vspone_block.vsp.hitachivantara.vspone_block.vsp.hv_shadow_image_pair_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"

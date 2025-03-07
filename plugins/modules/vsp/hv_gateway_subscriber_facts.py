@@ -66,7 +66,7 @@ options:
 
 EXAMPLES = """
 - name: Retrieve information about all subscribers
-  hv_gateway_subscriber_facts:
+  hitachivantara.vspone_block.vsp.hv_gateway_subscriber_facts:
     connection_info:
       address: gateway.company.com
       api_token: "eyJhbGciOiJS......"
@@ -75,7 +75,7 @@ EXAMPLES = """
       subscriber_id: "811150"
 
 - name: Retrieve information about a specific subscriber
-  hv_gateway_subscriber_facts:
+  hitachivantara.vspone_block.vsp.hv_gateway_subscriber_facts:
     connection_info:
       address: gateway.company.com
       api_token: "eyJhbGciOiJS......"

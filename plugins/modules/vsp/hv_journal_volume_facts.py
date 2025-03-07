@@ -102,7 +102,7 @@ options:
 
 EXAMPLES = """
 - name: Retrieve information about all Journal Volumes
-  hv_journal_volume_facts:
+  hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
     storage_system_info:
       serial: "811150"
     connection_info:

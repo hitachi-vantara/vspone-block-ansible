@@ -96,7 +96,7 @@ options:
 EXAMPLES = """
 - name: Get Storage System without additional information for ports, quorumdisks, journalPools, and freeLogicalUnitList
   tasks:
-    - hv_storagesystem_facts:
+    - hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
         storage_system_info:
           serial: '811150'
         connection_info:
@@ -113,7 +113,7 @@ EXAMPLES = """
       - journalPools
       - freeLogicalUnitList
   tasks:
-    - hv_storagesystem_facts:
+    - hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
         storage_system_info:
           serial: '811150'
         connection_info:

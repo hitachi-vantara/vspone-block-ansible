@@ -68,7 +68,7 @@ options:
 
 EXAMPLES = """
 - name: Retrieve information about all compute nodes
-  hv_sds_block_compute_node_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -76,7 +76,7 @@ EXAMPLES = """
       connection_type: "direct"
 
 - name: Retrieve information about compute nodes by hba_name
-  hv_sds_block_compute_node_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -87,7 +87,7 @@ EXAMPLES = """
       hba_name: 'iqn.1991-05.com.hitachi:test-iscsi-iqn1'
 
 - name: Retrieve information about compute nodes by names
-  hv_sds_block_compute_node_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"

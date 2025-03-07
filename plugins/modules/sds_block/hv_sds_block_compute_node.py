@@ -104,7 +104,7 @@ options:
 
 EXAMPLES = """
 - name: Create compute node
-  hv_sds_block_compute_node:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -117,7 +117,7 @@ EXAMPLES = """
       volumes: ["test-volume1", "test-volume2"]
 
 - name: Delete compute node by ID
-  hv_sds_block_compute_node:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -127,7 +127,7 @@ EXAMPLES = """
       id: "3d971bb3-40fd-4cb5-bf68-2010b30aa74d"
 
 - name: Delete compute node by name
-  hv_sds_block_compute_node:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -138,7 +138,7 @@ EXAMPLES = """
       should_delete_all_volumes: true
 
 - name: Update compute node name
-  hv_sds_block_compute_node:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -150,7 +150,7 @@ EXAMPLES = """
       os_type: "LINUX"
 
 - name: Add iqn initiators to compute node
-  hv_sds_block_compute_node:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -163,7 +163,7 @@ EXAMPLES = """
       iscsi_initiators: ["iqn.1991-05.com.hitachi:test-iscsi-iqn3", "iqn.1991-05.com.hitachi:test-iscsi-iqn4"]
 
 - name: Remove iqn initiators from compute node
-  hv_sds_block_compute_node:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -176,7 +176,7 @@ EXAMPLES = """
       iscsi_initiators: ["iqn.1991-05.com.hitachi:test-iscsi-iqn3", "iqn.1991-05.com.hitachi:test-iscsi-iqn4"]
 
 - name: Attach volumes to compute node
-  hv_sds_block_compute_node:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -188,7 +188,7 @@ EXAMPLES = """
       volumes: ["test-volume3", "test-volume4"]
 
 - name: Detach volumes from compute node
-  hv_sds_block_compute_node:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node:
     state: present
     connection_info:
       address: sdsb.company.com
