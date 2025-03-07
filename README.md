@@ -38,7 +38,7 @@ The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of
 
 ## Changelog
 
-View the changelog [here](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/docs/CHANGELOG.md).
+View the changelog [here](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/changelogs/changelog.yaml).
 
 ## Available Modules
 

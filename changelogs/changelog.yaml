@@ -1,132 +1,103 @@
-changelog:
-  - version: 3.2.0
-    release_date: 2025-02-20
-    new_modules:
-      - hv_cmd_dev
-      - hv_disk_drive_facts
-      - hv_disk_drive
-      - hv_journal_volume_facts
-      - hv_journal_volume
-      - hv_nvm_subsystems
-      - hv_paritygroup
-      - hv_remote_copy_group_facts
-      - hv_remote_copy_group
-      - hv_remote_storage_registration_facts
-      - hv_remote_storage_registration
-      - hv_resource_group_facts
-      - hv_resource_group_lock
-      - hv_resource_group
-      - hv_snapshot_group_facts
-      - hv_snapshot_group
-    enhancements:
-      hv_gad_facts:
-        - Renamed module from hv_gad_fact to hv_gad_facts
-        - Added GAD Pair facts for direct connection type
-      hv_gad:
-        - Added multiple operations for GAD Pair for direct connection type
-        - Increased GAD Pair Volumes size support
-        - SVOL naming enhancements
-      hv_hg:
-        - Added auto-generated name for Create hostgroup task
-      hv_hur_fact:
-        - Added HUR Pair facts for direct connection type
-      hv_hur:
-        - Added multiple operations for HUR Pair for direct connection type
-        - Increased HUR Pair Volumes size support
-      hv_iscsi_target:
-        - Added auto-generated name for Create iSCSI target task
-      hv_ldev_facts:
-        - Added encryption status in LDEV facts
-      hv_ldev:
-        - Added QoS settings and Shredding option
-        - Enhanced LDEV ID settings
-      hv_snapshot:
-        - Enhanced SVOL naming logic
-      hv_storagepool_facts:
-        - Added encryption status
-      hv_system_facts:
-        - Added refresh parameter
-      hv_truecopy_fact:
-        - Added TrueCopy Pair facts for direct connection type
-      hv_truecopy:
-        - Added multiple operations for TrueCopy Pair for direct connection type
-        - Enhanced SVOL ID settings
-      others:
-        - Enhanced log messages
-        - Added warnings for unsupported OOB features
-        - Usage information collection to AWS with user consent
-        - Renamed modules: hv_gateway_subscriber_fact -> hv_gateway_subscriber_facts, hv_uaig_token_fact -> hv_uaig_token_facts
-  - version: 3.1.0
-    release_date: 2024-10-07
-    new_modules:
-      - hv_sds_block_vps_fact
-      - hv_sds_block_vps
-      - hv_gad_fact
-      - hv_gad
-      - hv_gateway_subscription_facts
-      - hv_gateway_unsubscribe_resource
-      - hv_hur_facts
-      - hv_hur
-      - hv_nvm_subsystems_facts
-      - hv_storage_port_facts
-      - hv_storage_port
-      - hv_storagepool
-      - hv_truecopy_facts
-      - hv_truecopy
-    enhancements:
-      hv_sds_block_compute_node:
-        - Manage Compute Node with NVMe-TCP connection
-      hv_sds_block_compute_node_facts:
-        - Get Compute Node with NVMe-TCP details
-      hv_sds_block_volume:
-        - Create and Update Volume with QoS Settings
-      hv_sds_block_volume_facts:
-        - Get NVMe-TCP volume details
-        - Get detailed Compute Node and QoS information
-      others:
-        - Renamed module: hv_lun -> hv_ldev
-        - Updated parameter names: lun -> ldev, pvol -> primary_volume_id, svol -> secondary_volume_id
-      hv_ldev:
-        - Enhanced deletion and provisioning workflows
-      hv_ldev_facts:
-        - Added detailed LDEV information retrieval
-      hv_snapshot:
-        - Enhanced Thin Image creation and management
-  - version: 3.0.1
-    bugfixes:
-      - Fixed multiple session auth issue for direct connect type
-      - Fixed Python older version compatibility issues
-      - Fixed incorrect compute node information retrieval in hv_sds_block_compute_node_facts
-      - Fixed LDEV ID retrieval issue in hv_lun_facts
-  - version: 3.0.0
-    release_date: 2024-06-17
-    new_modules:
-      - hv_sds_block_chap_user_facts
-      - hv_sds_block_chap_user
-      - hv_sds_block_compute_node_facts
-      - hv_sds_block_compute_node
-      - hv_sds_block_compute_port_authentication
-      - hv_sds_block_port_facts
-      - hv_sds_block_storage_system_fact
-      - hv_sds_block_volume_facts
-      - hv_sds_block_volume
-      - hv_gateway_admin_password
-      - hv_gateway_subscriber_fact
-      - hv_gateway_subscriber
-      - hv_hg_facts
-      - hv_hg
-      - hv_iscsi_target_facts
-      - hv_iscsi_target
-      - hv_lun_facts
-      - hv_lun
-      - hv_paritygroup_facts
-      - hv_shadow_image_pair_facts
-      - hv_shadow_image_pair
-      - hv_snapshot_facts
-      - hv_snapshot
-      - hv_storagepool_facts
-      - hv_storagesystem_facts
-      - hv_storagesystem
-      - hv_system_facts
-      - hv_troubleshooting_facts
-      - hv_uaig_token_fact
+ancestor: null
+releases:
+  3.2.0:
+    release_date: '2025-02-20'
+    changes:
+      major_changes:
+        - "Added module hv_cmd_dev"
+        - "Added module hv_disk_drive_facts"
+        - "Added module hv_disk_drive"
+        - "Added module hv_journal_volume_facts"
+        - "Added module hv_journal_volume"
+        - "Added module hv_nvm_subsystems"
+        - "Added module hv_paritygroup"
+        - "Added module hv_remote_copy_group_facts"
+        - "Added module hv_remote_copy_group"
+        - "Added module hv_remote_storage_registration_facts"
+        - "Added module hv_remote_storage_registration"
+        - "Added module hv_resource_group_facts"
+        - "Added module hv_resource_group_lock"
+        - "Added module hv_resource_group"
+        - "Added module hv_snapshot_group_facts"
+        - "Added module hv_snapshot_group"
+      minor_changes:
+        - "hv_gad_facts: Renamed module from hv_gad_fact to hv_gad_facts; Added GAD Pair facts for direct connection type"
+        - "hv_gad: Added multiple operations for GAD Pair for direct connection type; Increased GAD Pair Volumes size support; SVOL naming enhancements"
+        - "hv_hg: Added auto-generated name for Create hostgroup task"
+        - "hv_hur_fact: Added HUR Pair facts for direct connection type"
+        - "hv_hur: Added multiple operations for HUR Pair for direct connection type; Increased HUR Pair Volumes size support"
+        - "hv_iscsi_target: Added auto-generated name for Create iSCSI target task"
+        - "hv_ldev_facts: Added encryption status in LDEV facts"
+        - "hv_ldev: Added QoS settings and Shredding option; Enhanced LDEV ID settings"
+        - "hv_snapshot: Enhanced SVOL naming logic"
+        - "hv_storagepool_facts: Added encryption status"
+        - "hv_system_facts: Added refresh parameter"
+        - "hv_truecopy_fact: Added TrueCopy Pair facts for direct connection type"
+        - "hv_truecopy: Added multiple operations for TrueCopy Pair for direct connection type; Enhanced SVOL ID settings"
+        - "others: Enhanced log messages; Added warnings for unsupported OOB features; Usage information collection to AWS with user consent; Renamed modules: hv_gateway_subscriber_fact -> hv_gateway_subscriber_facts, hv_uaig_token_fact -> hv_uaig_token_facts"
+  3.1.0:
+    release_date: '2024-10-07'
+    changes:
+      major_changes:
+        - "Added module hv_sds_block_vps_fact"
+        - "Added module hv_sds_block_vps"
+        - "Added module hv_gad_fact"
+        - "Added module hv_gad"
+        - "Added module hv_gateway_subscription_facts"
+        - "Added module hv_gateway_unsubscribe_resource"
+        - "Added module hv_hur_facts"
+        - "Added module hv_hur"
+        - "Added module hv_nvm_subsystems_facts"
+        - "Added module hv_storage_port_facts"
+        - "Added module hv_storage_port"
+        - "Added module hv_storagepool"
+        - "Added module hv_truecopy_facts"
+        - "Added module hv_truecopy"
+      minor_changes:
+        - "hv_sds_block_compute_node: Manage Compute Node with NVMe-TCP connection"
+        - "hv_sds_block_compute_node_facts: Get Compute Node with NVMe-TCP details"
+        - "hv_sds_block_volume: Create and Update Volume with QoS Settings"
+        - "hv_sds_block_volume_facts: Get NVMe-TCP volume details; Get detailed Compute Node and QoS information"
+        - "others: Renamed module: hv_lun -> hv_ldev; Updated parameter names: lun -> ldev, pvol -> primary_volume_id, svol -> secondary_volume_id"
+        - "hv_ldev: Enhanced deletion and provisioning workflows"
+        - "hv_ldev_facts: Added detailed LDEV information retrieval"
+        - "hv_snapshot: Enhanced Thin Image creation and management"
+  3.0.1:
+    changes:
+      bugfixes:
+        - "Fixed multiple session auth issue for direct connect type"
+        - "Fixed Python older version compatibility issues"
+        - "Fixed incorrect compute node information retrieval in hv_sds_block_compute_node_facts"
+        - "Fixed LDEV ID retrieval issue in hv_lun_facts"
+  3.0.0:
+    release_date: '2024-06-17'
+    changes:
+      major_changes:
+        - "Added module hv_sds_block_chap_user_facts"
+        - "Added module hv_sds_block_chap_user"
+        - "Added module hv_sds_block_compute_node_facts"
+        - "Added module hv_sds_block_compute_node"
+        - "Added module hv_sds_block_compute_port_authentication"
+        - "Added module hv_sds_block_storage_system_fact"
+        - "Added module hv_sds_block_volume_facts"
+        - "Added module hv_sds_block_volume"
+        - "Added module hv_gateway_admin_password"
+        - "Added module hv_gateway_subscriber_fact"
+        - "Added module hv_gateway_subscriber"
+        - "Added module hv_hg_facts"
+        - "Added module hv_hg"
+        - "Added module hv_iscsi_target_facts"
+        - "Added module hv_iscsi_target"
+        - "Added module hv_lun_facts"
+        - "Added module hv_lun"
+        - "Added module hv_paritygroup_facts"
+        - "Added module hv_shadow_image_pair_facts"
+        - "Added module hv_shadow_image_pair"
+        - "Added module hv_snapshot_facts"
+        - "Added module hv_snapshot"
+        - "Added module hv_storagepool_facts"
+        - "Added module hv_storagesystem_facts"
+        - "Added module hv_storagesystem"
+        - "Added module hv_system_facts"
+        - "Added module hv_troubleshooting_facts"
+        - "Added module hv_uaig_token_fact"
