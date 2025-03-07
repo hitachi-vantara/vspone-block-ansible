@@ -81,7 +81,7 @@ options:
 
 EXAMPLES = """
 - name: Gather snapshot facts with primary volume and mirror unit ID
-  hv_snapshot_group_facts:
+  hitachivantara.vspone_block.vsp.hv_snapshot_group_facts:
     storage_system_info:
       serial: '811150'
     connection_info:

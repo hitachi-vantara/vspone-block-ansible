@@ -65,7 +65,7 @@ options:
 """
 EXAMPLES = """
 - name: Retrieve information about all VPS
-  hv_sds_block_vps_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_vps_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -73,7 +73,7 @@ EXAMPLES = """
       connection_type: "direct"
 
 - name: Retrieve information about a specific VPS by ID
-  hv_sds_block_vps_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_vps_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -84,7 +84,7 @@ EXAMPLES = """
       id: "464e1fd1-9892-4134-866c-6964ce786676"
 
 - name: Retrieve information about a specific VPS user by name
-  hv_sds_block_vps_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_vps_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"

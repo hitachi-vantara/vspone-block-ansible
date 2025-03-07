@@ -13,7 +13,7 @@ DOCUMENTATION = """
 module: hv_iscsi_target
 short_description: Manages iscsi target on Hitachi VSP storage systems.
 description:
-  - The hv_iscsi_target module provides the following iscsi target management operations
+  - The hitachivantara.vspone_block.vsp.hv_iscsi_target module provides the following iscsi target management operations
   - 1. Create iscsi target
   - 2. Update host mode and host mode options
   - 3. Add iqn initiator to iscsi target
@@ -214,7 +214,7 @@ options:
 
 EXAMPLES = """
 - name: Create iscsi target with direct connection
-  hv_iscsi_target:
+  hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
       connection_type: "direct"
       address: storage1.company.com
@@ -234,7 +234,7 @@ EXAMPLES = """
   register: result
 
 - name: Update iscsi target host mode and options
-  hv_iscsi_target:
+  hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
       connection_type: "direct"
       address: storage1.company.com
@@ -249,7 +249,7 @@ EXAMPLES = """
   register: result
 
 - name: Add chap users to iscsi target
-  hv_iscsi_target:
+  hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
       connection_type: "direct"
       address: storage1.company.com
@@ -268,7 +268,7 @@ EXAMPLES = """
   register: result
 
 - name: Remove chap user from iscsi target
-  hv_iscsi_target:
+  hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
       connection_type: "direct"
       address: storage1.company.com
@@ -285,7 +285,7 @@ EXAMPLES = """
   register: result
 
 - name: Add iqn initiators to iscsi target
-  hv_iscsi_target:
+  hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
       connection_type: "direct"
       address: storage1.company.com
@@ -301,7 +301,7 @@ EXAMPLES = """
   register: result
 
 - name: Attach ldevs to iscsi target
-  hv_iscsi_target:
+  hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
       connection_type: "gateway"
       address: gateway.company.com

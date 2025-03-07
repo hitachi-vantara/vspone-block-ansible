@@ -31,8 +31,8 @@ attributes:
 options:
     state:
         description:
-            - set state to I(present) for locking resource group
-            - set state to I(absent) for unlocking resource group
+            - set state to C(present) for locking resource group
+            - set state to C(absent) for unlocking resource group
         type: str
         required: false
         default: "present"
@@ -132,7 +132,7 @@ EXAMPLES = """
 - name: Resource management with Resource Group Lock for direct connection where single storage system is involved
   tasks:
     - name: Lock resource groups
-      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
+      hitachivantara.vspone_block.vsp.hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
         address: storage1.company.com
         username: "admin"
@@ -161,7 +161,7 @@ EXAMPLES = """
         var: create_ldev_result
 
     - name: Unlock the Resource Groups that were locked
-      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
+      hitachivantara.vspone_block.vsp.hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
           address: storage1.company.com
           api_token: api_token_value
@@ -173,7 +173,7 @@ EXAMPLES = """
         var: result
 
     - name: Lock Resource Group by name for gateway connection type
-      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
+      hitachivantara.vspone_block.vsp.hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
             connection_type: gateway
             address: uai_gateway1.company.co
@@ -190,7 +190,7 @@ EXAMPLES = """
         var: lock_resource_group_result
 
     - name: Unlock Resource Group by name for gateway connection type
-      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
+      hitachivantara.vspone_block.vsp.hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
             connection_type: gateway
             address: uai_gateway1.company.co

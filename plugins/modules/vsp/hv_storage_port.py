@@ -92,7 +92,7 @@ EXAMPLES = """
 
 - name: Change the port settings of a port
   tasks:
-    - hv_storage_port:
+    - hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info:
           address: storage1.company.com
           username: "admin"

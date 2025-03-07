@@ -175,7 +175,7 @@ options:
 
 EXAMPLES = """
 - name: Split remote copy group for HUR
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -191,7 +191,7 @@ EXAMPLES = """
       do_data_suspend: false
 
 - name: Resync remote copy group for HUR
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -205,7 +205,7 @@ EXAMPLES = """
       replication_type: hur
 
 - name: Swap split remote copy group for HUR
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -219,7 +219,7 @@ EXAMPLES = """
       replication_type: hur
 
 - name: Swap resync remote copy group for HUR
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -233,7 +233,7 @@ EXAMPLES = """
       replication_type: hur
 
 - name: Delete remote copy group for HUR
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -244,7 +244,7 @@ EXAMPLES = """
       copy_group_name: remote_copy_group_copy_group_name_1
 
 - name: Split remote copy group for TrueCopy
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -260,7 +260,7 @@ EXAMPLES = """
       do_pvol_write_protect: false
 
 - name: Resync remote copy group for TrueCopy
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -278,7 +278,7 @@ EXAMPLES = """
       copy_pace: 3
 
 - name: Swap split remote copy group for TrueCopy
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -292,7 +292,7 @@ EXAMPLES = """
       replication_type: TC
 
 - name: Swap resync remote copy group for TrueCopy
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -306,7 +306,7 @@ EXAMPLES = """
       replication_type: TC
 
 - name: Delete remote copy group for TrueCopy
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -317,7 +317,7 @@ EXAMPLES = """
       copy_group_name: remote_copy_group_copy_group_name_1
 
 - name: Split remote copy group for GAD
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -331,7 +331,7 @@ EXAMPLES = """
       replication_type: GAD
 
 - name: Resync remote copy group for GAD
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -347,7 +347,7 @@ EXAMPLES = """
       consistency_group_id: 47
 
 - name: Swap split remote copy group for GAD
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -361,7 +361,7 @@ EXAMPLES = """
       replication_type: GAD
 
 - name: Swap resync remote copy group for GAD
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -375,7 +375,7 @@ EXAMPLES = """
       replication_type: GAD
 
 - name: Delete remote copy group for GAD
-  hv_remote_copy_group:
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
     connection_info:
       address: storage1.company.com
       username: "admin"

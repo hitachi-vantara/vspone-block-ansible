@@ -268,7 +268,7 @@ options:
 
 EXAMPLES = """
 - name: Create a GAD pair
-  hv_gad:
+  hitachivantara.vspone_block.vsp.hv_gad:
     state: "present"
     storage_system_info:
       serial: 811150
@@ -283,22 +283,18 @@ EXAMPLES = """
       primary_volume_id: 11
       secondary_pool_id: 1
       primary_hostgroups:
-        - id: 1
-          name: "hostgroup1"
-          resource_group_id: 1
+        - name: "hostgroup1"
           port: "port1"
           enable_preferred_path: false
       secondary_hostgroups:
-        - id: 2
-          name: "hostgroup2"
-          resource_group_id: 2
+        - name: "hostgroup2"
           port: "port2"
       primary_resource_group_name: "Sample"
       secondary_resource_group_name: "Sample"
       quorum_disk_id: 1
 
 - name: Split GAD pair
-  hv_gad:
+  hitachivantara.vspone_block.vsp.hv_gad:
     state: "split"
     storage_system_info:
       serial: 811150
@@ -311,7 +307,7 @@ EXAMPLES = """
       primary_volume_id: 11
 
 - name: Resync GAD pair
-  hv_gad:
+  hitachivantara.vspone_block.vsp.hv_gad:
     state: "resync"
     storage_system_info:
       serial: 811150
@@ -324,7 +320,7 @@ EXAMPLES = """
       primary_volume_id: 11
 
 - name: Swap-Split GAD pair for direct connect
-  hv_gad:
+  hitachivantara.vspone_block.vsp.hv_gad:
     state: "swap_split"
     storage_system_info:
       serial: 811150
@@ -340,7 +336,7 @@ EXAMPLES = """
       remote_device_group_name: "gad_remote_device_group_name_8"
 
 - name: Swap-Resync GAD pair for direct connect
-  hv_gad:
+  hitachivantara.vspone_block.vsp.hv_gad:
     state: "swap_resync"
     storage_system_info:
       serial: 811150
@@ -356,7 +352,7 @@ EXAMPLES = """
       remote_device_group_name: "gad_remote_device_group_name_8"
 
 - name: Increase size of volumes of GAD pair for direct connect
-  hv_gad:
+  hitachivantara.vspone_block.vsp.hv_gad:
     state: "resize"
     storage_system_info:
       serial: 811150
@@ -371,7 +367,7 @@ EXAMPLES = """
         new_volume_size: "4GB"
 
 - name: Delete GAD pair
-  hv_gad:
+  hitachivantara.vspone_block.vsp.hv_gad:
     state: "absent"
     storage_system_info:
       serial: 811150

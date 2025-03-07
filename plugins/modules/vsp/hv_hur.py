@@ -237,7 +237,7 @@ options:
 
 EXAMPLES = """
 - name: Create a HUR pair in new copy group
-  hv_hur:
+  hitachivantara.vspone_block.vsp.hv_hur:
     state: "present"
     storage_system_info:
       serial: 811150
@@ -262,7 +262,7 @@ EXAMPLES = """
       mirror_unit_id: 0
 
 - name: Create a HUR pair in existing copy group
-  hv_hur:
+  hitachivantara.vspone_block.vsp.hv_hur:
     state: "present"
     storage_system_info:
       serial: 811150
@@ -282,7 +282,7 @@ EXAMPLES = """
 
 
 - name: Split HUR pair
-  hv_hur:
+  hitachivantara.vspone_block.vsp.hv_hur:
     state: "split"
     storage_system_info:
       serial: 811150
@@ -299,7 +299,7 @@ EXAMPLES = """
       is_svol_readwriteable: true
 
 - name: Resync HUR pair
-  hv_hur:
+  hitachivantara.vspone_block.vsp.hv_hur:
     state: "resync"
     storage_system_info:
       serial: 811150
@@ -315,7 +315,7 @@ EXAMPLES = """
       copy_pair_name: hur_copy_pair_name_3
 
 - name: Delete HUR pair
-  hv_hur:
+  hitachivantara.vspone_block.vsp.hv_hur:
     state: "absent"
     storage_system_info:
       serial: 811150

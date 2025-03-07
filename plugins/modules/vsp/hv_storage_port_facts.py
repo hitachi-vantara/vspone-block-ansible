@@ -83,7 +83,7 @@ options:
 EXAMPLES = """
 - name: Get all ports
   tasks:
-    - hv_storage_port_facts:
+    - hitachivantara.vspone_block.vsp.hv_storage_port_facts:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -92,7 +92,7 @@ EXAMPLES = """
 
 - name: Get a specific port
   tasks:
-    - hv_storage_port_facts:
+    - hitachivantara.vspone_block.vsp.hv_storage_port_facts:
         connection_info:
           address: storage1.company.com
           username: "admin"

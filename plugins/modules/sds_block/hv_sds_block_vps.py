@@ -78,7 +78,7 @@ options:
 
 EXAMPLES = """
 - name: Update VPS Volume ADR setting by VPS Id
-  hv_sds_block_chap_user:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_vps:
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -90,7 +90,7 @@ EXAMPLES = """
       capacity_saving: "Disabled"
 
 - name: Update VPS Volume ADR setting by VPS name
-  hv_sds_block_chap_user_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_vps:
     connection_info:
       address: sdsb.company.com
       username: "admin"

@@ -48,7 +48,7 @@ options:
 
 EXAMPLES = """
 - name: Retrieve information about all subscribers
-  hv_uaig_token_facts:
+  hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
     connection_info:
       address: gateway.company.com
       username: "admin"

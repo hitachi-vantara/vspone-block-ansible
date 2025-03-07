@@ -132,7 +132,7 @@ options:
 
 EXAMPLES = """
 - name: Create a snapshot
-  hv_snapshot:
+  hitachivantara.vspone_block.vsp.hv_snapshot:
     state: present
     storage_system_info:
       serial: "811150"
@@ -147,7 +147,7 @@ EXAMPLES = """
       snapshot_group_name: "snap_group"
 
 - name: Create a thin image advance cascade pair
-  hv_snapshot:
+  hitachivantara.vspone_block.vsp.hv_snapshot:
     state: present
     storage_system_info:
       serial: "811150"
@@ -164,7 +164,7 @@ EXAMPLES = """
       is_data_reduction_force_copy: true
 
 - name: Create a thin image advance clone pair
-  hv_snapshot:
+  hitachivantara.vspone_block.vsp.hv_snapshot:
     state: present
     storage_system_info:
       serial: "811150"
@@ -181,7 +181,7 @@ EXAMPLES = """
       is_data_reduction_force_copy: true
 
 - name: Clone a thin image advance clone pair
-  hv_snapshot:
+  hitachivantara.vspone_block.vsp.hv_snapshot:
     state: clone
     storage_system_info:
       serial: "811150"
@@ -195,7 +195,7 @@ EXAMPLES = """
       mirror_unit: 3
 
 - name: Delete a snapshot
-  hv_snapshot:
+  hitachivantara.vspone_block.vsp.hv_snapshot:
     state: absent
     storage_system_info:
       serial: "811150"
@@ -209,7 +209,7 @@ EXAMPLES = """
       mirror_unit: 10
 
 - name: Split a snapshot
-  hv_snapshot:
+  hitachivantara.vspone_block.vsp.hv_snapshot:
     state: split
     storage_system_info:
       serial: "811150"
@@ -223,7 +223,7 @@ EXAMPLES = """
       mirror_unit: 10
 
 - name: Split a snapshot
-  hv_snapshot:
+  hitachivantara.vspone_block.vsp.hv_snapshot:
     state: split
     storage_system_info:
       serial: "811150"
@@ -236,7 +236,7 @@ EXAMPLES = """
       mirror_unit: 10
 
 - name: Resync a snapshot
-  hv_snapshot:
+  hitachivantara.vspone_block.vsp.hv_snapshot:
     state: resync
     storage_system_info:
       serial: "811150"
@@ -250,7 +250,7 @@ EXAMPLES = """
       mirror_unit: 10
 
 - name: Restore a snapshot
-  hv_snapshot:
+  hitachivantara.vspone_block.vsp.hv_snapshot:
     state: restore
     storage_system_info:
       serial: "811150"

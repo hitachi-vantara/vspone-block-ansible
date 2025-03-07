@@ -125,7 +125,7 @@ options:
 
 EXAMPLES = """
 - name: Create a shadow image pair
-  hv_shadow_image_pair:
+  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     state: "present"
     storage_system_info:
       serial: 811150
@@ -141,7 +141,7 @@ EXAMPLES = """
       copy_pace_track_size: "MEDIUM"
 
 - name: Split shadow image pair
-  hv_shadow_image_pair:
+  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     state: "split"
     storage_system_info:
       serial: 811150
@@ -157,7 +157,7 @@ EXAMPLES = """
       enable_read_write: false
 
 - name: Sync shadow image pair
-  hv_shadow_image_pair:
+  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     state: "sync"
     storage_system_info:
       serial: 811150
@@ -172,7 +172,7 @@ EXAMPLES = """
       enable_quick_mode: true
 
 - name: Create and Auto-Split shadow image pair
-  hv_shadow_image_pair:
+  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     state: "split"
     storage_system_info:
       serial: 811150
@@ -187,7 +187,7 @@ EXAMPLES = """
       copy_pace_track_size: "MEDIUM"
 
 - name: Restore shadow image pair
-  hv_shadow_image_pair:
+  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     state: "restore"
     storage_system_info:
       serial: 811150
@@ -202,7 +202,7 @@ EXAMPLES = """
       enable_quick_mode: true
 
 - name: Delete shadow image pair
-  hv_shadow_image_pair:
+  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     state: "absent"
     storage_system_info:
       serial: 811150

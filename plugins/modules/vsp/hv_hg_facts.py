@@ -101,7 +101,7 @@ options:
 EXAMPLES = """
 - name: Show LDEVs/WWNs for host groups for gateway connection
   tasks:
-    - hv_hg_facts:
+    - hitachivantara.vspone_block.vsp.hv_hg_facts:
         storage_system_info:
           serial: "811150"
         connection_info:
@@ -118,7 +118,7 @@ EXAMPLES = """
 
 - name: Get Host Groups of specific ports for gateway connection
   tasks:
-    - hv_hg_facts:
+    - hitachivantara.vspone_block.vsp.hv_hg_facts:
         storage_system_info:
           serial: "811150"
         connection_info:
@@ -132,7 +132,7 @@ EXAMPLES = """
 
 - name: Get all host groups for direct connection
   tasks:
-    - hv_hg_facts:
+    - hitachivantara.vspone_block.vsp.hv_hg_facts:
         storage_system_info:
           serial: "811150"
         connection_info:
@@ -144,7 +144,7 @@ EXAMPLES = """
 
 - name: Get Host Groups of specific ports for direct connection
   tasks:
-    - hv_hg_facts:
+    - hitachivantara.vspone_block.vsp.hv_hg_facts:
         storage_system_info:
           serial: "811150"
         connection_info:

@@ -133,7 +133,7 @@ options:
 
 EXAMPLES = """
 - name: Get all GAD pairs
-  hv_gad_facts:
+  hitachivantara.vspone_block.vsp.hv_gad_facts:
     state: "present"
     storage_system_info:
       serial: 811150
@@ -143,7 +143,7 @@ EXAMPLES = """
       connection_type: "gateway"
       subscriber_id: 811150
 - name: Get GAD pairs by primary volume id
-  hv_gad_facts:
+  hitachivantara.vspone_block.vsp.hv_gad_facts:
     storage_system_info:
       serial: 811150
     connection_info:

@@ -89,7 +89,7 @@ options:
 
 EXAMPLES = """
 - name: Get all iscsi targets with direct connection
-  hv_iscsi_target_facts:
+  hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       connection_type: "direct"
       address: storage1.example.com
@@ -98,7 +98,7 @@ EXAMPLES = """
   register: result
 
 - name: Get iscsi targets by ports with direct connection
-  hv_iscsi_target_facts:
+  hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       connection_type: "direct"
       address: storage1.example.com
@@ -109,7 +109,7 @@ EXAMPLES = """
   register: result
 
 - name: Get iscsi targets by ports and name with direct connection
-  hv_iscsi_target_facts:
+  hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       connection_type: "direct"
       address: storage1.example.com
@@ -121,7 +121,7 @@ EXAMPLES = """
   register: result
 
 - name: Get all iscsi targets with gateway connection
-  hv_iscsi_target_facts:
+  hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       connection_type: "gateway"
       address: gateway.example.com
@@ -132,7 +132,7 @@ EXAMPLES = """
   register: result
 
 - name: Get iscsi targets by ports with gateway connection
-  hv_iscsi_target_facts:
+  hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       connection_type: "gateway"
       address: gateway.example.com
@@ -145,7 +145,7 @@ EXAMPLES = """
   register: result
 
 - name: Get iscsi targets by ports and name with gateway connection
-  hv_iscsi_target_facts:
+  hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       connection_type: "gateway"
       address: gateway.example.com

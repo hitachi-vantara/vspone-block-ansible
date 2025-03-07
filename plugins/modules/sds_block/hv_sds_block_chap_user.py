@@ -85,7 +85,7 @@ options:
 
 EXAMPLES = """
 - name: Create a CHAP user
-  hv_sds_block_chap_user:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -99,7 +99,7 @@ EXAMPLES = """
       initiator_chap_secret: "chapuser1_secret"
 
 - name: Delete a CHAP user
-  hv_sds_block_chap_user:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user:
     state: present
     connection_info:
       address: sdsb.company.com
@@ -110,7 +110,7 @@ EXAMPLES = """
       id: "464e1fd1-9892-4134-866c-6964ce786676"
 
 - name: Update chap user name
-  hv_sds_block_chap_user:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user:
     state:
     connection_info:
       address: sdsb.company.com
@@ -122,7 +122,7 @@ EXAMPLES = """
       target_chap_user_name: "newchapuser2"
 
 - name: Update chap user secret
-  hv_sds_block_chap_user:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user:
     state:
     connection_info:
       address: sdsb.company.com

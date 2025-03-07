@@ -51,7 +51,7 @@ options:
 
 EXAMPLES = """
 - name: Update password of UAI gateway admin
-  hv_gateway_admin_password:
+  hitachivantara.vspone_block.vsp.hv_gateway_admin_password:
     connection_info:
       uai_gateway_address: gateway.company.com
       api_token: "eyJhbGciOiJS......"

@@ -98,7 +98,7 @@ options:
 EXAMPLES = """
 - name: Adding Storage System
   tasks:
-    - hv_storagesystem:
+    - hitachivantara.vspone_block.vsp.hv_storagesystem:
         storage_system_info:
           serial: "811150"
           address: storage1.company.com
@@ -115,7 +115,7 @@ EXAMPLES = """
 
 - name: Deleting Storage System
   tasks:
-    - hv_storagesystem:
+    - hitachivantara.vspone_block.vsp.hv_storagesystem:
         storage_system_info:
           serial: "811150"
         connection_info:

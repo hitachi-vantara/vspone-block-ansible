@@ -39,7 +39,7 @@ options:
         type: str
         required: false
   state:
-    description: The level of the HUR pairs task. Choices are C(present), C(absent), 'update'.
+    description: The level of the HUR pairs task. Choices are C(present), C(absent), C(update).
     type: str
     required: false
     choices: ['present', 'absent', 'update']
@@ -124,7 +124,7 @@ options:
 EXAMPLES = """
 - name: Create parity group
   tasks:
-    - hv_paritygroup:
+    - hitachivantara.vspone_block.vsp.hv_paritygroup:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -143,7 +143,7 @@ EXAMPLES = """
 
 - name: Delete parity group
   tasks:
-    - hv_paritygroup:
+    - hitachivantara.vspone_block.vsp.hv_paritygroup:
         connection_info:
           address: storage1.company.com
           username: "admin"
@@ -158,7 +158,7 @@ EXAMPLES = """
 
 - name: Update parity group
   tasks:
-    - hv_paritygroup:
+    - hitachivantara.vspone_block.vsp.hv_paritygroup:
         connection_info:
           address: storage1.company.com
           username: "admin"

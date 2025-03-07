@@ -69,7 +69,7 @@ options:
 
 EXAMPLES = """
 - name: Retrieve information about all compute ports
-  hv_sds_block_port_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_port_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -77,7 +77,7 @@ EXAMPLES = """
       connection_type: "direct"
 
 - name: Retrieve information about compute ports by compute node name
-  hv_sds_block_port_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_port_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -88,7 +88,7 @@ EXAMPLES = """
       nicknames: ["000-iSCSI-000"]
 
 - name: Retrieve information about compute ports by names
-  hv_sds_block_port_facts:
+  hitachivantara.vspone_block.sds_block.hv_sds_block_port_facts:
     connection_info:
       address: sdsb.company.com
       username: "admin"

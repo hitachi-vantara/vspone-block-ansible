@@ -117,7 +117,7 @@ options:
 EXAMPLES = """
 - name: Create Journal Volume
   tasks:
-    - hv_journal_volume:
+    - hitachivantara.vspone_block.vsp.hv_journal_volume:
         connection_info:
           address: storage1.company.com
           api_token: "api_token"
@@ -131,7 +131,7 @@ EXAMPLES = """
 
 - name: Expand Journal Volume
   tasks:
-    - hv_journal_volume:
+    - hitachivantara.vspone_block.vsp.hv_journal_volume:
         connection_info:
           address: storage1.company.com
           api_token: "api_token"
@@ -146,7 +146,7 @@ EXAMPLES = """
 
 - name: Delete Journal Volume
   tasks:
-    - hv_journal_volume:
+    - hitachivantara.vspone_block.vsp.hv_journal_volume:
         connection_info:
           address: storage1.company.com
           api_token: "api_token"

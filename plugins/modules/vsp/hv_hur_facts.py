@@ -164,7 +164,7 @@ EXAMPLES = """
       subscriber_id: 811150
 
 - name: Gather HUR facts with primary volume and mirror unit ID for direct connection
-  hv_hur_facts:
+  hitachivantara.vspone_block.vsp.hv_hur_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
@@ -176,7 +176,7 @@ EXAMPLES = """
       mirror_unit_id: 10
 
 - name: Gather HUR facts with primary volume and mirror unit ID for gateway connection
-  hv_hur_facts:
+  hitachivantara.vspone_block.vsp.hv_hur_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
@@ -189,7 +189,7 @@ EXAMPLES = """
       mirror_unit_id: 10
 
 - name: Gather HUR facts for a specific primary volume for direct connection
-  hv_hur_facts:
+  hitachivantara.vspone_block.vsp.hv_hur_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
@@ -200,7 +200,7 @@ EXAMPLES = """
       primary_volume_id: 111
 
 - name: Gather HUR facts for a specific primary volume for gateway connection
-  hv_hur_facts:
+  hitachivantara.vspone_block.vsp.hv_hur_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
@@ -212,7 +212,7 @@ EXAMPLES = """
       primary_volume_id: 111
 
 - name: Gather HUR facts for a specific secondary volume for direct connection
-  hv_hur_facts:
+  hitachivantara.vspone_block.vsp.hv_hur_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
@@ -223,7 +223,7 @@ EXAMPLES = """
       secondary_volume_id: 111
 
 - name: Gather HUR facts for a specific secondary volume for gateway connection
-  hv_hur_facts:
+  hitachivantara.vspone_block.vsp.hv_hur_facts:
     storage_system_info:
       serial: "811150"
     connection_info:

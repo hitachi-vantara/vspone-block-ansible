@@ -40,8 +40,8 @@ attributes:
 options:
   state:
     description:
-      - set state to I(present) for create and update host group
-      - set state to I(absent) for delete host group
+      - set state to C(present) for create and update host group
+      - set state to C(absent) for delete host group
     type: str
     required: false
     default: "present"
@@ -200,7 +200,7 @@ options:
 EXAMPLES = """
 - name: Create host group with LUN in decimal for direct connection type
   tasks:
-    - hv_hg:
+    - hitachivantara.vspone_block.vsp.hv_hg:
         state: present
         storage_system_info:
           serial: '446039'
@@ -220,7 +220,7 @@ EXAMPLES = """
 
 - name: Create host group with LUN in decimal for gateway connection type
   tasks:
-    - hv_hg:
+    - hitachivantara.vspone_block.vsp.hv_hg:
         state: present
         storage_system_info:
           serial: '446039'
@@ -239,7 +239,7 @@ EXAMPLES = """
 
 - name: Create host group with LUN in HEX for direct connection type
   tasks:
-    - hv_hg:
+    - hitachivantara.vspone_block.vsp.hv_hg:
         state: present
         storage_system_info:
           serial: '446039'
@@ -259,7 +259,7 @@ EXAMPLES = """
 
 - name: Delete host group for gateway connection type
   tasks:
-    - hv_hg:
+    - hitachivantara.vspone_block.vsp.hv_hg:
         state: absent
         storage_system_info:
           serial: '446039'
@@ -274,7 +274,7 @@ EXAMPLES = """
 
 - name: Delete host group for direct connection type
   tasks:
-    - hv_hg:
+    - hitachivantara.vspone_block.vsp.hv_hg:
         state: absent
         storage_system_info:
           serial: '446039'
@@ -290,7 +290,7 @@ EXAMPLES = """
 
 - name: Present LUN for direct connection type
   tasks:
-    - hv_hg:
+    - hitachivantara.vspone_block.vsp.hv_hg:
         state: present
         storage_system_info:
           serial: '446039'
@@ -307,7 +307,7 @@ EXAMPLES = """
 
 - name: Unpresent LUN for direct connection type
   tasks:
-    - hv_hg:
+    - hitachivantara.vspone_block.vsp.hv_hg:
         state: present
         storage_system_info:
           serial: '446039'
@@ -324,7 +324,7 @@ EXAMPLES = """
 
 - name: Add WWN for direct connection type
   tasks:
-    - hv_hg:
+    - hitachivantara.vspone_block.vsp.hv_hg:
         state: present
         storage_system_info:
           serial: '446039'
@@ -342,7 +342,7 @@ EXAMPLES = """
 
 - name: Remove WWN for direct connection type
   tasks:
-    - hv_hg:
+    - hitachivantara.vspone_block.vsp.hv_hg:
         state: present
         storage_system_info:
           serial: '446039'
@@ -360,7 +360,7 @@ EXAMPLES = """
 
 - name: Update host group for direct connection type
   tasks:
-    - hv_hg:
+    - hitachivantara.vspone_block.vsp.hv_hg:
         state: present
         storage_system_info:
           serial: '446039'

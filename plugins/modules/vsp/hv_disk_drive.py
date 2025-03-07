@@ -96,7 +96,7 @@ options:
 EXAMPLES = """
 - name: Change disk drive settings
   tasks:
-    - hv_disk_drive:
+    - hitachivantara.vspone_block.vsp.hv_disk_drive:
         connection_info:
           address: storage1.company.com
           api_token: "api_token"

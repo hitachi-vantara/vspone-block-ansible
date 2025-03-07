@@ -106,7 +106,7 @@ options:
 
 EXAMPLES = """
 - name: Retrieve information about all LDEVs
-  hv_ldev_facts:
+  hitachivantara.vspone_block.vsp.hv_ldev_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
@@ -118,7 +118,7 @@ EXAMPLES = """
       count: 10
 
 - name: Retrieve information about a specific LDEV
-  hv_ldev_facts:
+  hitachivantara.vspone_block.vsp.hv_ldev_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
