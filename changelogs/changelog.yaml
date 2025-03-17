@@ -1,4 +1,4 @@
-ancestor: 2.0.0
+ancestor: null
 releases:
   3.2.0:
     release_summary: "This is a minor release of the ``hitachivantara.vspone_block`` collection. This changelog includes all new modules that are added to the collection. This also contains all changes to the modules and plugins in this collection that have been made after the previous release."
