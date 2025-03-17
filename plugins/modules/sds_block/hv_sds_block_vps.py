@@ -61,12 +61,12 @@ options:
     type: dict
     suboptions:
       vps_id:
-        type: str
         description: ID of the VPS to retrieve information for.
+        type: str
         required: false
       vps_name:
-        type: str
         description: VPS name to retrieve information for.
+        type: str
         required: false
       capacity_saving:
         description: Capacity saving for the VPS volumes.

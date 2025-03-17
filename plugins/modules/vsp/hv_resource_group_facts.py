@@ -30,14 +30,12 @@ attributes:
     support: full
 options:
     storage_system_info:
-        description:
-          - Information about the storage system.
+        description: Information about the storage system.
         type: dict
         required: false
         suboptions:
             serial:
-                description:
-                    - The serial number of the storage system.
+                description: The serial number of the storage system.
                 type: str
                 required: false
     connection_info:
@@ -62,32 +60,28 @@ options:
                 description: Type of connection to the storage system. Two types of connection are supported, C(direct) and C(gateway).
                 type: str
                 required: false
-                choices: ['direct', 'gateway']
+                choices: ['gateway', 'direct']
                 default: 'direct'
             api_token:
-                description: api_token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
+                description: API token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
                 type: str
                 required: false
             subscriber_id:
-                description:
-                - This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy
+                description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy
                   environment.Not needed for this operation.
                 type: str
                 required: false
     spec:
-        description:
-            - Specification for the resource group facts to be gathered.
+        description: Specification for the resource group facts to be gathered.
         type: dict
         required: false
         suboptions:
             name:
-                description:
-                    - The name of the specific resource group to retrieve.
+                description: The name of the specific resource group to retrieve.
                 type: str
                 required: false
             id:
-                description:
-                    - The id of the specific resource group to retrieve.
+                description: The id of the specific resource group to retrieve.
                 type: int
                 required: false
             is_locked:
@@ -110,35 +104,29 @@ options:
 
 EXAMPLES = """
 - name: Get all Resource Groups
-  tasks:
-    - name: Get all resource groups
-      hitachivantara.vspone_block.vsp.hv_resource_group_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
+  hitachivantara.vspone_block.vsp.hv_resource_group_facts:
+    connection_info:
+        address: storage1.company.com
+        username: "admin"
+        password: "secret"
 
 - name: Get Resource Group by name
-  tasks:
-    - name: Get resource group by name
-      hitachivantara.vspone_block.vsp.hv_resource_group_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        spec:
-          name: "my_resource_group"
+  hitachivantara.vspone_block.vsp.hv_resource_group_facts:
+    connection_info:
+        address: storage1.company.com
+        username: "admin"
+        password: "secret"
+    spec:
+        name: "my_resource_group"
 
 - name: Get information about the Resource Groups specified in the query
-  tasks:
-    - name: Get resource group information by query
-      hitachivantara.vspone_block.vsp.hv_resource_group_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        spec:
-          query:
+  hitachivantara.vspone_block.vsp.hv_resource_group_facts:
+    connection_info:
+        address: storage1.company.com
+        username: "admin"
+        password: "secret"
+    spec:
+        query:
             - ldevs
             - parity_groups
             - ports
@@ -148,73 +136,78 @@ EXAMPLES = """
 """
 
 RETURN = """
-resource_groups:
+ansible_facts:
     description: The resource group information.
     returned: always
-    type: list
-    elements: dict
+    type: dict
     contains:
-        id:
-            description: The ID of the resource group.
-            type: int
-            sample: 4
-        name:
-            description: The name of the resource group.
-            type: str
-            sample: "my_resource_group"
-        lock_status:
-            description: The lock status of the resource group.
-            type: str
-            sample: "Unlocked"
-        host_groups:
-            description: List of host groups in the resource group.
+        resource_groups:
+            description: The resource group information.
+            returned: always
             type: list
             elements: dict
             contains:
                 id:
-                    description: The ID of the host group.
+                    description: The ID of the resource group.
                     type: int
-                    sample: 1
+                    sample: 4
                 name:
-                    description: The name of the host group.
+                    description: The name of the resource group.
                     type: str
-                    sample: "my_host_group_1"
-                port:
-                    description: The port of the host group.
+                    sample: "my_resource_group"
+                lock_status:
+                    description: The lock status of the resource group.
                     type: str
-                    sample: "CL1-A"
-        iscsi_targets:
-            description: List of iSCSI targets in the resource group.
-            type: list
-            elements: dict
-            contains:
-                id:
-                    description: The ID of the iSCSI target.
-                    type: int
-                    sample: 1
-                name:
-                    description: The name of the iSCSI target.
-                    type: str
-                    sample: "my_iscsi_target_1"
-                port:
-                    description: The port of the iSCSI target.
-                    type: str
-                    sample: "CL1-C"
-        ldevs:
-            description: List of LDEVs in the resource group.
-            type: list
-            elements: int
-            sample: [1, 2, 3]
-        parity_groups:
-            description: List of parity groups in the resource group.
-            type: list
-            elements: str
-            sample: ["PG1", "PG2"]
-        ports:
-            description: List of ports in the resource group.
-            type: list
-            elements: str
-            sample: ["CL1-A", "CL1-C"]
+                    sample: "Unlocked"
+                host_groups:
+                    description: List of host groups in the resource group.
+                    type: list
+                    elements: dict
+                    contains:
+                        id:
+                            description: The ID of the host group.
+                            type: int
+                            sample: 1
+                        name:
+                            description: The name of the host group.
+                            type: str
+                            sample: "my_host_group_1"
+                        port:
+                            description: The port of the host group.
+                            type: str
+                            sample: "CL1-A"
+                iscsi_targets:
+                    description: List of iSCSI targets in the resource group.
+                    type: list
+                    elements: dict
+                    contains:
+                        id:
+                            description: The ID of the iSCSI target.
+                            type: int
+                            sample: 1
+                        name:
+                            description: The name of the iSCSI target.
+                            type: str
+                            sample: "my_iscsi_target_1"
+                        port:
+                            description: The port of the iSCSI target.
+                            type: str
+                            sample: "CL1-C"
+                ldevs:
+                    description: List of LDEVs in the resource group.
+                    type: list
+                    elements: int
+                    sample: [1, 2, 3]
+                parity_groups:
+                    description: List of parity groups in the resource group.
+                    type: list
+                    elements: str
+                    sample: ["PG1", "PG2"]
+                ports:
+                    description: List of ports in the resource group.
+                    type: list
+                    elements: str
+                    sample: ["CL1-A", "CL1-C"]
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -298,10 +291,10 @@ class VSPResourceGroupFactsManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Resource Group Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
-def main(module=None):
+def main():
     obj_store = VSPResourceGroupFactsManager()
     obj_store.apply()
 

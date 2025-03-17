@@ -35,16 +35,13 @@ attributes:
     support: full
 options:
   state:
-    description:
-      - The level of the GAD pairs task.
-      - Choices are C(present), C(absent), C(split), C(resync), C(resize), C(swap-split), C(swap-resync).
+    description: The level of the GAD pairs task.
     type: str
-    choices: ['present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync', 'resize']
     required: false
-    default: "present"
+    choices: ['present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync', 'resize']
+    default: 'present'
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system.
     type: dict
     required: false
     suboptions:
@@ -53,8 +50,7 @@ options:
         type: str
         required: false
   connection_info:
-    description:
-      - Information required to establish a connection to the storage system.
+    description: Information required to establish a connection to the storage system.
     type: dict
     required: true
     suboptions:
@@ -63,11 +59,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -75,7 +71,7 @@ options:
         type: str
         required: false
         choices: ['gateway', 'direct']
-        default: "direct"
+        default: 'direct'
       subscriber_id:
         description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
@@ -85,24 +81,20 @@ options:
         type: str
         required: false
   secondary_connection_info:
-    description:
-      - Information required to establish a connection to the secondary storage system. Required for C(direct) connection only.
+    description: Information required to establish a connection to the secondary storage system. Required for C(direct) connection only.
     required: false
     type: dict
     suboptions:
       address:
-        description:
-          - IP address or hostname of the secondary storage.
+        description: IP address or hostname of the secondary storage.
         type: str
         required: true
       username:
-        description:
-          - Username for authentication. This field is required for secondary storage connection.
+        description: Username for authentication. This field is required for secondary storage connection.
         type: str
         required: false
       password:
-        description:
-          - Password for authentication. This field is required for secondary storage connection.
+        description: Password for authentication. This field is required for secondary storage connection.
         type: str
         required: false
       api_token:
@@ -110,8 +102,7 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the GAD pairs task.
+    description: Specification for the GAD pairs task.
     type: dict
     required: true
     suboptions:
@@ -216,7 +207,7 @@ options:
         type: str
         required: false
         choices: ['HIGH', 'MEDIUM', 'LOW']
-        default: "MEDIUM"
+        default: 'MEDIUM'
       mu_number:
         description: MU (mirror unit) number.
         type: str
@@ -226,10 +217,9 @@ options:
         type: str
         required: false
         choices: ['NEVER', 'DATA', 'STATUS', 'UNKNOWN']
-        default: "NEVER"
+        default: 'NEVER'
       new_volume_size:
-        description:
-          - Required for resize operation. Value should be grater than the current volume size.
+        description: Required for resize operation. Value should be grater than the current volume size.
         type: str
         required: false
       is_data_reduction_force_copy:
@@ -251,15 +241,13 @@ options:
         type: bool
         required: false
       begin_secondary_volume_id:
-        description: >
-          Specify beginning ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during
+        description: Specify beginning ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during
           create operation. If this field is specified, end_secondary_volume_id must also be specified.
           If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
         required: false
         type: int
       end_secondary_volume_id:
-        description: >
-          Specify end ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during create operation.
+        description: Specify end ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during create operation.
           If this field is specified, begin_secondary_volume_id must also be specified.
           If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
         required: false

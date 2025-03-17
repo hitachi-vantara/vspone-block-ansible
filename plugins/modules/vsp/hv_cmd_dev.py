@@ -34,8 +34,7 @@ options:
         choices: ['present', 'absent']
         default: 'present'
     storage_system_info:
-        description:
-          - Information about the storage system.
+        description: Information about the storage system.
         type: dict
         required: false
         suboptions:
@@ -49,8 +48,7 @@ options:
         required: true
         suboptions:
             address:
-                description: |
-                    IP address or hostname of the storage system.
+                description: IP address or hostname of the storage system.
                 type: str
                 required: true
             username:
@@ -65,32 +63,27 @@ options:
                 description: Type of connection to the storage system. Only C(direct) connect type is supported.
                 type: str
                 required: false
-                choices: [direct]
+                choices: ['direct']
                 default: 'direct'
     spec:
-        description:
-            - Specification for the command device.
+        description: Specification for the command device.
         type: dict
         required: false
         suboptions:
             ldev_id:
-                description:
-                    - The id of the LDEV.
+                description: The id of the LDEV.
                 type: int
                 required: true
             is_security_enabled:
-                description:
-                    - Specify whether to enable the security settings for the command device.
+                description: Specify whether to enable the security settings for the command device.
                 type: bool
                 required: false
             is_user_authentication_enabled:
-                description:
-                    - Specify whether to enable the user authentication settings for the command device.
+                description: Specify whether to enable the user authentication settings for the command device.
                 type: bool
                 required: false
             is_device_group_definition_enabled:
-                description:
-                    - Specify whether to enable the device group definition settings for the command device.
+                description: Specify whether to enable the device group definition settings for the command device.
                 type: bool
                 required: false
 """

@@ -30,8 +30,7 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system.
     type: dict
     required: false
     suboptions:
@@ -100,145 +99,139 @@ options:
 
 EXAMPLES = """
 - name: Show LDEVs/WWNs for host groups for gateway connection
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg_facts:
-        storage_system_info:
-          serial: "811150"
-        connection_info:
-          address: gateway.company.com
-          api_token: "api token value"
-          connection_type: "gateway"
-          subscriber_id: 811150
-        spec:
-          query: ['wwns', 'ldevs']
-          name: 'test-ansible-hg-1'
-          ports: ['CL1-A', 'CL2-B']
-      register: result
-    - debug: var=result.hostGroups
+  hitachivantara.vspone_block.vsp.hv_hg_facts:
+    storage_system_info:
+      serial: "811150"
+    connection_info:
+      address: gateway.company.com
+      api_token: "api token value"
+      connection_type: "gateway"
+      subscriber_id: 811150
+    spec:
+      query: ['wwns', 'ldevs']
+      name: 'test-ansible-hg-1'
+      ports: ['CL1-A', 'CL2-B']
 
 - name: Get Host Groups of specific ports for gateway connection
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg_facts:
-        storage_system_info:
-          serial: "811150"
-        connection_info:
-          address: gateway.company.com
-          api_token: "api token value"
-          connection_type: "gateway"
-        spec:
-          ports: ['CL1-A', 'CL2-B']
-      register: result
-    - debug: var=result.hostGroups
+  hitachivantara.vspone_block.vsp.hv_hg_facts:
+    storage_system_info:
+      serial: "811150"
+    connection_info:
+      address: gateway.company.com
+      api_token: "api token value"
+      connection_type: "gateway"
+    spec:
+      ports: ['CL1-A', 'CL2-B']
 
 - name: Get all host groups for direct connection
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg_facts:
-        storage_system_info:
-          serial: "811150"
-        connection_info:
-          address: storage1.company.com
-          username: "dummy_user"
-          password: "dummy_password"
-      register: result
-    - debug: var=result.hostGroups
+  hitachivantara.vspone_block.vsp.hv_hg_facts:
+    storage_system_info:
+      serial: "811150"
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
 
 - name: Get Host Groups of specific ports for direct connection
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg_facts:
-        storage_system_info:
-          serial: "811150"
-        connection_info:
-          address: storage1.company.com
-          username: "dummy_user"
-          password: "dummy_password"
-        spec:
-          ports: ['CL1-A', 'CL2-B']
-      register: result
-    - debug: var=result.hostGroups
+  hitachivantara.vspone_block.vsp.hv_hg_facts:
+    storage_system_info:
+      serial: "811150"
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+    spec:
+      ports: ['CL1-A', 'CL2-B']
+
 """
 
 RETURN = """
-hostGroups:
-  description: List of host groups retrieved from the storage system.
+ansible_facts:
+  description: The collected host group facts.
   returned: always
-  type: list
-  elements: dict
+  type: dict
   contains:
-    entitlement_status:
-      description: Entitlement status of the host group.
-      type: str
-      sample: "assigned"
-    host_group_id:
-      description: ID of the host group.
-      type: int
-      sample: 93
-    host_group_name:
-      description: Name of the host group.
-      type: str
-      sample: "ansible-test-hg"
-    host_mode:
-      description: Host mode of the host group.
-      type: str
-      sample: "STANDARD"
-    host_mode_options:
-      description: List of host mode options.
+    hostGroups:
+      description: List of host groups retrieved from the storage system.
+      returned: always
       type: list
       elements: dict
       contains:
-        host_mode_option:
-          description: Host mode option.
+        entitlement_status:
+          description: Entitlement status of the host group.
           type: str
-          sample: "EXTENDED_COPY"
-        host_mode_option_number:
-          description: Host mode option number.
+          sample: "assigned"
+        host_group_id:
+          description: ID of the host group.
           type: int
-          sample: 54
-    lun_paths:
-      description: List of LUN paths.
-      type: list
-      elements: dict
-      contains:
-        ldevId:
-          description: LDEV ID.
-          type: int
-          sample: 166
-        lunId:
-          description: LUN ID.
+          sample: 93
+        host_group_name:
+          description: Name of the host group.
+          type: str
+          sample: "ansible-test-hg"
+        host_mode:
+          description: Host mode of the host group.
+          type: str
+          sample: "STANDARD"
+        host_mode_options:
+          description: List of host mode options.
+          type: list
+          elements: dict
+          contains:
+            host_mode_option:
+              description: Host mode option.
+              type: str
+              sample: "EXTENDED_COPY"
+            host_mode_option_number:
+              description: Host mode option number.
+              type: int
+              sample: 54
+        lun_paths:
+          description: List of LUN paths.
+          type: list
+          elements: dict
+          contains:
+            ldevId:
+              description: LDEV ID.
+              type: int
+              sample: 166
+            lunId:
+              description: LUN ID.
+              type: int
+              sample: 0
+        partner_id:
+          description: Partner ID.
+          type: str
+          sample: "partnerid"
+        port:
+          description: Port associated with the host group.
+          type: str
+          sample: "CL1-A"
+        resource_group_id:
+          description: Resource group ID.
           type: int
           sample: 0
-    partner_id:
-      description: Partner ID.
-      type: str
-      sample: "partnerid"
-    port:
-      description: Port associated with the host group.
-      type: str
-      sample: "CL1-A"
-    resource_group_id:
-      description: Resource group ID.
-      type: int
-      sample: 0
-    storage_id:
-      description: Storage ID.
-      type: str
-      sample: "storage-39f4eef0175c754bb90417358b0133c3"
-    subscriber_id:
-      description: Subscriber ID.
-      type: str
-      sample: "811150"
-    wwns:
-      description: List of WWNs.
-      type: list
-      elements: dict
-      contains:
-        id:
-          description: WWN ID.
+        storage_id:
+          description: Storage ID.
           type: str
-          sample: "1212121212121212"
-        name:
-          description: Name associated with the WWN.
+          sample: "storage-39f4eef0175c754bb90417358b0133c3"
+        subscriber_id:
+          description: Subscriber ID.
           type: str
-          sample: ""
+          sample: "811150"
+        wwns:
+          description: List of WWNs.
+          type: list
+          elements: dict
+          contains:
+            id:
+              description: WWN ID.
+              type: str
+              sample: "1212121212121212"
+            name:
+              description: Name associated with the WWN.
+              type: str
+              sample: ""
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -330,7 +323,7 @@ class VSPHostGroupFactsManager:
             host_group_data_extracted["user_consent_required"] = registration_message
         self.logger.writeInfo(f"{host_group_data_extracted}")
         self.logger.writeInfo("=== End of Host Group Facts ===")
-        self.module.exit_json(**host_group_data_extracted)
+        self.module.exit_json(changed=False, ansible_facts=host_group_data_extracted)
 
     def direct_host_group_read(self):
         result = vsp_host_group.VSPHostGroupReconciler(
@@ -350,7 +343,7 @@ class VSPHostGroupFactsManager:
             raise Exception(str(ex))
 
 
-def main(module=None):
+def main():
     obj_store = VSPHostGroupFactsManager()
     obj_store.apply()
 

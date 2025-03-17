@@ -67,7 +67,7 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['gateway', 'direct']
         default: 'direct'
       api_token:
         description: API token for authentication. This is a required field for C(gateway) connection type.
@@ -96,7 +96,7 @@ options:
         required: false
       is_data_reduction_force_copy:
         description: Specify whether to forcibly create a pair for a volume for which the capacity saving function is enabled
-          (Required for C(direct) connection type and thin image advance, Default is True when capacity savings is not 'disabled').
+          (Required for C(direct) connection type and thin image advance, Default is True when capacity savings is not C(disabled).
         required: false
         type: bool
       is_clone:
@@ -105,7 +105,7 @@ options:
         type: bool
       can_cascade:
         description: Specify whether the pair can be cascaded. (Required for C(direct) connection type and thin image advance,
-          Default is True when capacity savings is not 'disabled', Lun may not required to add to any host group when is it true).
+          Default is True when capacity savings is not C(disabled), Lun may not required to add to any host group when is it true.
         required: false
         type: bool
       allocate_new_consistency_group:

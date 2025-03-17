@@ -64,10 +64,10 @@ options:
         description: Type of connection to the storage system, Only C(direct) connection is supported.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['gateway', 'direct']
         default: 'direct'
       api_token:
-          description: api_token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
+          description: API token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
           type: str
           required: false
       subscriber_id:
@@ -76,24 +76,20 @@ options:
         type: str
         required: false
   secondary_connection_info:
-    description:
-      - Information required to establish a connection to the secondary storage system. Required for C(direct) connection only.
+    description: Information required to establish a connection to the secondary storage system. Required for C(direct) connection only.
     required: true
     type: dict
     suboptions:
       address:
-        description:
-          - IP address or hostname of the UAI gateway.
+        description: IP address or hostname of the UAI gateway.
         type: str
         required: true
       username:
-        description:
-          - Username for authentication.
+        description: Username for authentication.
         type: str
         required: false
       password:
-        description:
-          - Password for authentication.
+        description: Password for authentication.
         type: str
         required: false
       api_token:
@@ -110,64 +106,70 @@ options:
         type: str
         required: true
       replication_type:
-        description: Replication type, either hur, tc or gad.
+        description: Replication type, either C(UR), C(TC) or C(GAD).
         type: str
         required: false
         choices: ['UR', 'TC', 'GAD']
       is_svol_writable:
-        description: is svol writable.
+        description: Whether svol is writable or not.
         type: bool
         required: false
       do_pvol_write_protect:
-        description: do pvol write protect.
+        description: For TC, specify whether to forcibly disable write operations for the P-VOL.
         type: bool
         required: false
       do_data_suspend:
-        description: do data suspend.
+        description: For UR, specify whether to forcibly stop operations on a journal when the amount of access to the journal increases.
         type: bool
         required: false
       local_device_group_name:
-        description: local device group name.
+        description: Device group name in the local storage system.
         type: str
         required: false
       svol_operation_mode:
-        description: svol operation mode.
+        description: Specify this attribute to forcibly change the status of the pairs of the S-VOL in cases such as if a failure occurs
+          in the storage system of the primary site.
         type: str
         required: false
       remote_device_group_name:
-        description: remote device group name.
+        description: Device group name in the remote storage system.
         type: str
         required: false
       is_consistency_group:
-        description: whether is consistency group.
+        description:
+          - For TC, specify the value as follows according to whether the pair is registered in a consistency group.
+          - If the pair is not registered in a consistency group
+          - true - Registers the pair in a consistency group.
+          - false - Leaves the pair as it is without registering it in a consistency group.
+          - If the pair is registered in a consistency group
+          - true - Leaves the pair registered in a consistency group.
+          - false - Cancels the registration of the pair in a consistency group, and places it in an unregistered state.
         type: bool
         required: false
       consistency_group_id:
-        description: consistency group id.
+        description: For TC, specify the consistency group ID by using a decimal number in the range from 0 to 255.
         type: int
         required: false
       fence_level:
-        description:
-          - Specifies the primary volume fence level setting and determines if the host is denied access or continues to access
+        description: Specifies the primary volume fence level setting and determines if the host is denied access or continues to access
             the primary volume when the pair is suspended because of an error.
         type: str
         required: false
         choices: ['NEVER', 'DATA', 'STATUS']
       copy_pace:
-        description: copy pace.
+        description: For TC, specify a decimal number in the range from 1 to 15 for the size of tracks to be copied.
+          The larger the value you specify, the faster the copy speed.
         type: int
         required: false
       do_failback:
-        description: >
-          Specify whether to perform a failback if a failure occurs in a 3DC cascade configuration.
+        description: Specify whether to perform a failback if a failure occurs in a 3DC cascade configuration.
           If set to true, the failback is performed. If set to false, the failback is not performed.
           If the value is omitted, false is assumed.
         type: bool
         required: false
         default: false
       failback_mirror_unit_number:
-        description: >
-          Specify the MU (mirror unit) number of the volume to be failed back.
+        description: Specify the MU (mirror unit) number of the volume to be failed back.
           You can specify this attribute only if the do_failback attribute is set to true.
         type: int
         required: false

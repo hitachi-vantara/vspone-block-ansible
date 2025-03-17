@@ -27,21 +27,18 @@ attributes:
     support: full
 options:
   state:
-    description:
-        - The desired state of the task.
+    description: The desired state of the task.
     type: str
     required: false
-    default: 'present'
     choices: ['present', 'absent']
+    default: 'present'
   storage_system_info:
-    description:
-      - Information about the remote storage systems.
+    description: Information about the remote storage systems.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -69,11 +66,10 @@ options:
         description: Type of connection to the storage system. Only C(direct) connection is supported.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description:
-          - This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
   secondary_connection_info:
@@ -98,19 +94,16 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the remote storage registration and unregistration.
+    description: Specification for the remote storage registration and unregistration.
     type: dict
     required: false
     suboptions:
       is_mutual_discovery:
-        description:
-          - Specify whether to perform a mutual registration operation. true means perform a mutual registration operation.
+        description: Specify whether to perform a mutual registration operation. true means perform a mutual registration operation.
         type: bool
         required: false
       is_mutual_deletion:
-        description:
-          - Specify whether to perform a mutual deletion operation during unregistration. true means perform a mutual deletion operation.
+        description: Specify whether to perform a mutual deletion operation during unregistration. true means perform a mutual deletion operation.
         type: bool
         required: false
       rest_server_ip:

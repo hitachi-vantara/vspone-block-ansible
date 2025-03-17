@@ -40,8 +40,8 @@
           primary_volume_id: 123
           secondary_pool_id: 3
           secondary_hostgroup:
-            name: remote-hostgroup
-            port: CL1-A
+            - name: remote-hostgroup
+              port: CL1-A
           primary_resource_group_name: primary_resource_group
           quorum_disk_id: 10
           allocate_new_consistency_group: true
@@ -68,11 +68,11 @@
           primary_volume_id: 123
           secondary_pool_id: 3
           primary_hostgroups:
-            name: local-hostgroup
-            port: CL2-A
+            - name: local-hostgroup
+              port: CL2-A
           secondary_hostgroup:
-            name: remote-hostgroup
-            port: CL1-A
+            - name: remote-hostgroup
+              port: CL1-A
           quorum_disk_id: 10
           allocate_new_consistency_group: true
       register: result
@@ -98,11 +98,11 @@
           primary_volume_id: 123
           secondary_pool_id: 3
           primary_hostgroups:
-            name: local-hostgroup
-            port: CL2-A
+            - name: local-hostgroup
+              port: CL2-A
           secondary_hostgroup:
-            name: remote-hostgroup
-            port: CL1-A
+            - name: remote-hostgroup
+              port: CL1-A
           quorum_disk_id: 10
           set_alua_mode: true
           allocate_new_consistency_group: true
@@ -186,7 +186,7 @@
         state: resize
         spec:
           primary_volume_id: 123
-          new_volume_size: 4000
+          new_volume_size: "4GB"
           secondary_storage_serial_number: "45678"
       register: result
 

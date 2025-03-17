@@ -34,14 +34,12 @@ options:
     required: true
     choices: ['absent', 'split', 'sync', 'restore', 'clone']
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -73,19 +71,16 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the snapshot facts to be gathered.
+    description: Specification for the snapshot facts to be gathered.
     type: dict
     required: true
     suboptions:
       snapshot_group_name:
-        description:
-          - The name of the snapshot group.
+        description: The name of the snapshot group.
         type: str
         required: true
       auto_split:
-        description:
-          - Automatically split the snapshot group.
+        description: Automatically split the snapshot group.
         type: bool
         required: false
 """

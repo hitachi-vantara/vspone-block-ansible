@@ -25,7 +25,7 @@ requirements:
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
-    support: full
+    support: "full"
 options:
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -48,20 +48,20 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct']
-        default: 'direct'
+        choices: ["direct"]
+        default: "direct"
   spec:
     description: Specification for retrieving CHAP user information.
     type: dict
     required: false
     suboptions:
       id:
-        type: str
         description: ID of the CHAP user to retrieve information for.
+        type: str
         required: false
       target_chap_user_name:
-        type: str
         description: Target CHAP user name to retrieve information for.
+        type: str
         required: false
 """
 
@@ -183,10 +183,10 @@ class SDSBChapUserFactsManager:
         data = {"chap_users": chap_users_data_extracted}
         if registration_message:
             data["user_consent_required"] = registration_message
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
-def main(module=None):
+def main():
     obj_store = SDSBChapUserFactsManager()
     obj_store.apply()
 

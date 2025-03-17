@@ -30,15 +30,13 @@ attributes:
     support: full
 options:
   state:
-    description:
-      - State of the Journal Volume.
+    description: State of the Journal Volume.
     type: str
     required: false
-    choices: ['present', 'absent', "update","expand_journal_volume","shrink_journal_volume",]
+    choices: ['present', 'absent', 'update', 'expand_journal_volume', 'shrink_journal_volume']
     default: 'present'
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system.
     type: dict
     required: false
     suboptions:
@@ -116,52 +114,46 @@ options:
 
 EXAMPLES = """
 - name: Create Journal Volume
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_journal_volume:
-        connection_info:
-          address: storage1.company.com
-          api_token: "api_token"
-          connection_type: "gateway"
-        storage_system_info:
-          - serial: "811150"
-        state: "present"
-        spec:
-          journal_id: "35"
-          ldev_ids: "[105, 106]"
+  hitachivantara.vspone_block.vsp.hv_journal_volume:
+    connection_info:
+      address: storage1.company.com
+      api_token: "api_token"
+      connection_type: "gateway"
+    storage_system_info:
+      serial: "811150"
+    state: "present"
+    spec:
+      journal_id: 35
+      ldev_ids: [105, 106]
 
 - name: Expand Journal Volume
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_journal_volume:
-        connection_info:
-          address: storage1.company.com
-          api_token: "api_token"
-          connection_type: "gateway"
-
-        storage_system_info:
-          - serial: "811150"
-        state: "present"
-        spec:
-          journal_id: "35"
-          ldev_ids: "[105]"
+  hitachivantara.vspone_block.vsp.hv_journal_volume:
+    connection_info:
+      address: storage1.company.com
+      api_token: "api_token"
+      connection_type: "gateway"
+    storage_system_info:
+      serial: "811150"
+    state: "expand_journal_volume"
+    spec:
+      journal_id: 35
+      ldev_ids: [107]
 
 - name: Delete Journal Volume
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_journal_volume:
-        connection_info:
-          address: storage1.company.com
-          api_token: "api_token"
-          connection_type: "gateway"
-
-        storage_system_info:
-          - serial: "811150"
-
-        state: "absent"
-        spec:
-          journal_id: "35"
+  hitachivantara.vspone_block.vsp.hv_journal_volume:
+    connection_info:
+      address: storage1.company.com
+      api_token: "api_token"
+      connection_type: "gateway"
+    storage_system_info:
+      serial: "811150"
+    state: "absent"
+    spec:
+      journal_id: 35
 """
 
 RETURN = r"""
-ansible_facts:
+data:
   description: >
     Dictionary containing the discovered properties of the Journal Volumes.
   returned: always

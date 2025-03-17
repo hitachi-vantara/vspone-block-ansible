@@ -187,7 +187,7 @@
 
     ####################################################################
     # Task 7 : Swap-Split GAD pair
-    # Storages need to be swapped before swap-split operation. Please specify connection_info and secondary_connection_info accordingly.
+    #          Storages need to be swapped before swap-split operation. Please specify       connection_info and secondary_connection_info accordingly. 
     ####################################################################
     - name: Swap-Split GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:

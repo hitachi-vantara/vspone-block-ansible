@@ -28,14 +28,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -59,10 +57,10 @@ options:
         description: Type of connection to the storage system. Only C(direct) connection is supported.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['gateway', 'direct']
         default: 'direct'
       api_token:
-          description: api_token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
+          description: API token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
           type: str
           required: false
       subscriber_id:
@@ -87,24 +85,22 @@ options:
 
 EXAMPLES = """
 - name: Get all NVM subsystems
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
+  hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
 
 - name: Get a specific NVM subsystem
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
-        spec:
-          name: "Nvm_subsystem_01"
+  hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
+    spec:
+      name: "Nvm_subsystem_01"
 """
 
 RETURN = r"""
@@ -310,7 +306,7 @@ class VSPNvmSubsystemFactsManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of NVM Subsystem Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
 def main(module=None):

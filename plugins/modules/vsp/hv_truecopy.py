@@ -46,39 +46,33 @@ options:
       - C(swap-resync) is used to swap-resync a TrueCopy pair. Supported for C(direct) connection only.
     type: str
     required: false
-    choices: ['present', 'absent', 'resize', 'resync', 'split', 'swap_split', 'swap_resync']
+    choices: ['present', 'absent', 'split', 'resync', 'resize', 'swap_split', 'swap_resync']
     default: 'present'
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - Serial number of the Hitachi storage system.
+        description: Serial number of the Hitachi storage system.
         type: str
         required: false
   secondary_connection_info:
-    description:
-      - Information required to establish a connection to the secondary storage system.
+    description: Information required to establish a connection to the secondary storage system.
         Required for C(direct) connection type only. Not needed for C(gateway) connection type.
     required: false
     type: dict
     suboptions:
       address:
-        description:
-          - IP address or hostname of either the UAI gateway or Hitachi storage system.
+        description: IP address or hostname of either the UAI gateway or Hitachi storage system.
         type: str
         required: true
       username:
-        description:
-          - Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description:
-          - Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       api_token:
@@ -86,8 +80,7 @@ options:
         type: str
         required: false
   connection_info:
-    description:
-      - Information required to establish a connection to the storage system.
+    description: Information required to establish a connection to the storage system.
     required: true
     type: dict
     suboptions:
@@ -96,30 +89,26 @@ options:
         type: str
         required: true
       username:
-        description:
-          - Username for authentication. Required for C(direct) connection type. Not needed for C(gateway) connection type as it uses API token.
+        description: Username for authentication. Required for C(direct) connection type. Not needed for C(gateway) connection type as it uses API token.
         type: str
         required: false
       password:
-        description:
-          - Password for authentication. Required for C(direct) connection. Not needed for C(gateway) connection type as it uses API token.
+        description: Password for authentication. Required for C(direct) connection. Not needed for C(gateway) connection type as it uses API token.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system. Two types of connections are supported, C(direct) and C(gateway).
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description: >
-          Subscriber ID is required for C(gateway) connection type to support multi-tenancy. Not needed for C(direct) connection type
+        description: Subscriber ID is required for C(gateway) connection type to support multi-tenancy. Not needed for C(direct) connection type
           or for C(gateway) connection type with single tenant.
         type: str
         required: false
       api_token:
-        description:
-          Token value to access UAI gateway for C(gateway) connection type. This is a required field for C(gateway) connection type.
+        description: Token value to access UAI gateway for C(gateway) connection type. This is a required field for C(gateway) connection type.
           This fieild is used for C(direct) connection type to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
@@ -129,14 +118,12 @@ options:
     required: false
     suboptions:
       copy_group_name:
-        description: >
-          Name of the copy group. This field is used only for C(direct) connection type. This is a required field for create operation.
+        description: Name of the copy group. This field is used only for C(direct) connection type. This is a required field for create operation.
           For other operations, this field is optional, but when provided, the time to complete the operation is faster.
         type: str
         required: false
       copy_pair_name:
-        description: >
-          Name of the copy pair. This field is used only for C(direct) connection type. This is a required field for create operation.
+        description: Name of the copy pair. This field is used only for C(direct) connection type. This is a required field for create operation.
           For other operations, this field is optional, but when provided, the time to complete the operation is faster.
         type: str
         required: false
@@ -149,18 +136,15 @@ options:
         type: str
         required: false
       primary_volume_id:
-        description:
-          - Primary volume ID. This is a required field for create operation for both C(direct) and C(gateway) connection types.
+        description: Primary volume ID. This is a required field for create operation for both C(direct) and C(gateway) connection types.
         type: int
         required: false
       consistency_group_id:
-        description:
-          - Consistency Group ID, 0 to 255. This is an optional field for both C(direct) and C(gateway) connection types.
+        description: Consistency Group ID, 0 to 255. This is an optional field for both C(direct) and C(gateway) connection types.
         type: int
         required: false
       fence_level:
-        description:
-          - Specifies the primary volume fence level setting and determines if the host is denied access or continues to access
+        description: Specifies the primary volume fence level setting and determines if the host is denied access or continues to access
             the primary volume when the pair is suspended because of an error. This is an optional field for both C(direct) and C(gateway)
             connection types.
         type: str
@@ -168,20 +152,17 @@ options:
         choices: ['NEVER', 'DATA', 'STATUS']
         default: 'NEVER'
       allocate_new_consistency_group:
-        description: >
-          Allocate and assign a new consistency group ID, cannot be true if consistency_group_id is specified.
+        description: Allocate and assign a new consistency group ID, cannot be true if consistency_group_id is specified.
           This is used only for C(gateway) connection type and is an optional field.
         type: bool
         required: false
         default: false
       secondary_storage_serial_number:
-        description:
-          - Secondary storage serial number. This is used only for C(gateway) connection type and required for create.
+        description: Secondary storage serial number. This is used only for C(gateway) connection type and required for create.
         type: int
         required: false
       secondary_pool_id:
-        description:
-          - ID of the dynamic pool where the secondary volume will be created. This is required for create operation
+        description: ID of the dynamic pool where the secondary volume will be created. This is required for create operation
             for both C(direct) and C(gateway) connection types.
         type: int
         required: false
@@ -195,38 +176,33 @@ options:
         required: false
         default: false
       secondary_hostgroup:
-        description:
-          - Host group details of the secondary volume.
+        description: Host group details of the secondary volume.
         type: dict
         required: false
         suboptions:
           name:
-            description:
-              - Name of the host group on the secondary storage system. This is required for create operation for
+            description: Name of the host group on the secondary storage system. This is required for create operation for
                 both C(direct) and C(gateway) connection types.
             type: str
             required: true
           port:
-            description:
-              - Port of the host group on the secondary storage system. This is required for create operation for
+            description: Port of the host group on the secondary storage system. This is required for create operation for
                 both C(direct) and C(gateway) connection types.
             type: str
             required: true
       do_initial_copy:
-        description:
-          - Perform initial copy. This is used only for C(direct) connection type and is an optional field during create operation.
+        description: Perform initial copy. This is used only for C(direct) connection type and is an optional field during create operation.
         type: bool
         required: false
         default: true
       is_data_reduction_force_copy:
-        description:
-          - Force copy for data reduction. This is used for both C(direct) and C(gateway) connection types and is an optional field during create operation.
+        description: Force copy for data reduction. This is used for both C(direct) and C(gateway) connection types and is an
+          optional field during create operation.
         type: bool
         required: false
         default: false
       is_new_group_creation:
-        description:
-          - Create a new copy group. This is used only for C(direct) connection type and is an optional field during create operation.
+        description: Create a new copy group. This is used only for C(direct) connection type and is an optional field during create operation.
         type: bool
         required: false
         default: false
@@ -238,8 +214,8 @@ options:
         type: int
         required: false
       new_volume_size:
-        description:
-          - Required only for resize operation for both C(direct) and C(gateway) connections types. Value should be grater than the current volume size.
+        description: Required only for resize operation for both C(direct) and C(gateway) connections types. Value should be grater than
+          the current volume size.
         type: str
         required: false
       secondary_volume_id:

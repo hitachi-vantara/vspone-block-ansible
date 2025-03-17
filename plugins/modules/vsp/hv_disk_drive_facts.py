@@ -28,14 +28,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -71,38 +69,34 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the hard drive facts to be gathered.
+    description: Specification for the hard drive facts to be gathered.
     type: dict
     required: false
     suboptions:
       drive_location_id:
-        description:
-          - The drive location Id of the hard drive to retrieve.
+        description: The drive location Id of the hard drive to retrieve.
         type: str
         required: false
 """
 
 EXAMPLES = """
 - name: Get a specific hard drive
-  tasks:
-    - hv_hard_drive_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
-        spec:
-          drive_location_id: 0-16
+  hitachivantara.vspone_block.hv_disk_drive_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
+    spec:
+      drive_location_id: 0-16
 
 - name: Get all hard drives
-  tasks:
-    - hv_hard_drive_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
+  hitachivantara.vspone_block.hv_disk_drive_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
 """
 
 RETURN = r"""
@@ -235,14 +229,14 @@ class VspDiskDriveFactManager:
 
             self.logger.writeInfo(f"{response_dict}")
             self.logger.writeInfo("=== End of Disk Drive Facts ===")
-            self.module.exit_json(**response_dict)
+            self.module.exit_json(changed=False, ansible_facts=response_dict)
         except Exception as ex:
             self.logger.writeException(ex)
             self.logger.writeInfo("=== End of Disk Drive Facts ===")
             self.module.fail_json(msg=str(ex))
 
 
-def main(module=None):
+def main():
     obj_store = VspDiskDriveFactManager()
     obj_store.apply()
 

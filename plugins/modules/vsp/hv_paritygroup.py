@@ -28,14 +28,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   state:
@@ -69,7 +67,7 @@ options:
         choices: ['gateway', 'direct']
         default: 'direct'
       api_token:
-          description: api_token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
+          description: API token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
           type: str
           required: false
       subscriber_id:
@@ -78,99 +76,84 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the parity group facts to be gathered.
+    description: Specification for the parity group facts to be gathered.
     type: dict
     required: false
     suboptions:
       parity_group_id:
-        description:
-          - The parity group number of the parity group to retrieve.
+        description: The parity group number of the parity group to retrieve.
         type: str
         required: false
       drive_location_ids:
-        description:
-          - Specify the locations of the drives to be used to create to the parity group.
+        description: Specify the locations of the drives to be used to create to the parity group.
         type: list
         elements: str
         required: false
       raid_type:
-        description:
-          - RAID type.
+        description: RAID type.
         type: str
         required: false
       is_encryption_enabled:
-        description:
-          - Specify whether to enable the encryption function for the parity group.
+        description: Specify whether to enable the encryption function for the parity group.
         type: bool
         required: false
       is_copy_back_mode_enabled:
-        description:
-          - Specify whether to enable the encryption function for the parity group.
+        description: Specify whether to enable the encryption function for the parity group.
         type: bool
         required: false
       is_accelerated_compression_enabled:
-        description:
-          - Specify whether to enable accelerated compression for the parity group.
+        description: Specify whether to enable accelerated compression for the parity group.
         type: bool
         required: false
       clpr_id:
-        description:
-          - Specify a CLPR number in the range from 0 to 31.
+        description: Specify a CLPR number in the range from 0 to 31.
         type: int
         required: false
 """
 
 EXAMPLES = """
 - name: Create parity group
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_paritygroup:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        storage_system_info:
-          - serial: "811150"
-        state: "present"
-        spec:
-          parity_group_id: 1-10
-          drive_location_ids: ["0-16", "0-17", "0-18", "0-19"]
-          raid_type: 3D+1P
-          is_encryption_enabled: true
-          is_copy_back_mode_enabled: false
-          is_accelerated_compression_enabled: true
-          clpr_id: 1
+  hitachivantara.vspone_block.vsp.hv_paritygroup:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    storage_system_info:
+      serial: "811150"
+    state: "present"
+    spec:
+      parity_group_id: "1-10"
+      drive_location_ids: ["0-16", "0-17", "0-18", "0-19"]
+      raid_type: "3D+1P"
+      is_encryption_enabled: true
+      is_copy_back_mode_enabled: false
+      is_accelerated_compression_enabled: true
+      clpr_id: 1
 
 - name: Delete parity group
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_paritygroup:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-
-        storage_system_info:
-          - serial: "811150"
-
-        state: "absent"
-        spec:
-          parity_group_id: 1-10
+  hitachivantara.vspone_block.vsp.hv_paritygroup:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    storage_system_info:
+      serial: "811150"
+    state: "absent"
+    spec:
+      parity_group_id: "1-10"
 
 - name: Update parity group
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_paritygroup:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-
-        storage_system_info:
-          - serial: "811150"
-
-        state: "update"
-        spec:
-          parity_group_id: 1-10
-          is_accelerated_compression_enabled: true
+  hitachivantara.vspone_block.vsp.hv_paritygroup:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    storage_system_info:
+      serial: "811150"
+    state: "update"
+    spec:
+      parity_group_id: "1-10"
+      is_accelerated_compression_enabled: true
 """
 
 RETURN = """

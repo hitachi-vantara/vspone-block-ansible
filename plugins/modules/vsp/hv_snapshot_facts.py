@@ -35,8 +35,7 @@ options:
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -61,7 +60,7 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['gateway', 'direct']
         default: 'direct'
       api_token:
         description: API token for authentication.This is a required field for C(gateway) connection type.
@@ -304,7 +303,7 @@ class VSPHtiSnapshotFactManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Snapshot Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
     def get_snapshot_facts(self):
         reconciler = VSPHtiSnapshotReconciler(
@@ -320,7 +319,7 @@ class VSPHtiSnapshotFactManager:
         return result
 
 
-def main(module=None):
+def main():
 
     obj_store = VSPHtiSnapshotFactManager()
     obj_store.apply()

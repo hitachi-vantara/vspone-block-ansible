@@ -11,11 +11,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_storage_system_facts
-short_description: retrieves information about a specific Hitachi SDS block storage system.
+short_description: Retrieves information about a specific Hitachi SDS block storage system.
 description:
-     - This module gathers facts about a specific storage system.
-     - For examples go to URL
-       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/storagesystem_facts.yml)
+  - This module gathers facts about a specific storage system.
+  - For examples go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/storagesystem_facts.yml)
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -53,7 +53,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Testing Get Storage System
+- name: Get Storage System
   hitachivantara.vspone_block.sds_block.hv_sds_block_storage_system_facts:
       connection_info:
           address: sdsb.company.com
@@ -205,7 +205,7 @@ class SDSBStorageSystemFactManager:
         data = {"storage_system": snake_case_storage_system_data}
         if registration_message:
             data["user_consent_required"] = registration_message
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
     def direct_sdsb_storage_system_read(self):
         result = sdsb_storage_system.SDSBStorageSystemReconciler(
@@ -216,7 +216,7 @@ class SDSBStorageSystemFactManager:
         return result
 
 
-def main(module=None):
+def main():
     obj_store = SDSBStorageSystemFactManager()
     obj_store.apply()
 

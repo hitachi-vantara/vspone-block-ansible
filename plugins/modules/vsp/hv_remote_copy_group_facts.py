@@ -27,14 +27,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -62,7 +60,7 @@ options:
         description: Type of connection to the storage system. Only C(direct) connection is supported.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
         description: >
@@ -92,19 +90,16 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the Copy Group facts to be gathered.
+    description: Specification for the Copy Group facts to be gathered.
     type: dict
     required: false
     suboptions:
       name:
-        description:
-          - The copy group name. If not provided, list of all copy groups will be returned.
+        description: The copy group name. If not provided, list of all copy groups will be returned.
         type: str
         required: false
       should_include_remote_replication_pairs:
-        description:
-          - Whether we want to get all replication pairs from a specific copy group. Should be specified along with the 'name' parameter in spec
+        description: Whether we want to get all replication pairs from a specific copy group. Should be specified along with the 'name' parameter in spec
         type: bool
         required: false
 """
@@ -259,7 +254,7 @@ class VSPCopyGroupsFactsManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Remote Copy Group Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
 def main(module=None):

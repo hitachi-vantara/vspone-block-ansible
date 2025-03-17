@@ -10,140 +10,119 @@ __metaclass__ = type
 
 DOCUMENTATION = """
 ---
-  module: hv_truecopy_facts
-  short_description: Retrieves TrueCopy pairs information from Hitachi VSP storage systems.
-  description:
-    - This module retrieves the TrueCopy pairs information from Hitachi VSP storage systems.
-    - This module is supported for both C(direct) and C(gateway) connection types.
-    - For C(direct) connection type examples, go to URL
-      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/truecopy_facts.yml)
-    - For C(gateway) connection type examples, go to URL
-      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/truecopy_facts.yml)
-  version_added: '3.1.0'
-  author:
-    - Hitachi Vantara LTD (@hitachi-vantara)
-  requirements:
-    - python >= 3.8
-  attributes:
-    check_mode:
-      description: Determines if the module should run in check mode.
-      support: full
-  options:
-    storage_system_info:
-      description:
-        - Information about the Hitachi storage system.
-      type: dict
-      required: false
-      suboptions:
-        serial:
-          description:
-            - Serial number of the Hitachi storage system.
-          type: str
-          required: false
-    secondary_connection_info:
-      description: >
-        Information required to establish a connection to the secondary storage system. Required for C(direct) connection type only.
-        Not needed for C(gateway) connection type.
-      required: false
-      type: dict
-      suboptions:
-        address:
-          description:
-            - IP address or hostname of either the UAI gateway or Hitachi storage system.
-          type: str
-          required: true
-        username:
-          description:
-            - Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
-          type: str
-          required: false
-        password:
-          description:
-            - Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
-          type: str
-          required: false
-        api_token:
-          description:
-            - This fieild is used to pass the value of the lock token of the secondary storage to operate on locked resources.
-          type: str
-          required: false
-    connection_info:
-      description:
-        - Information required to establish a connection to the storage system.
-      type: dict
-      required: true
-      suboptions:
-        address:
-          description:
-            - IP address or hostname of either the UAI gateway or Hitachi storage system.
-          type: str
-          required: true
-        username:
-          description:
-            - Username for authentication. Required for C(direct) connection. Not needed for C(gateway) connection type as it uses API token.
-          type: str
-          required: false
-        password:
-          description:
-            - Password for authentication. Required for C(direct) connection. Not needed for C(gateway) connection type as it uses API token.
-          type: str
-          required: false
-        connection_type:
-          description:
-            - Type of connection to the storage system. Two types of connections are supported, C(direct) and C(gateway).
-          type: str
-          required: false
-          choices:
-            - direct
-            - gateway
-          default: direct
-        api_token:
-          description:
-            - Token value to access UAI gateway for C(gateway) connection type.
-          type: str
-          required: false
-        subscriber_id:
-          description: >
-            Subscriber ID is required for C(gateway) connection type to support multi-tenancy. Not needed for C(direct) connection type
-            or for C(gateway) connection type with single tenant.
-          type: str
-          required: false
-    spec:
-      description:
-        - Specification for retrieving TrueCopy pair information.
-      type: dict
-      required: false
-      suboptions:
-        primary_volume_id:
-          description:
-            - ID of the primary volume to retrieve TrueCopy pair information for.
-          type: int
-          required: false
-        secondary_volume_id:
-          description:
-            - ID of the secondary volume to retrieve TrueCopy pair information for.
-          type: int
-          required: false
-        copy_group_name:
-          description:
-            - Name of the copy group to retrieve TrueCopy pair information for. Used only for C(direct) connection type.
-          type: str
-          required: false
-        copy_pair_name:
-          description:
-            - Name of the copy pair to retrieve TrueCopy pair information for. Used only for C(direct) connection type.
-          type: str
-          required: false
-        local_device_group_name:
-          description:
-            - Name of the local device group to retrieve TrueCopy pair information for. Used only for C(direct) connection type.
-          type: str
-          required: false
-        remote_device_group_name:
-          description:
-            - Name of the remote device group to retrieve TrueCopy pair information for. Used only for C(direct) connection type.
-          type: str
-          required: false
+module: hv_truecopy_facts
+short_description: Retrieves TrueCopy pairs information from Hitachi VSP storage systems.
+description:
+  - This module retrieves the TrueCopy pairs information from Hitachi VSP storage systems.
+  - This module is supported for both C(direct) and C(gateway) connection types.
+  - For C(direct) connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/truecopy_facts.yml)
+  - For C(gateway) connection type examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/truecopy_facts.yml)
+version_added: '3.1.0'
+author:
+  - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
+options:
+  storage_system_info:
+    description: Information about the Hitachi storage system.
+    type: dict
+    required: false
+    suboptions:
+      serial:
+        description: Serial number of the Hitachi storage system.
+        type: str
+        required: false
+  secondary_connection_info:
+    description: >
+      Information required to establish a connection to the secondary storage system. Required for C(direct) connection type only.
+      Not needed for C(gateway) connection type.
+    required: false
+    type: dict
+    suboptions:
+      address:
+        description: IP address or hostname of either the UAI gateway or Hitachi storage system.
+        type: str
+        required: true
+      username:
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        type: str
+        required: false
+      password:
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This fieild is used to pass the value of the lock token of the secondary storage to operate on locked resources.
+        type: str
+        required: false
+  connection_info:
+    description: Information required to establish a connection to the storage system.
+    type: dict
+    required: true
+    suboptions:
+      address:
+        description: IP address or hostname of either the UAI gateway or Hitachi storage system.
+        type: str
+        required: true
+      username:
+        description: Username for authentication. Required for C(direct) connection. Not needed for C(gateway) connection type as it uses API token.
+        type: str
+        required: false
+      password:
+        description: Password for authentication. Required for C(direct) connection. Not needed for C(gateway) connection type as it uses API token.
+        type: str
+        required: false
+      connection_type:
+        description: Type of connection to the storage system. Two types of connections are supported, C(direct) and C(gateway).
+        type: str
+        required: false
+        choices: ['gateway', 'direct']
+        default: 'direct'
+      api_token:
+        description: Token value to access UAI gateway for C(gateway) connection type.
+        type: str
+        required: false
+      subscriber_id:
+        description: >
+          Subscriber ID is required for C(gateway) connection type to support multi-tenancy. Not needed for C(direct) connection type
+          or for C(gateway) connection type with single tenant.
+        type: str
+        required: false
+  spec:
+    description: Specification for retrieving TrueCopy pair information.
+    type: dict
+    required: false
+    suboptions:
+      primary_volume_id:
+        description: ID of the primary volume to retrieve TrueCopy pair information for.
+        type: int
+        required: false
+      secondary_volume_id:
+        description: ID of the secondary volume to retrieve TrueCopy pair information for.
+        type: int
+        required: false
+      copy_group_name:
+        description: Name of the copy group to retrieve TrueCopy pair information for. Used only for C(direct) connection type.
+        type: str
+        required: false
+      copy_pair_name:
+        description: Name of the copy pair to retrieve TrueCopy pair information for. Used only for C(direct) connection type.
+        type: str
+        required: false
+      local_device_group_name:
+        description: Name of the local device group to retrieve TrueCopy pair information for. Used only for C(direct) connection type.
+        type: str
+        required: false
+      remote_device_group_name:
+        description: Name of the remote device group to retrieve TrueCopy pair information for. Used only for C(direct) connection type.
+        type: str
+        required: false
 """
 
 EXAMPLES = """
@@ -353,10 +332,10 @@ class VSPTrueCopyFactsManager:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of TrueCopy Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
-def main(module=None):
+def main():
     obj_store = VSPTrueCopyFactsManager()
     obj_store.apply()
 

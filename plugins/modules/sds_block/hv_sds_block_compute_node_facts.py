@@ -56,13 +56,13 @@ options:
     required: false
     suboptions:
       names:
-        type: list
         description: The names of the compute nodes.
+        type: list
         required: false
         elements: str
       hba_name:
-        type: str
         description: A WWN or an iSCSI name.
+        type: str
         required: false
 """
 
@@ -249,10 +249,10 @@ class SDSBComputeNodeFactsManager:
         }
         if registration_message:
             data["user_consent_required"] = registration_message
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
-def main(module=None):
+def main():
     obj_store = SDSBComputeNodeFactsManager()
     obj_store.apply()
 

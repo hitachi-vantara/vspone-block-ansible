@@ -56,13 +56,13 @@ options:
     required: false
     suboptions:
       names:
+        description: The names of the compute ports.
         type: list
-        description: A WWN or an iSCSI name.
         required: false
         elements: str
       nicknames:
+        description: The nicknames of the compute ports.
         type: list
-        description: The names of the compute nodes.
         required: false
         elements: str
 """
@@ -355,7 +355,7 @@ class SDSBPortFactsManager:
         }
         if registration_message:
             data["user_consent_required"] = registration_message
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
 def main(module=None):

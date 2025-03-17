@@ -70,7 +70,7 @@
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "present "
+        state: "present"
         spec:
           state: "absent"
           name: "hostgroup-server1"
@@ -90,7 +90,7 @@
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "present "
+        state: "present"
         spec:
           state: "add_wwn"
           name: "hostgroup-server1"
@@ -112,7 +112,7 @@
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "present "
+        state: "present"
         spec:
           state: "remove_wwn"
           name: "hostgroup-server1"
@@ -134,7 +134,7 @@
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "present "
+        state: "present"
         spec:
           state: "present_ldev"
           name: "hostgroup-server1"
@@ -154,7 +154,7 @@
         connection_info: "{{ connection_info }}"
         storage_system_info:
           serial: "{{ storage_serial }}"
-        state: "present "
+        state: "present"
         spec:
           state: "unpresent_ldev"
           name: "hostgroup-server1"
