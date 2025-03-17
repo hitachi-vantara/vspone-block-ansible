@@ -135,7 +135,7 @@ def runPlaybook(module):
 
     logger.writeInfo(f"{data}")
     logger.writeInfo("=== End of System Facts ===")
-    module.exit_json(**data)
+    module.exit_json(changed=False, ansible_facts=data)
 
 
 def injectEntitlement(ss):

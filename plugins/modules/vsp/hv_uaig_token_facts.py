@@ -47,7 +47,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Retrieve information about all subscribers
+- name: Retrieve API token for the gateway
   hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
     connection_info:
       address: gateway.company.com
@@ -56,20 +56,15 @@ EXAMPLES = """
 """
 
 RETURN = """
-ansible_facts:
-  description: >
-    Dictionary containing the discovered properties of the API token.
+api_token:
+  description: API token for the gateway.
   returned: always
   type: dict
   contains:
-    api_token:
-      description: API token for the gateway.
-      type: dict
-      contains:
-        token:
-          description: The retrieved API token.
-          type: str
-          sample: "eyJhbGci..."
+    token:
+      description: The retrieved API token.
+      type: str
+      sample: "eyJhbGci..."
 """
 
 
@@ -129,7 +124,7 @@ class UAIGTokenFactManager:
             comments = registration_message
 
         self.logger.writeInfo("=== End of UAI Token Facts ===")
-        self.module.exit_json(api_token=output, comments=comments)
+        self.module.exit_json(changed=False, api_token=output, comments=comments)
 
 
 def main(module=None):

@@ -55,14 +55,15 @@ options:
     required: false
     suboptions:
       id:
-        type: str
         description: ID of the VPS to retrieve information for.
+        type: str
         required: false
       name:
-        type: str
         description: VPS name to retrieve information for.
+        type: str
         required: false
 """
+
 EXAMPLES = """
 - name: Retrieve information about all VPS
   hitachivantara.vspone_block.sds_block.hv_sds_block_vps_facts:
@@ -309,7 +310,7 @@ class SDSBVpsFactsManager:
 
         if registration_message:
             data["user_consent_required"] = registration_message
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
 def main(module=None):

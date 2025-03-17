@@ -30,14 +30,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -73,38 +71,34 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the parity group facts to be gathered.
+    description: Specification for the parity group facts to be gathered.
     type: dict
     required: false
     suboptions:
       parity_group_id:
-        description:
-          - The parity group number of the parity group to retrieve.
+        description: The parity group number of the parity group to retrieve.
         type: str
         required: false
 """
 
 EXAMPLES = """
-- name: Get a specific parity group
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
-        spec:
-          parity_group_id: 1-1
+- name: Retrieve a specific parity group
+  hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
+    spec:
+      parity_group_id: 1-1
 
-- name: Get all parity groups
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
+- name: Retrieve all parity groups
+  hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
 """
 
 RETURN = """
@@ -256,7 +250,7 @@ class VspParityGroupFactManager:
 
                     self.logger.writeInfo(f"{data}")
                     self.logger.writeInfo("=== End of Parity Group Facts ===")
-                    self.module.exit_json(**data)
+                    self.module.exit_json(changed=False, ansible_facts=data)
                 else:
                     all_parity_groups = self.direct_all_parity_groups_read()
                     parity_groups_list = all_parity_groups.data_to_list()
@@ -272,7 +266,7 @@ class VspParityGroupFactManager:
 
                     self.logger.writeInfo(f"{data}")
                     self.logger.writeInfo("=== End of Parity Group Facts ===")
-                    self.module.exit_json(**data)
+                    self.module.exit_json(changed=False, ansible_facts=data)
 
         except HiException as ex:
             if HAS_MESSAGE_ID:
@@ -307,7 +301,7 @@ class VspParityGroupFactManager:
         runner.runPlaybook(self.module)
 
 
-def main(module=None):
+def main():
     obj_store = VspParityGroupFactManager()
     obj_store.apply()
 

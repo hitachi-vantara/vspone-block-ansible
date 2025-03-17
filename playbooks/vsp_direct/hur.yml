@@ -119,10 +119,10 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
-
+    
     #####################################################################
     # Task 5 : Swap-Split HUR pair
-    # Storages need to be swapped before swap-split operation. Please specify connection_info and secondary_connection_info accordingly.
+    #          Storages need to be swapped before swap-split operation. Please specify       connection_info and secondary_connection_info accordingly. 
     ######################################################################
     - name: Swap-Split HUR pair
       hitachivantara.vspone_block.vsp.hv_hur:

@@ -84,7 +84,7 @@ options:
 
 EXAMPLES = """
 - name: Retrieve information about all shadow image pairs
-  hitachivantara.vspone_block.vsp.hitachivantara.vspone_block.vsp.hv_shadow_image_pair_facts:
+  hitachivantara.vspone_block.vsp.hv_shadow_image_pair_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -95,7 +95,7 @@ EXAMPLES = """
       serial: 811150
 
 - name: Retrieve information about a specific shadow image pair
-  hitachivantara.vspone_block.vsp.hitachivantara.vspone_block.vsp.hv_shadow_image_pair_facts:
+  hitachivantara.vspone_block.vsp.hv_shadow_image_pair_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -110,72 +110,77 @@ EXAMPLES = """
 """
 
 RETURN = """
-data:
+ansible_facts:
   description: List of shadow image pairs.
   returned: success
-  type: list
-  elements: dict
+  type: dict
   contains:
-    consistency_group_id:
-      description: Consistency group ID.
-      type: int
-      sample: -1
-    copy_pace_track_size:
-      description: Copy pace track size.
-      type: str
-      sample: "MEDIUM"
-    copy_rate:
-      description: Copy rate.
-      type: int
-      sample: 100
-    entitlement_status:
-      description: Entitlement status.
-      type: str
-      sample: "assigned"
-    mirror_unit_id:
-      description: Mirror unit ID.
-      type: int
-      sample: -1
-    partner_id:
-      description: Partner ID.
-      type: str
-      sample: "partner123"
-    primary_hex_volume_id:
-      description: Primary hex volume ID.
-      type: str
-      sample: "00:01:12"
-    primary_volume_id:
-      description: Primary volume ID.
-      type: int
-      sample: 274
-    resource_id:
-      description: Resource ID.
-      type: str
-      sample: "localpair-2749fed78e8d23a61ed17a8af71c85f8"
-    secondary_hex_volume_id:
-      description: Secondary hex volume ID.
-      type: str
-      sample: "00:01:17"
-    secondary_volume_id:
-      description: Secondary volume ID.
-      type: int
-      sample: 279
-    status:
-      description: Status of the shadow image pair.
-      type: str
-      sample: "PAIR"
-    storage_serial_number:
-      description: Storage serial number.
-      type: str
-      sample: "811150"
-    subscriber_id:
-      description: Subscriber ID.
-      type: str
-      sample: "subscriber123"
-    svol_access_mode:
-      description: SVol access mode.
-      type: str
-      sample: "READONLY"
+    data:
+      description: List of shadow image pairs.
+      returned: success
+      type: list
+      elements: dict
+      contains:
+        consistency_group_id:
+          description: Consistency group ID.
+          type: int
+          sample: -1
+        copy_pace_track_size:
+          description: Copy pace track size.
+          type: str
+          sample: "MEDIUM"
+        copy_rate:
+          description: Copy rate.
+          type: int
+          sample: 100
+        entitlement_status:
+          description: Entitlement status.
+          type: str
+          sample: "assigned"
+        mirror_unit_id:
+          description: Mirror unit ID.
+          type: int
+          sample: -1
+        partner_id:
+          description: Partner ID.
+          type: str
+          sample: "partner123"
+        primary_hex_volume_id:
+          description: Primary hex volume ID.
+          type: str
+          sample: "00:01:12"
+        primary_volume_id:
+          description: Primary volume ID.
+          type: int
+          sample: 274
+        resource_id:
+          description: Resource ID.
+          type: str
+          sample: "localpair-2749fed78e8d23a61ed17a8af71c85f8"
+        secondary_hex_volume_id:
+          description: Secondary hex volume ID.
+          type: str
+          sample: "00:01:17"
+        secondary_volume_id:
+          description: Secondary volume ID.
+          type: int
+          sample: 279
+        status:
+          description: Status of the shadow image pair.
+          type: str
+          sample: "PAIR"
+        storage_serial_number:
+          description: Storage serial number.
+          type: str
+          sample: "811150"
+        subscriber_id:
+          description: Subscriber ID.
+          type: str
+          sample: "subscriber123"
+        svol_access_mode:
+          description: SVol access mode.
+          type: str
+          sample: "READONLY"
 """
 
 
@@ -243,7 +248,7 @@ class VSPShadowImagePairManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Shadow Image Pair Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
     def gateway_shadow_image_pair_read(self):
 
@@ -263,7 +268,7 @@ class VSPShadowImagePairManager:
         return result
 
 
-def main(module=None):
+def main():
     obj_store = VSPShadowImagePairManager()
     obj_store.apply()
 

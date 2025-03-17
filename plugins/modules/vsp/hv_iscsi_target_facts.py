@@ -32,8 +32,7 @@ options:
   storage_system_info:
     required: false
     type: dict
-    description:
-      - Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system.
     suboptions:
       serial:
         description: Serial number of the Hitachi storage system.
@@ -62,7 +61,7 @@ options:
         type: str
         required: false
         choices: ['gateway', 'direct']
-        default: direct
+        default: 'direct'
       subscriber_id:
         description: This field is valid for C(gateway) connection type only.This is an optional field and only needed to support multi-tenancy environment.
         type: str
@@ -161,8 +160,7 @@ EXAMPLES = """
 
 RETURN = """
 ansible_facts:
-  description: >
-    Dictionary containing the discovered properties of the iSCSI targets.
+  description: Dictionary containing the discovered properties of the iSCSI targets.
   returned: always
   type: dict
   contains:
@@ -327,10 +325,10 @@ class VSPIscsiTargetFactsManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of iSCSI Target Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
-def main(module=None):
+def main():
     obj_store = VSPIscsiTargetFactsManager()
     obj_store.apply()
 

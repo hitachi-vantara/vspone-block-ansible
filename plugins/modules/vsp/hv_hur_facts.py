@@ -30,14 +30,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -70,7 +68,7 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['gateway', 'direct']
         default: 'direct'
   secondary_connection_info:
     description: Information required to establish a connection to the secondary storage system.
@@ -95,50 +93,41 @@ options:
           type: str
           required: false
   spec:
-    description:
-      - Specification for the HUR facts to be gathered.
+    description: Specification for the HUR facts to be gathered.
     type: dict
     required: false
     suboptions:
       primary_volume_id:
-        description:
-          - The primary volume identifier. If not provided, it will be omitted.
+        description: The primary volume identifier. If not provided, it will be omitted.
         type: int
         required: false
       secondary_volume_id:
-        description:
-          - The secondary volume identifier. If not provided, it will be omitted.
+        description: The secondary volume identifier. If not provided, it will be omitted.
         type: int
         required: false
       mirror_unit_id:
-        description:
-          - The mirror unit identifier. If not provided, it will be omitted.
+        description: The mirror unit identifier. If not provided, it will be omitted.
         type: int
         required: false
         choices: [0, 1, 2, 3]
       copy_group_name:
-        description:
-          - The copy group name. If not provided, it will be omitted.
+        description: The copy group name. If not provided, it will be omitted.
         type: str
         required: false
       secondary_storage_serial_number:
-        description:
-          - The secondary storage serial number. If not provided, it will be omitted.
+        description: The secondary storage serial number. If not provided, it will be omitted.
         type: int
         required: false
       copy_pair_name:
-        description:
-          - The copy pair name. If not provided, it will be omitted.
+        description: The copy pair name. If not provided, it will be omitted.
         type: str
         required: false
       local_device_group_name:
-        description:
-          - The local device group name. If not provided, it will be omitted.
+        description: The local device group name. If not provided, it will be omitted.
         type: str
         required: false
       remote_device_group_name:
-        description:
-          - The remote device group name. If not provided, it will be omitted.
+        description: The remote device group name. If not provided, it will be omitted.
         type: str
         required: false
 """
@@ -404,7 +393,7 @@ class VSPHurFactManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of HUR Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
     def get_hur_facts(self):
         reconciler = VSPHurReconciler(

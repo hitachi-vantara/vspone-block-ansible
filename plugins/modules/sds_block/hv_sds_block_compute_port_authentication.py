@@ -65,12 +65,12 @@ options:
         type: str
         required: false
       state:
-        description: The state of the port authorization task. Choices are C(add_chap_user) and C(remove_chap_user).
+        description: The state of the port authorization task.
         type: str
         required: false
         choices: ['add_chap_user', 'remove_chap_user']
       authentication_mode:
-        description: Authentication mode. Choices are C(CHAP), C(CHAP_complying_with_initiator_setting), and C(None).
+        description: Authentication mode.
         type: str
         required: false
         choices: ['CHAP', 'CHAP_complying_with_initiator_setting', 'None']

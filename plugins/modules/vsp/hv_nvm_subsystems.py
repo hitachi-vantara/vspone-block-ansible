@@ -27,14 +27,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -58,10 +56,10 @@ options:
         description: Type of connection to the storage system. Only C(direct) connection is supported.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['gateway', 'direct']
         default: 'direct'
       api_token:
-          description: api_token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
+          description: API token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
           type: str
           required: false
       subscriber_id:
@@ -76,160 +74,140 @@ options:
     choices: ['present', 'absent']
     default: 'present'
   spec:
-    description:
-      - Specification for the NVM subsystems to be used.
+    description: Specification for the NVM subsystems to be used.
     type: dict
     required: true
     suboptions:
       name:
-        description:
-          - The name of the NVM subsystem.If not given, it assigns the name of the NVM subsytem to "smrha-<10 digit random number>".
+        description: The name of the NVM subsystem.If not given, it assigns the name of the NVM subsytem to "smrha-<10 digit random number>".
         type: str
         required: false
       id:
-        description:
-          - The ID of the NVM subsystem.
+        description: The ID of the NVM subsystem.
         type: int
         required: false
       host_mode:
-        description:
-          - The host mode of the NVM subsystem.
+        description: The host mode of the NVM subsystem.
         type: str
         required: false
       enable_namespace_security:
-        description:
-          - Namespace security settings.
+        description: Namespace security settings.
         type: bool
         required: false
         default: true
       ports:
-        description:
-          - The ports of the NVM subsystem.
+        description: The ports of the NVM subsystem.
         type: list
         elements: str
         required: false
       host_nqns:
-        description:
-          - The host NQNs of the NVM subsystem.
+        description: The host NQNs of the NVM subsystem.
         type: list
         elements: dict
         required: false
       namespaces:
-        description:
-          - The namespaces of the NVM subsystem.
+        description: The namespaces of the NVM subsystem.
         type: list
         elements: dict
         required: false
         suboptions:
           ldev_id:
-            description:
-              - The LDEV ID of the namespace.
+            description: The LDEV ID of the namespace.
             type: int
             required: true
           nickname:
-            description:
-              - The nickname of the namespace.
+            description: The nickname of the namespace.
             type: str
             required: false
           paths:
-            description:
-              - The paths of the namespace.
+            description: The paths of the namespace.
             type: list
             elements: str
             required: false
       force:
-        description:
-          - This flag is used to force the operation.
+        description: This flag is used to force the operation.
         type: bool
         required: false
         default: false
       state:
         description:
           - The specific operation to perform on the NVM subsystem.
-          - 'add_port : Add ports to the NVM subsystem.'
-          - 'remove_port : Remove ports from the NVM subsystem.'
-          - 'add_host_nqn : Add host NQNs to the NVM subsystem.'
-          - 'remove_host_nqn : Remove host NQNs from the NVM subsystem.'
-          - 'add_namespace : Add namespaces to the NVM subsystem.'
-          - 'remove_namespace : Remove namespaces from the NVM subsystem.'
-          - 'add_namespace_path : Add paths to the namespace.'
-          - 'remove_namespace_path : Remove paths from the namespace.'
+          - C(add_port) - Add ports to the NVM subsystem.
+          - C(remove_port) - Remove ports from the NVM subsystem.
+          - C(add_host_nqn) - Add host NQNs to the NVM subsystem.
+          - C(remove_host_nqn) - Remove host NQNs from the NVM subsystem.
+          - C(add_namespace) - Add namespaces to the NVM subsystem.
+          - C(remove_namespace) - Remove namespaces from the NVM subsystem.
+          - C(add_namespace_path) - Add paths to the namespace.
+          - C(remove_namespace_path) - Remove paths from the namespace.
         type: str
         required: false
-        choices:
-          ['add_port', 'remove_port', 'add_host_nqn', 'remove_host_nqn', 'add_namespace', 'remove_namespace', 'add_namespace_path', 'remove_namespace_path']
+        choices: ['add_port', 'remove_port', 'add_host_nqn', 'remove_host_nqn', 'add_namespace',
+                  'remove_namespace', 'add_namespace_path', 'remove_namespace_path']
 """
 
 EXAMPLES = """
 - name: Create an NVM Subsystem
-  tasks:
-    - name: Create NVM subsystem
-      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
-        state: "present"
-        spec:
-          name: "nvm_tcp_01"
-          id: 1000
-          host_mode: "VMWARE_EX"
-          enable_namespace_security: true
-          ports: ["CL1-D"]
-          host_nqns:
-            - nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"
-              nickname: "my_host_nqn_40"
-          namespaces:
-            - ldev_id: 11101
-              nickname: "nickname"
-              paths: ["nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"]
+  hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
+    state: "present"
+    spec:
+      name: "nvm_tcp_01"
+      id: 1000
+      host_mode: "VMWARE_EX"
+      enable_namespace_security: true
+      ports: ["CL1-D"]
+      host_nqns:
+        - nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"
+          nickname: "my_host_nqn_40"
+      namespaces:
+        - ldev_id: 11101
+          nickname: "nickname"
+          paths: ["nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"]
 
 - name: Add host NQNs to an NVM Subsystem with a specific ID
-  tasks:
-    - name: Add host NQNs
-      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
-        spec:
-          id: 1000
-          state: "add_host_nqn"
-          host_nqns:
-            - nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa41"
-              nickname: "my_host_nqn_41"
+  hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
+    spec:
+      id: 1000
+      state: "add_host_nqn"
+      host_nqns:
+        - nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa41"
+          nickname: "my_host_nqn_41"
 
 - name: Remove host NQNs from an NVM Subsystem with a specific ID
-  tasks:
-    - name: Remove host NQNs
-      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
-        spec:
-          id: 1000
-          state: "remove_host_nqn"
-          host_nqns:
-            - nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa41"
-              nickname: "my_host_nqn_41"
+  hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
+    spec:
+      id: 1000
+      state: "remove_host_nqn"
+      host_nqns:
+        - nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa41"
+          nickname: "my_host_nqn_41"
 
 - name: Delete an NVM Subsystem with a specific Id forcefully
-  tasks:
-    - name: Delete NVM Subsystem
-      hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
-        state: "absent"
-        spec:
-          id: "nvm_subsystems_id_18"
-          force: true
+  hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
+    state: "absent"
+    spec:
+      id: "nvm_subsystems_id_18"
+      force: true
 """
 
 RETURN = """

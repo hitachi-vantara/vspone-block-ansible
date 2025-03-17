@@ -75,12 +75,11 @@ options:
         type: str
         required: false
       state:
-        description: The state of the compute node task. It can be any one of the following
-          C(add_iscsi_initiator), C(remove_iscsi_initiator), C(attach_volume),
-          C(detach_volume), C(add_host_nqn), C(remove_host_nqn).
+        description: The state of the compute node task.
         type: str
         required: false
-        choices: ['add_iscsi_initiator', 'remove_iscsi_initiator', 'attach_volume', 'detach_volume', 'add_host_nqn', 'remove_host_nqn']
+        choices: ['add_iscsi_initiator', 'remove_iscsi_initiator', 'attach_volume',
+          'detach_volume', 'add_host_nqn', 'remove_host_nqn']
       iscsi_initiators:
         description: The array of iSCSI Initiators.
         type: list

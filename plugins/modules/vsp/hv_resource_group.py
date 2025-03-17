@@ -31,51 +31,43 @@ attributes:
     support: full
 options:
     state:
-        description:
-            - The desired state of the resource group task.
+        description: The desired state of the resource group task.
         type: str
         required: false
-        default: 'present'
         choices: ['present', 'absent']
+        default: 'present'
     storage_system_info:
-        description:
-            - Information about the storage system.
+        description: Information about the storage system.
         type: dict
         required: false
         suboptions:
             serial:
-                description:
-                    - The serial number of the storage system.
+                description: The serial number of the storage system.
                 type: str
                 required: false
     connection_info:
-        description:
-            - Information required to establish a connection to the storage system.
+        description: Information required to establish a connection to the storage system.
         type: dict
         required: true
         suboptions:
             address:
-                description:
-                    - IP address or hostname of the UAI gateway (for C(gateway) connection)
-                      or the storage system (for C(direct) connection).
+                description: IP address or hostname of the UAI gateway (for C(gateway) connection)
+                    or the storage system (for C(direct) connection).
                 type: str
                 required: true
             username:
-                description:
-                    - Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+                description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
                 type: str
                 required: false
             password:
-                description:
-                    - Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+                description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
                 type: str
                 required: false
             connection_type:
-                description:
-                    - Type of connection to the storage system.
+                description: Type of connection to the storage system.
                 type: str
                 required: false
-                choices: ['direct', 'gateway']
+                choices: ['gateway', 'direct']
                 default: 'direct'
             api_token:
                 description: Either Token value to access UAI gateway for C(gateway) connection type or
@@ -83,64 +75,54 @@ options:
                 type: str
                 required: false
             subscriber_id:
-                description: >
-                    Subscription ID for the storage system. This is valid for multi-tenancy and when connection_type is C(gateway).
+                description: Subscription ID for the storage system. This is valid for multi-tenancy and when connection_type is C(gateway).
                     Resource group is not supported for multi-tenancy.
                 type: str
                 required: false
     spec:
-        description:
-            - Specification for the resource group.
+        description: Specification for the resource group.
         type: dict
         required: true
         suboptions:
             name:
-                description:
-                    - The name of the resource group.
+                description: The name of the resource group.
                 type: str
                 required: false
             id:
-                description:
-                    - The ID of the resource group.
+                description: The ID of the resource group.
                 type: int
                 required: false
             virtual_storage_serial:
-                description:
-                    - Virtual storage serial number associated with the resource group.
+                description: Virtual storage serial number associated with the resource group.
                 type: str
                 required: false
             virtual_storage_model:
-                description:
-                    - Virtual storage model name associated with the resource group.
+                description: Virtual storage model name associated with the resource group.
                 type: str
                 required: false
-                choices: [ "VSP_5100H", "VSP_5200H", "VSP_5500H", "VSP_5600H", "VSP_5100", "VSP_5200", "VSP_5500", "VSP_5600",
-                           "VSP_E1090", "VSP_E590", "VSP_E790", "VSP_E990", "VSP_F350", "VSP_F370", "VSP_F400", "VSP_F600", "VSP_F700",
-                            "VSP_F800", "VSP_F900", "VSP_G130", "VSP_G150", "VSP_G200", "VSP_G350", "VSP_G370", "VSP_G400", "VSP_G600",
-                            "VSP_G700", "VSP_G800", "VSP_G900", "VSP_ONE_B28", "VSP_ONE_B26", "VSP_ONE_B24", "VSP_E790H", "VSP_E590H",
-                            "VSP_G1000", "VSP_G1500", "VSP_F1500", "VSP_E1090H",
-                        ]
+                choices: ['VSP_5100H', 'VSP_5200H', 'VSP_5500H', 'VSP_5600H', 'VSP_5100', 'VSP_5200', 'VSP_5500', 'VSP_5600',
+                           'VSP_E1090', 'VSP_E590', 'VSP_E790', 'VSP_E990', 'VSP_F350', 'VSP_F370', 'VSP_F400', 'VSP_F600',
+                           'VSP_F700', 'VSP_F800', 'VSP_F900', 'VSP_G130', 'VSP_G150', 'VSP_G200', 'VSP_G350',
+                           'VSP_G370', 'VSP_G400', 'VSP_G600', 'VSP_G700', 'VSP_G800', 'VSP_G900',
+                           'VSP_ONE_B28', 'VSP_ONE_B26', 'VSP_ONE_B24', 'VSP_E790H', 'VSP_E590H',
+                           'VSP_G1000', 'VSP_G1500', 'VSP_F1500', 'VSP_E1090H']
             ldevs:
-                description:
-                    - List of LDEVs to be added or removed from the resource group.
+                description: List of LDEVs to be added or removed from the resource group.
                 type: list
                 required: false
                 elements: int
             ports:
-                description:
-                    - List of ports to be added or removed from the resource group.
+                description: List of ports to be added or removed from the resource group.
                 type: list
                 required: false
                 elements: str
             parity_groups:
-                description:
-                    - List of parity groups to be added or removed from the resource group.
+                description: List of parity groups to be added or removed from the resource group.
                 type: list
                 required: false
                 elements: str
             host_groups:
-                description:
-                    - List of host groups to be added or removed from the resource group.
+                description: List of host groups to be added or removed from the resource group.
                 type: list
                 required: false
                 elements: dict
@@ -154,8 +136,7 @@ options:
                         type: str
                         required: true
             iscsi_targets:
-                description:
-                    - List of iSCSI targets to be added or removed from the resource group.
+                description: List of iSCSI targets to be added or removed from the resource group.
                 type: list
                 required: false
                 elements: dict
@@ -169,29 +150,26 @@ options:
                         type: str
                         required: true
             nvm_subsystem_ids:
-                description:
-                    - List of NVM subsystem IDs to be added or removed from the resource group. This is supported only for C(direct) connection type.
+                description: List of NVM subsystem IDs to be added or removed from the resource group. This is supported only for C(direct) connection type.
                 type: list
                 required: false
                 elements: int
             storage_pool_ids:
-                description:
-                    - Pool volumes to be added or removed from the resource group.
+                description: Pool volumes to be added or removed from the resource group.
                 type: list
                 required: false
                 elements: int
             state:
                 description:
                     - Operation to be performed on the resources in the resource group.
-                    - 'add_resource :  To add resources to the resource group.'
-                    - 'remove_resource : To remove resources from the resource group.'
+                    - C(add_resource) -  To add resources to the resource group.
+                    - C(remove_resource) - To remove resources from the resource group.
                 type: str
                 required: false
                 choices: ['add_resource', 'remove_resource']
                 default: 'add_resource'
             force:
-                description:
-                    - For delete operations, specifies if the operation should be forced.
+                description: For delete operations, specifies if the operation should be forced.
                 type: bool
                 required: false
                 default: false

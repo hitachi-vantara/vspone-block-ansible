@@ -40,15 +40,14 @@ attributes:
 options:
   state:
     description:
-      - set state to C(present) for create and update host group
-      - set state to C(absent) for delete host group
+      - Set state to C(present) for create and update host group
+      - Set state to C(absent) for delete host group
     type: str
     required: false
-    default: "present"
-    choices: ["present", "absent"]
+    choices: ['present', 'absent']
+    default: 'present'
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system.
     type: dict
     required: false
     suboptions:
@@ -94,13 +93,13 @@ options:
     required: false
     suboptions:
       state:
-        description: sub task operation.
+        description: Subtask operation.
         type: str
         required: false
         choices: ['present_ldev', 'unpresent_ldev', 'add_wwn', 'remove_wwn', 'set_host_mode_and_hmo', 'present']
         default: 'present'
       name:
-        description: Name of the host group.If not given,
+        description: Name of the host group. If not given,
           it will create the name with prefix "smrha-" and add 10 digit random number at the end, for example "smrha-0806262996".
         type: str
         required: false
@@ -122,22 +121,9 @@ options:
         description: Host mode of host group.
         type: str
         required: false
-        choices:
-          - LINUX
-          - VMWARE
-          - HP
-          - OPEN_VMS
-          - TRU64
-          - SOLARIS
-          - NETWARE
-          - WINDOWS
-          - HI_UX
-          - AIX
-          - VMWARE_EXTENSION
-          - WINDOWS_EXTENSION
-          - UVM
-          - HP_XP
-          - DYNIX
+        choices: ['LINUX', 'VMWARE', 'HP', 'OPEN_VMS', 'TRU64', 'SOLARIS',
+          'NETWARE', 'WINDOWS', 'HI_UX', 'AIX', 'VMWARE_EXTENSION',
+          'WINDOWS_EXTENSION', 'UVM', 'HP_XP', 'DYNIX']
       host_mode_options:
         description:
           - List of host group host mode option numbers.
@@ -197,190 +183,181 @@ options:
         required: false
         type: bool
 """
+
 EXAMPLES = """
 - name: Create host group with LUN in decimal for direct connection type
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg:
-        state: present
-        storage_system_info:
-          serial: '446039'
-        connection_info:
-          address: storage1.company.com
-          username: "dummy_user"
-          password: "dummy_password"
-        spec:
-          name: 'testhg26dec'
-          port: 'CL1-A'
-          host_mode: 'VMWARE_EXTENSION'
-          host_mode_options: [40]
-          wwns: ['100000109B583B2D', '100000109B583B2C']
-          ldevs: [393, 851]
-      register: result
-    - debug: var=result.hostGroups
+  hitachivantara.vspone_block.vsp.hv_hg:
+    state: present
+    storage_system_info:
+      serial: '446039'
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+    spec:
+      name: 'testhg26dec'
+      port: 'CL1-A'
+      host_mode: 'VMWARE_EXTENSION'
+      host_mode_options: [40]
+      wwns: ['100000109B583B2D', '100000109B583B2C']
+      ldevs: [393, 851]
+  register: result
+- debug: var=result.hostGroups
 
 - name: Create host group with LUN in decimal for gateway connection type
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg:
-        state: present
-        storage_system_info:
-          serial: '446039'
-        connection_info:
-          address: gateway1.company.com
-          api_token: "api_token_value"
-        spec:
-          name: 'testhg26dec'
-          port: 'CL1-A'
-          host_mode: 'VMWARE_EXTENSION'
-          host_mode_options: [40]
-          wwns: ['100000109B583B2D', '100000109B583B2C']
-          ldevs: [393, 851]
-      register: result
-    - debug: var=result.hostGroups
+  hitachivantara.vspone_block.vsp.hv_hg:
+    state: present
+    storage_system_info:
+      serial: '446039'
+    connection_info:
+      address: gateway1.company.com
+      api_token: "api_token_value"
+    spec:
+      name: 'testhg26dec'
+      port: 'CL1-A'
+      host_mode: 'VMWARE_EXTENSION'
+      host_mode_options: [40]
+      wwns: ['100000109B583B2D', '100000109B583B2C']
+      ldevs: [393, 851]
+  register: result
+- debug: var=result.hostGroups
 
 - name: Create host group with LUN in HEX for direct connection type
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg:
-        state: present
-        storage_system_info:
-          serial: '446039'
-        connection_info:
-          address: storage1.company.com
-          username: "dummy_user"
-          password: "dummy_password"
-        host_group_info:
-          name: 'testhg26dec'
-          port: 'CL1-A'
-          host_mode: 'VMWARE_EXTENSION'
-          host_mode_options: [54, 63]
-          wwns: ['100000109B583B2D', '100000109B583B2C']
-          ldevs: ['00:23:A4']
-      register: result
-    - debug: var=result.hostGroups
+  hitachivantara.vspone_block.vsp.hv_hg:
+    state: present
+    storage_system_info:
+      serial: '446039'
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+    spec:
+      name: 'testhg26dec'
+      port: 'CL1-A'
+      host_mode: 'VMWARE_EXTENSION'
+      host_mode_options: [54, 63]
+      wwns: ['100000109B583B2D', '100000109B583B2C']
+      ldevs: ['00:23:A4']
+  register: result
+- debug: var=result.hostGroups
 
 - name: Delete host group for gateway connection type
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg:
-        state: absent
-        storage_system_info:
-          serial: '446039'
-        connection_info:
-          address: gateway1.company.com
-          api_token: "api_token_value"
-        spec:
-          name: 'testhg26dec'
-          port: 'CL1-A'
-      register: result
-    - debug: var=result
+  hitachivantara.vspone_block.vsp.hv_hg:
+    state: absent
+    storage_system_info:
+      serial: '446039'
+    connection_info:
+      address: gateway1.company.com
+      api_token: "api_token_value"
+    spec:
+      name: 'testhg26dec'
+      port: 'CL1-A'
+  register: result
+- debug: var=result
 
 - name: Delete host group for direct connection type
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg:
-        state: absent
-        storage_system_info:
-          serial: '446039'
-        connection_info:
-          address: storage1.company.com
-          username: "dummy_user"
-          password: "dummy_password"
-        spec:
-          name: 'testhg26dec'
-          port: 'CL1-A'
-      register: result
-    - debug: var=result
+  hitachivantara.vspone_block.vsp.hv_hg:
+    state: absent
+    storage_system_info:
+      serial: '446039'
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+    spec:
+      name: 'testhg26dec'
+      port: 'CL1-A'
+  register: result
+- debug: var=result
 
 - name: Present LUN for direct connection type
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg:
-        state: present
-        storage_system_info:
-          serial: '446039'
-        connection_info:
-          address: storage1.company.com
-          username: "dummy_user"
-          password: "dummy_password"
-        host_group_info:
-          state: present_ldev
-          name: 'testhg26dec'
-          port: 'CL1-A'
-          ldevs: ['00:05:77', '00:05:7D']
-      register: result
+  hitachivantara.vspone_block.vsp.hv_hg:
+    state: present
+    storage_system_info:
+      serial: '446039'
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+    spec:
+      state: present_ldev
+      name: 'testhg26dec'
+      port: 'CL1-A'
+      ldevs: ['00:05:77', '00:05:7D']
+  register: result
 
 - name: Unpresent LUN for direct connection type
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg:
-        state: present
-        storage_system_info:
-          serial: '446039'
-        connection_info:
-          address: storage1.company.com
-          username: "dummy_user"
-          password: "dummy_password"
-        spec:
-          state: unpresent_ldev
-          name: 'testhg26dec'
-          port: 'CL1-A'
-          ldevs: [800, 801]
-      register: result
+  hitachivantara.vspone_block.vsp.hv_hg:
+    state: present
+    storage_system_info:
+      serial: '446039'
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+    spec:
+      state: unpresent_ldev
+      name: 'testhg26dec'
+      port: 'CL1-A'
+      ldevs: [800, 801]
+  register: result
 
 - name: Add WWN for direct connection type
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg:
-        state: present
-        storage_system_info:
-          serial: '446039'
-        connection_info:
-          address: storage1.company.com
-          username: "dummy_user"
-          password: "dummy_password"
-        spec:
-          state: add_wwn
-          name: 'testhg26dec'
-          port: 'CL1-A'
-          wwns: ['200000109B3C0FD3']
-      register: result
-    - debug: var=result
+  hitachivantara.vspone_block.vsp.hv_hg:
+    state: present
+    storage_system_info:
+      serial: '446039'
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+    spec:
+      state: add_wwn
+      name: 'testhg26dec'
+      port: 'CL1-A'
+      wwns: ['200000109B3C0FD3']
+  register: result
+- debug: var=result
 
 - name: Remove WWN for direct connection type
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg:
-        state: present
-        storage_system_info:
-          serial: '446039'
-        connection_info:
-          address: storage1.company.com
-          username: "dummy_user"
-          password: "dummy_password"
-        spec:
-          state: remove_wwn
-          name: 'testhg26dec'
-          port: 'CL1-A'
-          wwns: ['200000109B3C0FD3']
-      register: result
-    - debug: var=result
+  hitachivantara.vspone_block.vsp.hv_hg:
+    state: present
+    storage_system_info:
+      serial: '446039'
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+    spec:
+      state: remove_wwn
+      name: 'testhg26dec'
+      port: 'CL1-A'
+      wwns: ['200000109B3C0FD3']
+  register: result
+- debug: var=result
 
 - name: Update host group for direct connection type
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_hg:
-        state: present
-        storage_system_info:
-          serial: '446039'
-        connection_info:
-          address: storage1.company.com
-          username: "dummy_user"
-          password: "dummy_password"
-        spec:
-          state: set_host_mode_and_hmo
-          name: 'testhg26dec'
-          port: 'CL1-A'
-          host_mode: 'VMWARE_EXTENSION'
-          host_mode_options: [54, 63]
-      register: result
-    - debug: var=result
+  hitachivantara.vspone_block.vsp.hv_hg:
+    state: present
+    storage_system_info:
+      serial: '446039'
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+    spec:
+      state: set_host_mode_and_hmo
+      name: 'testhg26dec'
+      port: 'CL1-A'
+      host_mode: 'VMWARE_EXTENSION'
+      host_mode_options: [54, 63]
+  register: result
+- debug: var=result
 """
 
 RETURN = """
 hostGroups:
-  description: Info of host group.
+  description: Information of host group.
   returned: always
   type: dict
   contains:

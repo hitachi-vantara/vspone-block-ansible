@@ -34,8 +34,7 @@ options:
     choices: ['present', 'absent']
     default: 'present'
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system.
     type: dict
     required: true
     suboptions:
@@ -96,36 +95,38 @@ options:
 """
 
 EXAMPLES = """
-- name: Adding Storage System
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storagesystem:
-        storage_system_info:
-          serial: "811150"
-          address: storage1.company.com
-          username: "username"
-          password: "password"
-        connection_info:
-          address: gateway.company.com
-          api_token: "api token value"
-          connection_type: "gateway"
-          subscriber_id: 811150
-        state: present
-      register: result
-    - debug: var=result
+- name: Add Storage System
+  hitachivantara.vspone_block.vsp.hv_storagesystem:
+    storage_system_info:
+      serial: "811150"
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+    connection_info:
+      address: gateway.company.com
+      api_token: "api token value"
+      connection_type: "gateway"
+      subscriber_id: 811150
+    state: present
+  register: result
 
-- name: Deleting Storage System
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storagesystem:
-        storage_system_info:
-          serial: "811150"
-        connection_info:
-          address: gateway.company.com
-          api_token: "api token value"
-          connection_type: "gateway"
-          subscriber_id: 811150
-        state: absent
-      register: result
-    - debug: var=result
+- name: Debug Add Result
+  debug: var=result
+
+- name: Delete Storage System
+  hitachivantara.vspone_block.vsp.hv_storagesystem:
+    storage_system_info:
+      serial: "811150"
+    connection_info:
+      address: gateway.company.com
+      api_token: "api token value"
+      connection_type: "gateway"
+      subscriber_id: 811150
+    state: absent
+  register: result
+
+- name: Debug Delete Result
+  debug: var=result
 """
 
 RETURN = """

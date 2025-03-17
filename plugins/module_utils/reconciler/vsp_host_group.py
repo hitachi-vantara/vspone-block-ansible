@@ -110,7 +110,7 @@ class VSPHostGroupReconciler:
         logger.writeDebug(parsedLuns)
         luns = parsedLuns
         logger.writeDebug("LUN Parsing")
-        newLun = set(map(int, luns))
+        newLun = list(map(int, luns))
         return newLun
 
     def pre_check_sub_state(self, subobjState):

@@ -72,7 +72,7 @@ options:
         elements: str
       capacity_saving:
         type: str
-        description: Settings of the data reduction function for volumes. Choices are C(Disabled) and C(Compression).
+        description: Settings of the data reduction function for volumes.
         required: false
         choices: ['Disabled', 'Compression']
 """
@@ -348,10 +348,10 @@ class SDSBVolumeFactsManager:
         data = {"volumes": volumes_data_extracted}
         if registration_message:
             data["user_consent_required"] = registration_message
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
-def main(module=None):
+def main():
     obj_store = SDSBVolumeFactsManager()
     obj_store.apply()
 

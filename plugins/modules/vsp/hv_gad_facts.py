@@ -62,7 +62,7 @@ options:
         choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description: This field is valid for C(gateway) connection type only.This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
@@ -77,23 +77,19 @@ options:
     type: dict
     suboptions:
       address:
-        description:
-          - IP address or hostname of the secondary storage.
+        description: IP address or hostname of the secondary storage.
         type: str
         required: true
       username:
-        description:
-          - Username for authentication. This field is required for secondary storage connection.
+        description: Username for authentication. This field is required for secondary storage connection.
         type: str
         required: false
       password:
-        description:
-          - Password for authentication. This field is required for secondary storage connection
+        description: Password for authentication. This field is required for secondary storage connection
         type: str
         required: false
       api_token:
-        description:
-          - Value of the lock token to operate on locked resources. Provide this onnly when operation is on locked resources.
+        description: Value of the lock token to operate on locked resources. Provide this onnly when operation is on locked resources.
         type: str
         required: false
   spec:
@@ -326,7 +322,7 @@ class VSPGADPairManagerFact:
                 response_dict["user_consent_required"] = registration_message
             self.logger.writeInfo(f"{response_dict}")
             self.logger.writeInfo("=== End of GAD Facts ===")
-            self.module.exit_json(**response_dict)
+            self.module.exit_json(changed=False, ansible_facts=response_dict)
         except Exception as ex:
             self.logger.writeException(ex)
             self.logger.writeInfo("=== End of GAD Facts ===")

@@ -34,14 +34,12 @@ options:
     choices: ['present']
     default: 'present'
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -76,37 +74,33 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the hard drive facts to be gathered.
+    description: Specification for the hard drive facts to be gathered.
     type: dict
     required: false
     suboptions:
       drive_location_id:
-        description:
-          - The drive location Id of the hard drive to retrieve.
+        description: The drive location Id of the hard drive to retrieve.
         type: str
         required: false
       is_spared_drive:
-        description:
-          - Specify whether the disk drive is a spared drive.
+        description: Specify whether the disk drive is a spared drive.
         type: bool
         required: false
 """
 
 EXAMPLES = """
 - name: Change disk drive settings
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_disk_drive:
-        connection_info:
-          address: storage1.company.com
-          api_token: "api_token"
-          connection_type: "direct"
-        storage_system_info:
-          - serial: "811150"
-        state: "present"
-        spec:
-          drive_location_id: "0-16"
-          is_spared_drive: true
+  hitachivantara.vspone_block.vsp.hv_disk_drive:
+    connection_info:
+      address: storage1.company.com
+      api_token: "api_token"
+      connection_type: "direct"
+    storage_system_info:
+      serial: "811150"
+    state: "present"
+    spec:
+      drive_location_id: "0-16"
+      is_spared_drive: true
 """
 
 RETURN = r"""

@@ -30,14 +30,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -73,46 +71,41 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the storage pool facts to be gathered.
+    description: Specification for the storage pool facts to be gathered.
     type: dict
     required: false
     suboptions:
       pool_id:
-        description:
-          - The pool number of the specific pool to retrieve.
+        description: The pool number of the specific pool to retrieve.
         type: int
         required: false
 """
 
 EXAMPLES = """
 - name: Get all pools
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storagepool_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
+  hitachivantara.vspone_block.vsp.hv_storagepool_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
 
 - name: Get all pools using UAI gateway
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storagepool_facts:
-        connection_info:
-          address: storage1.company.com
-          api_token: "api_token"
-          connection_type: "gateway"
+  hitachivantara.vspone_block.vsp.hv_storagepool_facts:
+    connection_info:
+      address: storage1.company.com
+      api_token: "api_token"
+      connection_type: "gateway"
 
 - name: Get a specific pool
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storagepool_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
-        spec:
-          pool_id: 0
+  hitachivantara.vspone_block.vsp.hv_storagepool_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
+    spec:
+      pool_id: 0
 """
 
 RETURN = r"""
@@ -296,14 +289,14 @@ class VspStoragePoolFactManager:
                 data["user_consent_required"] = registration_message
             self.logger.writeInfo(f"{data}")
             self.logger.writeInfo("=== End of Storage Pool Facts ===")
-            self.module.exit_json(**data)
+            self.module.exit_json(changed=False, ansible_facts=data)
         except Exception as ex:
             self.logger.writeException(ex)
             self.logger.writeInfo("=== End of Storage Pool Facts ===")
             self.module.fail_json(msg=str(ex))
 
 
-def main(module=None):
+def main():
     obj_store = VspStoragePoolFactManager()
     obj_store.apply()
 

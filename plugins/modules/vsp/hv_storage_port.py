@@ -28,14 +28,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -66,41 +64,36 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the storage port facts to be gathered.
+    description: Specification for the storage port facts to be gathered.
     type: dict
     required: false
     suboptions:
       port:
-        description:
-          - The port id of the specific port to retrieve.
+        description: The port id of the specific port to retrieve.
         type: str
         required: true
       port_mode:
-        description:
-          - Specify the operating mode of the port between 'FC-NVMe' and 'FCP-SCSI' for the port.
+        description: Specify the operating mode of the port between 'FC-NVMe' and 'FCP-SCSI' for the port.
         type: str
         required: false
       enable_port_security:
-        description:
-          - Specify whether to enable the lun security setting for the port.This attribute cannot be specified at the same time as the port_mode attribute.
+        description: Specify whether to enable the lun security setting for the port.This attribute cannot
+          be specified at the same time as the port_mode attribute.
         type: bool
         required: false
 """
 
 EXAMPLES = """
-
 - name: Change the port settings of a port
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storage_port:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
-        spec:
-          port: "CL1-A"
-          enable_port_security: true
+  hitachivantara.vspone_block.vsp.hv_storage_port:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
+    spec:
+      port: "CL1-A"
+      enable_port_security: true
 """
 
 RETURN = """

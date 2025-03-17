@@ -13,7 +13,7 @@ DOCUMENTATION = """
 module: hv_iscsi_target
 short_description: Manages iscsi target on Hitachi VSP storage systems.
 description:
-  - The hitachivantara.vspone_block.vsp.hv_iscsi_target module provides the following iscsi target management operations
+  - The hv_iscsi_target module provides the following iscsi target management operations
   - 1. Create iscsi target
   - 2. Update host mode and host mode options
   - 3. Add iqn initiator to iscsi target
@@ -40,8 +40,8 @@ attributes:
 options:
   state:
     description:
-      - set state to present for create and update iscsi target
-      - set state to absent for delete iscsi target
+      - Set state to present for create and update iscsi target
+      - Set state to absent for delete iscsi target
     type: str
     required: false
     choices: ['present', 'absent']
@@ -49,8 +49,7 @@ options:
   storage_system_info:
     required: false
     type: dict
-    description:
-      - Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system.
     suboptions:
       serial:
         description: Serial number of the Hitachi storage system.
@@ -67,11 +66,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -96,20 +95,21 @@ options:
       state:
         description:
           - State of the iscsi target tasks.
-          - 'present: update iscsi target by override host mode and host mode option and append other paramters mentioned in spec'
-          - 'absent: update iscsi target by remove all paramters mentioned in spec'
-          - 'add_iscsi_initiator: update iscsi target by append all iqn initiators mentioned in spec'
-          - 'remove_iscsi_initiator: update iscsi target by remove all iqn initiators mentioned in spec'
-          - 'attach_ldev: update iscsi target by append all ldevs mentioned in spec'
-          - 'detach_ldev: update iscsi target by remove all ldevs mentioned in spec'
-          - 'add_chap_user: update iscsi target by append all chap users mentioned in spec'
-          - 'remove_chap_user: update iscsi target by remove all chap users mentioned in spec'
+          - C(present) - Update iscsi target by override host mode and host mode option and append other paramters mentioned in spec.
+          - C(absent) -  Update iscsi target by remove all paramters mentioned in spec.
+          - C(add_iscsi_initiator) - Update iscsi target by append all iqn initiators mentioned in spec.
+          - C(remove_iscsi_initiator) - Update iscsi target by remove all iqn initiators mentioned in spec.
+          - C(attach_ldev) - Update iscsi target by append all ldevs mentioned in spec.
+          - C(detach_ldev) - Update iscsi target by remove all ldevs mentioned in spec.
+          - C(add_chap_user) - Update iscsi target by append all chap users mentioned in spec.
+          - C(remove_chap_user) - Update iscsi target by remove all chap users mentioned in spec.
         required: false
-        choices: ['present', 'absent', 'add_iscsi_initiator', 'remove_iscsi_initiator', 'attach_ldev', 'detach_ldev', 'add_chap_user', 'remove_chap_user']
+        choices: ['present', 'absent', 'add_iscsi_initiator', 'remove_iscsi_initiator',
+          'attach_ldev', 'detach_ldev', 'add_chap_user', 'remove_chap_user']
         default: 'present'
         type: str
       port:
-        description: port of the iscsi target.
+        description: Port of the iscsi target.
         required: true
         type: str
       name:
@@ -121,22 +121,9 @@ options:
         description: Host mode of host group.
         type: str
         required: false
-        choices:
-          - LINUX
-          - VMWARE
-          - HP
-          - OPEN_VMS
-          - TRU64
-          - SOLARIS
-          - NETWARE
-          - WINDOWS
-          - HI_UX
-          - AIX
-          - VMWARE_EXTENSION
-          - WINDOWS_EXTENSION
-          - UVM
-          - HP_XP
-          - DYNIX
+        choices: ['LINUX', 'VMWARE', 'HP', 'OPEN_VMS', 'TRU64', 'SOLARIS',
+          'NETWARE', 'WINDOWS', 'HI_UX', 'AIX', 'VMWARE_EXTENSION',
+          'WINDOWS_EXTENSION', 'UVM', 'HP_XP', 'DYNIX']
       host_mode_options:
         description:
           - List of host group host mode option numbers.

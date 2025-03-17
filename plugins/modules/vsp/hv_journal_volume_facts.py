@@ -31,14 +31,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - Serial number of the Hitachi storage system.
+        description: Serial number of the Hitachi storage system.
         type: str
         required: false
   connection_info:
@@ -268,7 +266,7 @@ class VSPJournalVolumeFactManager:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Journal Volume Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
 def main(module=None):

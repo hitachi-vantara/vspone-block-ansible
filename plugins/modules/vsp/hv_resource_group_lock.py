@@ -31,21 +31,19 @@ attributes:
 options:
     state:
         description:
-            - set state to C(present) for locking resource group
-            - set state to C(absent) for unlocking resource group
+            - Set state to C(present) for locking resource group.
+            - Set state to C(absent) for unlocking resource group.
         type: str
         required: false
-        default: "present"
-        choices: ["present", "absent"]
+        choices: ['present', 'absent']
+        default: 'present'
     storage_system_info:
-        description:
-          - Information about the storage system.
+        description: Information about the storage system.
         type: dict
         required: false
         suboptions:
             serial:
-                description:
-                    - The serial number of the storage system.
+                description: The serial number of the storage system.
                 type: str
                 required: false
     connection_info:
@@ -67,8 +65,7 @@ options:
                 type: str
                 required: false
             api_token:
-                description: >
-                    Provide api_token for C(gateway) connection type. For C(direct)ion connection type, this token is required
+                description: Provide api_token for C(gateway) connection type. For C(direct)ion connection type, this token is required
                     while working on locked resources. Proivde the lock_token value returned by lock resource group task.
                 type: str
                 required: false
@@ -76,7 +73,7 @@ options:
                 description: Type of connection to the storage system. Two types of connections are supported, C(direct) and C(gateway).
                 type: str
                 required: false
-                choices: ['direct', 'gateway']
+                choices: ['gateway', 'direct']
                 default: 'direct'
             subscriber_id:
                 description: This field is valid for C(gateway) connection type only. This is an optional field and only
@@ -102,8 +99,7 @@ options:
                 type: str
                 required: false
             api_token:
-                description: >
-                    This token is required while working on locked resources. Proivde the lock_token value returned
+                description: This token is required while working on locked resources. Proivde the lock_token value returned
                     by lock resource group task.
                 type: str
                 required: false
@@ -113,8 +109,7 @@ options:
         required: false
         suboptions:
             lock_timeout_sec:
-                description: >
-                    The time that elapses before a lock timeout (in seconds). Specify a value from 0 to 7200.
+                description: The time that elapses before a lock timeout (in seconds). Specify a value from 0 to 7200.
                     Default is 0. Valid for C(direct) connection only.
                 type: int
                 required: false
@@ -132,7 +127,7 @@ EXAMPLES = """
 - name: Resource management with Resource Group Lock for direct connection where single storage system is involved
   tasks:
     - name: Lock resource groups
-      hitachivantara.vspone_block.vsp.hitachivantara.vspone_block.vsp.hv_resource_group_lock:
+      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
         address: storage1.company.com
         username: "admin"
@@ -161,7 +156,7 @@ EXAMPLES = """
         var: create_ldev_result
 
     - name: Unlock the Resource Groups that were locked
-      hitachivantara.vspone_block.vsp.hitachivantara.vspone_block.vsp.hv_resource_group_lock:
+      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
           address: storage1.company.com
           api_token: api_token_value
@@ -173,7 +168,7 @@ EXAMPLES = """
         var: result
 
     - name: Lock Resource Group by name for gateway connection type
-      hitachivantara.vspone_block.vsp.hitachivantara.vspone_block.vsp.hv_resource_group_lock:
+      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
             connection_type: gateway
             address: uai_gateway1.company.co
@@ -190,7 +185,7 @@ EXAMPLES = """
         var: lock_resource_group_result
 
     - name: Unlock Resource Group by name for gateway connection type
-      hitachivantara.vspone_block.vsp.hitachivantara.vspone_block.vsp.hv_resource_group_lock:
+      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
             connection_type: gateway
             address: uai_gateway1.company.co

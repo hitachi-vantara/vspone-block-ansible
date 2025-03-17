@@ -27,14 +27,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the remote storage systems.
+    description: Information about the remote storage systems.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -62,12 +60,11 @@ options:
         description: Type of connection to the storage system. Only C(direct) connection is supported.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description:
-          - This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-            Not needed for this operation.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
+          Not needed for this operation.
         type: str
         required: false
   secondary_connection_info:
@@ -92,19 +89,16 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the remote storage registration.
+    description: Specification for the remote storage registration.
     type: dict
     required: false
     suboptions:
       rest_server_ip:
-        description:
-          - The IP address of the REST API server of the remote storage system.
+        description: The IP address of the REST API server of the remote storage system.
         type: str
         required: false
       is_mutual_discovery:
-        description: >
-          Specify whether to perform a mutual registration operation. If set to true, perform a mutual registration operation.
+        description: Specify whether to perform a mutual registration operation. If set to true, perform a mutual registration operation.
           If this value is omitted, true is specified.
         type: bool
         required: false
@@ -247,7 +241,7 @@ class VSPRemoteStorageRegistrationFactsManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Remote Storage Registration Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
 def main(module=None):

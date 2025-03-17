@@ -27,55 +27,45 @@ attributes:
     support: full
 options:
   connection_info:
-    description:
-      - Information required to establish a connection to the storage system.
+    description: Information required to establish a connection to the storage system.
     type: dict
     required: true
     suboptions:
       address:
-        description:
-          IP address or hostname of the UAI gateway.
+        description: IP address or hostname of the UAI gateway.
         type: str
         required: true
       username:
-        description:
-          Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
           Not needed for this module.
         type: str
         required: false
       password:
-        description:
-          Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
           Not needed for this module.
         type: str
         required: false
       connection_type:
-        description:
-          - Type of connection to the storage system.
+        description: Type of connection to the storage system.
         type: str
         required: false
-        choices:
-          - gateway
-        default: gateway
+        choices: ['gateway']
+        default: 'gateway'
       api_token:
-        description:
-          - Token value to access UAI gateway. This is a required field for C(gateway) connection type.
+        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
         type: str
         required: false
       subscriber_id:
-        description:
-          - This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
   spec:
-    description:
-      - Special options for the module.
+    description: Special options for the module.
     type: dict
     required: false
     suboptions:
       refresh:
-        description:
-          - Force a refresh of the system information.
+        description: Force a refresh of the system information.
         type: bool
         required: false
         default: false
@@ -83,14 +73,16 @@ options:
 
 EXAMPLES = """
 - name: Get all storage systems
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_system_facts:
-        connection_info:
-          address: gateway.company.com
-          username: "ucpa"
-          password: "password"
-      register: result
-    - debug: var=result
+  hitachivantara.vspone_block.vsp.hv_system_facts:
+    connection_info:
+      address: gateway.company.com
+      username: "ucpa"
+      password: "password"
+  register: result
+
+- name: Display result
+  debug:
+    var: result
 """
 
 RETURN = """

@@ -59,8 +59,8 @@ options:
     type: dict
     suboptions:
       subscriber_id:
-        type: str
         description: ID of the specific subscriber to retrieve information for. Works for C(gateway) connection type only.
+        type: str
         required: false
 """
 
@@ -203,10 +203,10 @@ class SubscriberFactsManager:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Gateway Subscriber Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
-def main(module=None):
+def main():
     obj_store = SubscriberFactsManager()
     obj_store.apply()
 

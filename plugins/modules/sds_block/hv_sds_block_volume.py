@@ -86,7 +86,7 @@ options:
         type: str
         required: false
       state:
-        description: The state of the volume task. Choices are C(add_compute_node), C(remove_compute_node).
+        description: The state of the volume task.
         type: str
         required: false
         choices: ['add_compute_node', 'remove_compute_node']

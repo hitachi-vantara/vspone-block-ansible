@@ -84,11 +84,14 @@ tasks:
 """
 
 RETURN = """
-filename:
-  description: Path to the generated log bundle.
-  returned: success
-  type: str
-  sample: "$HOME/logs/hitachivantara/ansible/vspone_block/log_bundles/ansible_log_bundle_2024_05_23_13_15_36.zip"
+ansible_facts:
+    description: The facts collected by the module.
+    returned: always
+    type: dict
+    sample: {
+        "filename": "$HOME/logs/hitachivantara/ansible/vspone_block/log_bundles/ansible_log_bundle_2024_05_23_13_15_36.zip",
+        "msg": "LogBundle with UAI gateway logs"
+    }
 """
 
 import json
@@ -710,7 +713,7 @@ def main(module=None):
         remove_old_logbundles(zipdir)
 
         logger.writeExitModule(moduleName)
-        module.exit_json(filename=zipPath, comments=comments)
+        module.exit_json(changed=False, ansible_facts={"filename": zipPath, "msg": comments})
     except EnvironmentError as ex:
         if HAS_MESSAGE_ID:
             logger.writeError(MessageID.ERR_GET_SUPPORT_LOGS)

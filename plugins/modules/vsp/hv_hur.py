@@ -31,7 +31,7 @@ attributes:
     support: full
 options:
   state:
-    description: The level of the HUR pairs task. Choices are C(present), C(absent), C(split), C(resync), C(swap_split), C(swap_resync) .
+    description: The level of the HUR pairs task.
       Note C(swap_split) and C(swap_resync) are supported for C(direct) connection type only.
     type: str
     required: false
@@ -151,18 +151,17 @@ options:
         required: false
         suboptions:
           name:
-            description:
-              - Name of the host group on the secondary storage system. This is required for create operation for both C(direct) and C(gateway) connections.
+            description: Name of the host group on the secondary storage system. This is required for create operation
+              for both C(direct) and C(gateway) connections.
             type: str
             required: true
           port:
-            description:
-              - Port of the host group on the secondary storage system. This is required for create operation for both C(direct) and C(gateway) connections.
+            description: Port of the host group on the secondary storage system. This is required for create operation
+              for both C(direct) and C(gateway) connections.
             type: str
             required: true
       fence_level:
-        description:
-          - Specifies the primary volume fence level setting and determines if the host is denied access or continues to access
+        description: Specifies the primary volume fence level setting and determines if the host is denied access or continues to access
             the primary volume when the pair is suspended because of an error. This is an optional field for both C(direct) and C(gateway) connections.
         type: str
         required: false
@@ -208,28 +207,24 @@ options:
         type: str
         required: false
       begin_secondary_volume_id:
-        description: >
-          Specify beginning ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during
+        description: Specify beginning ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during
           create operation. If this field is specified, end_secondary_volume_id must also be specified.
           If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
         required: false
         type: int
       end_secondary_volume_id:
-        description: >
-          Specify end ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during create operation.
+        description: Specify end ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during create operation.
           If this field is specified, begin_secondary_volume_id must also be specified.
           If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
         required: false
         type: int
       do_initial_copy:
-        description:
-          - Perform initial copy. This is used only for C(direct) connection and is an optional field during create operation.
+        description: Perform initial copy. This is used only for C(direct) connection and is an optional field during create operation.
         type: bool
         required: false
         default: true
       is_data_reduction_force_copy:
-        description:
-          - Force copy for data reduction. This is used for both C(direct) and C(gateway) connections and is an optional field during create operation.
+        description: Force copy for data reduction. This is used for both C(direct) and C(gateway) connections and is an optional field during create operation.
         type: bool
         required: false
         default: false

@@ -30,14 +30,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - Serial number of the storage system.
+        description: Serial number of the storage system.
         type: str
         required: false
   state:
@@ -48,24 +46,20 @@ options:
     default: 'present'
 
   connection_info:
-    description:
-      - Connection details for the storage system.
+    description: Connection details for the storage system.
     type: dict
     required: true
     suboptions:
       address:
-        description:
-          - IP address or hostname of the UAI gateway or storage system.
+        description: IP address or hostname of the UAI gateway or storage system.
         type: str
         required: true
       username:
-        description:
-          - Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description:
-          - Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:
@@ -73,44 +67,34 @@ options:
           - Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['gateway', 'direct']
         default: 'direct'
       subscriber_id:
-        description:
-          - This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
       api_token:
-        description:
-          - Token to access UAI gateway. This is a required field for C(gateway) connection type.
+        description: Token to access UAI gateway. This is a required field for C(gateway) connection type.
         type: str
         required: false
   spec:
-    description:
-      - Specification for the storage pool.
+    description: Specification for the storage pool.
     type: dict
     required: false
     suboptions:
       id:
-        description:
-          - Pool ID.
+        description: Pool ID.
         type: int
         required: false
       name:
-        description:
-          - Name of the pool.
+        description: Name of the pool.
         type: str
         required: false
       type:
-        description:
-          - Type of the pool. Supported types are HDT, HDP, HRT, HTI.
+        description: Type of the pool. Supported types are C(HDT), C(HDP), C(HRT), C(HTI).
         type: str
         required: false
-        choices:
-          - HDT
-          - HDP
-          - HRT
-          - HTI
+        choices: ['HDT', 'HDP', 'HRT', 'HTI']
       should_enable_deduplication:
         description:
           - Whether to enable deduplication for the pool. This feature is applicable to the following models
@@ -133,35 +117,29 @@ options:
         type: bool
         required: false
       depletion_threshold_rate:
-        description:
-          - Depletion threshold rate for the pool (not applicable for Thin Image pool).
+        description: Depletion threshold rate for the pool (not applicable for Thin Image pool).
         type: int
         required: false
       warning_threshold_rate:
-        description:
-          - Warning threshold rate for the pool.
+        description: Warning threshold rate for the pool.
         type: int
         required: false
       resource_group_id:
-        description:
-          - ID of the resource group the pool belongs to .
+        description: ID of the resource group the pool belongs to .
         type: int
         required: false
       pool_volumes:
-        description:
-          - Details about the volumes in the pool.
+        description: Details about the volumes in the pool.
         type: list
         required: false
         elements: dict
         suboptions:
           capacity:
-            description:
-              - Capacity of the pool volume.
+            description: Capacity of the pool volume.
             type: str
             required: true
           parity_group_id:
-            description:
-              - ID of the parity group the volume belongs to.
+            description: ID of the parity group the volume belongs to.
             type: str
             required: true
 
@@ -169,80 +147,73 @@ options:
 
 EXAMPLES = """
 - name: Create Storage Pool
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storagepool:
-        connection_info:
-          address: storage1.company.com
-          api_token: "api_token"
-          connection_type: "gateway"
-        storage_system_info:
-          - serial: "811150"
-        state: "present"
-        spec:
-          name: "test_pool"
-          type: "HDP"
-          should_enable_deduplication: true
-          depletion_threshold_rate: 80
-          warning_threshold_rate: 70
-          resource_group_id: 0
-          pool_volumes:
-            - capacity: "21.00 GB"
-              parity_group_id: "1-2"
+  hitachivantara.vspone_block.vsp.hv_storagepool:
+    connection_info:
+      address: storage1.company.com
+      api_token: "api_token"
+      connection_type: "gateway"
+    storage_system_info:
+      serial: "811150"
+    state: "present"
+    spec:
+      name: "test_pool"
+      type: "HDP"
+      should_enable_deduplication: true
+      depletion_threshold_rate: 80
+      warning_threshold_rate: 70
+      resource_group_id: 0
+      pool_volumes:
+        - capacity: "21.00 GB"
+          parity_group_id: "1-2"
 
-- name: Create Storage Pool using  direct connection
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storagepool:
-        connection_info:
-          address: storage1.company.com
-          username: "gateway"
-          password: "password"
-        storage_system_info:
-          - serial: "811150"
-        state: "present"
-        spec:
-          name: "test_pool"
-          type: "HDP"
-          should_enable_deduplication: true
-          depletion_threshold_rate: 80
-          warning_threshold_rate: 70
-          resource_group_id: 0
-          pool_volumes:
-            - capacity: "21.00 GB"
-              parity_group_id: "1-2"
+- name: Create Storage Pool using direct connection
+  hitachivantara.vspone_block.vsp.hv_storagepool:
+    connection_info:
+      address: storage1.company.com
+      username: "gateway"
+      password: "password"
+    storage_system_info:
+      serial: "811150"
+    state: "present"
+    spec:
+      name: "test_pool"
+      type: "HDP"
+      should_enable_deduplication: true
+      depletion_threshold_rate: 80
+      warning_threshold_rate: 70
+      resource_group_id: 0
+      pool_volumes:
+        - capacity: "21.00 GB"
+          parity_group_id: "1-2"
 
 - name: Expand Storage Pool
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storagepool:
-        connection_info:
-          address: storage1.company.com
-          api_token: "api_token"
-          connection_type: "gateway"
-
-        storage_system_info:
-          - serial: "811150"
-        state: "present"
-        spec:
-          name: "test_pool"
-          pool_volumes:
-            - capacity: "21.00 GB"
-              parity_group_id: "1-5"
-            - capacity: "21.00 GB"
-              parity_group_id: "1-3"
+  hitachivantara.vspone_block.vsp.hv_storagepool:
+    connection_info:
+      address: storage1.company.com
+      api_token: "api_token"
+      connection_type: "gateway"
+    storage_system_info:
+      serial: "811150"
+    state: "present"
+    spec:
+      name: "test_pool"
+      pool_volumes:
+        - capacity: "21.00 GB"
+          parity_group_id: "1-5"
+        - capacity: "21.00 GB"
+          parity_group_id: "1-3"
 
 - name: Delete Storage Pool
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storagepool:
-        connection_info:
-          address: storage1.company.com
-          api_token: "api_token"
-          connection_type: "gateway"
-
-        storage_system_info:
-          - serial: "811150"
-
-        state: "absent"
-        spec:
-          name: "test_pool"
+  hitachivantara.vspone_block.vsp.hv_storagepool:
+    connection_info:
+      address: storage1.company.com
+      api_token: "api_token"
+      connection_type: "gateway"
+    storage_system_info:
+      serial: "811150"
+    state: "absent"
+    spec:
+      name: "test_pool"
 """
 
 RETURN = r"""

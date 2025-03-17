@@ -28,14 +28,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -67,14 +65,12 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the storage port facts to be gathered.
+    description: Specification for the storage port facts to be gathered.
     type: dict
     required: false
     suboptions:
       ports:
-        description:
-          - The id of the specific ports to retrieve.
+        description: The id of the specific ports to retrieve.
         type: list
         required: false
         elements: str
@@ -82,24 +78,22 @@ options:
 
 EXAMPLES = """
 - name: Get all ports
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storage_port_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
+  hitachivantara.vspone_block.vsp.hv_storage_port_facts:
+    connection_info:
+        address: storage1.company.com
+        username: "admin"
+        password: "secret"
+        connection_type: "direct"
 
 - name: Get a specific port
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storage_port_facts:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
-        spec:
-          ports: ["CLA-1", "CLA-2"]
+  hitachivantara.vspone_block.vsp.hv_storage_port_facts:
+    connection_info:
+        address: storage1.company.com
+        username: "admin"
+        password: "secret"
+        connection_type: "direct"
+    spec:
+        ports: ["CLA-1", "CLA-2"]
 """
 
 
@@ -262,7 +256,7 @@ class VSPStoragePortFactManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Storage Port Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
     def get_storage_port_facts(self):
         reconciler = VSPStoragePortReconciler(
@@ -281,7 +275,7 @@ class VSPStoragePortFactManager:
         return result
 
 
-def main(module=None):
+def main():
     """
     :return: None
     """

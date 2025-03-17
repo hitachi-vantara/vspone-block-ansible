@@ -52,7 +52,7 @@ options:
     suboptions:
       address:
         description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway) ) or
-          the storage system (if connection_type is C(direct) ).
+          the storage system (if connection_type is C(direct)).
         type: str
         required: true
       username:

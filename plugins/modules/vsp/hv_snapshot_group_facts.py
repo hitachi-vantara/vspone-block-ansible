@@ -28,14 +28,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system.
+    description: Information about the storage system.
     type: dict
     required: false
     suboptions:
       serial:
-        description:
-          - The serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -67,14 +65,12 @@ options:
         type: str
         required: false
   spec:
-    description:
-      - Specification for the snapshot facts to be gathered.
+    description: Specification for the snapshot facts to be gathered.
     type: dict
     required: true
     suboptions:
       snapshot_group_name:
-        description:
-          - The name of the snapshot group.
+        description: The name of the snapshot group.
         type: str
         required: true
 """
@@ -266,7 +262,7 @@ class VSPHtiSnapshotGrpFactManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Snapshot Group Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
 def main(module=None):

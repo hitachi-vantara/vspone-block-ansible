@@ -41,8 +41,8 @@ options:
         description: Type of connection to the storage system.
         type: str
         required: false
-        default: 'gateway'
         choices: ['gateway']
+        default: 'gateway'
       subscriber_id:
         description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
@@ -52,18 +52,17 @@ options:
         type: str
         required: false
       username:
-        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
           Not needed for this module.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
           Not needed for this module.
         type: str
         required: false
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system.
     type: dict
     required: false
     suboptions:
@@ -74,7 +73,6 @@ options:
 """
 
 EXAMPLES = """
-
 - name: Retrieve resource information about a specific subscriber
   hitachivantara.vspone_block.vsp.hv_gateway_subscription_facts:
     connection_info:
@@ -176,10 +174,10 @@ class SubscriberResourceFactsManager:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Gateway Subscriber Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
-def main(module=None):
+def main():
     obj_store = SubscriberResourceFactsManager()
     obj_store.apply()
 
