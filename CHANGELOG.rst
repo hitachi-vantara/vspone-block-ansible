@@ -12,11 +12,11 @@ v3.2.0
 Release Summary
 ---------------
 This is a minor release of the ``hitachivantara.vspone_block`` collection.
-This changelog includes  all new modules that are added to collection. This also contains all changes to the modules and plugins in this
+This changelog includes all new modules that are added to the collection. This also contains all changes to the modules and plugins in this
 collection that have been made after the previous release.
 
-Minor Changes
--------------
+New Modules
+-----------
 - The following modules are added to the collection:
     - ``hv_cmd_dev``: This module is used to create, update, and delete command devices.
     - ``hv_disk_drive``: This module is used to change disk drive settings.
@@ -37,6 +37,8 @@ Minor Changes
     - ``hv_resource_group_facts``: This module is used to get facts about resource groups.
     - ``hv_snapshot_group_facts``: This module is used to get facts about snapshots in units of snapshot groups.
 
+Updated Modules
+---------------
 - The following modules are updated in the collection:
     - ``hv_gad_facts``: Added GAD Pair facts for direct connection type.
     - ``hv_gad``: Added multiple operations for GAD pair for direct connection type; Increased GAD pair volumes size support; SVOL naming enhancements.
@@ -51,7 +53,7 @@ Minor Changes
     - ``hv_system_facts``: Added refresh parameter.
     - ``hv_truecopy_fact``: Added TrueCopy pair facts for direct connection type.
     - ``hv_truecopy``: Added multiple operations for TrueCopy pair for direct connection type; Enhanced SVOL ID setting.
-    - ``others``: Enhanced log messages; Added warnings for unsupported OOB features; Usage information collection to AWS with user consent; 
+    - ``others``: Enhanced log messages; Added warnings for unsupported OOB features; Usage information collection to AWS with user consent.
 
 v3.1.0
 =======
@@ -59,11 +61,11 @@ v3.1.0
 Release Summary
 ---------------
 This is a minor release of the ``hitachivantara.vspone_block`` collection.
-This changelog includes  all new modules that are added to collection. This also contains all changes to the modules and plugins in this
+This changelog includes all new modules that are added to the collection. This also contains all changes to the modules and plugins in this
 collection that have been made after the previous release.
 
-Minor Changes
--------------
+New Modules
+-----------
 - The following modules are added to the collection:
     - ``hv_sds_block_vps``: This module is used to create, update, and delete VPS.
     - ``hv_gad``: This module is used to create, update, and delete GAD pairs.
@@ -82,6 +84,8 @@ Minor Changes
     - ``hv_storage_port_facts``: This module is used to get facts about storage ports.
     - ``hv_truecopy_facts``: This module is used to get facts about TrueCopy pairs.
 
+Updated Modules
+---------------
 - The following modules are updated in the collection:
     - ``hv_sds_block_compute_node``: Manage Compute Node with NVMe-TCP connection.
     - ``hv_sds_block_compute_node_facts``: Get Compute Node with NVMe-TCP details.
@@ -114,11 +118,11 @@ v3.0.0
 Release Summary
 ---------------
 This is a minor release of the ``hitachivantara.vspone_block`` collection.
-This changelog includes  all new modules that are added to collection. This also contains all changes to the modules and plugins in this
+This changelog includes all new modules that are added to the collection. This also contains all changes to the modules and plugins in this
 collection that have been made after the previous release.
 
-Minor Changes
--------------
+New Modules
+-----------
 - The following modules are added to the collection:
     - ``hv_sds_block_chap_user``: This module is used to create, update, and delete CHAP users.
     - ``hv_sds_block_compute_node``: This module is used to create, update, and delete compute nodes.
@@ -133,13 +137,12 @@ Minor Changes
     - ``hv_snapshot``: This module is used to create, update, and delete snapshots.
     - ``hv_storagesystem``: This module is used to create, update, and delete storage systems.
 
-
 - The following facts modules are added in the collection:
-    - ``hv_sds_block_chap_user_facts``: This module is used to get facts about CHAP users.    
+    - ``hv_sds_block_chap_user_facts``: This module is used to get facts about CHAP users.
     - ``hv_sds_block_compute_node_facts``: This module is used to get facts about compute nodes.
     - ``hv_sds_block_storage_system_fact``: This module is used to get facts about storage systems.
     - ``hv_sds_block_volume_facts``: This module is used to get facts about volumes.
-    - ``hv_gateway_subscriber_fact``: This module is used to get facts about subscribers..
+    - ``hv_gateway_subscriber_fact``: This module is used to get facts about subscribers.
     - ``hv_snapshot_facts``: This module is used to get facts about snapshots in units of LUNs.
     - ``hv_iscsi_target_facts``: This module is used to get facts about iSCSI targets.
     - ``hv_lun_facts``: This module is used to get facts about luns/LDEVs.
