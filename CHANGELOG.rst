@@ -4,7 +4,7 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
-v3.2.0
+v3.2.10
 ======
 
 Release Summary
