@@ -21,3 +21,18 @@ jobs:
         run: |
           curl -X DELETE "https://galaxy.ansible.com/api/v3/plugin/ansible/content/published/collections/index/${COLLECTION_NAMESPACE}/${COLLECTION_NAME}/versions/${VERSION}/" \
             -H "Authorization: Token $API_KEY"
+
+      - name: Verify Deletion from Ansible Galaxy
+        env:
+          COLLECTION_NAMESPACE: hitachivantara
+          COLLECTION_NAME: vspone_block
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          response=$(curl -s "https://galaxy.ansible.com/api/v3/plugin/ansible/content/published/collections/index/${COLLECTION_NAMESPACE}/${COLLECTION_NAME}/versions/")
+          
+          if echo "$response" | grep -q "\"version\": \"${VERSION}\""; then
+            echo "Error: Version ${VERSION} still exists in Ansible Galaxy!"
+            exit 1
+          else
+            echo "Success: Version ${VERSION} has been removed from Ansible Galaxy."
+          fi
