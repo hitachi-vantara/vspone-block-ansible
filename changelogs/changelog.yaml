@@ -152,7 +152,7 @@ releases:
       - description: Retrieves an API token for the Hitachi gateway service host.
         name: hv_uaig_token_facts
         namespace: vsp
-    release_date: "2025-03-18"
+    release_date: "2024-06-17"
   3.0.1:
     changes:
       bugfixes:
@@ -165,7 +165,7 @@ releases:
         and data retrieval issues.
     fragments:
       - release-3.0.1.yml
-    release_date: "2025-03-18"
+    release_date: "2024-07-10"
   3.1.0:
     changes:
       minor_changes:
@@ -253,8 +253,8 @@ releases:
       - description: Retrieves TrueCopy pairs information from Hitachi VSP storage systems.
         name: hv_truecopy_facts
         namespace: vsp
-    release_date: "2025-03-18"
-  3.2.0:
+    release_date: "2024-10-07"
+  3.2.10:
     changes:
       minor_changes:
         - Added new facts module `hv_disk_drive_facts` to retrieve disk drive details.
@@ -372,4 +372,4 @@ releases:
           Hitachi VSP storage systems.
         name: hv_snapshot_group_facts
         namespace: vsp
-    release_date: "2025-03-18"
+    release_date: "2025-02-20"

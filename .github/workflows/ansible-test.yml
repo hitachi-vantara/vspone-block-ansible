@@ -1,18 +1,23 @@
 name: Ansible Collection CI Test
 
 on:
+  # Run CI against all pushes (direct commits, also merged PRs), Pull Requests
   push:
     branches:
       - main
+  pull_request:
+  # Run CI once per day (at 06:00 UTC)
+  # This ensures that even if there haven't been commits that we are still
+  # testing against latest version of ansible-test for each ansible-core
+  # version
   schedule:
-    - cron: "0 6 * * *" # Runs daily at 06:00 UTC
-
+    - cron: "0 6 * * *"
 jobs:
   build:
     name: Build Collection Artifact
     runs-on: ubuntu-latest
     outputs:
-      run_id: ${{ github.run_id }}   # Output the run-id to be used later
+      run_id: ${{ github.run_id }} # Output the run-id to be used later
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -27,16 +32,16 @@ jobs:
 
       - name: Build Ansible Collection
         run: ansible-galaxy collection build --force
-      
-      - name: List build directory contents  # Debug step
-        run: ls -la  # Make sure the .tar.gz file exists
+
+      - name: List build directory contents # Debug step
+        run: ls -la # Make sure the .tar.gz file exists
 
       - name: Upload Build Artifact
-        id: upload  # Add an ID to reference the step
+        id: upload # Add an ID to reference the step
         uses: actions/upload-artifact@v4
         with:
           name: collection-tarball
-          path: "*.tar.gz"  # Change if using a build directory
+          path: "*.tar.gz" # Change if using a build directory
           retention-days: 10
 
   sanity:
