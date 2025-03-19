@@ -254,7 +254,7 @@ releases:
         name: hv_truecopy_facts
         namespace: vsp
     release_date: "2024-10-07"
-  3.2.10:
+  3.2.11:
     changes:
       minor_changes:
         - Added new facts module `hv_disk_drive_facts` to retrieve disk drive details.
