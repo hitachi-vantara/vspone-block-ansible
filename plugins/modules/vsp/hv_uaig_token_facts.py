@@ -56,6 +56,10 @@ EXAMPLES = """
 """
 
 RETURN = """
+ansible_facts:
+  description: Dictionary containing the retrieved API token.
+  returned: always
+  type: dict
 api_token:
   description: API token for the gateway.
   returned: always
@@ -124,7 +128,9 @@ class UAIGTokenFactManager:
             comments = registration_message
 
         self.logger.writeInfo("=== End of UAI Token Facts ===")
-        self.module.exit_json(changed=False, api_token=output, comments=comments)
+        self.module.exit_json(
+            changed=False, ansible_facts={}, api_token=output, comments=comments
+        )
 
 
 def main(module=None):

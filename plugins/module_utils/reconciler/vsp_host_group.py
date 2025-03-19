@@ -233,13 +233,29 @@ class VSPHostGroupReconciler:
                 self.provisioner.delete_wwns_from_host_group(hg, delWWN)
                 result["changed"] = True
 
+    def luns_to_add(self, new_lun: list, hg_lun: set):
+        luns_to_add = []
+        for lun in new_lun:
+            if lun not in hg_lun:
+                luns_to_add.append(lun)
+        return luns_to_add
+
+    def luns_to_delete(self, new_lun: list, hg_lun: set):
+        luns_to_delete = []
+        for lun in new_lun:
+            if lun in hg_lun:
+                luns_to_delete.append(lun)
+        return luns_to_delete
+
     def handle_update_luns(self, subobjState, hg, newLun, result):
         logger = Log()
         hgLun = set(path.ldevId for path in hg.lunPaths or [])
         logger.writeDebug("newLun={0}", newLun)
-        addLun = newLun - hgLun
-        # delLun = list(set(hgLun) - set(newLun))
-        delLun = hgLun.intersection(newLun)
+        # addLun = newLun - hgLun
+        # # delLun = list(set(hgLun) - set(newLun))
+        # delLun = hgLun.intersection(newLun)
+        addLun = self.luns_to_add(newLun, hgLun)
+        delLun = self.luns_to_delete(newLun, hgLun)
         logger.writeDebug("hgLun={0}", hgLun)
         logger.writeDebug("541 addLun={0}", addLun)
         logger.writeDebug("542 delLun={0}", delLun)
