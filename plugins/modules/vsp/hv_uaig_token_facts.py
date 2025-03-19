@@ -56,6 +56,10 @@ EXAMPLES = """
 """
 
 RETURN = """
+ansible_facts:
+  description: Dictionary containing the retrieved API token.
+  returned: always
+  type: dict
 api_token:
   description: API token for the gateway.
   returned: always
