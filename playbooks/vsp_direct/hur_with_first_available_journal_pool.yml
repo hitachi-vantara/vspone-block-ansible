@@ -60,8 +60,8 @@
           copy_pair_name: "hur_copy_pair_name_1"
           primary_volume_id: 123
           secondary_pool_id: 1
-          primary_volume_journal_id: "{{ primary_journal_volumes.journal_volume[1].journal_pool_id }}"
-          secondary_volume_journal_id: "{{ secondary_journal_volumes.journal_volume[1].journal_pool_id }}"
+          primary_volume_journal_id: "{{ primary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id }}"
+          secondary_volume_journal_id: "{{ secondary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id }}"
           local_device_group_name: "hur_local_device_group_name_1"
           remote_device_group_name: "hur_remote_device_group_name_1"
           consistency_group_id: 1
@@ -69,10 +69,45 @@
             name: "ansible-hostgroup-2"
             port: "CL1-A"
           mirror_unit_id: 2
-      when: primary_journal_volumes.journal_volume | length > 1 and
-        secondary_journal_volumes.journal_volume | length > 1 and
-        primary_journal_volumes.journal_volume[1].journal_pool_id is defined and
-        secondary_journal_volumes.journal_volume[1].journal_pool_id is defined
+      when:
+        primary_journal_volumes.ansible_facts.journal_volume | length > 1 and
+        secondary_journal_volumes.ansible_facts.journal_volume | length > 1 and
+        primary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined and
+        secondary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined
+      register: result
+
+    - name: Debug result
+      ansible.builtin.debug:
+        var: result
+      when: result is defined
+
+    #####################################################################
+    # Task 4: Create HUR-NVMe Pair and Debug Result
+    #####################################################################
+    - name: Create HUR-NVMe pair and debug result
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          copy_group_name: "hur_copy_group_name_1"
+          copy_pair_name: "hur_copy_pair_name_1"
+          primary_volume_id: 123
+          secondary_pool_id: 1
+          primary_volume_journal_id: "{{ primary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id }}"
+          secondary_volume_journal_id: "{{ secondary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id }}"
+          local_device_group_name: "hur_local_device_group_name_1"
+          remote_device_group_name: "hur_remote_device_group_name_1"
+          consistency_group_id: 1
+          secondary_nvm_subsystem:
+            name: gk-nvm-sub-75
+            paths:
+              - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
+          mirror_unit_id: 2
+      when:
+        primary_journal_volumes.ansible_facts.journal_volume | length > 1 and
+        secondary_journal_volumes.ansible_facts.journal_volume | length > 1 and
+        primary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined and
+        secondary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined
       register: result
 
     - name: Debug result
