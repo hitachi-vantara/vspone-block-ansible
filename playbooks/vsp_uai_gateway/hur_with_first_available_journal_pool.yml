@@ -22,6 +22,7 @@
       register: result_token
       tags: token
       ignore_errors: false
+
     #####################################################################
     # Task 1: Get Specific Journal Volumes (Primary and Secondary)
     #####################################################################
@@ -30,17 +31,31 @@
         connection_info:
           connection_type: "gateway"
           address: "192.178.123.123"
-          api_token: "{{ result_token.api_token.token }}"
+          api_token: "{{ result_token.ansible_facts.api_token.token }}"
         storage_system_info:
           serial: "{{ item.storage_serial }}"
         spec:
           is_mirror_not_used: true
       with_items:
-        - {name: "primaryjournal", storage_serial: "811150"}
-        - {name: "secondaryjournal", storage_serial: 23456}
+        - { name: "primaryjournal", storage_serial: "811150" }
+        - { name: "secondaryjournal", storage_serial: "23456" }
       register: journal_volumes
+
     #####################################################################
-    # Task 2: Create HUR Pair and Debug Result
+    # Task 2: Validate Journal Volume Response
+    #####################################################################
+    - name: Ensure primary and secondary journal volumes exist
+      ansible.builtin.set_fact:
+        primary_journal_list: "{{ journal_volumes.results[0].ansible_facts.journal_volumes | default([]) }}"
+        secondary_journal_list: "{{ journal_volumes.results[1].ansible_facts.journal_volumes | default([]) }}"
+
+    - name: Fail if journal volumes are missing
+      ansible.builtin.fail:
+        msg: "Not enough journal volumes found in primary or secondary storage!"
+      when: primary_journal_list | length == 0 or secondary_journal_list | length == 0
+
+    #####################################################################
+    # Task 3: Create HUR Pair and Debug Result
     #####################################################################
     - name: Create HUR pair and debug result
       hitachivantara.vspone_block.vsp.hv_hur:
@@ -49,26 +64,19 @@
         connection_info:
           connection_type: "gateway"
           address: "192.178.123.123"
-          api_token: "{{ result_token.api_token.token }}"
+          api_token: "{{ result_token.ansible_facts.api_token.token }}"
         spec:
           primary_volume_id: 123
-          primary_volume_journal_id: "{{ journal_volumes.results[0].journal_volume[1].journal_pool_id }}"
-          secondary_volume_journal_id: "{{ journal_volumes.results[1].journal_volume[1].journal_pool_id }}"
+          primary_volume_journal_id: "{{ primary_journal_list[0].journal_pool_id }}"
+          secondary_volume_journal_id: "{{ secondary_journal_list[0].journal_pool_id }}"
           secondary_pool_id: 3
           allocate_new_consistency_group: true
-          secondary_storage_serial_number: 23456
+          secondary_storage_serial_number: "23456"
           secondary_hostgroup:
             name: remote-hostgroup-1
             port: CL1-A
           mirror_unit_id: 1
-      when:
-        journal_volumes.results | length > 1 and
-        journal_volumes.results[0].journal_volume | length > 1 and
-        journal_volumes.results[1].journal_volume | length > 1 and
-        journal_volumes.results[0].journal_volume[1].journal_pool_id is defined and
-        journal_volumes.results[1].journal_volume[1].journal_pool_id is defined
       register: result
-
 
     - name: Debug result
       ansible.builtin.debug:

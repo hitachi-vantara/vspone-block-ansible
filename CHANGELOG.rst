@@ -4,7 +4,7 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
-v3.2.11
+v3.2.0
 ======
 
 Release Summary
@@ -47,6 +47,13 @@ Minor Changes
 - Updated `hv_system_facts` to add refresh parameter.
 - Updated `hv_truecopy_fact` to add TrueCopy pair facts for direct connection type.
 - Updated `hv_truecopy` to support multiple operations for TrueCopy pair for direct connection type and enhanced SVOL ID setting.
+
+Bugfixes
+--------
+
+- Added missing details to enhance user understanding.
+- Improved formatting and structure for better readability.
+- Resolved inconsistencies in the documentation.
 
 New Modules
 -----------
