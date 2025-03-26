@@ -23,8 +23,6 @@
     - name: Get all Resource Groups
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
       register: result
 
     - name: Debug the result variable
@@ -37,8 +35,6 @@
     - name: Get Resource Group by name
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           name: "hv_rsg_01"
       register: result
@@ -53,8 +49,6 @@
     - name: Get Resource Group by id
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           id: 5
       register: result
@@ -69,8 +63,6 @@
     - name: Get all information about the Resource Groups which are locked
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           is_locked: true
       register: result
@@ -85,8 +77,6 @@
     - name: Get all information about the Resource Groups which are unlocked
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           is_locked: false
       register: result
@@ -101,8 +91,6 @@
     - name: Get information about the Resource Groups which are specified in the query
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           query:
             - ldevs
@@ -122,8 +110,6 @@
     - name: Get information about the Resource Groups which are unlocked and specified in the query
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           is_locked: false
           query:

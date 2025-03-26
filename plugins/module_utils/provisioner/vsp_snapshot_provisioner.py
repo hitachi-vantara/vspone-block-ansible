@@ -15,7 +15,12 @@ try:
     from ..message.vsp_snapshot_msgs import VSPSnapShotValidateMsg
     from ..model.vsp_volume_models import CreateVolumeSpec
     from ..model.vsp_host_group_models import VSPHostGroupInfo
-    from ..model.vsp_snapshot_models import DirectSnapshotInfo, UAIGSnapshotInfo
+    from .vsp_nvme_provisioner import VSPNvmeProvisioner
+    from ..model.vsp_snapshot_models import (
+        DirectSnapshotsInfo,
+        DirectSnapshotInfo,
+        UAIGSnapshotInfo,
+    )
     from .vsp_volume_prov import VSPVolumeProvisioner
     from .vsp_host_group_provisioner import VSPHostGroupProvisioner
     from ..common.uaig_utils import UAIGResourceID
@@ -33,9 +38,14 @@ except ImportError:
     from model.vsp_volume_models import CreateVolumeSpec
     from .vsp_volume_prov import VSPVolumeProvisioner
     from .vsp_host_group_provisioner import VSPHostGroupProvisioner
+    from .vsp_nvme_provisioner import VSPNvmeProvisioner
     from common.ansible_common import log_entry_exit
     from model.vsp_host_group_models import VSPHostGroupInfo
-    from model.vsp_snapshot_models import DirectSnapshotInfo, UAIGSnapshotInfo
+    from model.vsp_snapshot_models import (
+        DirectSnapshotsInfo,
+        DirectSnapshotInfo,
+        UAIGSnapshotInfo,
+    )
     from gateway.vsp_snapshot_gateway import (
         VSPHtiSnapshotUaiGateway,
     )
@@ -77,7 +87,8 @@ class VSPHtiSnapshotProvisioner:
             return snapshots.data_to_list()
         else:
             resp = self.gateway.get_all_snapshots(pvol, mirror_unit_id)
-            return resp.data_to_list()
+            new_resp = self.fill_nvm_subsystem_info_for_snapshots(resp.data)
+            return new_resp.data_to_list()
 
     @log_entry_exit
     def get_one_snapshot(self, pvol: int, mirror_unit_id: int):
@@ -96,7 +107,7 @@ class VSPHtiSnapshotProvisioner:
         else:
             try:
                 resp = self.gateway.get_one_snapshot(pvol, mirror_unit_id)
-                return resp
+                return self.fill_nvm_subsystem_info_for_one_snapshot(resp)
             except Exception as e:
                 self.logger.writeError(f"An error occurred: {str(e)}")
                 if "404" in str(e) or "Specified object does not exist" in str(e):
@@ -104,6 +115,52 @@ class VSPHtiSnapshotProvisioner:
                     raise ValueError(msg)
                 else:
                     raise ValueError(str(e))
+
+    @log_entry_exit
+    def fill_nvm_subsystem_info_for_snapshots(self, snapshots):
+        self.logger.writeDebug(
+            f"fill_nvm_subsystem_info_for_snapshots:snapshots= {snapshots}"
+        )
+        new_snapshots = []
+        for sn in snapshots:
+            new_sn = self.fill_nvm_subsystem_info_for_one_snapshot(sn)
+            new_snapshots.append(new_sn)
+        return DirectSnapshotsInfo(data=new_snapshots)
+
+    @log_entry_exit
+    def fill_nvm_subsystem_info_for_one_snapshot(self, snapshot):
+        self.logger.writeDebug(
+            f"fill_nvm_subsystem_info_for_one_snapshot:shadow_image_pair= {snapshot}"
+        )
+        pvol = snapshot.pvolLdevId
+        svol = snapshot.svolLdevId
+        if pvol:
+            snapshot.pvolNvmSubsystemName = self.nvm_subsystem_name_for_ldev_id(pvol)
+        if svol:
+            snapshot.svolNvmSubsystemName = self.nvm_subsystem_name_for_ldev_id(svol)
+
+        return snapshot
+
+    @log_entry_exit
+    def nvm_subsystem_name_for_ldev_id(self, ldev_id):
+        volume = self.vol_provisioner.get_volume_by_ldev(ldev_id)
+        if volume.nvmSubsystemId:
+            nvm_subsystem_name = self.get_nvm_subsystem_name(volume)
+            self.logger.writeDebug(
+                "PROV:nvm_subsystem_name_for_ldev_id:nvm_subsystem_name = {}",
+                nvm_subsystem_name,
+            )
+            return nvm_subsystem_name
+        else:
+            return None
+
+    @log_entry_exit
+    def get_nvm_subsystem_name(self, volume):
+        nvm_provisioner = VSPNvmeProvisioner(self.connection_info)
+        nvm_ss = nvm_provisioner.get_nvme_subsystem_by_id(volume.nvmSubsystemId)
+        self.logger.writeDebug("PROV:get_nvm_subsystem_info:nvm_subsystem = {}", nvm_ss)
+
+        return nvm_ss.nvmSubsystemName
 
     @log_entry_exit
     def create_snapshot(self, spec):
@@ -237,26 +294,33 @@ class VSPHtiSnapshotProvisioner:
             if spec.can_cascade is None
             else spec.can_cascade
         )
+        if pvol.nvmSubsystemId:
+            ns_id = self.create_name_space_for_svol(pvol.nvmSubsystemId, svol_id)
+        else:
+            if pvol.ports is None and capacity_saving == VolumePayloadConst.DISABLED:
+                err_msg = VSPSnapShotValidateMsg.PVOL_IS_NOT_IN_HG.value
+                self.logger.writeError(err_msg)
+                raise ValueError(err_msg)
 
-        if pvol.ports is None and capacity_saving == VolumePayloadConst.DISABLED:
-            err_msg = VSPSnapShotValidateMsg.PVOL_IS_NOT_IN_HG.value
-            self.logger.writeError(err_msg)
-            raise ValueError(err_msg)
+            elif pvol.ports is not None and len(pvol.ports) > 0:
 
-        elif pvol.ports is not None and len(pvol.ports) > 0:
+                hg_info = pvol.ports[0]
+                hg = VSPHostGroupInfo(
+                    port=hg_info["portId"], hostGroupId=hg_info["hostGroupNumber"]
+                )
 
-            hg_info = pvol.ports[0]
-            hg = VSPHostGroupInfo(
-                port=hg_info["portId"], hostGroupId=hg_info["hostGroupNumber"]
-            )
-
-            hg_provisioner.add_luns_to_host_group(hg, luns=[svol_id])
-            svol = self.vol_provisioner.get_volume_by_ldev(svol_id)
-            if svol.ports:
-                hg_info = svol.ports[0]
-        # Assign the svol and pvol to the host group
+                hg_provisioner.add_luns_to_host_group(hg, luns=[svol_id])
+                svol = self.vol_provisioner.get_volume_by_ldev(svol_id)
+                if svol.ports:
+                    hg_info = svol.ports[0]
+            # Assign the svol and pvol to the host group
 
         return svol_id, hg_info
+
+    @log_entry_exit
+    def create_name_space_for_svol(self, nvm_subsystem_id, ldev_id):
+        nvm_provisioner = VSPNvmeProvisioner(self.connection_info)
+        return nvm_provisioner.create_namespace(nvm_subsystem_id, ldev_id)
 
     @log_entry_exit
     def create_gateway_snapshot(self, spec):
@@ -405,6 +469,10 @@ class VSPHtiSnapshotProvisioner:
         ssp = f"Snapshot cloned successfully to secondary volume {svol}"
         self.connection_info.changed = True
         return ssp
+
+    @log_entry_exit
+    def get_snapshot_groups(self):
+        return self.gateway.get_snapshot_groups()
 
     @log_entry_exit
     def get_snapshots_by_grp_name(self, grp_name):

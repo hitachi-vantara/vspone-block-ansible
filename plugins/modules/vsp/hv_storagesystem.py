@@ -34,7 +34,8 @@ options:
     choices: ['present', 'absent']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description:
+      - Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: true
     suboptions:
@@ -95,7 +96,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Add Storage System
+- name: Add Storage System for gateway connection type
   hitachivantara.vspone_block.vsp.hv_storagesystem:
     storage_system_info:
       serial: "811150"
@@ -106,14 +107,10 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api token value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 12345
     state: present
-  register: result
 
-- name: Debug Add Result
-  debug: var=result
-
-- name: Delete Storage System
+- name: Delete Storage System for gateway connection type
   hitachivantara.vspone_block.vsp.hv_storagesystem:
     storage_system_info:
       serial: "811150"
@@ -121,12 +118,8 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api token value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 12345
     state: absent
-  register: result
-
-- name: Debug Delete Result
-  debug: var=result
 """
 
 RETURN = """

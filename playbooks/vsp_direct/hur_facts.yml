@@ -28,8 +28,6 @@
       hitachivantara.vspone_block.vsp.hv_hur_facts:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
       register: result
 
     - name: Debug the result variable
@@ -43,8 +41,6 @@
       hitachivantara.vspone_block.vsp.hv_hur_facts:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           copy_group_name: "copy_group_name_1"
       register: result
@@ -60,8 +56,6 @@
       hitachivantara.vspone_block.vsp.hv_hur_facts:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           primary_volume_id: 111
       register: result
@@ -77,8 +71,6 @@
       hitachivantara.vspone_block.vsp.hv_hur_facts:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           secondary_volume_id: 122
       register: result
@@ -94,8 +86,6 @@
       hitachivantara.vspone_block.vsp.hv_hur_facts:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           copy_group_name: "copy_group_name_1"
           copy_pair_name: "copy_pair_name_1"

@@ -52,21 +52,10 @@ options:
         description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
-      connection_type:
-        description: Type of connection to the storage system. Only C(direct) connection is supported.
-        type: str
-        required: false
-        choices: ['gateway', 'direct']
-        default: 'direct'
       api_token:
-          description: API token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
+          description: The lock token to operate on locked resources for C(direct) connection.
           type: str
           required: false
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-          Not needed for this module.
-        type: str
-        required: false
   state:
     description: The desired state of the NVM subsystem.
     type: str
@@ -79,7 +68,7 @@ options:
     required: true
     suboptions:
       name:
-        description: The name of the NVM subsystem.If not given, it assigns the name of the NVM subsytem to "smrha-<10 digit random number>".
+        description: The name of the NVM subsystem.If not given, it assigns the name of the NVM subsystem to "smrha-<10 digit random number>".
         type: str
         required: false
       id:
@@ -147,13 +136,12 @@ options:
 """
 
 EXAMPLES = """
-- name: Create an NVM Subsystem
+- name: Create an NVM Subsystem for direct connection type
   hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     state: "present"
     spec:
       name: "nvm_tcp_01"
@@ -169,13 +157,12 @@ EXAMPLES = """
           nickname: "nickname"
           paths: ["nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"]
 
-- name: Add host NQNs to an NVM Subsystem with a specific ID
+- name: Add host NQNs to an NVM Subsystem with a specific ID for direct connection type
   hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     spec:
       id: 1000
       state: "add_host_nqn"
@@ -183,13 +170,12 @@ EXAMPLES = """
         - nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa41"
           nickname: "my_host_nqn_41"
 
-- name: Remove host NQNs from an NVM Subsystem with a specific ID
+- name: Remove host NQNs from an NVM Subsystem with a specific ID for direct connection type
   hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     spec:
       id: 1000
       state: "remove_host_nqn"
@@ -197,13 +183,12 @@ EXAMPLES = """
         - nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa41"
           nickname: "my_host_nqn_41"
 
-- name: Delete an NVM Subsystem with a specific Id forcefully
+- name: Delete an NVM Subsystem with a specific Id forcefully for direct connection type
   hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     state: "absent"
     spec:
       id: "nvm_subsystems_id_18"
@@ -361,9 +346,7 @@ class VSPNvmSubsystemManager:
         try:
             self.parameter_manager = VSPParametersManager(self.module.params)
             self.connection_info = self.parameter_manager.get_connection_info()
-            self.storage_serial_number = (
-                self.parameter_manager.storage_system_info.serial
-            )
+            self.storage_serial_number = None
             self.spec = self.parameter_manager.get_nvme_subsystem_spec()
             self.state = self.parameter_manager.get_state()
 

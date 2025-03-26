@@ -51,6 +51,7 @@ class Endpoints(object):
     POST_UNASSIGN_VLDEV = "v1/objects/ldevs/{}/actions/unassign-virtual-ldevid/invoke"
     POST_ASSIGN_VLDEV = "v1/objects/ldevs/{}/actions/assign-virtual-ldevid/invoke"
     POST_QOS_UPDATE = "v1/objects/ldevs/{}/actions/set-qos/invoke"
+    GET_LDEV_EXT_VOL = "v1/objects/ldevs/{}?detailInfoType=externalVolume"
     GET_QOS_SETTINGS = "v1/objects/ldevs?headLdevId={}&count=1&detailInfoType=qos"
     GET_CMD_DEVICE = "v1/objects/ldevs?headLdevId={}&count=1&detailInfoType=class"
     # Port
@@ -239,6 +240,21 @@ class Endpoints(object):
     # Tag device resources
     UAIG_ADD_STORAGE_RESOURCE = "v3/storage/{}/resource"
 
+    # remote connection urls
+    GET_ALL_REMOTE_CONNECTIONS = "v1/objects/remotepath-groups"
+    REMOTE_CONNECTION_SINGLE = "v1/objects/remotepath-groups/{}"
+    POST_REMOTE_CONNECTIONS = "v1/objects/remotepath-groups"
+    ADD_REMOTE_PATH = "v1/objects/remotepath-groups/{}/actions/add-remotepath/invoke"
+    DELETE_REMOTE_PATH = (
+        "v1/objects/remotepath-groups/{}/actions/remove-remotepath/invoke"
+    )
+    DELETE_REMOTE_CONNECTION = "v1/objects/remotepath-groups/{}"
+
+    # remote iscsi connection urls
+    GET_ALL_REMOTE_ISCSI_CONNECTIONS = "v1/objects/remote-iscsi-ports"
+    REMOTE_ISCSI_CONNECTION_SINGLE = "v1/objects/remote-iscsi-ports/{}"
+    POST_REMOTE_ISCSI_CONNECTIONS = "v1/objects/remote-iscsi-ports"
+
 
 class Http(object):
     GET = "GET"
@@ -377,6 +393,11 @@ class AutomationConstants(object):
     RG_LOCK_TIMEOUT_MAX = 7200
     VOLUME_SIZE_LEN_MIN = 3
     VOLUME_SIZE_LEN_MAX = 14
+    USER_NAME_LEN_MIN = 1
+    USER_NAME_LEN_MAX = 64
+    PASS_LEN_MIN = 6
+    PASS_LEN_MAX = 64
+    MAX_USER_GROUPS = 8
 
 
 class LogMessages(object):
@@ -559,3 +580,25 @@ class VSPJournalVolumeReq:
     mpBladeId = "mpBladeId"
     LDEV_IDS = "ldevIds"
     PARAMETERS = "parameters"
+
+
+class RemoteConnectionReq:
+    remoteSerialNumber = "remoteSerialNumber"
+    remoteStorageTypeId = "remoteStorageTypeId"
+    pathGroupId = "pathGroupId"
+    remotePaths = "remotePaths"
+    minNumOfPaths = "minNumOfPaths"
+    localPortId = "localPortId"
+    remotePortId = "remotePortId"
+    timeoutValueForRemoteIOInSeconds = "timeoutValueForRemoteIOInSeconds"
+    roundTripTimeInMilliSeconds = "roundTripTimeInMilliSeconds"
+    parameters = "parameters"
+
+
+class RemoteIscsiConnectionReq:
+    localPortId = "localPortId"
+    remoteSerialNumber = "remoteSerialNumber"
+    remoteStorageTypeId = "remoteStorageTypeId"
+    remotePortId = "remotePortId"
+    remoteIpAddress = "remoteIpAddress"
+    remoteTcpPort = "remoteTcpPort"

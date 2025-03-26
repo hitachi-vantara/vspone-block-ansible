@@ -84,7 +84,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Change the port settings of a port
+- name: Change the port settings of a port for direct connection type
   hitachivantara.vspone_block.vsp.hv_storage_port:
     connection_info:
       address: storage1.company.com

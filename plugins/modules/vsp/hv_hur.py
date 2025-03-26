@@ -35,10 +35,10 @@ options:
       Note C(swap_split) and C(swap_resync) are supported for C(direct) connection type only.
     type: str
     required: false
-    choices: ['present', 'absent', 'split', 'resync', 'resize', 'swap_split', 'swap_resync']
+    choices: ['present', 'absent', 'split', 'resync', 'resize', 'expand', 'swap_split', 'swap_resync']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -160,6 +160,20 @@ options:
               for both C(direct) and C(gateway) connections.
             type: str
             required: true
+      secondary_nvm_subsystem:
+        description: NVM subsystem details of the secondary volume. Supported only for C(direct) connection type.
+        type: dict
+        required: false
+        suboptions:
+          name:
+            description: Name of the NVM subsystem on the secondary storage system.
+            type: str
+            required: true
+          paths:
+            description: Host NQN paths information on the secondary storage system.
+            type: list
+            elements: str
+            required: false
       fence_level:
         description: Specifies the primary volume fence level setting and determines if the host is denied access or continues to access
             the primary volume when the pair is suspended because of an error. This is an optional field for both C(direct) and C(gateway) connections.
@@ -231,16 +245,17 @@ options:
 """
 
 EXAMPLES = """
-- name: Create a HUR pair in new copy group
+- name: Create a HUR pair in new copy group for direct connection type
   hitachivantara.vspone_block.vsp.hv_hur:
     state: "present"
-    storage_system_info:
-      serial: 811150
     connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 811150
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
     spec:
       copy_group_name: hur_copy_group_name_1
       copy_pair_name: hur_copy_pair_name_1
@@ -256,16 +271,17 @@ EXAMPLES = """
         port: CL1-A
       mirror_unit_id: 0
 
-- name: Create a HUR pair in existing copy group
+- name: Create a HUR pair in existing copy group for direct connection type
   hitachivantara.vspone_block.vsp.hv_hur:
     state: "present"
-    storage_system_info:
-      serial: 811150
     connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 811150
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
     spec:
       copy_group_name: "hur_copy_group_name_1"
       copy_pair_name: "hur_copy_pair_name_2"
@@ -275,17 +291,17 @@ EXAMPLES = """
         name: hg_1
         port: CL1-A
 
-
-- name: Split HUR pair
+- name: Split HUR pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_hur:
     state: "split"
-    storage_system_info:
-      serial: 811150
     connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 811150
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
     spec:
       local_device_group_name: hur_local_device_group_name_3
       remote_device_group_name: hur_remote_device_group_name_3
@@ -293,32 +309,34 @@ EXAMPLES = """
       copy_pair_name: hur_copy_pair_name_3
       is_svol_readwriteable: true
 
-- name: Resync HUR pair
+- name: Resync HUR pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_hur:
     state: "resync"
-    storage_system_info:
-      serial: 811150
     connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 811150
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
     spec:
       local_device_group_name: hur_local_device_group_name_3
       remote_device_group_name: hur_remote_device_group_name_3
       copy_group_name: hur_copy_group_name_3
       copy_pair_name: hur_copy_pair_name_3
 
-- name: Delete HUR pair
+- name: Delete HUR pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_hur:
     state: "absent"
-    storage_system_info:
-      serial: 811150
     connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 811150
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
     spec:
       local_device_group_name: hur_local_device_group_name_3
       remote_device_group_name: hur_remote_device_group_name_3
@@ -540,8 +558,8 @@ class VSPSHurManager:
             return "HUR Pair swapped split successfully."
         elif self.state == "swap_resync":
             return "HUR Pair swapped resynced successfully"
-        elif self.state == "resize":
-            return "HUR Pair resized successfully"
+        elif self.state == "resize" or self.state == "expand":
+            return "HUR Pair expanded successfully"
         else:
             return "Unknown state provided."
 

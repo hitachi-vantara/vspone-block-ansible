@@ -97,7 +97,9 @@ class VSPSJournalVolumeDirectGateway:
         )
         if not pool:
             return None
-
+        end_point = Endpoints.GET_JOURNAL_POOL.format(pool_id)
+        single_pool = self.connectionManager.get(end_point)
+        pool.update(single_pool)
         # Initialize and populate the journal pool object
         data = VSPJournalPool(**pool)
         ldevs = self.get_journal_ldevs_info(pool_id)
@@ -114,9 +116,20 @@ class VSPSJournalVolumeDirectGateway:
     @log_entry_exit
     def get_all_journal_info(self):
         endPoint = Endpoints.GET_JOURNAL_POOLS + "?journalInfo=detail"
-        journal_pools = self.connectionManager.get(endPoint)
+        journal_pools_details = self.connectionManager.get(endPoint)
+        endPoint = Endpoints.GET_JOURNAL_POOLS + "?journalInfo=basic"
+        journal_pools_basic = self.connectionManager.get(endPoint)
+        unused = [
+            pool.update(basic)
+            for pool in journal_pools_details["data"]
+            for basic in journal_pools_basic["data"]
+            if pool["journalId"] == basic["journalId"]
+        ]
+        logger.writeDebug(
+            f"GW:journal_volume: journal_pools_details =  {journal_pools_details}"
+        )
+        jp_data = VSPJournalPools().dump_to_object(journal_pools_details)
 
-        jp_data = VSPJournalPools().dump_to_object(journal_pools)
         for jp in jp_data.data:
             logger.writeDebug(f"GW:journal_volume: jp =  {jp}")
             ldevs = self.get_journal_ldevs_info(jp.journalPoolId)

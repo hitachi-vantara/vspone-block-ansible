@@ -31,7 +31,7 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -83,7 +83,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Retrieve information about all shadow image pairs
+- name: Retrieve information about all shadow image pairs for direct connection type
   hitachivantara.vspone_block.vsp.hv_shadow_image_pair_facts:
     connection_info:
       address: storage1.company.com
@@ -94,17 +94,13 @@ EXAMPLES = """
     storage_system_info:
       serial: 811150
 
-- name: Retrieve information about a specific shadow image pair
+- name: Retrieve information about a specific shadow image pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_shadow_image_pair_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "password"
       connection_type: "direct"
-
-    storage_system_info:
-      serial: 811150
-
     spec:
       primary_volume_id: 274
 """

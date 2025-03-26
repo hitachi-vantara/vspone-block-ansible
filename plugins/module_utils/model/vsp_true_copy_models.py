@@ -33,6 +33,16 @@ class TrueCopyHostGroupSpec:
 
 
 @dataclass
+class NVMeSubsystemSpec:
+    id: Optional[int] = None
+    name: Optional[str] = None
+    paths: Optional[List[str]] = None
+
+    def to_dict(self):
+        return asdict(self)
+
+
+@dataclass
 class TrueCopySpec(SingleBaseClass):
     primary_volume_id: Optional[int] = None
     consistency_group_id: Optional[int] = None
@@ -45,6 +55,7 @@ class TrueCopySpec(SingleBaseClass):
     secondary_volume_id: Optional[int] = None
     # Making a single hg
     secondary_hostgroup: Optional[TrueCopyHostGroupSpec] = None
+    secondary_nvm_subsystem: Optional[NVMeSubsystemSpec] = None
 
     # These fields are required for the Direcr connection
     copy_group_name: Optional[str] = None
@@ -77,6 +88,13 @@ class TrueCopySpec(SingleBaseClass):
             self.secondary_hostgroups = [
                 TrueCopyHostGroupSpec(**kwargs.get("secondary_hostgroup"))
             ]
+        if (
+            "secondary_nvm_subsystem" in kwargs
+            and kwargs.get("secondary_nvm_subsystem") is not None
+        ):
+            self.secondary_nvm_subsystem = NVMeSubsystemSpec(
+                **kwargs.get("secondary_nvm_subsystem")
+            )
 
 
 @dataclass

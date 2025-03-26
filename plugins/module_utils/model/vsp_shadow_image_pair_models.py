@@ -40,6 +40,8 @@ class VSPShadowImagePairInfo(SingleBaseClass):
     entitlementStatus: Optional[str] = None
     partnerId: Optional[str] = None
     subscriberId: Optional[str] = None
+    pvolNvmSubsystemName: Optional[str] = None
+    svolNvmSubsystemName: Optional[str] = None
     __pvolMuNumber: Optional[int] = None
 
     def __init__(self, **kwargs):
@@ -77,6 +79,7 @@ class ShadowImagePairSpec:
     primary_volume_id: Optional[int] = None
     secondary_volume_id: Optional[int] = None
     allocate_new_consistency_group: Optional[bool] = None
+    secondary_pool_id: Optional[int] = None
 
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():

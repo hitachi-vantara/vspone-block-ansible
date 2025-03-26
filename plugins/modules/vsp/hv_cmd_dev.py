@@ -328,14 +328,10 @@ class VSPCmdDevManager:
         try:
             self.parameter_manager = VSPParametersManager(self.module.params)
             self.connection_info = self.parameter_manager.get_connection_info()
-            self.storage_serial_number = (
-                self.parameter_manager.storage_system_info.serial
-            )
+            self.storage_serial_number = None
             self.spec = self.parameter_manager.get_cmd_dev_spec()
             self.state = self.parameter_manager.get_state()
-            self.logger.writeDebug(
-                f"MOD:hv_cmd_dev:spec= {self.spec} ss = {self.storage_serial_number}"
-            )
+
         except Exception as e:
             self.logger.writeError(f"An error occurred during initialization: {str(e)}")
             self.module.fail_json(msg=str(e))

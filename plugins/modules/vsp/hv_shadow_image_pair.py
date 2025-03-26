@@ -37,7 +37,7 @@ options:
     choices: ['present', 'absent', 'split', 'restore', 'sync']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -76,7 +76,7 @@ options:
       api_token:
         description:
           Token value to access UAI gateway. This is a required field for C(gateway) connection type.
-          This fieild is used for C(direct) connection type to pass the value of the lock token to operate on locked resources.
+          This field is used for C(direct) connection type to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
   spec:
@@ -91,7 +91,11 @@ options:
       secondary_volume_id:
         description: Secondary volume id.
         type: int
-        required: true
+        required: false
+      secondary_pool_id:
+        description: Secondary storage pool id.
+        type: int
+        required: false
       auto_split:
         description: Auto split.
         type: bool
@@ -121,10 +125,14 @@ options:
         description: Pair Id.
         type: str
         required: false
+      is_data_reduction_force_copy:
+        description: Enable data reduction force copy.
+        type: bool
+        required: false
 """
 
 EXAMPLES = """
-- name: Create a shadow image pair
+- name: Create a shadow image pair for gateway connection type
   hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     state: "present"
     storage_system_info:
@@ -133,14 +141,29 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
       allocate_new_consistency_group: true
       copy_pace_track_size: "MEDIUM"
 
-- name: Split shadow image pair
+- name: Create shadow image pair for non-existing secondary volume for direct connection type
+  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    state: "present"
+    spec:
+      primary_volume_id: 274
+      secondary_pool_id: 1
+      allocate_new_consistency_group: true
+      copy_pace_track_size: "MEDIUM"
+      enable_quick_mode: false
+      auto_split: true
+
+- name: Split shadow image pair for gateway connection type
   hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     state: "split"
     storage_system_info:
@@ -149,14 +172,14 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
       enable_quick_mode: true
       enable_read_write: false
 
-- name: Sync shadow image pair
+- name: Sync shadow image pair for gateway connection type
   hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     state: "sync"
     storage_system_info:
@@ -165,13 +188,13 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
       enable_quick_mode: true
 
-- name: Create and Auto-Split shadow image pair
+- name: Create and Auto-Split shadow image pair for gateway connection type
   hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     state: "split"
     storage_system_info:
@@ -180,13 +203,13 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
       copy_pace_track_size: "MEDIUM"
 
-- name: Restore shadow image pair
+- name: Restore shadow image pair for gateway connection type
   hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     state: "restore"
     storage_system_info:
@@ -195,13 +218,13 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
       enable_quick_mode: true
 
-- name: Delete shadow image pair
+- name: Delete shadow image pair for gateway connection type
   hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     state: "absent"
     storage_system_info:
@@ -210,7 +233,7 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 274
       secondary_volume_id: 277
@@ -282,6 +305,14 @@ data:
       description: Svol access mode.
       type: str
       sample: "READONLY"
+    pvol_nvm_subsystem_name:
+      description: Primary volume's nvm subsystem name.
+      type: str
+      sample: "smrha-3950276934"
+    svol_nvm_subsystem_name:
+      description: Secondary volume's nvm subsystem name.
+      type: str
+      sample: "smrha-3950276934"
 """
 
 from ansible.module_utils.basic import AnsibleModule

@@ -26,15 +26,6 @@ attributes:
     description: Determines if the module should run in check mode.
     support: full
 options:
-  storage_system_info:
-    description: Information about the remote storage systems.
-    type: dict
-    required: false
-    suboptions:
-      serial:
-        description: The serial number of the storage system.
-        type: str
-        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
@@ -54,17 +45,6 @@ options:
         required: false
       api_token:
         description: Value of the lock token to operate on locked resources.
-        type: str
-        required: false
-      connection_type:
-        description: Type of connection to the storage system. Only C(direct) connection is supported.
-        type: str
-        required: false
-        choices: ['gateway', 'direct']
-        default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-          Not needed for this operation.
         type: str
         required: false
   secondary_connection_info:
@@ -105,7 +85,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Remote Storage Registration Facts
+- name: Remote Storage Registration Facts for direct connection type
   hitachivantara.vspone_block.vsp.hv_remote_storage_registration_facts:
     connection_info:
       address: 172.0.0.2

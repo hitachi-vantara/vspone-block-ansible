@@ -23,8 +23,6 @@
     - name: Create snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           primary_volume_id: 100
@@ -43,8 +41,6 @@
     - name: Split snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "split"
         spec:
           primary_volume_id: 100
@@ -61,8 +57,6 @@
     - name: Resync snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "sync"
         spec:
           primary_volume_id: 100
@@ -79,8 +73,6 @@
     - name: Create and Auto-Split snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "split"
         spec:
           primary_volume_id: 100
@@ -98,8 +90,6 @@
     - name: Restore snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "restore"
         spec:
           primary_volume_id: 100
@@ -116,8 +106,6 @@
     - name: Create snapshot pair using existing consistency group
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           primary_volume_id: 100
@@ -136,8 +124,6 @@
     - name: Delete snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           primary_volume_id: 100
@@ -154,8 +140,6 @@
     - name: Clone snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "clone"
         spec:
           primary_volume_id: 100
@@ -172,8 +156,6 @@
     - name: Create and clone snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           primary_volume_id: 100

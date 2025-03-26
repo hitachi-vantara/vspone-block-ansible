@@ -30,7 +30,8 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the storage system.
+    description:
+      - Information about the storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -82,7 +83,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Retrieve a specific parity group
+- name: Get a specific parity group for direct connection type
   hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
     connection_info:
       address: storage1.company.com
@@ -92,13 +93,31 @@ EXAMPLES = """
     spec:
       parity_group_id: 1-1
 
-- name: Retrieve all parity groups
+- name: Get a specific parity group for gateway connection type
+  hv_paritygroup_facts:
+    connection_info:
+      address: gateway1.company.com
+      api_token: "api_token_value"
+      connection_type: "gateway"
+    storage_system_info:
+      serial: "811150"
+    spec:
+      parity_group_id: 1-1
+
+- name: Get all parity groups for direct connection type
   hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
       connection_type: "direct"
+
+- name: Get all parity groups for gateway connection type
+  hv_paritygroup_facts:
+    connection_info:
+      address: gateway1.company.com
+      api_token: "api_token_value"
+      connection_type: "gateway"
 """
 
 RETURN = """
@@ -114,7 +133,7 @@ ansible_facts:
       elements: dict
       contains:
         copyback_mode:
-          description: Indicates if copyback mode is enabled.
+          description: Indicates if copy-back mode is enabled.
           type: bool
           sample: false
         drive_type:

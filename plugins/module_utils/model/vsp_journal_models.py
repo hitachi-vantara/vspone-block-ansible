@@ -5,7 +5,7 @@ try:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from ..common.ansible_common import volume_id_to_hex_format
 except ImportError:
-    from common_base_models import BaseDataClass, SingleBaseClass
+    from .common_base_models import BaseDataClass, SingleBaseClass
     from common.ansible_common import volume_id_to_hex_format
 
 
@@ -100,7 +100,12 @@ class VSPJournalPool(SingleBaseClass):
             self.dataOverflowWatchSeconds = kwargs.get("dataOverflowWatchInSeconds")
             self.isCacheModeEnabled = kwargs.get("isCacheModeEnabled")
             self.mpBladeId = kwargs.get("mpBladeId")
-            self.totalCapacity = kwargs.get("byteFormatCapacity")
+            self.totalCapacity = (
+                kwargs.get("byteFormatCapacity")
+                .replace("G", "GB")
+                .replace("T", "TB")
+                .replace("M", "MB")
+            )
             self.journalPoolId = kwargs.get("journalId")
             self.journalStatus = kwargs.get("journalStatus")
             self.numOfLdevs = kwargs.get("numOfLdevs")

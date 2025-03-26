@@ -6,6 +6,7 @@ try:
     from ..common.hv_log import Log
     from ..common.hv_constants import StateValue
     from ..provisioner.vsp_rg_lock_provisioner import VSPResourceGroupLockProvisioner
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 
 
 except ImportError:
@@ -15,6 +16,7 @@ except ImportError:
     from common.hv_log import Log
     from ..common.hv_constants import StateValue
     from provisioner.vsp_rg_lock_provisioner import VSPResourceGroupLockProvisioner
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 
 logger = Log()
 
@@ -24,11 +26,9 @@ class VSPResourceGroupLockReconciler:
 
         self.connection_info = connection_info
         self.provisioner = VSPResourceGroupLockProvisioner(connection_info, serial)
+        self.storage_serial_number = serial
         if state:
             self.state = state
-        if serial:
-            self.storage_serial_number = serial
-        # self.vol_recon = VSPVolumeReconciler(self.connection_info, self.storage_serial_number)
 
     @log_entry_exit
     def reconcile_rg_lock(self, spec):
@@ -40,6 +40,8 @@ class VSPResourceGroupLockReconciler:
                 #     return response
                 resp_dict = response.to_dict() if response else {}
                 logger.writeDebug("RC:reconcile_rg_lock:resp_dict={}", resp_dict)
+                if self.storage_serial_number is None:
+                    self.storage_serial_number = self.get_storage_serial_number()
                 extracted_data = ResourceGroupLockInfoExtractor(
                     self.storage_serial_number
                 ).extract([resp_dict])[0]
@@ -65,6 +67,12 @@ class VSPResourceGroupLockReconciler:
     @log_entry_exit
     def is_out_of_band(self):
         return self.provisioner.is_out_of_band()
+
+    @log_entry_exit
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
 
 class ResourceGroupLockInfoExtractor:

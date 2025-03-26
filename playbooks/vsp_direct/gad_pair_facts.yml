@@ -26,9 +26,6 @@
       hitachivantara.vspone_block.vsp.hv_gad_facts:
         secondary_connection_info: "{{ secondary_connection_info }}"
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
-
         spec:
           copy_group_name: "copy_group_name_1"
 
@@ -45,8 +42,6 @@
       hitachivantara.vspone_block.vsp.hv_gad_facts:
         secondary_connection_info: "{{ secondary_connection_info }}"
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           secondary_volume_id: 222
       register: result
@@ -62,8 +57,6 @@
       hitachivantara.vspone_block.vsp.hv_gad_facts:
         secondary_connection_info: "{{ secondary_connection_info }}"
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           primary_volume_id: 111
       register: result
@@ -79,8 +72,6 @@
       hitachivantara.vspone_block.vsp.hv_gad_facts:
         secondary_connection_info: "{{ secondary_connection_info }}"
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
       register: result
 

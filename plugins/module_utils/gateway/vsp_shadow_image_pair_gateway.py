@@ -53,7 +53,8 @@ class VSPShadowImagePairDirectGateway:
         shadow_image_list = []
         for shadow_image_item in response["data"]:
             shadow_image = self.parse_shadow_image_data(serial, shadow_image_item)
-            shadow_image_list.append(shadow_image)
+            if shadow_image is not None:
+                shadow_image_list.append(shadow_image)
         self.logger.writeExitSDK(funcName)
         return VSPShadowImagePairsInfo(
             dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo)
@@ -69,7 +70,8 @@ class VSPShadowImagePairDirectGateway:
         for shadow_image_item in response["data"]:
             if shadow_image_item["pvolLdevId"] == pvol:
                 shadow_image = self.parse_shadow_image_data(serial, shadow_image_item)
-                shadow_image_list.append(shadow_image)
+                if shadow_image is not None:
+                    shadow_image_list.append(shadow_image)
         self.logger.writeExitSDK(funcName)
         return VSPShadowImagePairsInfo(
             dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo)
@@ -78,7 +80,7 @@ class VSPShadowImagePairDirectGateway:
     @log_entry_exit
     def create_shadow_image_pair(self, serial, createShadowImagePairSpec):
         funcName = "VSPShadowImagePairDirectGateway: create_shadow_image_pair"
-        self.logger.writeEnterSDK(funcName)
+        self.logger.writeDebug(f"{funcName}: spec = {createShadowImagePairSpec}")
         end_point = Endpoints.DIRECT_CREATE_SHADOW_IMAGE_PAIR
         self.populateHeader()
         payload = self.generate_create_payload(serial, createShadowImagePairSpec)
@@ -99,6 +101,10 @@ class VSPShadowImagePairDirectGateway:
         )
         self.logger.writeDebug("{} Response={}", funcName, shadow_image_pair)
         self.logger.writeExitSDK(funcName)
+        if shadow_image_pair is None:
+            raise ValueError(
+                VSPShadowImagePairValidateMsg.PAIR_NOT_FOUND.value.format(pairId)
+            )
         return VSPShadowImagePairInfo(**shadow_image_pair)
 
     def split_shadow_image_pair(self, serial, updateShadowImagePairSpec):
@@ -110,7 +116,7 @@ class VSPShadowImagePairDirectGateway:
         )
         # headers = self.populateHeader()
         payload = self.generate_update_payload(updateShadowImagePairSpec)
-        self.logger.writeDebug(payload)
+        self.logger.writeDebug(f"GW:split_shadow_image_pair:payload={payload}")
         response = self.connectionManager.post(end_point, payload)
         self.logger.writeDebug("{} Response={}", funcName, response)
         self.logger.writeExitSDK(funcName)
@@ -304,6 +310,21 @@ class VSPShadowImagePairDirectGateway:
 
     def parse_shadow_image_data(self, serial, response):
         shadow_image_obj = {}
+
+        # This block of code is added to handle situation like described in JIRA
+        # https://hv-eng.atlassian.net/browse/UCA-2865?focusedCommentId=2159648
+        if response.get("pvolLdevId") is None:
+            self.logger.writeInfo(
+                "GW:parse_shadow_image_data:Found shadow image pair without pvolLdevId in response={}",
+                response,
+            )
+            return None
+        if response.get("svolLdevId") is None:
+            self.logger.writeInfo(
+                "GW:parse_shadow_image_data:Found shadow image pair without svolLdevId in response={}",
+                response,
+            )
+            return None
 
         pvol = int(response["pvolLdevId"])
         svol = int(response["svolLdevId"])

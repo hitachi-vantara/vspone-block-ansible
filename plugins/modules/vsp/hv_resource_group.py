@@ -37,7 +37,8 @@ options:
         choices: ['present', 'absent']
         default: 'present'
     storage_system_info:
-        description: Information about the storage system.
+        description:
+            - Information about the storage system.  This field is required for gateway connection type only.
         type: dict
         required: false
         suboptions:
@@ -72,11 +73,6 @@ options:
             api_token:
                 description: Either Token value to access UAI gateway for C(gateway) connection type or
                     value of the lock token to operate on locked resources for C(direct) connection type.
-                type: str
-                required: false
-            subscriber_id:
-                description: Subscription ID for the storage system. This is valid for multi-tenancy and when connection_type is C(gateway).
-                    Resource group is not supported for multi-tenancy.
                 type: str
                 required: false
     spec:
@@ -176,104 +172,86 @@ options:
 """
 
 EXAMPLES = """
-- name: Create a Resource Group with virtual storage serial number of VSM
-  tasks:
-    - name: Create resource group with virtual storage serial number
-      hitachivantara.vspone_block.vsp.hv_resource_group:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        spec:
-          name: "my_resource_group_1"
-          virtual_storage_serial: "69200"
-          virtual_storage_model: "VSP G370"
+- name: Create a Resource Group with virtual storage serial number of VSM for direct connection type
+  hitachivantara.vspone_block.vsp.hv_resource_group:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    spec:
+      name: "my_resource_group_1"
+      virtual_storage_serial: "69200"
+      virtual_storage_model: "VSP G370"
 
-- name: Get Resource Group by name
-  tasks:
-    - name: Get resource group by name
-      hitachivantara.vspone_block.vsp.hv_resource_group:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        spec:
-          name: "my_resource_group"
+- name: Get Resource Group by name for direct connection type
+  hitachivantara.vspone_block.vsp.hv_resource_group:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    spec:
+      name: "my_resource_group"
 
-- name: Create a Resource Group with LDEVs, parity groups, ports, and host groups
-  tasks:
-    - name: Create resource group with multiple resources
-      hitachivantara.vspone_block.vsp.hv_resource_group:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        spec:
-          ldevs: [1, 2, 3]
-          parity_groups: ["PG1", "PG2"]
-          ports: ["CL1-A", "CL1-C"]
-          host_groups:
-            - id: 1
-              name: "my_host_group_1"
-              port: "CL1-A"
-            - id: 2
-              name: "my_host_group_2"
-              port: "CL1-A"
+- name: Create a Resource Group with LDEVs, parity groups, ports, and host groups for direct connection type
+  hitachivantara.vspone_block.vsp.hv_resource_group:
+    connection_info:
+        address: storage1.company.com
+        username: "admin"
+        password: "secret"
+    spec:
+        ldevs: [1, 2, 3]
+        parity_groups: ["PG1", "PG2"]
+        ports: ["CL1-A", "CL1-C"]
+        host_groups:
+          - port: "CL1-A"
+            name: "my_host_group_1"
+          - port: "CL1-A"
+            name: "my_host_group_2"
 
-- name: Add resources to an existing Resource Group by ID
-  tasks:
-    - name: Add resources to resource group
-      hitachivantara.vspone_block.vsp.hv_resource_group:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        spec:
-          state: add_resource
-          id: 4
-          ldevs: [3, 4]
-          host_groups:
-            - id: 3
-              name: "my_host_group_3"
-              port: "CL1-A"
-          iscsi_targets:
-            - id: 2
-              name: "my_iscsi_target_2"
-              port: "CL1-C"
+- name: Add resources to an existing Resource Group by ID for direct connection type
+  hitachivantara.vspone_block.vsp.hv_resource_group:
+    connection_info:
+    address: storage1.company.com
+    username: "admin"
+    password: "secret"
+    spec:
+    state: add_resource
+    id: 4
+    ldevs: [3, 4]
+    host_groups:
+        - port: "CL1-A"
+          name: "my_host_group_3"
+    iscsi_targets:
+        - port: "CL1-C"
+          name: "my_iscsi_target_2"
 
-- name: Remove resources from an existing Resource Group by ID
-  tasks:
-    - name: Remove resources from resource group
-      hitachivantara.vspone_block.vsp.hv_resource_group:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        spec:
-          id: 4
-          state: remove_resource
-          ldevs: [3, 4]
-          host_groups:
-            - id: 3
-              name: "my_host_group_3"
-              port: "CL1-A"
-          iscsi_targets:
-            - id: 2
-              name: "my_iscsi_target_2"
-              port: "CL1-C"
+- name: Remove resources from an existing Resource Group by ID for direct connection type
+  hitachivantara.vspone_block.vsp.hv_resource_group:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    spec:
+      id: 4
+      state: remove_resource
+      ldevs: [3, 4]
+      host_groups:
+        - port: "CL1-A"
+          name: "my_host_group_3"
+      iscsi_targets:
+        - port: "CL1-C"
+          name: "my_iscsi_target_2"
 
 - name: Delete a Resource Group by ID forcefully
-  tasks:
-    - name: Delete resource group forcefully
-      hitachivantara.vspone_block.vsp.hv_resource_group:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        state: absent
-        spec:
-          id: 4
-          force: true
+  hitachivantara.vspone_block.vsp.hv_resource_group:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    state: absent
+    spec:
+      id: 4
+      force: true
 """
 
 RETURN = """

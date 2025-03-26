@@ -22,8 +22,6 @@
     - name: Create a storage pool using required details
       hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           name: "storagepool-1"
@@ -44,8 +42,6 @@
     - name: Create a storage pool using other details
       hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           name: "storagepool-2"
@@ -69,8 +65,6 @@
     - name: Create a storage pool using other details
       hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           name: "storagepool-2"
@@ -92,8 +86,6 @@
     - name: Expand pool by pool Name
       hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           name: "storagepool-2"
@@ -112,8 +104,6 @@
     - name: Expand pool by pool ID
       hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           id: 121
@@ -132,8 +122,6 @@
     - name: Delete pool by pool ID
       hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           id: 121
@@ -149,8 +137,6 @@
     - name: Delete pool by pool Name
       hitachivantara.vspone_block.vsp.hv_storagepool:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           name: "storagepool-2"

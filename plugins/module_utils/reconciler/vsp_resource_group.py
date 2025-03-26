@@ -9,6 +9,7 @@ try:
     from ..common.hv_constants import StateValue, ConnectionTypes
     from ..provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
     from ..provisioner.vsp_volume_prov import VSPVolumeProvisioner
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..message.vsp_resource_group_msgs import VSPResourceGroupValidateMsg
 
 
@@ -21,6 +22,7 @@ except ImportError:
     from common.hv_constants import StateValue, ConnectionTypes
     from provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
     from provisioner.vsp_volume_prov import VSPVolumeProvisioner
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from message.vsp_resource_group_msgs import VSPResourceGroupValidateMsg
 
 
@@ -44,10 +46,9 @@ class VSPResourceGroupReconciler:
 
         self.provisioner = VSPResourceGroupProvisioner(connection_info, serial)
         self.volume_provisioner = VSPVolumeProvisioner(connection_info, serial)
+        self.storage_serial_number = serial
         if state:
             self.state = state
-        if serial:
-            self.storage_serial_number = serial
 
     @log_entry_exit
     def get_resource_group_facts(self, spec):
@@ -55,10 +56,18 @@ class VSPResourceGroupReconciler:
         logger.writeDebug("RC:resource_groups={}", resource_groups)
         if resource_groups is None or not resource_groups.data_to_list():
             return []
+        if self.storage_serial_number is None:
+            self.storage_serial_number = self.get_storage_serial_number()
         extracted_data = ResourceGroupInfoExtractor(self.storage_serial_number).extract(
             resource_groups.data_to_list()
         )
         return extracted_data
+
+    @log_entry_exit
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     @log_entry_exit
     def reconcile_resource_group(self, spec):
@@ -100,6 +109,8 @@ class VSPResourceGroupReconciler:
             logger.writeDebug("RC:reconcile_resource_group:rg2={}", rg2)
             if not rg2:
                 return None, "Resource Group not found."
+            if self.storage_serial_number is None:
+                self.storage_serial_number = self.get_storage_serial_number()
             extracted_data = ResourceGroupInfoExtractor(
                 self.storage_serial_number
             ).extract([rg2.to_dict()])
@@ -582,7 +593,7 @@ class ResourceGroupInfoExtractor:
 
         if response_key is None:
             return []
-        logger.writeDebug("RC:process_list:response_key={}", response_key)
+        # logger.writeDebug("RC:process_list:response_key={}", response_key)
         for item in response_key:
             new_dict = {}
             for key, value in item.items():

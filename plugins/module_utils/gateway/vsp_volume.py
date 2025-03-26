@@ -153,6 +153,47 @@ class VSPVolumeDirectGateway:
         return volume_info
 
     @log_entry_exit
+    def get_volume_by_id_external_volume(self, ldev_id) -> VSPVolumeInfo:
+
+        end_point = self.end_points.GET_LDEV_EXT_VOL.format(ldev_id)
+        try:
+            vol_data = self.rest_api.get(end_point)
+        except Exception:
+            # try once more
+            vol_data = self.rest_api.get(end_point)
+
+        volume_info = VSPVolumeInfo(**vol_data)
+        if self.is_pegasus and volume_info.poolId is not None:
+            try:
+                pega_end_point = self.end_points.PEGA_LDEVS_ONE.format(ldev_id)
+                add_vol_data = self.rest_api.pegasus_get(pega_end_point)
+                drs_enabled = add_vol_data.get(
+                    VolumePayloadConst.IS_DATA_REDUCTION_SHARE_ENABLED, False
+                )
+                volume_info.isDataReductionShareEnabled = drs_enabled
+            except Exception as ex:
+                logger.writeDebug(f"GW: exception in get_volume_by_id {ex}")
+        return volume_info
+
+    @log_entry_exit
+    def map_ext_volume(
+        self, ldevId: int, externalParityGroupId: str, externalVolumeCapacity: int
+    ):
+        payload = {
+            "ldevId": ldevId,
+            "externalParityGroupId": externalParityGroupId,
+            "blockCapacity": externalVolumeCapacity,
+        }
+
+        end_point = self.end_points.POST_LDEVS
+        logger.writeDebug(f"Payload for map volume: {payload}")
+
+        url = self.rest_api.post(end_point, payload)
+
+        # Split the ldevid from url
+        return url.split("/")[-1]
+
+    @log_entry_exit
     def create_volume(self, spec: CreateVolumeSpec):
         payload = {}
         logger.writeDebug(f"spec for creating volume: {spec}")
@@ -228,8 +269,22 @@ class VSPVolumeDirectGateway:
 
     @log_entry_exit
     def get_free_ldev_matching_pvol(self, pvol_id):
+
+        found = False
+        vol_data = None
+
+        # while not found:
         end_point = self.end_points.GET_FREE_LDEV_MATCHING_PVOL.format(pvol_id)
         vol_data = self.rest_api.get(end_point)
+        if vol_data["data"]:
+            resource_group_id = vol_data["data"][0]["resourceGroupId"]
+            if resource_group_id != 0:
+                #     # if resource_group_id is 0, then it is a free ldev in meta
+                #     found = True
+                # else:
+                end_point = self.end_points.GET_FREE_LDEV_FROM_META.format(pvol_id)
+                vol_data = self.rest_api.get(end_point)
+
         return VSPUndefinedVolumeInfoList(
             dicts_to_dataclass_list(vol_data["data"], VSPUndefinedVolumeInfo)
         )

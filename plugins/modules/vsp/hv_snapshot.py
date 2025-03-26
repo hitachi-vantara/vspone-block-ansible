@@ -37,7 +37,7 @@ options:
     choices: ['present', 'absent', 'split', 'sync', 'restore', 'clone']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -131,31 +131,27 @@ options:
 """
 
 EXAMPLES = """
-- name: Create a snapshot
+- name: Create a snapshot for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: present
-    storage_system_info:
-      serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        username: "username"
-        password: "password"
-        connection_type: "direct"
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
     spec:
       primary_volume_id: 123
       pool_id: 1
       snapshot_group_name: "snap_group"
 
-- name: Create a thin image advance cascade pair
+- name: Create a thin image advance cascade pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: present
-    storage_system_info:
-      serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        username: "username"
-        password: "password"
-        connection_type: "direct"
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
     spec:
       primary_volume_id: 123
       pool_id: 1
@@ -163,16 +159,14 @@ EXAMPLES = """
       can_cascade: true
       is_data_reduction_force_copy: true
 
-- name: Create a thin image advance clone pair
+- name: Create a thin image advance clone pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: present
-    storage_system_info:
-      serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        username: "username"
-        password: "password"
-        connection_type: "direct"
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
     spec:
       primary_volume_id: 123
       pool_id: 1
@@ -180,85 +174,75 @@ EXAMPLES = """
       is_clone: true
       is_data_reduction_force_copy: true
 
-- name: Clone a thin image advance clone pair
+- name: Clone a thin image advance clone pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: clone
-    storage_system_info:
-      serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        username: "username"
-        password: "password"
-        connection_type: "direct"
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
     spec:
       primary_volume_id: 123
       mirror_unit: 3
 
-- name: Delete a snapshot
+- name: Delete a snapshot for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: absent
-    storage_system_info:
-      serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        username: "username"
-        password: "password"
-        connection_type: "direct"
+    connection_info:
+      address: gateway.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
     spec:
       primary_volume_id: 123
       mirror_unit: 10
 
-- name: Split a snapshot
+- name: Split a snapshot for direct connection type
+  hitachivantara.vspone_block.vsp.hv_snapshot:
+    state: split
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
+    spec:
+      primary_volume_id: 123
+      mirror_unit: 10
+
+- name: Split a snapshot for gateway connection type
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: split
     storage_system_info:
       serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        username: "username"
-        password: "password"
-        connection_type: "direct"
+    connection_info:
+      address: gateway.company.com
+      api_token: "api_token_value"
+      connection_type: "gateway"
     spec:
       primary_volume_id: 123
       mirror_unit: 10
 
-- name: Split a snapshot
-  hitachivantara.vspone_block.vsp.hv_snapshot:
-    state: split
-    storage_system_info:
-      serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        api_token: "api_token_value"
-        connection_type: "gateway"
-    spec:
-      primary_volume_id: 123
-      mirror_unit: 10
-
-- name: Resync a snapshot
+- name: Resync a snapshot for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: resync
-    storage_system_info:
-      serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        username: "username"
-        password: "password"
-        connection_type: "direct"
+    connection_info:
+      address: gateway.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
     spec:
       primary_volume_id: 123
       mirror_unit: 10
 
-- name: Restore a snapshot
+- name: Restore a snapshot for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: restore
-    storage_system_info:
-      serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        username: "username"
-        password: "password"
-        connection_type: "direct"
+    connection_info:
+      address: gateway.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
     spec:
       primary_volume_id: 123
       mirror_unit: 3

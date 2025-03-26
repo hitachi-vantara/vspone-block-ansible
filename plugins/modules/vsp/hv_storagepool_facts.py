@@ -30,7 +30,8 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the storage system.
+    description:
+      - Information about the storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -82,7 +83,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all pools
+- name: Get all pools for direct connection type
   hitachivantara.vspone_block.vsp.hv_storagepool_facts:
     connection_info:
       address: storage1.company.com
@@ -90,14 +91,16 @@ EXAMPLES = """
       password: "secret"
       connection_type: "direct"
 
-- name: Get all pools using UAI gateway
+- name: Get all pools for gateway connection type
   hitachivantara.vspone_block.vsp.hv_storagepool_facts:
+    storage_system_info:
+      serial: "811150"
     connection_info:
       address: storage1.company.com
       api_token: "api_token"
       connection_type: "gateway"
 
-- name: Get a specific pool
+- name: Get a specific pool for direct connection type
   hitachivantara.vspone_block.vsp.hv_storagepool_facts:
     connection_info:
       address: storage1.company.com

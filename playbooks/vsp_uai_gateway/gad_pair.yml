@@ -39,7 +39,7 @@
           secondary_storage_serial_number: "45678"
           primary_volume_id: 123
           secondary_pool_id: 3
-          secondary_hostgroup:
+          secondary_hostgroups:
             - name: remote-hostgroup
               port: CL1-A
           primary_resource_group_name: primary_resource_group
@@ -70,7 +70,7 @@
           primary_hostgroups:
             - name: local-hostgroup
               port: CL2-A
-          secondary_hostgroup:
+          secondary_hostgroups:
             - name: remote-hostgroup
               port: CL1-A
           quorum_disk_id: 10
@@ -100,7 +100,7 @@
           primary_hostgroups:
             - name: local-hostgroup
               port: CL2-A
-          secondary_hostgroup:
+          secondary_hostgroups:
             - name: remote-hostgroup
               port: CL1-A
           quorum_disk_id: 10

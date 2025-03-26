@@ -38,7 +38,8 @@ options:
         choices: ['present', 'absent']
         default: 'present'
     storage_system_info:
-        description: Information about the storage system.
+        description:
+          - Information about the storage system. This field is required for gateway connection type only.
         type: dict
         required: false
         suboptions:
@@ -66,7 +67,7 @@ options:
                 required: false
             api_token:
                 description: Provide api_token for C(gateway) connection type. For C(direct)ion connection type, this token is required
-                    while working on locked resources. Proivde the lock_token value returned by lock resource group task.
+                    while working on locked resources. Provide the lock_token value returned by lock resource group task.
                 type: str
                 required: false
             connection_type:
@@ -75,12 +76,6 @@ options:
                 required: false
                 choices: ['gateway', 'direct']
                 default: 'direct'
-            subscriber_id:
-                description: This field is valid for C(gateway) connection type only. This is an optional field and only
-                    needed to support multi-tenancy environment. Not needed for this module.
-                type: str
-                required: false
-
     secondary_connection_info:
         description: Information required to establish a connection to the remote storage system. This is required for C(direct) connection only.
         type: dict
@@ -99,7 +94,7 @@ options:
                 type: str
                 required: false
             api_token:
-                description: This token is required while working on locked resources. Proivde the lock_token value returned
+                description: This token is required while working on locked resources. Provide the lock_token value returned
                     by lock resource group task.
                 type: str
                 required: false
@@ -124,7 +119,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Resource management with Resource Group Lock for direct connection where single storage system is involved
+- name: Resource management with Resource Group Lock for direct connection type where single storage system is involved
   tasks:
     - name: Lock resource groups
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:

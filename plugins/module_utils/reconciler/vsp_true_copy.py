@@ -174,8 +174,8 @@ class VSPTrueCopyReconciler:
         if spec.secondary_pool_id is None:
             raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_POOL_ID.value)
 
-        if spec.secondary_hostgroups is None:
-            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS.value)
+        if spec.secondary_hostgroups is None and spec.secondary_nvm_subsystem is None:
+            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS_OR_NVME.value)
 
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
             if self.secondary_connection_info is None:
@@ -217,7 +217,7 @@ class VSPTrueCopyReconciler:
             resp_data = self.swap_split_true_copy(spec)
         elif state == StateValue.SWAP_RESYNC:
             resp_data = self.swap_resync_true_copy(spec)
-        elif state == StateValue.RESIZE:
+        elif state == StateValue.RESIZE or state == StateValue.EXPAND:
             resp_data = self.resize_true_copy(spec)
 
         if resp_data:
@@ -253,7 +253,9 @@ class VSPTrueCopyReconciler:
 
     @log_entry_exit
     def get_all_tc_pairs(self, spec):
-        tc_pairs = self.provisioner.get_true_copy_facts(spec=spec, serial=self.storage_serial_number)
+        tc_pairs = self.provisioner.get_true_copy_facts(
+            spec=spec, serial=self.storage_serial_number
+        )
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
             extracted_data = TrueCopyInfoExtractor(self.storage_serial_number).extract(
                 tc_pairs
@@ -275,7 +277,9 @@ class VSPTrueCopyReconciler:
 
     def get_true_copy_facts(self, spec=None):
 
-        tc_pairs = self.provisioner.get_true_copy_facts(spec, self.storage_serial_number)
+        tc_pairs = self.provisioner.get_true_copy_facts(
+            spec, self.storage_serial_number
+        )
         logger.writeDebug("RC:get_true_copy_facts:tc_pairs={}", tc_pairs)
 
         if tc_pairs is None:

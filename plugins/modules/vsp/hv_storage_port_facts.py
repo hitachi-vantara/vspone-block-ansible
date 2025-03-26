@@ -77,7 +77,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all ports
+- name: Get all ports for direct connection type
   hitachivantara.vspone_block.vsp.hv_storage_port_facts:
     connection_info:
         address: storage1.company.com
@@ -85,7 +85,7 @@ EXAMPLES = """
         password: "secret"
         connection_type: "direct"
 
-- name: Get a specific port
+- name: Get a specific port for direct connection type
   hitachivantara.vspone_block.vsp.hv_storage_port_facts:
     connection_info:
         address: storage1.company.com

@@ -84,6 +84,28 @@ class VSPParityGroupDirectGateway:
         )
 
     @log_entry_exit
+    def create_external_parity_group(
+        self,
+        externalPathGroupId: int,
+        externalParityGroupId: str,
+        portId: str,
+        externalWwn: str,
+        lunId: int,
+    ):
+        endPoint = Endpoints.GET_EXTERNAL_PARITY_GROUPS
+        payload = {
+            "externalPathGroupId": externalPathGroupId,
+            "externalParityGroupId": externalParityGroupId,
+            "portId": portId,
+            "externalWwn": externalWwn,
+            "lunId": lunId,
+            "emulationType": "OPEN-V",
+            "clprId": 0,
+        }
+        response = self.connectionManager.post(endPoint, payload)
+        return response
+
+    @log_entry_exit
     def create_parity_group(self, spec):
         endPoint = Endpoints.GET_PARITY_GROUPS
         payload = {
@@ -113,6 +135,19 @@ class VSPParityGroupDirectGateway:
     def delete_parity_group(self, parity_group_id):
         endPoint = Endpoints.GET_PARITY_GROUP.format(parity_group_id)
         response = self.connectionManager.delete(endPoint)
+        return response
+
+    @log_entry_exit
+    def delete_external_parity_group(self, id: int):
+        endPoint = Endpoints.GET_EXTERNAL_PARITY_GROUP.format(id)
+        response = self.connectionManager.delete(endPoint)
+        return response
+
+    @log_entry_exit
+    def delete_external_parity_group_force(self, id: int):
+        endPoint = Endpoints.GET_EXTERNAL_PARITY_GROUP.format(id)
+        payload = {"force": True}
+        response = self.connectionManager.delete(endPoint, payload)
         return response
 
     @log_entry_exit

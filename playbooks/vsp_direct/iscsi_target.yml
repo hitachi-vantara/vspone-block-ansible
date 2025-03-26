@@ -23,12 +23,10 @@
     - name: Create iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           name: "iscsi-target-server-1"
-          port: ["CL4-C"]
+          port: "CL4-C"
           iqn_initiators:
             - "iqn.1993-08.org.debian.iscsi:01:107dc7e4254a"
             - "iqn.1993-08.org.debian.iscsi:01:107dc7e4254b"
@@ -48,12 +46,10 @@
     - name: Update iscsi target host mode and host mode options
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           name: "iscsi-target-server-1"
-          port: ["CL4-C"]
+          port: "CL4-C"
           host_mode: "LINUX"
           host_mode_options: [54, 63]
       register: result
@@ -68,13 +64,11 @@
     - name: Add chap users to iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           state: "add_chap_user"
           name: "iscsi-target-server-1"
-          port: ["CL4-C"]
+          port: "CL4-C"
           chap_users:
             - chap_user_name: "user1"
               chap_secret: "TopSecretForMyChap1"
@@ -92,13 +86,11 @@
     - name: Remove chap user from iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           state: "remove_chap_user"
           name: "iscsi-target-server-1"
-          port: ["CL4-C"]
+          port: "CL4-C"
           chap_users:
             - chap_user_name: "user2"
               chap_secret: "TopSecretForMyChap2"
@@ -114,13 +106,11 @@
     - name: Add iqn initiators to iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           state: "add_iscsi_initiator"
           name: "iscsi-target-server-1"
-          port: ["CL4-C"]
+          port: "CL4-C"
           iqn_initiators:
             - "iqn.1993-08.org.debian.iscsi:01:107dc7e4254b"
 
@@ -136,13 +126,11 @@
     - name: Remove iqn initiators from iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           state: "remove_iscsi_initiator"
           name: "iscsi-target-server-1"
-          port: ["CL4-C"]
+          port: "CL4-C"
           iqn_initiators:
             - "iqn.1993-08.org.debian.iscsi:01:107dc7e4254b"
       register: result
@@ -157,13 +145,11 @@
     - name: Attach ldevs to iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           state: "attach_ldev"
           name: "iscsi-target-server-1"
-          port: ["CL4-C"]
+          port: "CL4-C"
           ldevs: [300, 400]
       register: result
 
@@ -177,13 +163,11 @@
     - name: Detach ldevs from iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           state: "detach_ldev"
           name: "iscsi-target-server-1"
-          port: ["CL4-C"]
+          port: "CL4-C"
           ldevs: [300, 400]
       register: result
 
@@ -197,12 +181,10 @@
     - name: Delete iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           name: "iscsi-target-server-1"
-          port: ["CL4-C"]
+          port: "CL4-C"
       register: result
 
     - name: Debug the result variable

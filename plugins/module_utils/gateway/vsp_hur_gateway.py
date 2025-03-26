@@ -25,7 +25,7 @@ except ImportError:
     from common.hv_log import Log
     from common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from common.uaig_utils import UAIGResourceID
-    from vsp_volume import VSPVolumeUAIGateway
+    from .vsp_volume import VSPVolumeUAIGateway
     from message.vsp_hur_msgs import VSPHurValidateMsg
     from model.vsp_hur_models import (
         VSPHurPairInfoList,
@@ -456,6 +456,18 @@ class VSPHurUAIGateway:
                 spec,
             )
             logger.writeDebug("GW:resize_replication_pair:svol_id={}", svol_id)
+        except Exception as ex:
+            logger.writeDebug(
+                "GW:resize_replication_pair:exception in expand volume:ex={}", ex
+            )
+            if "AFA8" in str(ex):
+                raise ValueError(VSPHurValidateMsg.EXPAND_VOLUME_FAILED.value)
+            else:
+                raise ValueError(
+                    VSPHurValidateMsg.EXPAND_SVOL_FAILED.value.format(svol_id) + str(ex)
+                )
+
+        try:
             self.expand_volume(
                 self.connectionInfo, storage_resourceId, ldev_resource_id, spec
             )
@@ -464,13 +476,12 @@ class VSPHurUAIGateway:
             logger.writeDebug(
                 "GW:resize_replication_pair:exception in expand volume:ex={}", ex
             )
-            # if we split the pair, then we need to resync it before returning
-            if split_required:
-                response = self.resync_hur_pair(storage_resourceId, pair.resourceId)
             if "AFA8" in str(ex):
                 raise ValueError(VSPHurValidateMsg.EXPAND_VOLUME_FAILED.value)
             else:
-                raise (ex)
+                raise ValueError(
+                    VSPHurValidateMsg.EXPAND_PVOL_FAILED.value.format(pvol_id) + str(ex)
+                )
 
         if split_required:
             response = self.resync_hur_pair(storage_resourceId, pair.resourceId)

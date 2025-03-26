@@ -19,13 +19,23 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all snapshot pairs using group name
+    # Task Name : Get all snapshot groups
     ####################################################################
-    - name: Get one snapshot pairs using group name
+    - name: Get all snapshot groups
       hitachivantara.vspone_block.vsp.hv_snapshot_group_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get all snapshot pairs for a snapshot group
+    ####################################################################
+    - name: Get all snapshot pairs for a snapshot group
+      hitachivantara.vspone_block.vsp.hv_snapshot_group_facts:
+        connection_info: "{{ connection_info }}"
         spec:
           snapshot_group_name: "snapshot-group-name-1"
       register: result

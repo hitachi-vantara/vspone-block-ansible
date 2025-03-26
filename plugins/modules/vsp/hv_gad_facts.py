@@ -30,7 +30,7 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -89,7 +89,7 @@ options:
         type: str
         required: false
       api_token:
-        description: Value of the lock token to operate on locked resources. Provide this onnly when operation is on locked resources.
+        description: Value of the lock token to operate on locked resources. Provide this only when operation is on locked resources.
         type: str
         required: false
   spec:
@@ -128,7 +128,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all GAD pairs
+- name: Get all GAD pairs for gateway connection type
   hitachivantara.vspone_block.vsp.hv_gad_facts:
     state: "present"
     storage_system_info:
@@ -138,7 +138,8 @@ EXAMPLES = """
       api_token: "api_token_value"
       connection_type: "gateway"
       subscriber_id: 811150
-- name: Get GAD pairs by primary volume id
+
+- name: Get GAD pairs by primary volume id for gateway connection type
   hitachivantara.vspone_block.vsp.hv_gad_facts:
     storage_system_info:
       serial: 811150
@@ -146,7 +147,29 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
+
+- name: Get all GAD pairs  for direct connection type
+  hv_gad_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
+
+- name: Get GAD pairs by primary volume id for gateway connection type
+  hv_gad_facts:
+    storage_system_info:
+      serial: 811150
+    connection_info:
+      address: gateway.company.com
+      api_token: "api_token_value"
+      connection_type: "gateway"
+      subscriber_id: 123456
     spec:
       primary_volume_id: 11
 """

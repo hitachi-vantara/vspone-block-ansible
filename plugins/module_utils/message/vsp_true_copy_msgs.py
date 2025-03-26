@@ -110,3 +110,12 @@ class VSPTrueCopyValidateMsg(Enum):
     SECONDARY_RANGE_ID_INVALID = "Please specify both begin_secondary_volume_id and end_secondary_volume_id. Specifying either one is not supported."
 
     PVOL_ID_OR_CP_NAME_NEEDED_WITH_CG_NAME = "Please provide either primary_volume_id or copy_pair_name with copy_group_name."
+    NO_REMOTE_NVME_FOUND = "Could not find NVMe subsystem {} secondary storage."
+    SECONDARY_HOSTGROUPS_OR_NVME = "Either specify secondary_hostgroup or secondary_nvm_subsystems both cannot be empty."
+    NVMSUBSYSTEM_DIFFER = "A pair cannot be created because the NVM subsystem ID {} specified for S-VOL differs from the NVM subsystem ID {} for the P-VOL."
+    PVOL_NAMESPACE_MISSING = (
+        "A pair cannot be created because there does not exist a namespace for PVOL {}"
+    )
+    PVOL_VLDEV_MISSING = "A GAD pair cannot be created because the primary volume {} does not have a virtual LDEV ID"
+    EXPAND_PVOL_FAILED = "Failed to perform operation for primary volume {}."
+    EXPAND_SVOL_FAILED = "Failed to perform operation for secondary volume {}."

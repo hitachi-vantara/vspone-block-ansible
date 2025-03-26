@@ -32,7 +32,8 @@ options:
   storage_system_info:
     required: false
     type: dict
-    description: Information about the Hitachi storage system.
+    description:
+      - Information about the Hitachi storage system. This field is required for gateway connection type only.
     suboptions:
       serial:
         description: Serial number of the Hitachi storage system.
@@ -87,16 +88,15 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all iscsi targets with direct connection
+- name: Get all iscsi targets with direct connection type
   hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       connection_type: "direct"
       address: storage1.example.com
       username: "dummy_username"
       password: "dummy_password"
-  register: result
 
-- name: Get iscsi targets by ports with direct connection
+- name: Get iscsi targets by ports with direct connection type
   hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       connection_type: "direct"
@@ -105,9 +105,8 @@ EXAMPLES = """
       password: "dummy_password"
     spec:
       ports: ['CL4-C']
-  register: result
 
-- name: Get iscsi targets by ports and name with direct connection
+- name: Get iscsi targets by ports and name with direct connection type
   hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       connection_type: "direct"
@@ -117,9 +116,8 @@ EXAMPLES = """
     spec:
       name: 'iscsi-target-server-1'
       ports: ['CL4-C']
-  register: result
 
-- name: Get all iscsi targets with gateway connection
+- name: Get all iscsi targets with gateway connection type
   hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       connection_type: "gateway"
@@ -128,9 +126,8 @@ EXAMPLES = """
       subscriber_id: 811150
     storage_system_info:
       serial: 40014
-  register: result
 
-- name: Get iscsi targets by ports with gateway connection
+- name: Get iscsi targets by ports with gateway connection type
   hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       connection_type: "gateway"
@@ -141,9 +138,8 @@ EXAMPLES = """
       serial: 40014
     spec:
       ports: ['CL4-C']
-  register: result
 
-- name: Get iscsi targets by ports and name with gateway connection
+- name: Get iscsi targets by ports and name with gateway connection type
   hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       connection_type: "gateway"
@@ -155,7 +151,6 @@ EXAMPLES = """
     spec:
       name: 'iscsi-target-server-1'
       ports: ['CL4-C']
-  register: result
 """
 
 RETURN = """

@@ -28,8 +28,6 @@
     - name: Get specific journal volumes Primary
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "811150"
         spec:
           is_mirror_not_used: true
       register: primary_journal_volumes
@@ -40,8 +38,6 @@
     - name: Get specific journal volumes Secondary
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
         connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "45679"
         spec:
           is_mirror_not_used: true
       register: secondary_journal_volumes
@@ -51,8 +47,6 @@
     #####################################################################
     - name: Create HUR pair and debug result
       hitachivantara.vspone_block.vsp.hv_hur:
-        storage_system_info:
-          serial: "811150"
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
         spec:
@@ -69,8 +63,7 @@
             name: "ansible-hostgroup-2"
             port: "CL1-A"
           mirror_unit_id: 2
-      when:
-        primary_journal_volumes.ansible_facts.journal_volume | length > 1 and
+      when: primary_journal_volumes.ansible_facts.journal_volume | length > 1 and
         secondary_journal_volumes.ansible_facts.journal_volume | length > 1 and
         primary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined and
         secondary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined
@@ -103,8 +96,7 @@
             paths:
               - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
           mirror_unit_id: 2
-      when:
-        primary_journal_volumes.ansible_facts.journal_volume | length > 1 and
+      when: primary_journal_volumes.ansible_facts.journal_volume | length > 1 and
         secondary_journal_volumes.ansible_facts.journal_volume | length > 1 and
         primary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined and
         secondary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined

@@ -47,7 +47,8 @@ options:
     choices: ['present', 'absent']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description:
+      - Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -88,7 +89,7 @@ options:
         type: str
         required: false
   spec:
-    description: Specification for hostgroup operation.
+    description: Specification for host-group operation.
     type: dict
     required: false
     suboptions:
@@ -188,8 +189,6 @@ EXAMPLES = """
 - name: Create host group with LUN in decimal for direct connection type
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
-    storage_system_info:
-      serial: '446039'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
@@ -201,8 +200,6 @@ EXAMPLES = """
       host_mode_options: [40]
       wwns: ['100000109B583B2D', '100000109B583B2C']
       ldevs: [393, 851]
-  register: result
-- debug: var=result.hostGroups
 
 - name: Create host group with LUN in decimal for gateway connection type
   hitachivantara.vspone_block.vsp.hv_hg:
@@ -219,27 +216,21 @@ EXAMPLES = """
       host_mode_options: [40]
       wwns: ['100000109B583B2D', '100000109B583B2C']
       ldevs: [393, 851]
-  register: result
-- debug: var=result.hostGroups
 
 - name: Create host group with LUN in HEX for direct connection type
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
-    storage_system_info:
-      serial: '446039'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
       password: "dummy_password"
-    spec:
+    host_group_info:
       name: 'testhg26dec'
       port: 'CL1-A'
       host_mode: 'VMWARE_EXTENSION'
       host_mode_options: [54, 63]
       wwns: ['100000109B583B2D', '100000109B583B2C']
       ldevs: ['00:23:A4']
-  register: result
-- debug: var=result.hostGroups
 
 - name: Delete host group for gateway connection type
   hitachivantara.vspone_block.vsp.hv_hg:
@@ -252,14 +243,10 @@ EXAMPLES = """
     spec:
       name: 'testhg26dec'
       port: 'CL1-A'
-  register: result
-- debug: var=result
 
 - name: Delete host group for direct connection type
   hitachivantara.vspone_block.vsp.hv_hg:
     state: absent
-    storage_system_info:
-      serial: '446039'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
@@ -267,30 +254,23 @@ EXAMPLES = """
     spec:
       name: 'testhg26dec'
       port: 'CL1-A'
-  register: result
-- debug: var=result
 
 - name: Present LUN for direct connection type
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
-    storage_system_info:
-      serial: '446039'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
       password: "dummy_password"
-    spec:
+    host_group_info:
       state: present_ldev
       name: 'testhg26dec'
       port: 'CL1-A'
       ldevs: ['00:05:77', '00:05:7D']
-  register: result
 
 - name: Unpresent LUN for direct connection type
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
-    storage_system_info:
-      serial: '446039'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
@@ -300,13 +280,10 @@ EXAMPLES = """
       name: 'testhg26dec'
       port: 'CL1-A'
       ldevs: [800, 801]
-  register: result
 
 - name: Add WWN for direct connection type
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
-    storage_system_info:
-      serial: '446039'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
@@ -316,14 +293,10 @@ EXAMPLES = """
       name: 'testhg26dec'
       port: 'CL1-A'
       wwns: ['200000109B3C0FD3']
-  register: result
-- debug: var=result
 
 - name: Remove WWN for direct connection type
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
-    storage_system_info:
-      serial: '446039'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
@@ -333,14 +306,10 @@ EXAMPLES = """
       name: 'testhg26dec'
       port: 'CL1-A'
       wwns: ['200000109B3C0FD3']
-  register: result
-- debug: var=result
 
 - name: Update host group for direct connection type
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
-    storage_system_info:
-      serial: '446039'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
@@ -351,8 +320,6 @@ EXAMPLES = """
       port: 'CL1-A'
       host_mode: 'VMWARE_EXTENSION'
       host_mode_options: [54, 63]
-  register: result
-- debug: var=result
 """
 
 RETURN = """

@@ -25,8 +25,6 @@
       username: "{{ vault_storage_username }}"
       password: "{{ vault_storage_secret }}"
 
-    storage_serial: 40012
-
   tasks:
   ####################################################################
   # Task 1 : Lock Resource Groups
@@ -34,8 +32,6 @@
     - name: Lock Resource Group
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           lock_timeout_sec: 300
       register: lock_resource_group_result
@@ -52,8 +48,6 @@
         connection_info:
           address: "{{ connection_info.address }}"
           api_token: "{{ lock_resource_group_result.locked_resource_groups.lock_token }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: present
         spec:
           pool_id: 0
@@ -73,8 +67,6 @@
         connection_info:
           address: "{{ connection_info.address }}"
           api_token: "{{ lock_resource_group_result.locked_resource_groups.lock_token }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: present
         spec:
           ldev_id: "{{ create_ldev_result.volume.ldev_id }}"
@@ -91,8 +83,6 @@
     - name: Get ldev information
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           ldev_id: "{{ create_ldev_result.volume.ldev_id }}"
       register: result
@@ -110,8 +100,6 @@
         connection_info:
           address: "{{ connection_info.address }}"
           api_token: "{{ lock_resource_group_result.locked_resource_groups.lock_token }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: present
         spec:
           name: hostgroup-rd-lock-test-120424
@@ -136,8 +124,6 @@
         connection_info:
           address: "{{ connection_info.address }}"
           api_token: "{{ lock_resource_group_result.locked_resource_groups.lock_token }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: absent
       register: unlock_resource_group_result
 

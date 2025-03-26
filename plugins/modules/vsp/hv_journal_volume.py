@@ -19,7 +19,7 @@ description:
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/journal_volume.yml)
   - For C(gateway) connection type examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/journal_volume.yml)
-version_added: '3.0.0'
+version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
@@ -36,7 +36,8 @@ options:
     choices: ['present', 'absent', 'update', 'expand_journal_volume', 'shrink_journal_volume']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description:
+      - Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -113,43 +114,54 @@ options:
 """
 
 EXAMPLES = """
-- name: Create Journal Volume
+- name: Create Journal Volume for gateway connection type
   hitachivantara.vspone_block.vsp.hv_journal_volume:
     connection_info:
       address: storage1.company.com
       api_token: "api_token"
       connection_type: "gateway"
     storage_system_info:
-      serial: "811150"
+      - serial: "811150"
     state: "present"
     spec:
-      journal_id: 35
-      ldev_ids: [105, 106]
+      journal_id: "35"
+      ldev_ids: "[105, 106]"
 
-- name: Expand Journal Volume
+- name: Create a Journal Volume for direct connection type
   hitachivantara.vspone_block.vsp.hv_journal_volume:
     connection_info:
       address: storage1.company.com
-      api_token: "api_token"
-      connection_type: "gateway"
-    storage_system_info:
-      serial: "811150"
-    state: "expand_journal_volume"
+      username: "admin"
+      password: "secret"
+    state: "present"
     spec:
-      journal_id: 35
-      ldev_ids: [107]
+      journal_id: 37
+      ldev_ids: [1993, 1994]
 
-- name: Delete Journal Volume
+- name: Expand Journal Volume for gateway connection type
   hitachivantara.vspone_block.vsp.hv_journal_volume:
     connection_info:
       address: storage1.company.com
       api_token: "api_token"
       connection_type: "gateway"
     storage_system_info:
-      serial: "811150"
+      - serial: "811150"
+    state: "present"
+    spec:
+      journal_id: "35"
+      ldev_ids: "[105]"
+
+- name: Delete Journal Volume for gateway connection type
+  hitachivantara.vspone_block.vsp.hv_journal_volume:
+    connection_info:
+      address: storage1.company.com
+      api_token: "api_token"
+      connection_type: "gateway"
+    storage_system_info:
+      - serial: "811150"
     state: "absent"
     spec:
-      journal_id: 35
+      journal_id: "35"
 """
 
 RETURN = r"""

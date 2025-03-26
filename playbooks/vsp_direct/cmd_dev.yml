@@ -23,8 +23,6 @@
     - name: Enable a Command Device
       hitachivantara.vspone_block.vsp.hv_cmd_dev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           ldev_id: 98
           is_security_enabled: false
@@ -42,8 +40,6 @@
     - name: Create a Command Device from an LDEV ID
       hitachivantara.vspone_block.vsp.hv_cmd_dev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           ldev_id: 98
           is_security_enabled: true
@@ -61,8 +57,6 @@
     - name: Enable a Command Device
       hitachivantara.vspone_block.vsp.hv_cmd_dev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           ldev_id: 98

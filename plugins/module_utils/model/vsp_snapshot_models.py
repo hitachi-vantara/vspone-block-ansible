@@ -93,6 +93,8 @@ class DirectSnapshotInfo(SingleBaseClass):
     snapshotReplicationId: Optional[str] = None
     poolId: Optional[int] = None
     progressRate: Optional[int] = None
+    pvolNvmSubsystemName: Optional[str] = None
+    svolNvmSubsystemName: Optional[str] = None
 
     def __post_init__(self):
         if self.isClone and self.canCascade:

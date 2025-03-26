@@ -24,11 +24,9 @@ class VSPCmdDevProvisioner:
             connection_info, GatewayClassTypes.VSP_VOLUME
         )
         self.connection_info = connection_info
-
+        self.serial = serial
         if serial:
-            self.serial = serial
             self.gateway.set_serial(serial)
-        logger.writeDebug(f"PROV:serial={self.serial}")
 
     @log_entry_exit
     def get_ldev_by_id(self, ldev_id):

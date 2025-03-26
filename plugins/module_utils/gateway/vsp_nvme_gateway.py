@@ -186,7 +186,6 @@ class VSPOneNvmeSubsystemDirectGateway:
         host_nqn = VspHostNqnInfoList(
             dicts_to_dataclass_list(host_nqn_data["data"], VspHostNqnInfo)
         )
-
         return host_nqn
 
     @log_entry_exit
@@ -247,13 +246,20 @@ class VSPOneNvmeSubsystemDirectGateway:
         return host_nqn_data
 
     @log_entry_exit
-    def create_namespace(self, nvm_subsystem_id, ldev_id):
-
+    def create_namespace(self, nvm_subsystem_id, ldev_id, ns_id=None):
         end_point = POST_NAMESPACE
-        payload = {
-            "nvmSubsystemId": nvm_subsystem_id,
-            "ldevId": int(ldev_id),
-        }
+        payload = {}
+        if ns_id is not None:
+            payload = {
+                "nvmSubsystemId": nvm_subsystem_id,
+                "ldevId": int(ldev_id),
+                "namespaceId": int(ns_id),
+            }
+        else:
+            payload = {
+                "nvmSubsystemId": nvm_subsystem_id,
+                "ldevId": int(ldev_id),
+            }
         ns_data = self.connection_manager.post(end_point, payload)
         return ns_data
 

@@ -67,7 +67,7 @@ options:
   spec:
     description: Specification for the snapshot facts to be gathered.
     type: dict
-    required: true
+    required: false
     suboptions:
       snapshot_group_name:
         description: The name of the snapshot group.
@@ -76,10 +76,9 @@ options:
 """
 
 EXAMPLES = """
-- name: Gather snapshot facts with primary volume and mirror unit ID
+-name:
+- name: Gather snapshot facts with primary volume and mirror unit ID for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot_group_facts:
-    storage_system_info:
-      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -225,7 +224,7 @@ class VSPHtiSnapshotGrpFactManager:
 
             self.params_manager = VSPParametersManager(self.module.params)
             self.connection_info = self.params_manager.connection_info
-            self.storage_serial_number = self.params_manager.storage_system_info.serial
+            self.storage_serial_number = None
             self.spec = self.params_manager.snapshot_grp_fact_spec()
         except Exception as e:
             self.logger.writeException(e)
@@ -255,7 +254,7 @@ class VSPHtiSnapshotGrpFactManager:
             self.logger.writeInfo("=== End of Snapshot Group Facts ===")
             self.module.fail_json(msg=str(e))
         data = {
-            "snapshots": snapshot_data,
+            "snapshot_groups": snapshot_data,
         }
         if registration_message:
             data["user_consent_required"] = registration_message

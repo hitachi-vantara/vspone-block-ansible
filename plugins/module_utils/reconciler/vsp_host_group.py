@@ -251,10 +251,8 @@ class VSPHostGroupReconciler:
         logger = Log()
         hgLun = set(path.ldevId for path in hg.lunPaths or [])
         logger.writeDebug("newLun={0}", newLun)
-        # addLun = newLun - hgLun
-        # # delLun = list(set(hgLun) - set(newLun))
-        # delLun = hgLun.intersection(newLun)
         addLun = self.luns_to_add(newLun, hgLun)
+        # delLun = list(set(hgLun) - set(newLun))
         delLun = self.luns_to_delete(newLun, hgLun)
         logger.writeDebug("hgLun={0}", hgLun)
         logger.writeDebug("541 addLun={0}", addLun)

@@ -23,8 +23,6 @@
     - name: Get all journal volumes
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
       register: result
 
     - name: Debug the result variable
@@ -37,8 +35,6 @@
     - name: Get specific journal volumes
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           journal_id: 37
       register: result
@@ -53,8 +49,6 @@
     - name: Get specific journal volumes
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           is_free_journal_pool_id: true
           free_journal_pool_id_count: 10
@@ -69,8 +63,6 @@
     - name: Get specific journal volumes
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           is_mirror_not_used: true
       register: result

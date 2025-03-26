@@ -23,8 +23,6 @@
     - name: Create a Resource Group without any resources
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           name: "rd_rg_01"
       register: result
@@ -39,8 +37,6 @@
     - name: Create a Resource Group with virtual storage serial number of VSM
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           name: "rd_rg_02"
           virtual_storage_serial: 10075
@@ -57,8 +53,6 @@
     - name: Create a Resource Group with ldevs
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           name: "rd_rg_03"
           ldevs: [100, 150, 200]
@@ -75,8 +69,6 @@
     - name: Create a Resource Group with above resources
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           name: "rd_rg_04"
           ldevs: [100, 150, 200]
@@ -100,8 +92,6 @@
     - name: Create a Resource Group with storage pool IDs, and parity groups
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           name: "rd_rg_05"
           storage_pool_ids: [1, 2]
@@ -119,8 +109,6 @@
     - name: Add the above resources to an existing Resource Group by ID
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "add_resource"
           id: 5
@@ -145,8 +133,6 @@
     - name: Add the above resources to an existing Resource Group by Name
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "add_resource"
           name: "rd_rg_04"
@@ -173,8 +159,6 @@
     - name: Remove resources from an existing Resource Group by ID
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "remove_resource"
           id: 5
@@ -197,8 +181,6 @@
     - name: Remove resources from an existing Resource Group by Name
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "remove_resource"
           name: "rd_rg_04"
@@ -224,8 +206,6 @@
     - name: Delete a Resource Group by ID
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           id: 5
@@ -241,8 +221,6 @@
     - name: Delete a Resource Group by ID
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           name: "rd_rg_04"
@@ -258,8 +236,6 @@
     - name: Delete a Resource Group by ID forcefully
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           id: 5

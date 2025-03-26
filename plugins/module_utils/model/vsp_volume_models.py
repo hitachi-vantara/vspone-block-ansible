@@ -122,9 +122,11 @@ class VSPVolumeInfo(SingleBaseClass):
     ldevId: int
     clprId: int
     emulationType: str
+    externalVolumeId: Optional[str] = None
     byteFormatCapacity: Optional[str] = None
     blockCapacity: Optional[int] = None
     numOfPorts: Optional[int] = None
+    externalPorts: Optional[List[VSPPortInfo]] = None
     ports: Optional[List[VSPPortInfo]] = None
     composingPoolId: Optional[int] = None
     attributes: Optional[List[str]] = None
@@ -164,7 +166,7 @@ class VSPVolumeInfo(SingleBaseClass):
     isSecurityEnabled: Optional[bool] = None
     isUserAuthenticationEnabled: Optional[bool] = None
     isDeviceGroupDefinitionEnabled: Optional[bool] = None
-
+    naaId: Optional[str] = None
     tierLevel: Optional[int] = None
     tierLevelForNewPageAllocation: Optional[str] = None
     tier1AllocationRateMin: Optional[int] = None
@@ -186,12 +188,15 @@ class VSPVolumeInfo(SingleBaseClass):
             if storage_info is None:
                 return
             self.storageSerialNumber = storage_info.serialNumber
-            if storage_info.firstWWN and self.canonicalName is None:
-                self.canonicalName = NAIDCalculator(
-                    storage_info.firstWWN,
-                    int(storage_info.serialNumber),
-                    storage_info.model,
-                ).calculate_naid(kwargs.get("ldevId", None))
+            if self.naaId is None:
+                if storage_info.firstWWN and self.canonicalName is None:
+                    self.canonicalName = NAIDCalculator(
+                        storage_info.firstWWN,
+                        int(storage_info.serialNumber),
+                        storage_info.model,
+                    ).calculate_naid(kwargs.get("ldevId", None))
+            else:
+                self.canonicalName = self.naaId
 
             self.isDataReductionShareEnabled = (
                 True if "DRS" in self.attributes else None

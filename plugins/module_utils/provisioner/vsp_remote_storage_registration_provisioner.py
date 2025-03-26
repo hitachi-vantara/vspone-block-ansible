@@ -55,3 +55,9 @@ class VSPRemoteStorageRegistrationProvisioner:
         return AllRemoteStorageSystemsInfoPfrest(
             local_remote_storages.data, remote_remote_storages.data
         )
+
+    @log_entry_exit
+    def get_remote_storages_from_local(self):
+        """Get Remote Storages"""
+        remote_storages = self.gateway.get_remote_storages_from_local()
+        return remote_storages

@@ -17,12 +17,13 @@ try:
         UaigResourceGroupInfoList,
     )
     from ..message.vsp_resource_group_msgs import VSPResourceGroupValidateMsg
+    from ..hv_ucpmanager import UcpManager
 except ImportError:
     from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
     from common.hv_constants import CommonConstants
     from common.hv_log import Log
     from common.ansible_common import dicts_to_dataclass_list, log_entry_exit
-    from ..common.vsp_storage_models import VSPStorageModelsManager
+    from common.vsp_storage_models import VSPStorageModelsManager
     from common.uaig_utils import UAIGResourceID
     from model.vsp_resource_group_models import (
         VspResourceGroupInfo,
@@ -33,6 +34,7 @@ except ImportError:
         UaigResourceGroupInfoList,
     )
     from message.vsp_resource_group_msgs import VSPResourceGroupValidateMsg
+    from hv_ucpmanager import UcpManager
 
 GET_RESOURCE_GROUPS_DIRECT = "v1/objects/resource-groups"
 GET_RESOURCE_GROUPS_WITH_PARAM_DIRECT = "v1/objects/resource-groups{}"
@@ -611,6 +613,24 @@ class VSPResourceGroupUAIGateway:
         return iscsci_targets_api
 
     @log_entry_exit
+    def get_ucp_serial(self):
+        partner_id = CommonConstants.PARTNER_ID
+        ucp_manager = UcpManager(
+            self.connection_info.address,
+            self.connection_info.username,
+            self.connection_info.password,
+            self.connection_info.api_token,
+            partner_id,
+            self.connection_info.subscriber_id,
+            self.serial,
+        )
+        storage_system_info = ucp_manager.getStorageSystem()
+        logger.writeDebug("get_ucp_serial:storage_system_info={}", storage_system_info)
+        ucp_serial = storage_system_info.get("ucpSystems")
+        logger.writeDebug("get_ucp_serial:ucp_serial={}", ucp_serial)
+        return ucp_serial[0]
+
+    @log_entry_exit
     def delete_resource_group(self, rg_id, spec):
         # looks like delete contract is not correct, need to revisit this
         device_id = UAIGResourceID().storage_resourceId(self.serial)
@@ -619,7 +639,7 @@ class VSPResourceGroupUAIGateway:
         payload = {}
         payload["resourceGroupName"] = spec.name
         payload["serialNumber"] = self.serial
-        payload["ucpSystem"] = CommonConstants.UCP_SERIAL
+        payload["ucpSystem"] = self.get_ucp_serial()
 
         ret_data = self.connection_manager.delete(end_point, payload)
         self.connection_info.changed = True
@@ -633,7 +653,7 @@ class VSPResourceGroupUAIGateway:
         payload = {}
         payload["resourceGroupName"] = spec.name
         payload["serialNumber"] = self.serial
-        payload["ucpSystem"] = CommonConstants.UCP_SERIAL
+        payload["ucpSystem"] = self.get_ucp_serial()
 
         if spec.virtual_storage_serial:
             payload["remoteStorageId"] = spec.virtual_storage_serial
@@ -710,7 +730,7 @@ class VSPResourceGroupUAIGateway:
         payload = {}
         payload["resourceGroupName"] = rg.resourceGroupName
         payload["serialNumber"] = self.serial
-        payload["ucpSystem"] = CommonConstants.UCP_SERIAL
+        payload["ucpSystem"] = self.get_ucp_serial()
 
         retry_count = 0
         retry_time = 5

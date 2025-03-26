@@ -132,7 +132,7 @@ class VSPStoragePoolProvisioner:
         )
 
         mb_capacity = convert_to_mb(storage_pool_dict["freeCapacityInUnits"])
-        storage_pool_dict["free_capacity_in_mb"] = f"{mb_capacity} MB"
+        storage_pool_dict["free_capacity_in_mb"] = mb_capacity
 
         storage_pool_dict["totalCapacity"] = pool.totalPoolCapacity * 1024 * 1024
         storage_pool_dict["totalCapacityInUnit"] = convert_block_capacity(
@@ -140,7 +140,7 @@ class VSPStoragePoolProvisioner:
         )
 
         mb_capacity = convert_to_mb(storage_pool_dict["totalCapacityInUnit"])
-        storage_pool_dict["total_capacity_in_mb"] = f"{mb_capacity} MB"
+        storage_pool_dict["total_capacity_in_mb"] = mb_capacity
 
         storage_pool_dict["warningThresholdRate"] = pool.warningThreshold
         storage_pool_dict["depletionThresholdRate"] = pool.depletionThreshold

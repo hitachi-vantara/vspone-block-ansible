@@ -984,15 +984,23 @@ class VSPVolumeReconciler:
 
     @log_entry_exit
     def delete_ldev_from_nvme_subsystem(self, ldev_id):
-        nvms = self.nvme_provisioner.get_nvme_subsystems_by_namespace()
+        try:
+            nvms = self.nvme_provisioner.get_nvme_subsystems_by_namespace()
 
-        for nvm in nvms.data:
-            ldevs = self.find_ldevs_in_nvm_subsystem(nvm.nvmSubsystemId, ldev_id)
-            if ldevs and len(ldevs) > 0:
-                for x in ldevs:
-                    self.nvme_provisioner.delete_namespace(
-                        x.nvmSubsystemId, x.namespaceId
-                    )
+            for nvm in nvms.data:
+                ldevs = self.find_ldevs_in_nvm_subsystem(nvm.nvmSubsystemId, ldev_id)
+                if ldevs and len(ldevs) > 0:
+                    for x in ldevs:
+                        self.nvme_provisioner.delete_namespace(
+                            x.nvmSubsystemId, x.namespaceId
+                        )
+        except Exception as e:
+            if "The API is not supported for the specified storage system" in str(e):
+                logger.writeError(
+                    "The API is not supported for the specified storage system"
+                )
+            else:
+                raise e
 
     @log_entry_exit
     def find_ldevs_in_nvm_subsystem(self, nvm_subsystem_id, ldev_id):
@@ -1005,15 +1013,24 @@ class VSPVolumeReconciler:
 
     @log_entry_exit
     def delete_host_ns_path_for_ldev(self, ldev_id):
-        nvms = self.nvme_provisioner.get_nvme_subsystems_by_namespace()
-        for nvm in nvms.data:
-            ldev_paths = self.find_ldevs_in_paths(nvm.nvmSubsystemId, ldev_id)
-            if ldev_paths and len(ldev_paths) > 0:
-                # self.nvme_provisioner.delete_host_namespace_path(ldev_found.nvmSubsystemId, ldev_found.hostNqn, int(ldev_found.namespaceId))
-                for x in ldev_paths:
-                    self.nvme_provisioner.delete_host_namespace_path_by_id(
-                        x.namespacePathId
-                    )
+        try:
+            nvms = self.nvme_provisioner.get_nvme_subsystems_by_namespace()
+
+            for nvm in nvms.data:
+                ldev_paths = self.find_ldevs_in_paths(nvm.nvmSubsystemId, ldev_id)
+                if ldev_paths and len(ldev_paths) > 0:
+                    # self.nvme_provisioner.delete_host_namespace_path(ldev_found.nvmSubsystemId, ldev_found.hostNqn, int(ldev_found.namespaceId))
+                    for x in ldev_paths:
+                        self.nvme_provisioner.delete_host_namespace_path_by_id(
+                            x.namespacePathId
+                        )
+        except Exception as e:
+            if "The API is not supported for the specified storage system" in str(e):
+                logger.writeError(
+                    "The API is not supported for the specified storage system"
+                )
+            else:
+                raise e
 
     @log_entry_exit
     def find_ldevs_in_paths(self, nvm_subsystem_id, ldev_id):
@@ -1155,7 +1172,7 @@ class VolumeCommonPropertiesExtractor:
     def extract(self, responses):
         new_items = []
         for response in responses:
-            logger.writeDebug("20240825 after gateway creatlun response={}", response)
+            # logger.writeDebug("20240825 after gateway creatlun response={}", response)
             new_dict = {}
 
             for key, value_type in self.common_properties.items():
@@ -1194,14 +1211,10 @@ class VolumeCommonPropertiesExtractor:
                         # Add total_capacity_in_mb and used_capacity_in_mb fields
                         if key == "total_capacity":
                             mbvalue = convert_to_mb(new_dict[key])
-                            new_dict["total_capacity_in_mb"] = (
-                                f"{mbvalue} MB" if mbvalue else "0.0 MB"
-                            )
+                            new_dict["total_capacity_in_mb"] = mbvalue if mbvalue else 0
                         elif key == "used_capacity":
                             mbvalue = convert_to_mb(new_dict[key])
-                            new_dict["used_capacity_in_mb"] = (
-                                f"{mbvalue} MB" if mbvalue else "0.0 MB"
-                            )
+                            new_dict["used_capacity_in_mb"] = mbvalue if mbvalue else 0
                     else:
                         new_dict[key] = value_type(response_key)
                         self.build_tiering_policy_direct(new_dict, key, response_key)
@@ -1269,6 +1282,253 @@ class VolumeCommonPropertiesExtractor:
 
             if new_dict.get("storage_serial_number") is None:
                 new_dict["storage_serial_number"] = self.serial
+
+            if new_dict.get("tier1_alloc_rate_min") is not None:
+                del new_dict["tier1_alloc_rate_min"]  # sng20241202
+            if new_dict.get("tier1_alloc_rate_max") is not None:
+                del new_dict["tier1_alloc_rate_max"]
+            if new_dict.get("tier3_alloc_rate_min") is not None:
+                del new_dict["tier3_alloc_rate_min"]
+            if new_dict.get("tier3_alloc_rate_max") is not None:
+                del new_dict["tier3_alloc_rate_max"]
+            if new_dict.get("tier_level") is not None:
+                del new_dict["tier_level"]
+            if new_dict.get("tier_level_for_new_page_alloc") is not None:
+                del new_dict["tier_level_for_new_page_alloc"]
+                new_dict["tiering_policy"] = {}
+
+            new_items.append(new_dict)
+        return new_items
+
+    # sng20241202 build tiering_policy output for direct
+    def build_tiering_policy_direct(self, new_dict, key, value):
+
+        if not (
+            key == "tier_level"
+            or key == "tier1_alloc_rate_min"
+            or key == "tier1_alloc_rate_max"
+            or key == "tier3_alloc_rate_min"
+            or key == "tier3_alloc_rate_max"
+            or key == "tier_level_for_new_page_alloc"
+        ):
+            return
+
+        if new_dict.get("tiering_policy") is None:
+            new_dict["tiering_policy"] = {}
+            new_dict["tiering_policy"]["policy"] = {}
+            new_dict["tiering_policy"]["tier1_used_capacity_mb"] = 0
+            new_dict["tiering_policy"]["tier2_used_capacity_mb"] = 0
+            new_dict["tiering_policy"]["tier3_used_capacity_mb"] = 0
+
+        if key == "tier_level_for_new_page_alloc":
+            new_dict["tiering_policy"]["tier_level_for_new_page_alloc"] = value
+            del new_dict[key]
+            return
+
+        if key == "tier_level":
+            if value == "all":
+                value = 0
+            new_dict["tiering_policy"]["policy"]["level"] = value
+            del new_dict[key]
+            return
+
+        if (
+            key == "tier1_alloc_rate_min"
+            or key == "tier1_alloc_rate_max"
+            or key == "tier3_alloc_rate_min"
+            or key == "tier3_alloc_rate_max"
+        ):
+            new_dict["tiering_policy"]["policy"][key] = value
+            del new_dict[key]
+            return
+
+
+class ExternalVolumePropertiesExtractor:
+    def __init__(self, serial):
+
+        self.serial = serial
+        self.common_properties = {
+            "externalPorts": list,
+            "externalVolumeId": str,
+            "ldev_id": int,
+            "emulation_type": str,
+            "name": str,
+            "resource_group_id": int,
+            "status": str,
+            "total_capacity": str,
+            "provision_type": str,
+            "logical_unit_id_hex_format": str,
+            "canonical_name": str,
+            "virtual_ldev_id": int,
+        }
+
+        self.parameter_mapping = {
+            #  20240914 - uca-1346 tieringProperties is changed to tieringPropertiesDto in the porcelain response
+            "tiering_policy": "tieringPropertiesDto",
+            # "tiering_policy": "tieringProperties",
+            "tier_level_for_new_page_alloc": "tierLevelForNewPageAllocation",
+            "tier1_alloc_rate_min": "tier1AllocationRateMin",
+            "tier1_alloc_rate_max": "tier1AllocationRateMax",
+            "tier3_alloc_rate_min": "tier3AllocationRateMin",
+            "tier3_alloc_rate_max": "tier3AllocationRateMax",
+            # "level": "tierLevel",
+            "is_alua": "isAluaEnabled",
+            # "is_data_reduction_share_enabled": "isDRS", # commented out as it is not in the response
+            "is_data_reduction_share_enabled": "isDataReductionSharedVolumeEnabled",
+            "parity_group_id": "parityGroupIds",
+            "path_count": "numOfPorts",
+            "provision_type": "attributes",
+            "total_capacity": "blockCapacity",
+            "used_capacity": "numOfUsedBlock",
+            "name": "label",
+            "deduplication_compression_mode": "dataReductionMode",
+            "dedup_compression_status": "dataReductionStatus",
+            "dedup_compression_progress": "dataReductionProgressRate",
+        }
+        self.size_properties = ("total_capacity", "used_capacity")
+        self.provision_type = "provision_type"
+        self.hex_value = "logical_unit_id_hex_format"
+        self.parity_group_id = "parity_group_id"
+        self.num_of_ports = "num_of_ports"
+
+    def process_list(self, response_key):
+        new_items = []
+
+        for item in response_key:
+            new_dict = {}
+            for key, value in item.items():
+                key = camel_to_snake_case(key)
+                value_type = type(value)
+                if value is None:
+                    default_value = get_default_value(value_type)
+                    value = default_value
+                new_dict[key] = value
+            new_items.append(new_dict)
+        return new_items
+
+    @log_entry_exit
+    def extract(self, responses):
+        new_items = []
+        for response in responses:
+            logger.writeDebug("20250314 after gateway creatlun response={}", response)
+            new_dict = {}
+
+            for key, value_type in self.common_properties.items():
+
+                cased_key = snake_to_camel_case(key)
+                # Get the corresponding key from the response or its mapped key
+                logger.writeDebug("20250314 cased_key={}", cased_key)
+                logger.writeDebug("20250314 key={}", key)
+
+                response_key = None
+                if not isinstance(response, list):
+                    response_key = get_response_key(
+                        response,
+                        cased_key,
+                        self.parameter_mapping.get(cased_key),
+                        key,
+                        self.parameter_mapping.get(key),
+                    )
+
+                # Assign the value based on the response key and its data type
+                logger.writeDebug("20250314 response_key={}", response_key)
+
+                if response_key or isinstance(response_key, int):
+                    if key == self.provision_type or key == self.parity_group_id:
+                        new_dict[key] = value_type(
+                            response_key
+                            if isinstance(response_key, str)
+                            else ",".join(response_key)
+                        )
+                    elif key == self.num_of_ports:
+                        new_dict[key] = value_type(response_key)
+                        new_dict["path_count"] = value_type(response_key)
+
+                    elif key in self.size_properties:
+                        if isinstance(response_key, str):
+                            new_dict[key] = value_type(response_key)
+                        else:
+                            new_dict[key] = value_type(
+                                convert_block_capacity(response_key)
+                            )
+                        # Add total_capacity_in_mb and used_capacity_in_mb fields
+                        if key == "total_capacity":
+                            mbvalue = convert_to_mb(new_dict[key])
+                            new_dict["total_capacity_in_mb"] = mbvalue if mbvalue else 0
+                        elif key == "used_capacity":
+                            mbvalue = convert_to_mb(new_dict[key])
+                            new_dict["used_capacity_in_mb"] = mbvalue if mbvalue else 0
+                    else:
+                        new_dict[key] = value_type(response_key)
+                        self.build_tiering_policy_direct(new_dict, key, response_key)
+
+                elif key == "tiering_policy":
+                    if response_key is not None:
+                        # 20250312 doesn't look like we can reach here,
+                        # below is likely not used, do not follow
+                        #
+                        # build tiering_policy output for gateway
+                        logger.writeDebug(
+                            "tieringProperties={}", response["tiering_policy"]
+                        )
+                        logger.writeDebug(
+                            "tiering_policy={}", response["tiering_policy"]
+                        )
+                        new_dict["tiering_policy"] = self.process_list(
+                            response["tiering_policy"]
+                        )
+                        new_dict["tiering_policy"]["policy"] = self.process_list(
+                            response["tiering_policy"]["policy"]
+                        )
+                    else:
+                        logger.writeDebug("1053 response_key={}", response_key)
+                elif key == self.hex_value:
+                    new_dict[key] = (
+                        response_key
+                        if response_key
+                        else volume_id_to_hex_format(response.get("ldevId")).upper()
+                    )
+                else:
+                    # Handle missing keys by assigning default values
+                    default_value = get_default_value(value_type)
+                    new_dict[key] = default_value
+
+                if value_type == list and response_key:
+                    new_dict[key] = self.process_list(response_key)
+
+                # 20240825 voltiering tieringProperties
+                if (
+                    key == "tiering_policy"
+                    and value_type == dict
+                    and response_key is not None
+                ):
+                    # logger.writeDebug("tieringProperties={}", response["tieringProperties"])
+                    logger.writeDebug(
+                        "tieringProperties={}", response["tieringPropertiesDto"]
+                    )
+                    logger.writeDebug("response_key={}", response_key)
+                    logger.writeDebug("key={}", key)
+                    new_dict[key] = camel_to_snake_case_dict(response_key)
+                    new_dict["tiering_policy"]["tier1_used_capacity_mb"] = new_dict[
+                        "tiering_policy"
+                    ]["tier1_used_capacity_m_b"]
+                    new_dict["tiering_policy"]["tier2_used_capacity_mb"] = new_dict[
+                        "tiering_policy"
+                    ]["tier2_used_capacity_m_b"]
+                    new_dict["tiering_policy"]["tier3_used_capacity_mb"] = new_dict[
+                        "tiering_policy"
+                    ]["tier3_used_capacity_m_b"]
+                    new_dict[key]["policy"] = camel_to_snake_case_dict(
+                        response.get("policy")
+                    )
+                    del new_dict["tiering_policy"]["tier1_used_capacity_m_b"]
+                    del new_dict["tiering_policy"]["tier2_used_capacity_m_b"]
+                    del new_dict["tiering_policy"]["tier3_used_capacity_m_b"]
+                if key == "qos_settings":
+                    new_dict[key] = camel_to_snake_case_dict(response_key)
+
+            if new_dict.get("storage_serial_number"):
+                del new_dict["storage_serial_number"]
 
             if new_dict.get("tier1_alloc_rate_min") is not None:
                 del new_dict["tier1_alloc_rate_min"]  # sng20241202

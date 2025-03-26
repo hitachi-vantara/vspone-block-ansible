@@ -49,7 +49,10 @@ class VSPHtiSnapshotReconciler:
         """
         result = None
         if isinstance(spec, SnapshotGroupFactSpec):
-            return self.get_snapshots_using_grp_name(spec.snapshot_group_name)
+            if spec.snapshot_group_name is None:
+                return self.get_all_snapshot_groups()
+            else:
+                return self.get_snapshots_using_grp_name(spec.snapshot_group_name)
         else:
             result = self.provisioner.get_snapshot_facts(
                 pvol=spec.pvol, mirror_unit_id=spec.mirror_unit_id
@@ -59,6 +62,17 @@ class VSPHtiSnapshotReconciler:
         )
         # self.logger.writeDebug(f"5744resultspec: {result2}")
         return result2
+
+    def get_all_snapshot_groups(self) -> Any:
+        snapshot_groups = self.provisioner.get_snapshot_groups()
+        if not snapshot_groups:
+            return
+        extracted_data = SnapshotGroupCommonPropertiesExtractor(
+            self.storage_serial_number
+        ).extract(snapshot_groups.data_to_list())
+        # result = {"snapshot_groups": extracted_data}
+        # return result
+        return extracted_data
 
     def get_snapshots_using_grp_name(self, grp_name: Any) -> Any:
         grp_snapshots = self.provisioner.get_snapshots_by_grp_name(grp_name)
@@ -163,6 +177,31 @@ class VSPHtiSnapshotReconciler:
         return self.provisioner.is_out_of_band()
 
 
+class SnapshotGroupCommonPropertiesExtractor:
+    def __init__(self, serial):
+        self.storage_serial_number = serial
+        self.common_properties = {
+            "snapshotGroupName": str,
+            "snapshotGroupId": str,
+        }
+
+    def extract(self, responses):
+        new_items = []
+        for response in responses:
+            new_dict = {}
+            # new_dict = {"storage_serial_number": self.storage_serial_number}
+            for key, value_type in self.common_properties.items():
+                response_key = response.get(key)
+                cased_key = camel_to_snake_case(key)
+                if response_key is not None:
+                    new_dict[cased_key] = value_type(response_key)
+                else:
+                    default_value = get_default_value(value_type)
+                    new_dict[cased_key] = default_value
+            new_items.append(new_dict)
+        return new_items
+
+
 class SnapshotCommonPropertiesExtractor:
     def __init__(self, serial):
         self.storage_serial_number = serial
@@ -194,6 +233,8 @@ class SnapshotCommonPropertiesExtractor:
             "entitlementStatus": str,
             "partnerId": str,
             "subscriberId": str,
+            "pvolNvmSubsystemName": str,
+            "svolNvmSubsystemName": str,
         }
 
         self.parameter_mapping = {
@@ -215,11 +256,6 @@ class SnapshotCommonPropertiesExtractor:
     def extract(self, responses):
         new_items = []
         for response in responses:
-            # response = (
-            #     response.get("snapshotPairInfo")
-            #     if response.get("snapshotPairInfo")
-            #     else response
-            # )
             new_dict = {"storage_serial_number": self.storage_serial_number}
             for key, value_type in self.common_properties.items():
 
@@ -230,22 +266,10 @@ class SnapshotCommonPropertiesExtractor:
                     else response.get(self.parameter_mapping.get(key))
                 )
 
-                #  there is no logger yet
-                # self.logger.writeDebug(f"20240801 key: {key}")
-                # self.logger.writeDebug(f"20240801 response_key: {response_key}")
-
                 # Assign the value based on the response key and its data type
                 cased_key = camel_to_snake_case(key)
                 if response_key is not None:
                     new_dict[cased_key] = value_type(response_key)
-
-                    # no logger yet, self.logger.writeDebug(f"20240801 new_dict[cased_key]: {new_dict[cased_key]}")
-
-                # thinImagePropertiesDto
-                # elif key == "thinImagePropertiesDto":
-                #     new_dict[cased_key] = self.process_list(response_key)
-                # elif key == "thinImageProperties":
-                #     new_dict[cased_key] = self.process_list(response_key)
 
                 elif key in self.hex_values:
                     raw_key = self.hex_values.get(key)

@@ -26,8 +26,6 @@
     ######################################################################################
     - name: Get all TrueCopy pairs
       hitachivantara.vspone_block.vsp.hv_truecopy_facts:
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
       register: result
@@ -41,8 +39,6 @@
     ######################################################################################
     - name: Get TrueCopy pair by primary volume ID
       hitachivantara.vspone_block.vsp.hv_truecopy_facts:
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
         spec:
@@ -58,8 +54,6 @@
     ######################################################################################
     - name: Get TrueCopy pair by secondary volume ID
       hitachivantara.vspone_block.vsp.hv_truecopy_facts:
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
         spec:
@@ -75,8 +69,6 @@
     ######################################################################################
     - name: Get TrueCopy pair by copy group name
       hitachivantara.vspone_block.vsp.hv_truecopy_facts:
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
         spec:

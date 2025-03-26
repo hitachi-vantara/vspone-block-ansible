@@ -12,7 +12,7 @@ DOCUMENTATION = """
 module: hv_remote_copy_group_facts
 short_description: Retrieves Remote Copy Groups information from Hitachi VSP storage systems.
 description:
-  - This module retrieves information about Copy Groups from Hitachi VSP storage systems.
+  - This module retrieves information about Remote Copy Groups from Hitachi VSP storage systems.
   - This module is supported only for C(direct) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/remote_copy_group_facts.yml)
@@ -26,15 +26,6 @@ attributes:
     description: Determines if the module should run in check mode.
     support: full
 options:
-  storage_system_info:
-    description: Information about the storage system.
-    type: dict
-    required: false
-    suboptions:
-      serial:
-        description: The serial number of the storage system.
-        type: str
-        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
@@ -54,18 +45,6 @@ options:
         required: false
       api_token:
         description: Value of the lock token to operate on locked resources.
-        type: str
-        required: false
-      connection_type:
-        description: Type of connection to the storage system. Only C(direct) connection is supported.
-        type: str
-        required: false
-        choices: ['gateway', 'direct']
-        default: 'direct'
-      subscriber_id:
-        description: >
-          Subscriber ID is required for C(gateway) connection type to support multi-tenancy. Not needed for C(direct) connection or
-          for C(gateway) connection with single tenant. Not needed for this operation.
         type: str
         required: false
   secondary_connection_info:
@@ -90,29 +69,29 @@ options:
         type: str
         required: false
   spec:
-    description: Specification for the Copy Group facts to be gathered.
+    description: Specification for the Remote Copy Group facts to be gathered.
     type: dict
     required: false
     suboptions:
       name:
-        description: The copy group name. If not provided, list of all copy groups will be returned.
+        description: The remote copy group name. If not provided, list of all copy groups will be returned.
         type: str
         required: false
       should_include_remote_replication_pairs:
-        description: Whether we want to get all replication pairs from a specific copy group. Should be specified along with the 'name' parameter in spec
+        description: Whether we want to get all replication pairs from a specific copy group. Should be specified along with the 'name' parameter in spec.
         type: bool
         required: false
 """
 
 EXAMPLES = """
-- name: Get all Copy Groups for direct connection
+- name: Get all Copy Groups for direct connection type
   hitachivantara.vspone_block.vsp.hv_remote_copy_group_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "password"
 
-- name: Get one Copy Group for direct connection
+- name: Get one Copy Group for direct connection type
   hitachivantara.vspone_block.vsp.hv_remote_copy_group_facts:
     connection_info:
       address: storage1.company.com
@@ -121,7 +100,7 @@ EXAMPLES = """
     spec:
       name: "copygroup1"
 
-- name: Get one Copy Group detail for direct connection
+- name: Get one Copy Group detail for direct connection type
   hitachivantara.vspone_block.vsp.hv_remote_copy_group_facts:
     connection_info:
       address: storage1.company.com
@@ -203,7 +182,7 @@ class VSPCopyGroupsFactsManager:
 
         self.parameter_manager = VSPParametersManager(self.module.params)
         self.connection_info = self.parameter_manager.get_connection_info()
-        self.storage_serial_number = self.parameter_manager.get_serial()
+        self.storage_serial_number = None
         self.spec = self.parameter_manager.get_copy_groups_fact_spec()
         self.spec.copy_group_name = self.spec.name
         self.state = self.parameter_manager.get_state()

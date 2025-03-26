@@ -31,6 +31,9 @@ class GADPairValidateMSG(Enum):
     SECONDARY_POOL_ID = "Secondary pool id is required."
     REMOTE_UCP_SYSTEM = "Remote UCP system is required."
     SECONDARY_HOSTGROUPS = "Secondary hostgroups id is missing."
+    SECONDARY_HOSTGROUPS_OR_NVME = (
+        "Either specify Secondary hostgroups or NVMe subsystem details."
+    )
     HOSTGROUPS_ID = "{} Hostgroups id is missing."
     HOSTGROUPS_NAME = "{} Hostgroups name is missing."
     HOSTGROUPS_PORT = "{} Hostgroups port is missing."
@@ -52,4 +55,6 @@ class GADPairValidateMSG(Enum):
         "new_volume_size is a required field for resize operation, which is missing."
     )
     EXPAND_VOLUME_FAILED = "Failed to expand the volume. Ensure System Option Mode (SOM) 1198 is enabled and 1199 is disabled."
+    EXPAND_PVOL_FAILED = "Failed to perform operation for primary volume {}."
+    EXPAND_SVOL_FAILED = "Failed to perform operation for secondary volume {}."
     SECONDARY_RANGE_ID_IS_NOT_SUPPORTED = "Parameters begin_secondary_volume_id and end_secondary_volume_id is not supported for GAD pairs."

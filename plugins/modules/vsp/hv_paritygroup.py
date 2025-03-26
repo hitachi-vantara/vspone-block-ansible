@@ -27,15 +27,6 @@ attributes:
     description: Determines if the module should run in check mode.
     support: full
 options:
-  storage_system_info:
-    description: Information about the storage system.
-    type: dict
-    required: false
-    suboptions:
-      serial:
-        description: The serial number of the storage system.
-        type: str
-        required: false
   state:
     description: The level of the HUR pairs task. Choices are C(present), C(absent), C(update).
     type: str
@@ -66,15 +57,6 @@ options:
         required: false
         choices: ['gateway', 'direct']
         default: 'direct'
-      api_token:
-          description: API token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
-          type: str
-          required: false
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-          Not needed for this module.
-        type: str
-        required: false
   spec:
     description: Specification for the parity group facts to be gathered.
     type: dict
@@ -112,47 +94,41 @@ options:
 """
 
 EXAMPLES = """
-- name: Create parity group
+- name: Create parity group for direct connection type
   hitachivantara.vspone_block.vsp.hv_paritygroup:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-    storage_system_info:
-      serial: "811150"
     state: "present"
     spec:
-      parity_group_id: "1-10"
+      parity_group_id: 1-10
       drive_location_ids: ["0-16", "0-17", "0-18", "0-19"]
-      raid_type: "3D+1P"
+      raid_type: 3D+1P
       is_encryption_enabled: true
       is_copy_back_mode_enabled: false
       is_accelerated_compression_enabled: true
       clpr_id: 1
 
-- name: Delete parity group
+- name: Delete parity group for direct connection type
   hitachivantara.vspone_block.vsp.hv_paritygroup:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-    storage_system_info:
-      serial: "811150"
     state: "absent"
     spec:
-      parity_group_id: "1-10"
+      parity_group_id: 1-10
 
-- name: Update parity group
+- name: Update parity group for direct connection type
   hitachivantara.vspone_block.vsp.hv_paritygroup:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-    storage_system_info:
-      serial: "811150"
     state: "update"
     spec:
-      parity_group_id: "1-10"
+      parity_group_id: 1-10
       is_accelerated_compression_enabled: true
 """
 
@@ -168,7 +144,7 @@ parity_group:
       type: int
       sample: 0
     copyback_mode:
-      description: Indicates if copyback mode is enabled.
+      description: Indicates if copy-back mode is enabled.
       type: bool
       sample: false
     drive_type:

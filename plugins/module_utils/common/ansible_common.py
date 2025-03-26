@@ -370,7 +370,9 @@ def convert_decimal_size_to_bytes(size_str, block_size=512):
 # switching to secrets is not necessary
 #
 def generate_random_name_prefix_string(length=10):
-    return f"{DEFAULT_NAME_PREFIX}-" + "".join(random.choices(string.digits, k=length))
+    return f"{DEFAULT_NAME_PREFIX}-" + "".join(
+        random.choices(string.digits, k=length)
+    )  # nosec
 
 
 def convert_to_mb(value):
@@ -391,3 +393,14 @@ def convert_to_mb(value):
         raise ValueError(
             "Invalid input format. Please provide a value in GB, TB, or MB."
         )
+
+
+def check_range(arr, lower_bound, upper_bound):
+    return all(lower_bound <= x <= upper_bound for x in arr)
+
+
+def get_size_from_byte_format_capacity(byte_format):
+    value = byte_format.split(" ")[0]
+    unit = byte_format.split(" ")[1]
+    int_value = value.split(".")[0]
+    return f"{int_value}{unit}"

@@ -26,10 +26,9 @@ class VSPCmdDevReconciler:
 
         self.connection_info = connection_info
         self.provisioner = VSPCmdDevProvisioner(connection_info, serial)
+        self.storage_serial_number = serial
         if state:
             self.state = state
-        if serial:
-            self.storage_serial_number = serial
         self.vol_recon = VSPVolumeReconciler(
             self.connection_info, self.storage_serial_number
         )

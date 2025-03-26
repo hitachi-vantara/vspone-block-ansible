@@ -10,6 +10,7 @@ try:
     from ..common.hv_log import Log
     from ..common.hv_constants import StateValue, ConnectionTypes
     from ..provisioner.vsp_hur_provisioner import VSPHurProvisioner
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from .vsp_true_copy import DirectTrueCopyInfoExtractor
     from ..model.vsp_hur_models import VSPHurPairInfoList, VSPHurPairInfo
     from ..model.vsp_copy_groups_models import (
@@ -28,6 +29,7 @@ except ImportError:
     from common.hv_log import Log
     from common.hv_constants import StateValue, ConnectionTypes
     from provisioner.vsp_hur_provisioner import VSPHurProvisioner
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from .vsp_true_copy import DirectTrueCopyInfoExtractor
     from model.vsp_hur_models import VSPHurPairInfoList, VSPHurPairInfo
     from model.vsp_copy_groups_models import DirectCopyPairInfo
@@ -46,6 +48,15 @@ class VSPHurReconciler:
         self.provisioner = VSPHurProvisioner(connection_info, serial)
         self.state = state
         self.secondary_connection_info = secondary_connection_info
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            if self.storage_serial_number is None:
+                self.storage_serial_number = self.get_storage_serial_number()
+
+    @log_entry_exit
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     # 20240808 hur operations reconciler
     @log_entry_exit
@@ -147,7 +158,7 @@ class VSPHurReconciler:
             resp_data = self.swap_split_hur(spec)
         elif state == StateValue.SWAP_RESYNC:
             resp_data = self.swap_resync_hur(spec)
-        elif state == StateValue.RESIZE:
+        elif state == StateValue.RESIZE or state == StateValue.EXPAND:
             resp_data = self.resize_hur_copy(spec)
 
         if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
@@ -348,7 +359,7 @@ class VSPHurReconciler:
 
 class HurInfoExtractor:
     def __init__(self, serial):
-        self.storage_serial_number = serial
+        self.storage_serial_number = int(serial)
         self.common_properties = {
             # "resourceId": str,
             "consistencyGroupId": int,

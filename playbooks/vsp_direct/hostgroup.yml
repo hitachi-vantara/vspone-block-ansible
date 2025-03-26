@@ -23,8 +23,6 @@
     - name: Create hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           name: "hostgroup-server1"
@@ -47,8 +45,6 @@
     - name: Update host mode and host mode options
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           state: "set_host_mode_and_hmo"
@@ -68,8 +64,6 @@
     - name: Remove host mode options
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           state: "absent"
@@ -88,8 +82,6 @@
     - name: Add wwns to hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           state: "add_wwn"
@@ -110,8 +102,6 @@
     - name: Remove wwns from hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           state: "remove_wwn"
@@ -132,8 +122,6 @@
     - name: Present ldevs to hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           state: "present_ldev"
@@ -152,8 +140,6 @@
     - name: Unpresent ldevs from hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           state: "unpresent_ldev"
@@ -172,8 +158,6 @@
     - name: Delete hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           name: "hostgroup-server1"

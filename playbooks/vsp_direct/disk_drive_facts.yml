@@ -23,8 +23,6 @@
     - name: Get all disk drives
       hitachivantara.vspone_block.vsp.hv_disk_drive_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
       register: result
 
     - name: Debug the result variable
@@ -37,8 +35,6 @@
     - name: Get one disk drive
       hitachivantara.vspone_block.vsp.hv_disk_drive_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           drive_location_id: "0-16"
       register: result

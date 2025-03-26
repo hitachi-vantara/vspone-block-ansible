@@ -23,8 +23,6 @@
     - name: Get storage system facts
       hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
       register: result
 
     - name: Debug the result variable
@@ -37,8 +35,6 @@
     - name: Get storage system facts using query
       hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           query:
             - "ports"

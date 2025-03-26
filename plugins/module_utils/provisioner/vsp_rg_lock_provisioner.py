@@ -39,12 +39,10 @@ class VSPResourceGroupLockProvisioner:
             connection_info, GatewayClassTypes.VSP_CONFIG_MAP
         )
         self.connection_info = connection_info
-
+        self.serial = serial
         if serial:
-            self.serial = serial
             self.gateway.set_serial(serial)
             self.rg_gw.set_serial(serial)
-        logger.writeDebug(f"PROV:serial={self.serial}")
 
     @log_entry_exit
     def lock_resource_group(self, spec):

@@ -225,7 +225,7 @@ def runPlaybook(module):
                     ):
                         logger.writeDebug("20230606 found index={}", index)
                         logger.writeDebug("20230606 count={}", count)
-                        lunswithcount = luns[index:index + int(count)]
+                        lunswithcount = luns[index : index + int(count)]
                         break
             # logger.writeDebug('173 lunswithcount={}', lunswithcount)
             luns = lunswithcount
