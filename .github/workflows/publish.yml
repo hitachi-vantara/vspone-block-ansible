@@ -22,12 +22,17 @@ jobs:
                            -H "Accept: application/vnd.github.v3+json" \
                            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ansible-test.yml/runs?branch=main&status=completed")
 
-          # Extract the conclusion (status) of the latest workflow run
+          # Extract the latest workflow status
           latest_status=$(echo "$response" | jq -r '.workflow_runs[0].conclusion')
 
-          echo "Latest test run status: $latest_status"
+          if [[ -z "$latest_status" || "$latest_status" == "null" ]]; then
+            echo "⚠️ No previous test runs found or invalid response."
+            exit 1
+          fi
 
-          # If the tests did not pass, skip the publish job
+          echo "✅ Latest test run status: $latest_status"
+
+          # If tests failed, fail the job
           if [[ "$latest_status" != "success" ]]; then
             echo "❌ Tests failed or not completed. Skipping publish."
             exit 1
@@ -51,15 +56,33 @@ jobs:
         run: pip install ansible-core --disable-pip-version-check
 
       - name: Build Ansible Collection
-        run: ansible-galaxy collection build --force
+        run: |
+          ansible-galaxy collection build --force
+          echo "✅ Collection build completed."
+
+      - name: Find Collection File
+        id: find-collection
+        run: |
+          COLLECTION_FILE=$(ls *.tar.gz | head -n 1)
+          if [[ -z "$COLLECTION_FILE" ]]; then
+            echo "❌ No collection file found! Exiting."
+            exit 1
+          fi
+          echo "✅ Found collection file: $COLLECTION_FILE"
+          echo "COLLECTION_FILE=$COLLECTION_FILE" >> $GITHUB_ENV
 
       - name: Publish to Ansible Galaxy
+        env:
+          ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_COLLECTIONS_TOKEN }}
         run: |
-          COLLECTION_FILE=$(ls *.tar.gz)
-          echo "Found collection file: $COLLECTION_FILE"
-          ansible-galaxy collection publish "$COLLECTION_FILE" --token "${{ secrets.ANSIBLE_COLLECTIONS_TOKEN }}"
+          echo "🚀 Publishing to Ansible Galaxy..."
+          ansible-galaxy collection publish "$COLLECTION_FILE" --token "$ANSIBLE_GALAXY_TOKEN"
+          echo "✅ Successfully published to Ansible Galaxy."
 
-      - name: Publish to Ansible automation hub
+      - name: Publish to Ansible Automation Hub
+        env:
+          AUTOMATION_HUB_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
         run: |
-          COLLECTION_FILE=$(ls *.tar.gz)
-          ansible-galaxy collection publish "$COLLECTION_FILE" --server automation_hub --token "${{ secrets.AUTOMATION_HUB_TOKEN }}"
+          echo "🚀 Publishing to Ansible Automation Hub..."
+          ansible-galaxy collection publish "$COLLECTION_FILE" --server automation_hub --token "$AUTOMATION_HUB_TOKEN"
+          echo "✅ Successfully published to Automation Hub."
