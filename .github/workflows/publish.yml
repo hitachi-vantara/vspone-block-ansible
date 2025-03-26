@@ -70,6 +70,14 @@ jobs:
           fi
           echo "✅ Found collection file: $COLLECTION_FILE"
           echo "COLLECTION_FILE=$COLLECTION_FILE" >> $GITHUB_ENV
+          
+      - name: Publish to Ansible Automation Hub
+        env:
+          AUTOMATION_HUB_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
+        run: |
+          echo "🚀 Publishing to Ansible Automation Hub..."
+          ansible-galaxy collection publish "$COLLECTION_FILE" --server automation_hub --token "$AUTOMATION_HUB_TOKEN"
+          echo "✅ Successfully published to Automation Hub."
 
       - name: Publish to Ansible Galaxy
         env:
@@ -79,10 +87,4 @@ jobs:
           ansible-galaxy collection publish "$COLLECTION_FILE" --token "$ANSIBLE_GALAXY_TOKEN"
           echo "✅ Successfully published to Ansible Galaxy."
 
-      - name: Publish to Ansible Automation Hub
-        env:
-          AUTOMATION_HUB_TOKEN: ${{ secrets.AUTOMATION_HUB_TOKEN }}
-        run: |
-          echo "🚀 Publishing to Ansible Automation Hub..."
-          ansible-galaxy collection publish "$COLLECTION_FILE" --server automation_hub --token "$AUTOMATION_HUB_TOKEN"
-          echo "✅ Successfully published to Automation Hub."
+      
