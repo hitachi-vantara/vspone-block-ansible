@@ -58,3 +58,8 @@ jobs:
           COLLECTION_FILE=$(ls *.tar.gz)
           echo "Found collection file: $COLLECTION_FILE"
           ansible-galaxy collection publish "$COLLECTION_FILE" --token "${{ secrets.ANSIBLE_COLLECTIONS_TOKEN }}"
+
+      - name: Publish to Ansible automation hub
+        run: |
+          COLLECTION_FILE=$(ls *.tar.gz)
+          ansible-galaxy collection publish "$COLLECTION_FILE" --server automation_hub --token "${{ secrets.AUTOMATION_HUB_TOKEN }}"
