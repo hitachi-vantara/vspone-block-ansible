@@ -14,7 +14,7 @@ module: hv_quorum_disk
 short_description: Manages Quorum Disks in the Hitachi VSP storage systems.
 description:
   - This module registers and de-registers the Quorum Disks in the Hitachi VSP storage systems.
-  - This module is supported for direct connection type only.
+  - This module is supported for C(direct) connection type only.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/quorum_disk.yml)
 version_added: '3.3.0'
@@ -28,7 +28,7 @@ options:
     choices: ['present', 'absent']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the Hitachi storage system. This field is required for C(gateway) connection type only.
     type: dict
     required: false
     suboptions:

@@ -22,7 +22,7 @@ author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 options:
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the Hitachi storage system. This field is required for C(gateway) connection type only.
     type: dict
     required: false
     suboptions:
@@ -36,15 +36,15 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway) ) or the storage system (if connection_type is C(direct) ).
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
       connection_type:

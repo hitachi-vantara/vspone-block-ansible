@@ -28,7 +28,7 @@ options:
     choices: ['present', 'absent']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the Hitachi storage system. This field is required for C(gateway) connection type only.
     type: dict
     required: false
     suboptions:
@@ -42,7 +42,7 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or the storage system (if connection_type is C(direct) ).
         type: str
         required: true
       username:
