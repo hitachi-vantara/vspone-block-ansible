@@ -25,7 +25,7 @@
         connection_info: "{{ connection_info }}"
         state: "present"
         spec:
-          parity_group_id: "paritygroup_facts_parity_group_id_1"
+          parity_group_id: "1-1"
           drive_location_ids: ["0-16", "0-17", "0-18", "0-19"]
           raid_type: "3D+1P"
           is_encryption_enabled: true

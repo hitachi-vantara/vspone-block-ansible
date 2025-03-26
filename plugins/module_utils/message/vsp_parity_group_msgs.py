@@ -9,3 +9,6 @@ class VSPParityGroupValidateMsg(Enum):
     NO_DISK_DRIVE_ID = (
         "Could not find the disk drive associated with drive_location_id {}."
     )
+    FEATURE_NOT_SUPPORTED = (
+        "Changing drive settings feature is not supported on this storage system."
+    )

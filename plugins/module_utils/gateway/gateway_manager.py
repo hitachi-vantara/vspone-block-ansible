@@ -267,22 +267,26 @@ class VSPConnectionManager(ConnectionManager):
         logger.writeDebug("Entering VSPConnectionManager.getAuthToken")
 
         if self.token is not None:
-            logger.writeDebug("VSPConnectionManager.getAuthToken:self.token is not None")
+            logger.writeDebug(
+                "VSPConnectionManager.getAuthToken:self.token is not None"
+            )
             return {"Authorization": "Session {0}".format(self.token)}
 
         headers = {}
         if self.session:
-            logger.writeDebug("VSPConnectionManager.getAuthToken:self.session is not None")
+            logger.writeDebug(
+                "VSPConnectionManager.getAuthToken:self.session is not None"
+            )
             if self.session.expiry_time > time.time():
                 headers = {"Authorization": "Session {0}".format(self.session.token)}
                 return headers
 
         end_point = Endpoints.SESSIONS
         try:
-            logger.writeDebug("VSPConnectionManager.getAuthToken:generate a new session")
-            response = self._make_request(
-                method="POST", end_point=end_point, data=None
+            logger.writeDebug(
+                "VSPConnectionManager.getAuthToken:generate a new session"
             )
+            response = self._make_request(method="POST", end_point=end_point, data=None)
         except Exception as e:
             # can be due to wrong address or kong is not ready
             logger.writeException(e)
@@ -526,35 +530,54 @@ class VSPConnectionManager(ConnectionManager):
             logger.writeError(
                 f"VSPConnectionManager._make_vsp_request - HTTPError {err}"
             )
-            if hasattr(err, "read"):
-                error_resp = json.loads(err.read().decode())
-                logger.writeDebug(
-                    f"VSPConnectionManager.error_resp - error_resp {error_resp}"
-                )
-                error_dtls = (
-                    error_resp.get("message")
-                    if error_resp.get("message")
-                    else error_resp.get("errorMessage")
-                )
-                if error_resp.get("cause"):
-                    error_dtls = error_dtls + " " + error_resp.get("cause")
-
-                if error_resp.get("solution"):
-                    error_dtls = error_dtls + " " + error_resp.get("solution")
-
-                if self.session_expired_msg in error_dtls and self.retryCount < 5:
+            if err.code == 503:
+                # 503 Service Unavailable
+                # wait for 5 mins and try to re-authenticate, we will retry 5 times
+                if self.retryCount < 5:
                     logger.writeDebug(
-                        "The specified token is invalid, trying to re-authenticate."
+                        f"{self.server_busy_msg}, wait for 5 mins and try to generate session token again."
                     )
-                    self.token = None
-                    self.session.expiry_time = 0
+                    time.sleep(300)
                     self.retryCount += 1
                     return self._make_vsp_request(
                         method, end_point, data, headers_input, token=None, retry=True
                     )
+            else:
+                if hasattr(err, "read"):
+                    error_resp = json.loads(err.read().decode())
+                    logger.writeDebug(
+                        f"VSPConnectionManager.error_resp - error_resp {error_resp}"
+                    )
+                    error_dtls = (
+                        error_resp.get("message")
+                        if error_resp.get("message")
+                        else error_resp.get("errorMessage")
+                    )
+                    if error_resp.get("cause"):
+                        error_dtls = error_dtls + " " + error_resp.get("cause")
 
-                else:
-                    raise Exception(error_dtls)
+                    if error_resp.get("solution"):
+                        error_dtls = error_dtls + " " + error_resp.get("solution")
+
+                    if self.session_expired_msg in error_dtls and self.retryCount < 5:
+                        logger.writeDebug(
+                            "The specified token is invalid, trying to re-authenticate."
+                        )
+                        self.token = None
+                        if self.session:
+                            self.session.expiry_time = 0
+                        self.retryCount += 1
+                        return self._make_vsp_request(
+                            method,
+                            end_point,
+                            data,
+                            headers_input,
+                            token=None,
+                            retry=True,
+                        )
+
+                    else:
+                        raise Exception(error_dtls)
             raise Exception(err)
         except Exception as err:
             logger.writeException(err)

@@ -23,8 +23,6 @@
     - name: Get all NVM Subsystems
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
       register: result
 
     - name: Debug the result variable
@@ -37,8 +35,6 @@
     - name: Get NVM Subsystem by name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           name: "rd_nvm_tcp_01"
       register: result
@@ -53,8 +49,6 @@
     - name: Get NVM Subsystem by id
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           id: 1000
       register: result

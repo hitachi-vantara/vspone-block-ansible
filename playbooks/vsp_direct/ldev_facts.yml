@@ -23,8 +23,6 @@
     - name: Get all ldevs
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
       register: result
 
     - name: Debug the result variable
@@ -37,8 +35,6 @@
     - name: Get ldevs within range
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           start_ldev_id: 1000
           end_ldev_id: 2000
@@ -54,8 +50,6 @@
     - name: Get ldevs from start id up to max count
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           start_ldev_id: 500
           count: 10
@@ -71,8 +65,6 @@
     - name: Get ldev with same name
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           name: "database-volume1"
       register: result
@@ -87,8 +79,6 @@
     - name: Get one ldev
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           ldev_id: 176
       register: result
@@ -103,8 +93,6 @@
     - name: Get one ldev with detailed info
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           ldev_id: 176
           is_detailed: true

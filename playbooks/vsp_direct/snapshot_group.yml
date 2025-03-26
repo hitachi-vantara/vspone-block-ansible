@@ -24,8 +24,6 @@
     - name: Split the snapshot pairs using group name
       hitachivantara.vspone_block.vsp.hv_snapshot_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "split"
         spec:
           snapshot_group_name: "snapshot-group-name-1"
@@ -41,8 +39,6 @@
     - name: Restore the snapshot pairs using group name
       hitachivantara.vspone_block.vsp.hv_snapshot_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "restore"
         spec:
           snapshot_group_name: "snapshot-group-name-1"
@@ -58,8 +54,6 @@
     - name: Restore the snapshot pairs using group name and auto split
       hitachivantara.vspone_block.vsp.hv_snapshot_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "restore"
         spec:
           snapshot_group_name: "snapshot-group-name-1"
@@ -76,8 +70,6 @@
     - name: Resync the snapshot pairs using group name
       hitachivantara.vspone_block.vsp.hv_snapshot_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "sync"
         spec:
           snapshot_group_name: "snapshot-group-name-1"
@@ -93,8 +85,6 @@
     - name: Delete the snapshot pairs using group name
       hitachivantara.vspone_block.vsp.hv_snapshot_group:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           snapshot_group_name: "snapshot-group-name-1"

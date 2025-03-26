@@ -42,6 +42,7 @@ class StateValue:
     UPDATE = "update"
     RE_SYNC = "resync"
     RESIZE = "resize"
+    EXPAND = "expand"
     CLONE = "clone"
     SWAP_RESYNC = "swap_resync"
     SWAP_SPLIT = "swap_split"
@@ -81,12 +82,17 @@ class GatewayClassTypes:
     VSP_HUR = "vsp_hur"
     VSP_VOL_TIER = "vsp_vol_tier"
     VSP_GAD_PAIR = "vsp_gad_pair"
+    VSP_EXT_VOLUME = "vsp_external_volume"
+    VSP_QUORUM_DISK = "vsp_quorum_disk"
     VSP_NVME_SUBSYSTEM = "vsp_one_nvme_subsystem"
     VSP_RESOURCE_GROUP = "vsp_resource_group"
+    VSP_USER_GROUP = "vsp_user_group"
+    VSP_USER = "vsp_user"
     VSP_COPY_GROUPS = "vsp_copy_groups"
     VSP_REMOTE_COPY_GROUPS = (
         "vsp_remote_copy_groups"  # TODO: sng1104 use VSP_COPY_GROUPS
     )
+    VSP_LOCAL_COPY_GROUP = "vsp_local_copy_group"
     VSP_CMD_DEV = "vsp_cmd_dev"
     VSP_RG_LOCK = "vsp_rg_lock"
     VSP_CONFIG_MAP = "vsp_config_map"
@@ -107,6 +113,8 @@ class GatewayClassTypes:
     VSP_STORAGE_POOL = "vsp_storage_pool"
     VSP_UNSUBSCRIBE = "vsp_unsubscribe"
     VSP_REMOTE_STORAGE_REGISTRATION = "vsp_remote_storage_registration"
+    VSP_REMOTE_CONNECTION = "vsp_remote_connection"
+    VSP_ISCSI_REMOTE_CONNECTION = "vsp_iscsi_remote_connection"
 
 
 class VSPHostGroupConstant:

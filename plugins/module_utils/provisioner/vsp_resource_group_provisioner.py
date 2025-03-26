@@ -52,6 +52,7 @@ class VSPResourceGroupProvisioner:
         self.port_prov = VSPStoragePortProvisioner(connection_info)
         self.connection_info = connection_info
 
+        self.serial = serial
         if serial:
             self.serial = serial
             self.gateway.set_serial(serial)
@@ -277,31 +278,14 @@ class VSPResourceGroupProvisioner:
 
     @log_entry_exit
     def fill_vsm_info(self, rg):
-        # virtualStorageId is useless here, to get the VSM info we need the virtualStorageDeviceId
-        # To get virtualStorageDeviceId we need virtualSerialNumber,
-        # So we can do this when only when spec has virtual_serial_number
-        if self.spec is None:
-            return
-        logger.writeDebug("PV:fill_vsm_info:spec={}", self.spec)
-        if self.spec.virtual_storage_serial is None:
-            return
-        logger.writeDebug(
-            "PV:fill_vsm_info:self.spec.virtual_storage_serial={}",
-            self.spec.virtual_storage_serial,
-        )
-        virtual_srorage_device_id = self.gateway.get_vitual_storage_device_id(
-            self.spec.virtual_storage_serial
-        )
-        if virtual_srorage_device_id is None:
-            return
-        vsm_info = self.gateway.get_vsm_by_id(virtual_srorage_device_id)
-        if vsm_info is None:
-            return
-        rg.virtualStorageDeviceId = vsm_info.virtualStorageDeviceId
-        rg.virtualSerialNumber = vsm_info.virtualSerialNumber
-        rg.virtualModel = vsm_info.virtualModel
-        logger.writeDebug("PV:fill_vsm_info:vsm_info={}", vsm_info)
-        return
+        all_vsms = self.gateway.get_vsm_all()
+        logger.writeDebug("PV:fill_vsm_info:all_vsms={}", all_vsms)
+        for vsm in all_vsms.data:
+            if rg.resourceGroupId in vsm.resourceGroupIds:
+                rg.virtualStorageDeviceId = vsm.virtualStorageDeviceId
+                rg.virtualSerialNumber = vsm.virtualSerialNumber
+                rg.virtualModel = vsm.virtualModel
+                return
 
     @log_entry_exit
     def convert_rg_to_display_rg(self, rg, sp_ids=None, query=None):

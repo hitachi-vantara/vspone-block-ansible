@@ -40,6 +40,13 @@ class HostgroupSpec:
 
 
 @dataclass
+class NVMeSubsystemSpec:
+    id: Optional[int] = None
+    name: Optional[str] = None
+    paths: Optional[List[str]] = None
+
+
+@dataclass
 class VspGadPairSpec:
     primary_storage_serial_number: Optional[str] = None
     primary_volume_id: Optional[str] = None
@@ -49,6 +56,7 @@ class VspGadPairSpec:
     secondary_storage_serial_number: Optional[str] = None
     secondary_pool_id: Optional[str] = None
     secondary_hostgroups: Optional[List[HostgroupSpec]] = None
+    secondary_nvm_subsystem: Optional[NVMeSubsystemSpec] = None
     set_alua_mode: Optional[bool] = None
     primary_resource_group_name: Optional[str] = None
     secondary_resource_group_name: Optional[str] = None
@@ -95,6 +103,10 @@ class VspGadPairSpec:
             )
         if self.remote_connection_info:
             self.remote_connection_info = ConnectionInfo(**self.remote_connection_info)
+        if self.secondary_nvm_subsystem:
+            self.secondary_nvm_subsystem = NVMeSubsystemSpec(
+                **self.secondary_nvm_subsystem
+            )
 
 
 @dataclass

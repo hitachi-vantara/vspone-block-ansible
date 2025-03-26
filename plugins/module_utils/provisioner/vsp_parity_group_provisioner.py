@@ -52,7 +52,7 @@ class VSPParityGroupProvisioner:
                 else "0"
             )
             mb_capacity = convert_to_mb(pg_dict["freeCapacity"])
-            pg_dict["freeCapacity_mb"] = f"{mb_capacity} MB"
+            pg_dict["freeCapacity_mb"] = mb_capacity
         else:
             None
         if parity_group.physicalCapacity is not None:
@@ -64,7 +64,7 @@ class VSPParityGroupProvisioner:
                 else "0"
             )
             mb_capacity = convert_to_mb(pg_dict["totalCapacity"])
-            pg_dict["totalCapacity_mb"] = f"{mb_capacity} MB"
+            pg_dict["totalCapacity_mb"] = mb_capacity
         else:
             if parity_group.totalCapacity is not None:
                 pg_dict["totalCapacity"] = (
@@ -75,7 +75,7 @@ class VSPParityGroupProvisioner:
                     else "0"
                 )
                 mb_capacity = convert_to_mb(pg_dict["totalCapacity"])
-                pg_dict["totalCapacity_mb"] = f"{mb_capacity} MB"
+                pg_dict["totalCapacity_mb"] = mb_capacity
             else:
                 None
         pg_dict["ldevIds"] = []
@@ -106,7 +106,7 @@ class VSPParityGroupProvisioner:
                     1,
                 )
                 mb_capacity = convert_to_mb(pg_dict["freeCapacity"])
-                pg_dict["freeCapacity_mb"] = f"{mb_capacity} MB"
+                pg_dict["freeCapacity_mb"] = mb_capacity
             else:
                 pg_dict["freeCapacity"] = "0"
                 pg_dict["freeCapacity_mb"] = "0"
@@ -149,7 +149,7 @@ class VSPParityGroupProvisioner:
                 else None
             )
             mb_capacity = convert_to_mb(pg_dict["totalCapacity"])
-            pg_dict["totalCapacity_mb"] = f"{mb_capacity} MB"
+            pg_dict["totalCapacity_mb"] = mb_capacity
         else:
             pg_dict["totalCapacity"] = "0"
             pg_dict["totalCapacity_mb"] = "0"
@@ -189,8 +189,18 @@ class VSPParityGroupProvisioner:
                 **self.format_external_parity_group(external_parity_group)
             )
         else:
-            parity_group = self.gateway.get_parity_group(pg_id)
-            return VSPParityGroup(**self.format_parity_group(parity_group))
+            try:
+                parity_group = self.gateway.get_parity_group(pg_id)
+                return VSPParityGroup(**self.format_parity_group(parity_group))
+            except Exception as e:
+                if "Specified object does not exist" in str(e):
+                    err_msg = VSPParityGroupValidateMsg.NO_PARITY_GROUP_ID.value.format(
+                        pg_id
+                    )
+                    logger.writeError(err_msg)
+                    raise ValueError(err_msg)
+                else:
+                    raise (e)
 
     @log_entry_exit
     def direct_get_parity_group_by_id(self, pg_id):
@@ -256,19 +266,29 @@ class VSPParityGroupProvisioner:
                 if "totalCapacity" in drive:
                     drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
                     mb_capacity = convert_to_mb(drive["totalCapacity"])
-                    drive["totalCapacity_mb"] = f"{mb_capacity} MB"
+                    drive["totalCapacity_mb"] = mb_capacity
             return drives
 
     @log_entry_exit
     def get_one_drive(self, spec):
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            drive = self.gateway.get_one_drive(spec)
-            self.logger.writeDebug(f"get_one_drive result: {drive}")
-            if "totalCapacity" in drive:
-                drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
-                mb_capacity = convert_to_mb(drive["totalCapacity"])
-                drive["totalCapacity_mb"] = f"{mb_capacity} MB"
-            return drive
+            try:
+                drive = self.gateway.get_one_drive(spec)
+                self.logger.writeDebug(f"get_one_drive result: {drive}")
+                if "totalCapacity" in drive:
+                    drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
+                    mb_capacity = convert_to_mb(drive["totalCapacity"])
+                    drive["totalCapacity_mb"] = mb_capacity
+                return drive
+            except Exception as e:
+                if "Specified object does not exist" in str(e):
+                    err_msg = VSPParityGroupValidateMsg.NO_DISK_DRIVE_ID.value.format(
+                        spec.drive_location_id
+                    )
+                    logger.writeError(err_msg)
+                    raise ValueError(err_msg)
+                else:
+                    raise (e)
 
     @log_entry_exit
     def change_drive_setting(self, spec):
@@ -278,10 +298,20 @@ class VSPParityGroupProvisioner:
                 return VSPParityGroupValidateMsg.NO_DISK_DRIVE_ID.value.format(
                     spec.drive_location_id
                 )
-            response = self.gateway.change_drive_setting(spec)
-            self.logger.writeDebug(f"change_drive_setting result: {response}")
-            self.connection_info.changed = True
-            drive = self.get_one_drive(spec)
-            if "totalCapacity" in drive:
-                drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
-            return drive
+            try:
+                response = self.gateway.change_drive_setting(spec)
+                self.logger.writeDebug(f"change_drive_setting result: {response}")
+                self.connection_info.changed = True
+                drive = self.get_one_drive(spec)
+                if "totalCapacity" in drive:
+                    drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
+                return drive
+            except Exception as e:
+                if "The API is not supported for the specified storage system" in str(
+                    e
+                ):
+                    err_msg = VSPParityGroupValidateMsg.FEATURE_NOT_SUPPORTED.value
+                    logger.writeError(err_msg)
+                    raise ValueError(err_msg)
+                else:
+                    raise (e)

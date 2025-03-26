@@ -53,21 +53,10 @@ options:
         description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
-      connection_type:
-        description: Type of connection to the storage system. Only C(direct) connection is supported.
-        type: str
-        required: false
-        choices: ['gateway', 'direct']
-        default: 'direct'
       api_token:
           description: API token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
           type: str
           required: false
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-          Not needed for this module.
-        type: str
-        required: false
   spec:
     description: Specification for the NVM subsystems facts to be gathered.
     type: dict
@@ -84,21 +73,19 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all NVM subsystems
+- name: Get all NVM subsystems for direct connection type
   hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
 
-- name: Get a specific NVM subsystem
+- name: Get a specific NVM subsystem for direct connection type
   hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     spec:
       name: "Nvm_subsystem_01"
 """
@@ -261,9 +248,7 @@ class VSPNvmSubsystemFactsManager:
         try:
             self.parameter_manager = VSPParametersManager(self.module.params)
             self.connection_info = self.parameter_manager.get_connection_info()
-            self.storage_serial_number = (
-                self.parameter_manager.storage_system_info.serial
-            )
+            self.storage_serial_number = None
             self.spec = self.parameter_manager.get_nvme_subsystem_fact_spec()
             self.state = self.parameter_manager.get_state()
             self.logger.writeDebug(f"MOD:hv_nvm_subsystem_facts:spec= {self.spec}")

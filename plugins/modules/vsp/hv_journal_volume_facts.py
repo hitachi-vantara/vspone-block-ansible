@@ -31,7 +31,8 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description:
+      - Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -99,7 +100,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Retrieve information about all Journal Volumes
+- name: Retrieve information about all Journal Volumes for gateway connection type
   hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
     storage_system_info:
       serial: "811150"
@@ -107,7 +108,7 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api token value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 1234
     spec:
       journal_id: 10
 """

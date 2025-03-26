@@ -116,6 +116,10 @@ class GADPairProvisioner:
     def get_resource_group_by_id_remote(self, spec, resourceGroupId):
         secondary_storage_connection_info = spec.secondary_storage_connection_info
         secondary_storage_connection_info.connection_type = ConnectionTypes.DIRECT
+        if spec.secondary_storage_serial_number is None:
+            spec.secondary_storage_serial_number = self.gateway.get_secondary_serial(
+                spec
+            )
         rr_prov = RemoteReplicationHelperForSVol(
             secondary_storage_connection_info, spec.secondary_storage_serial_number
         )
@@ -134,6 +138,10 @@ class GADPairProvisioner:
     def get_vsm_all_remote(self, spec):
         secondary_storage_connection_info = spec.secondary_storage_connection_info
         secondary_storage_connection_info.connection_type = ConnectionTypes.DIRECT
+        if spec.secondary_storage_serial_number is None:
+            spec.secondary_storage_serial_number = self.gateway.get_secondary_serial(
+                spec
+            )
         rr_prov = RemoteReplicationHelperForSVol(
             secondary_storage_connection_info, spec.secondary_storage_serial_number
         )
@@ -144,6 +152,10 @@ class GADPairProvisioner:
     def get_vol_remote(self, spec, ldev):
         secondary_storage_connection_info = spec.secondary_storage_connection_info
         secondary_storage_connection_info.connection_type = ConnectionTypes.DIRECT
+        if spec.secondary_storage_serial_number is None:
+            spec.secondary_storage_serial_number = self.gateway.get_secondary_serial(
+                spec
+            )
         rr_prov = RemoteReplicationHelperForSVol(
             secondary_storage_connection_info, spec.secondary_storage_serial_number
         )
@@ -185,12 +197,19 @@ class GADPairProvisioner:
 
         secondary_storage_connection_info = spec.secondary_storage_connection_info
         secondary_storage_connection_info.connection_type = ConnectionTypes.DIRECT
+        if spec.secondary_storage_serial_number is None:
+            spec.secondary_storage_serial_number = self.gateway.get_secondary_serial(
+                spec
+            )
         rr_prov = RemoteReplicationHelperForSVol(
             secondary_storage_connection_info, spec.secondary_storage_serial_number
         )
         secondary_vol_id = None
         try:
-            secondary_vol_id = rr_prov.get_secondary_volume_id(pvol, spec)
+            if spec.secondary_nvm_subsystem is not None:
+                secondary_vol_id = rr_prov.get_secondary_volume_id_when_nvme(pvol, spec)
+            else:
+                secondary_vol_id = rr_prov.get_secondary_volume_id(pvol, spec)
             spec.secondary_volume_id = secondary_vol_id
             result = self.gateway.create_gad_pair(spec)
             logger.writeDebug(f"create_gad_pair result: {result}")
@@ -206,11 +225,17 @@ class GADPairProvisioner:
         except Exception as ex:
             # if the GAD creation fails, delete the secondary volume
             err_msg = GADFailedMsg.PAIR_CREATION_FAILED.value + str(ex)
-            if "0C1B" in str(ex):
-                err_msg = GADFailedMsg.PAIR_CREATION_FAILED.value + "The specified port is in the NVMe mode. This feature is not supported."
             try:
                 if secondary_vol_id:
-                    rr_prov.delete_volume(secondary_vol_id, spec)
+                    if spec.secondary_nvm_subsystem is not None:
+                        rr_prov.delete_volume_when_nvme(
+                            secondary_vol_id,
+                            pvol.nvmSubsystemId,
+                            spec.secondary_nvm_subsystem,
+                            pvol.namespaceId,
+                        )
+                    else:
+                        rr_prov.delete_volume(secondary_vol_id, spec)
             except Exception as del_err:
                 err_msg = err_msg + str(del_err)
             logger.writeError(err_msg)
@@ -274,6 +299,10 @@ class GADPairProvisioner:
             spec.primary_hostgroups = hg_real
 
         if spec.secondary_hostgroups:
+            if spec.secondary_storage_serial_number is None:
+                spec.secondary_storage_serial_number = (
+                    self.gateway.get_secondary_serial(spec)
+                )
             hgs = hg_prov.get_all_host_groups(spec.secondary_storage_serial_number)
             real_sec_hg = assign_hgs(hgs, spec.secondary_hostgroups)
             if len(spec.secondary_hostgroups) > 0:
@@ -412,11 +441,52 @@ class GADPairProvisioner:
                 return GADPairValidateMSG.DELETE_GAD_FAIL_SPLIT_GW.value
         else:
             logger.writeDebug(f"PROV:gad_pair:gad_pair: {gad_pair}")
-            # logger.writeDebug(f"PROV:gad_pair:pvolStatus: {gad_pair["pvolStatus"]}")
-            if gad_pair["pvolStatus"] == PairStatus.PSUS:
-                self.gateway.delete_gad_pair(spec, gad_pair["remoteMirrorCopyPairId"])
+
+            if isinstance(gad_pair, DirectCopyPairInfo):
+                # after the auto split, the input "pair" is a DirectCopyPairInfo obj
+                if gad_pair.pvolStatus == PairStatus.PSUS:
+                    self.gateway.delete_gad_pair(spec, gad_pair.remoteMirrorCopyPairId)
+                    pvol = self.get_volume_by_id(gad_pair.pvolLdevId)
+                    if pvol.nvmSubsystemId is not None:
+                        if spec.secondary_storage_serial_number is None:
+                            spec.secondary_storage_serial_number = (
+                                self.gateway.get_secondary_serial(spec)
+                            )
+                        rr_prov = RemoteReplicationHelperForSVol(
+                            spec.secondary_storage_connection_info,
+                            spec.secondary_storage_serial_number,
+                        )
+                        rr_prov.delete_volume_when_nvme(
+                            gad_pair.svolLdevId,
+                            pvol.nvmSubsystemId,
+                            None,
+                            pvol.namespaceId,
+                        )
+                else:
+                    return GADPairValidateMSG.DELETE_GAD_FAIL_SPLIT_DIRECT.value
             else:
-                return GADPairValidateMSG.DELETE_GAD_FAIL_SPLIT_DIRECT.value
+                if gad_pair["pvolStatus"] == PairStatus.PSUS:
+                    self.gateway.delete_gad_pair(
+                        spec, gad_pair["remoteMirrorCopyPairId"]
+                    )
+                    pvol = self.get_volume_by_id(gad_pair["pvolLdevId"])
+                    if pvol.nvmSubsystemId is not None:
+                        if spec.secondary_storage_serial_number is None:
+                            spec.secondary_storage_serial_number = (
+                                self.gateway.get_secondary_serial(spec)
+                            )
+                        rr_prov = RemoteReplicationHelperForSVol(
+                            spec.secondary_storage_connection_info,
+                            spec.secondary_storage_serial_number,
+                        )
+                        rr_prov.delete_volume_when_nvme(
+                            gad_pair["svolLdevId"],
+                            pvol.nvmSubsystemId,
+                            None,
+                            pvol.namespaceId,
+                        )
+                else:
+                    return GADPairValidateMSG.DELETE_GAD_FAIL_SPLIT_DIRECT.value
 
         self.connection_info.changed = True
         return GADPairValidateMSG.DELETE_GAD_PAIR_SUCCESS.value
@@ -613,13 +683,30 @@ class GADPairProvisioner:
         #         return tc
 
         spec.secondary_storage_serial_number = self.gateway.get_secondary_serial(spec)
-        tc = self.cg_gw.get_gad_pair_by_copy_group_and_copy_pair_name(spec)
+
+        tc = gad_pair
+        if tc is None:
+            tc = self.cg_gw.get_gad_pair_by_copy_group_and_copy_pair_name(spec)
+
         logger.writeDebug(f"PV:: 331 tc=  {tc}")
-        if tc.pvolStatus == PairStatus.PSUS:
+        if isinstance(tc, dict):
+            # from
+            pvolStatus = tc["pvolStatus"]
+            svolStatus = tc["svolStatus"]
+            remoteMirrorCopyPairId = tc["remoteMirrorCopyPairId"]
+            sss = remoteMirrorCopyPairId.split(",")
+            spec.local_device_group_name = sss[2]
+            spec.remote_device_group_name = sss[3]
+            spec.copy_pair_name = sss[4]
+        else:
+            pvolStatus = tc.pvolStatus
+            svolStatus = tc.svolStatus
+
+        if pvolStatus == PairStatus.PSUS:
             # already in split state
             return tc
 
-        if tc is not None and tc.svolStatus == "SSWS":
+        if tc is not None and svolStatus == "SSWS":
             swap_pair_id = self.gateway.swap_split_gad_pair(spec, "PSUS")
             pair_id = self.gateway.get_pair_id_from_swap_pair_id(
                 swap_pair_id, spec.secondary_connection_info
@@ -1227,6 +1314,10 @@ class RemoteReplicationHelperForSVol:
         self.vol_gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_VOLUME
         )
+        if connection_info.connection_type.lower() == ConnectionTypes.DIRECT:
+            self.nvme_gateway = GatewayFactory.get_gateway(
+                connection_info, GatewayClassTypes.VSP_NVME_SUBSYSTEM
+            )
         self.connection_info = connection_info
         self.serial = serial
         self.hg_gateway.set_serial(serial)
@@ -1273,6 +1364,36 @@ class RemoteReplicationHelperForSVol:
                 self.vol_gateway.delete_lun_path(port)
 
         volume = self.vol_gateway.get_volume_by_id(secondary_vol_id)
+        force_execute = (
+            True
+            if volume.dataReductionMode
+            and volume.dataReductionMode.lower() != VolumePayloadConst.DISABLED
+            else None
+        )
+        try:
+            self.vol_gateway.delete_volume(secondary_vol_id, force_execute)
+            self.connection_info.changed = False
+            return
+        except Exception as e:
+            err_msg = GADFailedMsg.SEC_VOLUME_DELETE_FAILED.value + str(e)
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
+
+    @log_entry_exit
+    def delete_volume_when_nvme(
+        self, secondary_vol_id, nvm_id, nvmsubsystem, namespaceId
+    ):
+        volume = self.vol_gateway.get_volume_by_id(secondary_vol_id)
+        nqns = []
+        if nvmsubsystem is not None and nvmsubsystem.paths is not None:
+            nqns = nvmsubsystem.paths
+        else:
+            host_nqns = self.nvme_gateway.get_host_nqns(nvm_id)
+            nqns = [nqn.hostNqn for nqn in host_nqns.data]
+
+        for nqn in nqns:
+            self.nvme_gateway.delete_host_namespace_path(nvm_id, nqn, namespaceId)
+        self.nvme_gateway.delete_namespace(nvm_id, namespaceId)
         force_execute = (
             True
             if volume.dataReductionMode
@@ -1354,6 +1475,10 @@ class RemoteReplicationHelperForSVol:
             logger.writeDebug(
                 "PROV:813:sec_vol isAluaEnabled= {}", vol_info.isAluaEnabled
             )
+            if vol_info.virtualLdevId is None:
+                self.vol_gateway.unassign_vldev(sec_vol_id, sec_vol_id)
+            elif vol_info.virtualLdevId != 65534 and vol_info.virtualLdevId != 65535:
+                self.vol_gateway.unassign_vldev(sec_vol_id, vol_info.virtualLdevId)
 
             self.vol_gateway.unassign_vldev(sec_vol_id, sec_vol_id)
             logger.writeDebug(
@@ -1363,6 +1488,15 @@ class RemoteReplicationHelperForSVol:
                 "PROV:get_secondary_volume_id:sec_vol_spec = {}", sec_vol_spec
             )
 
+            if vol_info.resourceGroupId != 0:
+
+                add_resource_spec = VSPResourceGroupSpec()
+                add_resource_spec.ldevs = [int(sec_vol_id)]
+                resourceGroupId = host_group.resourceGroupId
+                self.rg_gateway.remove_resource(
+                    vol_info.resourceGroupId, add_resource_spec
+                )
+                # self.rg_gateway.add_resource(0, add_resource_spec)
             #  sng1104 - TODO enable_preferred_path goes here if needed?
             # hg_info = self.parse_hostgroup(host_group)
             # logger.writeDebug("PROV:get_secondary_volume_id:hg_info = {}", hg_info)
@@ -1374,12 +1508,16 @@ class RemoteReplicationHelperForSVol:
             logger.writeDebug(
                 "PROV:get_secondary_volume_id:resourceGroupId = {}", resourceGroupId
             )
+
             self.rg_gateway.add_resource(resourceGroupId, add_resource_spec)
 
             # GAD reserved
-            self.vol_gateway.assign_vldev(sec_vol_id, 65535)
-
+            if vol_info.virtualLdevId != 65535:
+                self.vol_gateway.assign_vldev(sec_vol_id, 65535)
+            vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
+            logger.writeDebug("PROV:813:sec_vol_id 1397 = {}", sec_vol_id)
             self.hg_gateway.add_luns_to_host_group(host_group, [sec_vol_id])
+
         except Exception as ex:
             err_msg = GADFailedMsg.SEC_VOLUME_OPERATION_FAILED.value + str(ex)
             logger.writeError(err_msg)
@@ -1530,3 +1668,181 @@ class RemoteReplicationHelperForSVol:
         item["resourceGroupID"] = hg.hostGroupInfo["resourceGroupId"] or 0
         ret_list.append(item)
         return ret_list
+
+    @log_entry_exit
+    def get_secondary_volume_id_when_nvme(self, vol_info, spec):
+
+        # sng1104 GAD Work Flow: provisioning svol for GAD pair creation
+
+        logger.writeDebug("PROV:813:primary_volume = {}", vol_info)
+        # capture namespace ID
+        pvolNameSpaceId = vol_info.namespaceId
+        pvolNvmSubsystemId = vol_info.nvmSubsystemId
+        # Check pvol vldId
+        if vol_info.virtualLdevId == 65535 or vol_info.virtualLdevId == 65534:
+            err_msg = VSPTrueCopyValidateMsg.PVOL_VLDEV_MISSING.value.format(
+                vol_info.ldevId
+            )
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
+        # Check for namespace
+        if pvolNameSpaceId is None or pvolNameSpaceId == "":
+            err_msg = VSPTrueCopyValidateMsg.PVOL_NAMESPACE_MISSING.value.format(
+                vol_info.ldevId
+            )
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
+
+        # Fail early, save time
+        # Before creating the secondary volume check if secondary hostgroup exists
+        # host_group = self.get_secondary_hostgroup(spec.secondary_hostgroups)
+        logger.writeDebug("PROV: nvmesubsystem spec = {}", spec.secondary_nvm_subsystem)
+        nvme_subsystem = self.get_nvmesubsystem_by_name(spec.secondary_nvm_subsystem)
+        if nvme_subsystem is None:
+            err_msg = VSPTrueCopyValidateMsg.NO_REMOTE_NVME_FOUND.value.format(
+                spec.secondary_nvm_subsystem.name
+            )
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
+
+        if int(nvme_subsystem.nvmSubsystemId) != int(pvolNvmSubsystemId):
+            err_msg = VSPTrueCopyValidateMsg.NVMSUBSYSTEM_DIFFER.value.format(
+                nvme_subsystem.nvmSubsystemId, pvolNvmSubsystemId
+            )
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
+
+        svol_id = self.select_secondary_volume_id(vol_info.ldevId)
+        secondary_pool_id = spec.secondary_pool_id
+        sec_vol_spec = CreateVolumeSpec()
+        sec_vol_spec.pool_id = secondary_pool_id
+
+        sec_vol_spec.size = self.get_size_from_byte_format_capacity(
+            vol_info.byteFormatCapacity
+        )
+        sec_vol_spec.capacity_saving = vol_info.dataReductionMode
+        sec_vol_spec.ldev_id = svol_id
+
+        sec_vol_id = self.vol_gateway.create_volume(sec_vol_spec)
+
+        # per UCA-2281
+        if vol_info.label is not None and vol_info.label != "":
+            sec_vol_name = vol_info.label
+        else:
+            sec_vol_name = f"{DEFAULT_NAME_PREFIX}-{vol_info.ldevId}"
+
+        # the name change is done in the update_volume method
+        logger.writeDebug("PROV:1221:sec_vol_name = {}", sec_vol_name)
+
+        # sng20241127 - set svol label/name and set_alua_mode
+        set_alua_mode = None
+        if spec.set_alua_mode:
+            set_alua_mode = spec.set_alua_mode
+
+        try:
+            logger.writeDebug("PROV:813:sec_vol_name = {}", sec_vol_name)
+            logger.writeDebug("PROV:813:set_alua_mode = {}", set_alua_mode)
+            self.vol_gateway.change_volume_settings(
+                sec_vol_id, sec_vol_name, set_alua_mode
+            )
+
+            # verify the svol set label and set_alua_mode
+            vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
+            logger.writeDebug("PROV:813:sec_vol_id = {}", sec_vol_id)
+            logger.writeDebug("PROV:813:sec_vol = {}", vol_info)
+            logger.writeDebug(
+                "PROV:813:sec_vol isAluaEnabled= {}", vol_info.isAluaEnabled
+            )
+
+            logger.writeDebug(
+                "PROV:813:sec_vol virtualLdevId= {}", vol_info.virtualLdevId
+            )
+
+            if (vol_info.virtualLdevId != 65535) and (vol_info.virtualLdevId != 65534):
+                logger.writeDebug(
+                    "PROV: = unassigning vldev for sec_vol_id : {} having vldev {}",
+                    sec_vol_id,
+                    vol_info.virtualLdevId,
+                )
+                self.vol_gateway.unassign_vldev(sec_vol_id, sec_vol_id)
+
+            logger.writeDebug(
+                "PROV:get_secondary_volume_id:sec_vol_id = {}", sec_vol_id
+            )
+
+            #  sng1104 - TODO enable_preferred_path goes here if needed?
+            # hg_info = self.parse_hostgroup(host_group)
+            # logger.writeDebug("PROV:get_secondary_volume_id:hg_info = {}", hg_info)
+
+            #  sng1104 - on the 2nd storage, find the hg.RG, move lun to RG
+            add_resource_spec = VSPResourceGroupSpec()
+            add_resource_spec.ldevs = [int(sec_vol_id)]
+            resourceGroupId = nvme_subsystem.resourceGroupId
+            logger.writeDebug(
+                "PROV:secondary_volume :vol_info.resourceGroupId = {}",
+                vol_info.resourceGroupId,
+            )
+            logger.writeDebug(
+                "PROV:get_secondary_volume_id:resourceGroupId = {}", resourceGroupId
+            )
+            if vol_info.resourceGroupId != resourceGroupId:
+                self.rg_gateway.add_resource(resourceGroupId, add_resource_spec)
+
+            # GAD reserved
+            if vol_info.virtualLdevId != 65535:
+                self.vol_gateway.assign_vldev(sec_vol_id, 65535)
+            self.create_namespace_for_svol(
+                nvme_subsystem.nvmSubsystemId, sec_vol_id, pvolNameSpaceId
+            )
+            # ns_id = ns_id.split(",")[-1]
+            self.create_namespace_paths(
+                nvme_subsystem.nvmSubsystemId,
+                pvolNameSpaceId,
+                spec.secondary_nvm_subsystem,
+            )
+        except Exception as ex:
+            err_msg = GADFailedMsg.SEC_VOLUME_OPERATION_FAILED.value + str(ex)
+            logger.writeError(err_msg)
+            # if setting the volume name fails, delete the secondary volume
+            # if attaching the volume to the host group fails, delete the secondary volume
+            self.delete_volume_when_nvme(
+                sec_vol_id,
+                nvme_subsystem.nvmSubsystemId,
+                spec.secondary_nvm_subsystem,
+                pvolNameSpaceId,
+            )
+            raise Exception(err_msg)
+        return sec_vol_id
+
+    @log_entry_exit
+    def get_nvmesubsystem_by_name(self, nvmsubsystem):
+        nvme_subsystems = self.nvme_gateway.get_nvme_subsystems()
+        for nvme in nvme_subsystems.data:
+            if nvme.nvmSubsystemName == nvmsubsystem.name:
+                logger.writeDebug("PROV:get_nvmesubsystem_by_name:nvme = {}", nvme)
+                return nvme
+        return None
+
+    @log_entry_exit
+    def create_namespace_for_svol(self, nvm_subsystem_id, ldev_id, ns_id):
+        ns_id = self.nvme_gateway.create_namespace(nvm_subsystem_id, ldev_id, ns_id)
+        logger.writeDebug("PROV:add_svol_to_nvmesubsystem:ns_id = {}", ns_id)
+        return ns_id
+
+    @log_entry_exit
+    def create_namespace_paths(self, nvm_subsystem_id, namespace_id, nvmsubsystem):
+        nqns = []
+        if nvmsubsystem.paths is not None:
+            nqns = nvmsubsystem.paths
+        else:
+            host_nqns = self.nvme_gateway.get_host_nqns(nvm_subsystem_id)
+            nqns = [nqn.hostNqn for nqn in host_nqns.data]
+
+        for nqn in nqns:
+            host_ns_path_id = self.nvme_gateway.set_host_namespace_path(
+                nvm_subsystem_id, nqn, namespace_id
+            )
+            logger.writeDebug(
+                "PROV:create_namespace_paths:host_ns_path_id = {}", host_ns_path_id
+            )
+        return None

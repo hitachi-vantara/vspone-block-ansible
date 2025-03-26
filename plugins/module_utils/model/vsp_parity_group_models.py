@@ -80,6 +80,7 @@ class DrivesFactSpec:
 @dataclass
 class VSPPfrestParityGroupSpace(SingleBaseClass):
     lbaSize: str = None
+    ldevId: int = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -125,10 +126,10 @@ class VSPParityGroup(SingleBaseClass):
     resourceId: str = None
     parityGroupId: str = None
     freeCapacity: str = None
-    freeCapacity_mb: str = None
+    freeCapacity_mb: float = None
     resourceGroupId: int = None
     totalCapacity: str = None
-    totalCapacity_mb: str = None
+    totalCapacity_mb: float = None
     ldevIds: List[int] = None
     raidLevel: str = None
     driveType: str = None

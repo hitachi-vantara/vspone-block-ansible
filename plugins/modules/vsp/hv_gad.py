@@ -38,10 +38,11 @@ options:
     description: The level of the GAD pairs task.
     type: str
     required: false
-    choices: ['present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync', 'resize']
+    choices: ['present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync', 'resize', 'expand']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description:
+      - Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -55,7 +56,7 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of the UAI gateway or storage syatem.
+        description: IP address or hostname of the UAI gateway or storage system.
         type: str
         required: true
       username:
@@ -182,6 +183,20 @@ options:
             description: Enables the preferred path for the specified host group.
             type: bool
             required: false
+      secondary_nvm_subsystem:
+        description: NVM subsystem details of the secondary volume. Supported only for C(direct) connection type.
+        type: dict
+        required: false
+        suboptions:
+          name:
+            description: Name of the NVM subsystem on the secondary storage system.
+            type: str
+            required: true
+          paths:
+            description: Host NQN paths information on the secondary storage system.
+            type: list
+            elements: str
+            required: false
       local_device_group_name:
         description: The device group name in the local storage system. Valid for C(direct) connection only.
         type: str
@@ -219,7 +234,7 @@ options:
         choices: ['NEVER', 'DATA', 'STATUS', 'UNKNOWN']
         default: 'NEVER'
       new_volume_size:
-        description: Required for resize operation. Value should be grater than the current volume size.
+        description: Required for resize or expand operation. Value should be grater than the current volume size.
         type: str
         required: false
       is_data_reduction_force_copy:
@@ -255,8 +270,8 @@ options:
 """
 
 EXAMPLES = """
-- name: Create a GAD pair
-  hitachivantara.vspone_block.vsp.hv_gad:
+- name: Create a GAD pair for gateway connection type
+  hv_gad:
     state: "present"
     storage_system_info:
       serial: 811150
@@ -264,10 +279,10 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_storage_serial_number: 811150
-      secondary_storage_serial_number: 12346
+      secondary_storage_serial_number: 811151
       primary_volume_id: 11
       secondary_pool_id: 1
       primary_hostgroups:
@@ -281,8 +296,8 @@ EXAMPLES = """
       secondary_resource_group_name: "Sample"
       quorum_disk_id: 1
 
-- name: Split GAD pair
-  hitachivantara.vspone_block.vsp.hv_gad:
+- name: Split GAD pair for gateway connection type
+  hv_gad:
     state: "split"
     storage_system_info:
       serial: 811150
@@ -290,12 +305,12 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 11
 
-- name: Resync GAD pair
-  hitachivantara.vspone_block.vsp.hv_gad:
+- name: Resync GAD pair for gateway connection type
+  hv_gad:
     state: "resync"
     storage_system_info:
       serial: 811150
@@ -303,59 +318,65 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 11
 
-- name: Swap-Split GAD pair for direct connect
+- name: Swap-Split GAD pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_gad:
     state: "swap_split"
-    storage_system_info:
-      serial: 811150
     connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
     spec:
       copy_group_name: "gad_copy_group_name_8"
       copy_pair_name: "gad_copy_pair_name_8"
       local_device_group_name: "gad_local_device_group_name_8"
       remote_device_group_name: "gad_remote_device_group_name_8"
 
-- name: Swap-Resync GAD pair for direct connect
+- name: Swap-Resync GAD pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_gad:
     state: "swap_resync"
-    storage_system_info:
-      serial: 811150
     connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-
+      address: storage2.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
+    secondary_connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     spec:
       copy_group_name: "gad_copy_group_name_8"
       copy_pair_name: "gad_copy_pair_name_8"
       local_device_group_name: "gad_local_device_group_name_8"
       remote_device_group_name: "gad_remote_device_group_name_8"
 
-- name: Increase size of volumes of GAD pair for direct connect
+- name: Increase size of volumes of GAD pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_gad:
     state: "resize"
-    storage_system_info:
-      serial: 811150
     connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 811150
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
     spec:
-        copy_group_name: "gad_copy_group_name_9"
-        copy_pair_name: "gad_copy_pair_name_9"
-        new_volume_size: "4GB"
+      copy_group_name: "gad_copy_group_name_9"
+      copy_pair_name: "gad_copy_pair_name_9"
+      new_volume_size: "4GB"
 
-- name: Delete GAD pair
-  hitachivantara.vspone_block.vsp.hv_gad:
+- name: Delete GAD pair for gateway connection type
+  hv_gad:
     state: "absent"
     storage_system_info:
       serial: 811150
@@ -363,9 +384,33 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 11
+
+- name: Create GAD-NVMe pair for direct connection type
+  hitachivantara.vspone_block.vsp.hv_gad:
+    state: "present"
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+      connection_type: "direct"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
+    spec:
+      copy_group_name: "copy_group_name_1"
+      copy_pair_name: "copy_pair_name_1"
+
+      primary_volume_id: 12
+      secondary_pool_id: 1
+      secondary_nvm_subsystem:
+        name: gk-nvm-sub-75
+        paths:
+          - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
+      quorum_disk_id: 1
 """
 
 RETURN = """

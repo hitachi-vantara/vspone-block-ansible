@@ -50,7 +50,8 @@ options:
         type: str
         required: false
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description:
+      - Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:

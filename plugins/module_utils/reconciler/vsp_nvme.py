@@ -12,6 +12,7 @@ try:
     from ..provisioner.vsp_nvme_provisioner import VSPNvmeProvisioner
     from ..provisioner.vsp_storage_port_provisioner import VSPStoragePortProvisioner
     from ..provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..message.vsp_nvm_msgs import VspNvmValidationMsg
 
 
@@ -29,6 +30,7 @@ except ImportError:
     from provisioner.vsp_nvme_provisioner import VSPNvmeProvisioner
     from provisioner.vsp_storage_port_provisioner import VSPStoragePortProvisioner
     from provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from message.vsp_nvm_msgs import VspNvmValidationMsg
 
 
@@ -55,13 +57,12 @@ class VSPNvmeReconciler:
 
         self.connection_info = connection_info
 
-        self.provisioner = VSPNvmeProvisioner(connection_info, serial=None)
+        self.provisioner = VSPNvmeProvisioner(connection_info, serial)
         self.port_prov = VSPStoragePortProvisioner(self.connection_info)
         self.hg_provisioner = VSPHostGroupProvisioner(self.connection_info)
+        self.storage_serial_number = serial
         if state:
             self.state = state
-        if serial:
-            self.storage_serial_number = serial
 
     @log_entry_exit
     def reconcile_nvm_subsystem(self, spec):
@@ -96,6 +97,9 @@ class VSPNvmeReconciler:
                 spec.id = nvme_subsystem.nvmSubsystemId
                 self.update_nvme_subsystem(nvme_subsystem, spec)
 
+            if self.storage_serial_number is None:
+                self.storage_serial_number = self.get_storage_serial_number()
+
             nvme_ss = self.provisioner.get_nvme_subsystem_details_by_id(spec.id)
             logger.writeDebug("RC:reconcile_nvm_subsystem:nvme_ss={}", nvme_ss)
             extracted_data = NvmeSubsystemDetailInfoExtractor(
@@ -123,6 +127,12 @@ class VSPNvmeReconciler:
                 return self.delete_nvme_subsystem_force(nvme_subsystem)
             else:
                 return self.delete_nvme_subsystem(nvme_subsystem)
+
+    @log_entry_exit
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     @log_entry_exit
     def update_nvme_subsystem(self, nvme_subsystem, spec):
@@ -589,6 +599,8 @@ class VSPNvmeReconciler:
     @log_entry_exit
     def get_nvme_subsystem_facts(self, spec):
         nvme_subsystems = self.provisioner.get_nvme_subsystems(spec)
+        if self.storage_serial_number is None:
+            self.storage_serial_number = self.get_storage_serial_number()
         logger.writeDebug("RC:nvme_subsystems={}", nvme_subsystems)
         extracted_data = NvmeSubsystemDetailInfoExtractor(
             self.storage_serial_number
@@ -722,10 +734,13 @@ class NvmeSubsystemDetailInfoExtractor:
                         "byte_format_capacity"
                     ):
                         old_value = new_dict.pop("byte_format_capacity")
-                        new_value = old_value.replace(" G", "GB")
+                        if " M" in old_value:
+                            new_value = old_value.replace(" M", "MB")
+                        else:
+                            new_value = old_value.replace(" G", "GB")
                         new_dict["capacity_in_unit"] = new_value
                         mb_capacity = convert_to_mb(new_dict["capacity_in_unit"])
-                        new_dict["capacity_in_mb"] = f"{mb_capacity} MB"
+                        new_dict["capacity_in_mb"] = mb_capacity
             new_items.append(new_dict)
         return new_items
 

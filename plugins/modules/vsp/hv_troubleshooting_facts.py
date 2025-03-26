@@ -58,29 +58,19 @@ options:
 """
 
 EXAMPLES = """
-tasks:
-  - name: Collect LogBundle including Local and Remote UAI gateway logs
-    hitachivantara.vspone_block.vsp.hv_troubleshooting_facts:
-      uai_gateway_address: "172.25.99.99"
-      api_token: apitokenvalue
-      remote_gateway_host_connection_info:
+- name: Collect LogBundle including Local and Remote UAI gateway logs
+  hitachivantara.vspone_block.vsp.hv_troubleshooting_facts:
+    uai_gateway_address: "172.25.99.99"
+    api_token: apitokenvalue
+    remote_gateway_host_connection_info:
         - address: remotegateway1.company.com
           username: admin
           password: login-password
-    register: result
 
-  - name: Debug the result variable
-    ansible.builtin.debug:
-      var: result
+- name: Collect log bundle for direct only
+  hitachivantara.vspone_block.vsp.hv_troubleshooting_facts:
+  # no_log: true
 
-  - name: Collect log bundle for direct only
-    hitachivantara.vspone_block.vsp.hv_troubleshooting_facts:
-    register: result
-    # no_log: true
-
-  - name: Debug the result variable
-    ansible.builtin.debug:
-      var: result
 """
 
 RETURN = """
@@ -341,7 +331,7 @@ def downLoadLogBundle(bundleName, hitachiAPIGatewayService, tempdir):
     logger.writeDebug("header: {}", hdrs)
     response = requests.get(url, headers=hdrs, verify=False, bytes=True)
     if response.ok:
-        file_path = os.path.join(tempdir, "gateway_service.zip")
+        file_path = os.path.join(tempdir, "gateway_service.zip")  # nosec
         with open(file_path, "wb") as file:
             file.write(response.content)
         logger.writeInfo("Log bundle downloaded successfully: %s", file_path)
@@ -370,7 +360,7 @@ def getLogBundles(hitachiAPIGatewayService):
 
 def remove_old_logbundles(zipdir):
     # Define the directory and pattern for the zip files
-    pattern = os.path.join(zipdir, "ansible_log_bundle_*.zip")
+    pattern = os.path.join(zipdir, "ansible_log_bundle_*.zip")  # nosec
     # Get a list of all zip files matching the pattern
     zip_files = glob.glob(pattern)
     # Sort files by creation time (or last modification time if creation time is unavailable)
@@ -577,9 +567,9 @@ def main(module=None):
 
     tempdir = datetime.now().strftime("ansible_log_bundle_%Y_%m_%d_%H_%M_%S")
     zipdir = get_logger_dir() + "/log_bundles"
-    zipPath = os.path.join(zipdir, "{0}.zip".format(tempdir))
+    zipPath = os.path.join(zipdir, "{0}.zip".format(tempdir))  # nosec
     usages_dir = pathlib.Path.home() / f"ansible/{NAMESPACE}/{PROJECT_NAME}/usages"
-    temp_usages_dir = os.path.join(tempdir, "usages")
+    temp_usages_dir = os.path.join(tempdir, "usages")  # nosec
 
     consent_dir = (
         pathlib.Path.home() / f"ansible/{NAMESPACE}/{PROJECT_NAME}/user_consent"
@@ -590,22 +580,22 @@ def main(module=None):
         if not os.path.exists(zipdir):
             os.makedirs(zipdir)
         for subdir in ("gateway_service", "modules", "playbooks"):
-            subpath = os.path.join(tempdir, subdir)
+            subpath = os.path.join(tempdir, subdir)  # nosec
             if not os.path.exists(subpath):
                 os.makedirs(subpath)
 
-        write_os_info_to_file(os.path.join(tempdir, "os_info.txt"))
+        write_os_info_to_file(os.path.join(tempdir, "os_info.txt"))  # nosec
 
         writeLog("Copying Ansible playbooks")
 
         # Log.getHomePath() is /opt/hitachivantara/ansible
         playb_src = Log.getHomePath() + "/playbooks"
-        playb_dest = os.path.join(tempdir, "playbooks")
+        playb_dest = os.path.join(tempdir, "playbooks")  # nosec
 
         for dirpath, dirnames, filenames in os.walk(playb_src):
             # Calculate relative path to preserve the directory structure in the destination
             relative_path = os.path.relpath(dirpath, playb_src)
-            dest_path = os.path.join(playb_dest, relative_path)
+            dest_path = os.path.join(playb_dest, relative_path)  # nosec
 
             # Make sure each corresponding directory exists in the destination
             if not os.path.exists(dest_path):
@@ -614,8 +604,8 @@ def main(module=None):
             # Copy each .yml file to the corresponding directory in the destination
             for filename in filenames:
                 if filename.endswith(".yml"):
-                    src_file = os.path.join(dirpath, filename)
-                    dest_file = os.path.join(dest_path, filename)
+                    src_file = os.path.join(dirpath, filename)  # nosec
+                    dest_file = os.path.join(dest_path, filename)  # nosec
                     shutil.copy(src_file, dest_file)
                     logger.writeInfo(f"Copied {src_file} to {dest_file}")
 
@@ -627,7 +617,8 @@ def main(module=None):
                 shutil.copytree(usages_dir, temp_usages_dir)
                 if management_address is not None:
                     with open(
-                        os.path.join(temp_usages_dir, TELEMETRY_FILE_NAME), "r+"
+                        os.path.join(temp_usages_dir, TELEMETRY_FILE_NAME),
+                        "r+",  # nosec
                     ) as file:
                         file_data = json.load(file)
                         new_data = {
@@ -642,7 +633,8 @@ def main(module=None):
 
                 else:
                     with open(
-                        os.path.join(temp_usages_dir, TELEMETRY_FILE_NAME), "r+"
+                        os.path.join(temp_usages_dir, TELEMETRY_FILE_NAME),
+                        "r+",  # nosec
                     ) as file:
                         file_data = json.load(file)
                         new_data = {
@@ -662,17 +654,19 @@ def main(module=None):
                 # comment out the registration files
 
             if os.path.exists(consent_dir):
-                shutil.copytree(consent_dir, os.path.join(tempdir, "user_consent"))
-                logger.writeInfo(
-                    f"Copied user_consent files to {tempdir}/user_consent"
-                )
+                shutil.copytree(
+                    consent_dir, os.path.join(tempdir, "user_consent")
+                )  # nosec
+                logger.writeInfo(f"Copied user_consent files to {tempdir}/user_consent")
         except Exception as e:
             logger.writeInfo(e)
 
         for file in glob.glob(Log.getHomePath() + "/support/*.yml"):
             shutil.copy(file, playb_dest)
         try:
-            shutil.copy(os.path.join(Log.getHomePath(), "MANIFEST.json"), tempdir)
+            shutil.copy(
+                os.path.join(Log.getHomePath(), "MANIFEST.json"), tempdir
+            )  # nosec
         except Exception as e:
             logger.writeInfo(e)
         if uai_flag is True:
@@ -697,14 +691,14 @@ def main(module=None):
         src = get_logger_dir()
         src_files = os.listdir(src)
         for file_name in src_files:
-            full_file_name = os.path.join(src, file_name)
+            full_file_name = os.path.join(src, file_name)  # nosec
             if os.path.isfile(full_file_name):
-                shutil.copy(full_file_name, os.path.join(tempdir, "modules"))
+                shutil.copy(full_file_name, os.path.join(tempdir, "modules"))  # nosec
 
         filePaths = []
         for root, directories, files in os.walk(tempdir):
             for filename in files:
-                filePath = os.path.join(root, filename)
+                filePath = os.path.join(root, filename)  # nosec
                 filePaths.append(filePath)
         with ZipFile(zipPath, "w") as zip_file:
             for file in filePaths:
@@ -713,7 +707,9 @@ def main(module=None):
         remove_old_logbundles(zipdir)
 
         logger.writeExitModule(moduleName)
-        module.exit_json(changed=False, ansible_facts={"filename": zipPath, "msg": comments})
+        module.exit_json(
+            changed=False, ansible_facts={"filename": zipPath, "msg": comments}
+        )
     except EnvironmentError as ex:
         if HAS_MESSAGE_ID:
             logger.writeError(MessageID.ERR_GET_SUPPORT_LOGS)

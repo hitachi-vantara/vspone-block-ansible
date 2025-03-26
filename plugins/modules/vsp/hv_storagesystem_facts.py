@@ -30,7 +30,8 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the storage system.
+    description:
+      - Information about the storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -90,36 +91,43 @@ options:
 """
 
 EXAMPLES = """
-- name: Get Storage System without additional information for ports, quorumdisks, journalPools, and freeLogicalUnitList
-  tasks:
-    - hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
-        storage_system_info:
-          serial: '811150'
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
+- name: Get Storage System facts for direct connection
+  hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
 
-- name: Get Storage System with additional information for ports, quorumdisks, journalPools, and freeLogicalUnitList
-  vars:
-    query:
-      - ports
-      - quorumdisks
-      - journalPools
-      - freeLogicalUnitList
-  tasks:
-    - name: Get Storage System with additional information
-      hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
-        storage_system_info:
-          serial: '811150'
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-          connection_type: "direct"
-        spec:
-          query: "quorumdisks"
+- name: Get Storage System facts for gateway connection
+  hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
+    storage_system_info:
+      serial: "811150"
+    connection_info:
+      address: gateway1.company.com
+      api_token: "api token value"
+      connection_type: "gateway"
+
+- name: Get Storage System using query for direct connection
+  hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
+    spec:
+      query: ["ports", "quorumdisks", "journalPools", "freeLogicalUnitList"]
+
+- name: Get Storage System using query for gateway connection
+  hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
+    storage_system_info:
+      serial: "811150"
+    connection_info:
+      address: gateway1.company.com
+      api_token: "api token value"
+      connection_type: "gateway"
+    spec:
+      query: ["ports", "quorumdisks", "journalPools", "freeLogicalUnitList"]
 """
 
 RETURN = r"""

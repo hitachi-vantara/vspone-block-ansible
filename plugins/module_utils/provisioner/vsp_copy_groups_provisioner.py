@@ -36,7 +36,9 @@ class VSPCopyGroupsProvisioner:
     def get_primary_storage_device_id(self):
         try:
             response = self.gateway.get_primary_storage_device_id()
-            logger.writeDebug("PROV:get_primary_storage_device_id:time={}", response)
+            logger.writeDebug(
+                "PROV:get_primary_storage_device_id:response={}", response
+            )
             return response
         except Exception as e:
             logger.writeError(MessageID.ERR_GetStorageID)

@@ -29,8 +29,6 @@
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "split"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
@@ -53,8 +51,6 @@
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "split"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
@@ -77,8 +73,6 @@
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "split"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
@@ -99,8 +93,6 @@
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "resync"
         spec:
           local_device_group_name: "tc_device_group_name_1"
@@ -121,8 +113,6 @@
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "resync"
         spec:
           local_device_group_name: "tc_local_device_group_name_1"
@@ -148,8 +138,6 @@
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "resync"
         spec:
           local_device_group_name: "gad_local_device_group_name_1"
@@ -269,8 +257,6 @@
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           local_device_group_name: "rcg_local_device_group_name_1"

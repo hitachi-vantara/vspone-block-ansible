@@ -36,7 +36,7 @@ options:
     choices: ['present', 'absent']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -171,7 +171,7 @@ options:
         type: int
         required: false
       force:
-        description: Force delete. Delete the LDEV and removes the LDEV from hostgroups, iscsi targets or NVM subsystem namespace.
+        description: Force delete. Delete the LDEV and removes the LDEV from host groups, iscsi targets or NVM subsystem namespace.
         type: bool
         required: false
       should_shred_volume_enable:
@@ -218,7 +218,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Create a new LDEV
+- name: Create a new LDEV for gateway connection type
   hitachivantara.vspone_block.vsp.hv_ldev:
     state: present
     storage_system_info:
@@ -227,7 +227,7 @@ EXAMPLES = """
         address: gateway.company.com
         api_token: "api_token_value"
         connection_type: "gateway"
-        subscriber_id: 811150
+        subscriber_id: 123456
     spec:
       pool_id: 1
       size: "10GB"
@@ -235,31 +235,31 @@ EXAMPLES = """
       capacity_saving: "compression_deduplication"
       data_reduction_share: true
 
-- name: Update an existing LDEV
+- name: Update an existing LDEV for gateway connection type
   hitachivantara.vspone_block.vsp.hv_ldev:
     state: present
     storage_system_info:
       serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        api_token: "api_token_value"
-        connection_type: "gateway"
-        subscriber_id: 811150
+    connection_info:
+      address: gateway.company.com
+      api_token: "api_token_value"
+      connection_type: "gateway"
+      subscriber_id: 123456
     spec:
       ldev_id: 123
       size: "5TB"
       capacity_saving: "disabled"
 
-- name: Create a new LDEV and assign vLDEV
+- name: Create a new LDEV and assign vLDEV for gateway connection type
   hitachivantara.vspone_block.vsp.hv_ldev:
     state: present
     storage_system_info:
       serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        api_token: "api_token_value"
-        connection_type: "gateway"
-        subscriber_id: 811150
+    connection_info:
+      address: gateway.company.com
+      api_token: "api_token_value"
+      connection_type: "gateway"
+      subscriber_id: 123456
     spec:
       pool_id: 1
       size: "10GB"
@@ -268,7 +268,7 @@ EXAMPLES = """
       capacity_saving: "compression_deduplication"
       data_reduction_share: true
 
-- name: Update an existing LDEV with vLDEV
+- name: Update an existing LDEV with vLDEV for gateway connection type
   hitachivantara.vspone_block.vsp.hv_ldev:
     state: present
     storage_system_info:
@@ -277,23 +277,21 @@ EXAMPLES = """
         address: gateway.company.com
         api_token: "api_token_value"
         connection_type: "gateway"
-        subscriber_id: 811150
+        subscriber_id: 123456
     spec:
       ldev_id: 123
       vldev_id: 234
       size: "5TB"
       capacity_saving: "disabled"
 
-- name: Create ldev with free id and present to NVM System
+- name: Create ldev with free id and present to NVM System for direct connection type
   hitachivantara.vspone_block.vsp.hv_ldev:
     state: present
-    storage_system_info:
-      serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        username: "admin"
-        password: "passw0rd"
-        connection_type: "direct"
+    connection_info:
+      address: storage.company.com
+      username: "admin"
+      password: "passw0rd"
+      connection_type: "direct"
     spec:
       pool_id: 1
       size: "10GB"
@@ -304,58 +302,53 @@ EXAMPLES = """
       nvm_subsystem_name: "nvm_subsystem_01"
       host_nqns: ["nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa39"]
 
-- name: Present existing volume to NVM System
+- name: Present existing volume to NVM System for direct connection type
   hitachivantara.vspone_block.vsp.hv_ldev:
     state: present
-    storage_system_info:
-      serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        username: "admin"
-        password: "passw0rd"
-        connection_type: "direct"
+    connection_info:
+      address: storage.company.com
+      username: "admin"
+      password: "passw0rd"
+      connection_type: "direct"
     spec:
       ldev_id: 1
       state: "add_host_nqn"
       nvm_subsystem_name: "nvm_subsystem_01"
       host_nqns: ["nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa39"]
 
-- name: Delete a LDEV
+- name: Delete a LDEV for gateway connection type
   hitachivantara.vspone_block.vsp.hv_ldev:
     state: absent
     storage_system_info:
       serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        api_token: "api_token_value"
-        connection_type: "gateway"
-        subscriber_id: 811150
+    connection_info:
+      address: gateway.company.com
+      api_token: "api_token_value"
+      connection_type: "gateway"
+      subscriber_id: 811150
     spec:
       ldev_id: 123
-- name: Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
+
+- name: Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace for direct connection type
   hitachivantara.vspone_block.vsp.hv_ldev:
     state: absent
-    storage_system_info:
-      serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        api_token: "api_token_value"
-        connection_type: "gateway"
-        subscriber_id: 811150
+    connection_info:
+      address: storage.company.com
+      username: "admin"
+      password: "passw0rd"
+      connection_type: "direct"
     spec:
       ldev_id: 123
       force: true
 
-- name: Update the qos settings for an existing LDEV
+- name: Update the qos settings for an existing LDEV for direct connection type
   hitachivantara.vspone_block.vsp.hv_ldev:
     state: absent
-    storage_system_info:
-      serial: "811150"
-      connection_info:
-        address: gateway.company.com
-        username: "admin"
-        password: "passw0rd"
-        connection_type: "direct"
+    connection_info:
+      address: storage.company.com
+      username: "admin"
+      password: "passw0rd"
+      connection_type: "direct"
     spec:
       ldev_id: 123
       qos_settings:

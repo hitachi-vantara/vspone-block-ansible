@@ -23,8 +23,6 @@
     - name: Change storage port security settings using port id
       hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           port: "CL8-B"
           enable_port_security: true
@@ -40,8 +38,6 @@
     - name: Change storage port mode settings using port id
       hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           port: "CL8-B"
           port_mode: "FC-NVMe"

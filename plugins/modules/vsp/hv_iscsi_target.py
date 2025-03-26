@@ -49,7 +49,8 @@ options:
   storage_system_info:
     required: false
     type: dict
-    description: Information about the Hitachi storage system.
+    description:
+      - Information about the Hitachi storage system. This field is required for gateway connection type only.
     suboptions:
       serial:
         description: Serial number of the Hitachi storage system.
@@ -95,8 +96,8 @@ options:
       state:
         description:
           - State of the iscsi target tasks.
-          - C(present) - Update iscsi target by override host mode and host mode option and append other paramters mentioned in spec.
-          - C(absent) -  Update iscsi target by remove all paramters mentioned in spec.
+          - C(present) - Update iscsi target by override host mode and host mode option and append other parameters mentioned in spec.
+          - C(absent) -  Update iscsi target by remove all parameters mentioned in spec.
           - C(add_iscsi_initiator) - Update iscsi target by append all iqn initiators mentioned in spec.
           - C(remove_iscsi_initiator) - Update iscsi target by remove all iqn initiators mentioned in spec.
           - C(attach_ldev) - Update iscsi target by append all ldevs mentioned in spec.
@@ -179,7 +180,7 @@ options:
         elements: int
         required: false
       ldevs:
-        description: LDEV ID in decimal or HEX of the LDEV that you want to present or unpresent.
+        description: LDEV ID in decimal or HEX of the LDEV that you want to present or absent.
         required: false
         type: list
         elements: int
@@ -200,7 +201,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Create iscsi target with direct connection
+- name: Create iscsi target with direct connection type
   hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
       connection_type: "direct"
@@ -218,9 +219,8 @@ EXAMPLES = """
       chap_users:
         - chap_user_name: user1
           chap_secret: Secret1
-  register: result
 
-- name: Update iscsi target host mode and options
+- name: Update iscsi target host mode and options for direct connection type
   hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
       connection_type: "direct"
@@ -233,9 +233,8 @@ EXAMPLES = """
       port: 'CL4-C'
       host_mode: LINUX
       host_mode_options: [54, 63]
-  register: result
 
-- name: Add chap users to iscsi target
+- name: Add chap users to iscsi target for direct connection type
   hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
       connection_type: "direct"
@@ -252,9 +251,8 @@ EXAMPLES = """
           chap_secret: Secret1
         - chap_user_name: user2
           chap_secret: Secret2
-  register: result
 
-- name: Remove chap user from iscsi target
+- name: Remove chap user from iscsi target for direct connection type
   hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
       connection_type: "direct"
@@ -269,9 +267,8 @@ EXAMPLES = """
       chap_users:
         - chap_user_name: user2
           chap_secret: Secret2
-  register: result
 
-- name: Add iqn initiators to iscsi target
+- name: Add iqn initiators to iscsi target for direct connection type
   hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
       connection_type: "direct"
@@ -285,22 +282,22 @@ EXAMPLES = """
       port: 'CL4-C'
       iqn_initiators:
         - iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
-  register: result
 
-- name: Attach ldevs to iscsi target
+- name: Attach ldevs to iscsi target for gateway connection type
   hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
       connection_type: "gateway"
       address: gateway.company.com
       api_token: "api_token"
       subscriber_id: 811150
+    storage_system_info:
+      serial: 40014
     state: present
     spec:
       state: attach_ldev
       name: 'iscsi-target-server-1'
       port: 'CL4-C'
       ldevs: [300, 400]
-  register: result
 """
 
 RETURN = r"""

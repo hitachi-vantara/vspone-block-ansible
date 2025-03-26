@@ -14,6 +14,7 @@ try:
     from ..provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
     from ..model.vsp_gad_pairs_models import VspGadPairSpec
     from ..common.hv_constants import StateValue, ConnectionTypes
+    from ..message.vsp_gad_pair_msgs import GADPairValidateMSG
     from ..model.vsp_resource_group_models import (
         VSPResourceGroupFactSpec,
     )
@@ -28,6 +29,7 @@ try:
     from ..common.uaig_utils import UAIGResourceID
 
 except ImportError:
+    from message.vsp_gad_pair_msgs import GADPairValidateMSG
     from common.ansible_common import (
         log_entry_exit,
         camel_to_snake_case,
@@ -113,7 +115,7 @@ class VSPGadPairReconciler:
             resp_data = self.swap_split_gad_pair(spec, None)
         elif state == StateValue.SWAP_RESYNC:
             resp_data = self.swap_resync_gad_pair(spec, None)
-        elif state == StateValue.RESIZE:
+        elif state == StateValue.RESIZE or state == StateValue.EXPAND:
             resp_data = self.resize_gad_pair(spec, None)
         else:
             return
@@ -127,7 +129,7 @@ class VSPGadPairReconciler:
 
             resp_in_dict = resp_data.to_dict()
 
-            if state == StateValue.RESIZE:
+            if state == StateValue.RESIZE or state == StateValue.EXPAND:
                 # Show pvol and svol size in case of resize.
                 pvolData = self.provisioner.get_volume_by_id(resp_in_dict["pvolLdevId"])
                 resp_in_dict["primaryVolumeSize"] = convert_block_capacity(
@@ -186,6 +188,7 @@ class VSPGadPairReconciler:
             StateValue.SWAP_SPLIT,
             StateValue.SWAP_RESYNC,
             StateValue.RESIZE,
+            StateValue.EXPAND,
         ]:
             self.validate_gad_spec_for_ops(spec)
             if self.connection_info.connection_type == ConnectionTypes.DIRECT:
@@ -217,6 +220,7 @@ class VSPGadPairReconciler:
             StateValue.SWAP_SPLIT: self.swap_split_gad_pair,
             StateValue.SWAP_RESYNC: self.swap_resync_gad_pair,
             StateValue.RESIZE: self.resize_gad_pair,
+            StateValue.EXPAND: self.resize_gad_pair,
         }
         #  sng1104 - GAD Operations, invoke rec_methods
         if pair and rec_methods.get(state):
@@ -258,7 +262,7 @@ class VSPGadPairReconciler:
                 pair = response
                 logger.writeDebug("RC:gad_pair_reconcile:pair1={}", pair)
                 self.get_other_attributes(spec, pair)
-                if state == StateValue.RESIZE:
+                if state == StateValue.RESIZE or state == StateValue.EXPAND:
                     return pair
                 pair = DirectGADCopyPairInfoExtractor(
                     self.storage_serial_number
@@ -293,6 +297,11 @@ class VSPGadPairReconciler:
 
             if not pair:
                 pair = self.create_update_gad_pair(spec, pair)
+                if spec.secondary_nvm_subsystem is not None:
+                    pair = self.provisioner.get_gad_pair_by_pvol_id(
+                        spec, spec.primary_volume_id
+                    )
+                    logger.writeDebug("RC:206:pair={}", pair)
             logger.writeDebug("RC:270:pair={}", pair)
 
             if isinstance(pair, dict):
@@ -316,8 +325,9 @@ class VSPGadPairReconciler:
     def validate_create_spec(self, spec: Any) -> None:
 
         # These are commom for both direct and gateway
-        if spec.secondary_storage_serial_number is None:
-            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_STORAGE_SN.value)
+        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
+            if spec.secondary_storage_serial_number is None:
+                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_STORAGE_SN.value)
 
         if spec.primary_volume_id is None:
             raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
@@ -325,8 +335,8 @@ class VSPGadPairReconciler:
         if spec.secondary_pool_id is None:
             raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_POOL_ID.value)
 
-        if spec.secondary_hostgroups is None:
-            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS.value)
+        if spec.secondary_hostgroups is None and spec.secondary_nvm_subsystem is None:
+            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS_OR_NVME.value)
 
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
             if self.secondary_connection_info is None:
@@ -360,7 +370,15 @@ class VSPGadPairReconciler:
 
     @log_entry_exit
     def delete_gad_pair(self, spec, pair):
-        return self.provisioner.delete_gad_pair(spec, pair)
+        rsp = self.provisioner.delete_gad_pair(spec, pair)
+        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
+            return rsp
+
+        if rsp == GADPairValidateMSG.DELETE_GAD_FAIL_SPLIT_DIRECT.value:
+            pair = self.provisioner.split_gad_pair(spec, pair)
+            rsp = self.provisioner.delete_gad_pair(spec, pair)
+
+        return rsp
 
     @log_entry_exit
     def split_gad_pair(self, spec, pair):
@@ -694,6 +712,9 @@ class VSPGadPairReconciler:
         if self.connection_info.connection_type != ConnectionTypes.DIRECT:
             return
 
+        spec.secondary_storage_serial_number = (
+            self.provisioner.get_secondary_serial_direct(spec)
+        )
         copy_group_list = self.provisioner.get_copy_group_list()
         logger.writeDebug("RC::copy_group_list={}", copy_group_list)
         logger.writeDebug("RC::gad_copy_pairs={}", gad_copy_pairs)

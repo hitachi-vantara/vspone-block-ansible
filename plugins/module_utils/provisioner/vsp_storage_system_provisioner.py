@@ -336,6 +336,10 @@ class VSPStorageSystemProvisioner:
 
     @log_entry_exit
     def get_storage_system(self, serial_number, query):
+        if serial_number is None:
+            current_storage_system = self.gateway.get_current_storage_system_info()
+            serial_number = current_storage_system.serialNumber
+
         # Get a list of storage system
         storage_systems = self.gateway.get_storage_systems()
         tmp_storage_info = {}

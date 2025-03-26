@@ -54,9 +54,10 @@ class VSPShadowImagePairReconciler:
 
         shadow_image_data = None
         try:
-            shadow_image_data = self.shadow_image_pair_get_by_pvol_and_svol(
-                self.shadowImagePairSpec.pvol, self.shadowImagePairSpec.svol
-            )
+            if self.shadowImagePairSpec.pvol and self.shadowImagePairSpec.svol:
+                shadow_image_data = self.shadow_image_pair_get_by_pvol_and_svol(
+                    self.shadowImagePairSpec.pvol, self.shadowImagePairSpec.svol
+                )
         except Exception as e:
             logger.writeError(f"An error occurred: {str(e)}")
         pairId = None
@@ -234,6 +235,8 @@ class ShadowImagePairPropertyExtractor:
             "type": str,
             "copy_group_name": str,
             "copy_pair_name": str,
+            "pvol_nvm_subsystem_name": str,
+            "svol_nvm_subsystem_name": str,
         }
         self.serial = serial
 

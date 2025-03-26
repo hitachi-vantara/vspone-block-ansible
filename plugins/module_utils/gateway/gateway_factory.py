@@ -61,6 +61,8 @@ from .vsp_resource_group_gateway import (
     VSPResourceGroupDirectGateway,
     VSPResourceGroupUAIGateway,
 )
+from .vsp_user_group_gateway import VSPUserGroupDirectGateway
+from .vsp_user_gateway import VSPUserDirectGateway
 from .vsp_gad_pair_gateway import VSPGadPairDirectGateway, GADPairUAIGateway
 from .vsp_cmd_dev_gateway import VSPCmdDevDirectGateway
 from .vsp_rg_lock_gateway import (
@@ -71,10 +73,17 @@ from .vsp_remote_storage_registration_gw import (
     VSPRemoteStorageRegistrationDirectGateway,
 )
 from .vsp_config_map_gateway import VSPConfigMapUAIGateway, VSPConfigMapDirectGateway
-
+from .vsp_quorum_disk_gateway import VSPQuorumDiskDirectGateway
+from .vsp_remote_connection_gateway import VSPRemoteConnectionDirectGateway
+from .vsp_external_volume_gateway import VSPExternalVolumeDirectGateway
+from .vsp_iscsi_remote_connection_gateway import VSPIscsiRemoteConnectionDirectGateway
+from .vsp_local_copy_group_gateway import (
+    VSPLocalCopyGroupDirectGateway,
+)
 
 GATEWAY_MAP = {
     ConnectionTypes.DIRECT: {
+        GatewayClassTypes.VSP_EXT_VOLUME: VSPExternalVolumeDirectGateway,
         GatewayClassTypes.VSP_CONFIG_MAP: VSPConfigMapDirectGateway,
         GatewayClassTypes.VSP_VOLUME: VSPVolumeDirectGateway,
         GatewayClassTypes.VSP_HOST_GROUP: VSPHostGroupDirectGateway,
@@ -87,14 +96,18 @@ GATEWAY_MAP = {
         GatewayClassTypes.VSP_NVME_SUBSYSTEM: VSPOneNvmeSubsystemDirectGateway,
         GatewayClassTypes.VSP_TRUE_COPY: VSPTrueCopyDirectGateway,
         #  sng1104
+        GatewayClassTypes.VSP_QUORUM_DISK: VSPQuorumDiskDirectGateway,
         GatewayClassTypes.VSP_GAD_PAIR: VSPGadPairDirectGateway,
         GatewayClassTypes.VSP_HUR: VSPHurDirectGateway,
         GatewayClassTypes.VSP_RESOURCE_GROUP: VSPResourceGroupDirectGateway,
         GatewayClassTypes.VSP_COPY_GROUPS: VSPCopyGroupsDirectGateway,
+        GatewayClassTypes.VSP_LOCAL_COPY_GROUP: VSPLocalCopyGroupDirectGateway,
         GatewayClassTypes.VSP_CMD_DEV: VSPCmdDevDirectGateway,
         GatewayClassTypes.VSP_RG_LOCK: VSPResourceGroupLockDirectGateway,
         GatewayClassTypes.VSP_JOURNAL_VOLUME: VSPSJournalVolumeDirectGateway,
         GatewayClassTypes.VSP_REMOTE_STORAGE_REGISTRATION: VSPRemoteStorageRegistrationDirectGateway,
+        GatewayClassTypes.VSP_USER_GROUP: VSPUserGroupDirectGateway,
+        GatewayClassTypes.VSP_USER: VSPUserDirectGateway,
         # Add more mappings for direct connection types here
         GatewayClassTypes.SDSB_CHAP_USER: SDSBChapUserDirectGateway,
         GatewayClassTypes.SDSB_COMPUTE_NODE: SDSBComputeNodeDirectGateway,
@@ -105,9 +118,12 @@ GATEWAY_MAP = {
         GatewayClassTypes.SDSB_PORT: SDSBPortDirectGateway,
         GatewayClassTypes.SDSB_VPS: SDSBVpsDirectGateway,
         GatewayClassTypes.STORAGE_PORT: VSPStoragePortDirectGateway,
+        GatewayClassTypes.VSP_REMOTE_CONNECTION: VSPRemoteConnectionDirectGateway,
+        GatewayClassTypes.VSP_ISCSI_REMOTE_CONNECTION: VSPIscsiRemoteConnectionDirectGateway,
     },
     ConnectionTypes.GATEWAY: {
         GatewayClassTypes.VSP_COPY_GROUPS: VSPCopyGroupsDirectGateway,
+        GatewayClassTypes.VSP_LOCAL_COPY_GROUP: VSPLocalCopyGroupDirectGateway,
         GatewayClassTypes.VSP_CONFIG_MAP: VSPConfigMapUAIGateway,
         GatewayClassTypes.VSP_VOLUME: VSPVolumeUAIGateway,
         GatewayClassTypes.VSP_HOST_GROUP: VSPHostGroupUAIGateway,

@@ -23,8 +23,6 @@
     - name: Create an NVM Subsystem
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           id: 222
           ports: ["CL1-B", "CL1-D"]
@@ -54,8 +52,6 @@
     - name: Create an NVM Subsystem with a free ID
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           ports: ["CL1-B", "CL1-D"]
           name: "test_nvm_subsystem_222"
@@ -85,8 +81,6 @@
     - name: Add host NQNs to an NVM Subsystem with a specific ID
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "add_host_nqn"
           id: 222
@@ -105,8 +99,6 @@
     - name: Add host NQNs to an NVM Subsystem with a specific Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "add_host_nqn"
           name: "test_nvm_subsystem_222"
@@ -125,8 +117,6 @@
     - name: Add namespaces and namespace paths to an NVM Subsystem with a specific ID
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "add_namespace"
           id: 222
@@ -148,8 +138,6 @@
     - name: Add namespaces and namespace paths to an NVM Subsystem with a specific Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "add_namespace"
           name: "test_nvm_subsystem_222"
@@ -171,8 +159,6 @@
     - name: Add ports to an NVM Subsystem with a specific ID
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "add_port"
           id: 222
@@ -189,8 +175,6 @@
     - name: Add ports to an NVM Subsystem with a specific Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "add_port"
           name: "test_nvm_subsystem_222"
@@ -209,8 +193,6 @@
     - name: Remove ports from an NVM Subsystem with a specific Name or ID
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "remove_port"
           # id: 222
@@ -228,8 +210,6 @@
     - name: Remove namespace paths from an NVM Subsystem with specific Id or Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           id: 222
           state: "remove_namespace_path"
@@ -260,8 +240,6 @@
     - name: Remove namespace from an NVM Subsystem with specific Id or Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           id: 222
           # name: "test_nvm_subsystem_222"
@@ -289,8 +267,6 @@
     - name: Remove namespace from an NVM Subsystem with specific Id or Name using force
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           id: 222
           # name: "test_nvm_subsystem_222"
@@ -320,8 +296,6 @@
     - name: Remove host NQNs from an NVM Subsystem with specific Id or Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           id: 222
           # name: "test_nvm_subsystem_222"
@@ -344,8 +318,6 @@
     - name: Remove host NQNs from an NVM Subsystem with a specific Id or Name using force
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           id: 222
           # name: "test_nvm_subsystem_222"
@@ -368,8 +340,6 @@
     - name: Update host NQNs nickname of an NVM Subsystem with a specific Id or Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "add_host_nqn"
           # name: "test_nvm_subsystem_222"
@@ -393,8 +363,6 @@
     - name: Update namespace nicknames of an NVM Subsystem with a specific Id or Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           state: "add_namespace"
           # name: "test_nvm_subsystem_222"
@@ -420,8 +388,6 @@
     - name: Delete an NVM Subsystem with a specific Id
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           id: 222
@@ -438,8 +404,6 @@
     - name: Delete an NVM Subsystem with a specific Id forcefully
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           id: 222
@@ -460,8 +424,6 @@
     - name: Delete an NVM Subsystem with a specific Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           name: "test_nvm_subsystem_222"
@@ -478,8 +440,6 @@
     - name: Delete an NVM Subsystem with a specific Name forcefully
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           name: "test_nvm_subsystem_222"

@@ -23,6 +23,16 @@ class HurHostGroupSpec:
         return asdict(self)
 
 
+@dataclass
+class NVMeSubsystemSpec:
+    id: Optional[int] = None
+    name: Optional[str] = None
+    paths: Optional[List[str]] = None
+
+    def to_dict(self):
+        return asdict(self)
+
+
 #  20240812 tag.HUR
 @dataclass
 class HurFactSpec(SingleBaseClass):
@@ -62,6 +72,7 @@ class HurSpec(SingleBaseClass):
     secondary_storage_serial_number: Optional[int] = None
     secondary_pool_id: Optional[int] = None
     secondary_hostgroups: Optional[List[HurHostGroupSpec]] = None
+    secondary_nvm_subsystem: Optional[NVMeSubsystemSpec] = None
     primary_volume_journal_id: Optional[int] = None
     secondary_volume_journal_id: Optional[int] = None
     mirror_unit_id: Optional[int] = None
@@ -89,6 +100,13 @@ class HurSpec(SingleBaseClass):
             self.secondary_hostgroups = [
                 HurHostGroupSpec(**kwargs.get("secondary_hostgroup"))
             ]
+        if (
+            "secondary_nvm_subsystem" in kwargs
+            and kwargs.get("secondary_nvm_subsystem") is not None
+        ):
+            self.secondary_nvm_subsystem = NVMeSubsystemSpec(
+                **kwargs.get("secondary_nvm_subsystem")
+            )
 
 
 @dataclass

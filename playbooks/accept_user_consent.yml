@@ -26,16 +26,28 @@
         existing_data: "{{ existing_consent_file.content | b64decode | from_json }}"
       when: consent_file_exists.stat.exists
 
-    - name: Prompt user for consent
+    - name: Set user_input from CLI argument if provided
+      ansible.builtin.set_fact:
+        user_input: "{{ args }}"
+      when: args is defined and args | length > 0
+
+    - name: Prompt for consent if no CLI argument provided
       ansible.builtin.pause:
         prompt: "{{ consent_msg | trim }}"
-      register: user_input
+      register: pause_result
+      when: args is not defined or args | length == 0
+
+    - name: Use prompted value if no CLI argument provided
+      ansible.builtin.set_fact:
+        user_input: "{{ pause_result.user_input }}"
+      when: args is not defined or args | length == 0
+    - name: Debug user_input before setting consent
+      ansible.builtin.debug:
+        var: user_input
 
     - name: Set consent variable
       ansible.builtin.set_fact:
-        # Set to string "True" or "False" based on user input (ignoring case)
-        user_consent: "{{ 'True' if user_input.user_input | lower == 'yes' else 'False' }}"
-
+        user_consent: "{{ 'True' if (user_input is boolean and user_input) or (user_input | string | lower == 'yes') else 'False' }}"
     - name: Generate unique site ID if file does not exist
       ansible.builtin.command:
         cmd: uuidgen
@@ -45,8 +57,6 @@
 
     - name: Set site ID variable
       ansible.builtin.set_fact:
-        # If the file exists, we keep the previously stored site_id;
-        # otherwise, use the newly generated UUID.
         site_id: "{{ site_id_output.stdout if not consent_file_exists.stat.exists else existing_data.site_id }}"
 
     - name: Get current UTC time
@@ -65,7 +75,6 @@
         state: directory
         mode: "0755"
 
-    # If a previous file exists, we create a record of its current consent values.
     - name: Set previous consent record if exists
       ansible.builtin.set_fact:
         previous_record:
@@ -74,15 +83,13 @@
       when: consent_file_exists.stat.exists and
         (existing_data.user_consent_accepted is defined and existing_data.time is defined)
 
-    # Set the consent_history variable. If the file already has a history, keep it,
-    # then append the previous record (if available). Otherwise, set to an empty list.
     - name: Build consent history when file exists
       ansible.builtin.set_fact:
         consent_history: >-
           {{
             (existing_data.consent_history | default([]))
             +
-            ( [ previous_record ] if (previous_record is defined) else [] )
+            ([ previous_record ] if (previous_record is defined) else [])
           }}
       when: consent_file_exists.stat.exists
 
@@ -91,7 +98,6 @@
         consent_history: []
       when: not consent_file_exists.stat.exists
 
-    # Build the final consent data dictionary in the desired JSON format.
     - name: Build consent data dictionary
       ansible.builtin.set_fact:
         consent_data:
@@ -109,4 +115,3 @@
     - name: Display consent response
       ansible.builtin.debug:
         msg: "The consent response was recorded successfully."
-      # msg: "Consent response recorded successfully as : {{ 'Yes' if user_consent else 'No' }}"

@@ -677,6 +677,7 @@ class VSPHurProvisioner:
             tc = self.get_replication_pair_by_id(rep_pair_id)
             return camel_dict_to_snake_case(tc.to_dict()), comment
         else:
+            err_msg = ""
             pair_exiting = self.gateway.get_replication_pair(spec)
             if pair_exiting is None:
                 err_msg = (
@@ -700,6 +701,8 @@ class VSPHurProvisioner:
                                 spec.copy_group_name, pair_elements[2]
                             )
                         )
+                        logger.writeError(err_msg)
+                        raise ValueError(err_msg)
                     elif spec.remote_device_group_name != pair_elements[3]:
                         err_msg = (
                             HurFailedMsg.PAIR_SPLIT_FAILED.value
@@ -707,8 +710,8 @@ class VSPHurProvisioner:
                                 spec.copy_group_name, pair_elements[3]
                             )
                         )
-                    logger.writeError(err_msg)
-                    raise ValueError(err_msg)
+                        logger.writeError(err_msg)
+                        raise ValueError(err_msg)
             if (
                 pair_exiting["pvol_status"] == "PSUS"
                 and pair_exiting["svol_status"] == "SSUS"
@@ -1001,8 +1004,12 @@ class VSPHurProvisioner:
 
         secondary_vol_id = None
         try:
-            secondary_vol_id = rr_prov.get_secondary_volume_id(pvol, spec)
+            if spec.secondary_nvm_subsystem is not None:
+                secondary_vol_id = rr_prov.get_secondary_volume_id_when_nvme(pvol, spec)
+            else:
+                secondary_vol_id = rr_prov.get_secondary_volume_id(pvol, spec)
             spec.secondary_volume_id = secondary_vol_id
+            spec.is_data_reduction_force_copy = pvol.isDataReductionShareEnabled
             result = self.gateway.create_hur_pair(spec)
             self.logger.writeDebug(f"create_hur_direct result: {result}")
 
@@ -1017,7 +1024,15 @@ class VSPHurProvisioner:
             # if the HUR creation fails, delete the secondary volume
             err_msg = HurFailedMsg.PAIR_CREATION_FAILED.value + str(ex)
             if secondary_vol_id:
-                rr_prov.delete_volume(secondary_vol_id, spec)
+                if spec.secondary_nvm_subsystem is not None:
+                    rr_prov.delete_volume_when_nvme(
+                        secondary_vol_id,
+                        pvol.nvmSubsystemId,
+                        spec.secondary_nvm_subsystem,
+                        pvol.namespaceId,
+                    )
+                else:
+                    rr_prov.delete_volume(secondary_vol_id, spec)
                 logger.writeError(err_msg)
             raise ValueError(err_msg)
 

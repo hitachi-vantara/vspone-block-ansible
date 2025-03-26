@@ -87,6 +87,9 @@ class DirectCopyPairInfo(SingleBaseClass):
     svolJournalId: int = ""
     isAluaEnabled: Optional[bool] = None
 
+    def to_dict(self):
+        return asdict(self)
+
 
 @dataclass
 class DirectCopyPairInfoList(BaseDataClass):

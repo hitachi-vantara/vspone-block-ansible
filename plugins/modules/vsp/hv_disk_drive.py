@@ -33,15 +33,6 @@ options:
     required: false
     choices: ['present']
     default: 'present'
-  storage_system_info:
-    description: Information about the storage system.
-    type: dict
-    required: false
-    suboptions:
-      serial:
-        description: The serial number of the storage system.
-        type: str
-        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
@@ -57,20 +48,6 @@ options:
         required: false
       password:
         description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
-        type: str
-        required: false
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['gateway', 'direct']
-        default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway. Not needed for this module.
         type: str
         required: false
   spec:
@@ -89,14 +66,13 @@ options:
 """
 
 EXAMPLES = """
-- name: Change disk drive settings
+- name: Change disk drive settings for direct connection type
   hitachivantara.vspone_block.vsp.hv_disk_drive:
     connection_info:
       address: storage1.company.com
-      api_token: "api_token"
+      username: "admin"
+      password: "secret"
       connection_type: "direct"
-    storage_system_info:
-      serial: "811150"
     state: "present"
     spec:
       drive_location_id: "0-16"
@@ -111,7 +87,7 @@ disk_drive:
   elements: dict
   contains:
     copyback_mode:
-      description: Indicates if copyback mode is enabled.
+      description: Indicates if copy-back mode is enabled.
       type: bool
       sample: true
     drive_type:
@@ -200,7 +176,7 @@ class VSPDiskDriveManager:
         try:
             self.params_manager = VSPParametersManager(self.module.params)
             self.spec = self.params_manager.get_drives_fact_spec()
-            self.serial = self.params_manager.get_serial()
+            self.serial = None
             self.state = self.params_manager.get_state()
             self.connection_info = self.params_manager.get_connection_info()
         except Exception as e:

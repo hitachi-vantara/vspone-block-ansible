@@ -27,8 +27,6 @@
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           copy_group_name: "hur_copy_group_name_1"
@@ -44,6 +42,7 @@
             name: "ansible-hostgroup-2"
             port: "CL1-A"
           mirror_unit_id: 0
+          is_data_reduction_force_copy: false
 
       register: result
 
@@ -58,8 +57,6 @@
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           copy_group_name: "hur_local_device_group_name_1"
@@ -82,8 +79,6 @@
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "split"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
@@ -105,8 +100,6 @@
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "resync"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
@@ -120,16 +113,15 @@
       ansible.builtin.debug:
         var: result
     
-    #####################################################################
+    #########################################################################
     # Task 5 : Swap-Split HUR pair
-    #          Storages need to be swapped before swap-split operation. Please specify       connection_info and secondary_connection_info accordingly. 
-    ######################################################################
+    # Storages need to be swapped before swap-split operation. Please specify
+    # connection_info and secondary_connection_info accordingly.
+    #########################################################################
     - name: Swap-Split HUR pair
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info: "{{ secondary_connection_info }}" # Remote Storage Connection info
         secondary_connection_info: "{{ connection_info }}" # Local Storage Connection info
-        storage_system_info:
-          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
         state: "swap_split"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
@@ -151,8 +143,6 @@
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info: "{{ secondary_connection_info }}" # Remote Storage Connection info
         secondary_connection_info: "{{ connection_info }}" # Local Storage Connection info
-        storage_system_info:
-          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
         state: "swap_resync"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
@@ -173,8 +163,6 @@
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
@@ -189,19 +177,48 @@
         var: result
 
     #####################################################################
-    # Task 8 : Resize HUR pair
+    # Task 8 : Expand HUR pair
     ######################################################################
-    - name: Resize HUR pair
+    - name: Expand HUR pair
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
-        state: "resize"
+        state: "expand"
         spec:
           copy_group_name: "hur_copy_group_name_1"
           copy_pair_name: "hur_copy_pair_name_1"
           new_volume_size: "10GB"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task 9 : Create HUR-NVMe pair
+    ######################################################################
+    - name: Create HUR pair in new copy group
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "present"
+        spec:
+          copy_group_name: "hur_copy_group_name_1"
+          copy_pair_name: "hur_copy_pair_name_1"
+          primary_volume_id: 1273
+          secondary_pool_id: 0
+          primary_volume_journal_id: 11
+          secondary_volume_journal_id: 13
+          local_device_group_name: "hur_local_device_group_name_1"
+          remote_device_group_name: "hur_remote_device_group_name_1"
+          consistency_group_id: 1
+          secondary_nvm_subsystem:
+            name: gk-nvm-sub-75
+            paths:
+              - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
+          mirror_unit_id: 0
+          is_data_reduction_force_copy: false
 
       register: result
 

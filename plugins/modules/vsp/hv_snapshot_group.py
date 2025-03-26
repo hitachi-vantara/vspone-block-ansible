@@ -86,10 +86,8 @@ options:
 """
 
 EXAMPLES = """
-- name: Split snapshots using snapshot group name
+- name: Split snapshots using snapshot group name for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot_group:
-    storage_system_info:
-      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -99,10 +97,8 @@ EXAMPLES = """
     spec:
       snapshot_group_name: 'NewNameSPG'
 
-- name: Restore snapshots using snapshot group name
+- name: Restore snapshots using snapshot group name for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot_group:
-    storage_system_info:
-      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -112,10 +108,8 @@ EXAMPLES = """
     spec:
       snapshot_group_name: 'NewNameSPG'
 
-- name: Resync snapshots using snapshot group name
+- name: Resync snapshots using snapshot group name for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot_group:
-    storage_system_info:
-      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -125,10 +119,8 @@ EXAMPLES = """
     spec:
       snapshot_group_name: 'NewNameSPG'
 
-- name: Delete snapshots using snapshot group name
+- name: Delete snapshots using snapshot group name for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot_group:
-    storage_system_info:
-      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "admin"
@@ -260,7 +252,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.messag
 
 
 @LogDecorator.debug_methods
-class VSPHtiSnapshotGrpFactManager:
+class VSPHtiSnapshotGroupManager:
 
     def __init__(self):
         self.logger = Log()
@@ -327,7 +319,7 @@ class VSPHtiSnapshotGrpFactManager:
 
 def main(module=None):
     """Main function to execute the module."""
-    obj_store = VSPHtiSnapshotGrpFactManager()
+    obj_store = VSPHtiSnapshotGroupManager()
     obj_store.apply()
 
 

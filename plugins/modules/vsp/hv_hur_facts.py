@@ -30,7 +30,8 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the storage system.
+    description:
+      - Information about the storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -72,7 +73,7 @@ options:
         default: 'direct'
   secondary_connection_info:
     description: Information required to establish a connection to the secondary storage system.
-      This field is required for dirtect connection type only.
+      This field is required for direct connection type only.
     required: false
     type: dict
     suboptions:
@@ -133,16 +134,18 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all HUR pairs for direct connection
+- name: Get all HUR pairs for direct connection type
   hv_truecopy_facts:
-    storage_system_info:
-      serial: "811150"
     connection_info:
       address: gateway.company.com
       username: "admin"
       password: "password"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
 
-- name: Get all HUR pairs for gateway connection for a specific subscriber
+- name: Get all HUR pairs for gateway connection for a specific subscriber for gateway connection type
   hv_truecopy_facts:
     storage_system_info:
       serial: "811150"
@@ -150,76 +153,82 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
 
-- name: Gather HUR facts with primary volume and mirror unit ID for direct connection
+- name: Gather HUR facts with primary volume and mirror unit ID for direct connection type
   hitachivantara.vspone_block.vsp.hv_hur_facts:
-    storage_system_info:
-      serial: "811150"
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "password"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
     spec:
       primary_volume_id: 111
       mirror_unit_id: 10
 
-- name: Gather HUR facts with primary volume and mirror unit ID for gateway connection
+- name: Gather HUR facts with primary volume and mirror unit ID for gateway connection type
   hitachivantara.vspone_block.vsp.hv_hur_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
       address: storage1.company.com
-      api_token: "xxx"
+      api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 111
       mirror_unit_id: 10
 
-- name: Gather HUR facts for a specific primary volume for direct connection
+- name: Gather HUR facts for a specific primary volume for direct connection type
   hitachivantara.vspone_block.vsp.hv_hur_facts:
-    storage_system_info:
-      serial: "811150"
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "password"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
     spec:
       primary_volume_id: 111
 
-- name: Gather HUR facts for a specific primary volume for gateway connection
+- name: Gather HUR facts for a specific primary volume for gateway connection type
   hitachivantara.vspone_block.vsp.hv_hur_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
-      address: storage1.company.com
-      api_token: "xxx"
+      address: gateway.company.com
+      api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 111
 
-- name: Gather HUR facts for a specific secondary volume for direct connection
+- name: Gather HUR facts for a specific secondary volume for direct connection type
   hitachivantara.vspone_block.vsp.hv_hur_facts:
-    storage_system_info:
-      serial: "811150"
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "password"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
     spec:
       secondary_volume_id: 111
 
-- name: Gather HUR facts for a specific secondary volume for gateway connection
+- name: Gather HUR facts for a specific secondary volume for gateway connection type
   hitachivantara.vspone_block.vsp.hv_hur_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
-      address: storage1.company.com
-      api_token: "xxx"
+      address: gateway.company.com
+      api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       secondary_volume_id: 111
 """

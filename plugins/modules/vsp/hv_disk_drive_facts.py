@@ -53,21 +53,6 @@ options:
         description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
         type: str
         required: false
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['gateway', 'direct']
-        default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-          This field is not required for this module.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type. Not required for this module.
-        type: str
-        required: false
   spec:
     description: Specification for the hard drive facts to be gathered.
     type: dict
@@ -112,7 +97,7 @@ ansible_facts:
       elements: dict
       contains:
         copyback_mode:
-          description: Indicates if copyback mode is enabled.
+          description: Indicates if copy-back mode is enabled.
           type: bool
           sample: true
         drive_type:

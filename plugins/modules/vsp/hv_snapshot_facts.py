@@ -30,7 +30,7 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the storage system.
+    description: Information about the storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -87,7 +87,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all snapshot pairs
+- name: Get all snapshot pairs for gateway connection type
   hitachivantara.vspone_block.vsp.hv_snapshot_facts:
     storage_system_info:
       serial: '811150'
@@ -96,10 +96,8 @@ EXAMPLES = """
       connection_type: "gateway"
       api_token: "api_token_value"
 
-- name: Gather snapshot facts with primary volume and mirror unit ID
+- name: Gather snapshot facts with primary volume and mirror unit ID for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot_facts:
-    storage_system_info:
-      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
@@ -109,10 +107,8 @@ EXAMPLES = """
       primary_volume_id: 525
       mirror_unit_id: 10
 
-- name: Gather snapshot facts with only primary volume
+- name: Gather snapshot facts with only primary volume for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot_facts:
-    storage_system_info:
-      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
@@ -121,10 +117,8 @@ EXAMPLES = """
     spec:
       primary_volume_id: 'volume1'
 
-- name: Gather snapshot facts without specific volume or mirror unit ID
+- name: Gather snapshot facts without specific volume or mirror unit ID for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot_facts:
-    storage_system_info:
-      serial: '811150'
     connection_info:
       address: storage1.company.com
       username: "dummy_user"

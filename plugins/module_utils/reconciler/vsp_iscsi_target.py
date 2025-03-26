@@ -13,6 +13,7 @@ try:
         IscsiTargetSpec,
     )
     from ..common.hv_constants import VSPIscsiTargetConstant, StateValue
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..message.vsp_iscsi_target_msgs import VSPIscsiTargetMessage
 except ImportError:
     from provisioner.vsp_iscsi_target_provisioner import VSPIscsiTargetProvisioner
@@ -29,18 +30,26 @@ except ImportError:
         IscsiTargetSpec,
     )
     from common.hv_constants import VSPIscsiTargetConstant, StateValue
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from message.vsp_iscsi_target_msgs import VSPIscsiTargetMessage
 
 
 class VSPIscsiTargetReconciler:
 
-    def __init__(self, connectionInfo, serial):
-        self.connectionInfo = connectionInfo
+    def __init__(self, connection_info, serial):
+        self.connection_info = connection_info
         self.serial = serial
-        self.provisioner = VSPIscsiTargetProvisioner(self.connectionInfo)
+        if self.serial is None:
+            self.serial = self.get_storage_serial_number()
+        self.provisioner = VSPIscsiTargetProvisioner(self.connection_info)
 
     def get_iscsi_targets(self, spec):
         return self.provisioner.get_iscsi_targets(spec, self.serial)
+
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     def pre_check_sub_state(self, spec):
         sub_state = spec.state
@@ -77,7 +86,7 @@ class VSPIscsiTargetReconciler:
 
     def pre_check_port(self, port):
         logger = Log()
-        logger.writeInfo("port = {}", port)
+        logger.writeDebug("port = {}", port)
         if not port:
             raise Exception("Port {} is not in the storage system.".format(port))
         if port:

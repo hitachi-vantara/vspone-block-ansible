@@ -17,6 +17,7 @@ class VSPHostGroupMessage(Enum):
     DELETE_SUCCESSFULLY = "Hostgroup {} is deleted successfully."
     HG_NAME_EMPTY = "The host group name parameter cannot be empty."
     HG_CREATE_FAILED = "Host group create failed. "
+    HG_IN_META_NOT_AVAILABLE = "Host group in meta resource not available."
 
 
 class VSPHostGroupValidationMsg(Enum):
@@ -30,9 +31,7 @@ class VSPHostGroupValidationMsg(Enum):
     HOST_MODE_OUT_OF_RANGE = (
         "The host mode is out of range. Specify a value in the range from 1 to 256."
     )
-    HOST_MODE_OPTION_OUT_OF_RANGE = (
-        "The host mode option is out of range. Specify a value in the range from 0 to 999."
-    )
+    HOST_MODE_OPTION_OUT_OF_RANGE = "The host mode option is out of range. Specify a value in the range from 0 to 999."
     WWN_OUT_OF_RANGE = (
         "The wwn is out of range. Specify a value in the range from 1 to 256."
     )

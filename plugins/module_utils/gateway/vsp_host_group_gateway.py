@@ -279,6 +279,22 @@ class VSPHostGroupDirectGateway:
         return VSPHostGroupsInfo(dicts_to_dataclass_list(lstHg, VSPHostGroupInfo))
 
     @log_entry_exit
+    def get_host_groups_from_meta_resource(self, port):
+        logger = Log()
+        freeHgNumlst = []
+
+        end_point = self.end_points.GET_HOST_GROUPS.format(
+            "?portId={}&isUndefined=true&detailInfoType=resourceGroup".format(port)
+        )
+        resp = self.rest_api.read(end_point)
+
+        for hg in resp["data"]:
+            if hg["resourceGroupId"] == 0 and hg["isDefined"] is False:
+                freeHgNumlst.append(hg["hostGroupNumber"])
+        logger.writeDebug("free Hostgroup list = {}", freeHgNumlst)
+        return freeHgNumlst
+
+    @log_entry_exit
     def get_host_groups_of_a_port(self, port_id):
         Log()
         lstHg = []
@@ -326,8 +342,14 @@ class VSPHostGroupDirectGateway:
             raise Exception(VSPHostGroupMessage.PORT_TYPE_INVALID.value)
 
         logger = Log()
+        hostGroupNumber = self.get_host_groups_from_meta_resource(port)
+        logger.writeDebug("HostGroup List = {}", hostGroupNumber)
+        if len(hostGroupNumber) == 0:
+            raise Exception(VSPHostGroupMessage.HG_IN_META_NOT_AVAILABLE.value)
+
         end_point = self.end_points.POST_HOST_GROUPS
         data = {}
+        data["hostGroupNumber"] = hostGroupNumber[0]
         data["portId"] = port
         data["hostGroupName"] = name
         if host_mode in gHostMode:

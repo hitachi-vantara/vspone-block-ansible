@@ -32,7 +32,7 @@ except ImportError:
     from common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from common.hv_log import Log
     from .vsp_replication_pairs_gateway import VSPReplicationPairsDirectGateway
-    from vsp_volume import VSPVolumeUAIGateway
+    from .vsp_volume import VSPVolumeUAIGateway
     from message.vsp_gad_pair_msgs import GADPairValidateMSG
     from common.uaig_utils import UAIGResourceID
 
@@ -119,10 +119,14 @@ class VSPGadPairDirectGateway(VSPReplicationPairsDirectGateway):
     @log_entry_exit
     def create_gad_pair(self, spec) -> Dict[str, Any]:
 
-        secondary_storage_serial_number = spec.secondary_storage_serial_number
-        remote_storage_deviceId = self.get_storage_device_id(
-            str(secondary_storage_serial_number)
+        # secondary_storage_serial_number = spec.secondary_storage_serial_number
+        # remote_storage_deviceId = self.get_storage_device_id(
+        #     str(secondary_storage_serial_number)
+        # )
+        secondary_storage_info = self.get_secondary_storage_info(
+            spec.secondary_connection_info
         )
+        remote_storage_deviceId = secondary_storage_info.get("storageDeviceId")
         logger.writeDebug(
             f"115 spec.is_new_group_creation : {spec.is_new_group_creation}"
         )
@@ -491,6 +495,21 @@ class GADPairUAIGateway:
                 spec,
             )
             logger.writeDebug("GW:resize_replication_pair:svol_id={}", svol_id)
+        except Exception as ex:
+            logger.writeDebug(
+                "GW:resize_replication_pair:exception in expand volume:ex={}", ex
+            )
+            # if we split the pair, then we need to resync it before returning
+
+            if "AFA8" in str(ex):
+                raise ValueError(GADPairValidateMSG.EXPAND_VOLUME_FAILED.value)
+            else:
+                raise ValueError(
+                    GADPairValidateMSG.EXPAND_SVOL_FAILED.value.format(svol_id)
+                    + str(ex)
+                )
+
+        try:
             self.expand_volume(
                 self.connectionInfo, storage_resourceId, ldev_resource_id, spec
             )
@@ -499,13 +518,14 @@ class GADPairUAIGateway:
             logger.writeDebug(
                 "GW:resize_replication_pair:exception in expand volume:ex={}", ex
             )
-            # if we split the pair, then we need to resync it before returning
-            if split_required:
-                response = self.resync_gad_pair(pair.resourceId)
+
             if "AFA8" in str(ex):
                 raise ValueError(GADPairValidateMSG.EXPAND_VOLUME_FAILED.value)
             else:
-                raise (ex)
+                raise ValueError(
+                    GADPairValidateMSG.EXPAND_PVOL_FAILED.value.format(pvol_id)
+                    + str(ex)
+                )
 
         if split_required:
             response = self.resync_gad_pair(pair.resourceId)

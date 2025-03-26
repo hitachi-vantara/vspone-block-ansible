@@ -72,17 +72,12 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all storage systems
+- name: Get all storage systems for gateway connection type
   hitachivantara.vspone_block.vsp.hv_system_facts:
     connection_info:
       address: gateway.company.com
-      username: "ucpa"
-      password: "password"
-  register: result
-
-- name: Display result
-  debug:
-    var: result
+      api_token: "api token value"
+      connection_type: "gateway"
 """
 
 RETURN = """

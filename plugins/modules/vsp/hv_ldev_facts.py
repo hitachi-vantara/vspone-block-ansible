@@ -31,7 +31,8 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description:
+      - Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -104,7 +105,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Retrieve information about all LDEVs
+- name: Retrieve information about all LDEVs for gateway connection type
   hitachivantara.vspone_block.vsp.hv_ldev_facts:
     storage_system_info:
       serial: "811150"
@@ -116,10 +117,8 @@ EXAMPLES = """
     spec:
       count: 10
 
-- name: Retrieve information about a specific LDEV
+- name: Retrieve information about a specific LDEV for direct connection type
   hitachivantara.vspone_block.vsp.hv_ldev_facts:
-    storage_system_info:
-      serial: "811150"
     connection_info:
       address: storage1.company.com
       username: "admin"

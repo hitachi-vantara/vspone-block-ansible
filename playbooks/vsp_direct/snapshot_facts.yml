@@ -23,8 +23,6 @@
     - name: Get all snapshot pairs
       hitachivantara.vspone_block.vsp.hv_snapshot_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
       register: result
 
     - name: Debug the result variable
@@ -37,8 +35,6 @@
     - name: Get snapshot pairs with same primary_volume_id
       hitachivantara.vspone_block.vsp.hv_snapshot_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           primary_volume_id: 100
       register: result
@@ -53,8 +49,6 @@
     - name: Get one snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           primary_volume_id: 101
           mirror_unit_id: 1

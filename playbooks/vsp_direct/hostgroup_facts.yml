@@ -23,8 +23,6 @@
     - name: Get all hostgroups
       hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
       register: result
 
     - name: Debug the result variable
@@ -37,8 +35,6 @@
     - name: Get hostgroups of specific ports
       hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           ports: ["CL1-A"]
       register: result
@@ -53,8 +49,6 @@
     - name: Get hostgroups of specific ports with same hostgroup name
       hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           ports: ["CL1-A", "CL2-A"]
           name: "hatestdummy5"
@@ -70,8 +64,6 @@
     - name: Get hostgroups of specific ports, include wwns and ldevs
       hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           ports: ["CL2-B"]
           query:

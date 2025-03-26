@@ -23,8 +23,6 @@
     - name: Create ldev
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           ldev_id: 345
@@ -42,8 +40,6 @@
     - name: Create ldev with free id and present to NVM System
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           pool_id: 1
@@ -67,8 +63,6 @@
     - name: Present existing volume to NVM System
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           ldev_id: 164
@@ -89,8 +83,6 @@
     - name: Expand size of ldev
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           ldev_id: 345
@@ -107,8 +99,6 @@
     - name: Create ldev using parity group and auto free ldev id selection
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           parity_group: "1-1"
@@ -126,8 +116,6 @@
     - name: Create ldev with capacity saving and data_reduction_share
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           pool_id: 15
@@ -146,8 +134,6 @@
     - name: Remove host nqns from existing volume of NVM System
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           ldev_id: 164
@@ -167,8 +153,6 @@
     - name: Delete ldev
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           ldev_id: 345
@@ -184,8 +168,6 @@
     - name: Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           ldev_id: 345
@@ -202,8 +184,6 @@
     - name: The following request shreds an LDEV (basic volume) or DP volume. Overwrite the volume three times with dummy data
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           ldev_id: 345
@@ -220,8 +200,6 @@
     - name: The following request shreds an LDEV (basic volume) or DP volume. Overwrite the volume three times with dummy data before delete
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           ldev_id: 345
@@ -238,8 +216,6 @@
     - name: It configures the QoS settings for a specified volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           ldev_id: 345
@@ -263,8 +239,6 @@
     - name: It configures the QoS settings for a new volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           pool_id: 10
@@ -289,8 +263,6 @@
     - name: It configures the tiering policy for a new volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           pool_id: 10
@@ -315,8 +287,6 @@
     - name: It configures the virtual ldev for a new volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           pool_id: 11
@@ -334,8 +304,6 @@
     - name: It configures the virtual ldev for a volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           ldev_id: 11
@@ -352,8 +320,6 @@
     - name: It configures the virtual ldev for a volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           ldev_id: 11

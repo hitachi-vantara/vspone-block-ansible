@@ -33,7 +33,6 @@
       username: "{{ vault_secondary_storage_username }}"
       password: "{{ vault_secondary_storage_secret }}"
 
-    storage_serial: "40012"
 
   tasks:
   ####################################################################
@@ -43,8 +42,6 @@
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           lock_timeout_sec: 300
       register: lock_resource_group_result
@@ -64,8 +61,6 @@
         secondary_connection_info:
           address: "{{ secondary_connection_info.address }}"
           api_token: "{{ lock_resource_group_result.locked_resource_groups.remote_lock_token }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           copy_group_name: CGName-Master-S14-S15-Perf
           copy_pair_name: CPName-Perf-16025-NewTC25
@@ -94,8 +89,6 @@
         secondary_connection_info:
           address: "{{ secondary_connection_info.address }}"
           api_token: "{{ lock_resource_group_result.locked_resource_groups.remote_lock_token }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: split
         spec:
           copy_group_name: CGName-Master-S14-S15-Perf
@@ -118,8 +111,6 @@
         secondary_connection_info:
           address: "{{ secondary_connection_info.address }}"
           api_token: "{{ lock_resource_group_result.locked_resource_groups.remote_lock_token }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: resync
         spec:
           copy_group_name: CGName-Master-S14-S15-Perf
@@ -142,8 +133,6 @@
         secondary_connection_info:
           address: "{{ secondary_connection_info.address }}"
           api_token: "{{ lock_resource_group_result.locked_resource_groups.remote_lock_token }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: absent
         spec:
           copy_group_name: CGName-Master-S14-S15-Perf
@@ -166,8 +155,6 @@
         secondary_connection_info:
           address: "{{ secondary_connection_info.address }}"
           api_token: "{{ lock_resource_group_result.locked_resource_groups.remote_lock_token }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: absent
       register: unlock_resource_group_result
 

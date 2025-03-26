@@ -27,8 +27,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           copy_group_name: "tc-copy-group-1"
@@ -50,8 +48,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "present"
         spec:
           copy_group_name: "tc-copy-group-2"
@@ -85,8 +81,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "split"
         spec:
           copy_group_name: "tc-copy-group-1"
@@ -105,8 +99,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "split"
         spec:
           copy_group_name: "tc-copy-group-2"
@@ -127,8 +119,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "split"
         spec:
           copy_group_name: "tc-copy-group-3"
@@ -146,8 +136,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "resync"
         spec:
           copy_group_name: "tc-copy-group-1"
@@ -165,8 +153,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "resync"
         spec:
           copy_group_name: "tc-copy-group-2"
@@ -186,8 +172,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "resync"
         spec:
           copy_group_name: "tc-copy-group-2"
@@ -208,8 +192,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
         secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
-        storage_system_info:
-          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial Number
         state: "swap_split"
         spec:
           copy_group_name: "tc-copy-group-1"
@@ -230,8 +212,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
         secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
-        storage_system_info:
-          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
         state: "swap_split"
         spec:
           copy_group_name: "tc-copy-group-2"
@@ -252,9 +232,7 @@
     - name: Swap-Split TrueCopy pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
-        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
-        storage_system_info:
-          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
+        secondary_connection_info: "{{ connection_info }}" # Local Storage connection detailser
         state: "swap_split"
         spec:
           copy_group_name: "tc-copy-group-2"
@@ -273,8 +251,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
         secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
-        storage_system_info:
-          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
         state: "swap_resync"
         spec:
           copy_group_name: "tc-copy-group-1"
@@ -293,8 +269,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
         secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
-        storage_system_info:
-          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
         state: "swap_resync"
         spec:
           copy_group_name: "tc-copy-group-2"
@@ -315,8 +289,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
         secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
-        storage_system_info:
-          serial: "{{ secondary_storage_serial }}" # Remote Storage Serial number
         state: "swap_resync"
         spec:
           copy_group_name: "tc-copy-group-2"
@@ -334,8 +306,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           copy_group_name: "tc-copy-group-1"
@@ -353,8 +323,6 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
           copy_group_name: " tc-copy-group-2"
@@ -374,11 +342,9 @@
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "absent"
         spec:
-          copy_group_name: "tc_copy_group_name_1"
+          copy_group_name: "tc-copy-group-1"
           primary_volume_id: 188
       register: result
 
@@ -387,20 +353,73 @@
         var: result
 
     #####################################################################
-    # Task 18 : Resize TrueCopy pair
+    # Task 18 : Expand TrueCopy pair
     ######################################################################
-    - name: Resize TrueCopy pair
+    - name: Expand TrueCopy pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
-        state: "resize"
+        state: "expand"
         spec:
-          copy_group_name: "tc_copy_group_name_1"
-          copy_pair_name: "c_copy_pair_name_1"
+          copy_group_name: "tc-copy-group-1"
+          copy_pair_name: "tc-copy-pair-1"
           new_volume_size: "10GB"
 
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################
+    # Task 19 : Create a TrueCopy-NVMe pair by specifying only the required fields
+    #########################################################################
+    - name: Create TrueCopy pair
+      hitachivantara.vspone_block.vsp.hv_truecopy:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "present"
+        spec:
+          copy_group_name: "tc-copy-group-1"
+          copy_pair_name: "tc-copy-pair-1"
+          primary_volume_id: 188
+          secondary_pool_id: 0
+          secondary_nvm_subsystem:
+            name: gk-nvm-sub-75
+            paths:
+              - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task 20 : Create a TrueCopy-NVMe pair by specifying all the fields
+    #####################################################################
+    - name: Create TrueCopy pair
+      hitachivantara.vspone_block.vsp.hv_truecopy:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "present"
+        spec:
+          copy_group_name: "tc-copy-group-2"
+          copy_pair_name: "tc-copy-pair-2"
+          primary_volume_id: 189
+          secondary_pool_id: 0
+          secondary_nvm_subsystem:
+            name: gk-nvm-sub-75
+            paths:
+              - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
+          fence_level: "NEVER"
+          path_group_id: 5
+          local_device_group_name: "ansible-local-device-group-1"
+          remote_device_group_name: "ansible-remote-device-group-1"
+          is_consistency_group: true
+          consistency_group_id: 14
+          do_initial_copy: true
+          copy_pace: "MEDIUM"
+          is_data_reduction_force_copy: false
       register: result
 
     - name: Debug the result variable

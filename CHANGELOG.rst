@@ -4,6 +4,60 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v3.3.0
+======
+
+Release Summary
+---------------
+
+This minor release of `hitachivantara.vspone_block` introduces several new modules and improves existing functionality.
+
+Minor Changes
+-------------
+
+- Added NVMe-TCP and NVMe-FC support for GAD, TrueCopy, HUR, ShadowImage, and Snapshot/ThinImage modules.
+- Added new facts module `hv_external_volume_facts` to retrieve external volume details.
+- Added new facts module `hv_iscsi_remote_connection_facts` to retrieve iSCSI remote connection details.
+- Added new facts module `hv_quorum_disk_facts` to retrieve quorum disk details.
+- Added new facts module `hv_remote_connection_facts` to retrieve remote connection details.
+- Added new facts module `hv_user_facts` to retrieve user details.
+- Added new facts module `hv_user_group_facts` to retrieve user group details.
+- Added new module `hv_external_volume` to create, and delete external volumes.
+- Added new module `hv_iscsi_remote_connection` to create, and delete iSCSI remote connections.
+- Added new module `hv_quorum_disk` to register, and deregister quorum disks.
+- Added new module `hv_remote_connection` to create, update, and delete remote connections.
+- Added new module `hv_user_group` to create, update, and delete user groups.
+- Added new module `hv_user` to create, update, and delete users.
+- The state 'resize' has been changed to 'expand' for `hv_gad`, `hv_hur` and `hv_truecopy` modules to expand the size of the copy pair.
+- Updated `hv_snapshot_group_facts` to retrieve all snapshot group details.
+
+Bugfixes
+--------
+
+- Added ansible_facts parameter to all the facts modules as per the ansible facts module standard.
+- Done some enhancements related to the module documentation like formatting, examples, and descriptions.
+- For remote replication pairs, if the free LDEV ID for SVOL was not part of the meta resource group, the pair creation failed. Now the module will automatically select a free LDEV ID from the metadata resource group.
+- Made storage_system_info optional field for direct connection type modules.
+
+New Modules
+-----------
+
+Vsp
+~~~
+
+- hitachivantara.vspone_block.vsp.hv_external_volume - Manages External Volumes in the Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_external_volume_facts - Retrieves information about External Volume from Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_iscsi_remote_connection - Manages Remote connections through iSCSI ports on Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_iscsi_remote_connection_facts - Retrieves Remote connection details from Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_quorum_disk - Manages Quorum Disks in the Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_quorum_disk_facts - Retrieves information about Quorum Disks from Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_remote_connection - Manages Remote connections on Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_remote_connection_facts - Retrieves Remote connection details from Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_user - Manages users on Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_user_facts - Retrieves user information from Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_user_group - Manages user groups on Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_user_group_facts - Retrieves user group information from Hitachi VSP storage systems.
+
 v3.2.0
 ======
 

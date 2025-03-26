@@ -74,3 +74,5 @@ class VSPHurValidateMsg(Enum):
     REDUCE_VOLUME_SIZE_NOT_SUPPORTED = "Shrink/reduce volume size is not supported."
     SECONDARY_RANGE_ID_IS_NOT_SUPPORTED = "Parameters begin_secondary_volume_id and end_secondary_volume_id is not supported for direct connect."
     SECONDARY_RANGE_ID_INVALID = "Please specify both begin_secondary_volume_id and end_secondary_volume_id. Specifying either one is not supported."
+    EXPAND_PVOL_FAILED = "Failed to perform operation for primary volume {}."
+    EXPAND_SVOL_FAILED = "Failed to perform operation for secondary volume {}."

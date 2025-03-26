@@ -26,7 +26,7 @@ except ImportError:
         convert_decimal_size_to_bytes,
     )
     from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
-    from ..message.vsp_replication_pair_msgs import VSPReplicationPairValidateMsg
+    from message.vsp_replication_pair_msgs import VSPReplicationPairValidateMsg
     from .vsp_copy_groups_gateway import VSPCopyGroupsDirectGateway
     from .vsp_volume import VSPVolumeDirectGateway
 
@@ -124,10 +124,12 @@ class VSPReplicationPairsDirectGateway:
 
     @log_entry_exit
     def get_remote_token(self, remote_connection_info):
-        if self.remote_connection_manager is None:
-            self.init_remote_connection_manager(remote_connection_info)
+        # if self.remote_connection_manager is None:
+        #     self.init_remote_connection_manager(remote_connection_info)
         # logger.writeDebug(f"GW-Direct:create_true_copy:get_remote_token:remote_connection_info={remote_connection_info}")
+        # Not sure when the token was generated, got invalid token error, so always generate a new one
         try:
+            self.init_remote_connection_manager(remote_connection_info)
             token = self.remote_connection_manager.getAuthToken()
             return token
         except Exception as e:
@@ -598,19 +600,21 @@ class VSPReplicationPairsDirectGateway:
         try:
             self.expand_volume(spec.secondary_connection_info, svol_id, spec)
             logger.writeDebug("GW:resize_replication_pair:svol_id={}", svol_id)
-            self.expand_volume(self.connection_info, pvol_id, spec)
-            logger.writeDebug("GW:resize_replication_pair:pvol_id={}", pvol_id)
         except Exception as ex:
             logger.writeDebug(
                 "GW:resize_replication_pair:exception in expand volume:ex={}", ex
             )
             # if we split the pair, then we need to resync it before returning
-            if split_required:
-                response = self.resync_replication_pair_by_object_id(
-                    pair.remoteMirrorCopyPairId,
-                    spec.secondary_connection_info,
-                    pair.replicationType,
-                )
+            # pvol_gateway = VSPVolumeDirectGateway(self.connection_info)
+            # svol_gateway = VSPVolumeDirectGateway(spec.secondary_connection_info)
+            # pvolume_data = pvol_gateway.get_volume_by_id(pvol_id)
+            # svolume_data = svol_gateway.get_volume_by_id(svol_id)
+            # if split_required and pvolume_data.blockCapacity == svolume_data.blockCapacity:
+            #     response = self.resync_replication_pair_by_object_id(
+            #         pair.remoteMirrorCopyPairId,
+            #         spec.secondary_connection_info,
+            #         pair.replicationType,
+            #     )
             if "AFA8" in str(ex):
                 raise ValueError(VSPTrueCopyValidateMsg.EXPAND_VOLUME_FAILED.value)
             elif "C390" in str(ex):
@@ -620,7 +624,31 @@ class VSPReplicationPairsDirectGateway:
                     )
                 )
             else:
-                raise (ex)
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.EXPAND_SVOL_FAILED.value.format(svol_id)
+                    + str(ex)
+                )
+
+        try:
+            self.expand_volume(self.connection_info, pvol_id, spec)
+            logger.writeDebug("GW:resize_replication_pair:pvol_id={}", pvol_id)
+        except Exception as ex:
+            logger.writeDebug(
+                "GW:resize_replication_pair:exception in expand volume:ex={}", ex
+            )
+            if "AFA8" in str(ex):
+                raise ValueError(VSPTrueCopyValidateMsg.EXPAND_VOLUME_FAILED.value)
+            elif "C390" in str(ex):
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.EXPAND_VOLUME_FAILED_EXISTING_PAIR.value.format(
+                        spec.copy_pair_name
+                    )
+                )
+            else:
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.EXPAND_PVOL_FAILED.value.format(pvol_id)
+                    + str(ex)
+                )
 
         if split_required:
             response = self.resync_replication_pair_by_object_id(

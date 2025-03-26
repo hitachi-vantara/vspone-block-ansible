@@ -30,7 +30,8 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the storage system.
+    description:
+      - Information about the storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -146,7 +147,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Create Storage Pool
+- name: Create a Storage Pool for gateway connection type
   hitachivantara.vspone_block.vsp.hv_storagepool:
     connection_info:
       address: storage1.company.com
@@ -166,14 +167,12 @@ EXAMPLES = """
         - capacity: "21.00 GB"
           parity_group_id: "1-2"
 
-- name: Create Storage Pool using direct connection
+- name: Create a Storage Pool for direct connection type
   hitachivantara.vspone_block.vsp.hv_storagepool:
     connection_info:
       address: storage1.company.com
       username: "gateway"
       password: "password"
-    storage_system_info:
-      serial: "811150"
     state: "present"
     spec:
       name: "test_pool"
@@ -186,7 +185,7 @@ EXAMPLES = """
         - capacity: "21.00 GB"
           parity_group_id: "1-2"
 
-- name: Expand Storage Pool
+- name: Expand a Storage Pool for gateway connection type
   hitachivantara.vspone_block.vsp.hv_storagepool:
     connection_info:
       address: storage1.company.com
@@ -203,7 +202,7 @@ EXAMPLES = """
         - capacity: "21.00 GB"
           parity_group_id: "1-3"
 
-- name: Delete Storage Pool
+- name: Delete a Storage Pool for gateway connection type
   hitachivantara.vspone_block.vsp.hv_storagepool:
     connection_info:
       address: storage1.company.com

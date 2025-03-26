@@ -30,7 +30,8 @@ attributes:
     support: full
 options:
     storage_system_info:
-        description: Information about the storage system.
+        description:
+          - Information about the storage system. This field is required for gateway connection type only.
         type: dict
         required: false
         suboptions:
@@ -66,11 +67,6 @@ options:
                 description: API token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
                 type: str
                 required: false
-            subscriber_id:
-                description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy
-                  environment.Not needed for this operation.
-                type: str
-                required: false
     spec:
         description: Specification for the resource group facts to be gathered.
         type: dict
@@ -94,23 +90,32 @@ options:
             query:
                 description: >
                     The field allows to query resource groups for different types of resources.
-                    Tpyes of resources are: ldevs, parity_groups, ports, host_groups, iscsi_targets, nvm_subsystem_ids, and storage_pool_ids.
-                    If this field is not present, all resources imformation of the resource group will be retrieved except storage_pool_ids.
-                    When storage_pool_ids is present, all the ldevs that constitute the storage pool will be included in the reponse under the ldevs field.
+                    Types of resources are: ldevs, parity_groups, ports, host_groups, iscsi_targets, nvm_subsystem_ids, and storage_pool_ids.
+                    If this field is not present, all resources information of the resource group will be retrieved except storage_pool_ids.
+                    When storage_pool_ids is present, all the ldevs that constitute the storage pool will be included in the response under the ldevs field.
                 type: list
                 required: false
                 elements: str
 """
 
 EXAMPLES = """
-- name: Get all Resource Groups
+- name: Get all Resource Groups for direct connection type
   hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     connection_info:
         address: storage1.company.com
         username: "admin"
         password: "secret"
 
-- name: Get Resource Group by name
+- name: Get all Resource Groups for gateway connection types
+  hv_resource_group_facts:
+    storage_system_info:
+        serial: "811150"
+    connection_info:
+        address: gateway.company.com
+        api_token: "api token value"
+        connection_type: "gateway"
+
+- name: Get Resource Group by name for direct connection type
   hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     connection_info:
         address: storage1.company.com
@@ -119,7 +124,18 @@ EXAMPLES = """
     spec:
         name: "my_resource_group"
 
-- name: Get information about the Resource Groups specified in the query
+- name: Get Resource Group by name for gateway connection type
+  hv_resource_group_facts:
+    storage_system_info:
+        serial: "811150"
+    connection_info:
+        address: gateway.company.com
+        api_token: "api token value"
+        connection_type: "gateway"
+    spec:
+        name: "my_resource_group"
+
+- name: Get information about the Resource Groups specified in the query for direct connection type
   hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     connection_info:
         address: storage1.company.com

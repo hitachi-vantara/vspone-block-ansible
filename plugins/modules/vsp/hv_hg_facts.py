@@ -30,7 +30,8 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description:
+      - Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -98,7 +99,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Show LDEVs/WWNs for host groups for gateway connection
+- name: Show LDEVs/WWNs for host groups for gateway connection type
   hitachivantara.vspone_block.vsp.hv_hg_facts:
     storage_system_info:
       serial: "811150"
@@ -112,7 +113,7 @@ EXAMPLES = """
       name: 'test-ansible-hg-1'
       ports: ['CL1-A', 'CL2-B']
 
-- name: Get Host Groups of specific ports for gateway connection
+- name: Get Host Groups of specific ports for gateway connection type
   hitachivantara.vspone_block.vsp.hv_hg_facts:
     storage_system_info:
       serial: "811150"
@@ -123,26 +124,21 @@ EXAMPLES = """
     spec:
       ports: ['CL1-A', 'CL2-B']
 
-- name: Get all host groups for direct connection
+- name: Get all host groups for direct connection type
   hitachivantara.vspone_block.vsp.hv_hg_facts:
-    storage_system_info:
-      serial: "811150"
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
       password: "dummy_password"
 
-- name: Get Host Groups of specific ports for direct connection
+- name: Get Host Groups of specific ports for direct connection type
   hitachivantara.vspone_block.vsp.hv_hg_facts:
-    storage_system_info:
-      serial: "811150"
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
       password: "dummy_password"
     spec:
       ports: ['CL1-A', 'CL2-B']
-
 """
 
 RETURN = """

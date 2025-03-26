@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_remote_storage_registration
-short_description: Manages remote storage registration and unregistration on Hitachi VSP storage systems.
+short_description: Manages remote storage registration and deregistration on Hitachi VSP storage systems.
 description:
-  - This module manages remote storage registration and unregistration on Hitachi VSP storage systems.
+  - This module manages remote storage registration and deregistration on Hitachi VSP storage systems.
   - This module is supported only for C(direct) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/remote_storage_registration.yml)
@@ -31,16 +31,7 @@ options:
     type: str
     required: false
     choices: ['present', 'absent']
-    default: 'present'
-  storage_system_info:
-    description: Information about the remote storage systems.
-    type: dict
-    required: false
-    suboptions:
-      serial:
-        description: The serial number of the storage system.
-        type: str
-        required: false
+    default: present
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
@@ -60,16 +51,6 @@ options:
         required: false
       api_token:
         description: Value of the lock token to operate on locked resources.
-        type: str
-        required: false
-      connection_type:
-        description: Type of connection to the storage system. Only C(direct) connection is supported.
-        type: str
-        required: false
-        choices: ['gateway', 'direct']
-        default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
         type: str
         required: false
   secondary_connection_info:
@@ -94,7 +75,7 @@ options:
         type: str
         required: false
   spec:
-    description: Specification for the remote storage registration and unregistration.
+    description: Specification for the remote storage registration and deregistration.
     type: dict
     required: false
     suboptions:
@@ -103,7 +84,7 @@ options:
         type: bool
         required: false
       is_mutual_deletion:
-        description: Specify whether to perform a mutual deletion operation during unregistration. true means perform a mutual deletion operation.
+        description: Specify whether to perform a mutual deletion operation during deregistration. true means perform a mutual deletion operation.
         type: bool
         required: false
       rest_server_ip:
@@ -118,7 +99,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Register Remote Storage
+- name: Register Remote Storage for direct connection type
   hitachivantara.vspone_block.vsp.hv_remote_storage_registration:
     connection_info:
       address: 172.0.0.2
@@ -133,7 +114,7 @@ EXAMPLES = """
       is_mutual_discovery: true
       rest_server_ip: 172.0.0.1
 
-- name: Unregister Remote Storage
+- name: Unregister Remote Storage for direct connection type
   hitachivantara.vspone_block.vsp.hv_remote_storage_registration:
     connection_info:
       address: 172.0.0.2
@@ -143,7 +124,7 @@ EXAMPLES = """
       address: 172.0.0.3
       username: "admin"
       password: "password"
-    state: present
+    state: absent
     spec:
       is_mutual_deletion: true
 """

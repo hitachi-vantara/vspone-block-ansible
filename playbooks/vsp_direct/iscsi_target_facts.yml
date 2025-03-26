@@ -23,8 +23,6 @@
     - name: Get all iscsi targets
       hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
       register: result
 
     - name: Debug the result variable
@@ -37,8 +35,6 @@
     - name: Get iscsi targets by ports
       hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           ports: ["CL1-A", "CL1-B", "CL2-A", "CL2-B"]
       register: result
@@ -53,8 +49,6 @@
     - name: Get iscsi targets by ports and name
       hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         spec:
           name: "iscsi-target-server-1"
           ports: ["CL1-A", "CL1-B"]

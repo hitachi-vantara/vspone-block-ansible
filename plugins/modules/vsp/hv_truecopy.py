@@ -39,17 +39,18 @@ options:
       - The level of the TrueCopy pairs task.
       - C(present) is used to create or update a TrueCopy pair.
       - C(absent) is used to delete a TrueCopy pair.
-      - C(resize) is used to increase the size of the volumes of a TrueCopy pair.
+      - C(expand) or C(resize) is used to expand the size of the volumes of a TrueCopy pair.
       - C(resync) is used to re-sync a TrueCopy pair.
       - C(split) is used to split a TrueCopy pair.
       - C(swap-split) is used to swap-split a TrueCopy pair. Supported for C(direct) connection type only.
       - C(swap-resync) is used to swap-resync a TrueCopy pair. Supported for C(direct) connection only.
     type: str
     required: false
-    choices: ['present', 'absent', 'split', 'resync', 'resize', 'swap_split', 'swap_resync']
+    choices: ['present', 'absent', 'split', 'resync', 'resize', 'expand', 'swap_split', 'swap_resync']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system.
+    description:
+      - Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -64,7 +65,8 @@ options:
     type: dict
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway or Hitachi storage system.
+        description:
+          - IP address or hostname of the Hitachi storage system.
         type: str
         required: true
       username:
@@ -76,7 +78,7 @@ options:
         type: str
         required: false
       api_token:
-        description: This fieild is used to pass the value of the lock token of the secondary storage to operate on locked resources.
+        description: This field is used to pass the value of the lock token of the secondary storage to operate on locked resources.
         type: str
         required: false
   connection_info:
@@ -109,7 +111,7 @@ options:
         required: false
       api_token:
         description: Token value to access UAI gateway for C(gateway) connection type. This is a required field for C(gateway) connection type.
-          This fieild is used for C(direct) connection type to pass the value of the lock token to operate on locked resources.
+          This field is used for C(direct) connection type to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
   spec:
@@ -190,6 +192,20 @@ options:
                 both C(direct) and C(gateway) connection types.
             type: str
             required: true
+      secondary_nvm_subsystem:
+        description: NVM subsystem details of the secondary volume. Supported only for C(direct) connection type.
+        type: dict
+        required: false
+        suboptions:
+          name:
+            description: Name of the NVM subsystem on the secondary storage system.
+            type: str
+            required: true
+          paths:
+            description: Host NQN paths information on the secondary storage system.
+            type: list
+            elements: str
+            required: false
       do_initial_copy:
         description: Perform initial copy. This is used only for C(direct) connection type and is an optional field during create operation.
         type: bool
@@ -214,7 +230,7 @@ options:
         type: int
         required: false
       new_volume_size:
-        description: Required only for resize operation for both C(direct) and C(gateway) connections types. Value should be grater than
+        description: Required only for resize or expand operation for both C(direct) and C(gateway) connections types. Value should be grater than
           the current volume size.
         type: str
         required: false
@@ -247,7 +263,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Create a TrueCopy pair for gateway connection
+- name: Create a TrueCopy pair for gateway connection type
   hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "present"
     storage_system_info:
@@ -256,7 +272,7 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 11
       consistency_group_id: -1
@@ -265,7 +281,7 @@ EXAMPLES = """
       secondary_storage_serial_number: 811145
       secondary_pool_id: 1
 
-- name: Split a TrueCopy pair for gateway connection
+- name: Split a TrueCopy pair for gateway connection type
   hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "split"
     storage_system_info:
@@ -274,11 +290,11 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 11
 
-- name: Resync a TrueCopy pair for gateway connection
+- name: Resync a TrueCopy pair for gateway connection type
   hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "resync"
     storage_system_info:
@@ -287,28 +303,24 @@ EXAMPLES = """
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 11
 
-- name: Delete a TrueCopy pair for gateway connection
+- name: Delete a TrueCopy pair for gateway connection type
   hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "absent"
-    storage_system_info:
-      serial: 811150
     connection_info:
       address: gateway.company.com
       api_token: "api_token_value"
       connection_type: "gateway"
-      subscriber_id: 811150
+      subscriber_id: 123456
     spec:
       primary_volume_id: 11
 
-- name: Create a TrueCopy pair for direct connection
+- name: Create a TrueCopy pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "present"
-    storage_system_info:
-      serial: 811150
     connection_info:
       address: 172.1.1.126
       username: "admin"
@@ -328,11 +340,9 @@ EXAMPLES = """
         name: ansible_test_group
         port: CL1-A
 
-- name: Split a TrueCopy pair for direct connection
+- name: Split a TrueCopy pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "split"
-    storage_system_info:
-      serial: 811150
     connection_info:
       address: 172.1.1.126
       username: "admin"
@@ -345,11 +355,9 @@ EXAMPLES = """
       copy_group_name: "copy_group_name_1"
       copy_pair_name: "copy_pair_name_1"
 
-- name: Resync a TrueCopy pair for direct connection
+- name: Resync a TrueCopy pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "resync"
-    storage_system_info:
-      serial: 811150
     connection_info:
       address: 172.1.1.126
       username: "admin"
@@ -362,45 +370,39 @@ EXAMPLES = """
       copy_group_name: "copy_group_name_1"
       copy_pair_name: "copy_pair_name_1"
 
-- name: Swap-split a TrueCopy pair for direct connection
+- name: Swap-split a TrueCopy pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "swap_split"
-    storage_system_info:
-      serial: 811150
     connection_info:
-      address: 172.1.1.126
+      address: 172.1.1.127
       username: "admin"
       password: "secret"
     secondary_connection_info:
-      address: 172.1.1.127
+      address: 172.1.1.126
       username: "admin"
       password: "secret"
     spec:
       copy_group_name: "copy_group_name_1"
       copy_pair_name: "copy_pair_name_1"
 
-- name: Swap-resync a TrueCopy pair for direct connection
+- name: Swap-resync a TrueCopy pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "swap_resync"
-    storage_system_info:
-      serial: 811150
     connection_info:
-      address: 172.1.1.126
+      address: 172.1.1.127
       username: "admin"
       password: "secret"
     secondary_connection_info:
-      address: 172.1.1.127
+      address: 172.1.1.126
       username: "admin"
       password: "secret"
     spec:
       copy_group_name: "copy_group_name_1"
       copy_pair_name: "copy_pair_name_1"
 
-- name: Delete a TrueCopy pair for direct connection
+- name: Delete a TrueCopy pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_truecopy:
     state: "swap_resync"
-    storage_system_info:
-      serial: 811150
     connection_info:
       address: 172.1.1.126
       username: "admin"
@@ -413,11 +415,9 @@ EXAMPLES = """
       copy_group_name: "copy_group_name_1"
       copy_pair_name: "copy_pair_name_1"
 
-- name: Increase the size of the volumes of a TrueCopy pair for direct connection
+- name: Increase the size of the volumes of a TrueCopy pair for direct connection type
   hitachivantara.vspone_block.vsp.hv_truecopy:
-    state: "resize"
-    storage_system_info:
-      serial: 811150
+    state: "expand"
     connection_info:
       address: 172.1.1.126
       username: "admin"
@@ -561,7 +561,6 @@ class VSPSTrueCopyManager:
             supports_check_mode=True,
         )
         try:
-
             self.params_manager = VSPParametersManager(self.module.params)
             self.connection_info = self.params_manager.connection_info
             self.storage_serial_number = self.params_manager.storage_system_info.serial
@@ -570,7 +569,6 @@ class VSPSTrueCopyManager:
             self.secondary_connection_info = (
                 self.params_manager.get_secondary_connection_info()
             )
-
         except Exception as e:
             self.logger.writeException(e)
             self.module.fail_json(msg=str(e))
@@ -634,8 +632,8 @@ class VSPSTrueCopyManager:
             return "TrueCopy Pair created successfully."
         elif self.state == "absent":
             return "TrueCopy Pair deleted successfully."
-        elif self.state == "resize":
-            return "TrueCopy Pair resized successfully."
+        elif self.state == "resize" or self.state == "expand":
+            return "TrueCopy Pair expanded successfully."
         elif self.state == "resync":
             return "TrueCopy Pair resynced successfully."
         elif self.state == "split":
