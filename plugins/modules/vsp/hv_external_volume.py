@@ -42,7 +42,7 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or the storage system (if connection_type is C(direct) ).
+        description: IP address or hostname of either the UAI gateway or the storage system.
         type: str
         required: true
       username:
