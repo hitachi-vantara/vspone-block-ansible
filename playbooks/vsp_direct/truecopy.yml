@@ -182,7 +182,6 @@
       ansible.builtin.debug:
         var: result
 
-
     ##############################################################################
     # Task 9 : Swap-Split TrueCopy pair by copy_group_name and copy_pair_name
     #          Storages need to be swapped before swap-split operation. Please 

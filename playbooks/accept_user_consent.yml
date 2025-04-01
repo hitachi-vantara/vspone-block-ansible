@@ -80,8 +80,7 @@
         previous_record:
           user_consent_accepted: "{{ existing_data.user_consent_accepted }}"
           time: "{{ existing_data.time }}"
-      when: consent_file_exists.stat.exists and
-        (existing_data.user_consent_accepted is defined and existing_data.time is defined)
+      when: consent_file_exists.stat.exists and (existing_data.user_consent_accepted is defined and existing_data.time is defined)
 
     - name: Build consent history when file exists
       ansible.builtin.set_fact:

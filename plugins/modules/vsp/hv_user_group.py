@@ -53,10 +53,6 @@ options:
                 description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
                 type: str
                 required: false
-            api_token:
-                description: This field is used to pass the value of the lock token to operate on locked resources.
-                type: str
-                required: false
     spec:
         description:
             - Specification for the user  group.
@@ -118,60 +114,67 @@ options:
 """
 
 EXAMPLES = """
-- name: Create a User Group for direct connection type
-  hitachivantara.vspone_block.vsp.hv_user_group:
-    connection_info:
+  - name: Create a User Group for direct connection type
+    hitachivantara.vspone_block.vsp.hv_user_group:
+      connection_info:
         address: storage1.company.com
         username: "admin"
         password: "secret"
-    spec:
+      spec:
         name: "devGroup"
-        role_names: [ "STORAGE_ADMIN_PERF_MGMT", "STORAGE_ADMIN_PROVISION" ]
-        resource_group_ids: [ 8, 9 ]
+        role_names:
+          - "STORAGE_ADMIN_PERF_MGMT"
+          - "STORAGE_ADMIN_PROVISION"
+        resource_group_ids:
+          - 8
+          - 9
 
-- name: Change User Group Name for direct connection type
-  hitachivantara.vspone_block.vsp.hv_user_group:
-    connection_info:
+  - name: Change User Group Name for direct connection type
+    hitachivantara.vspone_block.vsp.hv_user_group:
+      connection_info:
         address: storage1.company.com
         username: "admin"
         password: "secret"
-    spec:
+      spec:
         id: "devGroup3_new_3"
         name: "devGroup3_new_4"
 
-- name: Add Resource Groups to a User Group for direct connection type
-  hitachivantara.vspone_block.vsp.hv_user_group:
-    connection_info:
+  - name: Add Resource Groups to a User Group for direct connection type
+    hitachivantara.vspone_block.vsp.hv_user_group:
+      connection_info:
         address: storage1.company.com
         username: "admin"
         password: "secret"
-    spec:
+      spec:
         state: add_resource_group
         id: "devGroup3"
-        resource_group_ids: [1, 2]
+        resource_group_ids:
+          - 1
+          - 2
 
-- name: Remove Resource Groups from a User Group for direct connection type
-  hitachivantara.vspone_block.vsp.hv_user_group:
-    connection_info:
+  - name: Remove Resource Groups from a User Group for direct connection type
+    hitachivantara.vspone_block.vsp.hv_user_group:
+      connection_info:
         address: storage1.company.com
         username: "admin"
         password: "secret"
-    spec:
+      spec:
         state: remove_resource_group
         id: "devGroup3"
-        resource_group_ids: [1, 2]
+        resource_group_ids:
+          - 1
+          - 2
 
-- name: Delete a Usere Group by ID for direct connection type
-  hitachivantara.vspone_block.vsp.hv_user_group:
-    connection_info:
+  - name: Delete a User Group by ID for direct connection type
+    hitachivantara.vspone_block.vsp.hv_user_group:
+      connection_info:
         address: storage1.company.com
         username: "admin"
         password: "secret"
-    state: absent
-    spec:
+      state: absent
+      spec:
         id: "devGroup3"
 """
-
 RETURN = """
 user_groups:
   description: The user group information.

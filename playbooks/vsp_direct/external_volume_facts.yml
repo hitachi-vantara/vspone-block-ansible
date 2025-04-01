@@ -25,7 +25,7 @@
         connection_info: "{{ connection_info }}"
 
         spec:
-          external_storage_serial: '410109'
+          external_storage_serial: "410109"
           external_ldev_id: 1354
 
       register: result

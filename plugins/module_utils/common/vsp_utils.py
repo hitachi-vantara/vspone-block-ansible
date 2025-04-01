@@ -3441,6 +3441,7 @@ class VSPUserGroupArguments:
     ssi = copy.deepcopy(VSPCommonParameters.connection_info())
     ssi["options"].pop("subscriber_id")
     ssi["options"].pop("connection_type")
+    ssi["options"].pop("api_token")
     common_arguments = {
         "connection_info": ssi,
         "state": {
@@ -3515,6 +3516,7 @@ class VSPUserArguments:
     ssi = copy.deepcopy(VSPCommonParameters.connection_info())
     ssi["options"].pop("subscriber_id")
     ssi["options"].pop("connection_type")
+    ssi["options"].pop("api_token")
     common_arguments = {
         "connection_info": ssi,
         "state": {
@@ -4083,24 +4085,24 @@ class VSPSpecValidators:
         if input_spec.id and input_spec.name:
             raise ValueError(VSPUserGroupValidateMsg.NO_UG_ID_OR_UG_NAME.value)
 
-        if input_spec.name:
-            if (
-                len(input_spec.name) < AutomationConstants.USER_NAME_LEN_MIN
-                or len(input_spec.name) > AutomationConstants.USER_NAME_LEN_MAX
-            ):
-                raise ValueError(VSPUserGroupValidateMsg.INVALID_UG_NAME.value)
+        # if input_spec.name:
+        #     if (
+        #         len(input_spec.name) < AutomationConstants.USER_NAME_LEN_MIN
+        #         or len(input_spec.name) > AutomationConstants.USER_NAME_LEN_MAX
+        #     ):
+        #         raise ValueError(VSPUserGroupValidateMsg.INVALID_UG_NAME.value)
 
     @staticmethod
     def validate_user_fact(input_spec: VSPUserFactSpec):
         if input_spec.id and input_spec.name:
             raise ValueError(VSPUserValidateMsg.NO_USER_ID_OR_USER_NAME.value)
 
-        if input_spec.name:
-            if (
-                len(input_spec.name) < AutomationConstants.USER_NAME_LEN_MIN
-                or len(input_spec.name) > AutomationConstants.USER_NAME_LEN_MAX
-            ):
-                raise ValueError(VSPUserValidateMsg.INVALID_USER_NAME.value)
+        # if input_spec.name:
+        #     if (
+        #         len(input_spec.name) < AutomationConstants.USER_NAME_LEN_MIN
+        #         or len(input_spec.name) > AutomationConstants.USER_NAME_LEN_MAX
+        #     ):
+        #         raise ValueError(VSPUserValidateMsg.INVALID_USER_NAME.value)
 
     @staticmethod
     def validate_user_group(input_spec: VSPUserGroupSpec):
@@ -4121,15 +4123,15 @@ class VSPSpecValidators:
             "USER_MAINTENANCE",
         ]
 
-        # if input_spec.id and input_spec.name:
-        #     raise ValueError(VSPUserGroupValidateMsg.NO_UG_ID_OR_UG_NAME.value)
+        if input_spec.id is None and input_spec.name is None:
+            raise ValueError(VSPUserGroupValidateMsg.NO_UG_ID_OR_UG_NAME.value)
 
-        if input_spec.name:
-            if (
-                len(input_spec.name) < AutomationConstants.USER_NAME_LEN_MIN
-                or len(input_spec.name) > AutomationConstants.USER_NAME_LEN_MAX
-            ):
-                raise ValueError(VSPUserGroupValidateMsg.INVALID_UG_NAME.value)
+        # if input_spec.name:
+        #     if (
+        #         len(input_spec.name) < AutomationConstants.USER_NAME_LEN_MIN
+        #         or len(input_spec.name) > AutomationConstants.USER_NAME_LEN_MAX
+        #     ):
+        #         raise ValueError(VSPUserGroupValidateMsg.INVALID_UG_NAME.value)
 
         if input_spec.resource_group_ids:
             result = check_range(
@@ -4151,22 +4153,22 @@ class VSPSpecValidators:
 
     @staticmethod
     def validate_user(input_spec: VSPUserSpec):
-        if input_spec.id and input_spec.name:
+        if input_spec.id is None and input_spec.name is None:
             raise ValueError(VSPUserValidateMsg.NO_USER_ID_OR_USER_NAME.value)
 
-        if input_spec.name:
-            if (
-                len(input_spec.name) < AutomationConstants.USER_NAME_LEN_MIN
-                or len(input_spec.name) > AutomationConstants.USER_NAME_LEN_MAX
-            ):
-                raise ValueError(VSPUserValidateMsg.INVALID_USER_NAME.value)
+        # if input_spec.name:
+        #     if (
+        #         len(input_spec.name) < AutomationConstants.USER_NAME_LEN_MIN
+        #         or len(input_spec.name) > AutomationConstants.USER_NAME_LEN_MAX
+        #     ):
+        #         raise ValueError(VSPUserValidateMsg.INVALID_USER_NAME.value)
 
-        if input_spec.password:
-            if (
-                len(input_spec.password) < AutomationConstants.PASS_LEN_MIN
-                or len(input_spec.password) > AutomationConstants.PASS_LEN_MAX
-            ):
-                raise ValueError(VSPUserValidateMsg.INVALID_USER_NAME.value)
+        # if input_spec.password:
+        #     if (
+        #         len(input_spec.password) < AutomationConstants.PASS_LEN_MIN
+        #         or len(input_spec.password) > AutomationConstants.PASS_LEN_MAX
+        #     ):
+        #         raise ValueError(VSPUserValidateMsg.INVALID_PASS_LEN.value)
 
         if input_spec.group_names:
             if len(input_spec.group_names) > AutomationConstants.MAX_USER_GROUPS:

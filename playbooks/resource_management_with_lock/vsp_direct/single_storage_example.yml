@@ -1,3 +1,4 @@
+---
 ###########################################################################
 # This playbook demonstrates how to lock resource groups, and do operations
 # on storage resources.
@@ -40,9 +41,9 @@
       ansible.builtin.debug:
         var: lock_resource_group_result
 
-  ##########################################################################
-  # Task 2 : Create ldev using the lock token generated in Task 1
-  ##########################################################################
+    ##########################################################################
+    # Task 2 : Create ldev using the lock token generated in Task 1
+    ##########################################################################
     - name: Create ldev
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info:
@@ -59,9 +60,9 @@
       ansible.builtin.debug:
         var: create_ldev_result
 
-  ##########################################################################
-  # Task 3 : Expand ldev using the lock token generated in Task 1
-  ##########################################################################
+    ##########################################################################
+    # Task 3 : Expand ldev using the lock token generated in Task 1
+    ##########################################################################
     - name: Expand ldev
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info:
@@ -77,9 +78,9 @@
       ansible.builtin.debug:
         var: expand_ldev_result
 
-  ##########################################################################
-  # Task 4 : Get ldev information
-  ##########################################################################
+    ##########################################################################
+    # Task 4 : Get ldev information
+    ##########################################################################
     - name: Get ldev information
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
         connection_info: "{{ connection_info }}"
@@ -91,10 +92,10 @@
       ansible.builtin.debug:
         var: result
 
-  ##########################################################################
-  # Task 2 : Create host group with wwns and present the ldev to it
-  # using the lock token generated in Task 1
-  ##########################################################################
+    ##########################################################################
+    # Task 2 : Create host group with wwns and present the ldev to it
+    # using the lock token generated in Task 1
+    ##########################################################################
     - name: Create hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info:
@@ -116,9 +117,9 @@
       ansible.builtin.debug:
         var: create_hg_result
 
-  ##########################################################################
-  # Task 6 : Unlock the Resource Groups that were locked in Task 1
-  ##########################################################################
+    ##########################################################################
+    # Task 6 : Unlock the Resource Groups that were locked in Task 1
+    ##########################################################################
     - name: Unlock Resource Group
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:

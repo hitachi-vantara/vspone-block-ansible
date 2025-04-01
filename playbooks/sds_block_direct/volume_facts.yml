@@ -51,7 +51,6 @@
         connection_info: "{{ connection_info }}"
         spec:
           names: ["test-volume1", "test-volume2"]
-
       register: result
 
     - name: Debug the result variable

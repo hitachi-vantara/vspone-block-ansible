@@ -28,7 +28,7 @@ options:
     choices: ['present', 'absent']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for C(gateway) connection type only.
+    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -42,7 +42,7 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway or the storage system.
+        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
         type: str
         required: true
       username:
@@ -81,7 +81,7 @@ options:
 
 EXAMPLES = """
 - name: Create a External Volume
-  hv_external_volume_facts:
+  hitachivantara.vspone_block.vsp.hv_external_volume_facts:
     connection_info:
       address: storage1.company.com
       username: 'username'

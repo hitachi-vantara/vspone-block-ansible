@@ -150,7 +150,7 @@ EXAMPLES = """
       subscriber_id: 123456
 
 - name: Get all GAD pairs  for direct connection type
-  hv_gad_facts:
+  hitachivantara.vspone_block.vsp.hv_gad_facts:
     connection_info:
       address: storage1.company.com
       username: "username"
@@ -162,7 +162,7 @@ EXAMPLES = """
       password: "secret"
 
 - name: Get GAD pairs by primary volume id for gateway connection type
-  hv_gad_facts:
+  hitachivantara.vspone_block.vsp.hv_gad_facts:
     storage_system_info:
       serial: 811150
     connection_info:

@@ -31,7 +31,7 @@
         spec:
           copy_group_name: "copy_group_name_1"
           copy_pair_name: "copy_pair_name_1"
-          
+
           primary_volume_id: 12
           secondary_pool_id: 1
           secondary_hostgroups:

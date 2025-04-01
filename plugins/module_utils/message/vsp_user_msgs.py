@@ -9,7 +9,7 @@ class VSPUserFailedMsg(Enum):
 class VSPUserValidateMsg(Enum):
     USER_NOT_FOUND = "User not found."
     USER_DELETE_SUCCSESS = "User deleted successfully."
-    NO_USER_ID_OR_USER_NAME = "Either user id or user name should be provided."
+    NO_USER_ID_OR_USER_NAME = "Either user id or user name must be provided."
     INVALID_USER_NAME = (
         "Invalid user name provided. Specify a name consisting of 1 to 64 characters."
     )

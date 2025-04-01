@@ -94,7 +94,7 @@ EXAMPLES = """
       parity_group_id: 1-1
 
 - name: Get a specific parity group for gateway connection type
-  hv_paritygroup_facts:
+  hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
     connection_info:
       address: gateway1.company.com
       api_token: "api_token_value"
@@ -113,7 +113,7 @@ EXAMPLES = """
       connection_type: "direct"
 
 - name: Get all parity groups for gateway connection type
-  hv_paritygroup_facts:
+  hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
     connection_info:
       address: gateway1.company.com
       api_token: "api_token_value"

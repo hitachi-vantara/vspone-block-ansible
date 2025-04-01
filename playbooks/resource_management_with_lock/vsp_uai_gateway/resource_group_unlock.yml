@@ -1,3 +1,4 @@
+---
 ####################################################################
 # Example : Resource Group Lock  Playbook
 ####################################################################
@@ -10,9 +11,9 @@
     - ../../ansible_vault_vars/ansible_vault_storage_var.yml
 
   tasks:
-####################################################################
-# Task 0 : Get UAI gateway token
-####################################################################
+    ####################################################################
+    # Task 0 : Get UAI gateway token
+    ####################################################################
     - name: Get UAI gateway token
       hitachivantara.vspone_block.vsp.hv_uaig_token_facts:
         connection_info:
@@ -22,9 +23,9 @@
       register: result_token
       ignore_errors: false
 
-  ####################################################################
-  # Task 1 : Unlock a Resource Group by name
-  ####################################################################
+    ####################################################################
+    # Task 1 : Unlock a Resource Group by name
+    ####################################################################
     - name: Unlock Resource Group by name
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
@@ -42,9 +43,9 @@
       ansible.builtin.debug:
         var: unlock_resource_group_result
 
-  ####################################################################
-  # Task 2 : Unlock a Resource Group by id
-  ####################################################################
+    ####################################################################
+    # Task 2 : Unlock a Resource Group by id
+    ####################################################################
     - name: Unlock Resource Group by id
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:

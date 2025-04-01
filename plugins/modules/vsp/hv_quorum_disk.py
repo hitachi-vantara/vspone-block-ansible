@@ -14,7 +14,7 @@ module: hv_quorum_disk
 short_description: Manages Quorum Disks in the Hitachi VSP storage systems.
 description:
   - This module registers and de-registers the Quorum Disks in the Hitachi VSP storage systems.
-  - This module is supported for C(direct) connection type only.
+  - This module is supported for direct connection type only.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/quorum_disk.yml)
 version_added: '3.3.0'
@@ -28,7 +28,7 @@ options:
     choices: ['present', 'absent']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for C(gateway) connection type only.
+    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
     type: dict
     required: false
     suboptions:
@@ -82,7 +82,11 @@ options:
         type: str
         required: false
       remote_storage_type:
-        description: The remote storage type to register.
+        description: >
+          The remote storage type to register.
+          M8: VSP One B20, VSP E series, VSP Gx00 models or VSP Fx00 models.
+          R8: VSP G1000, VSP G1500, or VSP F1500.
+          R9: VSP 5000 series.
         type: str
         choices: ['M8', 'R8', 'R9']
         required: false
@@ -95,7 +99,7 @@ options:
 
 EXAMPLES = """
 - name: Register a Quorum Disk for direct connection type
-  hv_quorum_disk_facts:
+  hitachivantara.vspone_block.vsp.hv_quorum_disk:
     connection_info:
       address: gateway.company.com
       username: 'username'
@@ -109,20 +113,38 @@ EXAMPLES = """
 """
 
 RETURN = """
-data:
-  description: The Quorum Disk managed by the module.
+quorum_disk:
+  description: List of Quorum Disks with their attributes.
   returned: success
   type: list
   elements: dict
-  sample: {
-    "ldev_id": 3028,
-    "quorum_disk_id": 4,
-    "read_response_guaranteed_time": 40,
-    "remote_serial_number": "715036",
-    "remote_storage_type_id": "M8",
-    "status": "NORMAL"
-  }
+  contains:
+    id:
+      description: Quorum Disk ID.
+      type: int
+      sample: 1
+    ldev_id:
+      description: Local volume LDEV ID.
+      type: int
+      sample: 123
+    read_response_guaranteed_time:
+      description: Copy pace track size.
+      type: int
+      sample: 40
+    remote_serial_number:
+      description: Copy pace track size.
+      type: str
+      sample: "712345"
+    remote_storage_type_id:
+      description: Copy pace track size.
+      type: str
+      sample: "M8"
+    status:
+      description: Quorum Disk status.
+      type: str
+      sample: "NORMAL"
 """
+
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_quorum_disk_reconciler import (

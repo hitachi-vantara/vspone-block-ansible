@@ -21,7 +21,6 @@
       password: "{{ vault_secondary_storage_secret }}"
 
   tasks:
-
     #####################################################################
     # Task 1 : Split Remote Copy Group for HUR
     ######################################################################
@@ -123,7 +122,6 @@
           consistency_group_id: 2
           fence_level: "NEVER"
           copy_pace: 1
-
 
       register: result
 

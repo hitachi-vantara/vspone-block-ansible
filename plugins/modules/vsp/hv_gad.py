@@ -271,7 +271,7 @@ options:
 
 EXAMPLES = """
 - name: Create a GAD pair for gateway connection type
-  hv_gad:
+  hitachivantara.vspone_block.vsp.hv_gad:
     state: "present"
     storage_system_info:
       serial: 811150
@@ -297,7 +297,7 @@ EXAMPLES = """
       quorum_disk_id: 1
 
 - name: Split GAD pair for gateway connection type
-  hv_gad:
+  hitachivantara.vspone_block.vsp.hv_gad:
     state: "split"
     storage_system_info:
       serial: 811150
@@ -310,7 +310,7 @@ EXAMPLES = """
       primary_volume_id: 11
 
 - name: Resync GAD pair for gateway connection type
-  hv_gad:
+  hitachivantara.vspone_block.vsp.hv_gad:
     state: "resync"
     storage_system_info:
       serial: 811150
@@ -376,7 +376,7 @@ EXAMPLES = """
       new_volume_size: "4GB"
 
 - name: Delete GAD pair for gateway connection type
-  hv_gad:
+  hitachivantara.vspone_block.vsp.hv_gad:
     state: "absent"
     storage_system_info:
       serial: 811150
