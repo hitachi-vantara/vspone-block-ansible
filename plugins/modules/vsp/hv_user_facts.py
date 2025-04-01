@@ -177,7 +177,7 @@ class VSPUserFactsManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of User Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
 def main(module=None):

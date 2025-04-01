@@ -177,7 +177,7 @@ class VSPQuorumDiskFactManager:
             data["user_consent_required"] = registration_message
         # self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Quorum Disk Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
 def main(module=None):
