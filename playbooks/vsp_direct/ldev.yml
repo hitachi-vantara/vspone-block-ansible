@@ -270,7 +270,7 @@
           is_relocation_enabled: true
           tier_level_for_new_page_allocation: "Low"
           tiering_policy:
-            tier_level: 22  # (0-5) built-in, 6-31 (custom policy)
+            tier_level: 22 # (0-5) built-in, 6-31 (custom policy)
             tier1_allocation_rate_min: 20 # 1 to 100
             tier1_allocation_rate_max: 40 # 1 to 100
             tier3_allocation_rate_min: 10 # 1 to 100

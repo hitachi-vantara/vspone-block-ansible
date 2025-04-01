@@ -65,7 +65,7 @@
     ######################################################################################
     # Task 4 : Create a Resource Group with with the following resources
     # Resources : ldevs, parity groups, ports, host groups, nvm subsystem ids
-   ######################################################################################
+    ######################################################################################
     - name: Create a Resource Group with above resources
       hitachivantara.vspone_block.vsp.hv_resource_group:
         connection_info: "{{ connection_info }}"

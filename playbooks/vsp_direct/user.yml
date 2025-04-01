@@ -26,10 +26,7 @@
         spec:
           name: "devUser"
           password: "devPassword"
-          group_names: [
-            "Audit Log Administrator (View Only) User Group",
-            "Storage Administrator (View & Modify) User Group"
-          ]
+          group_names: ["Audit Log Administrator (View Only) User Group", "Storage Administrator (View & Modify) User Group"]
       register: result
 
     - name: Debug the result variable
@@ -75,9 +72,7 @@
         spec:
           state: add_user_group
           id: "devUser"
-          group_names: [
-           "devGroup3_new_4",
-          ]
+          group_names: ["devGroup3_new_4"]
       register: result
 
     - name: Debug the result variable
@@ -93,9 +88,7 @@
         spec:
           state: add_user_group
           name: "devUser"
-          group_names: [
-           "devGroup3_new_4",
-          ]
+          group_names: ["devGroup3_new_4"]
       register: result
 
     - name: Debug the result variable
@@ -111,9 +104,7 @@
         spec:
           state: remove_user_group
           id: "devUser"
-          group_names: [
-           "devGroup3_new_4",
-          ]
+          group_names: ["devGroup3_new_4"]
       register: result
 
     - name: Debug the result variable
@@ -129,9 +120,7 @@
         spec:
           state: remove_user_group
           name: "devUser"
-          group_names: [
-           "devGroup3_new_4",
-          ]
+          group_names: ["devGroup3_new_4"]
       register: result
 
     - name: Debug the result variable

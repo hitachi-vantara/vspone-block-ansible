@@ -20,7 +20,7 @@
     ####################################################################
     # Task Name : Register Quorum Disk
     ####################################################################
-    - name: Register Quorum Disk 
+    - name: Register Quorum Disk
       hitachivantara.vspone_block.vsp.hv_quorum_disk:
         connection_info: "{{ connection_info }}"
         spec:
@@ -38,7 +38,7 @@
     ####################################################################
     # Task Name : Deregister Quorum Disk
     ####################################################################
-    - name: Deregister Quorum Disk 
+    - name: Deregister Quorum Disk
       hitachivantara.vspone_block.vsp.hv_quorum_disk:
         connection_info: "{{ connection_info }}"
         state: absent
@@ -54,7 +54,7 @@
     ####################################################################
     # Task Name : Register LDEV-less Quorum Disk and auto select free id
     ####################################################################
-    - name: Register LDEV-less Quorum Disk and auto select free id 
+    - name: Register LDEV-less Quorum Disk and auto select free id
       hitachivantara.vspone_block.vsp.hv_quorum_disk:
         connection_info: "{{ connection_info }}"
         spec:

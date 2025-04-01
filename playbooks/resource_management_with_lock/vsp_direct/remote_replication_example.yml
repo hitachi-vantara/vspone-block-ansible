@@ -1,3 +1,4 @@
+---
 ##########################################################################
 # This playbook demonstrates how to lock resource groups, and do
 # operations on replication pairs.
@@ -33,7 +34,6 @@
       username: "{{ vault_secondary_storage_username }}"
       password: "{{ vault_secondary_storage_secret }}"
 
-
   tasks:
   ####################################################################
   # Task 1 : Lock Resource Groups
@@ -50,9 +50,9 @@
       ansible.builtin.debug:
         var: lock_resource_group_result
 
-  ##########################################################################
-  # Task 2 : Create TrueCopy Pair using the lock tokens generated in Task 1
-  ##########################################################################
+    ##########################################################################
+    # Task 2 : Create TrueCopy Pair using the lock tokens generated in Task 1
+    ##########################################################################
     - name: Create TrueCopy Pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info:
@@ -78,9 +78,9 @@
       ansible.builtin.debug:
         var: result
 
-  ##########################################################################
-  # Task 3 : Split TrueCopy Pair using the lock tokens generated in Task 1
-  ##########################################################################
+    ##########################################################################
+    # Task 3 : Split TrueCopy Pair using the lock tokens generated in Task 1
+    ##########################################################################
     - name: Split TrueCopy Pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info:
@@ -100,9 +100,9 @@
       ansible.builtin.debug:
         var: result
 
-  ##########################################################################
-  # Task 4 : Resync TrueCopy Pair using the lock tokens generated in Task 1
-  ##########################################################################
+    ##########################################################################
+    # Task 4 : Resync TrueCopy Pair using the lock tokens generated in Task 1
+    ##########################################################################
     - name: Resync TrueCopy Pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info:
@@ -122,9 +122,9 @@
       ansible.builtin.debug:
         var: result
 
-  ##########################################################################
-  # Task 5 : Delete TrueCopy Pair using the lock tokens generated in Task 1
-  ##########################################################################
+    ##########################################################################
+    # Task 5 : Delete TrueCopy Pair using the lock tokens generated in Task 1
+    ##########################################################################
     - name: Delete TrueCopy Pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info:
@@ -144,9 +144,9 @@
       ansible.builtin.debug:
         var: result
 
-  ##########################################################################
-  # Task 6 : Unlock the Resource Groups that were locked in Task 1
-  ##########################################################################
+    ##########################################################################
+    # Task 6 : Unlock the Resource Groups that were locked in Task 1
+    ##########################################################################
     - name: Unlock Resource Group
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:

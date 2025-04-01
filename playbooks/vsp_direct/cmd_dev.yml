@@ -54,7 +54,7 @@
     ####################################################################
     # Task 3 : Disable a Command Device
     ####################################################################
-    - name: Enable a Command Device
+    - name: Disable a Command Device
       hitachivantara.vspone_block.vsp.hv_cmd_dev:
         connection_info: "{{ connection_info }}"
         state: "absent"

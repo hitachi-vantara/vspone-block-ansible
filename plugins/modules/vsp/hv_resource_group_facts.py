@@ -107,7 +107,7 @@ EXAMPLES = """
         password: "secret"
 
 - name: Get all Resource Groups for gateway connection types
-  hv_resource_group_facts:
+  hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     storage_system_info:
         serial: "811150"
     connection_info:
@@ -125,7 +125,7 @@ EXAMPLES = """
         name: "my_resource_group"
 
 - name: Get Resource Group by name for gateway connection type
-  hv_resource_group_facts:
+  hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     storage_system_info:
         serial: "811150"
     connection_info:

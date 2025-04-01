@@ -37,7 +37,6 @@
         spec:
           journal_id: 37
           ldev_ids: [1993, 1994]
-
       register: result
 
     - name: Debug the result variable

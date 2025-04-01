@@ -25,8 +25,8 @@
         connection_info: "{{ connection_info }}"
         spec:
           name: "devGroup"
-          role_names: [ "STORAGE_ADMIN_PERF_MGMT", "STORAGE_ADMIN_PROVISION" ]
-          resource_group_ids: [ 8, 9 ]
+          role_names: ["STORAGE_ADMIN_PERF_MGMT", "STORAGE_ADMIN_PROVISION"]
+          resource_group_ids: [8, 9]
       register: result
 
     - name: Debug the result variable
@@ -57,7 +57,7 @@
         spec:
           state: add_role
           id: "devGroup3"
-          role_names: [ "STORAGE_ADMIN_REMOTE_COPY", "STORAGE_ADMIN_PROVISION", "STORAGE_ADMIN_SYS_RESOURCE_MGMT"]
+          role_names: ["STORAGE_ADMIN_REMOTE_COPY", "STORAGE_ADMIN_PROVISION", "STORAGE_ADMIN_SYS_RESOURCE_MGMT"]
       register: result
 
     - name: Debug the result variable
@@ -73,7 +73,7 @@
         spec:
           state: remove_role
           id: "devGroup3"
-          role_names: [ "STORAGE_ADMIN_REMOTE_COPY", "STORAGE_ADMIN_PROVISION" ]
+          role_names: ["STORAGE_ADMIN_REMOTE_COPY", "STORAGE_ADMIN_PROVISION"]
       register: result
 
     - name: Debug the result variable

@@ -44,10 +44,6 @@ options:
                 description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
                 type: str
                 required: false
-            api_token:
-                description: This field is used to pass the value of the lock token to operate on locked resources.
-                type: str
-                required: false
     spec:
         description:
             - Specification for the user group facts to be gathered.
@@ -190,7 +186,7 @@ class VSPUserGroupFactsManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of User Group Facts ===")
-        self.module.exit_json(changed=False, ansible_facts=data)
+        self.module.exit_json(**data)
 
 
 def main(module=None):

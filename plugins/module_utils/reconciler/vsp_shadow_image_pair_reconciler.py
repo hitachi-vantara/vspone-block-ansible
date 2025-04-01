@@ -13,6 +13,7 @@ try:
     )
     from ..common.hv_log import Log
     from ..common.hv_constants import ConnectionTypes
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 except ImportError:
     from provisioner.vsp_shadow_image_pair_provisioner import (
         VSPShadowImagePairProvisioner,
@@ -26,6 +27,7 @@ except ImportError:
     from common.hv_constants import StateValue
     from common.hv_log import Log
     from common.hv_constants import ConnectionTypes
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 logger = Log()
 
 
@@ -36,6 +38,8 @@ class VSPShadowImagePairReconciler:
         self.serial = serial
         self.shadowImagePairSpec = shadowImagePairSpec
         self.provisioner = VSPShadowImagePairProvisioner(self.connectionInfo)
+        if self.serial is None:
+            self.serial = self.get_storage_serial_number()
 
     @log_entry_exit
     def shadow_image_pair_facts(self, shadowImagePairSpec):
@@ -164,6 +168,12 @@ class VSPShadowImagePairReconciler:
             else shadow_image_response
         )
         return shadow_image_response
+
+    @log_entry_exit
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connectionInfo)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     @log_entry_exit
     def shadow_image_pair_create(self, shadowImagePairSpec):

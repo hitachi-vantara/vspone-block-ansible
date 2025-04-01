@@ -38,7 +38,7 @@
         connection_info: "{{ connection_info }}"
         spec:
           path_group_id: 101
-      
+
       register: result
 
     - name: Debug result

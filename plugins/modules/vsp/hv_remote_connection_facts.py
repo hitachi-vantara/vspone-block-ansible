@@ -70,7 +70,7 @@ EXAMPLES = """
       connection_type: "direct"
 
 - name: Get remote connection details using path group id for direct connection type
-  hitachivantara.vspone_block.vsp.hv_remote_connection:
+  hitachivantara.vspone_block.vsp.hv_remote_connection_facts:
     connection_info:
         address: storage1.company.com
         username: "admin"
