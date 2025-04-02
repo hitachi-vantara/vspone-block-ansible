@@ -76,7 +76,6 @@ options:
 """
 
 EXAMPLES = """
--name:
 - name: Gather snapshot facts with primary volume and mirror unit ID for direct connection type
   hitachivantara.vspone_block.vsp.hv_snapshot_group_facts:
     connection_info:

@@ -63,8 +63,11 @@
             name: "ansible-hostgroup-2"
             port: "CL1-A"
           mirror_unit_id: 2
-      when: primary_journal_volumes.ansible_facts.journal_volume | length > 1 and secondary_journal_volumes.ansible_facts.journal_volume | length > 1 and primary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id
-        is defined and secondary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined
+      when:
+        - primary_journal_volumes.ansible_facts.journal_volume | length > 1
+        - secondary_journal_volumes.ansible_facts.journal_volume | length > 1
+        - primary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined
+        - secondary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined
       register: result
 
     - name: Debug result
@@ -94,8 +97,11 @@
             paths:
               - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
           mirror_unit_id: 2
-      when: primary_journal_volumes.ansible_facts.journal_volume | length > 1 and secondary_journal_volumes.ansible_facts.journal_volume | length > 1 and primary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id
-        is defined and secondary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined
+      when:
+        - primary_journal_volumes.ansible_facts.journal_volume | length > 1
+        - secondary_journal_volumes.ansible_facts.journal_volume | length > 1
+        - primary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined
+        - secondary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined
       register: result
 
     - name: Debug result

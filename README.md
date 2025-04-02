@@ -38,7 +38,11 @@ The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of
 
 ## Changelog
 
-View the changelog [here](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/CHANGELOG.rst).
+View the changelog [here](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/docs/CHANGELOG.md).
+
+## 📢 Deprecation Notice
+
+⚠️ **Important:** The **Unified API Infrastructure (UAI) Gateway connection modules** will no longer be supported in future releases of this software.
 
 ## Available Modules
 
@@ -84,7 +88,7 @@ For troubleshooting tips and common issues, please refer to the [Troubleshooting
 
 ## User Guide & Release Notes
 
-For User Guide and Release Notes, see https://docs.hitachivantara.com/search/documents?value-filters=Option~%2522Red+Hat%2522*Product_custom~%2522Adapters+and+Drivers%2522&virtual-field=title_only&content-lang=en-US
+For User Guide and Release Notes, [see this documentation](https://docs.hitachivantara.com/search/documents?value-filters=Option~%2522Red+Hat%2522*Product_custom~%2522Adapters+and+Drivers%2522&virtual-field=title_only&content-lang=en-US)
 
 ## License
 

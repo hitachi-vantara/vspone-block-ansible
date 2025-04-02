@@ -88,63 +88,59 @@ EXAMPLES = """
 - name: Create a User
   hitachivantara.vspone_block.vsp.hv_user_group:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     spec:
-        name: "devUser"
-        authentication: "local"
-        password: "devPassword"
-        group_names: [
+      name: "devUser"
+      authentication: "local"
+      password: "devPassword"
+      group_names: [
         "Audit Log Administrator (View Only) User Group",
-        "Storage Administrator (View & Modify) User Group"
-        ]
+        "Storage Administrator (View & Modify) User Group"]
 
 - name: Change User Password by User Name
   hitachivantara.vspone_block.vsp.hv_user_group:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     spec:
-        name: "devUser"
-        password: "devPassword3"
+      name: "devUser"
+      password: "devPassword3"
 
 - name: Add Resource Groups to a User Group
   hitachivantara.vspone_block.vsp.hv_user_group:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     spec:
-        state: add_user_group
-        id: "devUser"
-        group_names: [
-        "devGroup3_new_4",
-        ]
+      state: add_user_group
+      id: "devUser"
+      group_names: [
+        "devGroup3_new_4"]
 
 - name: Remove User from  User Groups by User ID
   hitachivantara.vspone_block.vsp.hv_user_group:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     spec:
-        state: remove_user_group
-        id: "devUser"
-        group_names: [
-        "devGroup3_new_4",
-        ]
-
+      state: remove_user_group
+      id: "devUser"
+      group_names: [
+        "devGroup3_new_4"]
 - name: Delete a Usere Group by ID
   hitachivantara.vspone_block.vsp.hv_user_group:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     state: absent
     spec:
-        id: "devUser"
+      id: "devUser"
 """
 
 RETURN = """

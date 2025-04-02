@@ -93,25 +93,25 @@ EXAMPLES = """
       connection_type: "direct"
     state: present
     spec:
-        remote_storage_serial_number: "40014"
-        local_port: "CL7-D"
-        remote_port: "CL7-D"
-        remote_storage_ip_address: "10.120.10.120"
-        remote_tcp_port: 3260
+      remote_storage_serial_number: "40014"
+      local_port: "CL7-D"
+      remote_port: "CL7-D"
+      remote_storage_ip_address: "10.120.10.120"
+      remote_tcp_port: 3260
 
 - name: Delete a iSCSI remote connection for direct connection type
   hitachivantara.vspone_block.vsp.hv_remote_connection:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "password"
-        connection_type: "direct"
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+      connection_type: "direct"
     state: absent
     spec:
-        remote_storage_serial_number: "40014"
-        local_port: "CL7-D"
-        remote_port: "CL7-D"
-        remote_storage_ip_address: "10.120.10.120"
+      remote_storage_serial_number: "40014"
+      local_port: "CL7-D"
+      remote_port: "CL7-D"
+      remote_storage_ip_address: "10.120.10.120"
 """
 
 RETURN = """

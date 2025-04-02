@@ -102,53 +102,53 @@ EXAMPLES = """
 - name: Get all Resource Groups for direct connection type
   hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
 
 - name: Get all Resource Groups for gateway connection types
   hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     storage_system_info:
-        serial: "811150"
+      serial: "811150"
     connection_info:
-        address: gateway.company.com
-        api_token: "api token value"
-        connection_type: "gateway"
+      address: gateway.company.com
+      api_token: "api token value"
+      connection_type: "gateway"
 
 - name: Get Resource Group by name for direct connection type
   hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     spec:
-        name: "my_resource_group"
+      name: "my_resource_group"
 
 - name: Get Resource Group by name for gateway connection type
   hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     storage_system_info:
-        serial: "811150"
+      serial: "811150"
     connection_info:
-        address: gateway.company.com
-        api_token: "api token value"
-        connection_type: "gateway"
+      address: gateway.company.com
+      api_token: "api token value"
+      connection_type: "gateway"
     spec:
-        name: "my_resource_group"
+      name: "my_resource_group"
 
 - name: Get information about the Resource Groups specified in the query for direct connection type
   hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     spec:
-        query:
-            - ldevs
-            - parity_groups
-            - ports
-            - host_groups
-            - iscsi_targets
-            - nvm_subsystem_ids
+      query:
+        - ldevs
+        - parity_groups
+        - ports
+        - host_groups
+        - iscsi_targets
+        - nvm_subsystem_ids
 """
 
 RETURN = """

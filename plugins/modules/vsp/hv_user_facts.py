@@ -63,19 +63,17 @@ EXAMPLES = """
 - name: Get all users for direct connection type
   hitachivantara.vspone_block.vsp.hv_user_facts:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
-
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
 - name: Get user by name for direct connection type
   hitachivantara.vspone_block.vsp.hv_user_facts:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     spec:
-        name: "user1"
-
+      name: "user1"
 """
 
 RETURN = """

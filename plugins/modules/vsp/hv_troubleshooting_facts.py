@@ -63,14 +63,13 @@ EXAMPLES = """
     uai_gateway_address: "172.25.99.99"
     api_token: apitokenvalue
     remote_gateway_host_connection_info:
-        - address: remotegateway1.company.com
-          username: admin
-          password: login-password
+      - address: remotegateway1.company.com
+        username: admin
+        password: login-password
 
 - name: Collect log bundle for direct only
   hitachivantara.vspone_block.vsp.hv_troubleshooting_facts:
   # no_log: true
-
 """
 
 RETURN = """

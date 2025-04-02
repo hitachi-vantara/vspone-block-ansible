@@ -107,60 +107,60 @@ EXAMPLES = """
       connection_type: "direct"
     state: present
     spec:
-        path_group_id: 101
-        remote_storage_serial_number: "40014"
-        remote_paths:
-            - local_port: "CL7-C"
-              remote_port: "CL7-C"
-            - local_port: "CL7-D"
-              remote_port: "CL7-D"
-        min_remote_paths: 1
-        remote_io_timeout_in_sec: 15
-        round_trip_in_msec: 1
+      path_group_id: 101
+      remote_storage_serial_number: "40014"
+      remote_paths:
+        - local_port: "CL7-C"
+          remote_port: "CL7-C"
+        - local_port: "CL7-D"
+          remote_port: "CL7-D"
+      min_remote_paths: 1
+      remote_io_timeout_in_sec: 15
+      round_trip_in_msec: 1
 
 - name: update remote path of a existing remote connection for direct connection type
   hitachivantara.vspone_block.vsp.hv_remote_connection:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "password"
-        connection_type: "direct"
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+      connection_type: "direct"
     state: present
     spec:
-        path_group_id: 101
-        remote_storage_serial_number: "40014"
-        remote_paths:
-            - local_port: "CL7-C"
-              remote_port: "CL7-C"
-            - local_port: "CL7-D"
-              remote_port: "CL7-D"
+      path_group_id: 101
+      remote_storage_serial_number: "40014"
+      remote_paths:
+        - local_port: "CL7-C"
+          remote_port: "CL7-C"
+        - local_port: "CL7-D"
+          remote_port: "CL7-D"
 
 - name: update remote connection settings for direct connection type
   hitachivantara.vspone_block.vsp.hv_remote_connection:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "password"
-        connection_type: "direct"
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+      connection_type: "direct"
     state: present
     spec:
-        path_group_id: 101
-        remote_storage_serial_number: "40014"
-        remote_io_timeout_in_sec: 15
-        round_trip_in_msec: 1
-        min_remote_paths: 1
+      path_group_id: 101
+      remote_storage_serial_number: "40014"
+      remote_io_timeout_in_sec: 15
+      round_trip_in_msec: 1
+      min_remote_paths: 1
 
 - name: Delete a remote connection for direct connection type
   hitachivantara.vspone_block.vsp.hv_remote_connection:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "password"
-        connection_type: "direct"
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+      connection_type: "direct"
     state: absent
     spec:
-        path_group_id: 101
-        remote_storage_serial_number: "40014"
+      path_group_id: 101
+      remote_storage_serial_number: "40014"
 """
 
 RETURN = """

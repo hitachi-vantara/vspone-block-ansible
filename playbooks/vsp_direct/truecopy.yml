@@ -184,8 +184,8 @@
 
     ##############################################################################
     # Task 9 : Swap-Split TrueCopy pair by copy_group_name and copy_pair_name
-    #          Storages need to be swapped before swap-split operation. Please 
-    #          specify connection_info and secondary_connection_info accordingly. 
+    #  Storages need to be swapped before swap-split operation. Please
+    # specify connection_info and secondary_connection_info accordingly.
     ##############################################################################
     - name: Swap-Split TrueCopy pair
       hitachivantara.vspone_block.vsp.hv_truecopy:

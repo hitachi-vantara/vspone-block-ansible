@@ -87,7 +87,7 @@
           serial: "811150"
         state: present
         spec:
-          state: absent
+          state: set_host_mode_and_hmo
           name: hostgroup-server
           port: CL1-C
           host_mode_options: [68]
