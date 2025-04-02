@@ -165,14 +165,14 @@ EXAMPLES = """
     - name: Lock Resource Group by name for gateway connection type
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
-            connection_type: gateway
-            address: uai_gateway1.company.co
-            api_token: api_token_value
+          connection_type: gateway
+          address: uai_gateway1.company.co
+          api_token: api_token_value
         storage_system_info:
-            serial: 810050
-            state: present
+          serial: 810050
+          state: present
         spec:
-            name: test_VSM_13
+          name: test_VSM_13
       register: lock_resource_group_result
 
     - name: Debug lock resource group result
@@ -182,14 +182,14 @@ EXAMPLES = """
     - name: Unlock Resource Group by name for gateway connection type
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
-            connection_type: gateway
-            address: uai_gateway1.company.co
-            api_token: api_token_value
+          connection_type: gateway
+          address: uai_gateway1.company.co
+          api_token: api_token_value
         storage_system_info:
-            serial: 810050
+          serial: 810050
         state: absent
         spec:
-            name: test_VSM_13
+          name: test_VSM_13
       register: unlock_resource_group_result
 
     - name: Debug unlock resource group result

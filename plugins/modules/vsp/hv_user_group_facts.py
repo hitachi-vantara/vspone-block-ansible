@@ -64,18 +64,18 @@ EXAMPLES = """
 - name: Get all user groups for direct connection type
   hitachivantara.vspone_block.vsp.hv_user_group_facts:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
 
 - name: Get user group by name for direct connection type
   hitachivantara.vspone_block.vsp.hv_user_group_facts:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     spec:
-        name: "my_user_group"
+      name: "my_user_group"
 """
 
 RETURN = """

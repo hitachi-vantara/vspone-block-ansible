@@ -79,7 +79,6 @@ EXAMPLES = """
     spec:
       external_storage_serial: '410109'
       external_ldev_id: 1354
-
 """
 
 RETURN = """

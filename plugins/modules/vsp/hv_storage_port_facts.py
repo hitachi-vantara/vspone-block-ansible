@@ -80,20 +80,20 @@ EXAMPLES = """
 - name: Get all ports for direct connection type
   hitachivantara.vspone_block.vsp.hv_storage_port_facts:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
-        connection_type: "direct"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
 
 - name: Get a specific port for direct connection type
   hitachivantara.vspone_block.vsp.hv_storage_port_facts:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
-        connection_type: "direct"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+      connection_type: "direct"
     spec:
-        ports: ["CLA-1", "CLA-2"]
+      ports: ["CLA-1", "CLA-2"]
 """
 
 

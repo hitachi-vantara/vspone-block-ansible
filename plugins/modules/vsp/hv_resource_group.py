@@ -195,36 +195,35 @@ EXAMPLES = """
 - name: Create a Resource Group with LDEVs, parity groups, ports, and host groups for direct connection type
   hitachivantara.vspone_block.vsp.hv_resource_group:
     connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     spec:
-        ldevs: [1, 2, 3]
-        parity_groups: ["PG1", "PG2"]
-        ports: ["CL1-A", "CL1-C"]
-        host_groups:
-          - port: "CL1-A"
-            name: "my_host_group_1"
-          - port: "CL1-A"
-            name: "my_host_group_2"
+      ldevs: [1, 2, 3]
+      parity_groups: ["PG1", "PG2"]
+      ports: ["CL1-A", "CL1-C"]
+      host_groups:
+        - port: "CL1-A"
+          name: "my_host_group_1"
+        - port: "CL1-A"
+          name: "my_host_group_2"
 
 - name: Add resources to an existing Resource Group by ID for direct connection type
   hitachivantara.vspone_block.vsp.hv_resource_group:
     connection_info:
-    address: storage1.company.com
-    username: "admin"
-    password: "secret"
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     spec:
-    state: add_resource
-    id: 4
-    ldevs: [3, 4]
-    host_groups:
+      state: add_resource
+      id: 4
+      ldevs: [3, 4]
+      host_groups:
         - port: "CL1-A"
           name: "my_host_group_3"
-    iscsi_targets:
+      iscsi_targets:
         - port: "CL1-C"
           name: "my_iscsi_target_2"
-
 - name: Remove resources from an existing Resource Group by ID for direct connection type
   hitachivantara.vspone_block.vsp.hv_resource_group:
     connection_info:
