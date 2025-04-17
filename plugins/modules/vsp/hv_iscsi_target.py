@@ -439,7 +439,7 @@ class VSPIscsiTargetManager:
         self.argument_spec = VSPIscsiTargetArguments().iscsi_target()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
-            supports_check_mode=True,
+            supports_check_mode=False,
         )
 
         parameterManager = VSPParametersManager(self.module.params)

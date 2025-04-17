@@ -530,13 +530,13 @@ class VSPCopyGroupManager:
         self.argument_spec = VSPRemoteCopyGroupArguments().get_copy_group_args()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
-            supports_check_mode=True,
+            supports_check_mode=False,
         )
         try:
             self.params_manager = VSPParametersManager(self.module.params)
             self.module = AnsibleModule(
                 argument_spec=self.argument_spec,
-                supports_check_mode=True,
+                supports_check_mode=False,
                 # can be added mandotary , optional mandatory arguments
             )
             self.secondary_connection_info = (

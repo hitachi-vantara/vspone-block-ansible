@@ -546,7 +546,7 @@ class VSPGADPairManager:
         self.argument_spec = VSPGADArguments().gad_pair_args_spec()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
-            supports_check_mode=True,
+            supports_check_mode=False,
         )
         try:
             self.params_manager = VSPParametersManager(self.module.params)

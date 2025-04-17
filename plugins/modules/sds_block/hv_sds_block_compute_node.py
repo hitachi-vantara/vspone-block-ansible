@@ -321,7 +321,7 @@ class SDSBComputeNodeManager:
         )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
-            supports_check_mode=True,
+            supports_check_mode=False,
         )
 
         params_manager = SDSBParametersManager(self.module.params)

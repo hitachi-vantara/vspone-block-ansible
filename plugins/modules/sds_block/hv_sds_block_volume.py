@@ -435,7 +435,7 @@ class SDSBVolumeManager:
         )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
-            supports_check_mode=True,
+            supports_check_mode=False,
         )
         try:
             params_manager = SDSBParametersManager(self.module.params)

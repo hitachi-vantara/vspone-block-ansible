@@ -214,7 +214,7 @@ class SubscriberManager:
         self.argument_spec = GatewayArguments().gateway_subscriber()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
-            supports_check_mode=True,
+            supports_check_mode=False,
         )
         try:
             self.params_manager = GatewayParametersManager(self.module.params)

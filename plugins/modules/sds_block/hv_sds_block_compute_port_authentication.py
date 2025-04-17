@@ -326,7 +326,7 @@ class SDSBPortAuthManager:
         )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
-            supports_check_mode=True,
+            supports_check_mode=False,
         )
 
         parameter_manager = SDSBParametersManager(self.module.params)
