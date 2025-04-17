@@ -24,7 +24,7 @@ requirements:
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
-    support: full
+    support: none
 options:
   state:
     description: The level of the compute port authentication task. Choices are C(present) and C(absent).
