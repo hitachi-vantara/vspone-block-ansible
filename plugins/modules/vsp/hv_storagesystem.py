@@ -346,7 +346,7 @@ def main(module=None):
     }
 
     if module is None:
-        module = AnsibleModule(argument_spec=fields, supports_check_mode=True)
+        module = AnsibleModule(argument_spec=fields, supports_check_mode=False)
 
     try:
 

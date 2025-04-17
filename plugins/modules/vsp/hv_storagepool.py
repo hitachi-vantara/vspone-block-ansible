@@ -358,7 +358,7 @@ class VspStoragePoolManager:
         self.argument_spec = VSPStoragePoolArguments().storage_pool()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
-            supports_check_mode=True,
+            supports_check_mode=False,
         )
         try:
             self.params_manager = VSPParametersManager(self.module.params)

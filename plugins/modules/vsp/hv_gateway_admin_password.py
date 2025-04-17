@@ -94,7 +94,7 @@ class GatewayPasswordManager:
         self.argument_spec = GatewayArguments().gateway_password()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
-            supports_check_mode=True,
+            supports_check_mode=False,
         )
         c_info = self.module.params.get("connection_info")
         self.logger.writeInfo(f"{c_info} module_params_connection_info")

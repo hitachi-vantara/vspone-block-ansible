@@ -232,7 +232,7 @@ class VSPUserManager:
         self.argument_spec = VSPUserGroupArguments().user_group()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
-            supports_check_mode=True,
+            supports_check_mode=False,
         )
         try:
             self.parameter_manager = VSPParametersManager(self.module.params)

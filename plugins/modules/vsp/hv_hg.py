@@ -440,7 +440,7 @@ class VSPHostGroupManager:
         self.argument_spec = VSPHostGroupArguments().host_group()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
-            supports_check_mode=True,
+            supports_check_mode=False,
         )
 
         try:
