@@ -28,7 +28,7 @@ requirements:
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
-    support: full
+    support: none
 options:
   state:
     description: The level of the snapshot task. Choices are C(present), C(absent), C(split), C(sync), C(restore), C(clone).

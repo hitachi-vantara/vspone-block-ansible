@@ -25,7 +25,7 @@ requirements:
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
-    support: full
+    support: none
 options:
   state:
     description: The level of the Remote connection task. Choices are C(present), C(absent).

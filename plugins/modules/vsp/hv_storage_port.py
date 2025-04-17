@@ -25,7 +25,7 @@ requirements:
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
-    support: full
+    support: none
 options:
   storage_system_info:
     description: Information about the storage system.

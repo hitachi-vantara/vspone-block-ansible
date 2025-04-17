@@ -26,7 +26,7 @@ requirements:
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
-    support: full
+    support: none
 options:
   state:
     description: The level of the Remote Copy Group pairs task. Choices are C(present), C(absent), C(split), C(resync), C(swap_split), C(swap_resync).

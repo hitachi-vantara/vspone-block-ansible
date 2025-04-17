@@ -6,7 +6,7 @@ readme: README.md
 authors:
   - Hitachi Vantara Ansible Team
 description: >
-  Ansible Modules to manage Hitachi Storage and Data Services (Block, File, etc.) using the Hitachi VSP One platform.
+  Ansible modules to manage Hitachi Storage systems using the Hitachi VSP One platform.
   These modules provide a simplified and automated way to configure and manage Hitachi storage systems,
   enabling seamless integration with Ansible playbooks and workflows.
 license:
