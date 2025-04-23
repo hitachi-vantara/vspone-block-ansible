@@ -61,6 +61,8 @@ class VSPNvmeReconciler:
         self.port_prov = VSPStoragePortProvisioner(self.connection_info)
         self.hg_provisioner = VSPHostGroupProvisioner(self.connection_info)
         self.storage_serial_number = serial
+        if self.storage_serial_number is None:
+            self.storage_serial_number = self.get_storage_serial_number()
         if state:
             self.state = state
 
@@ -96,9 +98,6 @@ class VSPNvmeReconciler:
             else:
                 spec.id = nvme_subsystem.nvmSubsystemId
                 self.update_nvme_subsystem(nvme_subsystem, spec)
-
-            if self.storage_serial_number is None:
-                self.storage_serial_number = self.get_storage_serial_number()
 
             nvme_ss = self.provisioner.get_nvme_subsystem_details_by_id(spec.id)
             logger.writeDebug("RC:reconcile_nvm_subsystem:nvme_ss={}", nvme_ss)
@@ -599,8 +598,6 @@ class VSPNvmeReconciler:
     @log_entry_exit
     def get_nvme_subsystem_facts(self, spec):
         nvme_subsystems = self.provisioner.get_nvme_subsystems(spec)
-        if self.storage_serial_number is None:
-            self.storage_serial_number = self.get_storage_serial_number()
         logger.writeDebug("RC:nvme_subsystems={}", nvme_subsystems)
         extracted_data = NvmeSubsystemDetailInfoExtractor(
             self.storage_serial_number

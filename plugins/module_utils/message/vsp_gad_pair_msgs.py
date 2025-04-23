@@ -32,7 +32,7 @@ class GADPairValidateMSG(Enum):
     REMOTE_UCP_SYSTEM = "Remote UCP system is required."
     SECONDARY_HOSTGROUPS = "Secondary hostgroups id is missing."
     SECONDARY_HOSTGROUPS_OR_NVME = (
-        "Either specify Secondary hostgroups or NVMe subsystem details."
+        "Either specify Secondary hostgroups, NVM subsystem or Iscsi target details."
     )
     HOSTGROUPS_ID = "{} Hostgroups id is missing."
     HOSTGROUPS_NAME = "{} Hostgroups name is missing."
@@ -58,3 +58,6 @@ class GADPairValidateMSG(Enum):
     EXPAND_PVOL_FAILED = "Failed to perform operation for primary volume {}."
     EXPAND_SVOL_FAILED = "Failed to perform operation for secondary volume {}."
     SECONDARY_RANGE_ID_IS_NOT_SUPPORTED = "Parameters begin_secondary_volume_id and end_secondary_volume_id is not supported for GAD pairs."
+    NO_GAD_PAIR_FOUND_FOR_INPUTS = (
+        "Could not find GAD pair for the input parameters supplied."
+    )

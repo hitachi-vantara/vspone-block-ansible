@@ -23,11 +23,8 @@ description:
   - 7. Delete iscsi target
   - 8. Add CHAP User to iscsi target
   - 9. Remove CHAP User from iscsi target
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/iscsi_target.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/iscsi_target.yml)
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -47,47 +44,41 @@ options:
     choices: ['present', 'absent']
     default: 'present'
   storage_system_info:
-    required: false
+    description: Information about the storage system. This field is an optional field.
     type: dict
-    description:
-      - Information about the Hitachi storage system. This field is required for gateway connection type only.
+    required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
-        required: false
+        description: The serial number of the storage system.
         type: str
+        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
-    required: true
     type: dict
+    required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
-        type: str
-        required: false
   spec:
     description: Specification for iscsi target operation.
     type: dict
@@ -180,7 +171,7 @@ options:
         elements: int
         required: false
       ldevs:
-        description: LDEV ID in decimal or HEX of the LDEV that you want to present or absent.
+        description: LDEV ID in decimal or HEX of the LDEV that you want to present or unpresent.
         required: false
         type: list
         elements: int
@@ -201,10 +192,9 @@ options:
 """
 
 EXAMPLES = """
-- name: Create iscsi target with direct connection type
+- name: Create iscsi targets
   hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
-      connection_type: "direct"
       address: storage1.company.com
       username: "admin"
       password: "password"
@@ -220,10 +210,9 @@ EXAMPLES = """
         - chap_user_name: user1
           chap_secret: Secret1
 
-- name: Update iscsi target host mode and options for direct connection type
+- name: Update iscsi target host mode and options
   hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
-      connection_type: "direct"
       address: storage1.company.com
       username: "admin"
       password: "password"
@@ -234,10 +223,9 @@ EXAMPLES = """
       host_mode: LINUX
       host_mode_options: [54, 63]
 
-- name: Add chap users to iscsi target for direct connection type
+- name: Add chap users to iscsi target
   hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
-      connection_type: "direct"
       address: storage1.company.com
       username: "admin"
       password: "password"
@@ -252,10 +240,9 @@ EXAMPLES = """
         - chap_user_name: user2
           chap_secret: Secret2
 
-- name: Remove chap user from iscsi target for direct connection type
+- name: Remove chap user from iscsi target
   hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
-      connection_type: "direct"
       address: storage1.company.com
       username: "admin"
       password: "password"
@@ -268,10 +255,9 @@ EXAMPLES = """
         - chap_user_name: user2
           chap_secret: Secret2
 
-- name: Add iqn initiators to iscsi target for direct connection type
+- name: Add iqn initiators to iscsi target
   hitachivantara.vspone_block.vsp.hv_iscsi_target:
     connection_info:
-      connection_type: "direct"
       address: storage1.company.com
       username: "admin"
       password: "password"
@@ -282,22 +268,6 @@ EXAMPLES = """
       port: 'CL4-C'
       iqn_initiators:
         - iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
-
-- name: Attach ldevs to iscsi target for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_iscsi_target:
-    connection_info:
-      connection_type: "gateway"
-      address: gateway.company.com
-      api_token: "api_token"
-      subscriber_id: 811150
-    storage_system_info:
-      serial: 40014
-    state: present
-    spec:
-      state: attach_ldev
-      name: 'iscsi-target-server-1'
-      port: 'CL4-C'
-      ldevs: [300, 400]
 """
 
 RETURN = r"""
@@ -395,10 +365,6 @@ iscsi_target_info:
               description: Logical unit ID.
               type: int
               sample: 1
-        partner_id:
-          description: Partner ID.
-          type: str
-          sample: "partnerid"
         port_id:
           description: Port ID.
           type: str
@@ -407,10 +373,6 @@ iscsi_target_info:
           description: Resource group ID.
           type: int
           sample: 0
-        subscriber_id:
-          description: Subscriber ID.
-          type: str
-          sample: "811150"
 """
 
 from dataclasses import asdict

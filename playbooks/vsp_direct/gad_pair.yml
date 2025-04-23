@@ -38,6 +38,7 @@
             - name: "test"
               port: "CL1-A"
               enable_preferred_path: false
+              lun_id: 1
           quorum_disk_id: 1
 
       register: result
@@ -63,6 +64,7 @@
             - name: "test"
               port: "CL1-A"
               enable_preferred_path: false
+              lun_id: 1
           primary_hostgroups:
             - name: "test"
               port: "CL1-A"
@@ -93,6 +95,7 @@
             - name: "test"
               port: "CL1-A"
               enable_preferred_path: false
+              lun_id: 1
           primary_hostgroups:
             - name: "test"
               port: "CL1-A"
@@ -159,6 +162,7 @@
         spec:
           copy_group_name: "copy_group_name_1"
           primary_volume_id: 6
+          should_delete_svol: false
       register: result
 
     - name: Debug the result variable
@@ -243,6 +247,33 @@
             name: gk-nvm-sub-75
             paths:
               - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
+          quorum_disk_id: 1
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 11 : Create GAD-ISCSI pair
+    ####################################################################
+    - name: Create GAD-ISCSI pair
+      hitachivantara.vspone_block.vsp.hv_gad:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+
+        spec:
+          copy_group_name: "copy_group_name_1"
+          copy_pair_name: "copy_pair_name_1"
+
+          primary_volume_id: 12
+          secondary_pool_id: 1
+          secondary_iscsi_targets:
+            - name: "test"
+              port: "CL1-A"
+              enable_preferred_path: false
+              lun_id: 1
           quorum_disk_id: 1
 
       register: result

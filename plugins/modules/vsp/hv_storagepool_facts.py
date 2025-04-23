@@ -14,11 +14,9 @@ module: hv_storagepool_facts
 short_description: Retrieves storage pool information from Hitachi VSP storage systems.
 description:
   - This module retrieves information about storage pools from Hitachi VSP storage systems.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storagepool_facts.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/storagepool_facts.yml)
+
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -30,8 +28,7 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
@@ -45,32 +42,27 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
-        type: str
-        required: false
   spec:
     description: Specification for the storage pool facts to be gathered.
     type: dict
@@ -80,35 +72,37 @@ options:
         description: The pool number of the specific pool to retrieve.
         type: int
         required: false
+      pool_name:
+        description: The name of the specific pool to retrieve.
+        type: str
+        required: false
 """
 
 EXAMPLES = """
-- name: Get all pools for direct connection type
+- name: Get all pools
   hitachivantara.vspone_block.vsp.hv_storagepool_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
 
-- name: Get all pools for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_storagepool_facts:
-    storage_system_info:
-      serial: "811150"
-    connection_info:
-      address: storage1.company.com
-      api_token: "api_token"
-      connection_type: "gateway"
-
-- name: Get a specific pool for direct connection type
+- name: Get a specific pool
   hitachivantara.vspone_block.vsp.hv_storagepool_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     spec:
       pool_id: 0
+
+- name: Get a specific pool using pool name
+  hitachivantara.vspone_block.vsp.hv_storagepool_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    spec:
+      pool_name: "PoolName"
 """
 
 RETURN = r"""
@@ -225,14 +219,6 @@ ansible_facts:
           description: Indicates if the pool is encrypted.
           type: bool
           sample: true
-        subscriber_id:
-          description: The subscriber ID.
-          type: str
-          sample: "subscriber_id"
-        partner_id:
-          description: The partner ID.
-          type: str
-          sample: "partner_id"
 """
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (

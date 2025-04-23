@@ -14,8 +14,7 @@ module: hv_user_facts
 short_description: Retrieves user information from Hitachi VSP storage systems.
 description:
     - This module retrieves information about users from Hitachi VSP storage systems.
-    - This module is supported for C(direct) connection type only.
-    - For C(direct) connection type examples, go to URL
+    - For examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/user_facts.yml)
 version_added: '3.3.0'
 author:
@@ -37,11 +36,11 @@ options:
                 type: str
                 required: true
             username:
-                description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+                description: Username for authentication. This is a required field.
                 type: str
                 required: false
             password:
-                description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+                description: Password for authentication. This is a required field.
                 type: str
                 required: false
     spec:
@@ -66,6 +65,7 @@ EXAMPLES = """
       address: storage1.company.com
       username: "admin"
       password: "secret"
+
 - name: Get user by name for direct connection type
   hitachivantara.vspone_block.vsp.hv_user_facts:
     connection_info:
@@ -175,7 +175,7 @@ class VSPUserFactsManager:
 
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of User Facts ===")
-        self.module.exit_json(changed=False, ansible_facts=data)
+        self.module.exit_json(**data)
 
 
 def main(module=None):

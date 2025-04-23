@@ -14,12 +14,17 @@ module: hv_external_volume
 short_description: Manages External Volumes in the Hitachi VSP storage systems.
 description:
   - This module creates and deletes the External Volumes in the Hitachi VSP storage systems.
-  - This module is supported for direct connection type only.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/external_volume.yml)
 version_added: '3.3.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: none
 options:
   state:
     description: The level of the Disk Drives task.
@@ -28,12 +33,12 @@ options:
     choices: ['present', 'absent']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -42,22 +47,22 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
   spec:
     description: Specification for the External Volume management.
@@ -71,11 +76,11 @@ options:
       external_storage_serial:
         description: The external storage serial number.
         type: str
-        required: true
+        required: false
       external_ldev_id:
         description: The external LDEV ID.
         type: int
-        required: true
+        required: false
 
 """
 
@@ -86,7 +91,6 @@ EXAMPLES = """
       address: storage1.company.com
       username: 'username'
       password: 'password'
-      connection_type: "direct"
     spec:
       external_storage_serial: '410109'
       external_ldev_id: 1354

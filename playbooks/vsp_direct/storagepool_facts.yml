@@ -42,3 +42,17 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ####################################################################
+    # Task 3 : Get one storage pool using pool name
+    ####################################################################
+    - name: Get one storage pool using pool name
+      hitachivantara.vspone_block.vsp.hv_storagepool_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          pool_name: "PoolName1"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

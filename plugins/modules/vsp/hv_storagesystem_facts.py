@@ -14,11 +14,8 @@ module: hv_storagesystem_facts
 short_description:  retrieves storage system information from Hitachi VSP storage systems.
 description:
   - This module gathers facts about a specific storage system.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storagesystem_facts.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/storagesystem_facts.yml)
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -30,8 +27,7 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
@@ -45,43 +41,32 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
-        type: str
-        required: false
   spec:
     description: Specification for the storage system facts to be gathered.
     type: dict
     required: false
     suboptions:
-      refresh:
-        description: >
-          Indicates whether to refresh the storage system information. If set to true, the storage system information will be refreshed.
-          Supported only for C(gateway) connection type only.
-        type: bool
-        required: false
       query:
         description: Additional information to be gathered.
         type: list
@@ -91,41 +76,19 @@ options:
 """
 
 EXAMPLES = """
-- name: Get Storage System facts for direct connection
+- name: Get Storage System facts
   hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
 
-- name: Get Storage System facts for gateway connection
-  hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
-    storage_system_info:
-      serial: "811150"
-    connection_info:
-      address: gateway1.company.com
-      api_token: "api token value"
-      connection_type: "gateway"
-
-- name: Get Storage System using query for direct connection
+- name: Get Storage System using query
   hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
-    spec:
-      query: ["ports", "quorumdisks", "journalPools", "freeLogicalUnitList"]
-
-- name: Get Storage System using query for gateway connection
-  hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
-    storage_system_info:
-      serial: "811150"
-    connection_info:
-      address: gateway1.company.com
-      api_token: "api token value"
-      connection_type: "gateway"
     spec:
       query: ["ports", "quorumdisks", "journalPools", "freeLogicalUnitList"]
 """
@@ -302,34 +265,16 @@ ansible_facts:
 
 from dataclasses import asdict
 from ansible.module_utils.basic import AnsibleModule
-
-try:
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_messages import (
-        MessageID,
-    )
-
-    HAS_MESSAGE_ID = True
-except ImportError:
-    HAS_MESSAGE_ID = False
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
-)
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPStorageSystemArguments,
     VSPParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler import (
     vsp_storage_system,
 )
-import ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_storagesystem_facts_runner as runner
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     camel_dict_to_snake_case,
 )
@@ -361,14 +306,7 @@ class VspStorageSystemFactManager:
         storage_system_data = None
         registration_message = validate_ansible_product_registration()
         try:
-            if (
-                self.params_manager.connection_info.connection_type.lower()
-                == ConnectionTypes.GATEWAY
-            ):
-                storage_system_data = self.gateway_storage_system_read()
-            else:
-                storage_system_data = asdict(self.direct_storage_system_read())
-
+            storage_system_data = asdict(self.direct_storage_system_read())
             self.logger.writeDebug("233 self.spec = {}", self.spec.query)
             specQuery = self.spec.query
             if specQuery:
@@ -406,11 +344,6 @@ class VspStorageSystemFactManager:
         }
         if registration_message:
             data["user_consent_required"] = registration_message
-        if self.spec.refresh is True:
-            data["warning/message"] = (
-                "The storage refresh operation will be completed after 'health_status' is changed from 'REFRESHING' to 'NORMAL'."
-                "This operation may take upto 10 minutes."
-            )
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Storage System Facts ===")
         self.module.exit_json(changed=False, ansible_facts=data)
@@ -423,26 +356,6 @@ class VspStorageSystemFactManager:
         if result is None:
             raise ValueError(ModuleMessage.STORAGE_SYSTEM_NOT_FOUND.value)
         return result
-
-    def gateway_storage_system_read(self):
-        try:
-            self.module.params["spec"] = self.module.params.get("spec")
-            return runner.runPlaybook(self.module)
-        except HiException as ex:
-            if HAS_MESSAGE_ID:
-                self.logger.writeAMException(MessageID.ERR_AddRAIDStorageDevice)
-            else:
-                self.logger.writeAMException("0x0000")
-            raise Exception(ex.format())
-        except Exception as ex:
-            # sng,a2.4 - there is no ex.message?
-            # if ex is None or ex.message is None:
-            msg = None
-            if ex is None:
-                msg = "Failed during get storage facts, please check input parameters."
-            else:
-                msg = str(ex)
-            raise Exception(msg)
 
 
 def main():

@@ -35,9 +35,6 @@ class VSPResourceGroupLockProvisioner:
         self.rg_gw = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_RESOURCE_GROUP
         )
-        self.config_gw = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.VSP_CONFIG_MAP
-        )
         self.connection_info = connection_info
         self.serial = serial
         if serial:
@@ -256,7 +253,3 @@ class VSPResourceGroupLockProvisioner:
             if rg.resourceGroupId == rg_id:
                 return rg
         return None
-
-    @log_entry_exit
-    def is_out_of_band(self):
-        return self.config_gw.is_out_of_band()

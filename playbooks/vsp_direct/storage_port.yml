@@ -17,10 +17,10 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
-    # Task 1 : Change storage port security settings using port id
-    ####################################################################
-    - name: Change storage port security settings using port id
+    ############################################################################
+    # Task Name : Change port security setting of the storage port by port id
+    ############################################################################
+    - name: Change port security setting of the storage port by port id
       hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info: "{{ connection_info }}"
         spec:
@@ -32,15 +32,62 @@
       ansible.builtin.debug:
         var: result
 
-    ####################################################################
-    # Task 2 : Change storage port mode settings using port id
-    ####################################################################
-    - name: Change storage port mode settings using port id
+    #########################################################################
+    # Task Name : Change port mode setting of the storage port by port id
+    #########################################################################
+    - name: Change port mode setting of the storage port by port id
       hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info: "{{ connection_info }}"
         spec:
           port: "CL8-B"
-          port_mode: "FC-NVMe"
+          port_mode: "FC-NVMe" # Options: "FC-NVMe", "FCP-SCSI"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ##########################################################################
+    # Task Name : Change attribute setting of the storage port by port id
+    #########################################################################
+    - name: Change attribute setting of the storage port by port id
+      hitachivantara.vspone_block.vsp.hv_storage_port:
+        connection_info: "{{ connection_info }}"
+        spec:
+          port: "CL8-B"
+          port_attribute: "TAR" # Options: "TAR", "ALL"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ################################################################################################
+    # Task Name : Change fabric mode and port connection settings of the storage port by port id
+    ################################################################################################
+    - name: Change fabric mode and port connection settings of the storage port by port id
+      hitachivantara.vspone_block.vsp.hv_storage_port:
+        connection_info: "{{ connection_info }}"
+        spec:
+          port: "CL8-B"
+          fabric_mode: true
+          port_connection: "P2P" # Options: "FCAL", "P2P", "PtoP"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ###########################################################################################
+    # Task Name : Change port speed and port security settings of the storage port by port id
+    ###########################################################################################
+    - name: Change port speed and port security settings of the storage port by port id
+      hitachivantara.vspone_block.vsp.hv_storage_port:
+        connection_info: "{{ connection_info }}"
+        spec:
+          port: "CL8-B"
+          port_speed: "AUT" # Options: "AUT", "nG" - where n is a number and G can be omitted
+          enable_port_security: true
       register: result
 
     - name: Debug the result variable

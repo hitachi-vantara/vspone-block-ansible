@@ -5,6 +5,7 @@ try:
     )
     from ..common.hv_log import Log
     from ..provisioner.vsp_storage_pool_provisioner import VSPStoragePoolProvisioner
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..model.vsp_storage_pool_models import StoragePoolSpec
     from ..common.hv_constants import StateValue
 
@@ -15,6 +16,7 @@ except ImportError:
     )
     from common.hv_log import Log
     from provisioner.vsp_storage_pool_provisioner import VSPStoragePoolProvisioner
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from model.vsp_storage_pool_models import StoragePoolSpec
     from common.hv_constants import StateValue
 
@@ -26,7 +28,9 @@ class VSPStoragePoolReconciler:
     def __init__(self, connection_info, serial=None):
         self.connection_info = connection_info
         self.provisioner = VSPStoragePoolProvisioner(self.connection_info)
-        self.serial = self.provisioner.check_ucp_system(serial)
+        self.serial = serial
+        if self.serial is None:
+            self.serial = self.get_storage_serial_number()
 
     @log_entry_exit
     def storage_pool_reconcile(self, state: str, spec: StoragePoolSpec):
@@ -48,6 +52,12 @@ class VSPStoragePoolReconciler:
                 )
             return ret_value
             # return self.create_update_storage_pool(spec).to_dict()
+
+    @log_entry_exit
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     @log_entry_exit
     def create_update_storage_pool(self, spec):

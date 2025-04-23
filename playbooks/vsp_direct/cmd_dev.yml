@@ -37,7 +37,7 @@
     ####################################################################
     # Task 2 : Update the settings of a Command Device
     ####################################################################
-    - name: Create a Command Device from an LDEV ID
+    - name: Update the settings of a Command Device
       hitachivantara.vspone_block.vsp.hv_cmd_dev:
         connection_info: "{{ connection_info }}"
         spec:

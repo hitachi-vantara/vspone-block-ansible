@@ -83,7 +83,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
     spec:
       vps_id: "464e1fd1-9892-4134-866c-6964ce786676"
@@ -95,7 +94,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
     spec:
       vps_name: "VPS_01"

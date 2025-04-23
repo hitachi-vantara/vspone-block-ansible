@@ -44,6 +44,9 @@
           data_overflow_watchIn_seconds: 60
           is_cache_mode_enabled: true
           mp_blade_id: 0
+          mirror_unit_number: 0
+          copy_pace: "MEDIUM"
+          path_blockade_watch_in_minutes: 10
       register: result
 
     - name: Debug the result variable

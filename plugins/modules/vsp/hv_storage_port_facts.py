@@ -14,7 +14,6 @@ module: hv_storage_port_facts
 short_description: Retrieves storage port information from Hitachi VSP storage systems.
 description:
   - This module retrieves information about storage ports from Hitachi VSP storage systems.
-  - This module is supported only for C(direct) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storage_port_facts.yml)
 version_added: '3.0.0'
@@ -28,7 +27,7 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the storage system.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
@@ -42,28 +41,27 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-            the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system. Only C(direct) connection type is supported.
+        description: Type of connection to the storage system.
         type: str
         required: false
         choices: ['direct']
         default: 'direct'
-      api_token:
-        description: Value of the lock token to operate on locked resources.
-        type: str
-        required: false
   spec:
     description: Specification for the storage port facts to be gathered.
     type: dict
@@ -77,21 +75,19 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all ports for direct connection type
+- name: Get all ports
   hitachivantara.vspone_block.vsp.hv_storage_port_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
 
-- name: Get a specific port for direct connection type
+- name: Get a specific port
   hitachivantara.vspone_block.vsp.hv_storage_port_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     spec:
       ports: ["CLA-1", "CLA-2"]
 """
@@ -195,9 +191,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     VSPStoragePortArguments,
     VSPParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_storage_port import (
     VSPStoragePortReconciler,
 )
@@ -209,9 +202,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -263,13 +253,6 @@ class VSPStoragePortFactManager:
             self.connection_info,
             self.storage_serial_number,
         )
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            found = reconciler.check_storage_in_ucpsystem()
-            if not found:
-                raise ValueError(ModuleMessage.STORAGE_SYSTEM_ONBOARDING.value)
-            oob = reconciler.is_out_of_band()
-            if oob is True:
-                raise ValueError(ModuleMessage.OOB_NOT_SUPPORTED.value)
 
         result = reconciler.vsp_storage_port_facts(self.spec)
         return result

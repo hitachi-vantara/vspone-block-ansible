@@ -14,11 +14,8 @@ module: hv_resource_group_lock
 short_description: Allows the locking and unlocking of resource groups on Hitachi VSP storage systems.
 description:
     - This module allows the locking and unlocking of resource groups on Hitachi VSP storage systems.
-    - This module is supported for both C(direct) and C(gateway) connection types.
-    - For C(direct) connection type examples, go to URL
+    - For examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/resource_management_with_lock/vsp_direct)
-    - For C(gateway) connection type examples, go to URL
-      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/resource_management_with_lock/vsp_uai_gateway)
 version_added: '3.2.0'
 author:
     - Hitachi Vantara LTD (@hitachi-vantara)
@@ -29,104 +26,94 @@ attributes:
     description: Determines if the module should run in check mode.
     support: none
 options:
-    state:
-        description:
-            - Set state to C(present) for locking resource group.
-            - Set state to C(absent) for unlocking resource group.
+  state:
+    description:
+      - Set state to C(present) for locking resource group.
+      - Set state to C(absent) for unlocking resource group.
+    type: str
+    required: false
+    choices: ['present', 'absent']
+    default: 'present'
+  storage_system_info:
+    description: Information about the storage system. This field is an optional field.
+    type: dict
+    required: false
+    suboptions:
+      serial:
+        description: The serial number of the storage system.
         type: str
         required: false
-        choices: ['present', 'absent']
-        default: 'present'
-    storage_system_info:
-        description:
-          - Information about the storage system. This field is required for gateway connection type only.
-        type: dict
-        required: false
-        suboptions:
-            serial:
-                description: The serial number of the storage system.
-                type: str
-                required: false
-    connection_info:
-        description: Information required to establish a connection to the storage system.
-        type: dict
+  connection_info:
+    description: Information required to establish a connection to the storage system.
+    type: dict
+    required: true
+    suboptions:
+      address:
+        description: IP address or hostname of the storage system.
+        type: str
         required: true
-        suboptions:
-            address:
-                description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway))
-                  or the storage system (if connection_type is C(direct)).
-                type: str
-                required: true
-            username:
-                description: Username for authentication. Required if connection_type is C(direct) and api_token is not provided.
-                type: str
-                required: false
-            password:
-                description: Password for authentication. Required if connection_type is C(direct) and api_token is not provided.
-                type: str
-                required: false
-            api_token:
-                description: Provide api_token for C(gateway) connection type. For C(direct)ion connection type, this token is required
-                    while working on locked resources. Provide the lock_token value returned by lock resource group task.
-                type: str
-                required: false
-            connection_type:
-                description: Type of connection to the storage system. Two types of connections are supported, C(direct) and C(gateway).
-                type: str
-                required: false
-                choices: ['gateway', 'direct']
-                default: 'direct'
-    secondary_connection_info:
-        description: Information required to establish a connection to the remote storage system. This is required for C(direct) connection only.
-        type: dict
+      username:
+        description: Username for authentication. This is a required field.
+        type: str
         required: false
-        suboptions:
-            address:
-                description: IP address or hostname of the storage system.
-                type: str
-                required: true
-            username:
-                description: Username for authentication. Required if connection_type is C(direct) and api_token is not provided.
-                type: str
-                required: false
-            password:
-                description: Password for authentication. Required if connection_type is C(direct) and api_token is not provided.
-                type: str
-                required: false
-            api_token:
-                description: This token is required while working on locked resources. Provide the lock_token value returned
-                    by lock resource group task.
-                type: str
-                required: false
-    spec:
-        description: Specification for the resource group lock.
-        type: dict
+      password:
+        description: Password for authentication. This is a required field.
+        type: str
         required: false
-        suboptions:
-            lock_timeout_sec:
-                description: The time that elapses before a lock timeout (in seconds). Specify a value from 0 to 7200.
-                    Default is 0. Valid for C(direct) connection only.
-                type: int
-                required: false
-            name:
-                description: The name of the specific resource group to lock. Valid for C(gateway) connection only.
-                type: str
-                required: false
-            id:
-                description: The id of the specific resource group to lock. Valid for C(gateway) connection only.
-                type: int
-                required: false
+      api_token:
+        description: This token is required while working on locked resources. Provide the lock_token value returned
+          by lock resource group task for primary storage system.
+        type: str
+        required: false
+      connection_type:
+        description: Type of connection to the storage system.
+        type: str
+        required: false
+        choices: ['direct']
+        default: 'direct'
+  secondary_connection_info:
+    description: Information required to establish a connection to the remote storage system.
+    type: dict
+    required: false
+    suboptions:
+      address:
+        description: IP address or hostname of the storage system.
+        type: str
+        required: true
+      username:
+        description: Username for authentication. Required if api_token is not provided.
+        type: str
+        required: false
+      password:
+        description: Password for authentication. Required if api_token is not provided.
+        type: str
+        required: false
+      api_token:
+        description: This token is required while working on locked resources. Provide the lock_token value returned
+          by lock resource group task for secondary storage system.
+        type: str
+        required: false
+  spec:
+    description: Specification for the resource group lock.
+    type: dict
+    required: false
+    suboptions:
+      lock_timeout_sec:
+        description: The time that elapses before a lock timeout (in seconds). Specify a value from 0 to 7200.
+          Default is 0.
+        type: int
+        required: false
 """
 
 EXAMPLES = """
-- name: Resource management with Resource Group Lock for direct connection type where single storage system is involved
+- name: Resource management with Resource Group Lock where single storage system is involved
   tasks:
     - name: Lock resource groups
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
-        address: storage1.company.com
-        username: "admin"
-        password: "secret"
+          address: storage1.company.com
+          username: "admin"
+          password: "secret"
         spec:
           lock_timeout_sec: 300
       register: response
@@ -139,11 +126,11 @@ EXAMPLES = """
       hitachivantara.vspone_block.vsp.hv_ldevs:
         connection_info:
           address: storage1.company.com
-          api_token: api_token_value
+          api_token: lock_token_value
         spec:
-        pool_id: 0
-        size: 2GB
-        name: RD_LOCK_TEST_120424
+          pool_id: 0
+          size: 2GB
+          name: RD_LOCK_TEST_120424
       register: create_ldev_result
 
     - name: Debug lock resource group result
@@ -154,54 +141,19 @@ EXAMPLES = """
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info:
           address: storage1.company.com
-          api_token: api_token_value
+          api_token: lock_token_value
         state: absent
       register: result
 
     - name: Debug lock resource group result
       ansible.builtin.debug:
         var: result
-
-    - name: Lock Resource Group by name for gateway connection type
-      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
-        connection_info:
-          connection_type: gateway
-          address: uai_gateway1.company.co
-          api_token: api_token_value
-        storage_system_info:
-          serial: 810050
-          state: present
-        spec:
-          name: test_VSM_13
-      register: lock_resource_group_result
-
-    - name: Debug lock resource group result
-      ansible.builtin.debug:
-        var: lock_resource_group_result
-
-    - name: Unlock Resource Group by name for gateway connection type
-      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
-        connection_info:
-          connection_type: gateway
-          address: uai_gateway1.company.co
-          api_token: api_token_value
-        storage_system_info:
-          serial: 810050
-        state: absent
-        spec:
-          name: test_VSM_13
-      register: unlock_resource_group_result
-
-    - name: Debug unlock resource group result
-      ansible.builtin.debug:
-        var: unlock_resource_group_result
 """
 
 RETURN = """
 response:
     description: >
-        First lock resource groups output, then ldev creation output and finally unlock resource group output. This is an example where the
-        connection type is direct.
+        First lock resource groups output, then ldev creation output and finally unlock resource group output.
         Ansible sorts the output, so the outputs were jumbled with three tasks. Ignore the underscores (_) in the beginning of the variables,
         they are added to keep the output in order with the tasks.
         For first task three (___), for the second task two (__), and for the third task one (_) underscores are added in the beginning.
@@ -231,7 +183,6 @@ response:
         __dedup_compression_status: "DISABLED"
         __deduplication_compression_mode: "disabled"
         __emulation_type: "OPEN-V-CVS"
-        __entitlement_status: ""
         __hostgroups: []
         __is_alua: false
         __is_command_device: false
@@ -249,7 +200,6 @@ response:
         __num_of_ports: -1
         __nvm_subsystems: []
         __parity_group_id: ""
-        __partner_id: ""
         __path_count: -1
         __pool_id: 0
         __provision_type: "CVSHDP"
@@ -258,7 +208,6 @@ response:
         __snapshots: []
         __status: "NML"
         __storage_serial_number: "40014"
-        __subscriber_id: ""
         __tiering_policy: {}
         __total_capacity: "2.00GB"
         __used_capacity: "0.00B"
@@ -274,9 +223,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_rg_lock_reconciler import (
     VSPResourceGroupLockReconciler,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
@@ -286,9 +232,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -331,15 +274,6 @@ class VSPResourceGroupLockManager:
             reconciler = VSPResourceGroupLockReconciler(
                 self.connection_info, self.storage_serial_number, self.state
             )
-            if self.connection_info.connection_type.lower() == ConnectionTypes.GATEWAY:
-                oob = reconciler.is_out_of_band()
-                if oob is True:
-                    err_msg = ModuleMessage.OOB_NOT_SUPPORTED.value
-                    self.logger.writeError(err_msg)
-                    self.logger.writeInfo(
-                        "=== End of Resource Group Lock operation ==="
-                    )
-                    self.module.fail_json(msg=err_msg)
             response = reconciler.reconcile_rg_lock(self.spec)
 
         except Exception as e:

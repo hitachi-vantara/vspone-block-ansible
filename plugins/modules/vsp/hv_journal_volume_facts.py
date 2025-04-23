@@ -14,12 +14,9 @@ module: hv_journal_volume_facts
 short_description: Retrieves information about Journal Volumes from Hitachi VSP storage systems.
 description:
   - This module retrieves information about Journal Volumes from Hitachi VSP storage systems.
-  - It provides details such as journalId, journalStatus, and other relevant information.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - It provides details such as journalId, journalStatus, and other relevant information..
+  - Forexamples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/journal_volume_facts.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/journal_volume_facts.yml)
 version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -31,13 +28,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -46,32 +42,27 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
-        type: str
-        required: false
   spec:
     description: Specification for retrieving Journal Volume information.
     type: dict
@@ -100,15 +91,23 @@ options:
 """
 
 EXAMPLES = """
-- name: Retrieve information about all Journal Volumes for gateway connection type
+- name: Retrieve information about all Journal Volumes
   hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
     storage_system_info:
       serial: "811150"
     connection_info:
-      address: gateway.company.com
-      api_token: "api token value"
-      connection_type: "gateway"
-      subscriber_id: 1234
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+
+- name: Retrieve information about a specific Journal Volume
+  hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
+    storage_system_info:
+      serial: "811150"
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
     spec:
       journal_id: 10
 """

@@ -2,7 +2,7 @@
 ####################################################################
 # Example : External Volume Playbook
 ####################################################################
-- name: External Volume Playbook
+- name: External Volume
   hosts: localhost
   gather_facts: false
 
@@ -42,8 +42,6 @@
         connection_info: "{{ connection_info }}"
         state: "absent"
         spec:
-          external_storage_serial: "410109"
-          external_ldev_id: 1354
           ldev_id: 151
 
       register: result

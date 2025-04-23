@@ -2,13 +2,11 @@ import concurrent.futures
 
 try:
     from ..common.vsp_constants import Endpoints
-    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
+    from .gateway_manager import VSPConnectionManager
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from ..common.ansible_common import dicts_to_dataclass_list
     from ..model.vsp_host_group_models import (
-        VSPHostGroupUAIG,
-        VSPHostGroupsUAIG,
         VSPOneHostGroupInfo,
         VSPHostGroupInfo,
         VSPHostGroupsInfo,
@@ -16,19 +14,15 @@ try:
         VSPPortResponse,
         VSPWwnResponse,
     )
-    from ..common.hv_constants import CommonConstants, VSPHostGroupConstant
+    from ..common.hv_constants import VSPHostGroupConstant
     from ..message.vsp_host_group_msgs import VSPHostGroupMessage
-    from ..common.uaig_constants import Endpoints as UAIGEndpoints
-    from ..common.uaig_utils import UAIGResourceID
 except ImportError:
     from common.vsp_constants import Endpoints
-    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
+    from .gateway_manager import VSPConnectionManager
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from common.ansible_common import dicts_to_dataclass_list
     from model.vsp_host_group_models import (
-        VSPHostGroupUAIG,
-        VSPHostGroupsUAIG,
         VSPOneHostGroupInfo,
         VSPHostGroupInfo,
         VSPHostGroupsInfo,
@@ -36,10 +30,9 @@ except ImportError:
         VSPPortResponse,
         VSPWwnResponse,
     )
-    from common.hv_constants import CommonConstants, VSPHostGroupConstant
+    from common.hv_constants import VSPHostGroupConstant
     from message.vsp_host_group_msgs import VSPHostGroupMessage
-    from common.uaig_constants import Endpoints as UAIGEndpoints
-    from common.uaig_utils import UAIGResourceID
+
 
 g_raidHostModeOptions = {
     2: "VERITAS_DB_EDITION_ADV_CLUSTER",
@@ -142,11 +135,14 @@ class VSPHostGroupDirectGateway:
 
     @log_entry_exit
     def check_valid_port(self, port_id):
+        logger = Log()
         is_valid = True
         port = self.get_one_port(port_id)
         port_type = port.portType
+        logger.writeDebug(f"20250324 port_type: {port_type}")
         if (
             port_type != VSPHostGroupConstant.PORT_TYPE_FIBRE
+            and port_type != VSPHostGroupConstant.PORT_TYPE_ISCSI
             and port_type != VSPHostGroupConstant.PORT_TYPE_FCOE
             and port_type != VSPHostGroupConstant.PORT_TYPE_HNASS
             and port_type != VSPHostGroupConstant.PORT_TYPE_HNASU
@@ -325,11 +321,13 @@ class VSPHostGroupDirectGateway:
 
         retHg = {}
         end_point = self.end_points.GET_HOST_GROUPS.format(
-            "?portId={}&detailInfoType=resourceGroup".format(port_id)
+            "?portId={}&detailInfoType=resourceGroup&isSimpleMode=false".format(port_id)
         )
         resp = self.rest_api.read(end_point)
 
+        logger = Log()
         for hg in resp["data"]:
+            logger.writeDebug("20250324 hg = {}", hg)
             if name == hg["hostGroupName"]:
                 retHg = self.parse_host_group(hg, True, True)
                 return VSPOneHostGroupInfo(VSPHostGroupInfo(**retHg))
@@ -388,7 +386,7 @@ class VSPHostGroupDirectGateway:
             logger.writeInfo(resp)
 
     @log_entry_exit
-    def add_luns_to_host_group(self, hg, luns):
+    def add_luns_to_host_group(self, hg, luns, lun_id=None):
         logger = Log()
         for lun in luns:
             end_point = self.end_points.POST_LUNS
@@ -396,6 +394,8 @@ class VSPHostGroupDirectGateway:
             data["ldevId"] = lun
             data["portId"] = hg.port
             data["hostGroupNumber"] = hg.hostGroupId
+            if lun_id is not None:
+                data["lun"] = lun_id
             resp = self.rest_api.post(end_point, data)
             logger.writeInfo(resp)
 
@@ -488,73 +488,3 @@ class VSPHostGroupDirectGateway:
                 data["hostModeOptions"] = [-1]
         resp = self.rest_api.patch(end_point, data)
         logger.writeInfo(resp)
-
-
-class VSPHostGroupUAIGateway:
-    def __init__(self, connection_info):
-        self.logger = Log()
-        self.connection_manager = UAIGConnectionManager(
-            connection_info.address,
-            connection_info.username,
-            connection_info.password,
-            connection_info.api_token,
-        )
-        self.connection_info = connection_info
-        self.serial = None
-        self.resource_id = None
-
-    @log_entry_exit
-    def populate_header(self):
-        headers = {}
-        headers["partnerId"] = CommonConstants.PARTNER_ID
-        if self.connection_info.subscriber_id is not None:
-            headers["subscriberId"] = self.connection_info.subscriber_id
-        return headers
-
-    @log_entry_exit
-    def set_serial(self, serial):
-        self.serial = serial
-        self.set_resource_id()
-
-    @log_entry_exit
-    def set_resource_id(self, serial=None):
-        logger = Log()
-        serial = serial if serial else self.serial
-        self.resource_id = UAIGResourceID().storage_resourceId(self.serial)
-        logger.writeDebug(
-            "GW:set_resource_id:serial = {}  resourceId = {}",
-            self.serial,
-            self.resource_id,
-        )
-
-    @log_entry_exit
-    def get_host_groups(self, ports_input, name_input, is_get_wwns, is_get_luns):
-        self.set_resource_id()
-        end_point = UAIGEndpoints.UAIG_GET_HOST_GROUPS.format(self.resource_id)
-        headers = self.populate_header()
-        host_grps = self.connection_manager.get(end_point, headers)
-        hg_info = VSPHostGroupsUAIG().dump_to_object(host_grps)
-        return hg_info
-
-    @log_entry_exit
-    def get_host_groups_for_resource_id(self, resource_id):
-        end_point = UAIGEndpoints.UAIG_GET_HOST_GROUPS.format(resource_id)
-        headers = self.populate_header()
-        host_grps = self.connection_manager.get(end_point, headers)
-        hg_info = VSPHostGroupsUAIG().dump_to_object(host_grps)
-        return hg_info
-
-    @log_entry_exit
-    def get_host_group_by_id(self, hg_id):
-        end_point = UAIGEndpoints.GET_HOST_GROUP_BY_ID.format(self.resource_id, hg_id)
-        headers = None
-        # headers = self.populate_header()
-        host_grp = self.connection_manager.get(end_point, headers)
-        return VSPHostGroupUAIG(**host_grp["data"])
-
-    @log_entry_exit
-    def create_default_host_group(self, payload):
-        end_point = UAIGEndpoints.UAIG_CREATE_HOST_GROUP.format(self.resource_id)
-        headers = self.populate_header()
-        host_grp_id = self.connection_manager.post(end_point, payload, headers)
-        return host_grp_id

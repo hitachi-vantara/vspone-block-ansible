@@ -410,6 +410,8 @@ def camel_to_snake_case_dict_array(items):
 
 def camel_to_snake_case_dict(response):
     new_dict = {}
+    if response is None:
+        return
     try:
         for key in response.keys():
             cased_key = camel_to_snake_case(key)

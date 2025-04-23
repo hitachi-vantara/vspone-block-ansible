@@ -10,6 +10,7 @@ except ImportError:
 @dataclass
 class PoolFactSpec:
     pool_id: Optional[int] = None
+    pool_name: Optional[str] = None
 
 
 @dataclass
@@ -256,6 +257,9 @@ class JournalVolumeSpec:
     mp_blade_id: int = None
     is_cache_mode_enabled: bool = None
     ldev_ids: List[int] = None
+    mirror_unit_number: int = None
+    copy_pace: str = None
+    path_blockade_watch_in_minutes: int = None
 
 
 @dataclass

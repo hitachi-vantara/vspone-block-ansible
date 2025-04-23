@@ -101,3 +101,28 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    #####################################################################################
+    # Task 7 : Get one ldev with detailed info by specifying one or more query parameters
+    #####################################################################################
+    - name: Get one ldev with detailed info
+      hitachivantara.vspone_block.vsp.hv_ldev_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          ldev_id: 176
+          query:
+            # To retrieve command device settings of the LDEV
+            - cmd_device_settings
+            # To retrieve encryption settings of the LDEV
+            - encryption_settings
+            # To retrieve NVM subsytem information of the LDEV
+            - nvm_subsystem_info
+            # To retrieve QOS settings for the LDEV
+            - qos_settings
+            # To retrieve snapshots information of the LDEV
+            - snapshots_info
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

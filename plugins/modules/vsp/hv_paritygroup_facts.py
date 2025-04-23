@@ -14,11 +14,8 @@ module: hv_paritygroup_facts
 short_description: retrieves information about parity groups from Hitachi VSP storage systems.
 description:
   - This module gathers facts about parity groups from Hitachi VSP storage systems.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/paritygroup_facts.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/paritygroup_facts.yml)
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -30,8 +27,7 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
@@ -45,32 +41,27 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
-        type: str
-        required: false
   spec:
     description: Specification for the parity group facts to be gathered.
     type: dict
@@ -83,41 +74,21 @@ options:
 """
 
 EXAMPLES = """
-- name: Get a specific parity group for direct connection type
+- name: Get a specific parity group
   hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     spec:
       parity_group_id: 1-1
 
-- name: Get a specific parity group for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
-    connection_info:
-      address: gateway1.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-    storage_system_info:
-      serial: "811150"
-    spec:
-      parity_group_id: 1-1
-
-- name: Get all parity groups for direct connection type
+- name: Get all parity groups
   hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
-
-- name: Get all parity groups for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_paritygroup_facts:
-    connection_info:
-      address: gateway1.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
 """
 
 RETURN = """
@@ -133,7 +104,7 @@ ansible_facts:
       elements: dict
       contains:
         copyback_mode:
-          description: Indicates if copy-back mode is enabled.
+          description: Indicates if copyback mode is enabled.
           type: bool
           sample: false
         drive_type:
@@ -188,25 +159,10 @@ ansible_facts:
 """
 
 
-try:
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_messages import (
-        MessageID,
-    )
-
-    HAS_MESSAGE_ID = True
-except ImportError:
-    HAS_MESSAGE_ID = False
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
-)
 from ansible.module_utils.basic import AnsibleModule
-import ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_paritygroup_facts_runner as runner
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPParityGroupArguments,
     VSPParametersManager,
@@ -246,54 +202,39 @@ class VspParityGroupFactManager:
         self.logger.writeInfo("=== Start of Parity Group Facts ===")
         registration_message = validate_ansible_product_registration()
         try:
-            if (
-                self.params_manager.connection_info.connection_type.lower()
-                == ConnectionTypes.GATEWAY
-            ):
-                self.gateway_parity_group_read()
+            if self.spec.parity_group_id is not None:
+                parity_group = self.direct_parity_group_read(self.spec.parity_group_id)
+                parity_group_dict = parity_group.to_dict()
+                parity_group_data_extracted = vsp_parity_group.VSPParityGroupCommonPropertiesExtractor().extract_parity_group(
+                    parity_group_dict
+                )
+                snake_case_parity_group_data = camel_dict_to_snake_case(
+                    parity_group_data_extracted
+                )
+                data = {"parity_group": snake_case_parity_group_data}
+                if registration_message:
+                    data["user_consent_required"] = registration_message
+
+                self.logger.writeInfo(f"{data}")
+                self.logger.writeInfo("=== End of Parity Group Facts ===")
+                self.module.exit_json(changed=False, ansible_facts=data)
             else:
-                if self.spec.parity_group_id is not None:
-                    parity_group = self.direct_parity_group_read(
-                        self.spec.parity_group_id
-                    )
-                    parity_group_dict = parity_group.to_dict()
-                    parity_group_data_extracted = vsp_parity_group.VSPParityGroupCommonPropertiesExtractor().extract_parity_group(
-                        parity_group_dict
-                    )
-                    snake_case_parity_group_data = camel_dict_to_snake_case(
-                        parity_group_data_extracted
-                    )
-                    data = {"parity_group": snake_case_parity_group_data}
-                    if registration_message:
-                        data["user_consent_required"] = registration_message
+                all_parity_groups = self.direct_all_parity_groups_read()
+                parity_groups_list = all_parity_groups.data_to_list()
+                parity_groups_data_extracted = vsp_parity_group.VSPParityGroupCommonPropertiesExtractor().extract_all_parity_groups(
+                    parity_groups_list
+                )
+                snake_case_parity_groups_data = camel_array_to_snake_case(
+                    parity_groups_data_extracted
+                )
+                data = {"parity_groups": snake_case_parity_groups_data}
+                if registration_message:
+                    data["user_consent_required"] = registration_message
 
-                    self.logger.writeInfo(f"{data}")
-                    self.logger.writeInfo("=== End of Parity Group Facts ===")
-                    self.module.exit_json(changed=False, ansible_facts=data)
-                else:
-                    all_parity_groups = self.direct_all_parity_groups_read()
-                    parity_groups_list = all_parity_groups.data_to_list()
-                    parity_groups_data_extracted = vsp_parity_group.VSPParityGroupCommonPropertiesExtractor().extract_all_parity_groups(
-                        parity_groups_list
-                    )
-                    snake_case_parity_groups_data = camel_array_to_snake_case(
-                        parity_groups_data_extracted
-                    )
-                    data = {"parity_groups": snake_case_parity_groups_data}
-                    if registration_message:
-                        data["user_consent_required"] = registration_message
+                self.logger.writeInfo(f"{data}")
+                self.logger.writeInfo("=== End of Parity Group Facts ===")
+                self.module.exit_json(changed=False, ansible_facts=data)
 
-                    self.logger.writeInfo(f"{data}")
-                    self.logger.writeInfo("=== End of Parity Group Facts ===")
-                    self.module.exit_json(changed=False, ansible_facts=data)
-
-        except HiException as ex:
-            if HAS_MESSAGE_ID:
-                self.logger.writeAMException(MessageID.ERR_GetParityGroups)
-            else:
-                self.logger.writeAMException("0x0000")
-            self.logger.writeInfo("=== End of Parity Group Facts ===")
-            self.module.fail_json(msg=ex.format())
         except Exception as ex:
             self.logger.writeException(ex)
             self.logger.writeInfo("=== End of Parity Group Facts ===")
@@ -314,10 +255,6 @@ class VspParityGroupFactManager:
         if result is None:
             raise ValueError(ModuleMessage.PARITY_GROUP_NOT_FOUND.value)
         return result
-
-    def gateway_parity_group_read(self):
-        self.module.params["spec"] = self.module.params.get("spec")
-        runner.runPlaybook(self.module)
 
 
 def main():

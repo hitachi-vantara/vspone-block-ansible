@@ -23,11 +23,8 @@ description:
   - 7. set host mode.
   - 8. add host mode option to host group.
   - 9. remove host mode option from host group.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/hostgroup.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/hostgroup.yml)
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -47,13 +44,12 @@ options:
     choices: ['present', 'absent']
     default: 'present'
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -62,34 +58,29 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway))
-          or the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
-        type: str
-        required: false
   spec:
-    description: Specification for host-group operation.
+    description: Specification for hostgroup operation.
     type: dict
     required: false
     suboptions:
@@ -186,7 +177,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Create host group with LUN in decimal for direct connection type
+- name: Create host group with LUN in decimal
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:
@@ -201,23 +192,7 @@ EXAMPLES = """
       wwns: ['100000109B583B2D', '100000109B583B2C']
       ldevs: [393, 851]
 
-- name: Create host group with LUN in decimal for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_hg:
-    state: present
-    storage_system_info:
-      serial: '446039'
-    connection_info:
-      address: gateway1.company.com
-      api_token: "api_token_value"
-    spec:
-      name: 'testhg26dec'
-      port: 'CL1-A'
-      host_mode: 'VMWARE_EXTENSION'
-      host_mode_options: [40]
-      wwns: ['100000109B583B2D', '100000109B583B2C']
-      ldevs: [393, 851]
-
-- name: Create host group with LUN in HEX for direct connection type
+- name: Create host group with LUN in HEX
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:
@@ -232,19 +207,7 @@ EXAMPLES = """
       wwns: ['100000109B583B2D', '100000109B583B2C']
       ldevs: ['00:23:A4']
 
-- name: Delete host group for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_hg:
-    state: absent
-    storage_system_info:
-      serial: '446039'
-    connection_info:
-      address: gateway1.company.com
-      api_token: "api_token_value"
-    spec:
-      name: 'testhg26dec'
-      port: 'CL1-A'
-
-- name: Delete host group for direct connection type
+- name: Delete host group
   hitachivantara.vspone_block.vsp.hv_hg:
     state: absent
     connection_info:
@@ -255,20 +218,20 @@ EXAMPLES = """
       name: 'testhg26dec'
       port: 'CL1-A'
 
-- name: Present LUN for direct connection type
+- name: Present LUN
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:
       address: storage1.company.com
       username: "dummy_user"
       password: "dummy_password"
-    host_group_info:
+    spec:
       state: present_ldev
       name: 'testhg26dec'
       port: 'CL1-A'
       ldevs: ['00:05:77', '00:05:7D']
 
-- name: Unpresent LUN for direct connection type
+- name: Unpresent LUN
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:
@@ -281,7 +244,7 @@ EXAMPLES = """
       port: 'CL1-A'
       ldevs: [800, 801]
 
-- name: Add WWN for direct connection type
+- name: Add WWN
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:
@@ -294,7 +257,7 @@ EXAMPLES = """
       port: 'CL1-A'
       wwns: ['200000109B3C0FD3']
 
-- name: Remove WWN for direct connection type
+- name: Remove WWN
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:
@@ -307,7 +270,7 @@ EXAMPLES = """
       port: 'CL1-A'
       wwns: ['200000109B3C0FD3']
 
-- name: Update host group for direct connection type
+- name: Update host group
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:
@@ -328,10 +291,6 @@ hostGroups:
   returned: always
   type: dict
   contains:
-    entitlement_status:
-      description: Entitlement status of the host group.
-      type: str
-      sample: "assigned"
     host_group_id:
       description: ID of the host group.
       type: int
@@ -370,10 +329,6 @@ hostGroups:
           description: ID of the LUN.
           type: int
           sample: 0
-    partner_id:
-      description: Partner ID associated with the host group.
-      type: str
-      sample: "partnerid"
     port:
       description: Port associated with the host group.
       type: str
@@ -386,10 +341,6 @@ hostGroups:
       description: Storage ID associated with the host group.
       type: str
       sample: "storage-39f4eef0175c754bb90417358b0133c3"
-    subscriber_id:
-      description: Subscriber ID associated with the host group.
-      type: str
-      sample: "811150"
     wwns:
       description: List of WWNs associated with the host group.
       type: list
@@ -410,15 +361,8 @@ from dataclasses import asdict
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
-)
-import ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_hg_runner as runner
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPHostGroupArguments,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler import (
     vsp_host_group,
@@ -459,14 +403,8 @@ class VSPHostGroupManager:
         host_group_data = None
         host_group_data_extracted = None
         try:
-            if self.connection_info.connection_type.lower() == ConnectionTypes.DIRECT:
-                host_group_data = asdict(self.direct_host_group_modification())
-                self.logger.writeInfo("host_group_data {}", host_group_data)
-            elif (
-                self.connection_info.connection_type.lower() == ConnectionTypes.GATEWAY
-            ):
-                host_group_list = self.gateway_host_group_modification()
-                host_group_data = {host_group_list}
+            host_group_data = asdict(self.direct_host_group_modification())
+            self.logger.writeInfo("host_group_data {}", host_group_data)
             host_group_data_extracted = (
                 vsp_host_group.VSPHostGroupCommonPropertiesExtractor(
                     self.serial_number
@@ -489,15 +427,6 @@ class VSPHostGroupManager:
         if result is None:
             raise ValueError(ModuleMessage.HOST_GROUP_NOT_FOUND.value)
         return result
-
-    def gateway_host_group_modification(self):
-        # self.module.params["spec"] = self.module.params.get("spec")
-        try:
-            return runner.runPlaybook(self.module)
-        except HiException as ex:
-            raise Exception(ex.format())
-        except Exception as ex:
-            raise Exception(str(ex))
 
 
 def main(module=None):

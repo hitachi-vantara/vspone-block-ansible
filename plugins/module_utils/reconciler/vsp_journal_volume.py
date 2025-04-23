@@ -3,6 +3,7 @@ try:
         log_entry_exit,
     )
     from ..provisioner.vsp_journal_volume_provisioner import VSPJournalVolumeProvisioner
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..model.vsp_storage_pool_models import JournalVolumeSpec
     from ..common.hv_constants import StateValue
     from ..message.vsp_journal_volume_msgs import VSPSJournalVolumeValidateMsg
@@ -14,6 +15,7 @@ except ImportError:
     from plugins.module_utils.provisioner.vsp_journal_volume_provisioner import (
         VSPJournalVolumeProvisioner,
     )
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from model.vsp_storage_pool_models import JournalVolumeSpec
     from common.hv_constants import StateValue
 
@@ -23,7 +25,15 @@ class VSPJournalVolumeReconciler:
     def __init__(self, connection_info, serial=None):
         self.connection_info = connection_info
         self.provisioner = VSPJournalVolumeProvisioner(self.connection_info)
-        self.serial = self.provisioner.check_ucp_system(serial)
+        self.serial = serial
+        if self.serial is None:
+            self.serial = self.get_storage_serial_number()
+
+    @log_entry_exit
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     @log_entry_exit
     def journal_volume_reconcile(self, state: str, spec: JournalVolumeSpec):

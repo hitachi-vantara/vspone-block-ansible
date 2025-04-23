@@ -14,7 +14,6 @@ short_description: Manages Remote connections through iSCSI ports on Hitachi VSP
 description: >
   - This module allows settings of remote connections through iSCSI ports used for remote copy operations.
   - Remote connections are used to connect storage systems used in remote copy operations for TrueCopy, Universal Replicator, and global-active device.
-  - This module is supported only for C(direct) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/remote_iscsi_connection.yml)
 version_added: '3.3.0'
@@ -35,29 +34,29 @@ options:
     default: 'present'
   connection_info:
     description: Information required to establish a connection to the storage system.
-    required: true
     type: dict
+    required: true
     suboptions:
       address:
-        description: IP address or hostname of the Hitachi storage system .
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system, Only C(direct) connection is supported.
+        description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['direct', 'gateway']
+        choices: ['direct']
         default: 'direct'
   spec:
-    description: Specification for the Create/update Remote connection task.
+    description: Specification for iSCSI remote connection tasks.
     type: dict
     required: true
     suboptions:
@@ -76,7 +75,7 @@ options:
       remote_storage_ip_address:
         description: IP address of the remote storage system.
         type: str
-        required: true
+        required: false
       remote_tcp_port:
         description: TCP port of the remote storage system.
         type: int
@@ -84,13 +83,12 @@ options:
 """
 
 EXAMPLES = """
-- name: Create a new remote connection through iSCSI ports for direct connection type
+- name: Create a new remote connection through iSCSI ports
   hitachivantara.vspone_block.vsp.hv_remote_connection:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
     state: present
     spec:
       remote_storage_serial_number: "40014"
@@ -99,19 +97,17 @@ EXAMPLES = """
       remote_storage_ip_address: "10.120.10.120"
       remote_tcp_port: 3260
 
-- name: Delete a iSCSI remote connection for direct connection type
+- name: Delete a iSCSI remote connection
   hitachivantara.vspone_block.vsp.hv_remote_connection:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
     state: absent
     spec:
       remote_storage_serial_number: "40014"
       local_port: "CL7-D"
       remote_port: "CL7-D"
-      remote_storage_ip_address: "10.120.10.120"
 """
 
 RETURN = """

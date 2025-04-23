@@ -14,11 +14,8 @@ module: hv_resource_group_facts
 short_description: Retrieves resource group information from Hitachi VSP storage systems.
 description:
     - This module retrieves information about resource groups from Hitachi VSP storage systems.
-    - This module is supported for both C(direct) and C(gateway) connection types.
-    - For C(direct) connection type examples, go to URL
+    - For examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/resource_group_facts.yml)
-    - For C(gateway) connection type examples, go to URL
-      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/resource_group_facts.yml)
 version_added: '3.2.0'
 author:
     - Hitachi Vantara LTD (@hitachi-vantara)
@@ -29,93 +26,82 @@ attributes:
     description: Determines if the module should run in check mode.
     support: full
 options:
-    storage_system_info:
-        description:
-          - Information about the storage system. This field is required for gateway connection type only.
-        type: dict
+  storage_system_info:
+    description: Information about the storage system. This field is an optional field.
+    type: dict
+    required: false
+    suboptions:
+      serial:
+        description: The serial number of the storage system.
+        type: str
         required: false
-        suboptions:
-            serial:
-                description: The serial number of the storage system.
-                type: str
-                required: false
-    connection_info:
-        description: Information required to establish a connection to the storage system.
-        type: dict
+  connection_info:
+    description: Information required to establish a connection to the storage system.
+    type: dict
+    required: true
+    suboptions:
+      address:
+        description: IP address or hostname of the storage system.
+        type: str
         required: true
-        suboptions:
-            address:
-                description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway))
-                  or the storage system (if connection_type is C(direct)).
-                type: str
-                required: true
-            username:
-                description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
-                type: str
-                required: false
-            password:
-                description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
-                type: str
-                required: false
-            connection_type:
-                description: Type of connection to the storage system. Two types of connection are supported, C(direct) and C(gateway).
-                type: str
-                required: false
-                choices: ['gateway', 'direct']
-                default: 'direct'
-            api_token:
-                description: API token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
-                type: str
-                required: false
-    spec:
-        description: Specification for the resource group facts to be gathered.
-        type: dict
+      username:
+        description: Username for authentication. This is a required field.
+        type: str
         required: false
-        suboptions:
-            name:
-                description: The name of the specific resource group to retrieve.
-                type: str
-                required: false
-            id:
-                description: The id of the specific resource group to retrieve.
-                type: int
-                required: false
-            is_locked:
-                description: >
-                    If this field is not present, all resource groups will be retrieved.
-                    If this field is true, only the locked resource groups will be retrieved.
-                    If this field is false, only the unlocked resource groups will be retrieved.
-                type: bool
-                required: false
-            query:
-                description: >
-                    The field allows to query resource groups for different types of resources.
-                    Types of resources are: ldevs, parity_groups, ports, host_groups, iscsi_targets, nvm_subsystem_ids, and storage_pool_ids.
-                    If this field is not present, all resources information of the resource group will be retrieved except storage_pool_ids.
-                    When storage_pool_ids is present, all the ldevs that constitute the storage pool will be included in the response under the ldevs field.
-                type: list
-                required: false
-                elements: str
+      password:
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
+        type: str
+        required: false
+      connection_type:
+        description: Type of connection to the storage system.
+        type: str
+        required: false
+        choices: ['direct']
+        default: 'direct'
+  spec:
+    description: Specification for the resource group facts to be gathered.
+    type: dict
+    required: false
+    suboptions:
+      name:
+        description: The name of the specific resource group to retrieve.
+        type: str
+        required: false
+      id:
+        description: The id of the specific resource group to retrieve.
+        type: int
+        required: false
+      is_locked:
+        description: >
+          If this field is not present, all resource groups will be retrieved.
+          If this field is true, only the locked resource groups will be retrieved.
+          If this field is false, only the unlocked resource groups will be retrieved.
+        type: bool
+        required: false
+      query:
+        description: >
+          The field allows to query resource groups for different types of resources.
+          Tpyes of resources are: ldevs, parity_groups, ports, host_groups, iscsi_targets, nvm_subsystem_ids, and storage_pool_ids.
+          If this field is not present, all resources imformation of the resource group will be retrieved except storage_pool_ids.
+          When storage_pool_ids is present, all the ldevs that constitute the storage pool will be included in the reponse under the ldevs field.
+        type: list
+        required: false
+        elements: str
 """
 
 EXAMPLES = """
-- name: Get all Resource Groups for direct connection type
+- name: Get all Resource Groups
   hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
 
-- name: Get all Resource Groups for gateway connection types
-  hitachivantara.vspone_block.vsp.hv_resource_group_facts:
-    storage_system_info:
-      serial: "811150"
-    connection_info:
-      address: gateway.company.com
-      api_token: "api token value"
-      connection_type: "gateway"
-
-- name: Get Resource Group by name for direct connection type
+- name: Get Resource Group by name
   hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     connection_info:
       address: storage1.company.com
@@ -124,18 +110,7 @@ EXAMPLES = """
     spec:
       name: "my_resource_group"
 
-- name: Get Resource Group by name for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_resource_group_facts:
-    storage_system_info:
-      serial: "811150"
-    connection_info:
-      address: gateway.company.com
-      api_token: "api token value"
-      connection_type: "gateway"
-    spec:
-      name: "my_resource_group"
-
-- name: Get information about the Resource Groups specified in the query for direct connection type
+- name: Get information about the Resource Groups specified in the query
   hitachivantara.vspone_block.vsp.hv_resource_group_facts:
     connection_info:
       address: storage1.company.com
@@ -143,11 +118,17 @@ EXAMPLES = """
       password: "secret"
     spec:
       query:
+        # Logical Devices (LDEVs)
         - ldevs
+        # Parity Groups
         - parity_groups
+        # Ports
         - ports
+        # Host Groups
         - host_groups
+        # iSCSI Targets
         - iscsi_targets
+        # Non-Volatile Memory Subsystem IDs
         - nvm_subsystem_ids
 """
 
@@ -230,9 +211,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_resource_group import (
     VSPResourceGroupReconciler,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
@@ -242,9 +220,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -281,16 +256,6 @@ class VSPResourceGroupFactsManager:
             reconciler = VSPResourceGroupReconciler(
                 self.connection_info, self.storage_serial_number, self.state
             )
-
-            if self.connection_info.connection_type.lower() == ConnectionTypes.GATEWAY:
-                oob = reconciler.is_out_of_band()
-                if oob is True:
-                    err_msg = ModuleMessage.OOB_NOT_SUPPORTED.value
-                    self.logger.writeError(err_msg)
-                    self.logger.writeInfo(
-                        "=== End of Resource Group Lock operation ==="
-                    )
-                    self.module.fail_json(msg=err_msg)
 
             resource_groups = reconciler.get_resource_group_facts(self.spec)
 

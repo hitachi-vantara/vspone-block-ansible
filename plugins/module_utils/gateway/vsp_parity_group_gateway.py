@@ -1,6 +1,6 @@
 try:
     from ..common.vsp_constants import Endpoints
-    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
+    from .gateway_manager import VSPConnectionManager
     from ..common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from ..model.vsp_parity_group_models import (
         VSPPfrestParityGroupList,
@@ -10,12 +10,10 @@ try:
         VSPPfrestParityGroupSpace,
         VSPPfrestLdevList,
         VSPPfrestLdev,
-        VSPParityGroupsUAIG,
     )
-    from ..common.uaig_constants import Endpoints as UAIGEndpoints
 except ImportError:
     from common.vsp_constants import Endpoints
-    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
+    from .gateway_manager import VSPConnectionManager
     from common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from model.vsp_parity_group_models import (
         VSPPfrestParityGroupList,
@@ -25,9 +23,7 @@ except ImportError:
         VSPPfrestParityGroupSpace,
         VSPPfrestLdevList,
         VSPPfrestLdev,
-        VSPParityGroupsUAIG,
     )
-    from common.uaig_constants import Endpoints as UAIGEndpoints
 
 
 class VSPParityGroupDirectGateway:
@@ -177,23 +173,3 @@ class VSPParityGroupDirectGateway:
         payload = {"isSpareEnabled": spec.is_spared_drive}
         response = self.connectionManager.patch(endPoint, payload)
         return response
-
-
-class VSPParityGroupUAIGateway:
-
-    def __init__(self, connection_info):
-        self.connectionManager = UAIGConnectionManager(
-            connection_info.address,
-            connection_info.username,
-            connection_info.password,
-            connection_info.api_token,
-        )
-        self.serial_number = None
-        self.resource_id = None
-
-    @log_entry_exit
-    def get_all_parity_groups(self):
-        end_point = UAIGEndpoints.GET_PARITY_GROUPS.format(self.resource_id)
-        parity_grps = self.connectionManager.get(end_point)
-        pg_info = VSPParityGroupsUAIG().dump_to_object(parity_grps)
-        return pg_info

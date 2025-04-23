@@ -14,11 +14,8 @@ module: hv_gad_facts
 short_description: Retrieves GAD pairs information from Hitachi VSP storage systems.
 description:
   - This module allows to fetch GAD pairs on Hitachi VSP storage systems.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/gad_pair_facts.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/gad_pair_facts.yml)
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -30,49 +27,43 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
-    required: true
     type: dict
+    required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway or the storage system.
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway.
-        type: str
-        required: false
   secondary_connection_info:
-    description:
-      - Information required to establish a connection to the secondary storage system.
-      - This feild is required for C(direct) connection type only.
+    description: Information required to establish a connection to the secondary storage system.
     required: false
     type: dict
     suboptions:
@@ -128,50 +119,16 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all GAD pairs for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_gad_facts:
-    state: "present"
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 811150
-
-- name: Get GAD pairs by primary volume id for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_gad_facts:
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-
-- name: Get all GAD pairs  for direct connection type
+- name: Get all GAD pairs
   hitachivantara.vspone_block.vsp.hv_gad_facts:
     connection_info:
       address: storage1.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     secondary_connection_info:
       address: storage2.company.com
       username: "admin"
       password: "secret"
-
-- name: Get GAD pairs by primary volume id for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_gad_facts:
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_volume_id: 11
 """
 
 RETURN = """
@@ -294,12 +251,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
-)
 
 
 class VSPGADPairManagerFact:
@@ -333,8 +284,6 @@ class VSPGADPairManagerFact:
             reconciler = vsp_gad_pair.VSPGadPairReconciler(
                 self.connection_info, self.secondary_connection_info, self.serial
             )
-            if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-                self.validate_gw_ops(reconciler)
             response = reconciler.gad_pair_facts(self.spec)
 
             result = response if not isinstance(response, str) else None
@@ -350,12 +299,6 @@ class VSPGADPairManagerFact:
             self.logger.writeException(ex)
             self.logger.writeInfo("=== End of GAD Facts ===")
             self.module.fail_json(msg=str(ex))
-
-    def validate_gw_ops(self, reconciler):
-        oob = reconciler.is_out_of_band()
-        if oob is True:
-            raise ValueError(ModuleMessage.OOB_NOT_SUPPORTED.value)
-        return
 
 
 def main(module=None):

@@ -15,15 +15,8 @@ short_description: Manages GAD pairs on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, deletion, splitting, and resynchronization of GAD pairs on Hitachi VSP storage systems.
   - It supports various GAD pairs operations based on the specified task level.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - To delete the pair in C(direct) connection type, it must be in split state.
-  - To swap_split the pair in C(direct) connection type, it must be in pair state.
-  - You cannot swap_split the pair in C(direct) connection type that is registered to a consistency group.
-  - swap_split and swap_resync operations are supported only for C(direct) connection type.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/gad_pair.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/gad_pair.yml)
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -41,13 +34,12 @@ options:
     choices: ['present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync', 'resize', 'expand']
     default: 'present'
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -56,33 +48,29 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of the UAI gateway or storage system.
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access the UAI gateway.
-        type: str
-        required: false
   secondary_connection_info:
-    description: Information required to establish a connection to the secondary storage system. Required for C(direct) connection only.
+    description: Information required to establish a connection to the secondary storage system.
     required: false
     type: dict
     suboptions:
@@ -157,6 +145,10 @@ options:
             description: Host group name.
             type: str
             required: true
+          lun_id:
+            description: LUN ID.
+            type: int
+            required: false
           port:
             description: Port name.
             type: str
@@ -183,13 +175,39 @@ options:
             description: Enables the preferred path for the specified host group.
             type: bool
             required: false
+          lun_id:
+            description: LUN ID.
+            type: int
+            required: false
+      secondary_iscsi_targets:
+        description: The list of iscsi targets on the secondary storage device.
+        type: list
+        elements: dict
+        required: false
+        suboptions:
+          name:
+            description: ISCSI target name.
+            type: str
+            required: true
+          port:
+            description: Port name.
+            type: str
+            required: true
+          enable_preferred_path:
+            description: Enables the preferred path for the specified ISCSI target.
+            type: bool
+            required: false
+          lun_id:
+            description: LUN ID.
+            type: int
+            required: false
       secondary_nvm_subsystem:
-        description: NVM subsystem details of the secondary volume. Supported only for C(direct) connection type.
+        description: NVM subsystem details of the secondary volume.
         type: dict
         required: false
         suboptions:
           name:
-            description: Name of the NVM subsystem on the secondary storage system.
+            description: Name of the NVM subsytem on the secondary storage system.
             type: str
             required: true
           paths:
@@ -198,15 +216,15 @@ options:
             elements: str
             required: false
       local_device_group_name:
-        description: The device group name in the local storage system. Valid for C(direct) connection only.
+        description: The device group name in the local storage system.
         type: str
         required: false
       remote_device_group_name:
-        description: The device group name in the remote storage system. Valid for C(direct) connection only.
+        description: The device group name in the remote storage system.
         type: str
         required: false
       copy_pair_name:
-        description: The name for the pair in the copy group. Valid for C(direct) connection only.
+        description: The name for the pair in the copy group.
         type: str
         required: false
       path_group_id:
@@ -214,7 +232,7 @@ options:
         type: int
         required: false
       copy_group_name:
-        description: The name for the copy group. Valid for C(direct) connection only.
+        description: The name for the copy group.
         type: str
         required: false
       copy_pace:
@@ -223,10 +241,6 @@ options:
         required: false
         choices: ['HIGH', 'MEDIUM', 'LOW']
         default: 'MEDIUM'
-      mu_number:
-        description: MU (mirror unit) number.
-        type: str
-        required: false
       fence_level:
         description: Fence level.
         type: str
@@ -255,81 +269,21 @@ options:
         description: Specify true for consistency group.
         type: bool
         required: false
-      begin_secondary_volume_id:
-        description: Specify beginning ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during
-          create operation. If this field is specified, end_secondary_volume_id must also be specified.
-          If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
+      should_delete_svol:
+        description: Specify true to delete the SVOL.
+        type: bool
         required: false
-        type: int
-      end_secondary_volume_id:
-        description: Specify end ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during create operation.
-          If this field is specified, begin_secondary_volume_id must also be specified.
-          If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
-        required: false
-        type: int
+        default: false
 """
 
 EXAMPLES = """
-- name: Create a GAD pair for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_gad:
-    state: "present"
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_storage_serial_number: 811150
-      secondary_storage_serial_number: 811151
-      primary_volume_id: 11
-      secondary_pool_id: 1
-      primary_hostgroups:
-        - name: "hostgroup1"
-          port: "port1"
-          enable_preferred_path: false
-      secondary_hostgroups:
-        - name: "hostgroup2"
-          port: "port2"
-      primary_resource_group_name: "Sample"
-      secondary_resource_group_name: "Sample"
-      quorum_disk_id: 1
-
-- name: Split GAD pair for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_gad:
-    state: "split"
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_volume_id: 11
-
-- name: Resync GAD pair for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_gad:
-    state: "resync"
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_volume_id: 11
-
-- name: Swap-Split GAD pair for direct connection type
+- name: Swap-Split a GAD pair
   hitachivantara.vspone_block.vsp.hv_gad:
     state: "swap_split"
     connection_info:
       address: storage1.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     secondary_connection_info:
       address: storage2.company.com
       username: "admin"
@@ -340,14 +294,13 @@ EXAMPLES = """
       local_device_group_name: "gad_local_device_group_name_8"
       remote_device_group_name: "gad_remote_device_group_name_8"
 
-- name: Swap-Resync GAD pair for direct connection type
+- name: Swap-Resync a GAD pair
   hitachivantara.vspone_block.vsp.hv_gad:
     state: "swap_resync"
     connection_info:
       address: storage2.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     secondary_connection_info:
       address: storage1.company.com
       username: "admin"
@@ -358,14 +311,13 @@ EXAMPLES = """
       local_device_group_name: "gad_local_device_group_name_8"
       remote_device_group_name: "gad_remote_device_group_name_8"
 
-- name: Increase size of volumes of GAD pair for direct connection type
+- name: Increase size of volumes of a GAD pair
   hitachivantara.vspone_block.vsp.hv_gad:
     state: "resize"
     connection_info:
       address: storage1.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     secondary_connection_info:
       address: storage2.company.com
       username: "admin"
@@ -375,27 +327,13 @@ EXAMPLES = """
       copy_pair_name: "gad_copy_pair_name_9"
       new_volume_size: "4GB"
 
-- name: Delete GAD pair for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_gad:
-    state: "absent"
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_volume_id: 11
-
-- name: Create GAD-NVMe pair for direct connection type
+- name: Create a GAD-NVMe pair
   hitachivantara.vspone_block.vsp.hv_gad:
     state: "present"
     connection_info:
       address: storage1.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     secondary_connection_info:
       address: storage2.company.com
       username: "admin"
@@ -410,6 +348,30 @@ EXAMPLES = """
         name: gk-nvm-sub-75
         paths:
           - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
+      quorum_disk_id: 1
+
+- name: Create a GAD-ISCSI pair
+  hitachivantara.vspone_block.vsp.hv_gad:
+    state: "present"
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
+    spec:
+      copy_group_name: "copy_group_name_1"
+      copy_pair_name: "copy_pair_name_1"
+
+      primary_volume_id: 12
+      secondary_pool_id: 1
+      secondary_iscsi_targets:
+        - name: "test"
+          port: "CL1-A"
+          enable_preferred_path: false
+          lun_id: 1
       quorum_disk_id: 1
 """
 
@@ -531,12 +493,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
-)
 
 
 class VSPGADPairManager:
@@ -568,8 +524,6 @@ class VSPGADPairManager:
             reconciler = vsp_gad_pair.VSPGadPairReconciler(
                 self.connection_info, self.secondary_connection_info, self.serial
             )
-            if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-                self.validate_gw_ops(reconciler)
             response = reconciler.gad_pair_reconcile(
                 self.state, self.spec, self.secondary_connection_info
             )
@@ -585,6 +539,8 @@ class VSPGADPairManager:
                 isFailed = True
                 #  there response is a string
                 if isinstance(response, str) and "successfully" in response:
+                    if self.spec.should_delete_svol is True:
+                        response = "GAD pair deleted successfully along with secondary volume on secondary storage."
                     isFailed = False
                 if isinstance(response, str) and "Gad pair not present" in response:
                     isFailed = False
@@ -612,15 +568,6 @@ class VSPGADPairManager:
             self.logger.writeException(ex)
             self.logger.writeInfo("=== End of GAD operation. ===")
             self.module.fail_json(msg=str(ex))
-
-    def validate_gw_ops(self, reconciler):
-        # found = reconciler.check_storage_in_ucpsystem()
-        # if not found:
-        #     raise ValueError(ModuleMessage.STORAGE_SYSTEM_ONBOARDING.value)
-        oob = reconciler.is_out_of_band()
-        if oob is True:
-            raise ValueError(ModuleMessage.OOB_NOT_SUPPORTED.value)
-        return
 
 
 def main(module=None):

@@ -46,9 +46,6 @@ class VSPResourceGroupProvisioner:
         self.iscsi_gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_ISCSI_TARGET
         )
-        self.config_gw = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.VSP_CONFIG_MAP
-        )
         self.port_prov = VSPStoragePortProvisioner(connection_info)
         self.connection_info = connection_info
 
@@ -60,10 +57,8 @@ class VSPResourceGroupProvisioner:
 
     @log_entry_exit
     def get_resource_groups(self, spec=None, refresh=None):
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            return self.get_resource_groups_gw(spec, refresh)
-        else:
-            return self.get_resource_groups_direct(spec)
+
+        return self.get_resource_groups_direct(spec)
 
     @log_entry_exit
     def get_resource_groups_gw(self, spec=None, refresh=None):
@@ -208,10 +203,6 @@ class VSPResourceGroupProvisioner:
             return None
 
     @log_entry_exit
-    def is_out_of_band(self):
-        return self.config_gw.is_out_of_band()
-
-    @log_entry_exit
     def get_resource_groups_for_query(self, spec):
         resource_groups = self.gateway.get_resource_groups()
         if spec.query is None:
@@ -244,19 +235,15 @@ class VSPResourceGroupProvisioner:
 
     @log_entry_exit
     def get_resource_group_by_id(self, id):
-
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            return self.get_resource_group_by_rg_id(id)
-        else:
-            try:
-                resource_group = self.gateway.get_resource_group_by_id(id)
-                logger.writeDebug("PV:resource_group={}", resource_group)
-                return resource_group
-            except Exception as e:
-                logger.writeError(
-                    f"An error occurred during get_resource_group_by_id call: {str(e)}"
-                )
-                return None
+        try:
+            resource_group = self.gateway.get_resource_group_by_id(id)
+            logger.writeDebug("PV:resource_group={}", resource_group)
+            return resource_group
+        except Exception as e:
+            logger.writeError(
+                f"An error occurred during get_resource_group_by_id call: {str(e)}"
+            )
+            return None
 
     @log_entry_exit
     def get_pool_ldevs(self, pool_ids):
@@ -291,14 +278,8 @@ class VSPResourceGroupProvisioner:
     def convert_rg_to_display_rg(self, rg, sp_ids=None, query=None):
         if rg is None:
             return None
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            return self.convert_rg_to_display_rg_gw(rg, sp_ids, query)
-        else:
-            return self.convert_rg_to_display_rg_direct(rg, sp_ids, query)
 
-    @log_entry_exit
-    def convert_rg_to_display_rg_gw(self, rg, sp_ids=None, query=None):
-        return self.get_display_resource_groups_gw(rg, None, None, None, query)
+        return self.convert_rg_to_display_rg_direct(rg, sp_ids, query)
 
     @log_entry_exit
     def convert_rg_to_display_rg_direct(self, rg, sp_ids=None, query=None):
@@ -644,59 +625,3 @@ class VSPResourceGroupProvisioner:
 
         logger.writeDebug("PV:handle_storage_pools:rg_id_pool={}", rg_id_pool)
         return rg_id_pool
-
-    @log_entry_exit
-    def get_display_resource_groups_gw(
-        self, rg, host_group_ids, iscsi_target_ids, sp_ids, query
-    ):
-        display_rg = DisplayResourceGroup()
-        display_rg.name = rg.resourceGroupName
-        display_rg.id = rg.resourceGroupId
-        display_rg.virtualSerialNumber = rg.virtualDeviceId
-        display_rg.virtualDeviceType = rg.virtualDeviceType
-        display_rg.lockStatus = "Locked" if rg.locked else "Unlocked"
-
-        # porcelain doesn't have return virtual model. uncomment when it is available
-        # display_rg.virtualModel = rg.virtualModel
-
-        if query is None:
-            display_rg.ldevs = rg.volumes
-            display_rg.parityGroups = rg.parityGroups
-            display_rg.ports = rg.ports
-            display_rg.storagePoolIds = rg.pools
-            display_rg.hostGroups = rg.hostGroups
-            display_rg.iscsiTargets = rg.iscsiTargets
-
-        else:
-            if "ldevs" in query:
-                if rg.volumes:
-                    display_rg.ldevs = rg.volumes
-                else:
-                    display_rg.ldevs = []
-            if "parity_groups" in query:
-                if rg.parityGroups:
-                    display_rg.parityGroups = rg.parityGroups
-                else:
-                    display_rg.parityGroups = []
-            if "ports" in query:
-                if rg.ports:
-                    display_rg.ports = rg.ports
-                else:
-                    display_rg.ports = []
-            if "host_groups" in query:
-                if rg.hostGroups:
-                    display_rg.hostGroups = rg.hostGroups
-                else:
-                    display_rg.hostGroups = []
-            if "iscsi_targets" in query:
-                if iscsi_target_ids:
-                    display_rg.iscsiTargets = ["RD-ISCSI-1", "RD-ISCSI-2"]
-                else:
-                    display_rg.iscsiTargets = []
-            if "storage_pool_ids" in query:
-                if rg.pools:
-                    display_rg.storagePoolIds = rg.pools
-                else:
-                    display_rg.storagePoolIds = []
-
-        return display_rg

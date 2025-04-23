@@ -65,10 +65,6 @@ class VSPResourceGroupLockReconciler:
             raise ValueError(err_msg)
 
     @log_entry_exit
-    def is_out_of_band(self):
-        return self.provisioner.is_out_of_band()
-
-    @log_entry_exit
     def get_storage_serial_number(self):
         storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
         storage_system = storage_gw.get_current_storage_system_info()

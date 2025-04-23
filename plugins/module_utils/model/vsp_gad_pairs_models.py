@@ -34,6 +34,7 @@ class GADPairFactSpec:
 class HostgroupSpec:
     id: Optional[int] = None
     name: Optional[str] = None
+    lun_id: Optional[int] = None
     enable_preferred_path: Optional[bool] = None
     port: Optional[str] = None
     resource_group_id: Optional[int] = None
@@ -56,6 +57,7 @@ class VspGadPairSpec:
     secondary_storage_serial_number: Optional[str] = None
     secondary_pool_id: Optional[str] = None
     secondary_hostgroups: Optional[List[HostgroupSpec]] = None
+    secondary_iscsi_targets: Optional[List[HostgroupSpec]] = None
     secondary_nvm_subsystem: Optional[NVMeSubsystemSpec] = None
     set_alua_mode: Optional[bool] = None
     primary_resource_group_name: Optional[str] = None
@@ -83,6 +85,7 @@ class VspGadPairSpec:
     begin_secondary_volume_id: Optional[int] = None
     end_secondary_volume_id: Optional[int] = None
     is_svol_readwriteable: Optional[bool] = False
+    should_delete_svol: Optional[bool] = False
 
     def __post_init__(self, **kwargs):
         if self.primary_hostgroups:
@@ -92,6 +95,10 @@ class VspGadPairSpec:
         if self.secondary_hostgroups:
             self.secondary_hostgroups = [
                 HostgroupSpec(**x) for x in self.secondary_hostgroups
+            ]
+        if self.secondary_iscsi_targets:
+            self.secondary_iscsi_targets = [
+                HostgroupSpec(**x) for x in self.secondary_iscsi_targets
             ]
         if self.secondary_storage_connection_info:
             self.secondary_storage_connection_info = ConnectionInfo(
@@ -134,10 +141,10 @@ class VspGadPairInfo(SingleBaseClass):
     status: Optional[str] = None
     svolAccessMode: Optional[str] = None
     type: Optional[str] = None
-    entitlementStatus: Optional[str] = None
+    # entitlementStatus: Optional[str] = None
     storageId: Optional[str] = None
-    subscriberId: Optional[str] = None
-    partnerId: Optional[str] = None
+    # subscriberId: Optional[str] = None
+    # partnerId: Optional[str] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

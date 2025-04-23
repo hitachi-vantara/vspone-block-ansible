@@ -7,14 +7,13 @@
 __metaclass__ = type
 
 
-DOCUMENTATION = r"""
+DOCUMENTATION = """
 ---
 module: hv_cmd_dev
 short_description: Manages command devices on Hitachi VSP storage systems.
 description:
     - This module allows to enable and to disable a command device on Hitachi VSP storage systems.
     - It also allows to modify the settings of the command device.
-    - This module is supported only for C(direct) connection to the storage system.
     - For examples go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/cmd_dev.yml)
 version_added: '3.2.0'
@@ -27,65 +26,65 @@ attributes:
     description: Determines if the module should run in check mode.
     support: none
 options:
-    state:
-        description: The level of the resource group task.
+  state:
+    description: The level of the resource group task.
+    type: str
+    required: false
+    choices: ['present', 'absent']
+    default: 'present'
+  storage_system_info:
+    description: Information about the storage system. This field is an optional field.
+    type: dict
+    required: false
+    suboptions:
+      serial:
+        description: The serial number of the storage system.
         type: str
         required: false
-        choices: ['present', 'absent']
-        default: 'present'
-    storage_system_info:
-        description: Information about the storage system.
-        type: dict
-        required: false
-        suboptions:
-            serial:
-                description: The serial number of the storage system.
-                type: str
-                required: false
-    connection_info:
-        description: Information required to establish a connection to the storage system.
-        type: dict
+  connection_info:
+    description: Information required to establish a connection to the storage system.
+    type: dict
+    required: true
+    suboptions:
+      address:
+        description: IP address or hostname of the storage system.
+        type: str
         required: true
-        suboptions:
-            address:
-                description: IP address or hostname of the storage system.
-                type: str
-                required: true
-            username:
-                description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
-                type: str
-                required: true
-            password:
-                description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
-                type: str
-                required: true
-            connection_type:
-                description: Type of connection to the storage system. Only C(direct) connect type is supported.
-                type: str
-                required: false
-                choices: ['direct']
-                default: 'direct'
-    spec:
-        description: Specification for the command device.
-        type: dict
+      username:
+        description: Username for authentication. This is a required field.
+        type: str
+        required: true
+      password:
+        description: Password for authentication. This is a required field.
+        type: str
+        required: true
+      connection_type:
+        description: Type of connection to the storage system.
+        type: str
         required: false
-        suboptions:
-            ldev_id:
-                description: The id of the LDEV.
-                type: int
-                required: true
-            is_security_enabled:
-                description: Specify whether to enable the security settings for the command device.
-                type: bool
-                required: false
-            is_user_authentication_enabled:
-                description: Specify whether to enable the user authentication settings for the command device.
-                type: bool
-                required: false
-            is_device_group_definition_enabled:
-                description: Specify whether to enable the device group definition settings for the command device.
-                type: bool
-                required: false
+        choices: ['direct']
+        default: 'direct'
+  spec:
+    description: Specification for the command device.
+    type: dict
+    required: false
+    suboptions:
+      ldev_id:
+        description: The id of the LDEV.
+        type: int
+        required: true
+      is_security_enabled:
+        description: Specify whether to enable the security settings for the command device.
+        type: bool
+        required: false
+      is_user_authentication_enabled:
+        description: Specify whether to enable the user authentication settings for the command device.
+        type: bool
+        required: false
+      is_device_group_definition_enabled:
+        description: Specify whether to enable the device group definition settings for the command device.
+        type: bool
+        required: false
 """
 
 EXAMPLES = """
@@ -127,7 +126,7 @@ EXAMPLES = """
       is_device_group_definition_enabled: false
 """
 
-RETURN = r"""
+RETURN = """
 command_device:
     description: The command device information.
     returned: always except when state is absent
@@ -154,10 +153,6 @@ command_device:
             description: Emulation type of the command device.
             type: str
             sample: "OPEN-V-CVS-CM"
-        entitlement_status:
-            description: Entitlement status of the command device.
-            type: str
-            sample: ""
         hostgroups:
             description: List of host groups associated with the command device.
             type: list
@@ -240,10 +235,6 @@ command_device:
             description: ID of the parity group.
             type: str
             sample: ""
-        partner_id:
-            description: ID of the partner.
-            type: str
-            sample: ""
         path_count:
             description: Number of paths associated with the command device.
             type: int
@@ -275,10 +266,6 @@ command_device:
             description: Serial number of the storage system.
             type: str
             sample: "40015"
-        subscriber_id:
-            description: ID of the subscriber.
-            type: str
-            sample: ""
         total_capacity:
             description: Total capacity of the command device.
             type: str
@@ -297,9 +284,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_cmd_dev import (
     VSPCmdDevReconciler,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
@@ -309,9 +293,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -340,14 +321,6 @@ class VSPCmdDevManager:
 
         self.logger.writeInfo("=== Start of Command Device operation. ===")
         registration_message = validate_ansible_product_registration()
-        if (
-            self.parameter_manager.connection_info.connection_type.lower()
-            == ConnectionTypes.GATEWAY
-        ):
-            err_msg = ModuleMessage.NOT_SUPPORTED_FOR_GW.value
-            self.logger.writeError(err_msg)
-            self.logger.writeInfo("=== End of Command Device operation. ===")
-            self.module.fail_json(msg=err_msg)
 
         cmd_dev = None
         comment = None
@@ -355,15 +328,13 @@ class VSPCmdDevManager:
             reconciler = VSPCmdDevReconciler(
                 self.connection_info, self.storage_serial_number, self.state
             )
-            cmd_dev = reconciler.reconcile_cmd_dev(self.spec)
+            cmd_dev, comment = reconciler.reconcile_cmd_dev(self.spec)
 
         except Exception as e:
             self.logger.writeError(str(e))
             self.logger.writeInfo("=== End of Command Device operation. ===")
             self.module.fail_json(msg=str(e))
 
-        if cmd_dev is None and self.state == "absent":
-            comment = "Command Device is disabled."
         resp = {
             "changed": self.connection_info.changed,
         }

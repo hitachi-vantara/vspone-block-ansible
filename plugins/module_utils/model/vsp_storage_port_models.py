@@ -80,7 +80,11 @@ class PortsInfo(BaseDataClass):
 @dataclass
 class ChangePortSettingSpec:
     port: Optional[str] = None
+    port_attribute: Optional[str] = None
     port_mode: Optional[str] = None
+    port_speed: Optional[str] = None
+    fabric_mode: Optional[bool] = None
+    port_connection: Optional[str] = None
     enable_port_security: Optional[bool] = None
 
 

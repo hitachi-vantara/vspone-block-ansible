@@ -2,11 +2,10 @@ import concurrent.futures
 
 try:
     from ..common.vsp_constants import Endpoints
-    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
+    from .gateway_manager import VSPConnectionManager
     from ..common.hv_log import Log
     from ..common.ansible_common import (
         dicts_to_dataclass_list,
-        log_entry_exit,
     )
     from ..model.vsp_iscsi_target_models import (
         VSPIscsiTargetsInfo,
@@ -18,20 +17,16 @@ try:
         VSPPortInfo,
         VSPOneIscsiTargetInfo,
         IscsiTargetPayLoad,
-        VSPPortsInfoV3,
-        VSPPortInfoV3,
     )
-    from ..common.hv_constants import VSPIscsiTargetConstant, CommonConstants
-    from ..hv_ucpmanager import UcpManager
+    from ..common.hv_constants import VSPIscsiTargetConstant
     from ..message.vsp_iscsi_target_msgs import VSPIscsiTargetMessage
 except ImportError:
     from common.vsp_constants import Endpoints
 
-    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
+    from .gateway_manager import VSPConnectionManager
     from common.hv_log import Log
     from common.ansible_common import (
         dicts_to_dataclass_list,
-        log_entry_exit,
     )
     from model.vsp_iscsi_target_models import (
         VSPIscsiTargetsInfo,
@@ -43,11 +38,8 @@ except ImportError:
         VSPPortInfo,
         VSPOneIscsiTargetInfo,
         IscsiTargetPayLoad,
-        VSPPortsInfoV3,
-        VSPPortInfoV3,
     )
-    from common.hv_constants import VSPIscsiTargetConstant, CommonConstants
-    from hv_ucpmanager import UcpManager
+    from common.hv_constants import VSPIscsiTargetConstant
     from message.vsp_iscsi_target_msgs import VSPIscsiTargetMessage
 
 g_raidHostModeOptions = {
@@ -434,7 +426,7 @@ class VSPIscsiTargetDirectGateway:
             )
 
     def add_luns_to_iscsi_target(
-        self, iscsi_target: VSPIscsiTargetInfo, luns, serial=None
+        self, iscsi_target: VSPIscsiTargetInfo, luns, serial=None, lun_id=None
     ):
         logger = Log()
         for lun in luns:
@@ -443,6 +435,8 @@ class VSPIscsiTargetDirectGateway:
             data["ldevId"] = lun
             data["portId"] = iscsi_target.portId
             data["hostGroupNumber"] = iscsi_target.iscsiId
+            if lun_id is not None:
+                data["lun"] = lun_id
             resp = self.connectionManager.post(end_point, data)
             logger.writeInfo(resp)
 
@@ -521,12 +515,18 @@ class VSPIscsiTargetDirectGateway:
     ):
         logger = Log()
         for lun in luns:
+            logger.writeDebug("lun = {}", lun)
             for logical_unit in iscsi_target.logicalUnits:
+                logger.writeDebug(
+                    "logical_unit.logicalUnitId = {}",
+                    logical_unit.logicalUnitId,
+                )
                 if lun == logical_unit.logicalUnitId:
                     lun_id = logical_unit.hostLunId
                     end_point = Endpoints.DELETE_LUNS.format(
                         iscsi_target.portId, iscsi_target.iscsiId, lun_id
                     )
+                    logger.writeDebug("end_point = {}", end_point)
                     resp = self.connectionManager.delete(end_point)
                     logger.writeInfo(resp)
 
@@ -585,402 +585,4 @@ class VSPIscsiTargetDirectGateway:
             iscsi_target.portId, iscsi_target.iscsiId
         )
         resp = self.connectionManager.delete(end_point)
-        logger.writeInfo(resp)
-
-
-class VSPIscsiTargetUAIGateway:
-    def __init__(self, connection_info):
-        self.connection_info = connection_info
-        self.connectionManager = UAIGConnectionManager(
-            connection_info.address,
-            connection_info.username,
-            connection_info.password,
-            connection_info.api_token,
-        )
-        self.resource_id = None
-        self.is_tag_port = False
-
-    @log_entry_exit
-    def populate_header(self):
-        headers = {}
-        headers["partnerId"] = CommonConstants.PARTNER_ID
-        if self.connection_info.subscriber_id is not None:
-            headers["subscriberId"] = self.connection_info.subscriber_id
-        return headers
-
-    def get_storage_resource_id(self, serial):
-        if self.resource_id is not None:
-            return self.resource_id
-        partnerId = CommonConstants.PARTNER_ID
-        subscriberId = self.connection_info.subscriber_id
-        ucpManager = UcpManager(
-            self.connection_info.address,
-            self.connection_info.username,
-            self.connection_info.password,
-            self.connection_info.api_token,
-            partnerId,
-            subscriberId,
-            serial,
-        )
-        (self.resource_id, ucp) = ucpManager.getStorageSystemResourceId()
-        return self.resource_id
-
-    def tag_port(self, port_id, serial):
-        if self.is_tag_port or not self.connection_info.subscriber_id:
-            return
-        logger = Log()
-        ports = self.get_ports(serial)
-        for port in ports.data:
-            if port.portId == port_id:
-                ports_with_subscriber = self.get_ports_with_subscriber(serial)
-                for port_with_subscriber in ports_with_subscriber.data:
-                    if port_id == port_with_subscriber.resourceId:
-                        logger.writeInfo("port {} was tagged already", port_id)
-                        self.is_tag_port = True
-                        return
-                end_point = Endpoints.UAIG_ADD_STORAGE_RESOURCE.format(
-                    self.get_storage_resource_id(serial)
-                )
-                data = {}
-                data["resourceId"] = port_id
-                data["partnerId"] = CommonConstants.PARTNER_ID
-                data["subscriberId"] = self.connection_info.subscriber_id
-                data["type"] = "Port"
-                try:
-                    resp = self.connectionManager.post(end_point, data)
-                    logger.writeInfo("resp = {}", resp)
-                    self.is_tag_port = True
-                except Exception as e:
-                    logger.writeInfo("err = {}", e)
-                return
-
-    def get_ports_with_subscriber(self, serial):
-        logger = Log()
-        end_point = Endpoints.UAIG_GET_PORTS_V3.format(
-            self.get_storage_resource_id(serial), "?refresh={}".format(False)
-        )
-        headers = self.populate_header()
-        resp = self.connectionManager.get(end_point, headers)
-        logger.writeInfo("resp = {}", resp)
-        return VSPPortsInfoV3(dicts_to_dataclass_list(resp["data"], VSPPortInfoV3))
-
-    def get_ports(self, serial):
-        logger = Log()
-        end_point = Endpoints.UAIG_GET_PORTS_V2.format(
-            self.get_storage_resource_id(serial), "?refresh={}".format(False)
-        )
-        resp = self.connectionManager.get(end_point)
-        logger.writeInfo("resp = {}", resp)
-        return VSPPortsInfo(dicts_to_dataclass_list(resp["data"], VSPPortInfo))
-
-    def get_one_port(self, port_id):
-        Log()
-
-    def check_valid_port(self, port_id):
-        is_valid = True
-        port = self.get_one_port(port_id)
-        port_type = port.portType if port else None
-        if port_type != VSPIscsiTargetConstant.PORT_TYPE_ISCSI:
-            is_valid = False
-        return is_valid
-
-    def tag_iscsi_target(self, iscsi_target_resource_id, serial):
-        if not self.connection_info.subscriber_id:
-            return
-        logger = Log()
-        end_point = Endpoints.UAIG_ADD_STORAGE_RESOURCE.format(
-            self.get_storage_resource_id(serial)
-        )
-        data = {}
-        data["resourceId"] = iscsi_target_resource_id
-        data["partnerId"] = CommonConstants.PARTNER_ID
-        data["subscriberId"] = self.connection_info.subscriber_id
-        data["type"] = "IscsiTarget"
-        resp = self.connectionManager.post(end_point, data)
-        logger.writeInfo("resp = {}", resp)
-
-    def get_iscsi_targets(self, spec, serial):
-        logger = Log()
-        lst_iscsi_target = []
-        end_point = Endpoints.UAIG_GET_ISCSIS.format(
-            self.get_storage_resource_id(serial), "?refresh={}".format(False)
-        )
-        headers = self.populate_header()
-        resp = self.connectionManager.get(end_point, headers)
-        logger.writeInfo("resp = {}", resp)
-
-        ports_input = spec.ports
-        name_input = None
-        if hasattr(spec, "name"):
-            name_input = spec.name
-        port_set = None
-        if ports_input:
-            port_set = set(ports_input)
-        logger.writeInfo("port_set={0}".format(port_set))
-        for iscsi_target in resp["data"]:
-            if name_input is not None and name_input != iscsi_target["iSCSIName"]:
-                continue
-            port_id = iscsi_target["portId"]
-            if port_set and port_id not in port_set:
-                continue
-            if not iscsi_target["iSCSIName"]:
-                continue
-            iscsi_target["iscsiName"] = iscsi_target["iSCSIName"]
-            del iscsi_target["iSCSIName"]
-            iscsi_target["iscsiId"] = iscsi_target["iSCSIId"]
-            del iscsi_target["iSCSIId"]
-            lst_iscsi_target.append(iscsi_target)
-
-        return VSPIscsiTargetsInfo(
-            dicts_to_dataclass_list(lst_iscsi_target, VSPIscsiTargetInfo)
-        )
-
-    def get_one_iscsi_target(self, port_id, name, serial):
-        # if not self.check_valid_port(port_id):
-        #     return VSPOneIscsiTargetInfo(**{"data": None})
-        self.tag_port(port_id, serial)
-        end_point = Endpoints.UAIG_GET_ISCSIS.format(
-            self.get_storage_resource_id(serial), "?refresh={}".format(False)
-        )
-        headers = self.populate_header()
-        resp = self.connectionManager.get(end_point, headers)
-
-        is_found = False
-        for iscsi_target in resp["data"]:
-            if name == iscsi_target["iSCSIName"] and port_id == iscsi_target["portId"]:
-                is_found = True
-                iscsi_target["iscsiName"] = iscsi_target["iSCSIName"]
-                del iscsi_target["iSCSIName"]
-                iscsi_target["iscsiId"] = iscsi_target["iSCSIId"]
-                del iscsi_target["iSCSIId"]
-                return VSPOneIscsiTargetInfo(VSPIscsiTargetInfo(**iscsi_target))
-        if not is_found:
-            iscsi_target_info_obj = self.get_iscsi_target_by_partner_id(
-                port_id, name, serial
-            )
-            if iscsi_target_info_obj.data:
-                self.tag_iscsi_target(iscsi_target_info_obj.data.resourceId, serial)
-            return iscsi_target_info_obj
-        return VSPOneIscsiTargetInfo(**{"data": None})
-
-    def get_iscsi_target_by_partner_id(self, port_id, name, serial):
-        end_point = Endpoints.UAIG_GET_ISCSIS.format(
-            self.get_storage_resource_id(serial), "?refresh={}".format(False)
-        )
-        headers = {}
-        headers["partnerId"] = CommonConstants.PARTNER_ID
-        resp = self.connectionManager.get(end_point, headers)
-
-        for iscsi_target in resp["data"]:
-            if name == iscsi_target["iSCSIName"] and port_id == iscsi_target["portId"]:
-                iscsi_target["iscsiName"] = iscsi_target["iSCSIName"]
-                del iscsi_target["iSCSIName"]
-                iscsi_target["iscsiId"] = iscsi_target["iSCSIId"]
-                del iscsi_target["iSCSIId"]
-                return VSPOneIscsiTargetInfo(VSPIscsiTargetInfo(**iscsi_target))
-        return VSPOneIscsiTargetInfo(**{"data": None})
-
-    def get_all_iscsi_target_by_partner_id(self, serial):
-        end_point = Endpoints.UAIG_GET_ISCSIS.format(
-            self.get_storage_resource_id(serial), "?refresh={}".format(False)
-        )
-        headers = {}
-        headers["partnerId"] = CommonConstants.PARTNER_ID
-        resp = self.connectionManager.get(end_point, headers)
-        return VSPIscsiTargetsInfo(
-            dicts_to_dataclass_list(resp["data"], VSPIscsiTargetInfo)
-        )
-
-    def create_one_iscsi_target(self, iscsi_target_payload: IscsiTargetPayLoad, serial):
-        logger = Log()
-        end_point = Endpoints.UAIG_POST_ISCSIS.format(
-            self.get_storage_resource_id(serial)
-        )
-        data = {}
-        data["port"] = iscsi_target_payload.port
-        data["iscsiName"] = iscsi_target_payload.name
-        if iscsi_target_payload.host_mode:
-            data["hostMode"] = iscsi_target_payload.host_mode
-        if (
-            iscsi_target_payload.host_mode_options
-            and len(iscsi_target_payload.host_mode_options) > 0
-        ):
-            data["hostModeOptions"] = iscsi_target_payload.host_mode_options
-        if iscsi_target_payload.chap_users:
-            data["chapUsers"] = []
-            for chap_user in iscsi_target_payload.chap_users:
-                data["chapUsers"].append(
-                    {
-                        "chapUserId": chap_user.chap_user_name,
-                        "chapSecret": chap_user.chap_secret,
-                    }
-                )
-        if iscsi_target_payload.iqn_initiators:
-            data["iqnInitiators"] = iscsi_target_payload.iqn_initiators
-        if iscsi_target_payload.luns:
-            data["luns"] = iscsi_target_payload.luns
-        data["ucpSystem"] = CommonConstants.UCP_SERIAL
-        logger.writeInfo(data)
-        headers = self.populate_header()
-        try:
-            resp = self.connectionManager.post(end_point, data, headers)
-            logger.writeInfo(resp)
-        except Exception as e:
-            logger.writeInfo("err = {}", e)
-            if VSPIscsiTargetMessage.RESOURCE_PRESENT.value in str(e):
-                iscsi_target_info_obj = self.get_iscsi_target_by_partner_id(
-                    iscsi_target_payload.port, iscsi_target_payload.name, serial
-                )
-                self.tag_iscsi_target(iscsi_target_info_obj.data.resourceId, serial)
-            else:
-                raise e
-
-    def add_luns_to_iscsi_target(self, iscsi_target: VSPIscsiTargetInfo, luns, serial):
-        logger = Log()
-        end_point = Endpoints.UAIG_POST_LUNS.format(
-            self.get_storage_resource_id(serial), iscsi_target.resourceId
-        )
-        headers = self.populate_header()
-        data = {}
-        data["ldevIds"] = luns
-        resp = self.connectionManager.post(end_point, data, headers_input=headers)
-        logger.writeInfo(resp)
-
-    def add_iqn_initiators_to_iscsi_target(
-        self, iscsi_target: VSPIscsiTargetInfo, iqn_initiators, serial
-    ):
-        logger = Log()
-        end_point = Endpoints.UAIG_POST_IQNS.format(
-            self.get_storage_resource_id(serial), iscsi_target.resourceId
-        )
-        headers = self.populate_header()
-        data = {}
-        data["iqnInitiators"] = iqn_initiators
-        resp = self.connectionManager.post(end_point, data, headers_input=headers)
-        logger.writeInfo(resp)
-
-    def add_chap_users_to_iscsi_target(
-        self, iscsi_target: VSPIscsiTargetInfo, chap_users, serial
-    ):
-        logger = Log()
-        for chap_user in chap_users:
-            logger.writeInfo(chap_user)
-            data = {}
-            data["chapUserId"] = chap_user.chap_user_name
-            if chap_user.chap_secret is not None:
-                data["chapSecret"] = chap_user.chap_secret
-            if chap_user.chap_user_name not in iscsi_target.chapUsers:
-                end_point = Endpoints.UAIG_POST_CHAP_USER.format(
-                    self.get_storage_resource_id(serial), iscsi_target.resourceId
-                )
-                resp = self.connectionManager.post(end_point, data)
-            else:
-                end_point = Endpoints.UAIG_PATCH_CHAP_USER.format(
-                    self.get_storage_resource_id(serial), iscsi_target.resourceId
-                )
-                resp = self.connectionManager.patch(end_point, data)
-            logger.writeInfo(resp)
-
-    def set_host_mode(
-        self, iscsi_target: VSPIscsiTargetInfo, host_mode, host_mode_options, serial
-    ):
-        logger = Log()
-        end_point = Endpoints.UAIG_POST_HOST_MODE.format(
-            self.get_storage_resource_id(serial), iscsi_target.resourceId
-        )
-        data = {}
-        if host_mode:
-            data["hostMode"] = host_mode
-        if host_mode_options is not None:
-            data["hostModeOptions"] = host_mode_options
-        resp = self.connectionManager.post(end_point, data)
-        logger.writeInfo(resp)
-
-    def delete_iqn_initiators_from_iscsi_target(
-        self, iscsi_target: VSPIscsiTargetInfo, iqn_initiators, serial=None
-    ):
-        logger = Log()
-        end_point = Endpoints.UAIG_DELETE_IQNS.format(
-            self.get_storage_resource_id(serial), iscsi_target.resourceId
-        )
-        headers = self.populate_header()
-        data = {}
-        data["iqnInitiators"] = iqn_initiators
-        resp = self.connectionManager.delete(end_point, data, headers_input=headers)
-        logger.writeInfo(resp)
-
-    def delete_luns_from_iscsi_target(
-        self, iscsi_target: VSPIscsiTargetInfo, luns, serial
-    ):
-        logger = Log()
-        end_point = Endpoints.UAIG_DELETE_LUNS.format(
-            self.get_storage_resource_id(serial), iscsi_target.resourceId
-        )
-        headers = self.populate_header()
-        data = {}
-        data["ldevIds"] = luns
-        resp = self.connectionManager.delete(end_point, data, headers_input=headers)
-        logger.writeInfo(resp)
-
-    def delete_chap_users_from_iscsi_target(
-        self, iscsi_target: VSPIscsiTargetInfo, chap_users, serial
-    ):
-        logger = Log()
-        for chap_user in chap_users:
-            end_point = Endpoints.UAIG_DELETE_CHAP_USER.format(
-                self.get_storage_resource_id(serial), iscsi_target.resourceId, chap_user
-            )
-            resp = self.connectionManager.delete(end_point)
-            logger.writeInfo(resp)
-
-    def is_volume_empty(self, ldev_id, serial):
-        logger = Log()
-        end_point = Endpoints.UAIG_GET_VOLUMES.format(
-            self.get_storage_resource_id(serial),
-            "?fromLdevId={from_id}&toLdevId={to_id}&refresh={refresh}".format(
-                from_id=ldev_id, to_id=ldev_id, refresh=False
-            ),
-        )
-
-        headers = self.populate_header()
-        resp = self.connectionManager.get(end_point, headers)
-        logger.writeInfo(resp)
-        resource_id = ""
-        if "data" in resp and len(resp["data"]) > 0:
-            resource_id = resp["data"][0]["resourceId"]
-            if resp["data"][0]["pathCount"] == 0:
-                return (resource_id, True)
-        return (resource_id, False)
-
-    def delete_one_volume(self, resource_id, serial):
-        logger = Log()
-        end_point = Endpoints.UAIG_DELETE_ONE_VOLUME.format(
-            self.get_storage_resource_id(serial), resource_id
-        )
-        headers = self.populate_header()
-        resp = self.connectionManager.delete(end_point, headers_input=headers)
-        logger.writeInfo(resp)
-
-    def delete_iscsi_target(
-        self, iscsi_target: VSPIscsiTargetInfo, is_delete_all_luns, serial
-    ):
-        logger = Log()
-        if is_delete_all_luns:
-            luns = [
-                logicalUnit.logicalUnitId for logicalUnit in iscsi_target.logicalUnits
-            ]
-            if len(luns) > 0:
-                self.delete_luns_from_iscsi_target(iscsi_target, luns, serial)
-                for logical_unit in iscsi_target.logicalUnits:
-                    (resource_id, is_empty) = self.is_volume_empty(
-                        logical_unit.logicalUnitId, serial
-                    )
-                    if is_empty:
-                        self.delete_one_volume(resource_id, serial)
-
-        end_point = Endpoints.UAIG_DELETE_ISCSIS.format(
-            self.get_storage_resource_id(serial), iscsi_target.resourceId
-        )
-        headers = self.populate_header()
-        resp = self.connectionManager.delete(end_point, headers_input=headers)
         logger.writeInfo(resp)

@@ -299,10 +299,11 @@ class VSPCopyGroupsDirectGateway:
 
             try:
                 for p in response["copyPairs"]:
-                    pvol = VSPVolumeDirectGateway(
-                        self.connection_info
-                    ).get_volume_by_id(p["pvolLdevId"])
-                    p["isAluaEnabled"] = pvol.isAluaEnabled
+                    if p["replicationType"] == "GAD":
+                        pvol = VSPVolumeDirectGateway(
+                            self.connection_info
+                        ).get_volume_by_id(p["pvolLdevId"])
+                        p["isAluaEnabled"] = pvol.isAluaEnabled
             except Exception as e:
                 # sng20250111 - includes: Failed to establish a connection
                 # just log it so we can still return the pairs

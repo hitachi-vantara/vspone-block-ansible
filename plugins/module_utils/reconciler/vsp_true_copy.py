@@ -10,14 +10,12 @@ try:
     from ..common.hv_log import Log
     from ..common.hv_constants import ConnectionTypes, StateValue
     from ..provisioner.vsp_true_copy_provisioner import VSPTrueCopyProvisioner
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg, TrueCopyFailedMsg
     from ..model.vsp_true_copy_models import (
         VSPTrueCopyPairInfoList,
         VSPTrueCopyPairInfo,
     )
-    from ..common.uaig_utils import UAIGResourceID
-
-
 except ImportError:
     from common.ansible_common import (
         log_entry_exit,
@@ -28,9 +26,9 @@ except ImportError:
     from common.hv_log import Log
     from common.hv_constants import ConnectionTypes, StateValue
     from provisioner.vsp_true_copy_provisioner import VSPTrueCopyProvisioner
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg, TrueCopyFailedMsg
     from model.vsp_true_copy_models import VSPTrueCopyPairInfoList, VSPTrueCopyPairInfo
-    from common.uaig_utils import UAIGResourceID
 
 
 logger = Log()
@@ -38,7 +36,7 @@ logger = Log()
 
 class VSPTrueCopyReconciler:
     def __init__(
-        self, connection_info, serial, state=None, secondary_connection_info=None
+        self, connection_info, serial=None, state=None, secondary_connection_info=None
     ):
 
         self.connection_info = connection_info
@@ -49,6 +47,14 @@ class VSPTrueCopyReconciler:
             self.state = state
         if secondary_connection_info:
             self.secondary_connection_info = secondary_connection_info
+        if self.storage_serial_number is None:
+            self.storage_serial_number = self.get_storage_serial_number()
+
+    @log_entry_exit
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     @log_entry_exit
     def delete_true_copy(self, spec):
@@ -57,7 +63,7 @@ class VSPTrueCopyReconciler:
             pair_id, comment = self.provisioner.delete_true_copy_pair(spec)
             return pair_id, comment
         except Exception as e:
-            logger.writeError("RC:delete_true_copy:exception={}", e)
+            logger.writeError("RC:delete_true_copy:exception={}", str(e))
             self.connection_info.changed = False
             comment = TrueCopyFailedMsg.DELETE_PAIR_FAILED.value + str(e)
             # return None, str(e)
@@ -68,28 +74,19 @@ class VSPTrueCopyReconciler:
         self.validate_tc_spec_for_ops(spec)
         if spec.new_volume_size is None:
             raise ValueError(VSPTrueCopyValidateMsg.NEW_VOLUME_SIZE.value)
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            if spec.secondary_storage_serial_number is None:
-                raise ValueError(
-                    VSPTrueCopyValidateMsg.SECONDARY_STORAGE_SN_NEEDED.value
-                )
 
     @log_entry_exit
     def validate_tc_spec_for_ops(self, spec: Any) -> None:
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            if spec.primary_volume_id is None:
-                raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
 
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            if spec.primary_volume_id:
-                if spec.copy_group_name is None:
-                    raise ValueError(VSPTrueCopyValidateMsg.COPY_GROUP_NAME.value)
+        if spec.primary_volume_id:
+            if spec.copy_group_name is None:
+                raise ValueError(VSPTrueCopyValidateMsg.COPY_GROUP_NAME.value)
 
-            if spec.copy_group_name:
-                if spec.copy_pair_name is None and spec.primary_volume_id is None:
-                    raise ValueError(
-                        VSPTrueCopyValidateMsg.PVOL_ID_OR_CP_NAME_NEEDED_WITH_CG_NAME.value
-                    )
+        if spec.copy_group_name:
+            if spec.copy_pair_name is None and spec.primary_volume_id is None:
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.PVOL_ID_OR_CP_NAME_NEEDED_WITH_CG_NAME.value
+                )
 
     @log_entry_exit
     def resync_true_copy(self, spec):
@@ -121,43 +118,20 @@ class VSPTrueCopyReconciler:
         logger.writeDebug("RC:create_true_copy:spec={} ", spec)
         self.validate_create_spec(spec)
 
-        # This is for gateway
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            try:
-                pvol_v2 = self.provisioner.get_volume_by_id_v2(
-                    UAIGResourceID().storage_resourceId(self.storage_serial_number),
-                    UAIGResourceID().ldev_resourceId(
-                        self.storage_serial_number, spec.primary_volume_id
-                    ),
+        pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
+        logger.writeDebug("RC:create_true_copy:pvol={} ", pvol)
+        if not pvol:
+            raise ValueError(
+                VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
+                    spec.primary_volume_id
                 )
-                if pvol_v2.pathCount < 1:
-                    raise ValueError(
-                        VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_NO_PATH.value.format(
-                            spec.primary_volume_id
-                        )
-                    )
-            except Exception as e:
-                logger.writeError("RC:create_true_copy:exception={}", e)
-                raise ValueError(
-                    VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
-                        spec.primary_volume_id
-                    )
-                )
-        else:
-            pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
-            logger.writeDebug("RC:create_true_copy:pvol={} ", pvol)
-            if not pvol:
-                raise ValueError(
-                    VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
-                        spec.primary_volume_id
-                    )
-                )
+            )
 
-            copy_group = self.provisioner.get_copy_group_by_name(spec)
-            if copy_group:
-                spec.is_new_copy_group = False
-            else:
-                spec.is_new_copy_group = True
+        copy_group = self.provisioner.get_copy_group_by_name(spec)
+        if copy_group:
+            spec.is_new_copy_group = False
+        else:
+            spec.is_new_copy_group = True
 
         return self.provisioner.create_true_copy(spec=spec)
 
@@ -174,7 +148,11 @@ class VSPTrueCopyReconciler:
         if spec.secondary_pool_id is None:
             raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_POOL_ID.value)
 
-        if spec.secondary_hostgroups is None and spec.secondary_nvm_subsystem is None:
+        if (
+            spec.secondary_hostgroups is None
+            and spec.secondary_nvm_subsystem is None
+            and spec.secondary_iscsi_targets is None
+        ):
             raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS_OR_NVME.value)
 
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
@@ -223,9 +201,6 @@ class VSPTrueCopyReconciler:
         if resp_data:
             logger.writeDebug("RC:resp_data={}  state={}", resp_data, state)
             if isinstance(resp_data, dict):
-                if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-                    resp_data.pop("resource_id", None)
-                    resp_data.pop("storage_id", None)
                 return resp_data
 
             resp_in_dict = resp_data.to_dict()
@@ -243,13 +218,6 @@ class VSPTrueCopyReconciler:
                 )
         else:
             return None
-
-    @log_entry_exit
-    def check_storage_in_ucpsystem(self) -> bool:
-        """
-        Check if the storage is in the UCP system.
-        """
-        return self.provisioner.check_storage_in_ucpsystem()
 
     @log_entry_exit
     def get_all_tc_pairs(self, spec):
@@ -328,10 +296,6 @@ class VSPTrueCopyReconciler:
 
         return VSPTrueCopyPairInfoList(data=items)
 
-    @log_entry_exit
-    def is_out_of_band(self):
-        return self.provisioner.is_out_of_band()
-
 
 class TrueCopyInfoExtractor:
     def __init__(self, serial):
@@ -340,7 +304,7 @@ class TrueCopyInfoExtractor:
             # "resourceId": str,
             "consistencyGroupId": int,
             # "storageId": str,
-            "entitlementStatus": str,
+            # "entitlementStatus": str,
             # "copyPaceTrackSize": int,
             "copyRate": int,
             "mirrorUnitId": int,
@@ -362,8 +326,8 @@ class TrueCopyInfoExtractor:
             "svolAccessMode": str,
             # "type": str,
             # "secondaryVirtualHexVolumeId": int,
-            "partnerId": str,
-            "subscriberId": str,
+            # "partnerId": str,
+            # "subscriberId": str,
         }
 
         self.parameter_mapping = {
@@ -395,7 +359,7 @@ class TrueCopyInfoExtractor:
                     # Handle missing keys by assigning default values
                     default_value = get_default_value(value_type)
                     new_dict[cased_key] = default_value
-            new_dict["partner_id"] = "apiadmin"
+            # new_dict["partner_id"] = "apiadmin"
             if (
                 new_dict.get("primary_hex_volume_id") == ""
                 or new_dict.get("primary_hex_volume_id") is None
@@ -432,7 +396,7 @@ class TrueCopyInfoExtractor:
                 # Handle missing keys by assigning default values
                 default_value = get_default_value(value_type)
                 new_dict[cased_key] = default_value
-        new_dict["partner_id"] = "apiadmin"
+        # new_dict["partner_id"] = "apiadmin"
         if (
             new_dict.get("primary_hex_volume_id") == ""
             or new_dict.get("primary_hex_volume_id") is None
@@ -498,9 +462,9 @@ class DirectTrueCopyInfoExtractor:
             # "storageTypeId": str,
             # "isMainframe": bool,
             # "copyPairs": list,
-            "entitlementStatus": str,
-            "partnerId": str,
-            "subscriberId": str,
+            # "entitlementStatus": str,
+            # "partnerId": str,
+            # "subscriberId": str,
         }
 
         self.parameter_mapping = {

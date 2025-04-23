@@ -15,11 +15,8 @@ short_description: Manages snapshots on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, deletion, splitting, syncing, and restoring of snapshots on Hitachi VSP storage systems.
   - It supports various snapshot operations based on the specified task level.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snapshot.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/snapshot.yml)
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -37,12 +34,12 @@ options:
     choices: ['present', 'absent', 'split', 'sync', 'restore', 'clone']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -51,32 +48,27 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway) ) or
-          the storage system (if connection_type is C(direct) .)
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      api_token:
-        description: API token for authentication. This is a required field for C(gateway) connection type.
-        type: str
-        required: false
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
   spec:
     description: Specification for the snapshot task.
     type: dict
@@ -86,25 +78,32 @@ options:
         description: ID of the primary volume.
         type: int
         required: true
+      secondary_volume_id:
+        description: Secondary volume id.
+        type: int
+        required: false
       pool_id:
         description: ID of the pool where the snapshot will be allocated.
         type: int
         required: false
       snapshot_group_name:
-        description: Name of the snapshot group (required for C(direct) connection type and thin image advance).
+        description: Name of the snapshot group.
         type: str
         required: false
       is_data_reduction_force_copy:
-        description: Specify whether to forcibly create a pair for a volume for which the capacity saving function is enabled
-          (Required for C(direct) connection type and thin image advance, Default is True when capacity savings is not C(disabled).
+        description: Specify whether to forcibly create a pair for a volume for which the capacity saving function is enabled.
+          Default is True when capacity savings is not C(disabled).
         required: false
         type: bool
       is_clone:
-        description: Specify true to create a thin image advance clone pair
+        description: >
+          Specify whether to create a pair that has the clone attribute specified.
+          If you specify true for this attribute, do not specify the auto_split attribute.
+          When creating a Thin Image Advanced pair, you cannot specify true.
         required: false
         type: bool
       can_cascade:
-        description: Specify whether the pair can be cascaded. (Required for C(direct) connection type and thin image advance,
+        description: Specify whether the pair can be cascaded.
           Default is True when capacity savings is not C(disabled), Lun may not required to add to any host group when is it true.
         required: false
         type: bool
@@ -120,38 +119,48 @@ options:
         description: Specify whether to automatically split the pair.
         required: false
         type: bool
-      consistency_group_id:
-        description: ID of the consistency group.
+      retention_period:
+        description: >
+          Specify the retention period for the snapshot in hours. This can be set when the snapshot status is PSUS.
+          This attribute can be used when the storage system is VSP One B20.
+          You can specify this attribute only if the auto_split attribute is set to true for new pair.
         required: false
         type: int
-      enable_quick_mode:
-        description: Specify whether to enable quick mode.
+      copy_speed:
+        description: >
+          Specify the copy speed at which the created pair is to be cloned.
+          You can specify this item when true is specified for both the is_clone attribute and the clones_automation attribute.
+        required: false
+        type: str
+        choices: ["SLOW", "MEDIUM", "FAST"]
+      clones_automation:
+        description: >
+          Specify whether the pair is to be cloned after the pair is created.
+          You can specify this item when true is specified for the is_clone attribute.
         required: false
         type: bool
 """
 
 EXAMPLES = """
-- name: Create a snapshot for direct connection type
+- name: Create a snapshot
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: present
     connection_info:
       address: storage1.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     spec:
       primary_volume_id: 123
       pool_id: 1
       snapshot_group_name: "snap_group"
 
-- name: Create a thin image advance cascade pair for direct connection type
+- name: Create a thin image advance cascade
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: present
     connection_info:
       address: storage1.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     spec:
       primary_volume_id: 123
       pool_id: 1
@@ -159,93 +168,152 @@ EXAMPLES = """
       can_cascade: true
       is_data_reduction_force_copy: true
 
-- name: Create a thin image advance clone pair for direct connection type
+- name: Create a thin image clone pair
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: present
     connection_info:
       address: storage1.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     spec:
       primary_volume_id: 123
       pool_id: 1
       snapshot_group_name: "snap_group"
       is_clone: true
-      is_data_reduction_force_copy: true
 
-- name: Clone a thin image advance clone pair for direct connection type
+- name: Clone a thin image clone pair
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: clone
     connection_info:
       address: storage1.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     spec:
       primary_volume_id: 123
       mirror_unit: 3
 
-- name: Delete a snapshot for direct connection type
+- name: Delete a snapshot
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: absent
     connection_info:
-      address: gateway.company.com
+      address: storage1.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     spec:
       primary_volume_id: 123
       mirror_unit: 10
 
-- name: Split a snapshot for direct connection type
+- name: Split a snapshot
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: split
     connection_info:
       address: storage1.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     spec:
       primary_volume_id: 123
       mirror_unit: 10
 
-- name: Split a snapshot for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_snapshot:
-    state: split
-    storage_system_info:
-      serial: "811150"
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-    spec:
-      primary_volume_id: 123
-      mirror_unit: 10
-
-- name: Resync a snapshot for direct connection type
+- name: Resync a snapshot
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: resync
     connection_info:
-      address: gateway.company.com
+      address: storage1.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     spec:
       primary_volume_id: 123
       mirror_unit: 10
 
-- name: Restore a snapshot for direct connection type
+- name: Restore a snapshot
   hitachivantara.vspone_block.vsp.hv_snapshot:
     state: restore
     connection_info:
-      address: gateway.company.com
+      address: storage1.company.com
       username: "username"
       password: "password"
-      connection_type: "direct"
     spec:
       primary_volume_id: 123
       mirror_unit: 3
+
+- name: Set the retention period for a snapshot
+  hitachivantara.vspone_block.vsp.hv_snapshot:
+    state: split
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+    spec:
+      primary_volume_id: 123
+      mirror_unit: 3
+      retention_period: 500
+
+- name: Set the retention period for a snapshot with auto split.
+  hitachivantara.vspone_block.vsp.hv_snapshot:
+    state: split
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+    spec:
+      primary_volume_id: 123
+      mirror_unit: 3
+      retention_period: 500
+      pool_id: 1
+      snapshot_group_name: "snap_group"
+
+- name: Create and clone snapshot pair with copy speed and clones automation
+  hitachivantara.vspone_block.vsp.hv_snapshot:
+    state: "present"
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+    spec:
+      primary_volume_id: 100
+      pool_id: 5
+      snapshot_group_name: "snapshot-group-name-1"
+      is_clone: true
+      copy_speed: "FAST"
+      clones_automation: true
+
+- name: Create floating snapshot pair
+  hitachivantara.vspone_block.vsp.hv_snapshot:
+    state: "present"
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+    spec:
+      primary_volume_id: 100
+      secondary_volume_id: -1
+      pool_id: 5
+      snapshot_group_name: "snapshot-group-name-1"
+      mirror_unit_id: 4
+
+- name: Assign floating snapshot pair
+  hitachivantara.vspone_block.vsp.hv_snapshot:
+    state: "present"
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+    spec:
+      primary_volume_id: 100
+      secondary_volume_id: 200
+      mirror_unit_id: 1
+
+- name: Unassign floating snapshot pair
+  hitachivantara.vspone_block.vsp.hv_snapshot:
+    state: "present"
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+    spec:
+      primary_volume_id: 100
+      secondary_volume_id: -1
+      mirror_unit_id: 1
 """
 
 RETURN = """
@@ -283,10 +351,6 @@ snapshots:
       description: ID of the pool where the snapshot is allocated.
       type: int
       sample: 12
-    consistency_group_id:
-      description: ID of the consistency group.
-      type: int
-      sample: -1
     mirror_unit_id:
       description: ID of the mirror unit.
       type: int
@@ -327,6 +391,18 @@ snapshots:
       description: Indicates if the snapshot can be cascaded.
       type: bool
       sample: true
+    retention_period_in_hours:
+      description: Retention period of the snapshot.
+      type: int
+      sample: 60
+    progress_rate:
+      description: Progress rate of the snapshot operation.
+      type: int
+      sample: 90
+    concordance_rate:
+      description: Concordance rate of the snapshot operation.
+      type: int
+      sample: 100
 """
 
 
@@ -339,10 +415,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     VSPSnapshotArguments,
     VSPParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-    CommonConstants,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_snapshot_reconciler import (
     VSPHtiSnapshotReconciler,
 )
@@ -354,9 +426,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -419,42 +488,7 @@ class VSPHtiSnapshotManager:
             self.connection_info,
             self.storage_serial_number,
         )
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            found = reconciler.check_storage_in_ucpsystem()
-            if not found:
-                raise ValueError(ModuleMessage.STORAGE_SYSTEM_ONBOARDING.value)
-
         result = reconciler.reconcile_snapshot(self.spec)
-
-        #  20240826 TIA post processing
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            # result can be just a string on negative test cases
-            snapshot = result
-            if snapshot and isinstance(snapshot, dict):
-                snapshot["can_cascade"] = False
-                snapshot["is_cloned"] = ""
-                snapshot["is_data_reduction_force_copy"] = False
-
-                ttype = snapshot.get("type")
-                if ttype == "CASCADE":
-                    snapshot["is_data_reduction_force_copy"] = True
-                    snapshot["can_cascade"] = True
-                    snapshot["is_cloned"] = False
-                elif ttype == "CLONE":
-                    snapshot["is_data_reduction_force_copy"] = True
-                    snapshot["can_cascade"] = True
-                    snapshot["is_cloned"] = True
-
-                #  20240826 inject the subscriber info
-                snapshot["entitlement_status"] = "unassigned"
-                subscriberId = self.connection_info.subscriber_id
-                if subscriberId and subscriberId != "":
-                    snapshot["entitlement_status"] = "assigned"
-                    snapshot["partner_id"] = CommonConstants.PARTNER_ID
-                    snapshot["subscriber_id"] = subscriberId
-
-                result = snapshot
-
         return result
 
 

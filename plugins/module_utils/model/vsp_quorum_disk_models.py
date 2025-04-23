@@ -33,8 +33,20 @@ class ExtVolumeInfo(SingleBaseClass):
 
 
 @dataclass
+class ExtVolumeLocalInfo(SingleBaseClass):
+    externalStorage: Optional[Any] = None
+    externalParityGroupId: Optional[str] = None
+    ldevId: Optional[int] = None
+
+
+@dataclass
 class ExtVolumeInfoList(BaseDataClass):
     data: List[ExtVolumeInfo]
+
+
+@dataclass
+class ExtVolumeLocalInfoList(BaseDataClass):
+    data: List[ExtVolumeLocalInfo]
 
 
 @dataclass

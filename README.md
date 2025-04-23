@@ -1,4 +1,4 @@
-# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 3.3.0
+# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 3.4.0
 
 The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of Ansible modules for managing Hitachi VSP One SDS Block and Hitachi VSP One series systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
@@ -40,10 +40,6 @@ The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of
 
 View the changelog [here](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/docs/CHANGELOG.md).
 
-## 📢 Deprecation Notice
-
-⚠️ **Important:** The **Unified API Infrastructure (UAI) Gateway connection modules** will no longer be supported in future releases of this software.
-
 ## Available Modules
 
 For a detailed list of available modules, please refer to the [Modules Documentation](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/docs/MODULES.md).
@@ -77,7 +73,7 @@ ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 3.3.0. If you encounter any issues, please report them in this [repository](https://github.com/hitachi-vantara/vspone-block-ansible/issues). Use the following syntax to install version 3.3.0:
 
 ```bash
-ansible-galaxy collection install hitachivantara.vspone_block:==3.3.0
+ansible-galaxy collection install hitachivantara.vspone_block:==3.4.0
 ```
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
@@ -88,7 +84,7 @@ For troubleshooting tips and common issues, please refer to the [Troubleshooting
 
 ## User Guide & Release Notes
 
-For User Guide and Release Notes, [see this documentation](https://docs.hitachivantara.com/search/documents?value-filters=Option~%2522Red+Hat%2522*Product_custom~%2522Adapters+and+Drivers%2522&virtual-field=title_only&content-lang=en-US)
+For User Guide and Release Notes, see [User Guide and Release Notes](https://docs.hitachivantara.com/search/documents?value-filters=Option~%2522Red+Hat%2522*Product_custom~%2522Adapters+and+Drivers%2522&virtual-field=title_only&content-lang=en-US)
 
 ## License
 

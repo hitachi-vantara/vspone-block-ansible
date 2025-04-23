@@ -14,7 +14,7 @@ except ImportError:
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from common.vsp_constants import Endpoints, RemoteIscsiConnectionReq
-    from plugins.module_utils.model.vsp_remote_connection_models import (
+    from model.vsp_remote_connection_models import (
         RemoteIscsiConnection,
         RemoteIscsiConnections,
         RemoteIscsiConnectionSpec,

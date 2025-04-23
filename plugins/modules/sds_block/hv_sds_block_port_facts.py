@@ -74,7 +74,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
 - name: Retrieve information about compute ports by compute node name
   hitachivantara.vspone_block.sds_block.hv_sds_block_port_facts:
@@ -82,7 +81,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
     spec:
       nicknames: ["000-iSCSI-000"]
@@ -93,7 +91,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
     spec:
       names: ["p1-compute-node", "RD-compute-node-111"]

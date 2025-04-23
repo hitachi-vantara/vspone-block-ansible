@@ -91,7 +91,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
     spec:
       target_chap_user_name: "chapuser2"
       target_chap_user_secret: "chapuser2_secret"
@@ -105,7 +104,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
     spec:
       id: "464e1fd1-9892-4134-866c-6964ce786676"
 
@@ -116,7 +114,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
     spec:
       id: "464e1fd1-9892-4134-866c-6964ce786676"
       target_chap_user_name: "newchapuser2"
@@ -125,9 +122,8 @@ EXAMPLES = """
   hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user:
     state:
     connection_info:
-      address: sdsb.company.com
-      api_token: "api_token_value"
-      connection_type: "direct"
+      username: "admin"
+      password: "password"
     spec:
       id: "464e1fd1-9892-4134-866c-6964ce786676"
       target_chap_user_name: "chapuser2"

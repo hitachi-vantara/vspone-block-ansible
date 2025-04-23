@@ -17,6 +17,7 @@ class HurHostGroupSpec:
     # id: int = None
     name: str = None
     port: str = None
+    lun_id: Optional[int] = None
     # resource_group_id: Optional[int] = None
 
     def to_dict(self):
@@ -72,6 +73,7 @@ class HurSpec(SingleBaseClass):
     secondary_storage_serial_number: Optional[int] = None
     secondary_pool_id: Optional[int] = None
     secondary_hostgroups: Optional[List[HurHostGroupSpec]] = None
+    secondary_iscsi_targets: Optional[List[HurHostGroupSpec]] = None
     secondary_nvm_subsystem: Optional[NVMeSubsystemSpec] = None
     primary_volume_journal_id: Optional[int] = None
     secondary_volume_journal_id: Optional[int] = None
@@ -87,6 +89,8 @@ class HurSpec(SingleBaseClass):
     new_volume_size: Optional[str] = None
     begin_secondary_volume_id: Optional[int] = None
     end_secondary_volume_id: Optional[int] = None
+    path_group_id: Optional[int] = None
+    should_delete_svol: Optional[bool] = False
 
     # Making a single hg
     secondary_hostgroup: Optional[HurHostGroupSpec] = None
@@ -99,6 +103,13 @@ class HurSpec(SingleBaseClass):
         ):
             self.secondary_hostgroups = [
                 HurHostGroupSpec(**kwargs.get("secondary_hostgroup"))
+            ]
+        if (
+            "secondary_iscsi_targets" in kwargs
+            and kwargs.get("secondary_iscsi_targets") is not None
+        ):
+            self.secondary_iscsi_targets = [
+                HurHostGroupSpec(**x) for x in self.secondary_iscsi_targets
             ]
         if (
             "secondary_nvm_subsystem" in kwargs

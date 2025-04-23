@@ -163,7 +163,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
     spec:
       name: "RD-volume-4"
 
@@ -222,7 +221,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
     spec:
       state: "remove_compute_node"
       id: "aba5c900-b04c-4beb-8ca4-ed53537afb09"
@@ -458,7 +456,7 @@ class SDSBVolumeManager:
             sdsb_reconciler = SDSBVolumeReconciler(self.connection_info)
             volumes = sdsb_reconciler.reconcile_volume(self.state, self.spec)
 
-            logger.writeDebug(f"MOD:hv_sds_block_volume:volumnes= {volumes}")
+            logger.writeDebug(f"MOD:hv_sds_block_volume:volumes= {volumes}")
             if self.state.lower() == StateValue.ABSENT:
                 volumes_data_extracted = volumes
             else:

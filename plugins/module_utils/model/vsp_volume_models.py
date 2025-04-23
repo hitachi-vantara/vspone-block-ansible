@@ -20,6 +20,7 @@ class VolumeFactSpec:
     end_ldev_id: Optional[int] = None
     start_ldev_id: Optional[int] = None
     is_detailed: Optional[bool] = None
+    query: Optional[List[str]] = None
 
 
 @dataclass
@@ -73,6 +74,8 @@ class CreateVolumeSpec:
     parity_group: Optional[str] = None
     force: Optional[bool] = None
     is_relocation_enabled: Optional[bool] = None
+    is_compression_acceleration_enabled: Optional[bool] = None
+    compression_acceleration_status: Optional[str] = None
     tier_level_for_new_page_allocation: Optional[str] = None
     tiering_policy: Optional[TieringPolicySpec] = None
     nvm_subsystem_name: Optional[str] = None
@@ -123,6 +126,7 @@ class VSPVolumeInfo(SingleBaseClass):
     clprId: int
     emulationType: str
     externalVolumeId: Optional[str] = None
+    externalVolumeIdString: Optional[str] = None
     byteFormatCapacity: Optional[str] = None
     blockCapacity: Optional[int] = None
     numOfPorts: Optional[int] = None
@@ -173,6 +177,8 @@ class VSPVolumeInfo(SingleBaseClass):
     tier1AllocationRateMax: Optional[int] = None
     tier3AllocationRateMin: Optional[int] = None
     tier3AllocationRateMax: Optional[int] = None
+    isCompressionAccelerationEnabled: Optional[bool] = None
+    compressionAccelerationStatus: Optional[str] = None
 
     def __init__(self, **kwargs):
         try:

@@ -22,6 +22,9 @@ except ImportError:
 GET_LOCAL_COPY_GROUPS = "v1/objects/local-clone-copygroups"
 GET_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}"
 GET_STORAGES_DIRECT = "v1/objects/storages"
+SPLIT_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}/actions/split/invoke"
+RESYNC_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}/actions/resync/invoke"
+RESTORE_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}/actions/restore/invoke"
 
 
 logger = Log()
@@ -97,3 +100,128 @@ class VSPLocalCopyGroupDirectGateway:
         logger.writeDebug(f"GW:get_local_copy_groups:response={response}")
 
         return LocalSpecificCopyGroupInfo(**response)
+
+    @log_entry_exit
+    def split_local_copy_group(self, spec, localCloneCopygroupId):
+        funcName = "VSPShadowImagePairDirectGateway: split_local_copy_group"
+        if (
+            spec.copy_group_name is not None
+            and spec.primary_volume_device_group_name is not None
+            and spec.secondary_volume_device_group_name is not None
+        ):
+            shadowImagePairid = (
+                spec.copy_group_name
+                + ","
+                + spec.primary_volume_device_group_name
+                + ","
+                + spec.secondary_volume_device_group_name
+            )
+        else:
+            shadowImagePairid = localCloneCopygroupId
+        end_point = SPLIT_ONE_COPY_GROUP.format(shadowImagePairid)
+        # headers = self.populateHeader()
+        parameters = {}
+        if spec.quick_mode is not None:
+            parameters["quickMode"] = spec.quick_mode
+        if spec.copy_pace is not None:
+            parameters["copyPace"] = spec.copy_pace
+        if spec.force_suspend is not None:
+            parameters["forceSuspend"] = spec.force_suspend
+
+        payload = {"parameters": parameters}
+        logger.writeDebug(f"GW:split_local_copy_group:payload={payload}")
+        response = self.connection_manager.post(end_point, payload)
+        logger.writeDebug("{} Response={}", funcName, response)
+        return response
+
+    @log_entry_exit
+    def resync_local_copy_group(self, spec, localCloneCopygroupId):
+        funcName = "VSPShadowImagePairDirectGateway: resync_local_copy_group"
+        if (
+            spec.copy_group_name is not None
+            and spec.primary_volume_device_group_name is not None
+            and spec.secondary_volume_device_group_name is not None
+        ):
+            shadowImagePairid = (
+                spec.copy_group_name
+                + ","
+                + spec.primary_volume_device_group_name
+                + ","
+                + spec.secondary_volume_device_group_name
+            )
+        else:
+            shadowImagePairid = localCloneCopygroupId
+        end_point = RESYNC_ONE_COPY_GROUP.format(shadowImagePairid)
+        # headers = self.populateHeader()
+        parameters = {}
+        if spec.quick_mode is not None:
+            parameters["quickMode"] = spec.quick_mode
+        if spec.copy_pace is not None:
+            parameters["copyPace"] = spec.copy_pace
+
+        payload = {"parameters": parameters}
+        logger.writeDebug(f"GW:resync_local_copy_group:payload={payload}")
+        response = self.connection_manager.post(end_point, payload)
+        logger.writeDebug("{} Response={}", funcName, response)
+        return response
+
+    @log_entry_exit
+    def restore_local_copy_group(self, spec, localCloneCopygroupId):
+        funcName = "VSPShadowImagePairDirectGateway: restore_local_copy_group"
+        if (
+            spec.copy_group_name is not None
+            and spec.primary_volume_device_group_name is not None
+            and spec.secondary_volume_device_group_name is not None
+        ):
+            shadowImagePairid = (
+                spec.copy_group_name
+                + ","
+                + spec.primary_volume_device_group_name
+                + ","
+                + spec.secondary_volume_device_group_name
+            )
+        else:
+            shadowImagePairid = localCloneCopygroupId
+        end_point = RESTORE_ONE_COPY_GROUP.format(shadowImagePairid)
+        # headers = self.populateHeader()
+        parameters = {}
+        if spec.quick_mode is not None:
+            parameters["quickMode"] = spec.quick_mode
+        if spec.copy_pace is not None:
+            parameters["copyPace"] = spec.copy_pace
+
+        payload = {"parameters": parameters}
+        logger.writeDebug(f"GW:restore_local_copy_group:payload={payload}")
+        response = self.connection_manager.post(end_point, payload)
+        logger.writeDebug("{} Response={}", funcName, response)
+        return response
+
+    @log_entry_exit
+    def delete_local_copy_group(self, spec, localCloneCopygroupId):
+        funcName = "VSPShadowImagePairDirectGateway: delete_local_copy_group"
+        if (
+            spec.copy_group_name is not None
+            and spec.primary_volume_device_group_name is not None
+            and spec.secondary_volume_device_group_name is not None
+        ):
+            shadowImagePairid = (
+                spec.copy_group_name
+                + ","
+                + spec.primary_volume_device_group_name
+                + ","
+                + spec.secondary_volume_device_group_name
+            )
+        else:
+            shadowImagePairid = localCloneCopygroupId
+        end_point = GET_ONE_COPY_GROUP.format(shadowImagePairid)
+        # headers = self.populateHeader()
+        if spec.force_delete is not None:
+            parameters = {}
+            parameters["forceDelete"] = spec.force_delete
+            payload = {"parameters": parameters}
+            logger.writeDebug(f"GW:delete_local_copy_group:payload={payload}")
+            response = self.connection_manager.delete(end_point, payload)
+        else:
+            response = self.connection_manager.delete(end_point)
+        logger.writeDebug("{} Response={}", funcName, response)
+        return response

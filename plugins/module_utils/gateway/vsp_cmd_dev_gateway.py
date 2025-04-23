@@ -34,6 +34,7 @@ class VSPCmdDevDirectGateway:
         self.connection_info = connection_info
         self.remote_connection_manager = None
         self.serial = None
+        self.pegasus_model = None
 
     @log_entry_exit
     def set_serial(self, serial):
@@ -41,14 +42,16 @@ class VSPCmdDevDirectGateway:
 
     @log_entry_exit
     def is_pegasus(self):
-        end_point = GET_STORAGE_INFO_DIRECT
-        storage_info = self.connection_manager.get(end_point)
-        logger.writeDebug(f"CMD_DEV:storage details{storage_info}")
-        storage_info = VSPStorageDevice(**storage_info)
+        if self.pegasus_model is None:
+            end_point = GET_STORAGE_INFO_DIRECT
+            storage_info = self.connection_manager.get(end_point)
+            logger.writeDebug(f"CMD_DEV:storage details{storage_info}")
+            storage_info = VSPStorageDevice(**storage_info)
 
-        pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
-        logger.writeDebug(f"CMD_DEV: Storage Model: {storage_info.model}")
-        return pegasus_model
+            pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
+            logger.writeDebug(f"CMD_DEV: Storage Model: {storage_info.model}")
+            self.pegasus_model = pegasus_model
+        return self.pegasus_model
 
     @log_entry_exit
     def update_cache_of_storage_system(self):

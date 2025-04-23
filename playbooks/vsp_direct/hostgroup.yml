@@ -59,25 +59,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Remove host mode options
-    ####################################################################
-    - name: Remove host mode options
-      hitachivantara.vspone_block.vsp.hv_hg:
-        connection_info: "{{ connection_info }}"
-        state: "present"
-        spec:
-          state: "absent"
-          name: "hostgroup-server1"
-          port: "CL1-C"
-          host_mode_options: [13]
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    ####################################################################
-    # Task 4 : Add wwns to hostgroup
+    # Task 3 : Add wwns to hostgroup
     ####################################################################
     - name: Add wwns to hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
@@ -97,7 +79,7 @@
         var: result
 
     ####################################################################
-    # Task 5 : Remove wwns from hostgroup
+    # Task 4 : Remove wwns from hostgroup
     ####################################################################
     - name: Remove wwns from hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
@@ -117,7 +99,7 @@
         var: result
 
     ####################################################################
-    # Task 6 : Present ldevs to hostgroup
+    # Task 5 : Present ldevs to hostgroup
     ####################################################################
     - name: Present ldevs to hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
@@ -135,7 +117,7 @@
         var: result
 
     ####################################################################
-    # Task 7 : Unpresent ldevs from hostgroup
+    # Task 6 : Unpresent ldevs from hostgroup
     ####################################################################
     - name: Unpresent ldevs from hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
@@ -153,7 +135,7 @@
         var: result
 
     ####################################################################
-    # Task 8 : Delete hostgroup
+    # Task 7 : Delete hostgroup
     ####################################################################
     - name: Delete hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:

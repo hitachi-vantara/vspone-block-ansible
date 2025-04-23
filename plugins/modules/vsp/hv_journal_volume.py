@@ -14,11 +14,8 @@ module: hv_journal_volume
 short_description: Create, update, expand, shrink, delete journal volume from Hitachi VSP storage systems.
 description:
   - This module creates, update, expand, shrink, delete journal volume from Hitachi VSP storage systems.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/journal_volume.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/journal_volume.yml)
 version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -36,13 +33,12 @@ options:
     choices: ['present', 'absent', 'update', 'expand_journal_volume', 'shrink_journal_volume']
     default: 'present'
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -51,32 +47,27 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
-        type: str
-        required: false
   spec:
     description: Specification for creating Journal Volume.
     type: dict
@@ -111,23 +102,23 @@ options:
         type: list
         required: false
         elements: int
+      mirror_unit_number:
+        description: Mirror unit number.
+        type: int
+        required: false
+      copy_pace:
+        description: Copy pace.
+        type: str
+        required: false
+        choices: ['SLOW', 'MEDIUM', 'FAST']
+      path_blockade_watch_in_minutes:
+        description: Path blockade watch in minutes.
+        type: int
+        required: false
 """
 
 EXAMPLES = """
-- name: Create Journal Volume for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_journal_volume:
-    connection_info:
-      address: storage1.company.com
-      api_token: "api_token"
-      connection_type: "gateway"
-    storage_system_info:
-      - serial: "811150"
-    state: "present"
-    spec:
-      journal_id: "35"
-      ldev_ids: "[105, 106]"
-
-- name: Create a Journal Volume for direct connection type
+- name: Create a Journal Volume
   hitachivantara.vspone_block.vsp.hv_journal_volume:
     connection_info:
       address: storage1.company.com
@@ -137,31 +128,6 @@ EXAMPLES = """
     spec:
       journal_id: 37
       ldev_ids: [1993, 1994]
-
-- name: Expand Journal Volume for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_journal_volume:
-    connection_info:
-      address: storage1.company.com
-      api_token: "api_token"
-      connection_type: "gateway"
-    storage_system_info:
-      - serial: "811150"
-    state: "present"
-    spec:
-      journal_id: "35"
-      ldev_ids: "[105]"
-
-- name: Delete Journal Volume for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_journal_volume:
-    connection_info:
-      address: storage1.company.com
-      api_token: "api_token"
-      connection_type: "gateway"
-    storage_system_info:
-      - serial: "811150"
-    state: "absent"
-    spec:
-      journal_id: "35"
 """
 
 RETURN = r"""

@@ -13,7 +13,6 @@ module: hv_nvm_subsystems
 short_description: Manages NVM subsystems on Hitachi VSP storage systems.
 description:
   - This module allows creation, deletion, and other operations on NVM subsystems on Hitachi VSP storage systems.
-  - This module is supported only for C(direct) connection to the storage system.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/nvm_subsystems.yml)
 version_added: '3.2.0'
@@ -27,7 +26,7 @@ attributes:
     support: none
 options:
   storage_system_info:
-    description: Information about the storage system.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
@@ -45,17 +44,17 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
         type: str
         required: false
       api_token:
-          description: The lock token to operate on locked resources for C(direct) connection.
-          type: str
-          required: false
+        description: This field is used to pass the value of the lock token to operate on locked resources.
+        type: str
+        required: false
   state:
     description: The desired state of the NVM subsystem.
     type: str
@@ -68,7 +67,7 @@ options:
     required: true
     suboptions:
       name:
-        description: The name of the NVM subsystem.If not given, it assigns the name of the NVM subsystem to "smrha-<10 digit random number>".
+        description: The name of the NVM subsystem.If not given, it assigns the name of the NVM subsytem to "smrha-<10 digit random number>".
         type: str
         required: false
       id:
@@ -136,7 +135,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Create an NVM Subsystem for direct connection type
+- name: Create an NVM Subsystem
   hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
     connection_info:
       address: storage1.company.com
@@ -157,7 +156,7 @@ EXAMPLES = """
           nickname: "nickname"
           paths: ["nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"]
 
-- name: Add host NQNs to an NVM Subsystem with a specific ID for direct connection type
+- name: Add host NQNs to an NVM Subsystem with a specific ID
   hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
     connection_info:
       address: storage1.company.com
@@ -170,7 +169,7 @@ EXAMPLES = """
         - nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa41"
           nickname: "my_host_nqn_41"
 
-- name: Remove host NQNs from an NVM Subsystem with a specific ID for direct connection type
+- name: Remove host NQNs from an NVM Subsystem with a specific ID
   hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
     connection_info:
       address: storage1.company.com
@@ -183,7 +182,7 @@ EXAMPLES = """
         - nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa41"
           nickname: "my_host_nqn_41"
 
-- name: Delete an NVM Subsystem with a specific Id forcefully for direct connection type
+- name: Delete an NVM Subsystem with a specific Id forcefully
   hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
     connection_info:
       address: storage1.company.com
@@ -316,9 +315,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_nvme import (
     VSPNvmeReconciler,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
@@ -328,9 +324,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -357,15 +350,6 @@ class VSPNvmSubsystemManager:
     def apply(self):
         self.logger.writeInfo("=== Start of NVM Subsystem operation ===")
         registration_message = validate_ansible_product_registration()
-
-        if (
-            self.parameter_manager.connection_info.connection_type.lower()
-            == ConnectionTypes.GATEWAY
-        ):
-            err_msg = ModuleMessage.NOT_SUPPORTED_FOR_GW.value
-            self.logger.writeError(f"{err_msg}")
-            self.logger.writeInfo("=== End of NVM Subsystem operation ===")
-            self.module.fail_json(msg=err_msg)
 
         nvm_subsystems = None
         try:

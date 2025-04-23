@@ -2,32 +2,26 @@ import hashlib
 
 try:
     from ..common.vsp_constants import Endpoints
-    from ..common.hv_constants import CommonConstants, StateValue
     from ..common.ansible_common import dicts_to_dataclass_list
-    from .gateway_manager import UAIGConnectionManager, VSPConnectionManager
+    from .gateway_manager import VSPConnectionManager
     from ..model.vsp_shadow_image_pair_models import (
         VSPShadowImagePairsInfo,
         VSPShadowImagePairInfo,
-        UaigResourceMappingInfo,
     )
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
-    from ..hv_ucpmanager import UcpManager
     from ..message.vsp_shadow_image_pair_msgs import VSPShadowImagePairValidateMsg
 
 except ImportError:
     from common.vsp_constants import Endpoints
-    from common.hv_constants import CommonConstants, StateValue
     from common.ansible_common import dicts_to_dataclass_list
     from model.vsp_shadow_image_pair_models import (
         VSPShadowImagePairsInfo,
         VSPShadowImagePairInfo,
-        UaigResourceMappingInfo,
     )
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
-    from .gateway_manager import UAIGConnectionManager, VSPConnectionManager
-    from hv_ucpmanager import UcpManager
+    from .gateway_manager import VSPConnectionManager
     from message.vsp_shadow_image_pair_msgs import VSPShadowImagePairValidateMsg
 
 
@@ -165,13 +159,25 @@ class VSPShadowImagePairDirectGateway:
         return response
 
     def generate_create_payload(self, serial, createShadowImagePairSpec):
-        pvol_mu_number = self.get_pvol_mu_number(serial, createShadowImagePairSpec.pvol)
-        copy_group_name = self.generate_copy_group_name(
-            createShadowImagePairSpec.pvol, createShadowImagePairSpec.svol
-        )
-        copy_pair_name = self.generate_copy_pair_name(
-            createShadowImagePairSpec.pvol, createShadowImagePairSpec.svol
-        )
+        if (
+            createShadowImagePairSpec.is_new_group_creation is None
+            or createShadowImagePairSpec.is_new_group_creation is True
+        ):
+            pvol_mu_number = self.get_pvol_mu_number(
+                serial, createShadowImagePairSpec.pvol
+            )
+        if createShadowImagePairSpec.copy_group_name is not None:
+            copy_group_name = createShadowImagePairSpec.copy_group_name
+        else:
+            copy_group_name = self.generate_copy_group_name(
+                createShadowImagePairSpec.pvol, createShadowImagePairSpec.svol
+            )
+        if createShadowImagePairSpec.copy_pair_name is not None:
+            copy_pair_name = createShadowImagePairSpec.copy_pair_name
+        else:
+            copy_pair_name = self.generate_copy_pair_name(
+                createShadowImagePairSpec.pvol, createShadowImagePairSpec.svol
+            )
         copy_pace = self.get_copy_pace_value(
             createShadowImagePairSpec.copy_pace_track_size
         )
@@ -180,17 +186,34 @@ class VSPShadowImagePairDirectGateway:
             "copyPairName": copy_pair_name,
             "replicationType": "SI",
             "pvolLdevId": createShadowImagePairSpec.pvol,
-            "pvolMuNumber": pvol_mu_number,
             "svolLdevId": createShadowImagePairSpec.svol,
-            "pvolDeviceGroupName": copy_group_name + "P_",
-            "svolDeviceGroupName": copy_group_name + "S_",
-            "isNewGroupCreation": True,
+            "pvolDeviceGroupName": (
+                copy_group_name + "P_"
+                if createShadowImagePairSpec.primary_volume_device_group_name is None
+                else createShadowImagePairSpec.primary_volume_device_group_name
+            ),
+            "svolDeviceGroupName": (
+                copy_group_name + "S_"
+                if createShadowImagePairSpec.secondary_volume_device_group_name is None
+                else createShadowImagePairSpec.secondary_volume_device_group_name
+            ),
+            "isNewGroupCreation": (
+                createShadowImagePairSpec.is_new_group_creation
+                if createShadowImagePairSpec.is_new_group_creation is not None
+                else True
+            ),
             "copyPace": copy_pace,
         }
         if createShadowImagePairSpec.auto_split is not None:
             payload["autoSplit"] = bool(createShadowImagePairSpec.auto_split)
         else:
             payload["autoSplit"] = False
+
+        if (
+            createShadowImagePairSpec.is_new_group_creation is None
+            or createShadowImagePairSpec.is_new_group_creation is True
+        ):
+            payload["pvolMuNumber"] = pvol_mu_number
 
         if (
             payload["autoSplit"] is True
@@ -386,325 +409,3 @@ class VSPShadowImagePairDirectGateway:
         self.logger.writeExitSDK(funcName)
         data = {"data": shadow_image_list}
         return data
-
-
-class VSPShadowImagePairUAIGateway:
-
-    def __init__(self, connection_info):
-        funcName = "VSPShadowImagePairUAIGateway: init"
-        self.logger = Log()
-        self.logger.writeEnterSDK(funcName)
-        self.connectionInfo = connection_info
-        self.connectionManager = UAIGConnectionManager(
-            connection_info.address,
-            connection_info.username,
-            connection_info.password,
-            connection_info.api_token,
-        )
-
-    @log_entry_exit
-    def get_all_shadow_image_pairs(self, serial):
-        funcName = "VSPShadowImagePairUAIGateway: get_all_shadow_image_pairs"
-        self.logger.writeEnterSDK(funcName)
-        deviceId = self.getStorageResourceId(serial)
-        headers = self.populateHeader()
-        end_point = Endpoints.UAIG_GET_ALL_SHADOW_IMAGE_PAIR.format(deviceId=deviceId)
-        response = self.connectionManager.get(end_point, headers)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
-        return VSPShadowImagePairsInfo(
-            dicts_to_dataclass_list(response["data"], VSPShadowImagePairInfo)
-        )
-
-    @log_entry_exit
-    def get_shadow_image_pair_by_id(self, serial, pairId):
-        funcName = "VSPShadowImagePairUAIGateway: get_shadow_image_pair_by_id"
-        self.logger.writeEnterSDK(funcName)
-        deviceId = self.getStorageResourceId(serial)
-        headers = self.populateHeader()
-        end_point = Endpoints.UAIG_GET_SHADOW_IMAGE_PAIR_BY_ID.format(
-            deviceId=deviceId, pairId=pairId
-        )
-        response = self.connectionManager.get(end_point)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
-        shadow_image_pair = VSPShadowImagePairInfo(**response["data"])
-        shadow_image_pair.partnerId = headers.get("partnerId")
-        if headers.get("subscriberId") is not None:
-            shadow_image_pair.subscriberId = headers.get("subscriberId")
-            shadow_image_pair.entitlementStatus = "assigned"
-        else:
-            shadow_image_pair.subscriberId = None
-            shadow_image_pair.entitlementStatus = "unassigned"
-
-        return shadow_image_pair
-
-    @log_entry_exit
-    def get_shadow_image_pair_by_pvol(self, serial, pvol):
-        funcName = "VSPShadowImagePairUAIGateway: get_shadow_image_pair_by_pvol"
-        self.logger.writeEnterSDK(funcName)
-        deviceId = self.getStorageResourceId(serial)
-        headers = self.populateHeader()
-        end_point = Endpoints.UAIG_GET_SHADOW_IMAGE_PAIR_BY_PVOL.format(
-            deviceId=deviceId, pvol=pvol
-        )
-        response = self.connectionManager.get(end_point)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
-        for sip in response["data"]:
-            sip["partnerId"] = headers.get("partnerId")
-            if headers.get("subscriberId") is not None:
-                sip["subscriberId"] = headers.get("subscriberId")
-                sip["entitlementStatus"] = "assigned"
-            else:
-                sip["subscriberId"] = None
-                sip["entitlementStatus"] = "unassigned"
-
-        return VSPShadowImagePairsInfo(
-            dicts_to_dataclass_list(response["data"], VSPShadowImagePairInfo)
-        )
-
-    @log_entry_exit
-    def create_shadow_image_pair(self, serial, createShadowImagePairSpec):
-        funcName = "VSPShadowImagePairUAIGateway: create_shadow_image_pair"
-        self.logger.writeEnterSDK(funcName)
-        deviceId = self.getStorageResourceId(serial)
-        end_point = Endpoints.UAIG_CREATE_SHADOW_IMAGE_PAIR.format(deviceId=deviceId)
-        headers = self.populateHeader()
-        payload = {
-            "ucpSystem": CommonConstants.UCP_SERIAL,
-            "primaryLunId": int(createShadowImagePairSpec.pvol),
-            "secondaryLunId": int(createShadowImagePairSpec.svol),
-        }
-        if createShadowImagePairSpec.auto_split is not None:
-            payload["autoSplit"] = bool(createShadowImagePairSpec.auto_split)
-        else:
-            payload["autoSplit"] = False
-        if createShadowImagePairSpec.new_consistency_group is not None:
-            payload["newConsistencyGroup"] = bool(
-                createShadowImagePairSpec.new_consistency_group
-            )
-        if createShadowImagePairSpec.consistency_group_id is not None:
-            payload["consistencyGroupID"] = int(
-                createShadowImagePairSpec.consistency_group_id
-            )
-        if createShadowImagePairSpec.copy_pace_track_size is not None:
-            payload["copyPaceTrackSize"] = self.get_copy_pace_value(
-                createShadowImagePairSpec.copy_pace_track_size
-            )
-
-        self.logger.writeDebug(payload)
-        response = self.connectionManager.post(
-            end_point, payload, headers_input=headers
-        )
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
-        return response
-
-    def split_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-
-        funcName = "VSPShadowImagePairUAIGateway: split_shadow_image_pair"
-        self.logger.writeEnterSDK(funcName)
-        deviceId = self.getStorageResourceId(serial)
-        end_point = Endpoints.UAIG_SPLIT_SHADOW_IMAGE_PAIR.format(
-            deviceId=deviceId, pairId=updateShadowImagePairSpec.pair_id
-        )
-        headers = self.populateHeader()
-        self.validate_resource_access(
-            deviceId,
-            updateShadowImagePairSpec.pvol,
-            updateShadowImagePairSpec.pair_id,
-            headers,
-        )
-        payload = self.create_payload(updateShadowImagePairSpec, StateValue.SPLIT)
-        self.logger.writeDebug(payload)
-        response = self.connectionManager.patch(end_point, payload)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
-        return response
-
-    def resync_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-
-        funcName = "VSPShadowImagePairUAIGateway: resync_shadow_image_pair"
-        self.logger.writeEnterSDK(funcName)
-        deviceId = self.getStorageResourceId(serial)
-        end_point = Endpoints.UAIG_RESYNC_SHADOW_IMAGE_PAIR.format(
-            deviceId=deviceId, pairId=updateShadowImagePairSpec.pair_id
-        )
-        headers = self.populateHeader()
-        self.validate_resource_access(
-            deviceId,
-            updateShadowImagePairSpec.pvol,
-            updateShadowImagePairSpec.pair_id,
-            headers,
-        )
-        payload = self.create_payload(updateShadowImagePairSpec, StateValue.SYNC)
-        self.logger.writeDebug(payload)
-        response = self.connectionManager.patch(end_point, payload)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
-        return response
-
-    def restore_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-
-        funcName = "VSPShadowImagePairUAIGateway: restore_shadow_image_pair"
-        self.logger.writeEnterSDK(funcName)
-        deviceId = self.getStorageResourceId(serial)
-        end_point = Endpoints.UAIG_RESTORE_SHADOW_IMAGE_PAIR.format(
-            deviceId=deviceId, pairId=updateShadowImagePairSpec.pair_id
-        )
-        headers = self.populateHeader()
-        self.validate_resource_access(
-            deviceId,
-            updateShadowImagePairSpec.pvol,
-            updateShadowImagePairSpec.pair_id,
-            headers,
-        )
-        payload = self.create_payload(updateShadowImagePairSpec, StateValue.RESTORE)
-        self.logger.writeDebug(payload)
-        response = self.connectionManager.patch(end_point, payload)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
-        return response
-
-    def delete_shadow_image_pair(self, serial, deleteShadowImagePairSpec):
-
-        funcName = "VSPShadowImagePairUAIGateway: delete_shadow_image_pair"
-        self.logger.writeEnterSDK(funcName)
-        deviceId = self.getStorageResourceId(serial)
-        end_point = Endpoints.UAIG_DELETE_SHADOW_IMAGE_PAIR.format(
-            deviceId=deviceId, pairId=deleteShadowImagePairSpec.pair_id
-        )
-        headers = self.populateHeader()
-        self.validate_resource_access(
-            deviceId,
-            deleteShadowImagePairSpec.pvol,
-            deleteShadowImagePairSpec.pair_id,
-            headers,
-        )
-        response = self.connectionManager.delete(end_point, headers_input=headers)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
-        return response
-
-    @log_entry_exit
-    def get_resource_mapping_info(self, deviceId, pairId, type, headers):
-        funcName = "VSPShadowImagePairUAIGateway: get_resource_mapping_info"
-        self.logger.writeEnterSDK(funcName)
-        try:
-            end_point = Endpoints.UAIG_GET_RESOURCE_MAPPING_INFO.format(
-                deviceId=deviceId, pairId=pairId, type=type
-            )
-            response = self.connectionManager.get(end_point)
-            self.logger.writeDebug("{} Response={}", funcName, response)
-            self.logger.writeExitSDK(funcName)
-            # return VSPShadowImagePairInfo(**response["data"])
-            resource_map_info = UaigResourceMappingInfo(**response["data"])
-            return resource_map_info
-        except Exception:
-            return None
-
-    @log_entry_exit
-    def getStorageResourceId(self, serial):
-        partnerId = CommonConstants.PARTNER_ID
-        subscriberId = (
-            self.connectionInfo.subscriber_id
-            if self.connectionInfo.subscriber_id is not None
-            else None
-        )
-        ucpManager = UcpManager(
-            self.connectionInfo.address,
-            self.connectionInfo.username,
-            self.connectionInfo.password,
-            self.connectionInfo.api_token,
-            partnerId,
-            subscriberId,
-            serial,
-        )
-        (resourceId, ucp) = ucpManager.getStorageSystemResourceId()
-        return resourceId
-
-    @log_entry_exit
-    def populateHeader(self):
-        headers = {}
-        headers["partnerId"] = CommonConstants.PARTNER_ID
-        if self.connectionInfo.subscriber_id is not None:
-            headers["subscriberId"] = self.connectionInfo.subscriber_id
-        return headers
-
-    def create_payload(self, updateShadowImagePairSpec, type):
-        payload = {}
-        if updateShadowImagePairSpec.enable_quick_mode is not None:
-            payload["enableQuickMode"] = bool(
-                updateShadowImagePairSpec.enable_quick_mode
-            )
-        else:
-            payload["enableQuickMode"] = False
-
-        if type == StateValue.SPLIT:
-
-            if updateShadowImagePairSpec.enable_read_write is not None:
-                payload["enableReadWrite"] = bool(
-                    updateShadowImagePairSpec.enable_read_write
-                )
-            else:
-                payload["enableReadWrite"] = False
-            return payload
-
-        elif type == StateValue.SYNC:
-
-            if updateShadowImagePairSpec.copy_pace_track_size is not None:
-                payload["copyPace"] = str(
-                    updateShadowImagePairSpec.copy_pace_track_size
-                )
-            else:
-                payload["copyPace"] = "MEDIUM"
-            return payload
-
-        elif type == StateValue.RESTORE:
-
-            if updateShadowImagePairSpec.copy_pace_track_size is not None:
-                payload["copyPace"] = str(
-                    updateShadowImagePairSpec.copy_pace_track_size
-                )
-            else:
-                payload["copyPace"] = "MEDIUM"
-            return payload
-
-    def validate_resource_access(self, deviceId, pvol, pairId, headers):
-        response = self.get_resource_mapping_info(
-            deviceId, pairId, "ShadowImage", headers
-        )
-        hd_sub_id = (
-            str(headers.get("subscriberId")) if headers.get("subscriberId") else None
-        )
-
-        if response is None:
-            if hd_sub_id is None:
-                return True
-            else:
-                raise Exception(
-                    "Subscriber id  is not mapped with Shadow image pair of primary volume: "
-                    + str(pvol)
-                )
-        res_sub_id = response.subscriberId
-        if hd_sub_id is not None:
-            if res_sub_id and hd_sub_id == res_sub_id:
-                return True
-            else:
-                raise Exception(
-                    "Subscriber id is not mapped with Shadow image pair of pvol: "
-                    + str(pvol)
-                )
-        elif hd_sub_id is None and res_sub_id is None:
-            return True
-
-    def get_copy_pace_value(self, copy_pace):
-        copy_pace_value = 1
-        if copy_pace == "SLOW":
-            copy_pace_value = 1
-        elif copy_pace == "FAST":
-            copy_pace_value = 10
-        else:
-            copy_pace_value = 3
-        return copy_pace_value

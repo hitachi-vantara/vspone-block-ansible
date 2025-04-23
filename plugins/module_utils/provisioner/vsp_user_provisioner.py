@@ -40,9 +40,13 @@ class VSPUserProvisioner:
     def get_users(self, spec=None):
         if spec is not None and spec.id:
             user = self.get_user_by_id(spec.id)
+            if user is None:
+                return None
             return VspUserInfoList(data=[user])
         elif spec is not None and spec.name:
             user = self.get_user_by_name(spec.name)
+            if user is None:
+                return None
             return VspUserInfoList(data=[user])
         else:
             return self.gateway.get_users(spec)

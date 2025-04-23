@@ -7,30 +7,16 @@ try:
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from ..common.hv_constants import ConnectionTypes
-    from ..common.uaig_utils import UAIGResourceID
     from ..message.vsp_journal_volume_msgs import VSPSJournalVolumeValidateMsg
-    from ..gateway.vsp_journal_volume_gateway import (
-        VSPSJournalVolumeDirectGateway,
-        VSPJournalVolumeUAIGateway,
-    )
     from ..common.vsp_constants import StoragePoolLimits
-    from ..message.common_msgs import CommonMessage
-
-
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
     from common.ansible_common import log_entry_exit
     from common.hv_log import Log
     from common.hv_constants import ConnectionTypes
-    from common.uaig_utils import UAIGResourceID
     from message.vsp_journal_volume_msgs import VSPSJournalVolumeValidateMsg
-    from gateway.vsp_journal_volume_gateway import (
-        VSPSJournalVolumeDirectGateway,
-        VSPJournalVolumeUAIGateway,
-    )
     from common.vsp_constants import StoragePoolLimits
-    from message.common_msgs import CommonMessage
 
 
 class VSPJournalVolumeProvisioner:
@@ -46,12 +32,6 @@ class VSPJournalVolumeProvisioner:
         self.serial = None
         self.pg_info = None
 
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            self.gateway = VSPSJournalVolumeDirectGateway(self.connection_info)
-        if connection_info.connection_type == ConnectionTypes.GATEWAY:
-            self.gateway = VSPJournalVolumeUAIGateway(connection_info)
-            self.gateway.set_storage_serial_number(serial)
-
     # Helper function to convert camelCase to snake_case
     def camel_to_snake(self, name: str) -> str:
         # Insert underscores before uppercase letters and convert to lowercase
@@ -59,17 +39,7 @@ class VSPJournalVolumeProvisioner:
 
     @log_entry_exit
     def get_journal_pool_by_id(self, pool_id):
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            journal_pools = self.gateway.get_all_journal_info()
-            self.logger.writeDebug(
-                f"PV:journal_volume: pool_id to be feteched =  {pool_id}"
-            )
-            return next(
-                (pool for pool in journal_pools.data if pool.journalPoolId == pool_id),
-                None,
-            )
-        else:
-            return self.gateway.get_journal_pool_by_id(pool_id)
+        return self.gateway.get_journal_pool_by_id(pool_id)
 
     @log_entry_exit
     def journal_pool_facts(self, spec=None):
@@ -138,6 +108,9 @@ class VSPJournalVolumeProvisioner:
                 pool_spec.data_overflow_watchIn_seconds is not None
                 or pool_spec.is_cache_mode_enabled is not None
                 or pool_spec.mp_blade_id is not None
+                or pool_spec.mirror_unit_number is not None
+                or pool_spec.path_blockade_watch_in_minutes is not None
+                or pool_spec.copy_pace is not None
             ):
                 pool = self.gateway.update_journal_volume(
                     pool_spec.journal_id, pool_spec
@@ -176,18 +149,10 @@ class VSPJournalVolumeProvisioner:
             spec.data_overflow_watchIn_seconds != pool_exits.dataOverflowWatchSeconds
             or spec.is_cache_mode_enabled != pool_exits.isCacheModeEnabled
             or spec.mp_blade_id != pool_exits.mpBladeId
+            or spec.copy_pace is not None
+            or spec.path_blockade_watch_in_minutes is not None
+            or spec.mirror_unit_number is not None
         ):
-            if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-                spec.is_cache_mode_enabled = (
-                    pool_exits.isCacheModeEnabled
-                    if spec.is_cache_mode_enabled is None
-                    else spec.is_cache_mode_enabled
-                )
-                spec.data_overflow_watchIn_seconds = (
-                    pool_exits.dataOverflowWatchSeconds
-                    if spec.data_overflow_watchIn_seconds is None
-                    else spec.data_overflow_watchIn_seconds
-                )
             # If any of the conditions do not match, perform the update
             unused = self.gateway.update_journal_volume(pool_id, spec)
         else:
@@ -195,8 +160,7 @@ class VSPJournalVolumeProvisioner:
                 pool_exits.camel_to_snake_dict(),
                 None,
             )  # Everything is already updated.
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            time.sleep(30)
+
         pool = self.get_journal_pool_by_id(pool_id).camel_to_snake_dict()
         self.connection_info.changed = True
         return pool, None
@@ -219,8 +183,6 @@ class VSPJournalVolumeProvisioner:
             )
         unused = self.gateway.expand_journal_volume(pool_id, spec)
         self.connection_info.changed = True
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            time.sleep(30)
         pool = self.get_journal_pool_by_id(pool_id).camel_to_snake_dict()
         return pool, None
 
@@ -257,8 +219,6 @@ class VSPJournalVolumeProvisioner:
             )
 
         unused = self.gateway.shrink_journal_volume(pool_id, spec)
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            time.sleep(30)
         pool = self.get_journal_pool_by_id(pool_id).camel_to_snake_dict()
         self.connection_info.changed = True
         return pool, None
@@ -286,17 +246,3 @@ class VSPJournalVolumeProvisioner:
             if pool.journalStatus and pool.journalStatus.upper() == "SMPL"
         ]
         return free_pools
-
-    @log_entry_exit
-    def check_ucp_system(self, serial):
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            return serial
-        if not self.gateway.check_storage_in_ucpsystem(serial):
-            err_msg = CommonMessage.SERIAL_NUMBER_NOT_FOUND.value.format(serial)
-            self.logger.writeError(err_msg)
-            raise ValueError(err_msg)
-        else:
-            self.serial = serial
-            self.resource_id = UAIGResourceID().storage_resourceId(self.serial)
-            self.gateway.resource_id = self.resource_id
-            return serial

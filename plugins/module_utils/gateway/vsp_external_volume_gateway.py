@@ -8,6 +8,8 @@ try:
     from ..model.vsp_quorum_disk_models import (
         ExtVolumeInfoList,
         ExtVolumeInfo,
+        ExtVolumeLocalInfoList,
+        ExtVolumeLocalInfo,
         ExternalPathGroupInfoList,
         ExternalPathGroupInfo,
         ExternalPathInfoList,
@@ -17,6 +19,8 @@ except ImportError:
     from model.vsp_quorum_disk_models import (
         ExtVolumeInfoList,
         ExtVolumeInfo,
+        ExtVolumeLocalInfoList,
+        ExtVolumeLocalInfo,
         ExternalPathGroupInfoList,
         ExternalPathGroupInfo,
         ExternalPathInfoList,
@@ -29,6 +33,7 @@ except ImportError:
 
 GET_EXT_VOLUMES = "v1/objects/external-storage-luns?portId={}&externalWwn={}"
 GET_EXT_PATHS = "v1/objects/external-path-groups"
+GET_EXT_VOLUMES_LOCAL = "v1/objects/external-volumes"
 GET_EXT_PARITY_GROUPS = "v1/objects/external-parity-groups"
 
 logger = Log()
@@ -120,6 +125,25 @@ class VSPExternalVolumeDirectGateway:
             )
 
         return epglist
+
+    @log_entry_exit
+    def get_external_volumes(self):
+        start_time = time.time()
+        url = GET_EXT_VOLUMES_LOCAL
+        response = self.connection_manager.get(url)
+        logger.writeDebug(f"GW:response={response}")
+        end_time = time.time()
+        logger.writeDebug(
+            "PF_REST:get_external_volumes:time={:.2f} size = {}",
+            end_time - start_time,
+            len(response.get("data")),
+        )
+        if response is None:
+            return
+
+        return ExtVolumeLocalInfoList(
+            dicts_to_dataclass_list(response["data"], ExtVolumeLocalInfo)
+        )
 
     @log_entry_exit
     def get_external_volumes_with_extpath(self, portId, externalWwn):

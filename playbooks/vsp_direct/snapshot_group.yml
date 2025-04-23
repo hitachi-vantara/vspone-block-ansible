@@ -93,3 +93,19 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ######################################################################################
+    # Task 6 : Set retention period of snapshots using group name
+    ######################################################################################
+    - name: Set retention period of snapshots using group name
+      hitachivantara.vspone_block.vsp.hv_snapshot_group:
+        connection_info: "{{ connection_info }}"
+        state: "split"
+        spec:
+          snapshot_group_name: "snapshot-group-name-1"
+          retention_period: 120
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
