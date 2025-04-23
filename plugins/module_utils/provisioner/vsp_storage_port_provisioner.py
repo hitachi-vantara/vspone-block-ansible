@@ -2,16 +2,22 @@ try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
     from ..common.ansible_common import log_entry_exit
+    from ..common.hv_log import Log
     from ..model.vsp_storage_port_models import (
         PortInfo,
         PortsInfo,
     )
+    from ..message.vsp_storage_port_msgs import StoragePortFailedMsg
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
     from common.ansible_common import log_entry_exit
+    from common.hv_log import Log
     from model.vsp_storage_port_models import PortInfo, PortsInfo
+    from message.vsp_storage_port_msgs import StoragePortFailedMsg
+
+logger = Log()
 
 
 class VSPStoragePortProvisioner:
@@ -19,9 +25,6 @@ class VSPStoragePortProvisioner:
     def __init__(self, connection_info):
         self.gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.STORAGE_PORT
-        )
-        self.config_gw = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.VSP_CONFIG_MAP
         )
         self.connection_info = connection_info
         self.portIdToPortInfoMap = None
@@ -66,36 +69,42 @@ class VSPStoragePortProvisioner:
         return port.portType
 
     @log_entry_exit
-    def change_port_settings(
-        self, port_id: str, port_mode: str, enable_port_security: bool
-    ) -> PortInfo:
-        port_details = self.get_single_storage_port(port_id)
-        if (
-            (port_mode is None and enable_port_security is None)
-            or (
-                (
-                    port_mode is not None
-                    and port_details.portMode.lower() == port_mode.lower()
-                )
-                and (
-                    enable_port_security is not None
-                    and port_details.portSecuritySetting == enable_port_security
-                )
-            )
-            or (
-                port_mode is None
-                and port_details.portSecuritySetting == enable_port_security
-            )
-            or (
-                enable_port_security is None
-                and port_details.portMode.lower() == port_mode.lower()
-            )
-        ):
-            return port_details
-        self.gateway.change_port_settings(port_mode, port_id, enable_port_security)
-        self.connection_info.changed = True
-        return self.get_single_storage_port(port_id)
+    def is_change_needed(self, port_details, spec) -> bool:
+        change_needed = False
+        if spec.port_attribute is not None:
+            if spec.port_attribute.upper() == "TAR":
+                if len(port_details.portAttributes) != 1:
+                    change_needed = True
+            if spec.port_attribute.upper() == "ALL":
+                if len(port_details.portAttributes) != 4:
+                    change_needed = True
+        if spec.port_mode is not None:
+            if port_details.portMode.upper() != spec.port_mode.upper():
+                change_needed = True
+        if spec.port_speed is not None:
+            if port_details.portSpeed.upper() != spec.port_speed.upper():
+                change_needed = True
+        if spec.fabric_mode is not None:
+            if port_details.fabricMode != spec.fabric_mode:
+                change_needed = True
+        if spec.port_connection is not None:
+            if port_details.portConnection.upper() != spec.port_connection.upper():
+                change_needed = True
+        if spec.enable_port_security is not None:
+            if port_details.portSecuritySetting != spec.enable_port_security:
+                change_needed = True
+        return change_needed
 
     @log_entry_exit
-    def is_out_of_band(self):
-        return self.config_gw.is_out_of_band()
+    def change_port_settings(self, spec) -> PortInfo:
+        port_details = self.get_single_storage_port(spec.port)
+        if not self.is_change_needed(port_details, spec):
+            return port_details
+        try:
+            self.gateway.change_port_settings(spec)
+            self.connection_info.changed = True
+            return self.get_single_storage_port(spec.port)
+        except Exception as e:
+            err_msg = StoragePortFailedMsg.CHANGE_SETTING_FAILED.value + str(e)
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)

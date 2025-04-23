@@ -2,6 +2,7 @@ try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
     from ..provisioner.vsp_storage_system_provisioner import VSPStorageSystemProvisioner
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..common.hv_log import Log
     from ..model.vsp_volume_models import CreateVolumeSpec
     from ..model.vsp_quorum_disk_models import QuorumDiskSpec
@@ -13,6 +14,7 @@ except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
     from provisioner.vsp_storage_system_provisioner import VSPStorageSystemProvisioner
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from common.hv_log import Log
     from model.vsp_volume_models import CreateVolumeSpec
     from model.vsp_quorum_disk_models import QuorumDiskSpec
@@ -41,16 +43,15 @@ class VSPQuorumDiskProvisioner:
         self.connection_type = connection_info.connection_type
         self.serial = serial
 
-        self.check_ucp_system(serial)
+        if self.serial is None:
+            self.serial = self.get_storage_serial_number()
         self.gateway.set_storage_serial_number(serial)
 
     @log_entry_exit
-    def check_ucp_system(self, serial):
-        serial, resource_id = self.storage_prov.check_ucp_system(serial)
-        self.serial = serial
-        self.gateway.resource_id = resource_id
-        self.gateway.serial = serial
-        return serial
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     @log_entry_exit
     def get_external_path_groups(self):
@@ -59,7 +60,11 @@ class VSPQuorumDiskProvisioner:
 
     @log_entry_exit
     def delete_quorum_disk(self, id):
+        item = self.gateway.get_quorum_disk_by_id(id)
+        if item is None:
+            return [], "id is not found, may have been deregistered."
         resp = self.gateway.delete_quorum_disk(id)
+        self.connection_info.changed = True
         logger.writeDebug(resp)
         return [], None
 
@@ -294,6 +299,7 @@ class VSPQuorumDiskProvisioner:
         if rsp is None:
             return None, "Failed to register Quorum Disk."
 
+        self.connection_info.changed = True
         return rsp, None
 
     @log_entry_exit

@@ -29,10 +29,10 @@ class VSPQuorumDiskReconciler:
 
     def __init__(self, connection_info, serial=None):
         self.connection_info = connection_info
-        if serial is None:
-            serial = self.get_storage_serial_number()
-        self.provisioner = VSPQuorumDiskProvisioner(self.connection_info, serial)
-        self.serial = self.provisioner.check_ucp_system(serial)
+        self.serial = serial
+        if self.serial is None:
+            self.serial = self.get_storage_serial_number()
+        self.provisioner = VSPQuorumDiskProvisioner(self.connection_info, self.serial)
 
     def get_storage_serial_number(self):
         storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
@@ -47,6 +47,8 @@ class VSPQuorumDiskReconciler:
         if state == StateValue.PRESENT:
             return self.provisioner.register_quorum_disk(spec)
         else:
+            if spec is None:
+                raise Exception("The parameter id is required for absent state.")
             return self.provisioner.delete_quorum_disk(spec.id)
 
     @log_entry_exit

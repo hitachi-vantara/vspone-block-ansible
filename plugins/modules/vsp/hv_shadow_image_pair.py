@@ -15,11 +15,8 @@ short_description: Manages shadow image pairs on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, deletion, splitting, syncing and restoring of shadow image pairs on Hitachi VSP storage systems.
   - It supports various shadow image pairs operations based on the specified task level.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/shadow_image_pair.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/shadow_image_pair.yml)
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -37,48 +34,41 @@ options:
     choices: ['present', 'absent', 'split', 'restore', 'sync']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
-    required: true
     type: dict
+    required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway) ) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description:
-          Token value to access UAI gateway. This is a required field for C(gateway) connection type.
-          This field is used for C(direct) connection type to pass the value of the lock token to operate on locked resources.
-        type: str
-        required: false
   spec:
     description: Specification for the shadow image pairs task.
     type: dict
@@ -87,7 +77,7 @@ options:
       primary_volume_id:
         description: Primary volume id.
         type: int
-        required: true
+        required: false
       secondary_volume_id:
         description: Secondary volume id.
         type: int
@@ -129,26 +119,30 @@ options:
         description: Enable data reduction force copy.
         type: bool
         required: false
+      copy_group_name:
+        description: Copy group name.
+        type: str
+        required: false
+      copy_pair_name:
+        description: Copy pair name.
+        type: str
+        required: false
+      primary_volume_device_group_name:
+        description: Primary volume device name.
+        type: str
+        required: false
+      secondary_volume_device_group_name:
+        description: Secondary volume device name.
+        type: str
+        required: false
+      should_delete_svol:
+        description: Specify to delete SVOL from hostgroup, iSCSI Target, and NVM Subsystem.
+        type: bool
+        required: false
 """
 
 EXAMPLES = """
-- name: Create a shadow image pair for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
-    state: "present"
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_volume_id: 274
-      secondary_volume_id: 277
-      allocate_new_consistency_group: true
-      copy_pace_track_size: "MEDIUM"
-
-- name: Create shadow image pair for non-existing secondary volume for direct connection type
+- name: Create shadow image pair for non-existing secondary volume
   hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
     connection_info:
       address: storage1.company.com
@@ -162,81 +156,10 @@ EXAMPLES = """
       copy_pace_track_size: "MEDIUM"
       enable_quick_mode: false
       auto_split: true
-
-- name: Split shadow image pair for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
-    state: "split"
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_volume_id: 274
-      secondary_volume_id: 277
-      enable_quick_mode: true
-      enable_read_write: false
-
-- name: Sync shadow image pair for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
-    state: "sync"
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_volume_id: 274
-      secondary_volume_id: 277
-      enable_quick_mode: true
-
-- name: Create and Auto-Split shadow image pair for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
-    state: "split"
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_volume_id: 274
-      secondary_volume_id: 277
-      copy_pace_track_size: "MEDIUM"
-
-- name: Restore shadow image pair for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
-    state: "restore"
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_volume_id: 274
-      secondary_volume_id: 277
-      enable_quick_mode: true
-
-- name: Delete shadow image pair for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
-    state: "absent"
-    storage_system_info:
-      serial: 811150
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_volume_id: 274
-      secondary_volume_id: 277
+      copy_group_name: "CGTest"
+      copy_pair_name: "CPTest"
+      primary_volume_device_group_name: "CPTestP"
+      secondary_volume_device_group_name: "CPTestS"
 """
 
 RETURN = """
@@ -257,18 +180,10 @@ data:
       description: Copy rate.
       type: int
       sample: 100
-    entitlement_status:
-      description: Entitlement status.
-      type: str
-      sample: "assigned"
     mirror_unit_id:
       description: Mirror unit id.
       type: int
       sample: -1
-    partner_id:
-      description: Partner id.
-      type: str
-      sample: "partner123"
     primary_hex_volume_id:
       description: Primary hex volume id.
       type: str
@@ -297,10 +212,6 @@ data:
       description: Storage serial number.
       type: str
       sample: "811150"
-    subscriber_id:
-      description: Subscriber id.
-      type: str
-      sample: "subscriber123"
     svol_access_mode:
       description: Svol access mode.
       type: str
@@ -316,9 +227,6 @@ data:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPShadowImagePairArguments,
     VSPParametersManager,
@@ -338,9 +246,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     operation_constants,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -375,11 +280,6 @@ class VSPShadowImagePairManager:
             self.params_manager.storage_system_info.serial,
             self.spec,
         )
-        if self.connection_info.connection_type.lower() == ConnectionTypes.GATEWAY:
-            oob = reconciler.is_out_of_band()
-            if oob is True:
-                raise ValueError(ModuleMessage.OOB_NOT_SUPPORTED.value)
-
         return reconciler.shadow_image_pair_module(self.state)
 
     def apply(self):

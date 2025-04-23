@@ -43,7 +43,7 @@ def setup_logging(logger):
     os.makedirs(ANSIBLE_LOG_PATH, exist_ok=True)
 
     # Define the log file path
-    log_file = os.path.join(ANSIBLE_LOG_PATH, LOGFILE_NAME)
+    log_file = os.path.join(ANSIBLE_LOG_PATH, LOGFILE_NAME)  # nosec
 
     # Custom formatter to include uuid and module_name
     class CustomFormatter(logging.Formatter):

@@ -1,9 +1,0 @@
----
-# User will use Ansible Vault to encrypt this file.
-# Ansible will decrypt this file when it executes the playbook.
-
-uai_gateway_address: <your_gateway_ip_address_or_fqdn> # Example: uai_gateway1.company.com or 10.10.10.10
-vault_gateway_api_token: <your_gateway_token> # Use playbook uai_gateway_token.yml to generate a UAI Gateway Token
-vault_gateway_username: <your_gateway_username> # Gateway user name is admin
-vault_gateway_secret: <your_gateway_password> # Default password for admin is "overrunsurveysroutewarnssent"
-subscriber_id: <your_gateway_subscriber_id> # Example: 811150

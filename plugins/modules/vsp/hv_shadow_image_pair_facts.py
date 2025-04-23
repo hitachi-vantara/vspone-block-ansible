@@ -15,11 +15,8 @@ short_description: Retrieves information about shadow image pairs from Hitachi V
 description:
   - This module retrieves information about shadow image pairs from Hitachi VSP storage systems.
   - It provides details about shadow image pair such as ID, status and other relevant information.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/shadow_image_pair_facts.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/shadow_image_pair_facts.yml)
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -31,46 +28,41 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
-    required: true
     type: dict
+    required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI C(gateway) (required for authentication either 'username,password' or api_token).
-        type: str
-        required: false
   spec:
     description: Specification for retrieving shadow image pair information.
     type: dict
@@ -83,24 +75,22 @@ options:
 """
 
 EXAMPLES = """
-- name: Retrieve information about all shadow image pairs for direct connection type
+- name: Retrieve information about all shadow image pairs
   hitachivantara.vspone_block.vsp.hv_shadow_image_pair_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
     storage_system_info:
       serial: 811150
 
-- name: Retrieve information about a specific shadow image pair for direct connection type
+- name: Retrieve information about a specific shadow image pair
   hitachivantara.vspone_block.vsp.hv_shadow_image_pair_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
     spec:
       primary_volume_id: 274
 """
@@ -129,18 +119,10 @@ ansible_facts:
           description: Copy rate.
           type: int
           sample: 100
-        entitlement_status:
-          description: Entitlement status.
-          type: str
-          sample: "assigned"
         mirror_unit_id:
           description: Mirror unit ID.
           type: int
           sample: -1
-        partner_id:
-          description: Partner ID.
-          type: str
-          sample: "partner123"
         primary_hex_volume_id:
           description: Primary hex volume ID.
           type: str
@@ -169,10 +151,6 @@ ansible_facts:
           description: Storage serial number.
           type: str
           sample: "811150"
-        subscriber_id:
-          description: Subscriber ID.
-          type: str
-          sample: "subscriber123"
         svol_access_mode:
           description: SVol access mode.
           type: str
@@ -181,9 +159,6 @@ ansible_facts:
 
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPShadowImagePairArguments,
     VSPParametersManager,
@@ -196,9 +171,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -252,13 +224,6 @@ class VSPShadowImagePairManager:
             self.params_manager.connection_info,
             self.params_manager.storage_system_info.serial,
         )
-        if (
-            self.params_manager.connection_info.connection_type.lower()
-            == ConnectionTypes.GATEWAY
-        ):
-            oob = reconciler.is_out_of_band()
-            if oob is True:
-                raise ValueError(ModuleMessage.OOB_NOT_SUPPORTED.value)
 
         result = reconciler.shadow_image_pair_facts(self.spec)
         return result

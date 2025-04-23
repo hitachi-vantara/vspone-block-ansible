@@ -1,8 +1,8 @@
 ---
 ####################################################################
-# Example : Quorum Disk Facts Playbook
+# Example : Quorum Disk Playbook
 ####################################################################
-- name: Quorum Disk Facts
+- name: Quorum Disk
   hosts: localhost
   gather_facts: false
 

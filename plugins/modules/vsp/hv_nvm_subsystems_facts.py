@@ -14,7 +14,6 @@ module: hv_nvm_subsystems_facts
 short_description: Retrieves information about NVM subsystems from Hitachi VSP storage systems.
 description:
   - This module gathers facts about NVM subsystems from Hitachi VSP storage systems.
-  - This module is supported only for C(direct) connection to the storage system.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/nvm_subsystem_facts.yml)
 version_added: '3.1.0'
@@ -28,7 +27,7 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the storage system.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
@@ -46,17 +45,17 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
         type: str
         required: false
       api_token:
-          description: API token for the C(gateway) connection or value of the lock token to operate on locked resources for C(direct) connection.
-          type: str
-          required: false
+        description: This field is used to pass the value of the lock token to operate on locked resources.
+        type: str
+        required: false
   spec:
     description: Specification for the NVM subsystems facts to be gathered.
     type: dict
@@ -73,14 +72,14 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all NVM subsystems for direct connection type
+- name: Get all NVM subsystems
   hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
 
-- name: Get a specific NVM subsystem for direct connection type
+- name: Get a specific NVM subsystem
   hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
     connection_info:
       address: storage1.company.com
@@ -216,9 +215,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_nvme import (
     VSPNvmeReconciler,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
@@ -228,9 +224,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -260,15 +253,6 @@ class VSPNvmSubsystemFactsManager:
 
         self.logger.writeInfo("=== Start of NVM Subsystem Facts ===")
         registration_message = validate_ansible_product_registration()
-        if (
-            self.parameter_manager.connection_info.connection_type.lower()
-            == ConnectionTypes.GATEWAY
-        ):
-            err_msg = ModuleMessage.NOT_SUPPORTED_FOR_GW.value
-            self.logger.writeError(f"{err_msg}")
-            self.logger.writeInfo("=== End of NVM Subsystem operation ===")
-            self.module.fail_json(msg=err_msg)
-
         try:
             reconciler = VSPNvmeReconciler(
                 self.connection_info, self.storage_serial_number, self.state

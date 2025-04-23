@@ -134,7 +134,7 @@ class SingleBaseClass:
                 and isinstance(value[0], SingleBaseClass)
             ):
                 value = [item.camel_to_snake_dict() for item in value]
-            if isinstance(value, dict) and isinstance(value, SingleBaseClass):
+            if isinstance(value, dict) or isinstance(value, SingleBaseClass):
                 value = value.camel_to_snake_dict()
             new_dict[cased_key] = value
 

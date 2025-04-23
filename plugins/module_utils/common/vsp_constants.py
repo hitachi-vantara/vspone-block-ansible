@@ -209,12 +209,20 @@ class Endpoints(object):
     )
     POST_SNAPSHOTS_RESYNC = "v1/objects/snapshots/{}/actions/resync/invoke"
     POST_SNAPSHOTS_RESTORE = "v1/objects/snapshots/{}/actions/restore/invoke"
+    SNAPSHOT_RETENTION = "v1/objects/snapshots/{}/actions/set-retention/invoke"
 
     SNAPSHOTS_BY_GROUP_ID = "v1/objects/snapshot-groups/{}"
+    SNAPSHOTS_BY_GROUP_ID_WITH_RETAIN = (
+        "v1/objects/snapshot-groups/{}?detailInfoType=retention"
+    )
     GET_SNAPSHOTS_BY_GROUP = "v1/objects/snapshot-groups"
     SPLIT_SNAPSHOT_BY_GRP = "v1/objects/snapshot-groups/{}/actions/split/invoke"
     RESYNC_SNAPSHOT_BY_GRP = "v1/objects/snapshot-groups/{}/actions/resync/invoke"
     RESTORE_SNAPSHOT_BY_GRP = "v1/objects/snapshot-groups/{}/actions/restore/invoke"
+    SNAPSHOT_RETENTION_BY_GRP = (
+        "v1/objects/snapshot-groups/{}/actions/set-retention/invoke"
+    )
+
     # Pool
     GET_POOLS = "v1/objects/pools"
     POST_POOL = "v1/objects/pools"
@@ -254,6 +262,16 @@ class Endpoints(object):
     GET_ALL_REMOTE_ISCSI_CONNECTIONS = "v1/objects/remote-iscsi-ports"
     REMOTE_ISCSI_CONNECTION_SINGLE = "v1/objects/remote-iscsi-ports/{}"
     POST_REMOTE_ISCSI_CONNECTIONS = "v1/objects/remote-iscsi-ports"
+
+    # Dynamic pool salmanda api
+    GET_ALL_DDP_POOL_INFO = "simple/v1/objects/pools"
+    POST_DDP_POOL = "simple/v1/objects/pools"
+    SINGLE_DDP_POOL = "simple/v1/objects/pools/{}"
+    EXPAND_DDP_POOL = "simple/v1/objects/pools/{}/actions/expand/invoke"
+    GET_RECOMMENDED_POOL = "simple/v1/objects/recommended-pool-configurations"
+    GET_RECOMMENDED_POOL_SINGLE = (
+        "simple/v1/objects/recommended-pool-configurations?poolId={}"
+    )
 
 
 class Http(object):
@@ -394,9 +412,9 @@ class AutomationConstants(object):
     VOLUME_SIZE_LEN_MIN = 3
     VOLUME_SIZE_LEN_MAX = 14
     USER_NAME_LEN_MIN = 1
-    USER_NAME_LEN_MAX = 64
+    USER_NAME_LEN_MAX = 256
     PASS_LEN_MIN = 6
-    PASS_LEN_MAX = 64
+    PASS_LEN_MAX = 256
     MAX_USER_GROUPS = 8
 
 
@@ -450,6 +468,7 @@ class VolumePayloadConst:
 
     IS_DATA_REDUCTION_SHARE_ENABLED = "isDataReductionShareEnabled"
     IS_DATA_REDUCTION_DELETE_FORCE_EXECUTE = "isDataReductionDeleteForceExecute"
+    IS_COMPRESSION_ACCELERATION_ENABLED = "isCompressionAccelerationEnabled"
 
     DISABLED = "disabled"
     BLOCK = "BLK"
@@ -482,6 +501,10 @@ class VSPSnapShotReq:
     canCascade = "canCascade"
     parameters = "parameters"
     isClone = "isClone"
+    muNumber = "muNumber"
+    retentionPeriod = "retentionPeriod"
+    copySpeed = "copySpeed"
+    clonesAutomation = "clonesAutomation"
 
 
 class PairStatus:
@@ -502,6 +525,10 @@ class PairStatus:
 class VSPPortSetting:
     LUN_SECURITY_SETTING = "lunSecuritySetting"
     PORT_MODE = "portMode"
+    PORT_ATTRIBUTE = "portAttribute"
+    PORT_SPEED = "portSpeed"
+    PORT_CONNECTION = "portConnection"
+    FABRIC_MODE = "fabricMode"
 
 
 class DefaultValues:
@@ -580,6 +607,10 @@ class VSPJournalVolumeReq:
     mpBladeId = "mpBladeId"
     LDEV_IDS = "ldevIds"
     PARAMETERS = "parameters"
+    mirrorUnit = "mirrorUnit"
+    muNumber = "muNumber"
+    copyPace = "copyPace"
+    pathBlockadeWatchInMinutes = "pathBlockadeWatchInMinutes"
 
 
 class RemoteConnectionReq:
@@ -602,3 +633,16 @@ class RemoteIscsiConnectionReq:
     remotePortId = "remotePortId"
     remoteIpAddress = "remoteIpAddress"
     remoteTcpPort = "remoteTcpPort"
+
+
+class VspDDPConst:
+    name = "name"
+    isEncryptionEnabled = "isEncryptionEnabled"
+    drives = "drives"
+    driveTypeCode = "driveTypeCode"
+    dataDriveCount = "dataDriveCount"
+    raidLevel = "raidLevel"
+    parityGroupType = "parityGroupType"
+    thresholdWarning = "thresholdWarning"
+    thresholdDepletion = "thresholdDepletion"
+    additionalDrives = "additionalDrives"

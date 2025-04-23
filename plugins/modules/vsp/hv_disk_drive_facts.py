@@ -14,7 +14,6 @@ module: hv_disk_drive_facts
 short_description: Retrieves information about hard drives from Hitachi VSP storage systems.
 description:
     - This module gathers facts about hard drives from Hitachi VSP storage systems.
-    - This module is supported only for C(direct) connection to the storage system.
     - For examples go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/disk_drive_facts.yml)
 version_added: '3.2.0'
@@ -46,11 +45,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication.  This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
         type: str
         required: false
   spec:
@@ -71,7 +70,6 @@ EXAMPLES = """
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     spec:
       drive_location_id: 0-16
 
@@ -81,7 +79,6 @@ EXAMPLES = """
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
 """
 
 RETURN = r"""

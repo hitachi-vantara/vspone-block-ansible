@@ -14,20 +14,25 @@ module: hv_quorum_disk_facts
 short_description: Retrieves information about Quorum Disks from Hitachi VSP storage systems.
 description:
   - This module retrieves information about Quorum Disks from Hitachi VSP storage systems.
-  - This module is supported for direct connection type only.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/quorum_disk_facts.yml)
 version_added: '3.3.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -36,32 +41,27 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-            the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
-        type: str
-        required: false
   spec:
     description: Specification for retrieving Quorum Disk information.
     type: dict
@@ -75,13 +75,12 @@ options:
 """
 
 EXAMPLES = """
-- name: Retrieve information about all Quorum Disks for direct connection type
+- name: Retrieve information about all Quorum Disks
   hitachivantara.vspone_block.vsp.hv_quorum_disk_facts:
     connection_info:
-      address: gateway.company.com
+      address: storage1.company.com
       username: 'username'
       password: 'password'
-      connection_type: "direct"
 """
 
 RETURN = """
@@ -89,7 +88,8 @@ ansible_facts:
   description: >
     Dictionary containing the discovered properties of the Quorum Disks.
   returned: success
-  type: dict
+  type: list
+  elements: dict
   contains:
     quorum_disk:
       description: List of Quorum Disks with their attributes.
@@ -177,7 +177,7 @@ class VSPQuorumDiskFactManager:
             data["user_consent_required"] = registration_message
         # self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Quorum Disk Facts ===")
-        self.module.exit_json(changed=False, ansible_facts=data)
+        self.module.exit_json(**data)
 
 
 def main(module=None):

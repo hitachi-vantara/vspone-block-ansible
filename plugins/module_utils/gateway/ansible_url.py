@@ -61,17 +61,19 @@ class OpenUrlWithTelemetry:
     log = Log()
 
     def __init__(self):
-        self.output_file = os.path.join(TELEMETRY_FILE_PATH, TELEMETRY_FILE_NAME)
+        self.output_file = os.path.join(
+            TELEMETRY_FILE_PATH, TELEMETRY_FILE_NAME
+        )  # nosec
         self.data = {}
         self.class_map = {
             "VSPConnectionManager": "directConnectTasks",
             "SDSBConnectionManager": "sdsBlockTasks",
-            "UAIGConnectionManager": "gatewayTasks",
+            # "UAIGConnectionManager": "gatewayTasks",
         }
         self.storage_map = {
             "VSPConnectionManager": "directConnectStorageSystems",
             "SDSBConnectionManager": "sdsBlockStorageSystems",
-            "UAIGConnectionManager": "gatewayStorageSystems",
+            # "UAIGConnectionManager": "gatewayStorageSystems",
         }
         self.skip_methods = ["getAuthToken"]
         self.storage_info_methods = ["get_storage_details"]
@@ -374,10 +376,12 @@ class OpenUrlWithTelemetry:
                 else f"usage_backup{timestamp}.json"
             )
             # Create backup directory
-            backup_dir = os.path.join(os.path.dirname(self.output_file), "backup")
+            backup_dir = os.path.join(
+                os.path.dirname(self.output_file), "backup"
+            )  # nosec
             os.makedirs(backup_dir, exist_ok=True)
 
-            backup_file = os.path.join(backup_dir, filename)
+            backup_file = os.path.join(backup_dir, filename)  # nosec
 
             # Move the corrupted file to the backup directory
             os.rename(self.output_file, backup_file)
@@ -440,13 +444,15 @@ def get_consent_flag():
     global USER_CONSENT, CONSENT_FILE_PRESENT, SITE_ID
 
     if not CONSENT_FILE_PRESENT and os.path.exists(
-        os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)
+        os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)  # nosec
     ):
         CONSENT_FILE_PRESENT = True
     if not USER_CONSENT and os.path.exists(
-        os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)
+        os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)  # nosec
     ):
-        with open(os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME), "r") as file:
+        with open(
+            os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME), "r"
+        ) as file:  # nosec
             consent_data = json.load(file)
             if consent_data.get("user_consent_accepted", False):
                 SITE_ID = consent_data.get("site_id")

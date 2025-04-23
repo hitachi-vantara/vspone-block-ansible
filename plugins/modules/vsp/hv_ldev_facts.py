@@ -15,11 +15,8 @@ short_description: Retrieves information about logical devices (LDEVs) from Hita
 description:
   - This module retrieves information about logical devices (LDEVs) from Hitachi VSP storage systems.
   - It provides details such as LDEV IDs, names, and other relevant information.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/ldev_facts.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/ldev_facts.yml)
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -31,13 +28,12 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -46,32 +42,27 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-            the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway. This is a required field for C(gateway) connection type.
-        type: str
-        required: false
   spec:
     description: Specification for retrieving LDEV information.
     type: dict
@@ -98,32 +89,36 @@ options:
         type: int
         required: false
       is_detailed:
-        description: Flag to retrieve detailed information about LDEVs.
+        description: Flag to retrieve all the additional properties that are not returned with regular LDEV facts output.
         type: bool
         required: false
         default: false
+      query:
+        description: >
+          Getting all the additional properties of the LDEV facts output is time-consuming.
+          To optimize the performance, you can specify a list of additional properties to be retrieved.
+          This field allows you to specify a list of strings, where each string indicates which additional properties are retrived.
+          If is_detailed is set to true, this field will be ignored and all additional properties will be retrieved.
+          The supported additional properties are: "cmd_device_settings", "encryption_settings", "nvm_subsystem_info", "qos_settings", and "snapshots_info".
+        type: list
+        required: false
+        elements: str
 """
 
 EXAMPLES = """
-- name: Retrieve information about all LDEVs for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_ldev_facts:
-    storage_system_info:
-      serial: "811150"
-    connection_info:
-      address: gateway.company.com
-      api_token: "api token value"
-      connection_type: "gateway"
-      subscriber_id: 811150
-    spec:
-      count: 10
-
-- name: Retrieve information about a specific LDEV for direct connection type
+- name: Get all ldevs
   hitachivantara.vspone_block.vsp.hv_ldev_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
+
+- name: Retrieve information about a specific LDEV
+  hitachivantara.vspone_block.vsp.hv_ldev_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
     spec:
       ldev_id: 123
 """
@@ -160,10 +155,6 @@ ansible_facts:
                     description: Emulation type of the volume.
                     type: str
                     sample: "OPEN-V-CVS-CM"
-                entitlement_status:
-                    description: Entitlement status of the volume.
-                    type: str
-                    sample: ""
                 hostgroups:
                     description: List of host groups associated with the volume.
                     type: list
@@ -235,10 +226,6 @@ ansible_facts:
                     description: Parity group ID of the volume.
                     type: str
                     sample: ""
-                partner_id:
-                    description: Partner ID associated with the volume.
-                    type: str
-                    sample: ""
                 path_count:
                     description: Number of paths to the volume.
                     type: int
@@ -272,10 +259,6 @@ ansible_facts:
                     description: Serial number of the storage system.
                     type: str
                     sample: "810050"
-                subscriber_id:
-                    description: Subscriber ID associated with the volume.
-                    type: str
-                    sample: ""
                 tiering_policy:
                     description: Tiering policy applied to the volume.
                     type: dict
@@ -307,29 +290,11 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     VSPVolumeArguments,
     VSPParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
-import ansible_collections.hitachivantara.vspone_block.plugins.module_utils.hv_ldev_facts_runner as runner
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler import (
     vsp_volume,
 )
-
-
-try:
-    from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_logger import (
-        MessageID,
-    )
-
-    HAS_MESSAGE_ID = True
-except ImportError:
-    HAS_MESSAGE_ID = False
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_exceptions import (
-    HiException,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
@@ -363,11 +328,7 @@ class VSPVolumeFactManager:
         volume_data = None
 
         try:
-            if self.connection_info.connection_type.lower() == ConnectionTypes.GATEWAY:
-                volume_data = self.gateway_volume_read()
-                self.logger.writeDebug("63 volume_data={}", volume_data)
-            else:
-                volume_data = self.direct_volume_read()
+            volume_data = self.direct_volume_read()
             volume_data_extracted = vsp_volume.VolumeCommonPropertiesExtractor(
                 self.serial
             ).extract(volume_data)
@@ -395,27 +356,6 @@ class VSPVolumeFactManager:
         if not result:
             raise ValueError(ModuleMessage.VOLUME_NOT_FOUND.value)
         return result.data_to_list()
-
-    def gateway_volume_read(self):
-        if self.module.params.get("spec"):
-            self.module.params["spec"]["max_count"] = self.module.params.get(
-                "spec"
-            ).get("count")
-
-            self.module.params["spec"]["lun_end"] = self.module.params.get("spec").get(
-                "end_ldev_id"
-            )
-
-        try:
-            return runner.runPlaybook(self.module)
-        except HiException as ex:
-            if HAS_MESSAGE_ID:
-                self.logger.writeAMException(MessageID.ERR_OPERATION_LUN)
-            else:
-                self.logger.writeAMException("0X0000")
-            raise Exception(ex.format())
-        except Exception as ex:
-            raise Exception(str(ex))
 
 
 def main(module=None):

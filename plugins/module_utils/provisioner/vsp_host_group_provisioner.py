@@ -1,20 +1,18 @@
 try:
 
     from ..gateway.gateway_factory import GatewayFactory
-    from ..common.hv_constants import GatewayClassTypes, ConnectionTypes
+    from ..common.hv_constants import GatewayClassTypes
     from ..common.hv_log import Log
     from ..common.ansible_common import convert_hex_to_dec
-    from ..common.uaig_utils import UAIGResourceID
     from ..common.ansible_common import log_entry_exit
     from ..message.vsp_host_group_msgs import VSPHostGroupMessage
 
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
-    from common.hv_constants import GatewayClassTypes, ConnectionTypes
+    from common.hv_constants import GatewayClassTypes
     from common.hv_log import Log
     from common.ansible_common import convert_hex_to_dec
-    from common.uaig_utils import UAIGResourceID
     from common.ansible_common import log_entry_exit
     from message.vsp_host_group_msgs import VSPHostGroupMessage
 
@@ -35,8 +33,6 @@ class VSPHostGroupProvisioner:
     ):
         logger = Log()
         logger.writeDebug("PROV:get_host_groups:serial = {}", self.serial)
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            self.gateway.set_serial(self.serial)
         if name_input == "":
             name_input = None
 
@@ -97,12 +93,7 @@ class VSPHostGroupProvisioner:
 
     @log_entry_exit
     def get_all_host_groups(self, serial):
-
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            res_id = UAIGResourceID().storage_resourceId(serial)
-            return self.gateway.get_host_groups_for_resource_id(res_id)
-        else:
-            return self.gateway.get_all_hgs()
+        return self.gateway.get_all_hgs()
 
     @log_entry_exit
     def create_host_group(self, port, name, wwns, luns, host_mode, host_mode_options):

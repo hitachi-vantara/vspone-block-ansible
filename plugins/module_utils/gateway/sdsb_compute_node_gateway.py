@@ -370,7 +370,3 @@ class SDSBComputeNodeDirectGateway:
         )
         data = self.connection_manager.delete(end_point)
         return data
-
-
-class SDSBComputeNodeUAIGateway:
-    pass

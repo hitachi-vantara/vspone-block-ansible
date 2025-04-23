@@ -16,7 +16,7 @@ description:
     - This module allows the creation and deletion of user groups on Hitachi VSP storage systems.
     - It also enables adding or removing resource groups to/from the user group.
     - This module is supported for C(direct) connection types.
-    - For C(direct) connection type examples, go to URL
+    - For examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/user_group.yml)
 version_added: '3.3.0'
 author:
@@ -29,15 +29,13 @@ attributes:
     support: none
 options:
     state:
-        description:
-            - The desired state of the user group task.
+        description: The desired state of the user group task.
         type: str
         required: false
         default: 'present'
         choices: ['present', 'absent']
     connection_info:
-        description:
-            - Information required to establish a connection to the storage system.
+        description: Information required to establish a connection to the storage system.
         type: dict
         required: true
         suboptions:
@@ -46,16 +44,15 @@ options:
                 type: str
                 required: true
             username:
-                description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+                description: Username for authentication. This is a required field.
                 type: str
                 required: false
             password:
-                description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+                description: Password for authentication. This is a required field.
                 type: str
                 required: false
     spec:
-        description:
-            - Specification for the user  group.
+        description: Specification for the user  group.
         type: dict
         required: true
         suboptions:
@@ -122,12 +119,8 @@ EXAMPLES = """
       password: "secret"
     spec:
       name: "devGroup"
-      role_names:
-        - "STORAGE_ADMIN_PERFORMANCE_MANAGEMENT"
-        - "STORAGE_ADMIN_PROVISION"
-      resource_group_ids:
-        - 8
-        - 9
+      role_names: ["STORAGE_ADMIN_PERF_MGMT", "STORAGE_ADMIN_PROVISION"]
+      resource_group_ids: [8, 9]
 
 - name: Change User Group Name for direct connection type
   hitachivantara.vspone_block.vsp.hv_user_group:
@@ -148,9 +141,7 @@ EXAMPLES = """
     spec:
       state: add_resource_group
       id: "devGroup3"
-      resource_group_ids:
-        - 1
-        - 2
+      resource_group_ids: [1, 2]
 
 - name: Remove Resource Groups from a User Group for direct connection type
   hitachivantara.vspone_block.vsp.hv_user_group:
@@ -161,9 +152,7 @@ EXAMPLES = """
     spec:
       state: remove_resource_group
       id: "devGroup3"
-      resource_group_ids:
-        - 1
-        - 2
+      resource_group_ids: [1, 2]
 
 - name: Delete a User Group by ID for direct connection type
   hitachivantara.vspone_block.vsp.hv_user_group:

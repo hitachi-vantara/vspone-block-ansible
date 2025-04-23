@@ -14,20 +14,25 @@ module: hv_external_volume_facts
 short_description: Retrieves information about External Volume from Hitachi VSP storage systems.
 description:
   - This module retrieves information about External Volume from Hitachi VSP storage systems.
-  - This module is supported for direct connection type only.
-  - For direct connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/external_volume_facts.yml)
 version_added: '3.3.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
 options:
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   connection_info:
@@ -36,22 +41,22 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is gateway) or the storage system (if connection_type is direct).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for direct connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
   spec:
     description: Specification for retrieving External Volume information.
@@ -73,7 +78,7 @@ EXAMPLES = """
 - name: Retrieve information about all External Volume
   hitachivantara.vspone_block.vsp.hv_external_volume_facts:
     connection_info:
-      address: gateway.company.com
+      address: storage1.company.com
       username: "admin"
       password: "changeme"
     spec:
@@ -86,7 +91,8 @@ ansible_facts:
   description: >
     Dictionary containing the discovered properties of the external volumes.
   returned: always
-  type: dict
+  type: list
+  elements: dict
   contains:
     ldevs:
       description: The list of external volume IDs.
@@ -132,12 +138,12 @@ ansible_facts:
         ldev_ids:
           description: External volume capacity.
           type: list
+          elements: int
           sample: [151]
         port_id:
           description: External WWN.
           type: str
           sample: "CL3-B"
-
 """
 
 from ansible.module_utils.basic import AnsibleModule

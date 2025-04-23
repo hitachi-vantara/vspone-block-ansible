@@ -14,11 +14,8 @@ module: hv_storagepool
 short_description: Manage storage pool information on Hitachi VSP storage systems.
 description:
   - Create, update, or delete storage pool information on Hitachi VSP storage systems.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storagepool.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/storagepool.yml)
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -30,13 +27,12 @@ attributes:
     support: none
 options:
   storage_system_info:
-    description:
-      - Information about the storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   state:
@@ -45,39 +41,33 @@ options:
     required: false
     choices: ['present', 'absent']
     default: 'present'
-
   connection_info:
-    description: Connection details for the storage system.
+    description: Information required to establish a connection to the storage system.
     type: dict
     required: true
     suboptions:
       address:
-        description: IP address or hostname of the UAI gateway or storage system.
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
-        type: str
-        required: false
-      connection_type:
-        description:
-          - Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['gateway', 'direct']
-        default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
+        description: Password for authentication. This is a required field.
         type: str
         required: false
       api_token:
-        description: Token to access UAI gateway. This is a required field for C(gateway) connection type.
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
+      connection_type:
+        description: Type of connection to the storage system.
+        type: str
+        required: false
+        choices: ['direct']
+        default: 'direct'
   spec:
     description: Specification for the storage pool.
     type: dict
@@ -147,31 +137,11 @@ options:
 """
 
 EXAMPLES = """
-- name: Create a Storage Pool for gateway connection type
+- name: Create a Storage Pool
   hitachivantara.vspone_block.vsp.hv_storagepool:
     connection_info:
       address: storage1.company.com
-      api_token: "api_token"
-      connection_type: "gateway"
-    storage_system_info:
-      serial: "811150"
-    state: "present"
-    spec:
-      name: "test_pool"
-      type: "HDP"
-      should_enable_deduplication: true
-      depletion_threshold_rate: 80
-      warning_threshold_rate: 70
-      resource_group_id: 0
-      pool_volumes:
-        - capacity: "21.00 GB"
-          parity_group_id: "1-2"
-
-- name: Create a Storage Pool for direct connection type
-  hitachivantara.vspone_block.vsp.hv_storagepool:
-    connection_info:
-      address: storage1.company.com
-      username: "gateway"
+      username: "admin"
       password: "password"
     state: "present"
     spec:
@@ -185,31 +155,12 @@ EXAMPLES = """
         - capacity: "21.00 GB"
           parity_group_id: "1-2"
 
-- name: Expand a Storage Pool for gateway connection type
+- name: Delete a Storage Pool by pool name
   hitachivantara.vspone_block.vsp.hv_storagepool:
     connection_info:
       address: storage1.company.com
-      api_token: "api_token"
-      connection_type: "gateway"
-    storage_system_info:
-      serial: "811150"
-    state: "present"
-    spec:
-      name: "test_pool"
-      pool_volumes:
-        - capacity: "21.00 GB"
-          parity_group_id: "1-5"
-        - capacity: "21.00 GB"
-          parity_group_id: "1-3"
-
-- name: Delete a Storage Pool for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_storagepool:
-    connection_info:
-      address: storage1.company.com
-      api_token: "api_token"
-      connection_type: "gateway"
-    storage_system_info:
-      serial: "811150"
+      username: "admin"
+      password: "password"
     state: "absent"
     spec:
       name: "test_pool"
@@ -325,14 +276,6 @@ storage_pool:
       description: Indicates if the pool is encrypted.
       type: bool
       sample: true
-    subscriber_id:
-      description: Subscriber ID for multi-tenancy environments.
-      type: str
-      sample: "subscriber_id"
-    partner_id:
-      description: Partner ID associated with the pool.
-      type: str
-      sample: "partner_id"
 """
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (

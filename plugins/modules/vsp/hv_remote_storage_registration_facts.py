@@ -13,7 +13,6 @@ module: hv_remote_storage_registration_facts
 short_description: Retrieves remote storage registration information from Hitachi VSP storage systems.
 description:
   - This module retrieves remote storage registration information from Hitachi VSP storage systems.
-  - This module is supported only for C(direct) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/remote_storage_registration_facts.yml)
 version_added: '3.2.0'
@@ -32,19 +31,19 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of storage system.
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
         type: str
         required: false
       api_token:
-        description: Value of the lock token to operate on locked resources.
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
   secondary_connection_info:
@@ -68,24 +67,10 @@ options:
         description: Value of the lock token to operate on locked resources.
         type: str
         required: false
-  spec:
-    description: Specification for the remote storage registration.
-    type: dict
-    required: false
-    suboptions:
-      rest_server_ip:
-        description: The IP address of the REST API server of the remote storage system.
-        type: str
-        required: false
-      is_mutual_discovery:
-        description: Specify whether to perform a mutual registration operation. If set to true, perform a mutual registration operation.
-          If this value is omitted, true is specified.
-        type: bool
-        required: false
 """
 
 EXAMPLES = """
-- name: Remote Storage Registration Facts for direct connection type
+- name: Remote Storage Registration Facts
   hitachivantara.vspone_block.vsp.hv_remote_storage_registration_facts:
     connection_info:
       address: 172.0.0.2

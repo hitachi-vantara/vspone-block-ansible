@@ -14,7 +14,6 @@ module: hv_paritygroup
 short_description: Create, delete parity group from Hitachi VSP storage systems.
 description:
   - This module creates, delete parity group from Hitachi VSP storage systems.
-  - This module is supported only for C(direct) connection to the storage system.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/paritygroup.yml)
 version_added: '3.2.0'
@@ -39,26 +38,25 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system, Only C(direct) connection is supported.
+        description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
   spec:
-    description: Specification for the parity group facts to be gathered.
+    description: Specification for the parity group tasks.
     type: dict
     required: false
     suboptions:
@@ -94,7 +92,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Create parity group for direct connection type
+- name: Create parity group
   hitachivantara.vspone_block.vsp.hv_paritygroup:
     connection_info:
       address: storage1.company.com
@@ -110,7 +108,7 @@ EXAMPLES = """
       is_accelerated_compression_enabled: true
       clpr_id: 1
 
-- name: Delete parity group for direct connection type
+- name: Delete parity group
   hitachivantara.vspone_block.vsp.hv_paritygroup:
     connection_info:
       address: storage1.company.com
@@ -120,7 +118,7 @@ EXAMPLES = """
     spec:
       parity_group_id: 1-10
 
-- name: Update parity group for direct connection type
+- name: Update parity group
   hitachivantara.vspone_block.vsp.hv_paritygroup:
     connection_info:
       address: storage1.company.com
@@ -144,7 +142,7 @@ parity_group:
       type: int
       sample: 0
     copyback_mode:
-      description: Indicates if copy-back mode is enabled.
+      description: Indicates if copyback mode is enabled.
       type: bool
       sample: false
     drive_type:

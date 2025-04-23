@@ -1,21 +1,17 @@
 try:
-    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
+    from .gateway_manager import VSPConnectionManager
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
-    from ..common.uaig_utils import UAIGResourceID
 except ImportError:
-    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
+    from .gateway_manager import VSPConnectionManager
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
-    from common.uaig_utils import UAIGResourceID
 
 LOCK_RESOURCE_GROUP_DIRECT = "v1/services/resource-group-service/actions/lock/invoke"
 UNLOCK_RESOURCE_GROUP_DIRECT = (
     "v1/services/resource-group-service/actions/unlock/invoke"
 )
 POST_UPDATE_CACHE = "v1/services/storage-cache-service/actions/refresh/invoke"
-
-TOGGLE_LOCK_RESOURCE_GROUP_UAI_V2 = "v2/storage/devices/{}/resourceGroups/{}/toggleLock"
 
 logger = Log()
 gCopyGroupList = None
@@ -91,51 +87,5 @@ class VSPResourceGroupLockDirectGateway:
             )
             response2 = self.remote_connection_manager.post(end_point, data=None)
             logger.writeDebug(f"unlock_resource_group:response2={response2}")
-        self.connection_info.changed = True
-        return response
-
-
-class VSPResourceGroupLockUAIGateway:
-
-    def __init__(self, connection_info):
-        self.connection_manager = UAIGConnectionManager(
-            connection_info.address,
-            connection_info.username,
-            connection_info.password,
-            connection_info.api_token,
-        )
-        self.connection_info = connection_info
-        self.remote_connection_manager = None
-        self.serial = None
-
-    @log_entry_exit
-    def set_serial(self, serial):
-        self.serial = serial
-
-    @log_entry_exit
-    def lock_resource_group(self, spec):
-        if spec.name is None:
-            raise ValueError(
-                "Resource Group name is required for lock operation for gateway connection."
-            )
-        device_id = UAIGResourceID().storage_resourceId(self.serial)
-        resorce_id = UAIGResourceID().resource_group_resourceId(self.serial, spec.name)
-        end_point = TOGGLE_LOCK_RESOURCE_GROUP_UAI_V2.format(device_id, resorce_id)
-        payload = {"resourceGroupLocked": True}
-        response = self.connection_manager.post(end_point, data=payload)
-        self.connection_info.changed = True
-        return response
-
-    @log_entry_exit
-    def unlock_resource_group(self, spec):
-        if spec.name is None:
-            raise ValueError(
-                "Resource Group name is required for unlock operation for gateway connection."
-            )
-        device_id = UAIGResourceID().storage_resourceId(self.serial)
-        resorce_id = UAIGResourceID().resource_group_resourceId(self.serial, spec.name)
-        end_point = TOGGLE_LOCK_RESOURCE_GROUP_UAI_V2.format(device_id, resorce_id)
-        payload = {"resourceGroupLocked": False}
-        response = self.connection_manager.post(end_point, data=payload)
         self.connection_info.changed = True
         return response

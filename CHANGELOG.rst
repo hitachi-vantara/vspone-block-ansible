@@ -4,6 +4,37 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v3.4.0
+======
+
+Release Summary
+---------------
+
+This minor release of `hitachivantara.vspone_block` introduces several new modules and improves existing functionality.
+
+Minor Changes
+-------------
+
+- Added iSCSI target support for GAD, TrueCopy, HUR, ShadowImage, and Snapshot/ThinImage modules.
+- Added new module `hv_ddp_pool_facts` to retrieve DDP-based pool details on VSP One Block storage models.
+- Added new module `hv_ddp_pool` to create, update, and delete DDP-based pools on VSP One Block storage models.
+- Added support to delete SVOL post-pair deletion for GAD, TrueCopy, HUR, ShadowImage, and Snapshot/ThinImage modules.
+- Enhanced `hv_ldev_facts` module to support query parameters.
+- Enhanced `hv_shadow_image` module: support for local copy group and copy pair name for shadow image pair management; group management of shadow image pairs.
+- Enhanced `hv_snapshot_group` module to support retention period.
+- Enhanced `hv_snapshot` module: added copy speed, clones automation, retention period, support for Floating Snapshot, and pair creation with specific or auto-selected SVOL and mirror unit.
+- Enhanced `hv_storage_port` module to support attributes like connection, speed, and type.
+- Removed gateway connection type from all the modules.
+
+New Modules
+-----------
+
+Vsp
+~~~
+
+- hitachivantara.vspone_block.vsp.hv_ddp_pool - Manages DDP Pools on Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_ddp_pool_facts - Get facts of DDP Pools on Hitachi VSP storage systems.
+
 v3.3.0
 ======
 

@@ -3,10 +3,12 @@ try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes, VSPIscsiTargetConstant
     from ..common.hv_log import Log
+    from ..model.vsp_host_group_models import GetHostGroupSpec
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes, VSPIscsiTargetConstant
     from common.hv_log import Log
+    from model.vsp_host_group_models import GetHostGroupSpec
 
 
 class VSPIscsiTargetProvisioner:
@@ -47,6 +49,16 @@ class VSPIscsiTargetProvisioner:
         iscsi_targets = self.gateway.get_iscsi_targets(None, serial)
         for iscsi_target in iscsi_targets.data:
             if iscsi_target.name == name:
+                return iscsi_target
+        return None
+
+    # input = (CL4-C, 13)
+    def get_iscsi_target_by_id(self, port, id):
+        spec = GetHostGroupSpec(ports=[port])
+        iscsi_targets = self.get_iscsi_targets(spec, None)
+        logger = Log()
+        for iscsi_target in iscsi_targets.data:
+            if iscsi_target.iscsiId == id:
                 return iscsi_target
         return None
 

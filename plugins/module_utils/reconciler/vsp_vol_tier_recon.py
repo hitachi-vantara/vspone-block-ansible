@@ -85,7 +85,7 @@ class VSPVolTierReconciler:
                     default_value = get_default_value(value_type)
                     new_dict[cased_key] = default_value
 
-            new_dict["partner_id"] = "apiadmin"
+            # new_dict["partner_id"] = "apiadmin"
             new_items.append(new_dict)
         return new_items
 
@@ -103,5 +103,5 @@ class VSPVolTierReconciler:
                 # Handle missing keys by assigning default values
                 default_value = get_default_value(value_type)
                 new_dict[cased_key] = default_value
-                new_dict["partner_id"] = "apiadmin"
+                # new_dict["partner_id"] = "apiadmin"
         return new_dict

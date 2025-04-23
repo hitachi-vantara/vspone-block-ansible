@@ -1,19 +1,15 @@
 try:
-    from .gateway_manager import VSPConnectionManager, UAIGConnectionManager
+    from .gateway_manager import VSPConnectionManager
     from ..common.vsp_constants import (
         Endpoints,
         VolumePayloadConst,
         AutomationConstants,
     )
-    from ..common.hv_constants import CommonConstants
     from ..common.ansible_common import dicts_to_dataclass_list
     from ..model.vsp_volume_models import (
         VSPVolumesInfo,
         VSPVolumeInfo,
         CreateVolumeSpec,
-        VSPStorageVolumesUAIG,
-        VSPStorageVolumeUAIG,
-        VSPVolume_V2,
         VolumeQosParamsOutput,
         VSPUndefinedVolumeInfo,
         VSPUndefinedVolumeInfoList,
@@ -23,21 +19,15 @@ try:
     from ..common.ansible_common import log_entry_exit
     from ..model.common_base_models import VSPStorageDevice
     from ..common.vsp_constants import PEGASUS_MODELS
-    from ..common.uaig_constants import Endpoints as UAIGEndpoints
-    from ..common.uaig_utils import UAIGResourceID
 
 except ImportError:
     from common.ansible_common import log_entry_exit
     from common.vsp_constants import Endpoints, VolumePayloadConst, AutomationConstants
-    from common.hv_constants import CommonConstants
     from common.ansible_common import dicts_to_dataclass_list
     from model.vsp_volume_models import (
         VSPVolumesInfo,
         VSPVolumeInfo,
         CreateVolumeSpec,
-        VSPStorageVolumesUAIG,
-        VSPStorageVolumeUAIG,
-        VSPVolume_V2,
         VolumeQosParamsOutput,
         VSPUndefinedVolumeInfo,
         VSPUndefinedVolumeInfoList,
@@ -45,8 +35,6 @@ except ImportError:
     from model.common_base_models import VSPStorageDevice
     from common.hv_log import Log
     from common.vsp_constants import PEGASUS_MODELS
-    from common.uaig_constants import Endpoints as UAIGEndpoints
-    from common.uaig_utils import UAIGResourceID
 
 
 logger = Log()
@@ -232,6 +220,11 @@ class VSPVolumeDirectGateway:
                 payload[VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED] = (
                     spec.data_reduction_share
                 )
+            if spec.capacity_saving.lower() != VolumePayloadConst.DISABLED:
+                if spec.is_compression_acceleration_enabled is not None:
+                    payload[VolumePayloadConst.IS_COMPRESSION_ACCELERATION_ENABLED] = (
+                        spec.is_compression_acceleration_enabled
+                    )
         if spec.parity_group:
             payload[VolumePayloadConst.PARITY_GROUP] = spec.parity_group
 
@@ -516,94 +509,3 @@ class VSPVolumeDirectGateway:
         pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
         logger.writeDebug(f"Storage Model: {storage_info.model}")
         return pegasus_model
-
-
-class VSPVolumeUAIGateway:
-    def __init__(self, connection_info):
-        self.connection_manager = UAIGConnectionManager(
-            connection_info.address,
-            connection_info.username,
-            connection_info.password,
-            connection_info.api_token,
-        )
-        self.connection_info = connection_info
-        self.serial = None
-        self.resource_id = None
-
-    @log_entry_exit
-    def set_serial(self, serial):
-        self.serial = serial
-        self.set_resource_id()
-
-    @log_entry_exit
-    def set_resource_id(self):
-        self.resource_id = UAIGResourceID().storage_resourceId(self.serial)
-        logger.writeDebug(
-            "GW:set_resource_id:serial = {}  resourceId = {}",
-            self.serial,
-            self.resource_id,
-        )
-
-    @log_entry_exit
-    def get_volumes(self, device_id):
-        end_point = UAIGEndpoints.UAIG_GET_VOLUMES.format(device_id)
-        headers = self.populate_headers()
-        vol_data = self.connection_manager.get(end_point, headers_input=headers)
-        volumes = VSPStorageVolumesUAIG(
-            dicts_to_dataclass_list(vol_data["data"], VSPStorageVolumeUAIG)
-        )
-
-        logger.writeDebug("GW:get_volumes:data = {}", volumes)
-        return volumes
-
-    @log_entry_exit
-    def get_volume_by_id(self, volume_id):
-        # sng20241220 - this function is for gateway and it is not work
-        # code was added and never tested
-        end_point = UAIGEndpoints.GET_VOLUME_BY_ID.format(self.resource_id, volume_id)
-        headers = self.populate_headers()
-        vol_data = self.connection_manager.get(end_point, headers_input=headers)
-        logger.writeDebug("GW:get_volume_by_id:data = {}", vol_data)
-
-        volume_info = VSPVolume_V2(**vol_data.get("data"))
-        # for v in volume_info.data:
-        #     logger.writeDebug(
-        #         f"PROV:get_volume_by_id:volumes: {v.storageVolumeInfo['ldevId']} "
-        #     )
-        #     if str(v.storageVolumeInfo["ldevId"]) == str(volume_id):
-        #         return v
-        return volume_info
-
-    @log_entry_exit
-    def populate_headers(self):
-        headers = {"partnerId": CommonConstants.PARTNER_ID}
-        if self.connection_info.subscriber_id is not None:
-            headers["subscriberId"] = self.connection_info.subscriber_id
-        return headers
-
-    @log_entry_exit
-    def get_volume_by_id_v2(self, storage_id, volume_id):
-        end_point = UAIGEndpoints.GET_VOLUME_BY_ID.format(storage_id, volume_id)
-
-        vol_data = self.connection_manager.get(end_point, headers_input=None)
-        logger.writeDebug("GW:get_volume_by_id_v2:data = {}", vol_data)
-
-        volume_info = VSPVolume_V2(**vol_data.get("data"))
-        return volume_info
-
-    @log_entry_exit
-    def update_volume(
-        self, storage_id, volume_id, capacity=None, de_dup_comp_mode=None, lu_name=None
-    ):
-        end_point = UAIGEndpoints.GET_VOLUME_BY_ID.format(storage_id, volume_id)
-        headers = self.populate_headers()
-
-        payload = {}
-        if capacity:
-            payload["capacity"] = capacity
-        if de_dup_comp_mode:
-            payload["deduplicationCompressionMode"] = de_dup_comp_mode
-        if lu_name:
-            payload["luName"] = lu_name
-        response = self.connection_manager.patch(end_point, payload, headers)
-        return response

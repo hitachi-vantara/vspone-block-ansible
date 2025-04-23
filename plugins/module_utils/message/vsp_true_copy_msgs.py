@@ -60,12 +60,16 @@ class VSPTrueCopyValidateMsg(Enum):
         "Could not find TrueCopy pair for the input parameters supplied."
     )
     NO_REMOTE_HG_FOUND = "Could not find hostgroup {} on port {} on secondary storage."
+    NO_REMOTE_ISCSI_FOUND = (
+        "Could not find iscsi target {} on port {} on secondary storage."
+    )
     HG_SUBSCRIBER_ID_MISMATCH = (
         "Provided subscriber_id {} and hostgroup subscriber Id {} did not match."
     )
     NO_SUB_PROVIDED_HG_HAS_SUB = (
         "No subscriber_id provided, but the hostgroup belongs to a subscriber."
     )
+    PVOL_ISCSI_MISSING = "Pvol {} does not belong to any iscsi target. Please check the hostgroup configuration for primary storage."
     PORT_SUBSCRIBER_ID_MISMATCH = (
         "Provided subscriber_id {} and port subscriber Id {} did not match."
     )
@@ -111,7 +115,7 @@ class VSPTrueCopyValidateMsg(Enum):
 
     PVOL_ID_OR_CP_NAME_NEEDED_WITH_CG_NAME = "Please provide either primary_volume_id or copy_pair_name with copy_group_name."
     NO_REMOTE_NVME_FOUND = "Could not find NVMe subsystem {} secondary storage."
-    SECONDARY_HOSTGROUPS_OR_NVME = "Either specify secondary_hostgroup or secondary_nvm_subsystems both cannot be empty."
+    SECONDARY_HOSTGROUPS_OR_NVME = "Either specify secondary_hostgroup or secondary_nvm_subsystems or iscsi targets all cannot be empty."
     NVMSUBSYSTEM_DIFFER = "A pair cannot be created because the NVM subsystem ID {} specified for S-VOL differs from the NVM subsystem ID {} for the P-VOL."
     PVOL_NAMESPACE_MISSING = (
         "A pair cannot be created because there does not exist a namespace for PVOL {}"

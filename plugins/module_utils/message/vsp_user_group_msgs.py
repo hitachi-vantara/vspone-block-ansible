@@ -10,7 +10,7 @@ class VSPUserGroupValidateMsg(Enum):
     USER_GROUP_NOT_FOUND = "User Group not found."
     USER_GROUP_DELETE_SUCCSESS = "User Group deleted successfully."
     NO_UG_ID_OR_UG_NAME = "Either user group id or user group name must be provided."
-    INVALID_UG_NAME = "Invalid user group name provided. Specify a name consisting of 1 to 64 characters."
+    INVALID_UG_NAME = "Invalid user group name provided. Specify a name consisting of {} to {} characters."
     INVALID_RG_ID = (
         "Invalid resource group ID provided. Provide values in the range of 0 to 1023."
     )

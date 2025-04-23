@@ -10,3 +10,11 @@ class VSPSExternalVolumeValidateMsg(Enum):
     NO_PARITYGRP = "Unable to find the external parity group."
     PROVISIONED = "ldev_id is already provisioned with an internal ldev."
     ASSOCIATED_ANOTHER = "ldev_id is already associated with another external volume."
+    EXTERNAL_VOLUME_NOT_FOUND = "External Volume is not found for ldev_id {}."
+    REQUIRED_FOR_CREATE = (
+        "For create operation, external_storage_serial and external_ldev_id parameters "
+        "are mandatory fields, both of them are not provided."
+    )
+    LDEV_REQUIRED_FOR_DELETE = (
+        "For delete operation, ldev_id parameter is mandatory, which is not provided."
+    )

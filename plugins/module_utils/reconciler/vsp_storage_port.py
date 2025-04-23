@@ -44,17 +44,15 @@ class VSPStoragePortReconciler:
     @log_entry_exit
     def vsp_storage_port_reconcile(self, spec) -> dict:
 
-        portInfo = self.provisioner.change_port_settings(
-            spec.port, spec.port_mode, spec.enable_port_security
-        )
+        port_info = self.provisioner.change_port_settings(spec)
+
+        # portInfo = self.provisioner.change_port_settings(
+        #     spec.port, spec.port_mode, spec.enable_port_security
+        # )
 
         return StoragePortInfoExtractor(self.storage_serial_number).extract(
-            [portInfo.to_dict()]
+            [port_info.to_dict()]
         )
-
-    @log_entry_exit
-    def is_out_of_band(self):
-        return self.provisioner.is_out_of_band()
 
 
 class StoragePortInfoExtractor:
@@ -83,7 +81,7 @@ class StoragePortInfoExtractor:
     def extract(self, responses):
         new_items = []
         for response in responses:
-            new_dict = {"storage_serial_number": self.storage_serial_number}
+            new_dict = {}
             for key, value_type in self.common_properties.items():
                 # Get the corresponding key from the response or its mapped key
                 response_key = response.get(key)
@@ -118,7 +116,7 @@ class ShortStoragePortInfoExtractor:
     def extract(self, responses):
         new_items = []
         for response in responses:
-            new_dict = {"storage_serial_number": self.storage_serial_number}
+            new_dict = {}
             for key, value_type in self.common_properties.items():
                 # Get the corresponding key from the response or its mapped key
                 response_key = response.get(key)

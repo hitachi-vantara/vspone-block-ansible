@@ -31,6 +31,10 @@
           copy_pace_track_size: "MEDIUM"
           enable_quick_mode: false
           auto_split: true
+          copy_group_name: "CGTest"
+          copy_pair_name: "CPTest"
+          primary_volume_device_group_name: "CPTestP"
+          secondary_volume_device_group_name: "CPTestS"
       register: result
 
     - name: Debug the result variable
@@ -51,6 +55,10 @@
           copy_pace_track_size: "MEDIUM"
           enable_quick_mode: false
           auto_split: true
+          copy_group_name: "CGTest"
+          copy_pair_name: "CPTest"
+          primary_volume_device_group_name: "CPTestP"
+          secondary_volume_device_group_name: "CPTestS"
       register: result
 
     - name: Debug the result variable
@@ -69,6 +77,8 @@
           secondary_volume_id: 277
           enable_quick_mode: true
           enable_read_write: false
+          copy_group_name: "CGTest"
+          copy_pair_name: "CPTest"
       register: result
 
     - name: Debug the result variable
@@ -87,6 +97,8 @@
           secondary_volume_id: 277
           enable_quick_mode: false
           copy_pace_track_size: "MEDIUM"
+          copy_group_name: "CGTest"
+          copy_pair_name: "CPTest"
       register: result
 
     - name: Debug the result variable
@@ -106,6 +118,8 @@
           allocate_new_consistency_group: true
           consistency_group_id: 1
           copy_pace_track_size: "MEDIUM"
+          copy_group_name: "CGTest"
+          copy_pair_name: "CPTest"
       register: result
 
     - name: Debug the result variable
@@ -124,6 +138,8 @@
           secondary_volume_id: 277
           enable_quick_mode: true
           copy_pace_track_size: "MEDIUM"
+          copy_group_name: "CGTest"
+          copy_pair_name: "CPTest"
       register: result
 
     - name: Debug the result variable
@@ -140,6 +156,27 @@
         spec:
           primary_volume_id: 274
           secondary_volume_id: 277
+          copy_group_name: "CGTest"
+          copy_pair_name: "CPTest"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Delete shadow image pair with force delete
+    ####################################################################
+    - name: Delete shadow image pair
+      hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          primary_volume_id: 274
+          secondary_volume_id: 277
+          copy_group_name: "CGTest"
+          copy_pair_name: "CPTest"
+          should_delete_svol: true
       register: result
 
     - name: Debug the result variable

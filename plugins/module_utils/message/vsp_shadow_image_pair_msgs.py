@@ -12,6 +12,6 @@ class VSPShadowImagePairValidateMsg(Enum):
     ENABLE_QUICK_MODE_VALIDATION = "Creating shadow image pair with enable_quick_mode is true then auto_split should be true."
     PVOL_NOT_FOUND = "Primary volume not found."
     SVOL_NOT_FOUND = "Secondary volume not found."
-    SVOL_POOL_ID_NEEDED = "When secondary_volume_id is not provided, secondary_pool_id is needed, which is missing."
+    SVOL_POOL_ID_NEEDED = "When secondary_volume_id is not provided or type is UNDEFINED, secondary_pool_id is needed, which is missing."
     PVOL_SVOL_SIZE_MISMATCH = "Primary volume and secondary volume size mismatch."
     PAIR_NOT_FOUND = "Shadow image pair not found with pair id = {}."

@@ -56,3 +56,8 @@ class VSPVolValidationMsg(Enum):
     LDEV_NOT_FOUND_IN_NVM = "Did not find ldev_id {} in NVM subsystem {}."
     INVALID_LDEV_NAME_LEN = "Invalid volume name length. Number of characters in volume name should be between 1 to 24."
     VOL_NOT_FOUND = "Volume not found."
+    QUERY_NOT_LIST = "Query must be provided as a list of strings."
+    INVALID_QUERY = "Invalid query provided: {}. Supported values are {}."
+    INVALID_CAPACITY_SAVING = (
+        "Invalid capacity_saving value '{}' provided. Supported values are {}."
+    )

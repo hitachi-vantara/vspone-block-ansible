@@ -46,3 +46,7 @@ class VSPCmdDevProvisioner:
         """Delete Command Device"""
         self.gateway.delete_command_device(ldev_id)
         return ldev_id
+
+    @log_entry_exit
+    def is_pegasus(self):
+        return self.gateway.is_pegasus()

@@ -1,3 +1,5 @@
+import time
+
 try:
     from ..common.ansible_common import (
         convert_block_capacity,
@@ -86,6 +88,7 @@ class VSPVolumeReconciler:
         self.port_prov = VSPStoragePortProvisioner(self.connection_info)
         self.nvme_provisioner = VSPNvmeProvisioner(self.connection_info, self.serial)
         self.hg_prov = VSPHostGroupProvisioner(self.connection_info)
+        self.snapshots = None
 
     @log_entry_exit
     def volume_reconcile(self, state: str, spec: CreateVolumeSpec):
@@ -106,7 +109,6 @@ class VSPVolumeReconciler:
 
             volume = None
             if spec.ldev_id:
-                # volume = self.provisioner.get_volume_by_ldev(100)
                 volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
                 logger.writeDebug("RC:sng20241205 volume={}", volume)
 
@@ -657,8 +659,9 @@ class VSPVolumeReconciler:
         return volume_created
 
     @log_entry_exit
-    def get_snapshot_list_for_volume(self, volume, snapshots):
+    def get_snapshot_list_for_volume(self, volume, snapshots=None):
         retList = []
+        snapshots = self.get_all_snapshots() if snapshots is None else snapshots
         if snapshots:
             for x in snapshots:
                 if x["pvolLdevId"] == volume.ldevId or x["svolLdevId"] == volume.ldevId:
@@ -670,9 +673,14 @@ class VSPVolumeReconciler:
 
     @log_entry_exit
     def get_all_snapshots(self):
-        snapshot_prov = VSPHtiSnapshotProvisioner(self.connection_info)
-        snapshots = snapshot_prov.get_snapshot_facts()
-        return snapshots
+        if self.snapshots is None:
+            snapshot_prov = VSPHtiSnapshotProvisioner(self.connection_info)
+            start_time = time.time()
+            self.snapshots = snapshot_prov.get_snapshot_facts()
+            end_time = time.time()
+            elapsed_time = float(f"{end_time - start_time:.2f}")
+            logger.writeDebug("RC:time taken for get_all_snapshots={}", elapsed_time)
+        return self.snapshots
 
     @log_entry_exit
     def get_nvm_subsystem_for_ldev(self, ldev_id):
@@ -723,16 +731,74 @@ class VSPVolumeReconciler:
         return result_list
 
     @log_entry_exit
-    def get_volume_detail_info(self, volume, all_snapshots=None, single_vol=True):
-        if all_snapshots:
-            snapshots = self.get_snapshot_list_for_volume(volume, all_snapshots)
-            volume.snapshots = snapshots
-        volume.isEncryptionEnabled = self.is_encryption_enabled_on_volume(volume)
-        hg_iscsi_tar_info = self.get_hostgroup_and_iscsi_target_info(volume, single_vol)
+    def get_volumes_with_hg_iscsi(self, volumes):
+        retList = []
+        if volumes:
+            for volume in volumes:
+                hg_iscsi_tar_info = self.get_hostgroup_and_iscsi_target_info(volume)
+                hostgroups = hg_iscsi_tar_info["hostgroups"]
+                iscsi_targets = hg_iscsi_tar_info["iscsiTargets"]
+                volume.hostgroups = hostgroups
+                volume.iscsiTargets = iscsi_targets
+                retList.append(volume)
+        return VSPVolumesInfo(data=retList)
+
+    @log_entry_exit
+    def get_volumes_detail_for_spec(self, volumes, spec):
+        retList = []
+        if volumes:
+            for volume in volumes:
+                new_volume = self.get_volume_detail_for_spec(volume, spec)
+                retList.append(new_volume)
+        return VSPVolumesInfo(data=retList)
+
+    @log_entry_exit
+    def get_volume_detail_for_spec(self, volume, spec):
+        # host group and iSCSI target info are always included
+        hg_iscsi_tar_info = self.get_hostgroup_and_iscsi_target_info(volume)
         hostgroups = hg_iscsi_tar_info["hostgroups"]
         iscsi_targets = hg_iscsi_tar_info["iscsiTargets"]
         volume.hostgroups = hostgroups
         volume.iscsiTargets = iscsi_targets
+
+        if spec.is_detailed is not None and spec.is_detailed is True:
+            logger.writeDebug("RC:get_volume_detail_with_spec:spec={}", spec)
+            return self.get_volume_detail_info(volume, self.get_all_snapshots())
+        else:
+            logger.writeDebug("RC:get_volume_detail_with_spec:else:spec={}", spec)
+            if spec.query:
+                if "cmd_device_settings" in spec.query:
+                    if volume.attributes and "CMD" in volume.attributes:
+                        self.provisioner.fill_cmd_device_info(volume)
+                if "encryption_settings" in spec.query:
+                    volume.isEncryptionEnabled = self.is_encryption_enabled_on_volume(
+                        volume
+                    )
+                if "nvm_subsystem_info" in spec.query:
+                    if volume.nvmSubsystemId:
+                        nvm_subsystems = self.get_nvm_subsystem_info(volume)
+                        logger.writeDebug(
+                            "RC:get_volume_detail_with_spec:nvm_subsystem = {}",
+                            nvm_subsystems,
+                        )
+                        volume.nvmSubsystems = nvm_subsystems
+                if "qos_settings" in spec.query:
+                    qos_settings = self.provisioner.get_qos_settings(volume.ldevId)
+                    if qos_settings:
+                        volume.qosSettings = qos_settings
+                if "snapshots_info" in spec.query:
+                    volume.snapshots = self.get_snapshot_list_for_volume(volume)
+        return volume
+
+    @log_entry_exit
+    def get_volume_detail_info(self, volume, all_snapshots=None, single_vol=True):
+        logger.writeDebug("RC:get_volume_detail_info:volume={}", volume)
+        if all_snapshots:
+            snapshots = self.get_snapshot_list_for_volume(volume, all_snapshots)
+            volume.snapshots = snapshots
+
+        volume.isEncryptionEnabled = self.is_encryption_enabled_on_volume(volume)
+
         if volume.nvmSubsystemId:
             nvm_subsystems = self.get_nvm_subsystem_info(volume)
             logger.writeDebug(
@@ -746,11 +812,13 @@ class VSPVolumeReconciler:
 
         # Check if the ldev is a command device
         # This get call is needed for newly created cmd device
-        check_vol = self.provisioner.get_volume_by_ldev(volume.ldevId)
-        if check_vol.attributes and "CMD" in check_vol.attributes:
-            volume.attributes = check_vol.attributes
-            self.provisioner.fill_cmd_device_info(volume)
+        # check_vol = self.provisioner.get_volume_by_ldev(volume.ldevId)
+        # if check_vol.attributes and "CMD" in check_vol.attributes:
+        #     volume.attributes = check_vol.attributes
+        #     self.provisioner.fill_cmd_device_info(volume)
 
+        if volume.attributes and "CMD" in volume.attributes:
+            self.provisioner.fill_cmd_device_info(volume)
         return volume
 
     @log_entry_exit
@@ -846,17 +914,19 @@ class VSPVolumeReconciler:
     @log_entry_exit
     def get_volumes(self, get_volume_spec: VolumeFactSpec):
         logger.writeDebug("RC:get_volumes:spec={}", get_volume_spec)
-        if get_volume_spec.ldev_id:
+        if get_volume_spec.ldev_id is not None:
             # new_volume = None
             volume = self.provisioner.get_volume_by_ldev(get_volume_spec.ldev_id)
             if volume:
-                if (
-                    get_volume_spec.is_detailed is not None
-                    and get_volume_spec.is_detailed is True
-                ):
+                # if (
+                #     get_volume_spec.is_detailed is not None
+                #     and get_volume_spec.is_detailed is True
+                # ):
 
-                    all_snapshots = self.get_all_snapshots()
-                    volume = self.get_volume_detail_info(volume, all_snapshots)
+                #     all_snapshots = self.get_all_snapshots()
+                #     volume = self.get_volume_detail_info(volume, all_snapshots)
+                volume = self.get_volume_detail_for_spec(volume, get_volume_spec)
+                logger.writeDebug("RC:get_volumes:found volume={}", volume)
 
                 return VSPVolumesInfo(data=[volume])
 
@@ -888,9 +958,9 @@ class VSPVolumeReconciler:
             get_volume_spec.is_detailed is not None
             and get_volume_spec.is_detailed is True
         ):
-            return self.get_volumes_detail_info(volume_data.data)
+            return self.get_volumes_detail_for_spec(volume_data.data, get_volume_spec)
         else:
-            return volume_data
+            return self.get_volumes_with_hg_iscsi(volume_data.data)
 
     @log_entry_exit
     def generate_volume_name(self, ldev_id, label):
@@ -940,7 +1010,7 @@ class VSPVolumeReconciler:
             self.provisioner.delete_volume(ldev_id, force_execute)
             self.connection_info.changed = True
         except Exception as e:
-            logger.writeError(f"An error occurred in delete_volumne: {str(e)}")
+            logger.writeError(f"An error occurred in delete_volume: {str(e)}")
             raise ValueError(VSPVolValidationMsg.VOLUME_HAS_PATH.value)
 
     @log_entry_exit
@@ -1102,9 +1172,6 @@ class VolumeCommonPropertiesExtractor:
             "iscsi_targets": list,
             "snapshots": list,
             "nvm_subsystems": list,
-            "entitlement_status": str,
-            "partner_id": str,
-            "subscriber_id": str,
             "storage_serial_number": str,
             # sng20241202 tiering_policy extractor
             "tiering_policy": dict,
@@ -1122,6 +1189,8 @@ class VolumeCommonPropertiesExtractor:
             "is_device_group_definition_enabled": bool,
             "is_write_protected": bool,
             "is_write_protected_by_key": bool,
+            "is_compression_acceleration_enabled": bool,
+            "compression_acceleration_status": str,
         }
 
         self.parameter_mapping = {

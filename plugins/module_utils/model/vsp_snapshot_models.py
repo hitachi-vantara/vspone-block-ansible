@@ -26,6 +26,7 @@ class SnapshotGroupSpec:
     snapshot_group_name: Optional[str] = None
     snapshot_group_id: Optional[str] = None
     auto_split: Optional[bool] = None
+    retention_period: Optional[int] = None
 
 
 @dataclass
@@ -54,17 +55,36 @@ class SnapshotReconcileSpec:
     can_cascade: Optional[bool] = None
     svol: Optional[int] = None
     primary_volume_id: Optional[int] = None
+    secondary_volume_id: Optional[int] = None
     allocate_new_consistency_group: Optional[bool] = None
+    retention_period: Optional[int] = None
+    copy_speed: Optional[str] = None
+    clones_automation: Optional[bool] = None
 
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():
             setattr(self, field, kwargs.get(field, None))
         if kwargs.get("primary_volume_id"):
             self.pvol = kwargs.get("primary_volume_id")
+        if kwargs.get("secondary_volume_id"):
+            self.svol = kwargs.get("secondary_volume_id")
         if kwargs.get("allocate_new_consistency_group"):
             self.allocate_consistency_group = kwargs.get(
                 "allocate_new_consistency_group"
             )
+
+
+@dataclass
+class HostGroupInfo(SingleBaseClass):
+    port: str = None
+    name: str = None
+
+    def __init__(self, **kwargs):
+        self.name = kwargs.get("name")
+        self.port = kwargs.get("port")
+
+    def to_dict(self):
+        return asdict(self)
 
 
 @dataclass
@@ -95,6 +115,15 @@ class DirectSnapshotInfo(SingleBaseClass):
     progressRate: Optional[int] = None
     pvolNvmSubsystemName: Optional[str] = None
     svolNvmSubsystemName: Optional[str] = None
+    pvolHostGroups: Optional[List[HostGroupInfo]] = None
+    svolHostGroups: Optional[List[HostGroupInfo]] = None
+    retentionPeriod: Optional[int] = None
+
+    def __init__(self, **kwargs):
+        super().__init__()  # or selectively forward kwargs
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        self.__post_init__()
 
     def __post_init__(self):
         if self.isClone and self.canCascade:
@@ -158,6 +187,7 @@ class UAIGSnapshotInfo(SingleBaseClass):
     snapshotGroupName: Optional[str] = None
     # snapshotPairInfo: Optional[str] = None
     isCTG: Optional[bool] = False
+    retentionPeriod: Optional[int] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

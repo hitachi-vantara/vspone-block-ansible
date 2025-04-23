@@ -84,7 +84,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
 - name: Get volumes by count
   hitachivantara.vspone_block.sds_block.hv_sds_block_volume_facts:
@@ -92,7 +91,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
     spec:
       count: 200
@@ -103,7 +101,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
     spec:
       names: ['test-volume1', 'test-volume2']
@@ -114,7 +111,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
     spec:
       count: 200

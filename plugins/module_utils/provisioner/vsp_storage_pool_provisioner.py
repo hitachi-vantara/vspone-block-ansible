@@ -10,7 +10,6 @@ try:
     from ..model.vsp_storage_pool_models import VSPStoragePool, VSPStoragePools
     from ..common.hv_constants import ConnectionTypes
     from .vsp_parity_group_provisioner import VSPParityGroupProvisioner
-    from ..common.uaig_utils import UAIGResourceID
     from ..message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
     from .vsp_volume_prov import VSPVolumeProvisioner
     from ..model.vsp_volume_models import CreateVolumeSpec
@@ -31,7 +30,6 @@ except ImportError:
     from model.vsp_storage_pool_models import VSPStoragePool, VSPStoragePools
     from common.hv_constants import ConnectionTypes
     from .vsp_parity_group_provisioner import VSPParityGroupProvisioner
-    from common.uaig_utils import UAIGResourceID
     from message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
     from .vsp_volume_prov import VSPVolumeProvisioner
     from model.vsp_volume_models import CreateVolumeSpec
@@ -255,6 +253,10 @@ class VSPStoragePoolProvisioner:
     def get_storage_pool(self, pool_fact_spec=None):
         if pool_fact_spec and pool_fact_spec.pool_id is not None:
             return self.get_storage_pool_by_id(pool_fact_spec.pool_id)
+        elif pool_fact_spec and pool_fact_spec.pool_name is not None:
+            return self.get_storage_pool_by_name_or_id(
+                pool_name=pool_fact_spec.pool_name
+            )
         else:
             return self.get_all_storage_pools()
 
@@ -410,27 +412,6 @@ class VSPStoragePoolProvisioner:
             if self.connection_type == ConnectionTypes.DIRECT
             else pool.resourceId
         )
-        if self.connection_type == ConnectionTypes.GATEWAY:
-            self.connection_info.subscriber_id = pool.subscriberId
         unused = self.gateway.delete_storage_pool(resource_id)
         self.connection_info.changed = True
         return "Storage pool deleted successfully."
-
-    @log_entry_exit
-    def check_ucp_system(self, serial):
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            return serial
-        if not self.gateway.check_storage_in_ucpsystem(serial):
-            err_msg = VSPStoragePoolValidateMsg.UCP_SYSTEM_NOT_AVAILABLE.value.format(
-                serial
-            )
-            logger.writeError(err_msg)
-            raise ValueError(err_msg)
-        else:
-            self.serial = serial
-            self.resource_id = UAIGResourceID().storage_resourceId(self.serial)
-            self.gateway.resource_id = self.resource_id
-            self.pg_prov.resource_id = self.resource_id
-            self.pg_prov.gateway.resource_id = self.resource_id
-            self.vol_gw.set_serial(self.serial)
-            return serial

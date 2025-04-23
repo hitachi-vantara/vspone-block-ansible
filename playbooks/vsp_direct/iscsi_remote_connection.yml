@@ -47,7 +47,6 @@
           local_port: CL1-C
           remote_port: CL1-C
           remote_storage_serial_number: 12345
-          remote_storage_ip_address: "10.12.10.120"
       register: result
 
     - name: Debug result

@@ -41,8 +41,10 @@
           secondary_hostgroup:
             name: "ansible-hostgroup-2"
             port: "CL1-A"
+            lun_id: 5
           mirror_unit_id: 0
           is_data_reduction_force_copy: false
+          path_group_id: 5
 
       register: result
 
@@ -66,6 +68,7 @@
           secondary_hostgroup:
             name: "ansible-hostgroup-2"
             port: "CL1-A"
+            lun_id: 5
       register: result
 
     - name: Debug the result variable
@@ -169,6 +172,7 @@
           remote_device_group_name: "hur_remote_device_group_name_1"
           copy_group_name: "hur_copy_group_name_1"
           copy_pair_name: "hur_copy_pair_name_1"
+          should_delete_svol: false
 
       register: result
 
@@ -219,6 +223,39 @@
               - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
           mirror_unit_id: 0
           is_data_reduction_force_copy: false
+          path_group_id: 5
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task 10 : Create HUR-ISCSI pair
+    ######################################################################
+    - name: Create HUR-ISCSI pair
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "present"
+        spec:
+          copy_group_name: "hur_copy_group_name_1"
+          copy_pair_name: "hur_copy_pair_name_1"
+          primary_volume_id: 1273
+          secondary_pool_id: 0
+          primary_volume_journal_id: 11
+          secondary_volume_journal_id: 13
+          local_device_group_name: "hur_local_device_group_name_1"
+          remote_device_group_name: "hur_remote_device_group_name_1"
+          consistency_group_id: 1
+          secondary_iscsi_targets:
+            - name: "test"
+              port: "CL1-A"
+              lun_id: 5
+          mirror_unit_id: 0
+          is_data_reduction_force_copy: false
+          path_group_id: 5
 
       register: result
 

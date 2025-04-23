@@ -11,7 +11,6 @@ try:
     from ..provisioner.vsp_local_copy_group_provisioner import (
         VSPLocalCopyGroupProvisioner,
     )
-    from ..message.vsp_copy_group_msgs import VSPCopyGroupsValidateMsg
     from ..model.vsp_local_copy_group_models import (
         LocalCopyGroupSpec,
         LocalCopyGroupInfo,
@@ -31,7 +30,6 @@ except ImportError:
     from provisioner.vsp_local_copy_group_provisioner import (
         VSPLocalCopyGroupProvisioner,
     )
-    from message.vsp_copy_group_msgs import VSPCopyGroupsValidateMsg
     from model.vsp_local_copy_group_models import (
         LocalCopyGroupSpec,
         LocalCopyGroupInfo,
@@ -83,43 +81,37 @@ class VSPLocalCopyGroupReconciler:
 
     @log_entry_exit
     def delete_copy_group(self, spec):
-        return self.provisioner.delete_copy_group(spec)
+        return self.provisioner.delete_local_copy_group(spec)
 
     @log_entry_exit
     def resync_copy_group(self, spec):
-        return self.provisioner.resync_copy_group(spec)
+        return self.provisioner.resync_local_copy_group(spec)
 
     @log_entry_exit
     def split_copy_group(self, spec):
-        return self.provisioner.split_copy_group(spec)
+        return self.provisioner.split_local_copy_group(spec)
 
     @log_entry_exit
-    def swap_split_copy_group(self, spec):
-        return self.provisioner.swap_split_copy_group(spec)
+    def restore_copy_group(self, spec):
+        return self.provisioner.restore_local_copy_group(spec)
 
     @log_entry_exit
-    def swap_resync_copy_group(self, spec):
-        return self.provisioner.swap_resync_copy_group(spec)
-
-    @log_entry_exit
-    def copy_group_reconcile_direct(
-        self, state: str, spec: LocalCopyGroupSpec, secondary_connection_info: str
+    def local_copy_group_reconcile_direct(
+        self, state: str, spec: LocalCopyGroupSpec  # , secondary_connection_info: str
     ):
         state = state.lower()
-        if self.secondary_connection_info is None:
-            raise ValueError(VSPCopyGroupsValidateMsg.SECONDARY_CONNECTION_INFO.value)
-        else:
-            spec.secondary_connection_info = secondary_connection_info
+        # if self.secondary_connection_info is None:
+        #     raise ValueError(VSPCopyGroupsValidateMsg.SECONDARY_CONNECTION_INFO.value)
+        # else:
+        #     spec.secondary_connection_info = secondary_connection_info
 
         resp_data = None
         if state == StateValue.SPLIT:
             resp_data = self.split_copy_group(spec)
-        elif state == StateValue.RE_SYNC:
+        elif state == StateValue.RE_SYNC or state == StateValue.SYNC:
             resp_data = self.resync_copy_group(spec)
-        elif state == StateValue.SWAP_SPLIT:
-            resp_data = self.swap_split_copy_group(spec)
-        elif state == StateValue.SWAP_RESYNC:
-            resp_data = self.swap_resync_copy_group(spec)
+        elif state == StateValue.RESTORE:
+            resp_data = self.restore_copy_group(spec)
         elif state == StateValue.ABSENT:
             resp_data = self.delete_copy_group(spec)
         else:
@@ -130,14 +122,12 @@ class VSPLocalCopyGroupReconciler:
 
             if isinstance(resp_data, str):
                 return resp_data
-
-            resp_in_dict = resp_data.to_dict()
-            logger.writeDebug("copy group dict={}", resp_in_dict)
-
-            # convert dict to Copy Group object with all the remote pair information
-
-            return resp_in_dict
-
+            elif isinstance(resp_data, LocalSpecificCopyGroupInfo):
+                copy_groups = resp_data.to_dict()
+                logger.writeDebug(
+                    "copy group dict={}", camel_dict_to_snake_case(copy_groups)
+                )
+                return camel_dict_to_snake_case(copy_groups)
         else:
             return None
 

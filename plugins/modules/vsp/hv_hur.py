@@ -14,12 +14,8 @@ module: hv_hur
 short_description: Manages HUR pairs on Hitachi VSP storage systems.
 description:
   - This module allows for the creation, deletion, splitting, swap splitting, re-syncing and swap-resyncing of HUR pairs on Hitachi VSP storage systems.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - swap_split and swap_resync are supported for C(direct) connection type only.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/hur.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/hur.yml)
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -32,18 +28,17 @@ attributes:
 options:
   state:
     description: The level of the HUR pairs task.
-      Note C(swap_split) and C(swap_resync) are supported for C(direct) connection type only.
     type: str
     required: false
     choices: ['present', 'absent', 'split', 'resync', 'resize', 'expand', 'swap_split', 'swap_resync']
     default: 'present'
   storage_system_info:
-    description: Information about the Hitachi storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
+        description: The serial number of the storage system.
         type: str
         required: false
   secondary_connection_info:
@@ -69,36 +64,31 @@ options:
         required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
-    required: true
     type: dict
+    required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway))
-          or the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI gateway.
-        type: str
-        required: false
   spec:
     description: Specification for the HUR pairs task.
     type: dict
@@ -117,11 +107,11 @@ options:
         type: int
         required: false
       copy_group_name:
-        description: Name of the copy group. This is valid for C(direct) connection type only and this is a required for create operation.
+        description: Name of the copy group. This is a required for create operation.
         type: str
         required: false
       copy_pair_name:
-        description: Name of the copy pair. This is valid for C(direct) connection type only and this is a required for create operation.
+        description: Name of the copy pair. This is a required for create operation.
         type: str
         required: false
       consistency_group_id:
@@ -129,11 +119,11 @@ options:
         type: int
         required: false
       local_device_group_name:
-        description: Name of the local device group name. This is valid for C(direct) connection type only and this is an optional field.
+        description: Name of the local device group name. This is an optional field.
         type: str
         required: false
       remote_device_group_name:
-        description: Name of the remote device group name. This is valid for C(direct) connection type only and this is an optional field..
+        description: Name of the remote device group name. This is an optional field..
         type: str
         required: false
       mirror_unit_id:
@@ -151,22 +141,42 @@ options:
         required: false
         suboptions:
           name:
-            description: Name of the host group on the secondary storage system. This is required for create operation
-              for both C(direct) and C(gateway) connections.
+            description: Name of the host group on the secondary storage system.
             type: str
             required: true
           port:
-            description: Port of the host group on the secondary storage system. This is required for create operation
-              for both C(direct) and C(gateway) connections.
+            description: Port of the host group on the secondary storage system.
             type: str
             required: true
+          lun_id:
+            description: LUN ID can be provided along with host group on the secondary storage system.
+            type: int
+            required: false
+      secondary_iscsi_targets:
+        description: The list of iscsi targets on the secondary storage device.
+        type: list
+        elements: dict
+        required: false
+        suboptions:
+          name:
+            description: ISCSI target name.
+            type: str
+            required: true
+          port:
+            description: Port name.
+            type: str
+            required: true
+          lun_id:
+            description: LUN ID.
+            type: int
+            required: false
       secondary_nvm_subsystem:
-        description: NVM subsystem details of the secondary volume. Supported only for C(direct) connection type.
+        description: NVM subsystem details of the secondary volume.
         type: dict
         required: false
         suboptions:
           name:
-            description: Name of the NVM subsystem on the secondary storage system.
+            description: Name of the NVM subsytem on the secondary storage system.
             type: str
             required: true
           paths:
@@ -176,7 +186,7 @@ options:
             required: false
       fence_level:
         description: Specifies the primary volume fence level setting and determines if the host is denied access or continues to access
-            the primary volume when the pair is suspended because of an error. This is an optional field for both C(direct) and C(gateway) connections.
+            the primary volume when the pair is suspended because of an error. This is an optional field.
         type: str
         required: false
         choices: ['ASYNC']
@@ -216,36 +226,36 @@ options:
         description: Secondary volume id.
         type: int
         required: false
+      path_group_id:
+        description: >
+          This is an optional field during create operation.
+          Specify the path group ID in the range from 0 to 255. If you are unsure don't use this parameter.
+          If you omit this value or specify 0, the lowest path group ID in the specified path group is used.
+        type: int
+        required: false
       new_volume_size:
         description: New volume size.
         type: str
         required: false
-      begin_secondary_volume_id:
-        description: Specify beginning ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during
-          create operation. If this field is specified, end_secondary_volume_id must also be specified.
-          If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
-        required: false
-        type: int
-      end_secondary_volume_id:
-        description: Specify end ldev id for Ldev range for svol. This is used only for C(gateway) connection and is an optional field during create operation.
-          If this field is specified, begin_secondary_volume_id must also be specified.
-          If this field is not specified, Ansible modules will try to create SVOL ID same as (or near to ) PVOL ID.
-        required: false
-        type: int
       do_initial_copy:
-        description: Perform initial copy. This is used only for C(direct) connection and is an optional field during create operation.
+        description: Perform initial copy. This is an optional field during create operation.
         type: bool
         required: false
         default: true
       is_data_reduction_force_copy:
-        description: Force copy for data reduction. This is used for both C(direct) and C(gateway) connections and is an optional field during create operation.
+        description: Force copy for data reduction. This is an optional field during create operation.
+        type: bool
+        required: false
+        default: false
+      should_delete_svol:
+        description: Specify true to delete the SVOL.
         type: bool
         required: false
         default: false
 """
 
 EXAMPLES = """
-- name: Create a HUR pair in new copy group for direct connection type
+- name: Create a HUR pair in new copy group
   hitachivantara.vspone_block.vsp.hv_hur:
     state: "present"
     connection_info:
@@ -269,9 +279,10 @@ EXAMPLES = """
       secondary_hostgroup:
         name: hg_1
         port: CL1-A
+        lun_id: 5
       mirror_unit_id: 0
 
-- name: Create a HUR pair in existing copy group for direct connection type
+- name: Create a HUR pair in existing copy group
   hitachivantara.vspone_block.vsp.hv_hur:
     state: "present"
     connection_info:
@@ -291,7 +302,7 @@ EXAMPLES = """
         name: hg_1
         port: CL1-A
 
-- name: Split HUR pair for direct connection type
+- name: Split HUR pair
   hitachivantara.vspone_block.vsp.hv_hur:
     state: "split"
     connection_info:
@@ -309,7 +320,7 @@ EXAMPLES = """
       copy_pair_name: hur_copy_pair_name_3
       is_svol_readwriteable: true
 
-- name: Resync HUR pair for direct connection type
+- name: Resync HUR pair
   hitachivantara.vspone_block.vsp.hv_hur:
     state: "resync"
     connection_info:
@@ -326,7 +337,7 @@ EXAMPLES = """
       copy_group_name: hur_copy_group_name_3
       copy_pair_name: hur_copy_pair_name_3
 
-- name: Delete HUR pair for direct connection type
+- name: Delete HUR pair
   hitachivantara.vspone_block.vsp.hv_hur:
     state: "absent"
     connection_info:
@@ -443,9 +454,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     VSPHurArguments,
     VSPParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_hur import (
     VSPHurReconciler,
 )
@@ -457,9 +465,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -531,14 +536,6 @@ class VSPSHurManager:
             self.state,
             self.secondary_connection_info,
         )
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            found = reconciler.check_storage_in_ucpsystem()
-            if not found:
-                raise ValueError(ModuleMessage.STORAGE_SYSTEM_ONBOARDING.value)
-            oob = reconciler.is_out_of_band()
-            if oob is True:
-                raise ValueError(ModuleMessage.OOB_NOT_SUPPORTED.value)
-
         comment, result = reconciler.reconcile_hur(
             self.spec, self.secondary_connection_info
         )
@@ -549,6 +546,8 @@ class VSPSHurManager:
         if self.state == "present":
             return "HUR Pair created successfully."
         elif self.state == "absent":
+            if self.spec.should_delete_svol is True:
+                return "HUR Pair and Secondary volume deleted successfully."
             return "HUR Pair deleted successfully."
         elif self.state == "resync":
             return "HUR Pair resynced successfully."

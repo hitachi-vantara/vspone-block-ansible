@@ -91,8 +91,8 @@ EXAMPLES = """
     state: present
     connection_info:
       address: sdsb.company.com
-      api_token: "api_token_value"
-      connection_type: "direct"
+      username: "admin"
+      password: "password"
     spec:
       port_name: "iqn.1994-04.jp.co.hitachi:rsd.sph.t.0a85a.000"
       authentication_mode: "CHAP"

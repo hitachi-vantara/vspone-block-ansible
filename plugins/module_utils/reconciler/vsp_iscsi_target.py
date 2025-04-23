@@ -403,13 +403,13 @@ class VSPIscsiTargetCommonPropertiesExtractor:
             "iqnInitiators": list,
             "logicalUnits": list,
             "authParam": dict,
-            "subscriberId": str,
-            "partnerId": str,
+            # "subscriberId": str,
+            # "partnerId": str,
             "storageId": str,
             "chapUsers": list,
             "iscsiName": str,
             "iscsiId": int,
-            "entitlementStatus": str,
+            # "entitlementStatus": str,
         }
 
         self.modification_properties = {

@@ -2,6 +2,8 @@ from typing import Any
 
 try:
     from ..provisioner.vsp_snapshot_provisioner import VSPHtiSnapshotProvisioner
+    from ..provisioner.vsp_storage_port_provisioner import VSPStoragePortProvisioner
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..common.ansible_common import (
         camel_to_snake_case,
         volume_id_to_hex_format,
@@ -14,6 +16,8 @@ try:
     from ..model.vsp_snapshot_models import SnapshotGroupFactSpec
 except ImportError:
     from provisioner.vsp_snapshot_provisioner import VSPHtiSnapshotProvisioner
+    from provisioner.vsp_storage_port_provisioner import VSPStoragePortProvisioner
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from common.ansible_common import (
         camel_to_snake_case,
         volume_id_to_hex_format,
@@ -40,8 +44,20 @@ class VSPHtiSnapshotReconciler:
         self.logger = Log()
         self.connectionInfo = connectionInfo
         self.storage_serial_number = serial
+        if self.storage_serial_number is None:
+            self.storage_serial_number = self.get_storage_serial_number()
         self.snapshotSpec = snapshotSpec
         self.provisioner = VSPHtiSnapshotProvisioner(self.connectionInfo, serial)
+        self.port_provisioner = VSPStoragePortProvisioner(connectionInfo)
+        self.port_type_dict = {}
+        self.get_port_type_dict()
+
+    def get_port_type_dict(self):
+        port_info = self.port_provisioner.get_all_storage_ports().data_to_list()
+        # self.logger.writeDebug(f"20250324 port_info: {port_info}")
+        for port in port_info:
+            self.port_type_dict[port["portId"]] = port["portType"]
+        self.logger.writeDebug(f"20250324 self.port_type_dict: {self.port_type_dict}")
 
     def get_snapshot_facts(self, spec: Any) -> Any:
         """
@@ -50,18 +66,26 @@ class VSPHtiSnapshotReconciler:
         result = None
         if isinstance(spec, SnapshotGroupFactSpec):
             if spec.snapshot_group_name is None:
+                self.logger.writeDebug(f"20250324 spec: {spec}")
                 return self.get_all_snapshot_groups()
             else:
+                self.logger.writeDebug(f"20250324 spec: {spec}")
                 return self.get_snapshots_using_grp_name(spec.snapshot_group_name)
         else:
+            self.logger.writeDebug(f"20250324 spec: {spec}")
             result = self.provisioner.get_snapshot_facts(
                 pvol=spec.pvol, mirror_unit_id=spec.mirror_unit_id
             )
         result2 = SnapshotCommonPropertiesExtractor(self.storage_serial_number).extract(
-            result
+            result, self.port_type_dict
         )
         # self.logger.writeDebug(f"5744resultspec: {result2}")
         return result2
+
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connectionInfo)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     def get_all_snapshot_groups(self) -> Any:
         snapshot_groups = self.provisioner.get_snapshot_groups()
@@ -84,7 +108,7 @@ class VSPHtiSnapshotReconciler:
         }
         extracted_data = SnapshotCommonPropertiesExtractor(
             self.storage_serial_number
-        ).extract(grp_snapshots.snapshots.to_dict())
+        ).extract(grp_snapshots.snapshots.to_dict(), self.port_type_dict)
         result["snapshots"] = extracted_data
         return result
 
@@ -100,8 +124,10 @@ class VSPHtiSnapshotReconciler:
             )
             return msg
         elif state == StateValue.PRESENT:
-            if spec.pool_id is None:
-                raise ValueError("Spec.pool_id is required for spec.state = present")
+            # this is incorrect if an existing pair is in the spec
+            # ex. for assign/unassign, we don't need pool id
+            # if spec.pool_id is None:
+            #     raise ValueError("Spec.pool_id is required for spec.state = present")
 
             resp_data = self.provisioner.create_snapshot(spec=spec)
             # self.logger.writeDebug(f"20240801 before calling extract, expect good poolId in resp_data: {resp_data}")
@@ -111,6 +137,7 @@ class VSPHtiSnapshotReconciler:
                     pvol=spec.pvol,
                     mirror_unit_id=spec.mirror_unit_id,
                     enable_quick_mode=spec.enable_quick_mode,
+                    retention_period=spec.retention_period,
                 )
             else:  # Create then split
                 resp_data = self.provisioner.auto_split_snapshot(spec=spec)
@@ -135,13 +162,15 @@ class VSPHtiSnapshotReconciler:
                 auto_split=spec.auto_split,
             )
 
-        if resp_data:
+        if isinstance(resp_data, str):
+            return resp_data
+        elif resp_data:
             # self.logger.writeError(f"20240719 resp_data: {resp_data}")
             resp_in_dict = resp_data.to_dict()
             # self.logger.writeDebug(f"20240801 resp_data.to_dict: {resp_in_dict}")
             return SnapshotCommonPropertiesExtractor(
                 self.storage_serial_number
-            ).extract([resp_in_dict])[0]
+            ).extract([resp_in_dict], self.port_type_dict)[0]
 
     def snapshot_group_id_reconcile(self, spec: Any, state: str) -> Any:
         grp_functions = {
@@ -166,15 +195,6 @@ class VSPHtiSnapshotReconciler:
             if state != StateValue.ABSENT
             else "Snapshot group deleted successfully"
         )
-
-    def check_storage_in_ucpsystem(self) -> bool:
-        """
-        Check if the storage is in the UCP system.
-        """
-        return self.provisioner.check_storage_in_ucpsystem()
-
-    def is_out_of_band(self):
-        return self.provisioner.is_out_of_band()
 
 
 class SnapshotGroupCommonPropertiesExtractor:
@@ -213,7 +233,6 @@ class SnapshotCommonPropertiesExtractor:
             "secondaryHexVolumeId": str,
             "svolAccessMode": str,
             "poolId": int,
-            "consistencyGroupId": int,
             "mirrorUnitId": int,
             "copyRate": int,
             "copyPaceTrackSize": str,
@@ -230,11 +249,16 @@ class SnapshotCommonPropertiesExtractor:
             "svolProcessingStatus": str,
             # "thinImagePropertiesDto": dict,
             # "thinImageProperties": dict,
-            "entitlementStatus": str,
-            "partnerId": str,
-            "subscriberId": str,
+            # "entitlementStatus": str,
+            # "partnerId": str,
+            # "subscriberId": str,
             "pvolNvmSubsystemName": str,
             "svolNvmSubsystemName": str,
+            "pvolHostGroups": list,
+            "svolHostGroups": list,
+            "retentionPeriodInHours": int,
+            "progressRate": int,
+            "concordanceRate": int,
         }
 
         self.parameter_mapping = {
@@ -247,13 +271,15 @@ class SnapshotCommonPropertiesExtractor:
             "mirrorUnitId": "muNumber",
             "thinImagePropertiesDto": "properties",
             "isCloned": "isClone",
+            "retentionPeriodInHours": "retentionPeriod",
         }
         self.hex_values = {
             "primaryHexVolumeId": "pvolLdevId",
             "secondaryHexVolumeId": "svolLdevId",
         }
 
-    def extract(self, responses):
+    def extract(self, responses, port_type_dict):
+        logger = Log()
         new_items = []
         for response in responses:
             new_dict = {"storage_serial_number": self.storage_serial_number}
@@ -283,6 +309,31 @@ class SnapshotCommonPropertiesExtractor:
                     default_value = get_default_value(value_type)
                     new_dict[cased_key] = default_value
 
+                if value_type == list:
+                    # logger.writeDebug(f"20250324 response_key: {response_key}")
+                    if response_key:
+                        # logger.writeDebug(f"20250324 key: {key}")
+                        new_dict[key] = self.process_list(response_key)
+                        # logger.writeDebug(f"20250324 new_dict[key]: {new_dict[key]}")
+
+            if new_dict.get("pvolHostGroups"):
+                self.split_host_groups(
+                    new_dict["pvolHostGroups"],
+                    new_dict,
+                    "pvolHostGroups",
+                    port_type_dict,
+                )
+                # new_dict["pvol_host_groups"] = new_dict["pvolHostGroups"]
+                del new_dict["pvolHostGroups"]
+            if new_dict.get("svolHostGroups"):
+                self.split_host_groups(
+                    new_dict["svolHostGroups"],
+                    new_dict,
+                    "svolHostGroups",
+                    port_type_dict,
+                )
+                # new_dict["svol_host_groups"] = new_dict["svolHostGroups"]
+                del new_dict["svolHostGroups"]
             if not new_dict.get("snapshot_id"):
                 new_dict["snapshot_id"] = (
                     str(response.get("primaryVolumeId"))
@@ -292,7 +343,79 @@ class SnapshotCommonPropertiesExtractor:
             new_items.append(new_dict)
         return new_items
 
+    # this func assume an ldev can only be in
+    # hgs or its only, not both
+    def split_host_groups_one(self, items, new_dict, key, port_type_dict):
+        logger = Log()
+        logger.writeDebug(f"20250324 key: {key}")
+        logger.writeDebug(f"20250324 items: {items}")
+        logger.writeDebug(f"20250324 port_type_dict: {port_type_dict}")
+        if items is None:
+            return
+
+        for item in items:
+            if item is None:
+                continue
+            # logger.writeDebug(f"20250324 item: {item}")
+            port_id = item["port_id"]
+            port_type = port_type_dict[port_id]
+            logger.writeDebug(f"20250324 port_id: {port_id}")
+            logger.writeDebug(f"20250324 port_type: {port_type}")
+            if port_type == "ISCSI":
+                if key == "pvolHostGroups":
+                    new_dict["pvol_iscsi_targets"] = items
+                    del new_dict["pvol_host_groups"]
+                else:
+                    new_dict["svol_iscsi_targets"] = items
+                    del new_dict["svol_host_groups"]
+            else:
+                if key == "pvolHostGroups":
+                    new_dict["pvol_host_groups"] = items
+                else:
+                    new_dict["svol_host_groups"] = items
+            return
+
+        return
+
+    # this is a more general version,
+    # it handles an item belongs to both hgs and its,
+    # use this if it applies
+    def split_host_groups(self, items, new_dict, key, port_type_dict):
+        logger = Log()
+        logger.writeDebug(f"20250324 key: {key}")
+        logger.writeDebug(f"20250324 items: {items}")
+        if items is None:
+            return
+
+        its = []
+        hgs = []
+        for item in items:
+            if item is None:
+                continue
+            # logger.writeDebug(f"20250324 item: {item}")
+            port_id = item["port_id"]
+            port_type = port_type_dict[port_id]
+            logger.writeDebug(f"20250324 port_id: {port_id}")
+            logger.writeDebug(f"20250324 port_type: {port_type}")
+            if port_type == "ISCSI":
+                its.append(item)
+            else:
+                hgs.append(item)
+            # if self.port_type_dict[item[]]
+            # new_dict["pvol_host_groups"] = items
+            # new_dict["pvol_iscsi_targets"] = items
+
+        if key == "pvolHostGroups":
+            new_dict["pvol_iscsi_targets"] = its
+            new_dict["pvol_host_groups"] = hgs
+        else:
+            new_dict["svol_iscsi_targets"] = its
+            new_dict["svol_host_groups"] = hgs
+
+        return
+
     def process_list(self, response_key):
+        logger = Log()
         new_items = []
 
         if response_key is None:
@@ -306,6 +429,8 @@ class SnapshotCommonPropertiesExtractor:
                 if value is None:
                     default_value = get_default_value(value_type)
                     value = default_value
+                logger.writeDebug(f"20250324 key: {key}")
+                logger.writeDebug(f"20250324 value: {value}")
                 new_dict[key] = value
             new_items.append(new_dict)
         return new_items

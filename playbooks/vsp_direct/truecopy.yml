@@ -36,6 +36,7 @@
           secondary_hostgroup:
             name: "hostgroup-server1"
             port: "CL1-A"
+            lun_id: 5
       register: result
 
     - name: Debug the result variable
@@ -57,6 +58,7 @@
           secondary_hostgroup:
             name: "hostgroup-server1"
             port: "CL1-A"
+            lun_id: 5
           fence_level: "NEVER"
           path_group_id: 5
           local_device_group_name: "ansible-local-device-group-1"
@@ -184,7 +186,7 @@
 
     ##############################################################################
     # Task 9 : Swap-Split TrueCopy pair by copy_group_name and copy_pair_name
-    #  Storages need to be swapped before swap-split operation. Please
+    # Storages need to be swapped before swap-split operation. Please
     # specify connection_info and secondary_connection_info accordingly.
     ##############################################################################
     - name: Swap-Split TrueCopy pair
@@ -309,6 +311,7 @@
         spec:
           copy_group_name: "tc-copy-group-1"
           copy_pair_name: "tc-copy-pair-1"
+          should_delete_svol: false
       register: result
 
     - name: Debug the result variable
@@ -328,6 +331,7 @@
           copy_pair_name: "tc-copy-pair-2"
           local_device_group_name: "ansible-local-device-group-1"
           remote_device_group_name: "ansible-remote-device-group-1"
+          should_delete_svol: false
       register: result
 
     - name: Debug the result variable
@@ -410,6 +414,61 @@
             name: gk-nvm-sub-75
             paths:
               - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
+          fence_level: "NEVER"
+          path_group_id: 5
+          local_device_group_name: "ansible-local-device-group-1"
+          remote_device_group_name: "ansible-remote-device-group-1"
+          is_consistency_group: true
+          consistency_group_id: 14
+          do_initial_copy: true
+          copy_pace: "MEDIUM"
+          is_data_reduction_force_copy: false
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################
+    # Task 20 : Create a TrueCopy-ISCSI pair by specifying only the required fields
+    #########################################################################
+    - name: Create TrueCopy pair
+      hitachivantara.vspone_block.vsp.hv_truecopy:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "present"
+        spec:
+          copy_group_name: "tc-copy-group-1"
+          copy_pair_name: "tc-copy-pair-1"
+          primary_volume_id: 188
+          secondary_pool_id: 0
+          secondary_iscsi_targets:
+            - name: "test"
+              port: "CL1-A"
+              lun_id: 5
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task 20 : Create a TrueCopy-ISCSI pair by specifying all the fields
+    #####################################################################
+    - name: Create TrueCopy-ISCSI pair
+      hitachivantara.vspone_block.vsp.hv_truecopy:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "present"
+        spec:
+          copy_group_name: "tc-copy-group-2"
+          copy_pair_name: "tc-copy-pair-2"
+          primary_volume_id: 189
+          secondary_pool_id: 0
+          secondary_iscsi_targets:
+            - name: "test"
+              port: "CL1-A"
+              lun_id: 5
           fence_level: "NEVER"
           path_group_id: 5
           local_device_group_name: "ansible-local-device-group-1"

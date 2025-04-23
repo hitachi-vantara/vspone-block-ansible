@@ -108,7 +108,3 @@ class SDSBChapUserDirectGateway:
             payload["initiatorChapSecret"] = spec.initiator_chap_secret
 
         return self.connection_manager.patch(end_point, payload)
-
-
-class SDSBChapUsereUAIGateway:
-    pass

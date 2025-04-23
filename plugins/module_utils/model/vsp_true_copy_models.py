@@ -26,6 +26,7 @@ class TrueCopyHostGroupSpec:
     # id: int = None
     name: str = None
     port: str = None
+    lun_id: Optional[int] = None
     # resource_group_id: Optional[int] = None
 
     def to_dict(self):
@@ -51,6 +52,7 @@ class TrueCopySpec(SingleBaseClass):
     secondary_storage_serial_number: Optional[int] = None
     secondary_pool_id: Optional[int] = None
     secondary_hostgroups: Optional[List[TrueCopyHostGroupSpec]] = None
+    secondary_iscsi_targets: Optional[List[TrueCopyHostGroupSpec]] = None
     secondary_connection_info: Optional[ConnectionInfo] = None
     secondary_volume_id: Optional[int] = None
     # Making a single hg
@@ -78,6 +80,7 @@ class TrueCopySpec(SingleBaseClass):
     new_volume_size: Optional[str] = None
     begin_secondary_volume_id: Optional[int] = None
     end_secondary_volume_id: Optional[int] = None
+    should_delete_svol: Optional[bool] = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -87,6 +90,13 @@ class TrueCopySpec(SingleBaseClass):
         ):
             self.secondary_hostgroups = [
                 TrueCopyHostGroupSpec(**kwargs.get("secondary_hostgroup"))
+            ]
+        if (
+            "secondary_iscsi_targets" in kwargs
+            and kwargs.get("secondary_iscsi_targets") is not None
+        ):
+            self.secondary_iscsi_targets = [
+                TrueCopyHostGroupSpec(**x) for x in self.secondary_iscsi_targets
             ]
         if (
             "secondary_nvm_subsystem" in kwargs

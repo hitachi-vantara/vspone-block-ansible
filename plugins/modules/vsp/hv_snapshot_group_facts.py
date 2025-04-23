@@ -14,7 +14,6 @@ module: hv_snapshot_group_facts
 short_description: Retrieves snapshot information in units of snapshot groups from Hitachi VSP storage systems.
 description:
   - This module retrieves information about snapshots in units of snapshot groups from Hitachi VSP storage systems.
-  - This module is supported only for C(direct) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snapshot_group_facts.yml)
 version_added: '3.2.0'
@@ -28,7 +27,7 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description: Information about the storage system.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
@@ -42,30 +41,29 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system. Only C(direct) is supported.
+        description: Type of connection to the storage system.
         type: str
         required: false
         choices: ['direct']
         default: 'direct'
-      api_token:
-        description: Value of the lock token to operate on locked resources.
-        type: str
-        required: false
   spec:
-    description: Specification for the snapshot facts to be gathered.
+    description: Specification for the snapshot group facts to be gathered.
     type: dict
     required: false
     suboptions:
@@ -76,13 +74,12 @@ options:
 """
 
 EXAMPLES = """
-- name: Gather snapshot facts with primary volume and mirror unit ID for direct connection type
+- name: Gather snapshot facts with primary volume and mirror unit ID
   hitachivantara.vspone_block.vsp.hv_snapshot_group_facts:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     spec:
       snapshot_group_name: 'NewNameSPG'
 """
@@ -181,6 +178,10 @@ ansible_facts:
               description: Indicates if the snapshot can cascade.
               type: bool
               sample: true
+            retention_period:
+              description: Retention period for the snapshot.
+              type: int
+              sample: 60
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -188,9 +189,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPSnapshotArguments,
     VSPParametersManager,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_snapshot_reconciler import (
     VSPHtiSnapshotReconciler,
@@ -203,9 +201,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -235,15 +230,6 @@ class VSPHtiSnapshotGrpFactManager:
         registration_message = validate_ansible_product_registration()
 
         try:
-            if (
-                self.params_manager.connection_info.connection_type
-                == ConnectionTypes.GATEWAY
-            ):
-                err_msg = ModuleMessage.NOT_SUPPORTED_FOR_GW.value
-                self.logger.writeError(f"{err_msg}")
-                self.logger.writeInfo("=== End of Snapshot Group Facts ===")
-                self.module.fail_json(msg=err_msg)
-
             snapshot_data = VSPHtiSnapshotReconciler(
                 self.connection_info, self.storage_serial_number
             ).get_snapshot_facts(self.spec)

@@ -21,6 +21,19 @@ class GetShadowImageSpec:
 
 
 @dataclass
+class HostGroupInfo(SingleBaseClass):
+    port: str = None
+    name: str = None
+
+    def __init__(self, **kwargs):
+        self.name = kwargs.get("name")
+        self.port = kwargs.get("port")
+
+    def to_dict(self):
+        return asdict(self)
+
+
+@dataclass
 class VSPShadowImagePairInfo(SingleBaseClass):
     copyGroupName: Optional[str] = None
     copyPairName: Optional[str] = None
@@ -42,6 +55,8 @@ class VSPShadowImagePairInfo(SingleBaseClass):
     subscriberId: Optional[str] = None
     pvolNvmSubsystemName: Optional[str] = None
     svolNvmSubsystemName: Optional[str] = None
+    pvolHostGroups: Optional[List[HostGroupInfo]] = None
+    svolHostGroups: Optional[List[HostGroupInfo]] = None
     __pvolMuNumber: Optional[int] = None
 
     def __init__(self, **kwargs):
@@ -69,6 +84,7 @@ class ShadowImagePairSpec:
     svol: Optional[int] = None
     auto_split: Optional[bool] = None
     new_consistency_group: Optional[bool] = None
+    is_new_group_creation: Optional[bool] = None
     consistency_group_id: Optional[int] = None
     copy_pace_track_size: Optional[str] = None
     enable_quick_mode: Optional[bool] = None
@@ -80,6 +96,11 @@ class ShadowImagePairSpec:
     secondary_volume_id: Optional[int] = None
     allocate_new_consistency_group: Optional[bool] = None
     secondary_pool_id: Optional[int] = None
+    copy_group_name: Optional[str] = None
+    copy_pair_name: Optional[str] = None
+    primary_volume_device_group_name: Optional[str] = None
+    secondary_volume_device_group_name: Optional[str] = None
+    should_delete_svol: Optional[bool] = None
 
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():

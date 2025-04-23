@@ -13,16 +13,15 @@ DOCUMENTATION = """
 module: hv_resource_group
 short_description: Manages resource groups on Hitachi VSP storage systems.
 description:
-    - This module allows the creation and deletion of resource groups on Hitachi VSP storage systems.
-    - It also enables adding or removing various types of resources to/from the resource group.
-    - This module is supported for both C(direct) and C(gateway) connection types.
-    - For C(direct) connection type examples, go to URL
-      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/resource_group.yml)
-    - For C(gateway) connection type examples, go to URL
-      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/resource_group.yml)
-version_added: '3.2.0'
+  - This module allows the creation and deletion of resource groups on Hitachi
+    VSP storage systems.
+  - It also enables adding or removing various types of resources to/from the
+    resource group.
+  - For examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/resource_group.yml)
+version_added: 3.2.0
 author:
-    - Hitachi Vantara LTD (@hitachi-vantara)
+  - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
   - python >= 3.8
 attributes:
@@ -30,149 +29,184 @@ attributes:
     description: Determines if the module should run in check mode.
     support: none
 options:
-    state:
-        description: The desired state of the resource group task.
+  state:
+    description: The desired state of the resource group task.
+    type: str
+    required: false
+    choices:
+      - present
+      - absent
+    default: present
+  storage_system_info:
+    description: Information about the storage system. This field is an optional field.
+    type: dict
+    required: false
+    suboptions:
+      serial:
+        description: The serial number of the storage system.
         type: str
         required: false
-        choices: ['present', 'absent']
-        default: 'present'
-    storage_system_info:
-        description:
-            - Information about the storage system.  This field is required for gateway connection type only.
-        type: dict
+  connection_info:
+    description: Information required to establish a connection to the storage system.
+    type: dict
+    required: true
+    suboptions:
+      address:
+        description: IP address or hostname of the storage system.
+        type: str
+        required: true
+      username:
+        description: Username for authentication. This is a required field.
+        type: str
         required: false
+      password:
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
+        type: str
+        required: false
+      connection_type:
+        description: Type of connection to the storage system.
+        type: str
+        required: false
+        choices: ['direct']
+        default: 'direct'
+  spec:
+    description: Specification for the resource group.
+    type: dict
+    required: true
+    suboptions:
+      name:
+        description: The name of the resource group.
+        type: str
+        required: false
+      id:
+        description: The ID of the resource group.
+        type: int
+        required: false
+      virtual_storage_serial:
+        description: Virtual storage serial number associated with the resource group.
+        type: str
+        required: false
+      virtual_storage_model:
+        description: Virtual storage model name associated with the resource group.
+        type: str
+        required: false
+        choices:
+          - VSP_5100H
+          - VSP_5200H
+          - VSP_5500H
+          - VSP_5600H
+          - VSP_5100
+          - VSP_5200
+          - VSP_5500
+          - VSP_5600
+          - VSP_E1090
+          - VSP_E590
+          - VSP_E790
+          - VSP_E990
+          - VSP_F350
+          - VSP_F370
+          - VSP_F400
+          - VSP_F600
+          - VSP_F700
+          - VSP_F800
+          - VSP_F900
+          - VSP_G130
+          - VSP_G150
+          - VSP_G200
+          - VSP_G350
+          - VSP_G370
+          - VSP_G400
+          - VSP_G600
+          - VSP_G700
+          - VSP_G800
+          - VSP_G900
+          - VSP_ONE_B28
+          - VSP_ONE_B26
+          - VSP_ONE_B24
+          - VSP_E790H
+          - VSP_E590H
+          - VSP_G1000
+          - VSP_G1500
+          - VSP_F1500
+          - VSP_E1090H
+      ldevs:
+        description: List of LDEVs to be added or removed from the resource group.
+        type: list
+        required: false
+        elements: int
+      ports:
+        description: List of ports to be added or removed from the resource group.
+        type: list
+        required: false
+        elements: str
+      parity_groups:
+        description: List of parity groups to be added or removed from the resource group.
+        type: list
+        required: false
+        elements: str
+      host_groups:
+        description: List of host groups to be added or removed from the resource group.
+        type: list
+        required: false
+        elements: dict
         suboptions:
-            serial:
-                description: The serial number of the storage system.
-                type: str
-                required: false
-    connection_info:
-        description: Information required to establish a connection to the storage system.
-        type: dict
-        required: true
+          name:
+            description: Name of the host group.
+            type: str
+            required: true
+          port:
+            description: Port name associated with the host group.
+            type: str
+            required: true
+      iscsi_targets:
+        description: List of iSCSI targets to be added or removed from the resource group.
+        type: list
+        required: false
+        elements: dict
         suboptions:
-            address:
-                description: IP address or hostname of the UAI gateway (for C(gateway) connection)
-                    or the storage system (for C(direct) connection).
-                type: str
-                required: true
-            username:
-                description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
-                type: str
-                required: false
-            password:
-                description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
-                type: str
-                required: false
-            connection_type:
-                description: Type of connection to the storage system.
-                type: str
-                required: false
-                choices: ['gateway', 'direct']
-                default: 'direct'
-            api_token:
-                description: Either Token value to access UAI gateway for C(gateway) connection type or
-                    value of the lock token to operate on locked resources for C(direct) connection type.
-                type: str
-                required: false
-    spec:
-        description: Specification for the resource group.
-        type: dict
-        required: true
-        suboptions:
-            name:
-                description: The name of the resource group.
-                type: str
-                required: false
-            id:
-                description: The ID of the resource group.
-                type: int
-                required: false
-            virtual_storage_serial:
-                description: Virtual storage serial number associated with the resource group.
-                type: str
-                required: false
-            virtual_storage_model:
-                description: Virtual storage model name associated with the resource group.
-                type: str
-                required: false
-                choices: ['VSP_5100H', 'VSP_5200H', 'VSP_5500H', 'VSP_5600H', 'VSP_5100', 'VSP_5200', 'VSP_5500', 'VSP_5600',
-                           'VSP_E1090', 'VSP_E590', 'VSP_E790', 'VSP_E990', 'VSP_F350', 'VSP_F370', 'VSP_F400', 'VSP_F600',
-                           'VSP_F700', 'VSP_F800', 'VSP_F900', 'VSP_G130', 'VSP_G150', 'VSP_G200', 'VSP_G350',
-                           'VSP_G370', 'VSP_G400', 'VSP_G600', 'VSP_G700', 'VSP_G800', 'VSP_G900',
-                           'VSP_ONE_B28', 'VSP_ONE_B26', 'VSP_ONE_B24', 'VSP_E790H', 'VSP_E590H',
-                           'VSP_G1000', 'VSP_G1500', 'VSP_F1500', 'VSP_E1090H']
-            ldevs:
-                description: List of LDEVs to be added or removed from the resource group.
-                type: list
-                required: false
-                elements: int
-            ports:
-                description: List of ports to be added or removed from the resource group.
-                type: list
-                required: false
-                elements: str
-            parity_groups:
-                description: List of parity groups to be added or removed from the resource group.
-                type: list
-                required: false
-                elements: str
-            host_groups:
-                description: List of host groups to be added or removed from the resource group.
-                type: list
-                required: false
-                elements: dict
-                suboptions:
-                    name:
-                        description: Name of the host group.
-                        type: str
-                        required: true
-                    port:
-                        description: Port name associated with the host group.
-                        type: str
-                        required: true
-            iscsi_targets:
-                description: List of iSCSI targets to be added or removed from the resource group.
-                type: list
-                required: false
-                elements: dict
-                suboptions:
-                    name:
-                        description: Name of the iSCSI target.
-                        type: str
-                        required: true
-                    port:
-                        description: Port name associated with the iSCSI target.
-                        type: str
-                        required: true
-            nvm_subsystem_ids:
-                description: List of NVM subsystem IDs to be added or removed from the resource group. This is supported only for C(direct) connection type.
-                type: list
-                required: false
-                elements: int
-            storage_pool_ids:
-                description: Pool volumes to be added or removed from the resource group.
-                type: list
-                required: false
-                elements: int
-            state:
-                description:
-                    - Operation to be performed on the resources in the resource group.
-                    - C(add_resource) -  To add resources to the resource group.
-                    - C(remove_resource) - To remove resources from the resource group.
-                type: str
-                required: false
-                choices: ['add_resource', 'remove_resource']
-                default: 'add_resource'
-            force:
-                description: For delete operations, specifies if the operation should be forced.
-                type: bool
-                required: false
-                default: false
+          name:
+            description: Name of the iSCSI target.
+            type: str
+            required: true
+          port:
+            description: Port name associated with the iSCSI target.
+            type: str
+            required: true
+      nvm_subsystem_ids:
+        description: List of NVM subsystem IDs to be added or removed from the resource group.
+        type: list
+        required: false
+        elements: int
+      storage_pool_ids:
+        description: Pool volumes to be added or removed from the resource group.
+        type: list
+        required: false
+        elements: int
+      state:
+        description:
+          - Operation to be performed on the resources in the resource group.
+          - C(add_resource) -  To add resources to the resource group.
+          - C(remove_resource) - To remove resources from the resource group.
+        type: str
+        required: false
+        choices:
+          - add_resource
+          - remove_resource
+        default: add_resource
+      force:
+        description: For delete operations, specifies if the operation should be forced.
+        type: bool
+        required: false
+        default: false
+
 """
 
 EXAMPLES = """
-- name: Create a Resource Group with virtual storage serial number of VSM for direct connection type
+- name: Create a Resource Group with virtual storage serial number of VSM
   hitachivantara.vspone_block.vsp.hv_resource_group:
     connection_info:
       address: storage1.company.com
@@ -183,7 +217,7 @@ EXAMPLES = """
       virtual_storage_serial: "69200"
       virtual_storage_model: "VSP G370"
 
-- name: Get Resource Group by name for direct connection type
+- name: Get Resource Group by name
   hitachivantara.vspone_block.vsp.hv_resource_group:
     connection_info:
       address: storage1.company.com
@@ -192,7 +226,7 @@ EXAMPLES = """
     spec:
       name: "my_resource_group"
 
-- name: Create a Resource Group with LDEVs, parity groups, ports, and host groups for direct connection type
+- name: Create a Resource Group with LDEVs, parity groups, ports, and host groups
   hitachivantara.vspone_block.vsp.hv_resource_group:
     connection_info:
       address: storage1.company.com
@@ -208,23 +242,24 @@ EXAMPLES = """
         - port: "CL1-A"
           name: "my_host_group_2"
 
-- name: Add resources to an existing Resource Group by ID for direct connection type
+- name: Add resources to an existing Resource Group by ID
   hitachivantara.vspone_block.vsp.hv_resource_group:
     connection_info:
-      address: storage1.company.com
-      username: "admin"
-      password: "secret"
+    address: storage1.company.com
+    username: "admin"
+    password: "secret"
     spec:
-      state: add_resource
-      id: 4
-      ldevs: [3, 4]
-      host_groups:
-        - port: "CL1-A"
-          name: "my_host_group_3"
-      iscsi_targets:
-        - port: "CL1-C"
-          name: "my_iscsi_target_2"
-- name: Remove resources from an existing Resource Group by ID for direct connection type
+    state: add_resource
+    id: 4
+    ldevs: [3, 4]
+    host_groups:
+      - port: "CL1-A"
+        name: "my_host_group_3"
+    iscsi_targets:
+      - port: "CL1-C"
+        name: "my_iscsi_target_2"
+
+- name: Remove resources from an existing Resource Group by ID
   hitachivantara.vspone_block.vsp.hv_resource_group:
     connection_info:
       address: storage1.company.com
@@ -277,35 +312,35 @@ resource_groups:
             type: list
             elements: dict
             contains:
-                id:
-                    description: The ID of the host group.
-                    type: int
-                    sample: 1
-                name:
-                    description: The name of the host group.
-                    type: str
-                    sample: "my_host_group_1"
-                port:
-                    description: The port name associated with the host group.
-                    type: str
-                    sample: "CL1-A"
+              id:
+                description: The ID of the host group.
+                type: int
+                sample: 1
+              name:
+                description: The name of the host group.
+                type: str
+                sample: "my_host_group_1"
+              port:
+                description: The port name associated with the host group.
+                type: str
+                sample: "CL1-A"
         iscsi_targets:
             description: List of iSCSI targets in the resource group.
             type: list
             elements: dict
             contains:
-                id:
-                    description: The ID of the iSCSI target.
-                    type: int
-                    sample: 1
-                name:
-                    description: The name of the iSCSI target.
-                    type: str
-                    sample: "my_iscsi_target_1"
-                port:
-                    description: The port name associated with the iSCSI target.
-                    type: str
-                    sample: "CL1-C"
+              id:
+                description: The ID of the iSCSI target.
+                type: int
+                sample: 1
+              name:
+                description: The name of the iSCSI target.
+                type: str
+                sample: "my_iscsi_target_1"
+              port:
+                description: The port name associated with the iSCSI target.
+                type: str
+                sample: "CL1-C"
         ldevs:
             description: List of LDEVs in the resource group.
             type: list

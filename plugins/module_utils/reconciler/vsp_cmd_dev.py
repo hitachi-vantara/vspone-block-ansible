@@ -7,6 +7,7 @@ try:
     from ..provisioner.vsp_cmd_dev_provisioner import VSPCmdDevProvisioner
     from ..message.vsp_cmd_dev_msgs import VSPCmdDevValidateMsg
     from .vsp_volume import VSPVolumeReconciler, VolumeCommonPropertiesExtractor
+    from ..model.vsp_volume_models import VolumeFactSpec
 
 
 except ImportError:
@@ -17,6 +18,7 @@ except ImportError:
     from common.hv_constants import StateValue
     from message.vsp_cmd_dev_msgs import VSPCmdDevValidateMsg
     from .vsp_volume import VSPVolumeReconciler, VolumeCommonPropertiesExtractor
+    from ..model.vsp_volume_models import VolumeFactSpec
 
 logger = Log()
 
@@ -51,8 +53,18 @@ class VSPCmdDevReconciler:
             else:
                 self.update_command_device(ldev, spec)
 
-            response = self.vol_recon.get_volume_detail_info(ldev)
+            vol_spec = VolumeFactSpec()
+            vol_spec.query = ["cmd_device_settings"]
+            response = self.vol_recon.get_volume_detail_for_spec(ldev, vol_spec)
             logger.writeDebug("RC:reconcile_cmd_dev:vol_detail={}", response)
+
+            comment = "Command Device is enabled successfully."
+            if response:
+                if self.is_pegasus():
+                    comment = (
+                        comment
+                        + " No command device information is available for VSP One storage system."
+                    )
 
             volume_dict = response.to_dict() if response else {}
             logger.writeDebug("RC:reconcile_cmd_dev:response={}", response)
@@ -60,11 +72,16 @@ class VSPCmdDevReconciler:
                 self.storage_serial_number
             ).extract([volume_dict])[0]
             logger.writeDebug("RC:reconcile_cmd_dev:extracted_data={}", extracted_data)
-            return extracted_data
+            return extracted_data, comment
 
         elif self.state == StateValue.ABSENT:
             self.delete_command_device(spec.ldev_id)
-            return None
+            comment = "Command Device is disabled successfully."
+            return None, comment
+
+    @log_entry_exit
+    def is_pegasus(self):
+        return self.provisioner.is_pegasus()
 
     @log_entry_exit
     def is_command_device(self, ldev):

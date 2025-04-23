@@ -115,9 +115,11 @@ class GatewayClassTypes:
     VSP_REMOTE_STORAGE_REGISTRATION = "vsp_remote_storage_registration"
     VSP_REMOTE_CONNECTION = "vsp_remote_connection"
     VSP_ISCSI_REMOTE_CONNECTION = "vsp_iscsi_remote_connection"
+    VSP_DYNAMIC_POOL = "vsp_dynamic_pool"
 
 
 class VSPHostGroupConstant:
+    PORT_TYPE_ISCSI = "ISCSI"
     PORT_TYPE_FIBRE = "FIBRE"
     PORT_TYPE_FCOE = "FCoE"
     PORT_TYPE_HNASS = "HNASS"

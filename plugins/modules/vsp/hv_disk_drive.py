@@ -13,8 +13,7 @@ DOCUMENTATION = """
 module: hv_disk_drive
 short_description: Changes disk drive settings from Hitachi VSP storage systems.
 description:
-    - This module changes disk drive setiings from Hitachi VSP storage systems.
-    - This module is supported only for C(direct) connection to the storage system.
+    - This module changes disk drive settings from Hitachi VSP storage systems.
     - For examples go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/disk_drive.yml)
 version_added: '3.2.0'
@@ -43,15 +42,15 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
         type: str
         required: false
   spec:
-    description: Specification for the hard drive facts to be gathered.
+    description: Specification for the hard drive tasks.
     type: dict
     required: false
     suboptions:
@@ -66,13 +65,12 @@ options:
 """
 
 EXAMPLES = """
-- name: Change disk drive settings for direct connection type
+- name: Change disk drive settings
   hitachivantara.vspone_block.vsp.hv_disk_drive:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     state: "present"
     spec:
       drive_location_id: "0-16"
@@ -87,7 +85,7 @@ disk_drive:
   elements: dict
   contains:
     copyback_mode:
-      description: Indicates if copy-back mode is enabled.
+      description: Indicates if copy back mode is enabled.
       type: bool
       sample: true
     drive_type:

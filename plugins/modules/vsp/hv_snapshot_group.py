@@ -15,7 +15,6 @@ short_description: Manages snapshots in units of snapshot groups on Hitachi VSP 
 description:
   - This module allows for the deletion, splitting, syncing, and restoring of snapshots on Hitachi VSP storage systems.
   - It supports various snapshot operations based on the specified task level.
-  - This module is supported only for C(direct) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snapshot_group.yml)
 version_added: '3.2.0'
@@ -34,7 +33,7 @@ options:
     required: true
     choices: ['absent', 'split', 'sync', 'restore', 'clone']
   storage_system_info:
-    description: Information about the storage system.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
@@ -48,30 +47,29 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway) ) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication.This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system. Only C(direct) connection type is supported.
+        description: Type of connection to the storage system.
         type: str
         required: false
         choices: ['direct']
         default: 'direct'
-      api_token:
-        description: Value of the lock token to operate on locked resources.
-        type: str
-        required: false
   spec:
-    description: Specification for the snapshot facts to be gathered.
+    description: Specification for the snapshot group tasks.
     type: dict
     required: true
     suboptions:
@@ -83,49 +81,60 @@ options:
         description: Automatically split the snapshot group.
         type: bool
         required: false
+      retention_period:
+        description: Specify the retention period for the snapshot in hours.This can be set when the snapshot status is PSUS.
+        type: int
+        required: false
 """
 
 EXAMPLES = """
-- name: Split snapshots using snapshot group name for direct connection type
+- name: Split snapshots using snapshot group name
   hitachivantara.vspone_block.vsp.hv_snapshot_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     state: split
     spec:
       snapshot_group_name: 'NewNameSPG'
 
-- name: Restore snapshots using snapshot group name for direct connection type
+- name: Split and set the retention period of the snapshot using group id
   hitachivantara.vspone_block.vsp.hv_snapshot_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
+    state: split
+    spec:
+      snapshot_group_name: 'NewNameSPG'
+      retention_period: 60
+
+- name: Restore snapshots using snapshot group name
+  hitachivantara.vspone_block.vsp.hv_snapshot_group:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     state: restore
     spec:
       snapshot_group_name: 'NewNameSPG'
 
-- name: Resync snapshots using snapshot group name for direct connection type
+- name: Resync snapshots using snapshot group name
   hitachivantara.vspone_block.vsp.hv_snapshot_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     state: sync
     spec:
       snapshot_group_name: 'NewNameSPG'
 
-- name: Delete snapshots using snapshot group name for direct connection type
+- name: Delete snapshots using snapshot group name
   hitachivantara.vspone_block.vsp.hv_snapshot_group:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
     state: absent
     spec:
       snapshot_group_name: 'NewNameSPG'
@@ -220,6 +229,10 @@ snapshots:
           description: Indicates if the snapshot can cascade.
           type: bool
           sample: true
+        retention_period:
+          description: Retention period for the snapshot.
+          type: int
+          sample: 60
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -230,9 +243,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     operation_constants,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_snapshot_reconciler import (
     VSPHtiSnapshotReconciler,
@@ -245,9 +255,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -278,14 +285,6 @@ class VSPHtiSnapshotGroupManager:
         registration_message = validate_ansible_product_registration()
 
         try:
-            if (
-                self.params_manager.connection_info.connection_type
-                == ConnectionTypes.GATEWAY
-            ):
-                err_msg = ModuleMessage.NOT_SUPPORTED_FOR_GW.value
-                self.logger.writeError(f"{err_msg}")
-                self.logger.writeInfo("=== End of Snapshot Group operation ===")
-                self.module.fail_json(msg=err_msg)
             snapshot_data = VSPHtiSnapshotReconciler(
                 self.connection_info, self.storage_serial_number
             ).snapshot_group_id_reconcile(self.spec, self.state)

@@ -10,8 +10,8 @@ try:
         ExternalVolumeFactSpec,
     )
     from ..common.hv_constants import StateValue
-
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
+    from ..message.vsp_external_volume_msgs import VSPSExternalVolumeValidateMsg
 
 except ImportError:
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
@@ -26,6 +26,7 @@ except ImportError:
         ExternalVolumeFactSpec,
     )
     from common.hv_constants import StateValue
+    from message.vsp_external_volume_msgs import VSPSExternalVolumeValidateMsg
 
 
 class VSPExternalVolumeReconciler:
@@ -33,9 +34,10 @@ class VSPExternalVolumeReconciler:
     def __init__(self, connection_info, serial=None):
         self.connection_info = connection_info
         if serial is None:
-            serial = self.get_storage_serial_number()
-        self.provisioner = VSPExternalVolumeProvisioner(self.connection_info, serial)
-        self.serial = self.provisioner.check_ucp_system(serial)
+            self.serial = self.get_storage_serial_number()
+        self.provisioner = VSPExternalVolumeProvisioner(
+            self.connection_info, self.serial
+        )
 
     def get_storage_serial_number(self):
         storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
@@ -48,8 +50,10 @@ class VSPExternalVolumeReconciler:
         state = state.lower()
 
         if state == StateValue.PRESENT:
+            self.validate_create_spec(spec)
             return self.provisioner.create_external_volume_by_spec(spec)
-        else:
+        elif state == StateValue.ABSENT:
+            self.validate_delete_spec(spec)
             return self.provisioner.delete_external_volume_by_spec(spec)
 
     @log_entry_exit
@@ -58,3 +62,20 @@ class VSPExternalVolumeReconciler:
         if rsp is None:
             rsp = []
         return rsp
+
+    @log_entry_exit
+    def validate_create_spec(self, spec: ExternalVolumeSpec):
+        if (
+            spec is None
+            # or spec.ldev_id is None
+            or spec.external_storage_serial is None
+            or spec.external_ldev_id is None
+        ):
+            raise ValueError(VSPSExternalVolumeValidateMsg.REQUIRED_FOR_CREATE.value)
+
+    @log_entry_exit
+    def validate_delete_spec(self, spec: ExternalVolumeSpec):
+        if spec is None or spec.ldev_id is None:
+            raise ValueError(
+                VSPSExternalVolumeValidateMsg.LDEV_REQUIRED_FOR_DELETE.value
+            )

@@ -243,52 +243,7 @@ class VSPResourceGroupReconciler:
 
     @log_entry_exit
     def update_add_resource(self, rg, spec):
-        if self.connection_info.connection_type.lower() == ConnectionTypes.GATEWAY:
-            self.update_add_resource_gateway(rg, spec)
-        else:
-            self.update_add_resource_direct(rg, spec)
-
-    @log_entry_exit
-    def update_add_resource_gateway(self, rg, spec):
-        logger.writeDebug("RC:update_add_resource:gw spec={} rg={}", spec, rg)
-        if spec.ldevs:
-            ldevs_to_add = None
-            if rg.volumes:
-                ldevs_to_add = list(set(spec.ldevs) - set(rg.volumes))
-                spec.ldevs = ldevs_to_add
-        if spec.host_groups:
-            if rg.hostGroups:
-                hg_to_add = [
-                    hg
-                    for hg in spec.host_groups
-                    if hg.get("name")
-                    not in [rg_hg.get("hostGroupName") for rg_hg in rg.hostGroups]
-                ]
-                spec.host_groups = hg_to_add
-        if spec.iscsi_targets:
-            if rg.iscsiTargets:
-                iscsi_targets_to_add = [
-                    iscsi
-                    for iscsi in spec.iscsi_targets
-                    if iscsi.get("name")
-                    not in [rg_iscsi.get("iscsiName") for rg_iscsi in rg.iscsiTargets]
-                ]
-                spec.iscsi_targets = iscsi_targets_to_add
-        if spec.parity_groups:
-            if rg.parityGroups:
-                parity_groups_to_add = list(
-                    set(spec.parity_groups) - set(rg.parityGroups)
-                )
-                spec.parity_groups = parity_groups_to_add
-        if spec.ports:
-            if rg.ports:
-                ports_to_add = list(set(spec.ports) - set(rg.ports))
-                spec.ports = ports_to_add
-        if spec.storage_pool_ids:
-            if rg.ports:
-                ports_to_add = list(set(spec.ports) - set(rg.pools))
-                spec.ports = ports_to_add
-        self.add_resource(rg, spec)
+        self.update_add_resource_direct(rg, spec)
 
     @log_entry_exit
     def update_add_resource_direct(self, rg, spec):
@@ -340,6 +295,7 @@ class VSPResourceGroupReconciler:
 
     @log_entry_exit
     def fix_host_groups_for_add(self, rg, spec):
+        host_groups_to_add = None
         if spec.host_groups:
             hg_list = self.construct_simple_hg_list(spec)
             logger.writeDebug(
@@ -466,37 +422,18 @@ class VSPResourceGroupReconciler:
     def add_resource(self, rg, spec):
         if not self.provisioner.is_update_needed(spec):
             return
-
-        if self.connection_info.connection_type.lower() == ConnectionTypes.DIRECT:
-            self.fix_host_groups_for_add(rg, spec)
-            self.fix_ldevs_for_add(rg, spec)
+        self.fix_host_groups_for_add(rg, spec)
+        self.fix_ldevs_for_add(rg, spec)
         rg_id = self.provisioner.add_resource(rg, spec)
 
-        if self.connection_info.connection_type.lower() == ConnectionTypes.GATEWAY:
-            retry_count = 0
-            while retry_count < MAX_RETRY_COUNT:
-                time.sleep(30)
-                logger.writeDebug(f"try number {retry_count + 1}")
-                new_rg = self.provisioner.get_resource_group_by_id(rg_id)
-                logger.writeDebug(f"new_rg={new_rg}")
-                if self.is_resource_group_changed(rg, new_rg):
-                    break
-                else:
-                    retry_count += 1
-            if retry_count == MAX_RETRY_COUNT:
-                err_msg = VSPResourceGroupValidateMsg.UPDATED_RG_INFO_NOT_RCVD.value
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
         return rg_id
 
     @log_entry_exit
     def remove_resource(self, rg, spec):
         if not self.provisioner.is_update_needed(spec):
             return
-
-        if self.connection_info.connection_type.lower() == ConnectionTypes.DIRECT:
-            self.fix_host_groups_for_remove(rg, spec)
-            self.fix_ldevs_for_remove(rg, spec)
+        self.fix_host_groups_for_remove(rg, spec)
+        self.fix_ldevs_for_remove(rg, spec)
 
         logger.writeDebug("RC:remove_resource:spec={}", spec)
         rg_id = self.provisioner.remove_resource(rg, spec)
@@ -506,23 +443,6 @@ class VSPResourceGroupReconciler:
         if rg_id is None:
             return
 
-        if self.connection_info.connection_type.lower() == ConnectionTypes.GATEWAY:
-            retry_count = 0
-            while retry_count < MAX_RETRY_COUNT:
-                time.sleep(30)
-                logger.writeDebug(f"try number {retry_count + 1}")
-                new_rg = self.provisioner.get_resource_group_by_id(rg_id)
-                logger.writeDebug(f"new_rg={new_rg}")
-                if self.is_resource_group_changed(rg, new_rg):
-                    break
-                else:
-                    retry_count += 1
-            if retry_count == MAX_RETRY_COUNT:
-                err_msg = VSPResourceGroupValidateMsg.UPDATED_RG_INFO_NOT_RCVD.value
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-            # Wait for 1 minute for the resource group to be updated
-            # time.sleep(60)
         return rg_id
 
     @log_entry_exit
@@ -557,10 +477,6 @@ class VSPResourceGroupReconciler:
         ret_value = self.provisioner.delete_resource_group_force(resource_group)
         logger.writeDebug("RC:delete_resource_group_force:ret_value={}", ret_value)
         return "Resource group deleted successfully."
-
-    @log_entry_exit
-    def is_out_of_band(self):
-        return self.provisioner.is_out_of_band()
 
 
 class ResourceGroupInfoExtractor:

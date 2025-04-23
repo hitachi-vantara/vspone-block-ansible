@@ -4,13 +4,10 @@ import time
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
-    from ..common.uaig_utils import UAIGResourceID
     from ..common.hv_constants import ConnectionTypes
     from ..common.hv_log import Log
     from ..common.ansible_common import (
         log_entry_exit,
-        camel_dict_to_snake_case,
-        convert_block_capacity,
         convert_decimal_size_to_bytes,
     )
     from ..model.vsp_hur_models import VSPHurPairInfoList
@@ -25,13 +22,10 @@ try:
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
-    from common.uaig_utils import UAIGResourceID
     from common.hv_constants import ConnectionTypes
     from common.hv_log import Log
     from common.ansible_common import (
         log_entry_exit,
-        camel_dict_to_snake_case,
-        convert_block_capacity,
         convert_decimal_size_to_bytes,
     )
     from model.vsp_hur_models import VSPHurPairInfoList
@@ -58,9 +52,6 @@ class VSPHurProvisioner:
         self.cg_gw = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_COPY_GROUPS
         )
-        self.config_gw = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.VSP_CONFIG_MAP
-        )
         self.connection_info = connection_info
         self.serial = serial
         self.gateway.set_storage_serial_number(serial)
@@ -82,21 +73,12 @@ class VSPHurProvisioner:
         #  filter all hur by the storage serial
         #  in either primary or secondary storage
         ret_list = []
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            for rp in all_rep_pairs.data:
-                # self.logger.writeDebug(f"58 rp ={rp}")
-                if serial:
-                    if str(serial) == str(rp.primaryVolumeStorageId) or str(
-                        serial
-                    ) == str(rp.secondaryVolumeStorageId):
-                        ret_list.append(rp)  # 20240805
-        else:
-            for rp in all_rep_pairs.data:
-                if serial:
-                    if str(serial) == str(rp.serialNumber) or str(serial) == str(
-                        rp.remoteSerialNumber
-                    ):
-                        ret_list.append(rp)
+        for rp in all_rep_pairs.data:
+            if serial:
+                if str(serial) == str(rp.serialNumber) or str(serial) == str(
+                    rp.remoteSerialNumber
+                ):
+                    ret_list.append(rp)
         return VSPHurPairInfoList(ret_list)
 
     @log_entry_exit
@@ -320,43 +302,18 @@ class VSPHurProvisioner:
         all_hurpairs = self.get_replication_pair_info_list()
 
         # 20240808 - one pvol can have 3 pairs, this only returns the first pair
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            for tc in all_hurpairs.data:
-                if tc.primaryVolumeId == primary_vol_id:
-                    return tc
-        else:
-            for tc in all_hurpairs.data:
-                if tc.ldevId == primary_vol_id:
-                    return tc
-        return None
-
-    @log_entry_exit
-    def get_hur_for_secondary_vol_id(self, vol_id):
-        all_hurpairs = self.get_replication_pair_info_list()
-
-        # 20240808 - one pvol can have 3 pairs, this only returns the first pair
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            for tc in all_hurpairs.data:
-                if tc.secondaryVolumeId == vol_id:
-                    return tc
+        for tc in all_hurpairs.data:
+            if tc.ldevId == primary_vol_id:
+                return tc
         return None
 
     # 20240808 - get_hur_by_pvol_mirror, mirror id support
     @log_entry_exit
     def get_hur_by_pvol_mirror(self, primary_vol_id, mirror_unit_id):
         all_hurpairs = self.get_replication_pair_info_list()
-
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            for tc in all_hurpairs.data:
-                if (
-                    tc.primaryVolumeId == primary_vol_id
-                    and tc.mirrorUnitId == mirror_unit_id
-                ):
-                    return tc
-        else:
-            for tc in all_hurpairs.data:
-                if tc.ldevId == primary_vol_id and tc.muNumber == mirror_unit_id:
-                    return tc
+        for tc in all_hurpairs.data:
+            if tc.ldevId == primary_vol_id and tc.muNumber == mirror_unit_id:
+                return tc
 
         return None
 
@@ -371,25 +328,14 @@ class VSPHurProvisioner:
         all_hurpairs = self.get_replication_pair_info_list()
         self.logger.writeDebug(f"all_hurpairs={all_hurpairs}")
 
-        # 20240812 - get_hur_facts_ext
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            result = [
-                ssp
-                for ssp in all_hurpairs.data
-                if (pvol is None or ssp.primaryVolumeId == pvol)
-                and (svol is None or ssp.secondaryVolumeId == svol)
-                and (mirror_unit_id is None or ssp.mirrorUnitId == mirror_unit_id)
-            ]
-            self.logger.writeDebug(f"result={result}")
-        else:
-            result = [
-                ssp
-                for ssp in all_hurpairs.data
-                if (pvol is None or ssp.ldevId == pvol or ssp.remoteLdevId == pvol)
-                and (svol is None or ssp.remoteLdevId == svol or ssp.ldevId == svol)
-                and (mirror_unit_id is None or ssp.muNumber == mirror_unit_id)
-            ]
-            self.logger.writeDebug(f"result={result}")
+        result = [
+            ssp
+            for ssp in all_hurpairs.data
+            if (pvol is None or ssp.ldevId == pvol or ssp.remoteLdevId == pvol)
+            and (svol is None or ssp.remoteLdevId == svol or ssp.ldevId == svol)
+            and (mirror_unit_id is None or ssp.muNumber == mirror_unit_id)
+        ]
+        self.logger.writeDebug(f"result={result}")
 
         return VSPHurPairInfoList(data=result)
         # return result
@@ -425,363 +371,115 @@ class VSPHurProvisioner:
     def get_replication_pair_by_id(self, pair_id):
         pairs = self.get_all_replication_pairs(self.serial)
         for pair in pairs.data:
-            if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-                if pair.resourceId == pair_id:
-                    return pair
-            else:
-                if pair.serialNumber == pair_id:
-                    return pair
+            if pair.serialNumber == pair_id:
+                return pair
         return None
 
     # 20240808 delete_hur_pair
     @log_entry_exit
     def delete_hur_pair(self, primary_volume_id, mirror_unit_id, spec=None):
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            self.connection_info.changed = False
-            comment = None
-            tc = self.get_hur_by_pvol_mirror(primary_volume_id, mirror_unit_id)
-            if tc is None:
-                # 20240908 delete_hur_pair Idempotent
-                comment = (
-                    VSPHurValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
-                        primary_volume_id
-                    )
+        pair_exiting = self.gateway.get_replication_pair(spec)
+        if pair_exiting is None:
+            return VSPHurValidateMsg.NO_HUR_PAIR_FOUND.value.format(spec.copy_pair_name)
+        if spec.copy_group_name and spec.copy_pair_name:
+            pair_id = self.gateway.delete_hur_pair_by_pair_id(spec)
+            if spec.should_delete_svol is True:
+                spec.secondary_volume_id = pair_exiting["svol_ldev_id"]
+                rr_prov = RemoteReplicationHelperForSVol(
+                    spec.secondary_connection_info,
+                    self.gateway.get_secondary_serial(spec),
                 )
-                return tc, comment
-            if primary_volume_id is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_DELETION_FAILED.value
-                    + VSPHurValidateMsg.PRIMARY_VOLUME_ID.value
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-            if mirror_unit_id is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_DELETION_FAILED.value
-                    + VSPHurValidateMsg.MIRROR_UNIT_ID.value
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-            device_id = UAIGResourceID().storage_resourceId(self.serial)
-            hurpair_id = tc.resourceId
-            self.logger.writeDebug(f"device_id: {device_id}")
-            self.logger.writeDebug(f"hurpair_id: {hurpair_id}")
+                rr_prov.delete_volume_and_all_mappings(spec.secondary_volume_id)
             self.connection_info.changed = True
-            return self.gateway.delete_hur_pair(device_id, hurpair_id)
-        else:
-            pair_exiting = self.gateway.get_replication_pair(spec)
-            if pair_exiting is None:
-                return VSPHurValidateMsg.NO_HUR_PAIR_FOUND.value.format(
-                    spec.copy_pair_name
-                )
-            if spec.copy_group_name and spec.copy_pair_name:
-                self.connection_info.changed = True
-                return self.gateway.delete_hur_pair_by_pair_id(spec)
+            return None
 
     @log_entry_exit
     def resync_hur_pair(self, primary_volume_id, mirror_unit_id, spec=None):
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            tc = self.get_hur_by_pvol_mirror(primary_volume_id, mirror_unit_id)
-            self.connection_info.changed = False
-            if tc is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_RESYNC_FAILED.value
-                    + VSPHurValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
-                        primary_volume_id
-                    )
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-
-            comment = None
-            if tc.status == "PAIR":
-                comment = VSPHurValidateMsg.NO_RESYNC_NEEDED.value.format(
-                    tc.primaryVolumeId,
-                    tc.primaryVolumeStorageId,
-                    tc.secondaryVolumeId,
-                    tc.secondaryVolumeStorageId,
-                )
-                return camel_dict_to_snake_case(tc.to_dict()), comment
-
-            if primary_volume_id is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_RESYNC_FAILED.value
-                    + VSPHurValidateMsg.PRIMARY_VOLUME_ID.value
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-            if mirror_unit_id is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_RESYNC_FAILED.value
-                    + VSPHurValidateMsg.MIRROR_UNIT_ID.value
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-            device_id = UAIGResourceID().storage_resourceId(self.serial)
-            tc_pair_id = tc.resourceId
-            rep_pair_id = self.gateway.resync_hur_pair(device_id, tc_pair_id)
-            self.logger.writeDebug(f"rep_pair_id: {rep_pair_id}")
-            self.connection_info.changed = True
-            info = self.get_replication_pair_by_id(rep_pair_id)
-            self.logger.writeDebug(f"info: {info}")
-            info = info.to_dict()
-            self.logger.writeDebug(f"info: {info}")
-            return camel_dict_to_snake_case(info), comment
-            # return info, comment
-        else:
-            pair_exiting = self.gateway.get_replication_pair(spec)
-            if (
-                pair_exiting["pvol_status"] == "PAIR"
-                and pair_exiting["svol_status"] == "PAIR"
-            ):
-                return pair_exiting
-            pair_id = self.gateway.resync_hur_pair(spec)
-            self.logger.writeDebug(f"PV:resync_hur_pair: pair_id=  {pair_id}")
-            pair = self.gateway.get_replication_pair(spec)
-            self.connection_info.changed = True
-            return pair
+        pair_exiting = self.gateway.get_replication_pair(spec)
+        if (
+            pair_exiting["pvol_status"] == "PAIR"
+            and pair_exiting["svol_status"] == "PAIR"
+        ):
+            return pair_exiting
+        pair_id = self.gateway.resync_hur_pair(spec)
+        self.logger.writeDebug(f"PV:resync_hur_pair: pair_id=  {pair_id}")
+        pair = self.gateway.get_replication_pair(spec)
+        self.connection_info.changed = True
+        return pair
 
     @log_entry_exit
     def swap_resync_hur_pair(self, primary_volume_id, spec=None):
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            tc = self.get_hur_for_secondary_vol_id(primary_volume_id)
-            if tc is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_SWAP_RESYNC_FAILED.value
-                    + VSPHurValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
-                        primary_volume_id
-                    )
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-
-            if primary_volume_id is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_SWAP_RESYNC_FAILED.value
-                    + VSPHurValidateMsg.PRIMARY_VOLUME_ID.value
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-
-            # sng20241218 - swap here for now until operator rework is done
-            logger.writeDebug(f"PV:sng20241218 507: spec=  {spec}")
-            device_id = UAIGResourceID().storage_resourceId(
-                spec.secondary_storage_serial_number
-            )
-            self.gateway.resource_id = device_id
-            logger.writeDebug(f"PV:sng20241218 507: device_id=  {device_id}")
-
-            # fetch the pair to get the resourceId
-            logger.writeDebug(f"PV:sng20241218 507: pair=  {tc}")
-            pair = self.get_hur_for_secondary_vol_id(tc.secondaryVolumeId)
-            logger.writeDebug(f"PV:sng20241218 507: pair=  {pair}")
-            if pair is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_SWAP_RESYNC_FAILED.value
-                    + VSPHurValidateMsg.HUR_PAIR_NOT_FOUND_SIMPLE.value
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-
-            secondaryVolumeId = tc.secondaryVolumeId
-            rep_pair_id = self.gateway.swap_resync_hur_pair(device_id, pair.resourceId)
-            self.logger.writeDebug(
-                f"PV:sng20241218 507: pair.resourceId=  {pair.resourceId}"
-            )
-            self.logger.writeDebug(
-                f"PV:sng20241218 507: secondaryVolumeId=  {secondaryVolumeId}"
-            )
-            self.logger.writeDebug(f"PV:sng20241218 507: rep_pair_id=  {rep_pair_id}")
-            self.connection_info.changed = True
-            self.serial = spec.secondary_storage_serial_number
-            time.sleep(10)
-            # UCA-2411 increase it from 10 to 24 (4 minutes) retries
-            retries = 20
-            for attempt in range(retries):
-                pair = self.get_hur_for_primary_vol_id(secondaryVolumeId)
-                if pair is not None:
-                    # If pair is not None, break out of the loop
-                    break
-                time.sleep(10)
-            return pair
-        else:
-            pair_exiting = self.gateway.get_replication_pair(spec)
-            if (
-                pair_exiting["pvol_status"] == "PAIR"
-                and pair_exiting["svol_status"] == "PAIR"
-            ):
-                return pair_exiting
-            pair_id = self.gateway.swap_resync_hur_pair(spec)
-            self.logger.writeDebug(f"PV:swap_resync_hur_pair: pair_id=  {pair_id}")
-            pair = self.gateway.get_replication_pair(spec)
-            self.connection_info.changed = True
-            return pair
+        pair_exiting = self.gateway.get_replication_pair(spec)
+        if (
+            pair_exiting["pvol_status"] == "PAIR"
+            and pair_exiting["svol_status"] == "PAIR"
+        ):
+            return pair_exiting
+        pair_id = self.gateway.swap_resync_hur_pair(spec)
+        self.logger.writeDebug(f"PV:swap_resync_hur_pair: pair_id=  {pair_id}")
+        pair = self.gateway.get_replication_pair(spec)
+        self.connection_info.changed = True
+        return pair
 
     @log_entry_exit
     def split_hur_pair(self, primary_volume_id, mirror_unit_id, spec=None):
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            tc = self.get_hur_by_pvol_mirror(primary_volume_id, mirror_unit_id)
-            if tc is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_SPLIT_FAILED.value
-                    + VSPHurValidateMsg.PRIMARY_VOLUME_AND_MU_ID_WRONG.value.format(
-                        primary_volume_id, mirror_unit_id
-                    )
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-
-            comment = None
-            self.connection_info.changed = False
-            if tc.status == "PSUS":
-                comment = VSPHurValidateMsg.ALREADY_SPLIT_PAIR.value.format(
-                    tc.primaryVolumeId,
-                    tc.primaryVolumeStorageId,
-                    tc.secondaryVolumeId,
-                    tc.secondaryVolumeStorageId,
-                )
-                return camel_dict_to_snake_case(tc.to_dict()), comment
-            if primary_volume_id is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_SPLIT_FAILED.value
-                    + VSPHurValidateMsg.PRIMARY_VOLUME_ID.value.format(
-                        primary_volume_id, mirror_unit_id
-                    )
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-
-            if mirror_unit_id is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_SPLIT_FAILED.value
-                    + VSPHurValidateMsg.MIRROR_UNIT_ID.value.format(
-                        primary_volume_id, mirror_unit_id
-                    )
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-
-            device_id = UAIGResourceID().storage_resourceId(self.serial)
-            tc_pair_id = tc.resourceId
-
-            # sng20241220 - support svol readwrite
-            self.logger.writeDebug(
-                f"is_svol_readwriteable: {spec.is_svol_readwriteable}"
+        err_msg = ""
+        pair_exiting = self.gateway.get_replication_pair(spec)
+        if pair_exiting is None:
+            err_msg = (
+                HurFailedMsg.PAIR_SPLIT_FAILED.value
+                + VSPHurValidateMsg.NO_HUR_PAIR_FOUND.value.format(spec.copy_pair_name)
             )
-            rep_pair_id = self.gateway.split_hur_pair(
-                device_id, tc_pair_id, spec.is_svol_readwriteable
-            )
-
-            self.connection_info.changed = True
-            self.logger.writeDebug(f"rep_pair_id: {rep_pair_id}")
-            tc = self.get_replication_pair_by_id(rep_pair_id)
-            return camel_dict_to_snake_case(tc.to_dict()), comment
-        else:
-            err_msg = ""
-            pair_exiting = self.gateway.get_replication_pair(spec)
-            if pair_exiting is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_SPLIT_FAILED.value
-                    + VSPHurValidateMsg.NO_HUR_PAIR_FOUND.value.format(
-                        spec.copy_pair_name
-                    )
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-            if pair_exiting["remote_mirror_copy_pair_id"] is not None:
-                pair_elements = pair_exiting["remote_mirror_copy_pair_id"].split(",")
-                if (
-                    spec.local_device_group_name is not None
-                    or spec.remote_device_group_name is not None
-                ):
-                    if spec.local_device_group_name != pair_elements[2]:
-                        err_msg = (
-                            HurFailedMsg.PAIR_SPLIT_FAILED.value
-                            + VSPHurValidateMsg.NO_LOCAL_DEVICE_NAME_FOUND.value.format(
-                                spec.copy_group_name, pair_elements[2]
-                            )
-                        )
-                        logger.writeError(err_msg)
-                        raise ValueError(err_msg)
-                    elif spec.remote_device_group_name != pair_elements[3]:
-                        err_msg = (
-                            HurFailedMsg.PAIR_SPLIT_FAILED.value
-                            + VSPHurValidateMsg.NO_REMOTE_DEVICE_NAME_FOUND.value.format(
-                                spec.copy_group_name, pair_elements[3]
-                            )
-                        )
-                        logger.writeError(err_msg)
-                        raise ValueError(err_msg)
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
+        if pair_exiting["remote_mirror_copy_pair_id"] is not None:
+            pair_elements = pair_exiting["remote_mirror_copy_pair_id"].split(",")
             if (
-                pair_exiting["pvol_status"] == "PSUS"
-                and pair_exiting["svol_status"] == "SSUS"
+                spec.local_device_group_name is not None
+                or spec.remote_device_group_name is not None
             ):
-                return pair_exiting
-            pair_id = self.gateway.split_hur_pair(spec)
-            self.logger.writeDebug(f"PV:split_hur_pair: pair_id=  {pair_id}")
-            pair = self.gateway.get_replication_pair(spec)
-            self.connection_info.changed = True
-            return pair
+                if spec.local_device_group_name != pair_elements[2]:
+                    err_msg = (
+                        HurFailedMsg.PAIR_SPLIT_FAILED.value
+                        + VSPHurValidateMsg.NO_LOCAL_DEVICE_NAME_FOUND.value.format(
+                            spec.copy_group_name, pair_elements[2]
+                        )
+                    )
+                    logger.writeError(err_msg)
+                    raise ValueError(err_msg)
+                elif spec.remote_device_group_name != pair_elements[3]:
+                    err_msg = (
+                        HurFailedMsg.PAIR_SPLIT_FAILED.value
+                        + VSPHurValidateMsg.NO_REMOTE_DEVICE_NAME_FOUND.value.format(
+                            spec.copy_group_name, pair_elements[3]
+                        )
+                    )
+                    logger.writeError(err_msg)
+                    raise ValueError(err_msg)
+        if (
+            pair_exiting["pvol_status"] == "PSUS"
+            and pair_exiting["svol_status"] == "SSUS"
+        ):
+            return pair_exiting
+        pair_id = self.gateway.split_hur_pair(spec)
+        self.logger.writeDebug(f"PV:split_hur_pair: pair_id=  {pair_id}")
+        pair = self.gateway.get_replication_pair(spec)
+        self.connection_info.changed = True
+        return pair
 
     @log_entry_exit
     def swap_split_hur_pair(self, primary_volume_id, spec=None):
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            if primary_volume_id is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_SWAP_SPLIT_FAILED.value
-                    + VSPHurValidateMsg.PRIMARY_VOLUME_ID.value
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-
-            tc = self.get_hur_for_secondary_vol_id(primary_volume_id)
-            if tc is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_SWAP_SPLIT_FAILED.value
-                    + VSPHurValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
-                        primary_volume_id
-                    )
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-
-            # sng20241218 - swap here for now until operator rework is done
-            logger.writeDebug(f"PV:sng20241218 507: spec=  {spec}")
-            device_id = UAIGResourceID().storage_resourceId(
-                spec.secondary_storage_serial_number
-            )
-            self.gateway.resource_id = device_id
-            logger.writeDebug(f"PV:sng20241218 507: device_id=  {device_id}")
-
-            # fetch the pair to get the resourceId
-            logger.writeDebug(f"PV:sng20241218 507: pair=  {tc}")
-            pair = self.get_hur_for_secondary_vol_id(tc.secondaryVolumeId)
-            logger.writeDebug(f"PV:sng20241218 507: pair=  {pair}")
-            if pair is None:
-                err_msg = (
-                    HurFailedMsg.PAIR_SWAP_RESYNC_FAILED.value
-                    + VSPHurValidateMsg.HUR_PAIR_NOT_FOUND_SIMPLE.value
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-
-            self.gateway.swap_split_hur_pair(device_id, pair.resourceId)
-            self.connection_info.changed = True
-            pair = self.get_hur_for_secondary_vol_id(tc.secondaryVolumeId)
-            return pair
-
-        else:
-            pair_exiting = self.gateway.get_replication_pair(spec)
-            if (
-                pair_exiting["pvol_status"] == "PSUS"
-                and pair_exiting["svol_status"] == "SSWS"
-            ):
-                return pair_exiting
-            pair_id = self.gateway.swap_split_hur_pair(spec)
-            self.logger.writeDebug(f"PV:swap_split_hur_pair: pair_id=  {pair_id}")
-            pair = self.gateway.get_replication_pair(spec)
-            self.connection_info.changed = True
-            return pair
+        pair_exiting = self.gateway.get_replication_pair(spec)
+        if (
+            pair_exiting["pvol_status"] == "PSUS"
+            and pair_exiting["svol_status"] == "SSWS"
+        ):
+            return pair_exiting
+        pair_id = self.gateway.swap_split_hur_pair(spec)
+        self.logger.writeDebug(f"PV:swap_split_hur_pair: pair_id=  {pair_id}")
+        pair = self.gateway.get_replication_pair(spec)
+        self.connection_info.changed = True
+        return pair
 
     @log_entry_exit
     def is_resize_needed(self, volume_data, spec):
@@ -802,108 +500,36 @@ class VSPHurProvisioner:
     @log_entry_exit
     def resize_hur_copy_pair(self, spec=None):
         hur = None
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            if spec.primary_volume_id:
-                primary_volume_id = spec.primary_volume_id
-                device_id = UAIGResourceID().storage_resourceId(self.serial)
-                ldev_resource_id = UAIGResourceID().ldev_resourceId(
-                    self.serial, spec.primary_volume_id
-                )
-                pvol_data = self.vol_gw.get_volume_by_id_v2(device_id, ldev_resource_id)
-                logger.writeDebug("PV:resize_true_copy_copy_pair: zmpvol= ", pvol_data)
-                hur = self.get_hur_for_primary_vol_id(primary_volume_id)
-                if hur is None:
-                    raise ValueError(
-                        VSPHurValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
-                            primary_volume_id
-                        )
-                    )
-                svol_device_id = UAIGResourceID().storage_resourceId(
-                    spec.secondary_storage_serial_number
-                )
-                svol_ldev_resource_id = UAIGResourceID().ldev_resourceId(
-                    spec.secondary_storage_serial_number, hur.secondaryVolumeId
-                )
-                svol_data = self.vol_gw.get_volume_by_id_v2(
-                    svol_device_id, svol_ldev_resource_id
-                )
-                if pvol_data.totalCapacity == convert_decimal_size_to_bytes(
-                    spec.new_volume_size, 1
-                ):
-                    logger.writeDebug(
-                        "PV:resize_true_copy_copy_pair: Resize not needed"
-                    )
-                    pair = camel_dict_to_snake_case(hur.to_dict())
-                    pair["primary_volume_size"] = convert_block_capacity(
-                        pvol_data.totalCapacity, 1
-                    )
-                    pair["secondary_volume_size"] = convert_block_capacity(
-                        svol_data.totalCapacity, 1
-                    )
-                    return pair
-                elif pvol_data.totalCapacity > convert_decimal_size_to_bytes(
-                    spec.new_volume_size, 1
-                ):
-                    logger.writeDebug(
-                        "PV:resize_true_copy_copy_pair: Shrink/reduce volume size is not supported."
-                    )
-                    raise ValueError("Shrink/reduce volume size is not supported.")
-
-            if hur is not None:
-                pair_id = self.gateway.resize_hur_pair(hur, spec)
-                logger.writeDebug(f"PV:resize_hur_copy_pair: pair_id=  {pair_id}")
-            updated_pvol_data = self.vol_gw.get_volume_by_id_v2(
-                device_id, ldev_resource_id
-            )
-            updated_svol_data = self.vol_gw.get_volume_by_id_v2(
-                svol_device_id, svol_ldev_resource_id
-            )
-            pair = camel_dict_to_snake_case(hur.to_dict())
-            pair["primary_volume_size"] = convert_block_capacity(
-                updated_pvol_data.totalCapacity, 1
-            )
-            pair["secondary_volume_size"] = convert_block_capacity(
-                updated_svol_data.totalCapacity, 1
-            )
-            self.connection_info.changed = True
-            return pair
-            # hur_pair_id = hur.resourceId
-            # info = self.get_replication_pair_by_id(hur_pair_id)
-            # self.connection_info.changed = True
-            # return info
-        else:
-            pair_id = None
-            if spec.copy_group_name and spec.copy_pair_name:
-                hur = self.cg_gw.get_remote_pairs_by_copy_group_and_copy_pair_name(spec)
-                logger.writeDebug(f"PV:resize_true_copy_copy_pair: hur=  {hur}")
-                if hur is not None and len(hur) > 0:
-                    pvol_id = hur[0].pvolLdevId
-                    pvol_data = self.vol_gw.get_volume_by_id(pvol_id)
-                    resize_needed = self.is_resize_needed(pvol_data, spec)
-                    if resize_needed is False:
-                        err_msg = (
-                            HurFailedMsg.PAIR_RESIZE_FAILED.value
-                            + VSPHurValidateMsg.REDUCE_VOLUME_SIZE_NOT_SUPPORTED.value
-                        )
-                        logger.writeError(err_msg)
-                        raise ValueError(err_msg)
-                    else:
-                        pair_id = self.gateway.resize_hur_pair(hur[0], spec)
-                        logger.writeDebug(
-                            f"PV:resize_hur_copy_pair: pair_id=  {pair_id}"
-                        )
-                        pair = self.gateway.get_replication_pair(spec)
-                        self.connection_info.changed = True
-                        return pair
-                else:
+        pair_id = None
+        if spec.copy_group_name and spec.copy_pair_name:
+            hur = self.cg_gw.get_remote_pairs_by_copy_group_and_copy_pair_name(spec)
+            logger.writeDebug(f"PV:resize_true_copy_copy_pair: hur=  {hur}")
+            if hur is not None and len(hur) > 0:
+                pvol_id = hur[0].pvolLdevId
+                pvol_data = self.vol_gw.get_volume_by_id(pvol_id)
+                resize_needed = self.is_resize_needed(pvol_data, spec)
+                if resize_needed is False:
                     err_msg = (
                         HurFailedMsg.PAIR_RESIZE_FAILED.value
-                        + VSPHurValidateMsg.NO_HUR_PAIR_FOUND.value.format(
-                            spec.copy_pair_name
-                        )
+                        + VSPHurValidateMsg.REDUCE_VOLUME_SIZE_NOT_SUPPORTED.value
                     )
                     logger.writeError(err_msg)
                     raise ValueError(err_msg)
+                else:
+                    pair_id = self.gateway.resize_hur_pair(hur[0], spec)
+                    logger.writeDebug(f"PV:resize_hur_copy_pair: pair_id=  {pair_id}")
+                    pair = self.gateway.get_replication_pair(spec)
+                    self.connection_info.changed = True
+                    return pair
+            else:
+                err_msg = (
+                    HurFailedMsg.PAIR_RESIZE_FAILED.value
+                    + VSPHurValidateMsg.NO_HUR_PAIR_FOUND.value.format(
+                        spec.copy_pair_name
+                    )
+                )
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
 
     #  20240830 convert HostGroupTC to HostGroupHUR
     def convert_secondary_hostgroups(self, secondary_hostgroups):
@@ -923,23 +549,7 @@ class VSPHurProvisioner:
     # 20240808 - prov.create_hur
     @log_entry_exit
     def create_hur_pair(self, spec):
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            # sng20250125 fix UCA-2466
-            tc = self.get_hur_by_pvol_mirror(
-                spec.primary_volume_id, spec.mirror_unit_id
-            )
-            if tc:
-                comment = VSPHurValidateMsg.HUR_PAIR_ALREADY_EXIST.value.format(
-                    spec.primary_volume_id, spec.mirror_unit_id
-                )
-                # we can return the comment if desired, will need a little bit of work
-                self.logger.writeDebug("comment={}", comment)
-                self.connection_info.changed = False
-                return tc
-
-            return self.create_hur_gateway(spec)
-        else:
-            return self.create_hur_direct(spec)
+        return self.create_hur_direct(spec)
 
     @log_entry_exit
     def create_hur_direct(self, spec):
@@ -1006,8 +616,10 @@ class VSPHurProvisioner:
         try:
             if spec.secondary_nvm_subsystem is not None:
                 secondary_vol_id = rr_prov.get_secondary_volume_id_when_nvme(pvol, spec)
+            elif spec.secondary_iscsi_targets is not None:
+                secondary_vol_id = rr_prov.get_secondary_volume_id(pvol, spec, True)
             else:
-                secondary_vol_id = rr_prov.get_secondary_volume_id(pvol, spec)
+                secondary_vol_id = rr_prov.get_secondary_volume_id(pvol, spec, False)
             spec.secondary_volume_id = secondary_vol_id
             spec.is_data_reduction_force_copy = pvol.isDataReductionShareEnabled
             result = self.gateway.create_hur_pair(spec)
@@ -1032,91 +644,9 @@ class VSPHurProvisioner:
                         pvol.namespaceId,
                     )
                 else:
-                    rr_prov.delete_volume(secondary_vol_id, spec)
+                    rr_prov.delete_volume(secondary_vol_id)
                 logger.writeError(err_msg)
             raise ValueError(err_msg)
-
-    @log_entry_exit
-    def create_hur_gateway(self, spec):
-        if (
-            spec.begin_secondary_volume_id is None
-            and spec.end_secondary_volume_id is not None
-        ) or (
-            spec.begin_secondary_volume_id is not None
-            and spec.end_secondary_volume_id is None
-        ):
-            raise ValueError(VSPHurValidateMsg.SECONDARY_RANGE_ID_INVALID.value)
-        consistency_group_id = spec.consistency_group_id or -1
-        enable_delta_resync = spec.enable_delta_resync or False
-        allocate_new_consistency_group = spec.allocate_new_consistency_group or False
-
-        #  20240808 - get secondary_hostgroups from RemoteReplicationHelperForSVol
-        rr_prov = RemoteReplicationHelperForSVol(
-            self.connection_info, spec.secondary_storage_serial_number
-        )
-        # secondary_hostgroups = rr_prov.get_secondary_hg_info()
-        secondary_hostgroups = None
-        try:
-            secondary_hostgroups = rr_prov.get_secondary_hostgroups_payload(
-                spec.secondary_hostgroups
-            )
-        except Exception as ex:
-            err_msg = HurFailedMsg.PAIR_CREATION_FAILED.value + str(ex)
-            logger.writeError(err_msg)
-            raise ValueError(err_msg)
-        self.logger.writeDebug(
-            f"PV: 199 create_hur: rr_prov=  {rr_prov} secondary_hostgroups = {secondary_hostgroups}"
-        )
-
-        secondary_hostgroups = self.convert_secondary_hostgroups(secondary_hostgroups)
-
-        # 20240912 - hur get by pvol svol
-        pvol, svol = self.gateway.create_hur(
-            spec.primary_volume_id,
-            consistency_group_id,
-            enable_delta_resync,
-            allocate_new_consistency_group,
-            spec.secondary_storage_serial_number,
-            spec.secondary_pool_id,
-            #  20240808 - do we always ignore the spec.secondary_hostgroups?
-            # or it will be another option later
-            # spec.secondary_hostgroups,
-            secondary_hostgroups,
-            spec.primary_volume_journal_id,
-            spec.secondary_volume_journal_id,
-            spec.mirror_unit_id,
-            spec.begin_secondary_volume_id,
-            spec.end_secondary_volume_id,
-        )
-
-        #  id of the newly created pair
-        self.logger.writeDebug(f"from create_hur pvol: {pvol}")
-        self.logger.writeDebug(f"from create_hur svol: {svol}")
-        self.connection_info.changed = True
-
-        if svol is None:
-            hurPairResourceId = pvol
-            #  20240808 - get_hur_by hurPairResourceId
-            return self.get_replication_pair_by_id(hurPairResourceId)
-        else:
-
-            # 20240912 - get_hur_by_pvol_svol retry
-            response = None
-            retryCount = 0
-            while response is None and retryCount < 60:
-                retryCount = retryCount + 1
-                response = self.get_hur_by_pvol_svol(pvol, svol)
-                self.logger.writeDebug(f"1055 response: {response}")
-                if response:
-                    break
-                time.sleep(1)
-                continue
-
-            return response
-
-    @log_entry_exit
-    def check_storage_in_ucpsystem(self) -> bool:
-        return self.gateway.check_storage_in_ucpsystem()
 
     @log_entry_exit
     def get_volume_by_id(self, primary_volume_id):
@@ -1137,7 +667,3 @@ class VSPHurProvisioner:
     @log_entry_exit
     def get_copy_group_list(self):
         return self.cg_gw.get_copy_group_list()
-
-    @log_entry_exit
-    def is_out_of_band(self):
-        return self.config_gw.is_out_of_band()

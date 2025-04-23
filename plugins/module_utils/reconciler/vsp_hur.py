@@ -89,19 +89,6 @@ class VSPHurReconciler:
     def create_hur(self, spec):
         logger.writeDebug("RC:create_hur:spec={} ", spec)
 
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            self.validate_hur_spec_ctg(spec)
-
-        # pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
-        # logger.writeDebug("RC:create_hur:pvol={} ", pvol)
-        # if not pvol:
-        #    raise ValueError(VSPHurValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(spec.primary_volume_id))
-
-        # Does HUR need pvol attached to a hg, if yes, uncomment it
-        # pvol_v2 = self.provisioner.get_volume_by_id_v2(pvol.storageId, pvol.resourceId)
-        # if pvol_v2.pathCount < 1:
-        #    raise ValueError(VSPHurValidateMsg.PRIMARY_VOLUME_ID_NO_PATH.value.format(spec.primary_volume_id))
-
         return self.provisioner.create_hur_pair(spec)
 
     @log_entry_exit
@@ -161,24 +148,6 @@ class VSPHurReconciler:
         elif state == StateValue.RESIZE or state == StateValue.EXPAND:
             resp_data = self.resize_hur_copy(spec)
 
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-
-            # uca-2528
-            # FIXME: some are returning comment and some are not
-            if isinstance(resp_data, tuple):
-                alist = list(resp_data)
-                resp_data = alist[0]
-                # another_comment = alist[1]
-
-            # sng20250125 fix UCA-2466
-            # got 'VSPHurPairInfo' object has no attribute 'items' in update_response_data
-            # if pair is already exist, we will get VSPHurPairInfo
-            if isinstance(resp_data, VSPHurPairInfo):
-                extracted_data = HurInfoExtractor(self.storage_serial_number).extract(
-                    VSPHurPairInfoList(data=[resp_data]).data_to_list()
-                )
-                return comment, extracted_data
-
         # Match output with Gateway
         updated_resp_data = update_response_data(self, resp_data)
         # for key, value in resp_data.items():
@@ -208,13 +177,6 @@ class VSPHurReconciler:
             return comment, resp_in_dict
         else:
             return "Data is not available yet.", None
-
-    @log_entry_exit
-    def check_storage_in_ucpsystem(self) -> bool:
-        """
-        Check if the storage is in the UCP system.
-        """
-        return self.provisioner.check_storage_in_ucpsystem()
 
     #  for testing only
     @log_entry_exit
@@ -352,10 +314,6 @@ class VSPHurReconciler:
 
         return VSPHurPairInfoList(data=items)
 
-    @log_entry_exit
-    def is_out_of_band(self):
-        return self.provisioner.is_out_of_band()
-
 
 class HurInfoExtractor:
     def __init__(self, serial):
@@ -387,9 +345,9 @@ class HurInfoExtractor:
             "svolAccessMode": str,
             # "type": str,
             # "secondaryVirtualHexVolumeId": int,
-            "entitlementStatus": str,
-            "partnerId": str,
-            "subscriberId": str,
+            # "entitlementStatus": str,
+            # "partnerId": str,
+            # "subscriberId": str,
         }
 
         self.parameter_mapping = {
@@ -418,7 +376,7 @@ class HurInfoExtractor:
                     default_value = get_default_value(value_type)
                     new_dict[cased_key] = default_value
 
-            new_dict["partner_id"] = "apiadmin"
+            # new_dict["partner_id"] = "apiadmin"
             if new_dict.get("primary_hex_volume_id") == "":
                 new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
                     new_dict.get("primary_volume_id")
@@ -449,7 +407,7 @@ class HurInfoExtractor:
                 default_value = get_default_value(value_type)
                 new_dict[cased_key] = default_value
 
-        new_dict["partner_id"] = "apiadmin"
+        # new_dict["partner_id"] = "apiadmin"
         if new_dict.get("primary_hex_volume_id") == "":
             new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
                 new_dict.get("primary_volume_id")
@@ -479,9 +437,9 @@ class DirectHurCopyPairInfoExtractor:
             # "pvolVirtualLdevId":int,
             # "svolVirtualLdevId":int,
             "muNumber": int,
-            "entitlementStatus": str,
-            "partnerId": str,
-            "subscriberId": str,
+            # "entitlementStatus": str,
+            # "partnerId": str,
+            # "subscriberId": str,
         }
 
         self.parameter_mapping = {

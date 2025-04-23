@@ -2,6 +2,7 @@ try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
     from ..provisioner.vsp_storage_system_provisioner import VSPStorageSystemProvisioner
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..common.hv_log import Log
     from ..model.vsp_volume_models import VSPVolumesInfo
     from ..model.vsp_external_volume_models import ExternalVolumeSpec
@@ -16,6 +17,7 @@ except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
     from provisioner.vsp_storage_system_provisioner import VSPStorageSystemProvisioner
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from common.hv_log import Log
     from model.vsp_volume_models import VSPVolumesInfo
     from common.ansible_common import (
@@ -42,17 +44,15 @@ class VSPExternalVolumeProvisioner:
         self.connection_info = connection_info
         self.connection_type = connection_info.connection_type
         self.serial = serial
-
-        self.check_ucp_system(serial)
+        if self.serial is None:
+            self.serial = self.get_storage_serial_number()
         self.gateway.set_storage_serial_number(serial)
 
     @log_entry_exit
-    def check_ucp_system(self, serial):
-        serial, resource_id = self.storage_prov.check_ucp_system(serial)
-        self.serial = serial
-        self.gateway.resource_id = resource_id
-        self.gateway.serial = serial
-        return serial
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     @log_entry_exit
     def get_external_path_groups(self):
@@ -66,7 +66,7 @@ class VSPExternalVolumeProvisioner:
             return item.ldevId
 
     @log_entry_exit
-    def get_next_external_parity_group(self, get_external_path_group):
+    def get_next_external_parity_group(self):
         epgs = self.pg_gateway.get_all_external_parity_groups()
         pgids = []
         for epg in epgs.data:
@@ -79,6 +79,32 @@ class VSPExternalVolumeProvisioner:
             pgid = "1-" + str(ii)
 
         return pgid
+
+    @log_entry_exit
+    def select_external_path_groups(self, extvol):
+        portId = extvol.portId
+        externalWwn = extvol.externalWwn
+        logger.writeDebug("20250228 portId={}", portId)
+        logger.writeDebug("20250228 externalWwn={}", externalWwn)
+
+        external_path_groups = self.gateway.get_external_path_groups()
+        if external_path_groups is None:
+            return
+
+        result = []
+        for external_path_group in external_path_groups.data:
+            externalPaths = external_path_group.externalPaths
+            logger.writeDebug("20250228 externalPaths={}", externalPaths)
+            if externalPaths is None:
+                continue
+            for externalPath in externalPaths.data:
+                if portId != externalPath.portId:
+                    continue
+                if externalWwn != externalPath.externalWwn:
+                    continue
+                result.append(external_path_group)
+
+        return result
 
     @log_entry_exit
     def select_external_path_group(self, extvol):
@@ -106,34 +132,37 @@ class VSPExternalVolumeProvisioner:
     @log_entry_exit
     # find the external_parity_group in the external_path_group, then get the ldevids from it
     def get_ldev_ids_in_external_path_group(
-        self, external_path_group, externalLun, portId, externalWwn
+        self, external_path_groups, externalLun, portId, externalWwn
     ):
-        for epg in external_path_group.externalParityGroups:
-            externalLuns = epg.get("externalLuns")
-            if externalLuns is None:
-                continue
-            for extlun in externalLuns:
-                if extlun is None:
+        for external_path_group in external_path_groups:
+            for epg in external_path_group.externalParityGroups:
+                externalLuns = epg.get("externalLuns")
+                if externalLuns is None:
                     continue
-                pid = extlun.get("portId")
-                wwn = extlun.get("externalWwn")
-                lun = extlun.get("externalLun")
-                if pid is None or pid != portId:
-                    continue
-                if wwn is None or wwn != externalWwn:
-                    continue
-                if lun is None or lun != externalLun:
-                    continue
-                externalParityGroupId = epg.get("externalParityGroupId")
-                if externalParityGroupId is None:
-                    continue
-                eprg = self.pg_gateway.get_external_parity_group(externalParityGroupId)
-                ldevIds = []
-                for space in eprg.spaces:
-                    ldevId = space.ldevId
-                    if ldevId is not None:
-                        ldevIds.append(ldevId)
-                return ldevIds
+                for extlun in externalLuns:
+                    if extlun is None:
+                        continue
+                    pid = extlun.get("portId")
+                    wwn = extlun.get("externalWwn")
+                    lun = extlun.get("externalLun")
+                    if pid is None or pid != portId:
+                        continue
+                    if wwn is None or wwn != externalWwn:
+                        continue
+                    if lun is None or lun != externalLun:
+                        continue
+                    externalParityGroupId = epg.get("externalParityGroupId")
+                    if externalParityGroupId is None:
+                        continue
+                    eprg = self.pg_gateway.get_external_parity_group(
+                        externalParityGroupId
+                    )
+                    ldevIds = []
+                    for space in eprg.spaces:
+                        ldevId = space.ldevId
+                        if ldevId is not None:
+                            ldevIds.append(ldevId)
+                    return ldevIds
         return []
 
     @log_entry_exit
@@ -167,7 +196,7 @@ class VSPExternalVolumeProvisioner:
         allExtvolsObj = []
         external_path_groups = self.gateway.get_external_path_groups()
         if external_path_groups is None:
-            return
+            return None, None
 
         for external_path_group in external_path_groups.data:
             externalPaths = external_path_group.externalPaths
@@ -178,6 +207,8 @@ class VSPExternalVolumeProvisioner:
                 extvols = self.gateway.get_external_volumes_with_extpath(
                     externalPath.portId, externalPath.externalWwn
                 )
+                # get the external volumes for the externalPath
+                # ( filter by externalPath.portId, externalPath.externalWwn )
                 for extvol in extvols.data:
                     externalVolumeInfo = extvol.externalVolumeInfo
                     extvol.externalLdevId = int(externalVolumeInfo[-4:], 16)
@@ -192,20 +223,23 @@ class VSPExternalVolumeProvisioner:
 
                     # look for the external volume from the external_parity_group in the external_path_group
                     extvol.ldevIds = self.get_ldev_ids_in_external_path_group(
-                        external_path_group,
+                        external_path_groups.data,
                         extvol.externalLun,
                         extvol.portId,
                         extvol.externalWwn,
+                    )
+                    logger.writeDebug("20250228 extvol.ldevIds={}", extvol.ldevIds)
+                    logger.writeDebug(
+                        "20250228 extvol.externalLdevId={}", extvol.externalLdevId
                     )
 
                     item = extvol.camel_to_snake_dict()
                     allExtvols.append(item)
                     allExtvolsObj.append(extvol)
 
-                logger.writeDebug("20250228 extvols={}", allExtvols)
-                return allExtvols, allExtvolsObj
+        # logger.writeDebug("20250228 extvols={}", allExtvols)
+        return allExtvols, allExtvolsObj
 
-    @log_entry_exit
     def get_one_external_volume(
         self, all_external_volumes, external_storage_serial, external_ldev_id
     ):
@@ -233,13 +267,13 @@ class VSPExternalVolumeProvisioner:
         ext_serial = spec.external_storage_serial
         external_ldev_id = spec.external_ldev_id
 
-        rsp, notused = self.get_one_external_volume(
+        rsp_dict, notused = self.get_one_external_volume(
             objs,
             ext_serial,
             external_ldev_id,
         )
-        logger.writeDebug("20250228 notused={}", notused)
-        return rsp
+        logger.writeDebug("20250228 notused obj={}", notused)
+        return rsp_dict
 
     @log_entry_exit
     def find_ext_volume_by_external_ldev_id(
@@ -266,16 +300,19 @@ class VSPExternalVolumeProvisioner:
                 return extvol
 
     @log_entry_exit
-    def get_extern_paths(self, ext_serial):
+    def get_extern_path_groups(self, ext_serial):
         resp = self.gateway.get_external_path_groups()
         if resp is None:
             return
 
+        extern_path_groups = []
         for epg in resp.data:
             if epg.externalSerialNumber != ext_serial:
                 continue
+            extern_path_groups.append(epg)
 
-        return None
+        logger.writeDebug("20250228 extern_path_groups={}", extern_path_groups)
+        return extern_path_groups
 
     @log_entry_exit
     def select_external_volume(self, ext_serial, ext_ldev_id):
@@ -293,17 +330,19 @@ class VSPExternalVolumeProvisioner:
         hex_serial = model + "0" + hex_serial
         logger.writeDebug("20250228 hex_ldev={}", hex_ldev)
         logger.writeDebug("20250228 hex_serial={}", hex_serial)
+        logger.writeDebug("20250228 ext_serial={}", ext_serial)
+        externalPathGroups = self.get_extern_path_groups(ext_serial)
+        if externalPathGroups is None:
+            return None
 
-        # need the portID and externalWWN
-        # get_extern_paths from get_extern_path_groups by ext_serial
-        # list<portID, externalWWN> = self.get_extern_paths(ext_serial)
-        externalPathGroup = self.get_extern_paths(ext_serial)
-        if externalPathGroup is not None:
+        rsp = None
+        for externalPathGroup in externalPathGroups:
             rsp = self.find_ext_volume_by_external_ldev_id(
                 hex_ldev, externalPathGroup.externalPaths, externalPathGroup
             )
-        else:
-            return
+            if rsp is None:
+                continue
+
         return rsp
 
     @log_entry_exit
@@ -330,97 +369,61 @@ class VSPExternalVolumeProvisioner:
 
     @log_entry_exit
     def delete_external_volume_by_spec(self, spec: ExternalVolumeSpec):
+        external_storage_serial, external_ldev_id = (
+            self.get_external_volume_info_by_ldev_id(spec.ldev_id)
+        )
         return self.delete_external_volume(
             spec.ldev_id,
-            spec.external_storage_serial,
-            spec.external_ldev_id,
+            str(external_storage_serial),
+            external_ldev_id,
         )
+
+    @log_entry_exit
+    def get_external_volume_info_by_ldev_id(self, ldev_id):
+        if ldev_id is None:
+            return None, VSPSExternalVolumeValidateMsg.LDEV_REQUIRED.value
+
+        vol = self.vol_gateway.get_volume_by_id_external_volume(ldev_id)
+        external_vol_info = vol.externalVolumeIdString
+        if external_vol_info is None:
+            raise ValueError(
+                VSPSExternalVolumeValidateMsg.EXTERNAL_VOLUME_NOT_FOUND.value.format(
+                    ldev_id
+                )
+            )
+        external_vol_info = external_vol_info.replace(".", "")
+        external_vol_info = external_vol_info.split(" ")[1]
+        external_ldev_id = int(external_vol_info[-4:], 16)
+        serial = int(external_vol_info[2], 16) * 100000 + int(
+            external_vol_info[4:8], 16
+        )
+        return serial, external_ldev_id
 
     @log_entry_exit
     def delete_external_volume(self, ldev_id, ext_serial, external_ldev_id):
         # the external volume to delete
         if ldev_id is None:
             return None, VSPSExternalVolumeValidateMsg.LDEV_REQUIRED.value
-            # return None, "External Volume ldev_id parameter is mandatory."
 
-        rsp, objs = self.get_all_external_volumes()
+        rsp = self.gateway.get_external_volumes()
         if rsp is None:
             return None, VSPSExternalVolumeValidateMsg.NO_EXT_VOL.value
             # return None, "No External Storage Volumes in the system."
-        notused, rsp = self.get_one_external_volume(
-            objs,
-            ext_serial,
-            external_ldev_id,
-        )
-        logger.writeDebug("20250228 notused={}", notused)
-        if rsp is None:
-            return None, VSPSExternalVolumeValidateMsg.EXT_VOL_NOT_FOUND.value
-            # return None, "External Storage Volume is not found."
-        portId = rsp.portId
-        externalWwn = rsp.externalWwn
-        lunId = rsp.externalLun
+        # logger.writeDebug("20250228 rsp={}", rsp)
 
-        # found the exteranl storage volume
-        # now deduce the external_parity_group
-        # delete the external_parity_group to delete the exteranl volume(s)
-        portId = rsp.portId
-        externalWwn = rsp.externalWwn
-        lunId = rsp.externalLun
-        # found = False
-        vol = self.vol_gateway.get_volume_by_id_external_volume(ldev_id)
-        logger.writeDebug("20250228 vol={}", vol)
-        if vol and vol.emulationType != "NOT DEFINED":
-            external_ports = vol.externalPorts
-            if external_ports:
-                if self.ldev_in_external_ports(
-                    external_ports, portId, externalWwn, lunId
-                ):
-                    # vol = vol.camel_to_snake_dict()
-                    vol = VSPVolumesInfo(data=[vol])
-                    # found = True
-                    # return (
-                    #     vol,
-                    #     "ldev_id is already associated with the external volume.",
-                    # )
-                else:
-                    vol = vol.camel_to_snake_dict()
-                    # vol = VSPVolumesInfo(data=[vol])
-                    return (
-                        vol,
-                        VSPSExternalVolumeValidateMsg.ASSOCIATED_ANOTHER.value,
-                        # "ldev_id is already associated with another external volume.",
-                    )
-            else:
-                return [], VSPSExternalVolumeValidateMsg.PROVISIONED.value
-                # return [], "ldev_id is already provisioned with an internal ldev."
-        else:
-            return [], VSPSExternalVolumeValidateMsg.NOT_FOUND.value
-            # return [], "ldev_id is not found, may have been deleted."
+        for ext_vol in rsp.data:
+            if ext_vol.ldevId is None:
+                continue
+            if ext_vol.externalParityGroupId is None:
+                continue
+            if ldev_id != ext_vol.ldevId:
+                continue
+            self.pg_gateway.delete_external_parity_group_force(
+                ext_vol.externalParityGroupId
+            )
+            return [], None
 
-        external_path_group = self.select_external_path_group(rsp)
-        if external_path_group is None:
-            return [], VSPSExternalVolumeValidateMsg.NO_PATHGRP.value
-            # return None, "Unable to find the external path group."
-
-        # now we have the external path group,
-        # find the external parity group
-        epg = self.get_external_parity_group(
-            external_path_group,
-            lunId,
-            portId,
-            externalWwn,
-        )
-        if epg is None:
-            return [], VSPSExternalVolumeValidateMsg.NO_PARITYGRP.value
-            # return None, "Unable to find the external parity group."
-
-        # delete epg, force=true
-        logger.writeDebug("20250228 epg={}", epg.get("externalParityGroupId"))
-        self.pg_gateway.delete_external_parity_group_force(
-            epg.get("externalParityGroupId")
-        )
-
-        return [], None
+        return [], VSPSExternalVolumeValidateMsg.NO_PARITYGRP.value
 
     @log_entry_exit
     def ldev_in_external_ports(self, external_ports, portId, externalWwn, lunId):
@@ -447,6 +450,36 @@ class VSPExternalVolumeProvisioner:
         return False
 
     @log_entry_exit
+    def find_external_parity_group(
+        self, external_path_groups, portId, externalWwn, lunId
+    ):
+
+        for external_path_group in external_path_groups:
+            externalPathGroupId = external_path_group.externalPathGroupId
+            epgs = external_path_group.externalParityGroups
+            if epgs is None:
+                continue
+            for epg in epgs:
+                logger.writeDebug("20250228 epg={}", epg)
+                for externalLun in epg["externalLuns"]:
+                    logger.writeDebug("20250228 externalLun={}", externalLun)
+                    if portId != externalLun["portId"]:
+                        continue
+                    if externalWwn != externalLun["externalWwn"]:
+                        continue
+                    if (
+                        externalLun.get("externalLun")
+                        and lunId == externalLun["externalLun"]
+                    ):
+                        return (
+                            external_path_group.externalPathGroupId,
+                            epg["externalParityGroupId"],
+                            epg,
+                        )
+
+        return externalPathGroupId, None, None
+
+    @log_entry_exit
     def create_external_volume(self, ldev_id, ext_serial, external_ldev_id):
 
         # 20250303 creates an external volume from external parity group
@@ -457,10 +490,11 @@ class VSPExternalVolumeProvisioner:
         if rsp is None:
             return None, "Unable to find the external volume."
 
+        externalVolumeCapacity = rsp.externalVolumeCapacity
+        # you need these 3 params to find or create the external_parity_group
         portId = rsp.portId
         externalWwn = rsp.externalWwn
         lunId = rsp.externalLun
-        externalVolumeCapacity = rsp.externalVolumeCapacity
 
         if ldev_id:
             vol = self.vol_gateway.get_volume_by_id_external_volume(ldev_id)
@@ -487,32 +521,44 @@ class VSPExternalVolumeProvisioner:
                 else:
                     return None, "ldev_id is already provisioned with an internal ldev."
 
-        rsp = self.select_external_path_group(rsp)
-        externalPathGroupId = rsp.externalPathGroupId
+        rsp = self.select_external_path_groups(rsp)
         if rsp is None:
-            return None, "Unable to find the external path group."
+            return None, "Unable to find any external path group."
 
-        rsp = self.get_next_external_parity_group(rsp)
-        externalParityGroupId = rsp
-
-        logger.writeDebug("20250228 externalPathGroupId={}", externalPathGroupId)
-        logger.writeDebug("20250228 externalParityGroupId={}", externalParityGroupId)
-        logger.writeDebug("20250228 lunId={}", lunId)
-        logger.writeDebug("20250228 portId={}", portId)
-        logger.writeDebug("20250228 externalWwn={}", externalWwn)
-        rsp = self.pg_gateway.create_external_parity_group(
-            externalPathGroupId,
-            externalParityGroupId,
-            portId,
-            externalWwn,
-            lunId,
+        # walk thru the external_path_groups
+        # see if the external_parity_group is already created
+        externalPathGroupId, externalParityGroupId, epg = (
+            self.find_external_parity_group(rsp, portId, externalWwn, lunId)
         )
-        # if it fails, check the lunId, which is the externalLun
-        # loop thru the externalParityGroups in the externalPathGroups
-        # get the externalParityGroupId which has this externalLun
-        # and report it (or offer to delete it)
-        # this can be a pre-check
-        logger.writeDebug("20250228 rsp={}", rsp)
+        logger.writeDebug("20250228 epg={}", epg)
+
+        if externalParityGroupId is None:
+            # we need to create the external_parity_group
+            rsp = self.get_next_external_parity_group()
+            logger.writeDebug("20250228 next_external_parity_group={}", rsp)
+            externalParityGroupId = rsp
+
+            logger.writeDebug("20250228 externalPathGroupId={}", externalPathGroupId)
+            logger.writeDebug(
+                "20250228 externalParityGroupId={}", externalParityGroupId
+            )
+            logger.writeDebug("20250228 lunId={}", lunId)
+            logger.writeDebug("20250228 portId={}", portId)
+            logger.writeDebug("20250228 externalWwn={}", externalWwn)
+            rsp = self.pg_gateway.create_external_parity_group(
+                externalPathGroupId,
+                externalParityGroupId,
+                portId,
+                externalWwn,
+                lunId,
+            )
+
+            # if it fails, check the lunId, which is the externalLun
+            # loop thru the externalParityGroups in the externalPathGroups
+            # get the externalParityGroupId which has this externalLun
+            # and report it (or offer to delete it)
+            # this can be a pre-check
+            logger.writeDebug("20250228 rsp={}", rsp)
 
         # map ext volume: create volume by parity group
         if not ldev_id:

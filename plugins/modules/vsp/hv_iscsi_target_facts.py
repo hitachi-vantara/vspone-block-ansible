@@ -14,11 +14,8 @@ module: hv_iscsi_target_facts
 short_description: Retrieves information about iscsi targets from Hitachi VSP storage systems.
 description:
   - This module retrieves information about iscsi targets from Hitachi VSP storage systems.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/iscsi_target_facts.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/iscsi_target_facts.yml)
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -30,47 +27,41 @@ attributes:
     support: full
 options:
   storage_system_info:
-    required: false
+    description: Information about the storage system. This field is an optional field.
     type: dict
-    description:
-      - Information about the Hitachi storage system. This field is required for gateway connection type only.
+    required: false
     suboptions:
       serial:
-        description: Serial number of the Hitachi storage system.
-        required: false
+        description: The serial number of the storage system.
         type: str
+        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
-    required: true
     type: dict
+    required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only.This is an optional field and only needed to support multi-tenancy environment.
-        type: str
-        required: false
-      api_token:
-        description: Token value to access UAI C(gateway). This is a required field for C(gateway) connection type.
-        type: str
-        required: false
   spec:
     description: Specification for retrieving iscsi target information.
     type: dict
@@ -88,66 +79,28 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all iscsi targets with direct connection type
+- name: Get all iscsi targets
   hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
-      connection_type: "direct"
       address: storage1.example.com
       username: "dummy_username"
       password: "dummy_password"
 
-- name: Get iscsi targets by ports with direct connection type
+- name: Get iscsi targets by ports
   hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
-      connection_type: "direct"
       address: storage1.example.com
       username: "dummy_username"
       password: "dummy_password"
     spec:
       ports: ['CL4-C']
 
-- name: Get iscsi targets by ports and name with direct connection type
+- name: Get iscsi targets by ports and name
   hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
-      connection_type: "direct"
       address: storage1.example.com
       username: "dummy_username"
       password: "dummy_password"
-    spec:
-      name: 'iscsi-target-server-1'
-      ports: ['CL4-C']
-
-- name: Get all iscsi targets with gateway connection type
-  hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
-    connection_info:
-      connection_type: "gateway"
-      address: gateway.example.com
-      api_token: "dummy_api_token"
-      subscriber_id: 811150
-    storage_system_info:
-      serial: 40014
-
-- name: Get iscsi targets by ports with gateway connection type
-  hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
-    connection_info:
-      connection_type: "gateway"
-      address: gateway.example.com
-      api_token: "dummy_api_token"
-      subscriber_id: 811150
-    storage_system_info:
-      serial: 40014
-    spec:
-      ports: ['CL4-C']
-
-- name: Get iscsi targets by ports and name with gateway connection type
-  hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
-    connection_info:
-      connection_type: "gateway"
-      address: gateway.example.com
-      api_token: "dummy_api_token"
-      subscriber_id: 811150
-    storage_system_info:
-      serial: 40014
     spec:
       name: 'iscsi-target-server-1'
       ports: ['CL4-C']
@@ -240,10 +193,6 @@ ansible_facts:
               description: Logical unit ID.
               type: int
               sample: 1
-        partner_id:
-          description: Partner ID.
-          type: str
-          sample: "partnerid"
         port_id:
           description: Port ID.
           type: str
@@ -251,11 +200,7 @@ ansible_facts:
         resource_group_id:
           description: Resource group ID.
           type: int
-          sample: 0
-        subscriber_id:
-          description: Subscriber ID.
-          type: str
-          sample: "811150"
+          sample: 0"
 """
 
 

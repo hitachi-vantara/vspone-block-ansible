@@ -10,10 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_remote_storage_registration
-short_description: Manages remote storage registration and deregistration on Hitachi VSP storage systems.
+short_description: Manages remote storage registration and unregistration on Hitachi VSP storage systems.
 description:
-  - This module manages remote storage registration and deregistration on Hitachi VSP storage systems.
-  - This module is supported only for C(direct) connection type.
+  - This module manages remote storage registration and unregistration on Hitachi VSP storage systems.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/remote_storage_registration.yml)
 version_added: '3.2.0'
@@ -38,19 +37,19 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of storage system.
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
         type: str
         required: false
       api_token:
-        description: Value of the lock token to operate on locked resources.
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
   secondary_connection_info:
@@ -71,11 +70,11 @@ options:
         type: str
         required: false
       api_token:
-        description: Value of the lock token to operate on locked resources.
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
   spec:
-    description: Specification for the remote storage registration and deregistration.
+    description: Specification for the remote storage registration and unregistration.
     type: dict
     required: false
     suboptions:
@@ -84,7 +83,7 @@ options:
         type: bool
         required: false
       is_mutual_deletion:
-        description: Specify whether to perform a mutual deletion operation during deregistration. true means perform a mutual deletion operation.
+        description: Specify whether to perform a mutual deletion operation during unregistration. true means perform a mutual deletion operation.
         type: bool
         required: false
       rest_server_ip:
@@ -99,7 +98,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Register Remote Storage for direct connection type
+- name: Register Remote Storage
   hitachivantara.vspone_block.vsp.hv_remote_storage_registration:
     connection_info:
       address: 172.0.0.2
@@ -114,7 +113,7 @@ EXAMPLES = """
       is_mutual_discovery: true
       rest_server_ip: 172.0.0.1
 
-- name: Unregister Remote Storage for direct connection type
+- name: Unregister Remote Storage
   hitachivantara.vspone_block.vsp.hv_remote_storage_registration:
     connection_info:
       address: 172.0.0.2
@@ -189,9 +188,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_remote_storage_registration import (
     VSPRemoteStorageRegistrationReconciler,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
@@ -201,9 +197,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -240,15 +233,6 @@ class VSPRemoteStorageRegistrationManager:
 
         self.logger.writeInfo("=== Start of Remote Storage Registration operation. ===")
         registration_message = validate_ansible_product_registration()
-        if (
-            self.parameter_manager.connection_info.connection_type.lower()
-            == ConnectionTypes.GATEWAY
-        ):
-            self.logger.writeError(f"{ModuleMessage.NOT_SUPPORTED_FOR_GW.value}")
-            self.logger.writeInfo(
-                "=== End of Remote Storage Registration operation ==="
-            )
-            self.module.fail_json(msg=ModuleMessage.NOT_SUPPORTED_FOR_GW.value)
 
         remote_storage = None
         comment = None

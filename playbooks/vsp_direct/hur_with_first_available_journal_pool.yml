@@ -76,7 +76,41 @@
       when: result is defined
 
     #####################################################################
-    # Task 4: Create HUR-NVMe Pair and Debug Result
+    # Task 4: Create HUR-ISCSI Pair and Debug Result
+    #####################################################################
+    - name: Create HUR-ISCSI pair and debug result
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          copy_group_name: "hur_copy_group_name_1"
+          copy_pair_name: "hur_copy_pair_name_1"
+          primary_volume_id: 123
+          secondary_pool_id: 1
+          primary_volume_journal_id: "{{ primary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id }}"
+          secondary_volume_journal_id: "{{ secondary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id }}"
+          local_device_group_name: "hur_local_device_group_name_1"
+          remote_device_group_name: "hur_remote_device_group_name_1"
+          consistency_group_id: 1
+          secondary_iscsi_targets:
+            - name: "test"
+              port: "CL1-A"
+              lun_id: 5
+          mirror_unit_id: 2
+      when:
+        - primary_journal_volumes.ansible_facts.journal_volume | length > 1
+        - secondary_journal_volumes.ansible_facts.journal_volume | length > 1
+        - primary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined
+        - secondary_journal_volumes.ansible_facts.journal_volume[1].journal_pool_id is defined
+      register: result
+
+    - name: Debug result
+      ansible.builtin.debug:
+        var: result
+      when: result is defined
+
+    #####################################################################
+    # Task 5: Create HUR-NVMe Pair and Debug Result
     #####################################################################
     - name: Create HUR-NVMe pair and debug result
       hitachivantara.vspone_block.vsp.hv_hur:

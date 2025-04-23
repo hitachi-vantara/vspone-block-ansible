@@ -14,7 +14,6 @@ module: hv_storage_port
 short_description: Change the storage port settings in the Hitachi VSP storage systems.
 description:
   - This module change the storage port settings information in the Hitachi VSP storage systems.
-  - This module is supported only for C(direct) connection type.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storage_port.yml)
 version_added: '3.1.0'
@@ -28,7 +27,7 @@ attributes:
     support: none
 options:
   storage_system_info:
-    description: Information about the storage system.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
@@ -46,25 +45,25 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
-        description: Type of connection to the storage system. Only C(direct) connection type is supported.
+        description: Type of connection to the storage system.
         type: str
         required: false
         choices: ['direct']
         default: 'direct'
-      api_token:
-        description: Value of the lock token to operate on locked resources for C(direct) connection type.
-        type: str
-        required: false
   spec:
-    description: Specification for the storage port facts to be gathered.
+    description: Specification for the storage port tasks.
     type: dict
     required: false
     suboptions:
@@ -72,25 +71,63 @@ options:
         description: The port id of the specific port to retrieve.
         type: str
         required: true
+      port_attribute:
+        description: Specify the port attribute of the port. The specifiable values are 'TAR' or 'ALL'. Use 'TAR' for Fibre Target port,
+          use 'ALL' for Bidirectional port. This attribute cannot be specified at the same time as any other attribute.
+        type: str
+        required: false
       port_mode:
-        description: Specify the operating mode of the port between 'FC-NVMe' and 'FCP-SCSI' for the port.
+        description: Specify the operating mode of the port. The specifiable values are 'FC-NVMe' or 'FCP-SCSI'.
+          This attribute cannot be specified at the same time as any other attribute.
+        type: str
+        required: false
+      port_speed:
+        description: Specify the transfer speed of the port. The specifiable values are 'AUT' or 'nG', where n is a number and G can be omitted.
+        type: str
+        required: false
+      fabric_mode:
+        description: Fabric mode of the port. Set when this value is true. Not set when this value is false.
+          When specifying this attribute, be sure to also specify the port_connection attribute.
+        type: bool
+        required: false
+      port_connection:
+        description: Topology setting for the port. The specifiable values are 'FCAL', 'P2P' or 'PtoP'.
+          When specifying this attribute, be sure to also specify the fabric_mode attribute.
         type: str
         required: false
       enable_port_security:
-        description: Specify whether to enable the lun security setting for the port.This attribute cannot
-          be specified at the same time as the port_mode attribute.
+        description: Specify whether to enable the lun security setting for the port.
         type: bool
         required: false
 """
 
 EXAMPLES = """
-- name: Change the port settings of a port for direct connection type
+- name: Change attribute setting of the storage port by port id
   hitachivantara.vspone_block.vsp.hv_storage_port:
     connection_info:
       address: storage1.company.com
       username: "admin"
       password: "secret"
-      connection_type: "direct"
+    spec:
+      port: "CL8-B"
+      port_attribute: "TAR"  # Options: "TAR", "ALL"
+
+- name: Change port mode setting of the storage port by port id
+  hitachivantara.vspone_block.vsp.hv_storage_port:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    spec:
+      port: "CL8-B"
+      port_mode: "FC-NVMe"  # Options: "FC-NVMe", "FCP-SCSI"
+
+- name: Change port security setting of the storage port by port id
+  hitachivantara.vspone_block.vsp.hv_storage_port:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
     spec:
       port: "CL1-A"
       enable_port_security: true
@@ -185,9 +222,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     VSPStoragePortArguments,
     VSPParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_storage_port import (
     VSPStoragePortReconciler,
 )
@@ -199,9 +233,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -254,11 +285,6 @@ class VSPStoragePortManager:
             self.connection_info,
             self.storage_serial_number,
         )
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            oob = reconciler.is_out_of_band()
-            if oob is True:
-                raise ValueError(ModuleMessage.OOB_NOT_SUPPORTED.value)
-
         result = reconciler.vsp_storage_port_reconcile(self.spec)
         return result
 

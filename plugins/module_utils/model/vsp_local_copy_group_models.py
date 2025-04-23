@@ -3,32 +3,37 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from ..model.common_base_models import ConnectionInfo
 
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from model.common_base_models import ConnectionInfo
 
 
 @dataclass
 class LocalCopyGroupSpec(SingleBaseClass):
-    secondary_connection_info: Optional[ConnectionInfo] = None
-    secondary_storage_serial_number: Optional[int] = None
+    name: Optional[str] = None
     copy_group_name: Optional[str] = None
-    copy_pair_name: Optional[str] = None
-    local_device_group_name: Optional[str] = None
-    remote_device_group_name: Optional[str] = None
-    replication_type: str = ""
-    svol_operation_mode: str = ""
-    is_svol_writable: Optional[bool] = False
-    do_pvol_write_protect: Optional[bool] = False
-    do_data_suspend: Optional[bool] = False
-    do_failback: Optional[bool] = False
-    failback_mirror_unit_number: Optional[int] = None
-    is_consistency_group: Optional[bool] = False
-    consistency_group_id: Optional[int] = None
-    fence_level: Optional[str] = None
+    primary_volume_device_group_name: Optional[str] = None
+    secondary_volume_device_group_name: Optional[str] = None
+    quick_mode: Optional[bool] = None
     copy_pace: Optional[int] = None
+    force_suspend: Optional[bool] = None
+    force_delete: Optional[bool] = None
+
+    # secondary_connection_info: Optional[ConnectionInfo] = None
+    # secondary_storage_serial_number: Optional[int] = None
+    # copy_pair_name: Optional[str] = None
+    # local_device_group_name: Optional[str] = None
+    # remote_device_group_name: Optional[str] = None
+    # replication_type: str = ""
+    # svol_operation_mode: str = ""
+    # is_svol_writable: Optional[bool] = False
+    # do_pvol_write_protect: Optional[bool] = False
+    # do_data_suspend: Optional[bool] = False
+    # do_failback: Optional[bool] = False
+    # failback_mirror_unit_number: Optional[int] = None
+    # is_consistency_group: Optional[bool] = False
+    # consistency_group_id: Optional[int] = None
+    # fence_level: Optional[str] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -66,7 +71,7 @@ class LocalCopyPairInfo(SingleBaseClass):
     pvolLdevId: int
     svolLdevId: int
     pvolMuNumber: int
-    consistencyGroupId: int
+    consistencyGroupId: int = ""
     pvolStatus: str = ""
     svolStatus: str = ""
     localCloneCopypairId: str = ""

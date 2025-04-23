@@ -71,7 +71,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
 - name: Retrieve information about a specific VPS by ID
   hitachivantara.vspone_block.sds_block.hv_sds_block_vps_facts:
@@ -79,7 +78,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
     spec:
       id: "464e1fd1-9892-4134-866c-6964ce786676"
@@ -90,7 +88,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
     spec:
       name: "VPS_01"

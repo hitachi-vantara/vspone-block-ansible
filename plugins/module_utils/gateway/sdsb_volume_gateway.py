@@ -157,7 +157,3 @@ class SDSBVolumeDirectGateway:
             "upperLimitForTransferRate": qos_param.upper_limit_for_transfer_rate_mb_per_sec,
             "upperAlertAllowableTime": qos_param.upper_alert_allowable_time_in_sec,
         }
-
-
-class SDSBVolumeUAIGateway:
-    pass

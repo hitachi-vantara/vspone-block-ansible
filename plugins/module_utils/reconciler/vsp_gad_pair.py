@@ -12,6 +12,7 @@ try:
     from ..provisioner.vsp_gad_pair_provisioner import GADPairProvisioner
     from ..provisioner.vsp_volume_prov import VSPVolumeProvisioner
     from ..provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..model.vsp_gad_pairs_models import VspGadPairSpec
     from ..common.hv_constants import StateValue, ConnectionTypes
     from ..message.vsp_gad_pair_msgs import GADPairValidateMSG
@@ -41,6 +42,7 @@ except ImportError:
     from provisioner.vsp_gad_pair_provisioner import GADPairProvisioner
     from provisioner.vsp_volume_prov import VSPVolumeProvisioner
     from provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from model.vsp_gad_pairs_models import VspGadPairSpec
     from common.hv_constants import StateValue, ConnectionTypes
     from model.vsp_resource_group_models import (
@@ -86,11 +88,23 @@ class VSPGadPairReconciler:
     def __init__(self, connection_info, secondary_connection_info=None, serial=None):
         self.connection_info = connection_info
         self.secondary_connection_info = secondary_connection_info
-        self.provisioner = GADPairProvisioner(self.connection_info, serial)
-        self.provisioner_volume = VSPVolumeProvisioner(self.connection_info, serial)
-        self.provisioner_rg = VSPResourceGroupProvisioner(self.connection_info, serial)
-        self.serial = self.provisioner.check_ucp_system(serial)
         self.storage_serial_number = serial
+        if self.storage_serial_number is None:
+            self.storage_serial_number = self.get_storage_serial_number()
+        self.serial = self.storage_serial_number
+        self.provisioner = GADPairProvisioner(self.connection_info, self.serial)
+        self.provisioner_volume = VSPVolumeProvisioner(
+            self.connection_info, self.serial
+        )
+        self.provisioner_rg = VSPResourceGroupProvisioner(
+            self.connection_info, self.serial
+        )
+
+    @log_entry_exit
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     @log_entry_exit
     def gad_pair_reconcile_direct(
@@ -297,7 +311,10 @@ class VSPGadPairReconciler:
 
             if not pair:
                 pair = self.create_update_gad_pair(spec, pair)
-                if spec.secondary_nvm_subsystem is not None:
+                if (
+                    spec.secondary_nvm_subsystem is not None
+                    or spec.secondary_iscsi_targets is not None
+                ):
                     pair = self.provisioner.get_gad_pair_by_pvol_id(
                         spec, spec.primary_volume_id
                     )
@@ -335,7 +352,11 @@ class VSPGadPairReconciler:
         if spec.secondary_pool_id is None:
             raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_POOL_ID.value)
 
-        if spec.secondary_hostgroups is None and spec.secondary_nvm_subsystem is None:
+        if (
+            spec.secondary_hostgroups is None
+            and spec.secondary_nvm_subsystem is None
+            and spec.secondary_iscsi_targets is None
+        ):
             raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS_OR_NVME.value)
 
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
@@ -350,17 +371,6 @@ class VSPGadPairReconciler:
 
             if spec.copy_pair_name is None:
                 raise ValueError(VSPTrueCopyValidateMsg.COPY_PAIR_NAME.value)
-
-    @log_entry_exit
-    def check_storage_in_ucpsystem(self) -> bool:
-        """
-        Check if the storage is in the UCP system.
-        """
-        return self.provisioner.check_storage_in_ucpsystem()
-
-    @log_entry_exit
-    def is_out_of_band(self):
-        return self.provisioner.is_out_of_band()
 
     @log_entry_exit
     def create_update_gad_pair(self, spec, pair):
@@ -387,14 +397,10 @@ class VSPGadPairReconciler:
 
     @log_entry_exit
     def validate_gad_spec_for_ops(self, spec: Any) -> None:
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            if spec.primary_volume_id is None:
-                raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
-        else:
-            # due to swap operations, primary_volume_id is not required,
-            # but copy_pair_name is a must
-            if spec.copy_pair_name is None:
-                raise ValueError(VSPTrueCopyValidateMsg.COPY_PAIR_NAME.value)
+        # due to swap operations, primary_volume_id is not required,
+        # but copy_pair_name is a must
+        if spec.copy_pair_name is None:
+            raise ValueError(VSPTrueCopyValidateMsg.COPY_PAIR_NAME.value)
 
     @log_entry_exit
     def resync_gad_pair(self, spec, pair):
@@ -579,10 +585,10 @@ class VSPGadPairReconciler:
 
         if pair["secondary_virtual_hex_volume_id"] is None:
             pair["secondary_virtual_hex_volume_id"] = ""
-        if pair["partner_id"] is None:
-            pair["partner_id"] = ""
-        if pair["subscriber_id"] is None:
-            pair["subscriber_id"] = ""
+        # if pair["partner_id"] is None:
+        #     pair["partner_id"] = ""
+        # if pair["subscriber_id"] is None:
+        #     pair["subscriber_id"] = ""
         if pair["status"]:
             del pair["status"]
 
@@ -678,10 +684,10 @@ class VSPGadPairReconciler:
 
         if pair["secondary_virtual_hex_volume_id"] is None:
             pair["secondary_virtual_hex_volume_id"] = ""
-        if pair["partner_id"] is None:
-            pair["partner_id"] = ""
-        if pair["subscriber_id"] is None:
-            pair["subscriber_id"] = ""
+        # if pair["partner_id"] is None:
+        #     pair["partner_id"] = ""
+        # if pair["subscriber_id"] is None:
+        #     pair["subscriber_id"] = ""
         if pair["status"]:
             del pair["status"]
 
@@ -752,10 +758,12 @@ class VSPGadPairReconciler:
             secondary_volume_storage_id = get_serial_number_from_device_id(
                 gad_copy_pair.get("svolStorageDeviceId")
             )
-            if int(spec.secondary_storage_serial_number) == int(
-                primary_volume_storage_id
-            ):
-                doSwap = True
+            if spec.secondary_storage_serial_number is not None:
+                serial_str = str(spec.secondary_storage_serial_number).strip()
+                if serial_str[0].isalpha():
+                    serial_str = get_serial_number_from_device_id(serial_str)
+                if int(serial_str) == int(primary_volume_storage_id):
+                    doSwap = True
 
             logger.writeDebug("sng1104 doSwap={}", doSwap)
             logger.writeDebug(
@@ -916,9 +924,9 @@ class DirectGADInfoExtractor:
             # ?
             "serialNumber": str,
             "isSSWS": bool,
-            "entitlementStatus": str,
-            "partnerId": str,
-            "subscriberId": str,
+            # "entitlementStatus": str,
+            # "partnerId": str,
+            # "subscriberId": str,
         }
 
         self.parameter_mapping = {
@@ -1021,9 +1029,10 @@ class DirectGADCopyPairInfoExtractor:
             "pvolVirtualLdevId": int,
             "svolVirtualLdevId": int,
             "muNumber": int,
-            "entitlementStatus": str,
-            "partnerId": str,
-            "subscriberId": str,
+            "remoteMirrorCopyPairId": str,
+            # "entitlementStatus": str,
+            # "partnerId": str,
+            # "subscriberId": str,
             "isAluaEnabled": bool,
         }
 

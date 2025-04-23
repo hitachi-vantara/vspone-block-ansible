@@ -59,7 +59,6 @@ EXAMPLES = """
           address: sdsb.company.com
           username: "admin"
           password: "secret"
-          connection_type: "direct"
 """
 
 
@@ -150,9 +149,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     SDSBStorageSystemArguments,
     SDSBParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler import (
     sdsb_storage_system,
 )
@@ -186,15 +182,7 @@ class SDSBStorageSystemFactManager:
 
         registration_message = validate_ansible_product_registration()
         try:
-            if (
-                self.params_manager.connection_info.connection_type.lower()
-                == ConnectionTypes.GATEWAY
-            ):
-                pass
-            else:
-                sdsb_storage_system_data = asdict(
-                    self.direct_sdsb_storage_system_read()
-                )
+            sdsb_storage_system_data = asdict(self.direct_sdsb_storage_system_read())
             snake_case_storage_system_data = camel_dict_to_snake_case(
                 sdsb_storage_system_data
             )

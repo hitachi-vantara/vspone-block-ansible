@@ -1,7 +1,7 @@
 ---
 namespace: hitachivantara
 name: vspone_block
-version: 3.3.0
+version: 3.3.0-223
 readme: README.md
 authors:
   - Hitachi Vantara Ansible Team
@@ -44,4 +44,3 @@ build_ignore:
   - sanity_test_report.txt
   - file_name_wo_ext_cwd.sh
   - test_ansible_doc.sh
-  - ansible.cfg

@@ -18,7 +18,7 @@
 
   tasks:
     ######################################################################################
-    # Task 1 : Create snapshot pair
+    # Task Name : Create snapshot pair
     ######################################################################################
     - name: Create snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -35,8 +35,26 @@
       ansible.builtin.debug:
         var: result
 
+    ##############################################################################################
+    # Task Name : Create snapshot pair with a new consistency group
+    ##############################################################################################
+    - name: Create snapshot pair with a new consistency group
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          primary_volume_id: 100
+          pool_id: 15
+          snapshot_group_name: "snapshot-group-name-2"
+          allocate_new_consistency_group: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
     ######################################################################################
-    # Task 2 : Split snapshot pair
+    # Task Name : Split snapshot pair
     ######################################################################################
     - name: Split snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -52,7 +70,7 @@
         var: result
 
     ######################################################################################
-    # Task 3 : Resync snapshot pair
+    # Task Name : Resync snapshot pair
     ######################################################################################
     - name: Resync snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -68,7 +86,7 @@
         var: result
 
     ######################################################################################
-    # Task 4 : Create and Auto-Split snapshot pair
+    # Task Name : Create and Auto-Split snapshot pair
     ######################################################################################
     - name: Create and Auto-Split snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -85,7 +103,7 @@
         var: result
 
     ######################################################################################
-    # Task 5 : Restore snapshot pair
+    # Task Name : Restore snapshot pair
     ######################################################################################
     - name: Restore snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -101,7 +119,7 @@
         var: result
 
     ######################################################################################
-    # Task 6 : Create snapshot pair using existing consistency group
+    # Task Name : Create snapshot pair using existing consistency group
     ######################################################################################
     - name: Create snapshot pair using existing consistency group
       hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -119,7 +137,7 @@
         var: result
 
     ######################################################################################
-    # Task 7 : Delete snapshot pair
+    # Task Name : Delete snapshot pair
     ######################################################################################
     - name: Delete snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -135,7 +153,7 @@
         var: result
 
     ######################################################################################
-    # Task 8 : Clone snapshot pair
+    # Task Name : Clone snapshot pair
     ######################################################################################
     - name: Clone snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -151,7 +169,7 @@
         var: result
 
     ######################################################################################
-    # Task 9 : Create and clone snapshot pair
+    # Task Name : Create and clone snapshot pair
     ######################################################################################
     - name: Create and clone snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -162,6 +180,151 @@
           pool_id: 5
           snapshot_group_name: "snapshot-group-name-1"
           is_clone: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Create and clone snapshot pair with copy speed and clones automation
+    ######################################################################################
+    - name: Create and clone snapshot pair with copy speed and clones automation
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          primary_volume_id: 100
+          pool_id: 5
+          snapshot_group_name: "snapshot-group-name-1"
+          is_clone: true
+          copy_speed: "FAST"
+          clones_automation: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Create floating snapshot pair
+    ######################################################################################
+    - name: Create floating snapshot pair
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          primary_volume_id: 100
+          secondary_volume_id: -1
+          pool_id: 5
+          snapshot_group_name: "snapshot-group-name-1"
+          mirror_unit_id: 4
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Assign floating snapshot pair
+    ######################################################################################
+    - name: Assign floating snapshot pair
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          primary_volume_id: 100
+          secondary_volume_id: 200
+          mirror_unit_id: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Unassign floating snapshot pair
+    ######################################################################################
+    - name: Unassign floating snapshot pair
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          primary_volume_id: 100
+          secondary_volume_id: -1
+          mirror_unit_id: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Create Thin Image Advanced snapshot pair
+    ######################################################################################
+    - name: Create Thin Image Advanced snapshot pair
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          snapshot_group_name: "ssg_test_033001"
+          primary_volume_id: 3111
+          secondary_volume_id: 3112
+          pool_id: 32
+          is_data_reduction_force_copy: true
+          can_cascade: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Set retention period of a existing snapshot pair
+    ######################################################################################
+    - name: Set retention period of a existing snapshot pair
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          primary_volume_id: 3111
+          mirror_unit_id: 1
+          retention_period: 30
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Set retention period of snapshot pair after split
+    ######################################################################################
+    - name: Set retention period of snapshot pair after split
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "split"
+        spec:
+          primary_volume_id: 3111
+          mirror_unit_id: 1
+          retention_period: 30
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Set retention period of snapshot pair with auto split
+    ######################################################################################
+    - name: Set retention period of snapshot pair with auto split
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "split"
+        spec:
+          primary_volume_id: 322
+          retention_period: 60
+          pool_id: 1
+          snapshot_group_name: "snapshot-group-name-1"
       register: result
 
     - name: Debug the result variable

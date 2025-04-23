@@ -35,9 +35,9 @@
       password: "{{ vault_secondary_storage_secret }}"
 
   tasks:
-  ####################################################################
-  # Task 1 : Lock Resource Groups
-  ####################################################################
+    ####################################################################
+    # Task 1 : Lock Resource Groups
+    ####################################################################
     - name: Lock Resource Groups
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info: "{{ connection_info }}"

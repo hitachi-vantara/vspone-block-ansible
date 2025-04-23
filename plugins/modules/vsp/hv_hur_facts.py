@@ -14,11 +14,8 @@ module: hv_hur_facts
 short_description: Retrieves HUR information from Hitachi VSP storage systems.
 description:
   - This module retrieves information about HURs from Hitachi VSP storage systems.
-  - This module is supported for both C(direct) and C(gateway) connection types.
-  - For C(direct) connection type examples, go to URL
+  - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/hur_facts.yml)
-  - For C(gateway) connection type examples, go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_uai_gateway/hur_facts.yml)
 version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -30,8 +27,7 @@ attributes:
     support: full
 options:
   storage_system_info:
-    description:
-      - Information about the storage system. This field is required for gateway connection type only.
+    description: Information about the storage system. This field is an optional field.
     type: dict
     required: false
     suboptions:
@@ -45,40 +41,34 @@ options:
     required: true
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway (if connection_type is C(gateway)) or
-          the storage system (if connection_type is C(direct)).
+        description: IP address or hostname of the storage system.
         type: str
         required: true
       username:
-        description: Username for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Username for authentication. This is a required field.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is valid for C(direct) connection type only, and it is a required field.
+        description: Password for authentication. This is a required field.
         type: str
         required: false
       api_token:
-        description: API token for authentication. This field is valid for C(gateway) connection type only, and it is a required field.
-        type: str
-        required: false
-      subscriber_id:
-        description: This field is valid for C(gateway) connection type only. This is an optional field and only needed to support multi-tenancy environment.
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str
         required: false
-        choices: ['gateway', 'direct']
+        choices: ['direct']
         default: 'direct'
   secondary_connection_info:
     description: Information required to establish a connection to the secondary storage system.
-      This field is required for direct connection type only.
     required: false
     type: dict
     suboptions:
       address:
-        description: IP address or hostname of either the UAI gateway .
+        description: IP address or hostname of the secondary storage system.
         type: str
         required: true
       username:
@@ -134,10 +124,10 @@ options:
 """
 
 EXAMPLES = """
-- name: Get all HUR pairs for direct connection type
-  hv_truecopy_facts:
+- name: Get all HUR pairs
+  hitachivantara.vspone_block.vsp.hv_truecopy_facts:
     connection_info:
-      address: gateway.company.com
+      address: storage1.company.com
       username: "admin"
       password: "password"
     secondary_connection_info:
@@ -145,17 +135,7 @@ EXAMPLES = """
       username: "admin"
       password: "secret"
 
-- name: Get all HUR pairs for gateway connection for a specific subscriber for gateway connection type
-  hv_truecopy_facts:
-    storage_system_info:
-      serial: "811150"
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-
-- name: Gather HUR facts with primary volume and mirror unit ID for direct connection type
+- name: Gather HUR facts with primary volume and mirror unit ID
   hitachivantara.vspone_block.vsp.hv_hur_facts:
     connection_info:
       address: storage1.company.com
@@ -169,20 +149,7 @@ EXAMPLES = """
       primary_volume_id: 111
       mirror_unit_id: 10
 
-- name: Gather HUR facts with primary volume and mirror unit ID for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_hur_facts:
-    storage_system_info:
-      serial: "811150"
-    connection_info:
-      address: storage1.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_volume_id: 111
-      mirror_unit_id: 10
-
-- name: Gather HUR facts for a specific primary volume for direct connection type
+- name: Gather HUR facts for a specific primary volume
   hitachivantara.vspone_block.vsp.hv_hur_facts:
     connection_info:
       address: storage1.company.com
@@ -195,19 +162,7 @@ EXAMPLES = """
     spec:
       primary_volume_id: 111
 
-- name: Gather HUR facts for a specific primary volume for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_hur_facts:
-    storage_system_info:
-      serial: "811150"
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
-    spec:
-      primary_volume_id: 111
-
-- name: Gather HUR facts for a specific secondary volume for direct connection type
+- name: Gather HUR facts for a specific secondary volume
   hitachivantara.vspone_block.vsp.hv_hur_facts:
     connection_info:
       address: storage1.company.com
@@ -217,18 +172,6 @@ EXAMPLES = """
       address: storage2.company.com
       username: "admin"
       password: "secret"
-    spec:
-      secondary_volume_id: 111
-
-- name: Gather HUR facts for a specific secondary volume for gateway connection type
-  hitachivantara.vspone_block.vsp.hv_hur_facts:
-    storage_system_info:
-      serial: "811150"
-    connection_info:
-      address: gateway.company.com
-      api_token: "api_token_value"
-      connection_type: "gateway"
-      subscriber_id: 123456
     spec:
       secondary_volume_id: 111
 """
@@ -340,9 +283,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     VSPHurArguments,
     VSPParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    ConnectionTypes,
-)
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_hur import (
     VSPHurReconciler,
 )
@@ -354,9 +294,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.module_msgs import (
-    ModuleMessage,
 )
 
 
@@ -408,15 +345,6 @@ class VSPHurFactManager:
         reconciler = VSPHurReconciler(
             self.connection_info, self.storage_serial_number, None
         )
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            found = reconciler.check_storage_in_ucpsystem()
-            if not found:
-                raise ValueError(ModuleMessage.STORAGE_SYSTEM_ONBOARDING.value)
-            oob = reconciler.is_out_of_band()
-            self.logger.writeDebug(f"oob = {oob}")
-            if oob is True:
-                raise ValueError(ModuleMessage.OOB_NOT_SUPPORTED.value)
-        # sng20241115 for the remote_connection_manager
         self.spec.secondary_connection_info = self.secondary_connection_info
         result = reconciler.get_hur_facts(self.spec)
         return result

@@ -73,7 +73,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
 - name: Retrieve information about compute nodes by hba_name
   hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node_facts:
@@ -81,7 +80,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
 
     spec:
       hba_name: 'iqn.1991-05.com.hitachi:test-iscsi-iqn1'
@@ -92,7 +90,6 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
-      connection_type: "direct"
     spec:
       names: ['computenode1', 'computenode2']
 """

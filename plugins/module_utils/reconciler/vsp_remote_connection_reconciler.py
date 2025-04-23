@@ -16,6 +16,7 @@ except ImportError:
     from plugins.module_utils.provisioner.vsp_remote_connection_provisioner import (
         VSPRemoteConnectionProvisioner,
     )
+    from model.vsp_remote_connection_models import RemoteConnectionSpec
     from common.hv_constants import StateValue
 
 
@@ -24,8 +25,6 @@ class VSPRemoteConnectionReconciler:
     def __init__(self, connection_info, serial=None):
         self.connection_info = connection_info
         self.provisioner = VSPRemoteConnectionProvisioner(self.connection_info, serial)
-
-        # self.serial = self.provisioner.check_ucp_system(serial)
 
     @log_entry_exit
     def remote_connection_reconcile(self, state: str, spec: RemoteConnectionSpec):

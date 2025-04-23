@@ -170,7 +170,7 @@ class VSPNormalizedPort:
     resource_group_id: int = None
     wwn: str = None
     resource_id: str = None
-    tags: List[str] = None
+    # tags: List[str] = None
     attribute: str = None
     connection_type: str = None
     fabric_on: bool = None

@@ -27,8 +27,6 @@ class VSPRemoteIscsiConnectionReconciler:
             self.connection_info, serial
         )
 
-        # self.serial = self.provisioner.check_ucp_system(serial)
-
     @log_entry_exit
     def remote_iscsi_connection_reconcile(
         self, state: str, spec: RemoteIscsiConnectionSpec

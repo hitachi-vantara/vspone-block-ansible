@@ -10,8 +10,6 @@ try:
     from ..common.ansible_common import log_entry_exit, convert_block_capacity
     from ..model.common_base_models import VSPCommonInfo
     from ..common.vsp_constants import set_basic_storage_details
-    from ..common.hv_constants import ConnectionTypes
-    from ..common.uaig_utils import UAIGResourceID
     from ..common.uaig_constants import UAIGStorageHealthStatus
     from ..message.common_msgs import CommonMessage
 
@@ -28,8 +26,6 @@ except ImportError:
     from common.ansible_common import log_entry_exit, convert_block_capacity
     from model.common_base_models import VSPCommonInfo
     from common.vsp_constants import set_basic_storage_details
-    from common.hv_constants import ConnectionTypes
-    from common.uaig_utils import UAIGResourceID
     from common.uaig_constants import UAIGStorageHealthStatus
     from message.common_msgs import CommonMessage
 
@@ -249,7 +245,7 @@ class VSPStorageSystemProvisioner:
                 tmp_port["attribute"] = "UNKNOWN"
             tmp_port["resource_group_id"] = -1
             tmp_port["resource_id"] = ""
-            tmp_port["tags"] = []
+            # tmp_port["tags"] = []
             tmp_port["iscsi_port_ip_address"] = ""
 
             tmp_ports.append(tmp_port)
@@ -487,16 +483,3 @@ class VSPStorageSystemProvisioner:
                 ):
                     return storage
         return None
-
-    @log_entry_exit
-    def check_ucp_system(self, serial):
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            return serial, ""
-        if not self.gateway.check_storage_in_ucpsystem(serial):
-            err_msg = CommonMessage.SERIAL_NUMBER_NOT_FOUND.value.format(serial)
-            logger.writeError(err_msg)
-            raise ValueError(err_msg)
-        else:
-            self.serial = serial
-            self.resource_id = UAIGResourceID().storage_resourceId(self.serial)
-            return serial, self.resource_id
