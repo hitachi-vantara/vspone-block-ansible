@@ -1,4 +1,4 @@
-# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 3.3.0
+# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 3.4.0
 
 The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of Ansible modules for managing Hitachi VSP One SDS Block and Hitachi VSP One series systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
