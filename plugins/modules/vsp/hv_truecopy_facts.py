@@ -10,120 +10,122 @@ __metaclass__ = type
 
 DOCUMENTATION = """
 ---
-  module: hv_truecopy_facts
-  short_description: Retrieves TrueCopy pairs information from Hitachi VSP storage systems.
-  description:
-    - This module retrieves the TrueCopy pairs information from Hitachi VSP storage systems.
-    - For examples, go to URL
-      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/truecopy_facts.yml)
-  version_added: '3.1.0'
-  author:
-    - Hitachi Vantara LTD (@hitachi-vantara)
-  requirements:
-    - python >= 3.8
-  attributes:
-    check_mode:
-      description: Determines if the module should run in check mode.
-      support: full
-  options:
-    storage_system_info:
-      description: Information about the storage system. This field is an optional field.
+module: hv_truecopy_facts
+short_description: Retrieves TrueCopy pairs information from Hitachi VSP storage systems.
+description:
+  - This module retrieves the TrueCopy pairs information from Hitachi VSP storage systems.
+  - For examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/truecopy_facts.yml)
+version_added: '3.1.0'
+author:
+  - Hitachi Vantara LTD (@hitachi-vantara)
+requirements:
+  - python >= 3.8
+attributes:
+  check_mode:
+    description: Determines if the module should run in check mode.
+    support: full
+extends_documentation_fragment:
+- hitachivantara.vspone_block.common.gateway_note
+options:
+  storage_system_info:
+    description: Information about the storage system. This field is an optional field.
+    type: dict
+    required: false
+    suboptions:
+      serial:
+        description: The serial number of the storage system.
+        type: str
+        required: false
+  secondary_connection_info:
+    description: >
+      Information required to establish a connection to the secondary storage system.
+    required: false
+    type: dict
+    suboptions:
+      address:
+        description:
+          - IP address or hostname of the Hitachi storage system.
+        type: str
+        required: true
+      username:
+        description:
+          - Username for authentication. This field is a required field if api_token is not provided.
+        type: str
+        required: false
+      password:
+        description:
+          - Password for authentication. This field is a required field if api_token is not provided.
+        type: str
+        required: false
+      api_token:
+        description:
+          - This field is used to pass the value of the lock token of the secondary storage to operate on locked resources.
+        type: str
+        required: false
+  connection_info:
+      description: Information required to establish a connection to the storage system.
       type: dict
-      required: false
-      suboptions:
-        serial:
-          description: The serial number of the storage system.
-          type: str
-          required: false
-    secondary_connection_info:
-      description: >
-        Information required to establish a connection to the secondary storage system.
-      required: false
-      type: dict
+      required: true
       suboptions:
         address:
-          description:
-            - IP address or hostname of the Hitachi storage system.
+          description: IP address or hostname of the storage system.
           type: str
           required: true
         username:
-          description:
-            - Username for authentication. This field is a required field if api_token is not provided.
+          description: Username for authentication. This is a required field.
           type: str
           required: false
         password:
-          description:
-            - Password for authentication. This field is a required field if api_token is not provided.
+          description: Password for authentication. This is a required field.
           type: str
           required: false
         api_token:
-          description:
-            - This field is used to pass the value of the lock token of the secondary storage to operate on locked resources.
+          description: This field is used to pass the value of the lock token to operate on locked resources.
           type: str
           required: false
-    connection_info:
-        description: Information required to establish a connection to the storage system.
-        type: dict
-        required: true
-        suboptions:
-          address:
-            description: IP address or hostname of the storage system.
-            type: str
-            required: true
-          username:
-            description: Username for authentication. This is a required field.
-            type: str
-            required: false
-          password:
-            description: Password for authentication. This is a required field.
-            type: str
-            required: false
-          api_token:
-            description: This field is used to pass the value of the lock token to operate on locked resources.
-            type: str
-            required: false
-          connection_type:
-            description: Type of connection to the storage system.
-            type: str
-            required: false
-            choices: ['direct']
-            default: 'direct'
-    spec:
-      description:
-        - Specification for retrieving TrueCopy pair information.
-      type: dict
-      required: false
-      suboptions:
-        primary_volume_id:
-          description:
-            - ID of the primary volume to retrieve TrueCopy pair information for.
-          type: int
-          required: false
-        secondary_volume_id:
-          description:
-            - ID of the secondary volume to retrieve TrueCopy pair information for.
-          type: int
-          required: false
-        copy_group_name:
-          description:
-            - Name of the copy group to retrieve TrueCopy pair information for.
+        connection_type:
+          description: Type of connection to the storage system.
           type: str
           required: false
-        copy_pair_name:
-          description:
-            - Name of the copy pair to retrieve TrueCopy pair information for.
-          type: str
-          required: false
-        local_device_group_name:
-          description:
-            - Name of the local device group to retrieve TrueCopy pair information for.
-          type: str
-          required: false
-        remote_device_group_name:
-          description:
-            - Name of the remote device group to retrieve TrueCopy pair information for.
-          type: str
-          required: false
+          choices: ['direct']
+          default: 'direct'
+  spec:
+    description:
+      - Specification for retrieving TrueCopy pair information.
+    type: dict
+    required: false
+    suboptions:
+      primary_volume_id:
+        description:
+          - ID of the primary volume to retrieve TrueCopy pair information for.
+        type: int
+        required: false
+      secondary_volume_id:
+        description:
+          - ID of the secondary volume to retrieve TrueCopy pair information for.
+        type: int
+        required: false
+      copy_group_name:
+        description:
+          - Name of the copy group to retrieve TrueCopy pair information for.
+        type: str
+        required: false
+      copy_pair_name:
+        description:
+          - Name of the copy pair to retrieve TrueCopy pair information for.
+        type: str
+        required: false
+      local_device_group_name:
+        description:
+          - Name of the local device group to retrieve TrueCopy pair information for.
+        type: str
+        required: false
+      remote_device_group_name:
+        description:
+          - Name of the remote device group to retrieve TrueCopy pair information for.
+        type: str
+        required: false
 """
 
 EXAMPLES = """

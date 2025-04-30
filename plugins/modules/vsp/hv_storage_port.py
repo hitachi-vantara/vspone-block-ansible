@@ -25,6 +25,8 @@ attributes:
   check_mode:
     description: Determines if the module should run in check mode.
     support: none
+extends_documentation_fragment:
+- hitachivantara.vspone_block.common.gateway_note
 options:
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
