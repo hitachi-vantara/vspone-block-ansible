@@ -26,6 +26,8 @@ attributes:
   check_mode:
     description: Determines if the module should run in check mode.
     support: none
+extends_documentation_fragment:
+- hitachivantara.vspone_block.common.gateway_note
 options:
   state:
     description: The level of the Remote connection task. Choices are C(present), C(absent) C(expand).
