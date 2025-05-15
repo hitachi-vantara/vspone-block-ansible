@@ -29,6 +29,11 @@ attributes:
     support: none
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+notes:
+  - The input parameters C(allocate_new_consistency_group), C(begin_secondary_volume_id) and C(end_secondary_volume_id) were removed in version 3.4.0.
+    They were deprecated due to internal API simplification and are no longer supported.
+  - The output parameters C(entitlement_status), C(subscriber_id), and C(partner_id) were removed in version 3.4.0.
+    They were also deprecated due to internal API simplification and are no longer supported.
 options:
   state:
     description:

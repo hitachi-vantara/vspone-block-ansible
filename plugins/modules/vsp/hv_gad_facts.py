@@ -27,6 +27,9 @@ attributes:
     support: full
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+notes:
+  - The output parameters C(entitlement_status) and C(partner_id) were removed in version 3.4.0.
+    They were also deprecated due to internal API simplification and are no longer supported.
 options:
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
