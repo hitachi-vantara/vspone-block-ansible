@@ -28,6 +28,9 @@ attributes:
     support: none
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+notes:
+  - The input parameters C(consistency_group_id) and C(enable_quick_mode) were removed in version 3.4.0.
+    These were deprecated due to internal API simplification and are no longer supported.
 options:
   state:
     description: The level of the snapshot task. Choices are C(present), C(absent), C(split), C(sync), C(restore), C(clone).

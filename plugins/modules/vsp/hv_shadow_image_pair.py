@@ -28,6 +28,9 @@ attributes:
     support: none
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+notes:
+  - The output parameters C(entitlement_status), C(subscriber_id) and C(partner_id) were removed in version 3.4.0.
+    They were also deprecated due to internal API simplification and are no longer supported.
 options:
   state:
     description: The level of the shadow image pairs task. Choices are C(present), C(absent), C(split), C(restore), C(sync).

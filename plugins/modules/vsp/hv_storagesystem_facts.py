@@ -27,6 +27,9 @@ attributes:
     support: full
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+notes:
+  - The input parameter C(refresh) was removed in version 3.4.0.
+    They were deprecated due to internal API simplification and are no longer supported.
 options:
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
