@@ -279,6 +279,10 @@ options:
         type: bool
         required: false
         default: false
+      mu_number:
+        description: The mirror unit number.
+        type: str
+        required: false
 """
 
 EXAMPLES = """

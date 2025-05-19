@@ -1,7 +1,7 @@
 ---
 namespace: hitachivantara
 name: vspone_block
-version: 3.4.0
+version: 3.4.1-223
 readme: README.md
 authors:
   - Hitachi Vantara Ansible Team
@@ -22,7 +22,7 @@ tags:
   - pegasus
 dependencies: {}
 repository: https://github.com/hitachi-vantara/vspone-block-ansible
-documentation: https://github.com/hitachi-vantara/vspone-block-ansible
+documentation: https://docs.ansible.com/ansible/devel/collections/hitachivantara/vspone_block/
 issues: https://github.com/hitachi-vantara/vspone-block-ansible/issues
 build_ignore:
   - tests/integration/ # Example: Ignore integration tests

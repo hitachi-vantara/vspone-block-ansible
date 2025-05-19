@@ -4,6 +4,20 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v3.4.1
+======
+
+Release Summary
+---------------
+
+This minor release of `hitachivantara.vspone_block` introduces several new modules and improves existing functionality.
+
+Minor Changes
+-------------
+
+- Added back 'mu_number' parameter to the `hv_gad` module.
+- Resolved various documentation inconsistencies.
+
 v3.4.0
 ======
 

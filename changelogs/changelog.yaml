@@ -461,3 +461,13 @@ releases:
       name: hv_ddp_pool_facts
       namespace: vsp
     release_date: '2025-04-22'
+  3.4.1:
+    changes:
+      minor_changes:
+      - Added back 'mu_number' parameter to the `hv_gad` module.
+      - Resolved various documentation inconsistencies.
+      release_summary: This minor release of `hitachivantara.vspone_block` introduces
+        several new modules and improves existing functionality.
+    fragments:
+    - release-3.4.1.yml
+    release_date: '2025-05-19'

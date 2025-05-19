@@ -40,6 +40,7 @@
               enable_preferred_path: false
               lun_id: 1
           quorum_disk_id: 1
+          mu_number: 4
 
       register: result
 
@@ -71,6 +72,7 @@
               enable_preferred_path: false
           quorum_disk_id: 1
           allocate_new_consistency_group: false
+          mu_number: 4
       register: result
 
     - name: Debug the result variable
@@ -104,6 +106,7 @@
           quorum_disk_id: 3
           set_alua_mode: false
           allocate_new_consistency_group: false
+          mu_number: 4
       register: result
 
     - name: Debug the result variable

@@ -3194,10 +3194,10 @@ class VSPGADArguments:
                 "choices": ["HIGH", "MEDIUM", "LOW"],
                 "default": "MEDIUM",
             },
-            # "mu_number": {
-            #     "required": False,
-            #     "type": "str",
-            # },
+            "mu_number": {
+                "required": False,
+                "type": "str",
+            },
             "fence_level": {
                 "required": False,
                 "type": "str",

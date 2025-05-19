@@ -58,6 +58,33 @@ plugins:
       name: hv_gad_facts
       namespace: vsp
       version_added: 3.1.0
+    hv_gateway_admin_password:
+      description: Updates password of gateway admin on Hitachi VSP storage systems.
+      name: hv_gateway_admin_password
+      namespace: vsp
+      version_added: 3.0.0
+    hv_gateway_subscriber:
+      description: Manages subscribers of a partner on Hitachi VSP storage systems.
+      name: hv_gateway_subscriber
+      namespace: vsp
+      version_added: 3.0.0
+    hv_gateway_subscriber_facts:
+      description: Retrieves information about subscriber on Hitachi VSP storage systems.
+      name: hv_gateway_subscriber_facts
+      namespace: vsp
+      version_added: 3.0.0
+    hv_gateway_subscription_facts:
+      description: Retrieves information about resources of a subscriber on Hitachi
+        VSP storage systems.
+      name: hv_gateway_subscription_facts
+      namespace: vsp
+      version_added: 3.1.0
+    hv_gateway_unsubscribe_resource:
+      description: Manages un-subscription of resources for a subscriber on Hitachi
+        VSP storage systems.
+      name: hv_gateway_unsubscribe_resource
+      namespace: vsp
+      version_added: 3.1.0
     hv_hg:
       description: Manages host group on Hitachi VSP storage system.
       name: hv_hg
@@ -332,6 +359,11 @@ plugins:
       name: hv_storagepool_facts
       namespace: vsp
       version_added: 3.0.0
+    hv_storagesystem:
+      description: Manages Hitachi VSP storage systems.
+      name: hv_storagesystem
+      namespace: vsp
+      version_added: 3.0.0
     hv_storagesystem_facts:
       description: retrieves storage system information from Hitachi VSP storage systems.
       name: hv_storagesystem_facts
@@ -352,6 +384,11 @@ plugins:
       name: hv_truecopy_facts
       namespace: vsp
       version_added: 3.1.0
+    hv_uaig_token_facts:
+      description: Retrieves an API token for the Hitachi gateway service host.
+      name: hv_uaig_token_facts
+      namespace: vsp
+      version_added: 3.0.0
     hv_user:
       description: Manages users on Hitachi VSP storage systems.
       name: hv_user
@@ -377,4 +414,4 @@ plugins:
   strategy: {}
   test: {}
   vars: {}
-version: 3.4.0
+version: 3.4.1
