@@ -1,4 +1,4 @@
-# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 3.4.0
+# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 3.4.1
 
 The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of Ansible modules for managing Hitachi VSP One SDS Block and Hitachi VSP One series systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
@@ -69,10 +69,10 @@ To upgrade the collection to the latest available version, run the following com
 ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 ```
 
-If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 3.4.0. If you encounter any issues, please report them in this [repository](https://github.com/hitachi-vantara/vspone-block-ansible/issues). Use the following syntax to install version 3.4.0:
+If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 3.4.1. If you encounter any issues, please report them in this [repository](https://github.com/hitachi-vantara/vspone-block-ansible/issues). Use the following syntax to install version 3.4.1:
 
 ```bash
-ansible-galaxy collection install hitachivantara.vspone_block:==3.4.0
+ansible-galaxy collection install hitachivantara.vspone_block:==3.4.1
 ```
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
