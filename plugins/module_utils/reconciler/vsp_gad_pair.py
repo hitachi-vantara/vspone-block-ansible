@@ -336,7 +336,7 @@ class VSPGadPairReconciler:
                 # for gateway only
                 return self.addDetails(pair.to_dict(), pair.primaryVolumeId)
 
-            return pair.to_dict() if pair else None
+            return pair.camel_to_snake_dict() if pair else None
 
     @log_entry_exit
     def validate_create_spec(self, spec: Any) -> None:

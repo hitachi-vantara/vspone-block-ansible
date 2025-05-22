@@ -1,4 +1,4 @@
-# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 3.4.1
+# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 3.4.2
 
 The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of Ansible modules for managing Hitachi VSP One SDS Block and Hitachi VSP One series systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
@@ -69,10 +69,10 @@ To upgrade the collection to the latest available version, run the following com
 ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 ```
 
-If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 3.4.1. If you encounter any issues, please report them in this [repository](https://github.com/hitachi-vantara/vspone-block-ansible/issues). Use the following syntax to install version 3.4.1:
+If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 3.4.2:
 
 ```bash
-ansible-galaxy collection install hitachivantara.vspone_block:==3.4.1
+ansible-galaxy collection install hitachivantara.vspone_block:==3.4.2
 ```
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
@@ -81,9 +81,52 @@ See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guid
 
 For troubleshooting tips and common issues, please refer to the [Troubleshooting Guide](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/docs/TROUBLESHOOTING.md).
 
-## User Guide & Release Notes
+## Testing
+
+This collection is tested using the official Ansible sanity tests to ensure compliance with Ansible coding standards and best practices.
+
+## Support
+
+For support, please use one of the following channels:
+
+- [GitHub Issues](https://github.com/hitachi-vantara/vspone-block-ansible/issues) – for bug reports, feature requests, and technical assistance
+- [Hitachi Vantara Support Portal](https://support.hitachivantara.com/) – for enterprise-grade support (requires valid support contract)
+- Community discussion is welcome via GitHub or user forums
+
+## Release Notes and Roadmap
+
+### Release Notes
 
 For User Guide and Release Notes, see [User Guide and Release Notes](https://docs.hitachivantara.com/search/documents?value-filters=Option~%2522Red+Hat%2522*Product_custom~%2522Adapters+and+Drivers%2522&virtual-field=title_only&content-lang=en-US)
+
+Version **3.4.2** highlights:
+
+- General performance enhancements and bug fixes
+
+### Roadmap
+
+The following roadmap outlines upcoming features and improvements:
+
+#### **Version 3.5** (Target: June 13, 2025)
+
+- Volume migration support
+- Universal Volume Manager integration
+- Completion of Thin Image Management features
+- Finalization of core Volume Management functionality
+
+#### **Version 4.0** (Target: July 18, 2025)
+
+- Initial storage system setup automation
+- Remaining Pool Management features
+- I/O performance optimization enhancements
+- Support for remote replication failover workflows
+
+#### **Version 4.1** (Target: August 15, 2025)
+
+- Expansion of SDS Storage Cluster capabilities
+- Support for user password reset operations
+- Storage pool expansion features
+- Initial support for SDS Block on AWS deployments
 
 ## License
 
@@ -91,4 +134,4 @@ For User Guide and Release Notes, see [User Guide and Release Notes](https://doc
 
 ## Author
 
-*This collection was created by Hitachi Vantara® Ansible Team in 2025.*
+*This collection was created by the Hitachi Vantara® Ansible Team in 2025.*

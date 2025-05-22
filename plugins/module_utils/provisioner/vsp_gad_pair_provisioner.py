@@ -1149,12 +1149,10 @@ class RemoteReplicationHelperForSVol:
         logger.writeDebug("PROV:813:primary_volume = {}", vol_info)
 
         # Fail early, save time
-        # Before creating the secondary volume check if secondary hostgroup exists
-        host_group = self.get_secondary_hostgroup(spec.secondary_hostgroups)
-        if host_group is None:
-            err_msg = VSPTrueCopyValidateMsg.NO_REMOTE_HG_FOUND.value.format(
-                spec.secondary_hostgroups[0].name, spec.secondary_hostgroups[0].port
-            )
+        # Before creating the secondary volume check if secondary hostgroups exist
+        host_groups = self.get_secondary_hostgroups(spec.secondary_hostgroups)
+        if host_groups is None:
+            err_msg = GADPairValidateMSG.NO_REMOTE_HGS_FOUND.value
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
@@ -1213,42 +1211,42 @@ class RemoteReplicationHelperForSVol:
             )
 
             if vol_info.resourceGroupId != 0:
-
-                add_resource_spec = VSPResourceGroupSpec()
-                add_resource_spec.ldevs = [int(sec_vol_id)]
-                resourceGroupId = host_group.resourceGroupId
+                rm_resource_spec = VSPResourceGroupSpec()
+                rm_resource_spec.ldevs = [int(sec_vol_id)]
                 self.rg_gateway.remove_resource(
-                    vol_info.resourceGroupId, add_resource_spec
+                    vol_info.resourceGroupId, rm_resource_spec
                 )
-                # self.rg_gateway.add_resource(0, add_resource_spec)
+
             #  sng1104 - TODO enable_preferred_path goes here if needed?
             # hg_info = self.parse_hostgroup(host_group)
             # logger.writeDebug("PROV:get_secondary_volume_id:hg_info = {}", hg_info)
 
-            #  sng1104 - on the 2nd storage, find the hg.RG, move lun to RG
+            #  sng1104 - on the 2nd storage, find the hg.RG, move ldev to RG
             add_resource_spec = VSPResourceGroupSpec()
             add_resource_spec.ldevs = [int(sec_vol_id)]
-            resourceGroupId = host_group.resourceGroupId
+            resourceGroupId = host_groups[0].resourceGroupId
             logger.writeDebug(
                 "PROV:get_secondary_volume_id:resourceGroupId = {}", resourceGroupId
             )
-
-            self.rg_gateway.add_resource(resourceGroupId, add_resource_spec)
+            if resourceGroupId != 0:
+                self.rg_gateway.add_resource(resourceGroupId, add_resource_spec)
 
             # GAD reserved
             if vol_info.virtualLdevId != 65535:
                 self.vol_gateway.assign_vldev(sec_vol_id, 65535)
             vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
             logger.writeDebug("PROV:813:sec_vol_id 1397 = {}", sec_vol_id)
-            self.hg_gateway.add_luns_to_host_group(
-                host_group,
-                [sec_vol_id],
-                (
-                    spec.secondary_hostgroups[0].lun_id
-                    if spec.secondary_hostgroups[0].lun_id is not None
-                    else None
-                ),
-            )
+            for i in range(0, len(host_groups)):
+                hg = host_groups[i]
+                self.hg_gateway.add_luns_to_host_group(
+                    hg,
+                    [sec_vol_id],
+                    (
+                        spec.secondary_hostgroups[i].lun_id
+                        if spec.secondary_hostgroups[i].lun_id is not None
+                        else None
+                    ),
+                )
 
         except Exception as ex:
             err_msg = GADFailedMsg.SEC_VOLUME_OPERATION_FAILED.value + str(ex)
@@ -1259,14 +1257,17 @@ class RemoteReplicationHelperForSVol:
             raise Exception(err_msg)
         return sec_vol_id
 
-    def get_secondary_hostgroup(self, secondary_hostgroup, is_iscsi=False):
+    def get_secondary_hostgroups(self, secondary_hostgroup, is_iscsi=False):
         hostgroups_list = self.validate_secondary_hostgroups(
             secondary_hostgroup, is_iscsi
         )
         logger.writeDebug(
-            "PROV:get_secondary_hostgroup:hostgroups_list = {}", hostgroups_list
+            "PROV:get_secondary_hostgroups:hostgroups_list = {}", hostgroups_list
         )
-        return hostgroups_list[0]
+        if hostgroups_list is None or len(hostgroups_list) == 0:
+            return None
+        return hostgroups_list
+        # return hostgroups_list[0]
 
     @log_entry_exit
     def parse_hostgroup(self, hostgroup):
