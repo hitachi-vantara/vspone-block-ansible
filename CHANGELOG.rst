@@ -4,6 +4,20 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v3.4.2
+======
+
+Release Summary
+---------------
+
+This minor release of `hitachivantara.vspone_block` bugfixes and improves existing functionality.
+
+Bugfixes
+--------
+
+- Fixed the mapping lun to multiple HostGroup/Iscsi Target issues for remote replication.
+- Resolved various documentation inconsistencies.
+
 v3.4.1
 ======
 
