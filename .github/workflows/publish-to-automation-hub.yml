@@ -46,8 +46,7 @@ jobs:
 
       - name: Configure Ansible for Automation Hub
         run: |
-          mkdir -p ~/.ansible
-          cat > ~/.ansible/ansible.cfg <<EOF
+          cat > ~/.ansible.cfg <<EOF
             [galaxy]
             server_list = automation_hub
 
@@ -61,5 +60,5 @@ jobs:
       - name: Publish to Automation Hub
         run: |
           echo "🚀 Publishing to Automation Hub..."
-          ansible-galaxy collection publish "$COLLECTION_FILE"
+          ansible-galaxy collection publish "$COLLECTION_FILE" --server automation_hub
           echo "✅ Successfully published to Automation Hub."
