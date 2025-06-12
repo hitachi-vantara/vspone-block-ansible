@@ -55,6 +55,7 @@ class ExternalPathGroupInfoList(BaseDataClass):
 class ExternalVolumeSpec:
     external_storage_serial: str
     external_ldev_id: str
+    external_parity_group: str
     ldev_id: Optional[int] = None
 
 

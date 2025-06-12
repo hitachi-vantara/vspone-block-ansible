@@ -20,7 +20,7 @@ version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -50,11 +50,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -81,6 +81,10 @@ options:
         description: Name of the iscsi target.
         required: false
         type: str
+      iscsi_id:
+        description: ID of the iscsi target.
+        required: false
+        type: int
 """
 
 EXAMPLES = """
@@ -109,6 +113,15 @@ EXAMPLES = """
     spec:
       name: 'iscsi-target-server-1'
       ports: ['CL4-C']
+
+- name: Get iscsi targets by iscsi_id
+  hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
+    connection_info:
+      address: storage1.example.com
+      username: "dummy_username"
+      password: "dummy_password"
+    spec:
+      iscsi_id: 10
 """
 
 RETURN = """

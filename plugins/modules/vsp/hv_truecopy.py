@@ -22,7 +22,7 @@ version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -30,8 +30,6 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 notes:
-  - The input parameters C(allocate_new_consistency_group), C(begin_secondary_volume_id) and C(end_secondary_volume_id) were removed in version 3.4.0.
-    They were deprecated due to internal API simplification and are no longer supported.
   - The output parameters C(entitlement_status), C(subscriber_id), and C(partner_id) were removed in version 3.4.0.
     They were also deprecated due to internal API simplification and are no longer supported.
 options:
@@ -69,11 +67,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication.This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -90,11 +88,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication for secondary storage. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication for secondary storage. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -149,10 +147,28 @@ options:
         description: ID of the dynamic pool where the secondary volume will be created.
         type: int
         required: false
+      begin_secondary_volume_id:
+        description: >
+          Specify beginning ldev id for LDEV range for svol. This is an optional field during create operation.
+          If this field is specified, end_secondary_volume_id must also be specified.
+          If this field is not specified, Ansible modules will try to create SVOL ID same as the PVOL ID if available,
+          otherwise it will use the first available LDEV ID.
+        required: false
+        type: int
+      end_secondary_volume_id:
+        description: >
+          Specify end ldev id for LDEV range for svol. This is an optional field during create operation.
+          If this field is specified, begin_secondary_volume_id must also be specified.
+          If this field is not specified, Ansible modules will try to create SVOL ID same as PVOL ID iff available,
+          otherwise it will use the first available LDEV ID.
+        required: false
+        type: int
       copy_pace:
         description: Copy speed.
         type: str
         required: false
+        choices: ['SLOW', 'MEDIUM', 'FAST']
+        default: 'MEDIUM'
       is_svol_readwriteable:
         description: It is applicable for split pair operation only. If true, the secondary volume will be read-writeable after split.
         type: bool
@@ -199,7 +215,7 @@ options:
         required: false
         suboptions:
           name:
-            description: Name of the NVM subsytem on the secondary storage system.
+            description: Name of the NVM subsystem on the secondary storage system.
             type: str
             required: true
           paths:

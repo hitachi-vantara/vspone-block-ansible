@@ -18,7 +18,7 @@
 
   tasks:
     ######################################################################################
-    # Task 1 : Create a new remote connection
+    # Task Name : Create a new remote connection
     ######################################################################################
     - name: Create a new remote connection
       hitachivantara.vspone_block.vsp.hv_remote_connection:
@@ -42,7 +42,7 @@
         var: result
 
     ######################################################################################
-    # Task 2 : Update remote path of a existing remote connection
+    # Task Name : Update remote path of a existing remote connection
     ######################################################################################
     - name: Update remote path of a existing remote connection
       hitachivantara.vspone_block.vsp.hv_remote_connection:
@@ -63,7 +63,7 @@
         var: result
 
     ######################################################################################
-    # Task 3 : Update remote connection settings
+    # Task Name : Update remote connection settings
     ######################################################################################
     - name: Update remote connection settings
       hitachivantara.vspone_block.vsp.hv_remote_connection:
@@ -82,7 +82,7 @@
         var: result
 
     ######################################################################################
-    # Task 4 : Delete a remote connection
+    # Task Name : Delete a remote connection
     ######################################################################################
     - name: Delete a remote connection
       hitachivantara.vspone_block.vsp.hv_remote_connection:

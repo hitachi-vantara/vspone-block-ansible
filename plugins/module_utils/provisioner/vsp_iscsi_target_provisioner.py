@@ -28,6 +28,9 @@ class VSPIscsiTargetProvisioner:
     def get_one_iscsi_target(self, port, name, serial):
         return self.gateway.get_one_iscsi_target(port, name, serial)
 
+    def get_one_iscsi_target_using_id(self, port, id):
+        return self.gateway.get_one_iscsi_target(port, None, iscsi_id=id)
+
     def get_iscsi_targets_by_scan_all_ports(self, name):
         logger = Log()
         lstHg = []
@@ -99,3 +102,9 @@ class VSPIscsiTargetProvisioner:
 
     def get_all_iscsi_targets(self, serial):
         return self.gateway.get_all_iscsi_target_by_partner_id(serial)
+
+    def update_iqn_nick_name(self, iscsi_target, iqn):
+        self.gateway.set_nickname_of_iqn(iscsi_target, iqn)
+
+    def release_host_reservation_status(self, port_id, iscsi_id, lun=None):
+        self.gateway.release_host_reservation_status(port_id, iscsi_id, lun)

@@ -20,7 +20,7 @@ version_added: '3.2.0'
 author:
     - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -47,11 +47,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -87,9 +87,9 @@ options:
       query:
         description: >
           The field allows to query resource groups for different types of resources.
-          Tpyes of resources are: ldevs, parity_groups, ports, host_groups, iscsi_targets, nvm_subsystem_ids, and storage_pool_ids.
-          If this field is not present, all resources imformation of the resource group will be retrieved except storage_pool_ids.
-          When storage_pool_ids is present, all the ldevs that constitute the storage pool will be included in the reponse under the ldevs field.
+          Types of resources are: ldevs, parity_groups, ports, host_groups, iscsi_targets, nvm_subsystem_ids, and storage_pool_ids.
+          If this field is not present, all resources information of the resource group will be retrieved except storage_pool_ids.
+          When storage_pool_ids is present, all the ldevs that constitute the storage pool will be included in the response under the ldevs field.
         type: list
         required: false
         elements: str

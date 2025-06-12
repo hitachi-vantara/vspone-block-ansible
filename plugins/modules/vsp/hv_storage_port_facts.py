@@ -20,7 +20,7 @@ version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -47,11 +47,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -74,6 +74,30 @@ options:
         type: list
         required: false
         elements: str
+      query:
+        description: This field allows to query for getting information about a port on an external storage system.
+          query parameter is one of C(external_iscsi_targets), C(registered_external_iscsi_targets), C(external_storage_ports), C(external_luns).
+        type: list
+        required: false
+        elements: str
+      external_iscsi_ip_address:
+        description:  IP address of the iSCSI target on the external storage system.
+        type: str
+        required: false
+      external_tcp_port:
+        description: TCP port number of the iSCSI target on the external storage system. If this attribute is omitted,
+          the TCP port number of the port on the local storage system is assumed.
+        type: int
+        required: false
+      external_iscsi_name:
+        description: iSCSI name of the target on the external storage system.
+        type: str
+        required: false
+      external_wwn:
+        description: This field is used to pass the value of the external WWN to operate on external storage systems.
+          This field is used to query for getting information about a port on an external storage system.
+        type: str
+        required: false
 """
 
 EXAMPLES = """
@@ -84,7 +108,7 @@ EXAMPLES = """
       username: "admin"
       password: "secret"
 
-- name: Get a specific port
+- name: Get information about specific ports
   hitachivantara.vspone_block.vsp.hv_storage_port_facts:
     connection_info:
       address: storage1.company.com
@@ -240,9 +264,25 @@ class VSPStoragePortFactManager:
             self.logger.writeException(e)
             self.logger.writeInfo("=== End of Storage Port Facts ===")
             self.module.fail_json(msg=str(e))
-        data = {
-            "port_data": port_data,
-        }
+        if self.spec.query:
+            lower_case_query = [key.lower() for key in self.spec.query]
+            if "external_luns" in lower_case_query:
+                if self.spec.external_wwn:
+                    data = {
+                        "fc_luns": port_data,
+                    }
+                else:
+                    data = {
+                        "iscsi_luns": port_data,
+                    }
+            else:
+                data = {
+                    "port_data": port_data,
+                }
+        else:
+            data = {
+                "port_data": port_data,
+            }
         if registration_message:
             data["user_consent_required"] = registration_message
 

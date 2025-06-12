@@ -60,8 +60,14 @@ class VSPQuorumDiskDirectGateway:
     def set_storage_serial_number(self, serial: str):
         self.storage_serial_number = serial
         if self.storage_serial_number is None:
-            primary_storage_info = self.get_secondary_storage_info(self.connection_info)
+            primary_storage_info = self.get_secondary_storage_info(
+                self.connection_info
+            )  # Fixed no member issue
             self.storage_serial_number = primary_storage_info.get("serialNumber")
+
+    @log_entry_exit
+    def get_secondary_storage_info(self, connection_info):
+        pass  # Fixed no member issue
 
     @log_entry_exit
     def set_serial(self, serial):

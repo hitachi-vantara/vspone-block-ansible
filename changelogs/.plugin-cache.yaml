@@ -37,6 +37,23 @@ plugins:
       name: hv_disk_drive_facts
       namespace: vsp
       version_added: 3.2.0
+    hv_external_parity_group_facts:
+      description: Retrieves information about External Parity Group from Hitachi
+        VSP storage systems.
+      name: hv_external_parity_group_facts
+      namespace: vsp
+      version_added: 3.5.0
+    hv_external_path_group:
+      description: Manages External Path Groups in the Hitachi VSP storage systems.
+      name: hv_external_path_group
+      namespace: vsp
+      version_added: 3.5.0
+    hv_external_path_group_facts:
+      description: Retrieves information about External Path Group from Hitachi VSP
+        storage systems.
+      name: hv_external_path_group_facts
+      namespace: vsp
+      version_added: 3.5.0
     hv_external_volume:
       description: Manages External Volumes in the Hitachi VSP storage systems.
       name: hv_external_volume
@@ -151,6 +168,11 @@ plugins:
       name: hv_ldev_facts
       namespace: vsp
       version_added: 3.0.0
+    hv_mp_facts:
+      description: Retrieves MP blades information from Hitachi VSP storage systems.
+      name: hv_mp_facts
+      namespace: vsp
+      version_added: 3.5.0
     hv_nvm_subsystems:
       description: Manages NVM subsystems on Hitachi VSP storage systems.
       name: hv_nvm_subsystems
@@ -414,4 +436,4 @@ plugins:
   strategy: {}
   test: {}
   vars: {}
-version: 3.4.2
+version: 3.5.0

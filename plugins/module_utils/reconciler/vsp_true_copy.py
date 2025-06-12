@@ -140,7 +140,7 @@ class VSPTrueCopyReconciler:
         """
         Validate the TrueCopy specification.
         """
-        # These are commom for both direct and gateway
+        # These are common for both direct and gateway
 
         if spec.primary_volume_id is None:
             raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
@@ -520,7 +520,8 @@ class DirectTrueCopyInfoExtractor:
                     )
             if new_dict["replication_type"] == "TC":
                 new_dict.pop("replication_type", None)
-                new_items.append(new_dict)
+
+            new_items.append(new_dict)
 
         return new_items
 

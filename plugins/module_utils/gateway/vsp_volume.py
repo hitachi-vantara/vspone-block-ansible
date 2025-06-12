@@ -195,6 +195,10 @@ class VSPVolumeDirectGateway:
             payload[VolumePayloadConst.POOL_ID] = spec.pool_id
         if spec.ldev_id:
             payload[VolumePayloadConst.LDEV] = spec.ldev_id
+        if spec.is_parallel_execution_enabled:
+            payload[VolumePayloadConst.IS_PARALLEL_EXECUTION_ENABLED] = (
+                spec.is_parallel_execution_enabled
+            )
         if spec.capacity_saving:
             payload[VolumePayloadConst.ADR_SETTING] = spec.capacity_saving
             if self.is_pegasus:
@@ -220,19 +224,31 @@ class VSPVolumeDirectGateway:
                 payload[VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED] = (
                     spec.data_reduction_share
                 )
-            if spec.capacity_saving.lower() != VolumePayloadConst.DISABLED:
-                if spec.is_compression_acceleration_enabled is not None:
-                    payload[VolumePayloadConst.IS_COMPRESSION_ACCELERATION_ENABLED] = (
-                        spec.is_compression_acceleration_enabled
-                    )
+            # if spec.capacity_saving.lower() != VolumePayloadConst.DISABLED:
+            #     if spec.is_compression_acceleration_enabled is not None:
+            #         payload[VolumePayloadConst.IS_COMPRESSION_ACCELERATION_ENABLED] = (
+            #             spec.is_compression_acceleration_enabled
+            #         )
         if spec.parity_group:
             payload[VolumePayloadConst.PARITY_GROUP] = spec.parity_group
+
+        if spec.is_parallel_execution_enabled:
+            payload[VolumePayloadConst.IS_PARALLEL_EXECUTION_ENABLED] = (
+                spec.is_parallel_execution_enabled
+            )
+        if spec.start_ldev_id:
+            payload[VolumePayloadConst.START_LDEV_ID] = spec.start_ldev_id
+        if spec.end_ldev_id:
+            payload[VolumePayloadConst.END_LDEV_ID] = spec.end_ldev_id
+        if spec.external_parity_group:
+            payload[VolumePayloadConst.EXTERNAL_PARITY_GROUP_ID] = (
+                spec.external_parity_group
+            )
 
         end_point = self.end_points.POST_LDEVS
         logger.writeDebug(f"Payload for creating volume: {payload}")
 
         url = self.rest_api.post(end_point, payload)
-        # url = self.rest_api.post(end_point, payload, token=spec.lock_token)
 
         # Split the ldevid from url
         return url.split("/")[-1]
@@ -261,6 +277,18 @@ class VSPVolumeDirectGateway:
         return VSPVolumesInfo(dicts_to_dataclass_list(vol_data["data"], VSPVolumeInfo))
 
     @log_entry_exit
+    def get_free_ldev_matching_svol_range(self, begin_ldev_id, end_ldev_id):
+        count = end_ldev_id - begin_ldev_id + 1
+        end_point = self.end_points.GET_FREE_LDEV_FROM_META_FOR_SVOL_RANGE.format(
+            begin_ldev_id, count
+        )
+        vol_data = self.rest_api.get(end_point)
+
+        return VSPUndefinedVolumeInfoList(
+            dicts_to_dataclass_list(vol_data["data"], VSPUndefinedVolumeInfo)
+        )
+
+    @log_entry_exit
     def get_free_ldev_matching_pvol(self, pvol_id):
 
         found = False
@@ -283,7 +311,7 @@ class VSPVolumeDirectGateway:
         )
 
     @log_entry_exit
-    def update_volume(self, ldev_id, name=None, adr_setting=None):
+    def update_volume(self, ldev_id, name=None, adr_setting=None, spec=None):
 
         payload = {}
 
@@ -291,6 +319,25 @@ class VSPVolumeDirectGateway:
             payload[VolumePayloadConst.ADR_SETTING] = adr_setting
         if name:
             payload[VolumePayloadConst.LABEL] = name
+        if spec:
+            if spec.is_compression_acceleration_enabled is not None:
+                payload[VolumePayloadConst.IS_COMPRESSION_ACCELERATION_ENABLED] = (
+                    spec.is_compression_acceleration_enabled
+                )
+            if spec.data_reduction_process_mode is not None:
+                payload[VolumePayloadConst.DATA_REDUCTION_PROCESS_MODE] = (
+                    spec.data_reduction_process_mode
+                )
+            if spec.is_relocation_enabled is not None:
+                payload[VolumePayloadConst.IS_RELOCATION_ENABLED] = (
+                    spec.is_relocation_enabled
+                )
+            if spec.is_full_allocation_enabled is not None:
+                payload[VolumePayloadConst.IS_FULL_ALLOCATION_ENABLED] = (
+                    spec.is_full_allocation_enabled
+                )
+            if spec.is_alua_enabled is not None:
+                payload[VolumePayloadConst.IS_ALUA_ENABLED] = spec.is_alua_enabled
 
         end_point = self.end_points.LDEVS_ONE.format(ldev_id)
         return self.rest_api.patch(end_point, payload)
@@ -332,9 +379,13 @@ class VSPVolumeDirectGateway:
         return self.rest_api.post(end_point, payload)
 
     @log_entry_exit
-    def format_volume(self, ldev_id, force_format: bool):
+    def format_volume(
+        self, ldev_id, force_format: bool, format_type="quick", check_job_status=True
+    ):
         operation_type = (
-            VolumePayloadConst.FMT if force_format else VolumePayloadConst.QFMT
+            VolumePayloadConst.QFMT
+            if format_type == "quick"
+            else VolumePayloadConst.FMT
         )
         payload = {
             VolumePayloadConst.PARAMS: {
@@ -343,7 +394,10 @@ class VSPVolumeDirectGateway:
             }
         }
         end_point = self.end_points.POST_FORMAT_LDEV.format(ldev_id)
-        return self.rest_api.post(end_point, payload)
+        if check_job_status:
+            return self.rest_api.post(end_point, payload)
+        else:
+            return self.rest_api.post_without_job(end_point, payload)
 
     @log_entry_exit
     def shredding_volume(self, ldev_id, start=True):
@@ -499,6 +553,23 @@ class VSPVolumeDirectGateway:
         end_point = self.end_points.LDEVS_ONE.format(ldev_id)
         return self.rest_api.patch(end_point, payload)
 
+    @log_entry_exit
+    def reclaim_zero_pages(self, ldev_id):
+
+        end_point = self.end_points.RECLAIM_ZERO_PAGES.format(ldev_id)
+        return self.rest_api.post(end_point, None)
+
+    @log_entry_exit
+    def change_mp_blade(self, ldev_id, mp_blade_id):
+        payload = {
+            VolumePayloadConst.PARAMS: {
+                VolumePayloadConst.MP_BLADE_ID: mp_blade_id,
+            }
+        }
+        end_point = self.end_points.CHANGE_MP_BLADE.format(ldev_id)
+        return self.rest_api.post(end_point, payload)
+
+    # use all ldev operations above this function
     @log_entry_exit
     def get_storage_details(self):
         end_point = self.end_points.GET_STORAGE_INFO

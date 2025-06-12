@@ -84,3 +84,34 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ####################################################################
+    # Task Name : Migrate Shadow Image Group
+    ####################################################################
+    - name: Migrate Shadow Image Group
+      hitachivantara.vspone_block.vsp.hv_shadow_image_group:
+        connection_info: "{{ connection_info }}"
+        state: "migrate"
+        spec:
+          copy_group_name: copy_group_name1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Cancel Migration of Shadow Image Group
+    ####################################################################
+    - name: Cancel migration of Shadow Image Group
+      hitachivantara.vspone_block.vsp.hv_shadow_image_group:
+        connection_info: "{{ connection_info }}"
+        state: "split"
+        spec:
+          copy_group_name: copy_group_name1
+          should_force_split: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

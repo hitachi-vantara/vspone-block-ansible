@@ -406,6 +406,9 @@ class VSPStorageSystemProvisioner:
                         raise  # Retrow the exception
                 # Get syslog servers
                 tmp_storage_info["syslog_config"] = self.get_syslog_servers()
+                tmp_storage_info["total_efficiency"] = (
+                    self.gateway.get_total_efficiency_of_storage_system().camel_to_snake_dict()
+                )
 
                 # Set default values
                 tmp_storage_info["management_address"] = ""

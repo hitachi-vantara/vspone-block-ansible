@@ -44,9 +44,24 @@ class VSPLocalCopyGroupProvisioner:
     @log_entry_exit
     def get_local_copy_groups(self, spec):
         try:
+            if (
+                spec.name is not None
+                and spec.primary_volume_device_group_name is not None
+                and spec.secondary_volume_device_group_name is not None
+            ):
+                local_copygroup_id = (
+                    spec.name
+                    + ","
+                    + spec.primary_volume_device_group_name
+                    + ","
+                    + spec.secondary_volume_device_group_name
+                )
+                return self.gateway.get_one_copygroup_with_copy_pairs_by_id(
+                    local_copygroup_id
+                )
             if spec.name is not None and spec.should_include_copy_pairs is True:
                 response = self.gateway.get_one_copygroup_info_by_name(spec, True)
-                # Incase no copy pairs in the copy group return copy group information.
+                # In case no copy pairs in the copy group return copy group information.
                 if response is None:
                     response = self.gateway.get_copy_group_by_name(spec)
             elif spec.name:
@@ -110,7 +125,7 @@ class VSPLocalCopyGroupProvisioner:
             )
             logger.writeError(msg)
             raise Exception(msg)
-        elif found_copy_group is not None:
+        elif found_copy_group is not None and spec.should_force_split is None:
             if found_copy_group.copyPairs:
                 for copy_pair in found_copy_group.copyPairs:
                     pvol_status = copy_pair.pvolStatus
@@ -252,5 +267,48 @@ class VSPLocalCopyGroupProvisioner:
             spec, found_copy_group.localCloneCopygroupId
         )
         self.logger.writeDebug(f"restore_local_copy_group=  {restore_local_copy_group}")
+        self.connection_info.changed = True
+        return self.gateway.get_one_copygroup_info_by_name(spec, True)
+
+    @log_entry_exit
+    def migrate_local_copy_group(self, spec):
+        spec.name = spec.copy_group_name
+        found_copy_group = self.gateway.get_one_copygroup_info_by_name(spec, True)
+        if found_copy_group is None:
+            msg = VSPCopyGroupsValidateMsg.LOCAL_COPY_GROUP_NOT_FOUND.value.format(
+                spec.copy_group_name
+            )
+            logger.writeError(msg)
+            raise Exception(msg)
+
+        if found_copy_group.localCloneCopygroupId is not None:
+            pair_elements = found_copy_group.localCloneCopygroupId.split(",")
+            if (
+                spec.primary_volume_device_group_name is not None
+                or spec.secondary_volume_device_group_name is not None
+            ):
+                if spec.primary_volume_device_group_name != pair_elements[1]:
+                    err_msg = (
+                        VSPCopyGroupsValidateMsg.GROUP_SPLIT_FAILED.value
+                        + VSPCopyGroupsValidateMsg.NO_PVOL_DEVICE_NAME_FOUND.value.format(
+                            spec.copy_group_name, pair_elements[1]
+                        )
+                    )
+                    logger.writeError(err_msg)
+                    raise ValueError(err_msg)
+                elif spec.secondary_volume_device_group_name != pair_elements[2]:
+                    err_msg = (
+                        VSPCopyGroupsValidateMsg.GROUP_SPLIT_FAILED.value
+                        + VSPCopyGroupsValidateMsg.NO_SVOL_DEVICE_NAME_FOUND.value.format(
+                            spec.copy_group_name, pair_elements[2]
+                        )
+                    )
+                    logger.writeError(err_msg)
+                    raise ValueError(err_msg)
+
+        migrated_copy_group = self.gateway.migrate_local_copy_group(
+            spec, found_copy_group.localCloneCopygroupId
+        )
+        self.logger.writeDebug(f"migrated_copy_group=  {migrated_copy_group}")
         self.connection_info.changed = True
         return self.gateway.get_one_copygroup_info_by_name(spec, True)

@@ -4,9 +4,11 @@ from typing import Optional, List
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from ..common.ansible_common import dicts_to_dataclass_list
+    from .vsp_host_group_models import LuHostReserve
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from common.ansible_common import dicts_to_dataclass_list
+    from vsp_host_group_models import LuHostReserve
 
 
 @dataclass
@@ -14,12 +16,20 @@ class IscsiTargetFactSpec:
     subscriber_id: Optional[str] = None
     ports: Optional[List[str]] = None
     name: Optional[str] = None
+    iscsi_id: Optional[int] = None
+    lun: Optional[int] = None
 
 
 @dataclass
 class IscsiTargetChapUserSpec:
     chap_user_name: str = None
     chap_secret: str = None
+
+
+@dataclass
+class IscsiTarget(SingleBaseClass):
+    iqn: str = None
+    nick_name: str = None
 
 
 @dataclass
@@ -30,9 +40,12 @@ class IscsiTargetSpec(SingleBaseClass):
     host_mode: Optional[str] = None
     host_mode_options: Optional[List[int]] = None
     ldevs: Optional[List[int]] = None
-    iqn_initiators: Optional[List[str]] = None
+    iqn_initiators: Optional[List[IscsiTarget]] = None
     chap_users: Optional[List[IscsiTargetChapUserSpec]] = None
     should_delete_all_ldevs: Optional[bool] = None
+    lun: Optional[int] = None
+    should_release_host_reserve: Optional[bool] = None
+    iscsi_id: Optional[int] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -40,6 +53,10 @@ class IscsiTargetSpec(SingleBaseClass):
             self.chap_users = dicts_to_dataclass_list(
                 kwargs.get("chap_users"), IscsiTargetChapUserSpec
             )
+        if "iqn_initiators" in kwargs and kwargs.get("iqn_initiators") is not None:
+            self.iqn_initiators = [
+                IscsiTarget(**target) for target in kwargs.get("iqn_initiators")
+            ]
 
 
 @dataclass
@@ -81,6 +98,7 @@ class VSPPortsInfoV3(BaseDataClass):
 @dataclass
 class VSPIqnInitiatorDirectGw(SingleBaseClass):
     iscsiName: str = None
+    iscsiNickname: str = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -88,6 +106,15 @@ class VSPIqnInitiatorDirectGw(SingleBaseClass):
 
 @dataclass
 class VSPLunDirectGw(SingleBaseClass):
+    lun: int = None
+    ldevId: int = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
+@dataclass
+class VSPLunDirectGwDetailed(SingleBaseClass):
     lun: int = None
     ldevId: int = None
 
@@ -127,8 +154,38 @@ class VSPHostModeInfo(SingleBaseClass):
 
 @dataclass
 class VSPLogicalUnitInfo(SingleBaseClass):
-    hostLunId: int = None
+    hostLun: int = None
     logicalUnitId: int = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
+@dataclass
+class VSPLogicalUnitInfoDetails(SingleBaseClass):
+    hostLun: int = None
+    logicalUnitId: int = None
+    portId: Optional[str] = None
+    hostGroupNumber: Optional[int] = None
+    hostMode: Optional[str] = None
+    lunId: Optional[str] = None
+    isCommandDevice: Optional[bool] = None
+    luHostReserve: Optional[LuHostReserve] = None
+    hostModeOptions: Optional[List] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.luHostReserve = (
+            LuHostReserve(**kwargs.get("luHostReserve"))
+            if kwargs.get("luHostReserve")
+            else None
+        )
+
+
+@dataclass
+class IscsiIqn(SingleBaseClass):
+    iqn: str = None
+    nick_name: str = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -149,7 +206,7 @@ class VSPIscsiTargetInfo(SingleBaseClass):
     hostMode: VSPHostModeInfo = None
     resourceGroupId: int = None
     iqn: str = None
-    iqnInitiators: List[str] = None
+    iqnInitiators: List[IscsiIqn] = None
     logicalUnits: List[VSPLogicalUnitInfo] = None
     authParam: VSPAuthParamInfo = None
     subscriberId: str = None
@@ -165,12 +222,28 @@ class VSPIscsiTargetInfo(SingleBaseClass):
         super().__init__(**kwargs)
         if "hostMode" in kwargs and kwargs.get("hostMode") is not None:
             self.hostMode = VSPHostModeInfo(**kwargs.get("hostMode"))
+
         if "logicalUnits" in kwargs and kwargs.get("logicalUnits") is not None:
-            self.logicalUnits = dicts_to_dataclass_list(
-                kwargs.get("logicalUnits"), VSPLogicalUnitInfo
-            )
+            if (
+                kwargs.get("logicalUnits")
+                and "luHostReserve" in kwargs.get("logicalUnits")[0].keys()
+            ):
+                self.logicalUnits = [
+                    VSPLogicalUnitInfoDetails(**lunPath)
+                    for lunPath in kwargs.get("logicalUnits")
+                ]
+            else:
+                self.logicalUnits = dicts_to_dataclass_list(
+                    kwargs.get("logicalUnits"), VSPLogicalUnitInfo
+                )
+
         if "authParam" in kwargs and kwargs.get("authParam") is not None:
             self.authParam = VSPAuthParamInfo(**kwargs.get("authParam"))
+
+        if "iqnInitiators" in kwargs and kwargs.get("iqnInitiators") is not None:
+            self.iqnInitiators = dicts_to_dataclass_list(
+                kwargs.get("iqnInitiators"), IscsiIqn
+            )
 
         tg_info = kwargs.get("iscsiTargetInfo")
         if tg_info:
@@ -216,6 +289,7 @@ class IscsiTargetPayLoad(SingleBaseClass):
     luns: List[int] = None
     iqn_initiators: List[str] = None
     chap_users: List[IscsiTargetChapUserSpec] = None
+    iscsi_id: int = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

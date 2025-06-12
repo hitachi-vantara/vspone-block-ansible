@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Create iscsi target
+    # Task Name : Create iscsi target
     ####################################################################
     - name: Create iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
@@ -28,8 +28,11 @@
           name: "iscsi-target-server-1"
           port: "CL4-C"
           iqn_initiators:
-            - "iqn.1993-08.org.debian.iscsi:01:107dc7e4254a"
-            - "iqn.1993-08.org.debian.iscsi:01:107dc7e4254b"
+            - iqn: "iqn.1993-08.org.debian.iscsi:01:107dc7e4254a"
+              nick_name: "iscsi-target-server-1"
+            - iqn: "iqn.1993-08.org.debian.iscsi:01:107dc7e4254b"
+            - iqn: "iqn.1993-08.org.debian.iscsi:01:107dc7e4254c"
+              nick_name: "iscsi-target-server-2"
           ldevs: [100, 200]
           chap_users:
             - chap_user_name: "user1"
@@ -41,7 +44,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Update iscsi target host mode and host mode options
+    # Task Name : Update iscsi target host mode and host mode options
     ####################################################################
     - name: Update iscsi target host mode and host mode options
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
@@ -59,7 +62,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Add chap users to iscsi target
+    # Task Name : Add chap users to iscsi target
     ####################################################################
     - name: Add chap users to iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
@@ -81,7 +84,7 @@
         var: result
 
     ####################################################################
-    # Task 4 : Remove chap user from iscsi target
+    # Task Name : Remove chap user from iscsi target
     ####################################################################
     - name: Remove chap user from iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
@@ -101,7 +104,7 @@
         var: result
 
     ####################################################################
-    # Task 5 : Add iqn initiators to iscsi target
+    # Task Name : Add iqn initiators to iscsi target
     ####################################################################
     - name: Add iqn initiators to iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
@@ -112,7 +115,8 @@
           name: "iscsi-target-server-1"
           port: "CL4-C"
           iqn_initiators:
-            - "iqn.1993-08.org.debian.iscsi:01:107dc7e4254b"
+            - iqn: "iqn.1993-08.org.debian.iscsi:01:107dc7e4254b"
+              nick_name: "iscsi-target-server-1"
 
       register: result
 
@@ -121,7 +125,7 @@
         var: result
 
     ####################################################################
-    # Task 6 : Remove iqn initiators from iscsi target
+    # Task Name : Remove iqn initiators from iscsi target
     ####################################################################
     - name: Remove iqn initiators from iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
@@ -132,7 +136,7 @@
           name: "iscsi-target-server-1"
           port: "CL4-C"
           iqn_initiators:
-            - "iqn.1993-08.org.debian.iscsi:01:107dc7e4254b"
+            - iqn: "iqn.1993-08.org.debian.iscsi:01:107dc7e4254b"
       register: result
 
     - name: Debug the result variable
@@ -140,7 +144,7 @@
         var: result
 
     ####################################################################
-    # Task 7 : Attach ldevs to iscsi target
+    # Task Name : Attach ldevs to iscsi target
     ####################################################################
     - name: Attach ldevs to iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
@@ -158,7 +162,7 @@
         var: result
 
     ####################################################################
-    # Task 8 : Detach ldevs from iscsi target
+    # Task Name : Detach ldevs from iscsi target
     ####################################################################
     - name: Detach ldevs from iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
@@ -176,7 +180,7 @@
         var: result
 
     ####################################################################
-    # Task 9 : Delete iscsi target
+    # Task Name : Delete iscsi target
     ####################################################################
     - name: Delete iscsi target
       hitachivantara.vspone_block.vsp.hv_iscsi_target:
@@ -185,6 +189,63 @@
         spec:
           name: "iscsi-target-server-1"
           port: "CL4-C"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+    ####################################################################
+    # Task Name : Rename or unset nick name of a iqn initiator (existing iqn initiator)
+    ####################################################################
+    - name: Rename or unset nick name of a iqn initiator (existing iqn initiator)
+      hitachivantara.vspone_block.vsp.hv_iscsi_target:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          state: "add_iscsi_initiator"
+          name: "iscsi-target-server-1"
+          port: "CL4-C"
+          iqn_initiators:
+            - iqn: "iqn.1993-08.org.debian.iscsi:01:107dc7e4254b"
+              nick_name: "new_nick_name"
+            - iqn: "iqn.1993-08.org.debian.iscsi:01:107dc7e4254b"
+              nick_name: "" # unset nick name
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Release host reserve status of the LU mapped to all LU mapped path.
+    ####################################################################
+    - name: Release host reserve status of the LU mapped to all LU mapped path.
+      hitachivantara.vspone_block.vsp.hv_iscsi_target:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          name: "iscsi-target-server-1"
+          port: "CL4-C"
+          should_release_host_reserve: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Release host reserve status of the LU mapped to a specified LU mapped path.
+    ####################################################################
+    - name: Release host reserve status of the LU mapped to a specified LU mapped path.
+      hitachivantara.vspone_block.vsp.hv_iscsi_target:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          name: "iscsi-target-server-1"
+          port: "CL4-C"
+          should_release_host_reserve: true
+          lun: 100
       register: result
 
     - name: Debug the result variable

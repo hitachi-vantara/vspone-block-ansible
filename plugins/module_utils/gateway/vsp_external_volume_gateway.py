@@ -14,6 +14,9 @@ try:
         ExternalPathGroupInfo,
         ExternalPathInfoList,
         ExternalPathInfo,
+        SalamanderExternalPathInfoList,
+        SalamanderExternalPathInfo,
+        SalamanderExternalPathGroupInfo,
     )
 except ImportError:
     from model.vsp_quorum_disk_models import (
@@ -25,6 +28,9 @@ except ImportError:
         ExternalPathGroupInfo,
         ExternalPathInfoList,
         ExternalPathInfo,
+        SalamanderExternalPathInfoList,
+        SalamanderExternalPathInfo,
+        SalamanderExternalPathGroupInfo,
     )
     from .gateway_manager import VSPConnectionManager
     from common.ansible_common import dicts_to_dataclass_list
@@ -33,8 +39,11 @@ except ImportError:
 
 GET_EXT_VOLUMES = "v1/objects/external-storage-luns?portId={}&externalWwn={}"
 GET_EXT_PATHS = "v1/objects/external-path-groups"
+GET_EXTERNAL_PATH_GROUPS_ONE = "v1/objects/external-path-groups/{}"
+SALAMENDER_GET_EXTERNAL_PATH_GROUPS_ONE = "simple/v1/objects/external-path-groups/{}"
 GET_EXT_VOLUMES_LOCAL = "v1/objects/external-volumes"
 GET_EXT_PARITY_GROUPS = "v1/objects/external-parity-groups"
+GET_EXT_PARITY_GROUP = "v1/objects/external-parity-group/{}"
 
 logger = Log()
 gCopyGroupList = None
@@ -57,8 +66,14 @@ class VSPExternalVolumeDirectGateway:
     def set_storage_serial_number(self, serial: str):
         self.storage_serial_number = serial
         if self.storage_serial_number is None:
-            primary_storage_info = self.get_secondary_storage_info(self.connection_info)
+            primary_storage_info = self.get_secondary_storage_info(
+                self.connection_info
+            )  # Fixed no member issue
             self.storage_serial_number = primary_storage_info.get("serialNumber")
+
+    @log_entry_exit
+    def get_secondary_storage_info(self, connection_info):
+        pass  # Fixed no member issue
 
     @log_entry_exit
     def set_serial(self, serial):
@@ -100,6 +115,41 @@ class VSPExternalVolumeDirectGateway:
             )
 
         return epglist
+
+    @log_entry_exit
+    def get_one_external_path_group(self, externa_path_group_id, is_salamander=False):
+        start_time = time.time()
+        if is_salamander:
+            response = self.connection_manager.get(
+                SALAMENDER_GET_EXTERNAL_PATH_GROUPS_ONE.format(externa_path_group_id)
+            )
+        else:
+            response = self.connection_manager.get(
+                GET_EXTERNAL_PATH_GROUPS_ONE.format(externa_path_group_id)
+            )
+        end_time = time.time()
+        logger.writeDebug(f"response={response}")
+        logger.writeDebug(
+            "PF_REST:get_one_external_path_group:time={:.2f}",
+            end_time - start_time,
+        )
+        if response is None:
+            return
+
+        epg = None
+        if is_salamander:
+            # Salamander returns a different structure
+            epg = SalamanderExternalPathGroupInfo(**response)
+            epg.externalPaths = SalamanderExternalPathInfoList(
+                dicts_to_dataclass_list(epg.externalPaths, SalamanderExternalPathInfo)
+            )
+            return epg
+        else:
+            epg = ExternalPathGroupInfo(**response)
+            epg.externalPaths = ExternalPathInfoList(
+                dicts_to_dataclass_list(epg.externalPaths, ExternalPathInfo)
+            )
+        return epg
 
     @log_entry_exit
     def get_external_path_groups(self):
@@ -202,3 +252,24 @@ class VSPExternalVolumeDirectGateway:
         )
 
         return rsp
+
+    @log_entry_exit
+    def get_one_external_parity_group(self, external_parity_group):
+        start_time = time.time()
+        response = self.connection_manager.get(
+            GET_EXT_PARITY_GROUP.format(external_parity_group)
+        )
+        end_time = time.time()
+        logger.writeDebug(f"response={response}")
+        logger.writeDebug(
+            "PF_REST:get_one_external_parity_group:time={:.2f}",
+            end_time - start_time,
+        )
+        if response is None:
+            return
+        return response
+        # epg = ExternalPathGroupInfo(**response)
+        # epg.externalPaths = ExternalPathInfoList(
+        #     dicts_to_dataclass_list(epg.externalPaths, ExternalPathInfo)
+        # )
+        # return epg

@@ -92,6 +92,10 @@ class VSPLocalCopyGroupReconciler:
         return self.provisioner.split_local_copy_group(spec)
 
     @log_entry_exit
+    def migrate_copy_group(self, spec):
+        return self.provisioner.migrate_local_copy_group(spec)
+
+    @log_entry_exit
     def restore_copy_group(self, spec):
         return self.provisioner.restore_local_copy_group(spec)
 
@@ -114,6 +118,8 @@ class VSPLocalCopyGroupReconciler:
             resp_data = self.restore_copy_group(spec)
         elif state == StateValue.ABSENT:
             resp_data = self.delete_copy_group(spec)
+        elif state == StateValue.MIGRATE:
+            resp_data = self.migrate_copy_group(spec)
         else:
             return
 

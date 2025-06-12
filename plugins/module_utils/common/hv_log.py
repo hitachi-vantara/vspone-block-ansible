@@ -23,6 +23,8 @@ try:
         LOGFILE_NAME,
         LOGGER_LEVEL,
         ROOT_LEVEL,
+        AUDIT_LOGFILE_NAME,
+        ENABLE_AUDIT_LOG,
     )
 
     HAS_MESSAGE_ID = True
@@ -34,7 +36,7 @@ except ImportError:
 UUID = ""
 
 
-def setup_logging(logger):
+def setup_logging(logger, audit_logger):
     # Generate a UUID
     global UUID
     unique_id = str(uuid.uuid4())
@@ -44,6 +46,7 @@ def setup_logging(logger):
 
     # Define the log file path
     log_file = os.path.join(ANSIBLE_LOG_PATH, LOGFILE_NAME)  # nosec
+    audit_log_file = os.path.join(ANSIBLE_LOG_PATH, AUDIT_LOGFILE_NAME)  # nosec
 
     # Custom formatter to include uuid and module_name
     class CustomFormatter(logging.Formatter):
@@ -91,24 +94,32 @@ def setup_logging(logger):
     log_handler = logging.handlers.RotatingFileHandler(
         log_file, mode="a", maxBytes=5242880, backupCount=20
     )
+    audit_log_handler = logging.handlers.RotatingFileHandler(
+        audit_log_file, mode="a", maxBytes=5242880, backupCount=20
+    )
 
     # Use the custom formatter
     formatter = CustomFormatter(
         fmt=logging_config["formatters"]["logfileformatter"]["format"]
     )
     log_handler.setFormatter(formatter)
+    audit_log_handler.setFormatter(formatter)
 
     # Add the handler to the root logger
     root_logger = logging.getLogger()
     root_logger.addHandler(log_handler)
 
     logger.addHandler(log_handler)
+    if ENABLE_AUDIT_LOG:
+        audit_logger.addHandler(audit_log_handler)
 
 
 class Log:
 
     logger = None
     module_name = None
+    audit_logger = None
+    printed_uuid = None
 
     @staticmethod
     def getHomePath():
@@ -142,13 +153,20 @@ class Log:
         return path
 
     def __init__(self, name=None):
-
         if not Log.logger:
 
             Log.logger = logging.getLogger("hv_logger")
-            setup_logging(Log.logger)
+            Log.audit_logger = logging.getLogger("hv_audit_logger")
+            setup_logging(Log.logger, Log.audit_logger)
 
             self.logger = Log.logger
+            self.audit_logger = Log.audit_logger
+            self.logger.propagate = False
+            self.audit_logger.propagate = False
+            if ENABLE_AUDIT_LOG:
+                self.audit_logger.info(
+                    f'{"X" * 15} Starting Audit log with UUID: {UUID} {"X" * 15}'
+                )
         self.loadMessageIDs()
 
     def get_previous_frame_info(self):
@@ -267,6 +285,11 @@ class Log:
             messageID = messageID.format(*args)
         msg = "PARAM: " + messageID
         self.logger.info(msg)
+
+    def writeAudit(self, messageID, *args):
+        if args:
+            messageID = messageID.format(*args)
+        self.audit_logger.info(messageID)
 
     def writeInfo(self, messageID, *args):
         frame_info = self.get_previous_frame_info()

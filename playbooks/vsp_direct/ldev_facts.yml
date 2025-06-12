@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all ldevs
+    # Task Name : Get all ldevs
     ####################################################################
     - name: Get all ldevs
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get ldevs within range
+    # Task Name : Get ldevs within range
     ####################################################################
     - name: Get ldevs within range
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
@@ -45,7 +45,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Get ldevs from start id up to max count
+    # Task Name : Get ldevs from start id up to max count
     ####################################################################
     - name: Get ldevs from start id up to max count
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
@@ -60,7 +60,7 @@
         var: result
 
     ####################################################################
-    # Task 4 : Get ldev with same name
+    # Task Name : Get ldev with same name
     ####################################################################
     - name: Get ldev with same name
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
@@ -74,7 +74,7 @@
         var: result
 
     ####################################################################
-    # Task 5 : Get one ldev
+    # Task Name : Get one ldev
     ####################################################################
     - name: Get one ldev
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
@@ -88,7 +88,7 @@
         var: result
 
     ####################################################################
-    # Task 6 : Get one ldev with detailed info
+    # Task Name : Get one ldev with detailed info
     ####################################################################
     - name: Get one ldev with detailed info
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
@@ -103,7 +103,7 @@
         var: result
 
     #####################################################################################
-    # Task 7 : Get one ldev with detailed info by specifying one or more query parameters
+    # Task Name : Get one ldev with detailed info by specifying one or more query parameters
     #####################################################################################
     - name: Get one ldev with detailed info
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
@@ -115,7 +115,7 @@
             - cmd_device_settings
             # To retrieve encryption settings of the LDEV
             - encryption_settings
-            # To retrieve NVM subsytem information of the LDEV
+            # To retrieve NVM subsystem information of the LDEV
             - nvm_subsystem_info
             # To retrieve QOS settings for the LDEV
             - qos_settings

@@ -53,7 +53,7 @@ class VSPCopyGroupsProvisioner:
                 and spec.should_include_remote_replication_pairs is True
             ):
                 response = self.gateway.get_one_copygroup_info_by_name(spec, True)
-                # Incase no copy pairs in the copy group return copy group information.
+                # In case no copy pairs in the copy group return copy group information.
                 if response is None:
                     response = self.gateway.get_copy_group_by_name(spec)
             elif spec.copy_group_name:

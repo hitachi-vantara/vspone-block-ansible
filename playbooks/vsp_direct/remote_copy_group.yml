@@ -22,7 +22,7 @@
 
   tasks:
     #####################################################################
-    # Task 1 : Split Remote Copy Group for HUR
+    # Task Name : Split Remote Copy Group for HUR
     ######################################################################
     - name: Split Remote Copy Group for HUR
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
@@ -44,7 +44,7 @@
         var: result
 
     #####################################################################
-    # Task 2 : Split Remote Copy Group for TC
+    # Task Name : Split Remote Copy Group for TC
     ######################################################################
     - name: Split Remote Copy Group for TC
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
@@ -66,7 +66,7 @@
         var: result
 
     #####################################################################
-    # Task 3 : Split Remote Copy Group for GAD
+    # Task Name : Split Remote Copy Group for GAD
     ######################################################################
     - name: Split Remote Copy Group for GAD
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
@@ -86,7 +86,7 @@
         var: result
 
     #####################################################################
-    # Task 4 : Resync Remote Copy Group for HUR
+    # Task Name : Resync Remote Copy Group for HUR
     ######################################################################
     - name: Resync Remote Copy Group for HUR
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
@@ -106,7 +106,7 @@
         var: result
 
     #####################################################################
-    # Task 5 : Resync Remote Copy Group for TC
+    # Task Name : Resync Remote Copy Group for TC
     ######################################################################
     - name: Resync Remote Copy Group for TC
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
@@ -130,7 +130,7 @@
         var: result
 
     #####################################################################
-    # Task 6 : Resync Remote Copy Group for GAD
+    # Task Name : Resync Remote Copy Group for GAD
     ######################################################################
     - name: Resync Remote Copy Group for GAD
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
@@ -151,16 +151,15 @@
       ansible.builtin.debug:
         var: result
 
-    #####################################################################
-    # Task 7 : Swap-Split Remote Copy Group for all replication types [HUR, TC, GAD]
-    # Storages need to be swapped before swap-split operation. Please specify connection_info and secondary_connection_info accordingly.
-    ######################################################################
+    ####################################################################################
+    # Task Name : Swap-Split Remote Copy Group for all replication types [HUR, TC, GAD]
+    # Storages need to be swapped before swap-split operation. Please specify
+    # connection_info and secondary_connection_info accordingly.
+    ###################################################################################
     - name: Swap-Split Remote Copy Group for all replication types [HUR, TC, GAD]
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
         connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
         secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "swap_split"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
@@ -175,15 +174,13 @@
         var: result
 
     #####################################################################
-    # Task 8 : Swap-Resync Remote Copy Group for HUR
+    # Task Name : Swap-Resync Remote Copy Group for HUR
     # Similar connection info details as per swap-split
     ######################################################################
     - name: Swap-Resync Remote Copy Group for HUR
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
         connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
         secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "swap_resync"
         spec:
           local_device_group_name: "hur_local_device_group_name_1"
@@ -198,15 +195,13 @@
         var: result
 
     #####################################################################
-    # Task 9 : Swap-Resync Remote Copy Group for TC
+    # Task Name : Swap-Resync Remote Copy Group for TC
     # Similar connection info details as per swap-split
     ######################################################################
     - name: Swap-Resync Remote Copy Group for TC
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
         connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
         secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "swap_resync"
         spec:
           local_device_group_name: "tc_local_device_group_name_1"
@@ -224,15 +219,13 @@
         var: result
 
     #####################################################################
-    # Task 10 : Swap-Resync Remote Copy Group for GAD
+    # Task Name : Swap-Resync Remote Copy Group for GAD
     # Similar connection info details as per swap-split
     ######################################################################
     - name: Swap-Resync Remote Copy Group for GAD
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:
         connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
         secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         state: "swap_resync"
         spec:
           local_device_group_name: "gad_local_device_group_name_1"
@@ -249,7 +242,7 @@
         var: result
 
     #####################################################################
-    # Task 11 : Delete Remote Copy Group
+    # Task Name : Delete Remote Copy Group
     ######################################################################
     - name: Delete Remote Copy Group
       hitachivantara.vspone_block.vsp.hv_remote_copy_group:

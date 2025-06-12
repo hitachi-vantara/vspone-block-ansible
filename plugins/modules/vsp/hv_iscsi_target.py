@@ -29,7 +29,7 @@ version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -67,11 +67,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -184,7 +184,16 @@ options:
         description: List of IQN initiators that you want to add or remove.
         required: false
         type: list
-        elements: str
+        elements: dict
+        suboptions:
+          iqn:
+            description: IQN of the initiator.
+            required: true
+            type: str
+          nick_name:
+            description: Nickname of the initiator.
+            required: false
+            type: str
       chap_users:
         description: List of CHAP users that you want to add or remove.
         required: false
@@ -194,6 +203,18 @@ options:
         description: If the value is true, destroy the logical devices that are no longer attached to any iSCSI Target.
         required: false
         type: bool
+      should_release_host_reserve:
+        description: If the value is true, release the host reserve.
+        required: false
+        type: bool
+      lun:
+        description: LUN ID to releasing host reservation status.
+        required: false
+        type: int
+      iscsi_id:
+        description: ID of the iSCSI target.
+        type: int
+        required: false
 """
 
 EXAMPLES = """
@@ -208,8 +229,10 @@ EXAMPLES = """
       name: 'iscsi-target-server-1'
       port: 'CL4-C'
       iqn_initiators:
-        - iqn.1993-08.org.debian.iscsi:01:107dc7e4254a
-        - iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
+        - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254a
+          nick_name: "nick_name1"
+        - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
+          nick_name: "nick_name2"
       ldevs: [100, 200]
       chap_users:
         - chap_user_name: user1
@@ -272,7 +295,32 @@ EXAMPLES = """
       name: 'iscsi-target-server-1'
       port: 'CL4-C'
       iqn_initiators:
-        - iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
+        - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
+
+- name: Release host reserve status of a iscsi target using lun
+  hitachivantara.vspone_block.vsp.hv_iscsi_target:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    state: present
+    spec:
+      iscsi_id: 20
+      should_release_host_reserve: true
+      port: 'CL4-C'
+      lun: 100
+
+- name: Release host reserve status of a iscsi targets
+  hitachivantara.vspone_block.vsp.hv_iscsi_target:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    state: present
+    spec:
+      iscsi_id: 20
+      port: 'CL4-C'
+      should_release_host_reserve: true
 """
 
 RETURN = r"""

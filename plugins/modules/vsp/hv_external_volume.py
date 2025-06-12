@@ -20,7 +20,7 @@ version_added: '3.3.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -32,7 +32,7 @@ options:
     description: The level of the Disk Drives task.
     type: str
     required: false
-    choices: ['present', 'absent']
+    choices: ['present', 'absent', 'disconnect']
     default: 'present'
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -53,11 +53,15 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:
@@ -83,7 +87,10 @@ options:
         description: The external LDEV ID.
         type: int
         required: false
-
+      external_parity_group:
+        description: The external parity group ID.
+        type: str
+        required: false
 """
 
 EXAMPLES = """
@@ -97,6 +104,26 @@ EXAMPLES = """
       external_storage_serial: '410109'
       external_ldev_id: 1354
       ldev_id: 151
+
+- name: Delete External Volume
+  hitachivantara.vspone_block.vsp.hv_external_volume:
+    connection_info:
+      address: storage1.company.com
+      username: 'username'
+      password: 'password'
+    state: "absent"
+    spec:
+      ldev_id: 151
+
+- name: Disconnect from a volume on the external storage system
+  hitachivantara.vspone_block.vsp.hv_external_volume:
+    connection_info:
+      address: storage1.company.com
+      username: 'username'
+      password: 'password'
+    state: "disconnect"
+    spec:
+      external_parity_group: "1-2"
 """
 
 RETURN = """
@@ -126,6 +153,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler import (
     vsp_volume,
+    vsp_external_volume_reconciler,
 )
 
 
@@ -162,6 +190,9 @@ class ModuleManager:
 
             if self.state == "absent":
                 failed = True if result is None else False
+            elif self.state == "disconnect":
+                result = self.extract_ext_pg_properties(result)
+                failed = False
             else:
                 result = result if not isinstance(result, str) else None
                 if result:
@@ -174,9 +205,13 @@ class ModuleManager:
             response_dict = {
                 "failed": failed,
                 "changed": self.connection_info.changed,
-                "data": result,
                 "msg": msg,
             }
+            if self.state == "disconnect":
+                response_dict["external_parity_group"] = result
+            else:
+                response_dict["external_volume"] = result
+
             if registration_message:
                 response_dict["user_consent_required"] = registration_message
             self.logger.writeInfo(f"{response_dict}")
@@ -195,6 +230,9 @@ class ModuleManager:
         elif self.state == "absent":
             self.connection_info.changed = True
             return "External Volume deleted successfully."
+        elif self.state == "disconnect":
+            self.connection_info.changed = True
+            return "Disconnected from a volume on the external storage system successfully."
         else:
             return "Unknown state provided."
 
@@ -211,6 +249,20 @@ class ModuleManager:
         return vsp_volume.ExternalVolumePropertiesExtractor(self.serial).extract(
             volume_dicts
         )[0]
+
+    def extract_ext_pg_properties(self, epg_data):
+        if not epg_data:
+            return None
+
+        # self.logger.writeDebug('20240726 volume_data={}',volume_data)
+        self.logger.writeDebug("20250228 type={}", type(epg_data))
+        self.logger.writeDebug("20250228 volume_data={}", epg_data)
+        epg_dicts = epg_data.to_dict() if epg_data else {}
+        self.logger.writeDebug("20250228 volume_data={}", epg_data)
+        self.logger.writeDebug("20250228 volume_dicts={}", epg_data)
+        return vsp_external_volume_reconciler.ExternalParityGroupInfoExtractor(
+            self.serial
+        ).extract([epg_dicts])[0]
 
 
 def main(module=None):

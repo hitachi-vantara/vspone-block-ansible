@@ -20,7 +20,7 @@ version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -50,11 +50,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -90,6 +90,10 @@ options:
         default: []
       lun:
         description: Filters the host groups to those associated with the specified LUN.
+        type: int
+        required: false
+      host_group_number:
+        description: Filters the host groups to those associated with the specified host group number.
         type: int
         required: false
 """
@@ -237,12 +241,12 @@ class VSPHostGroupFactsManager:
         try:
             host_group_data = self.direct_host_group_read()
             self.logger.writeDebug(f"host_group_data= {host_group_data}")
-            host_group_data_result = (
-                vsp_host_group.VSPHostGroupCommonPropertiesExtractor(
-                    self.serial_number
-                ).extract(host_group_data)
-            )
-            host_group_data_extracted = {"hostGroups": host_group_data_result}
+            # host_group_data_result = (
+            #     vsp_host_group.VSPHostGroupCommonPropertiesExtractor(
+            #         self.serial_number
+            #     ).extract(host_group_data)
+            # )
+            host_group_data_extracted = {"hostGroups": host_group_data}
 
         except Exception as e:
             self.logger.writeError(str(e))
@@ -260,7 +264,7 @@ class VSPHostGroupFactsManager:
         ).get_host_groups(self.spec)
         if result is None:
             raise ValueError(ModuleMessage.HOST_GROUP_NOT_FOUND.value)
-        return result.data_to_list()
+        return result.data_to_snake_case_list()
 
 
 def main():

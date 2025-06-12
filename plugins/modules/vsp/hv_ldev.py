@@ -20,7 +20,7 @@ version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -56,11 +56,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -216,6 +216,70 @@ options:
         description: Whether the compression accelerator of the capacity saving function is enabled.
         type: bool
         required: false
+      data_reduction_process_mode:
+        description: >
+          The data reduction process mode of the capacity saving function.
+          Valid values are:
+          - "post_process" -  Post-process mode.
+          - "inline" - Inline mode.
+        choices: ["post_process", "inline"]
+        type: str
+      is_alua_enabled:
+        description: Whether the ALUA (Asymmetric Logical Unit Access) is enabled for the LDEV.
+        type: bool
+        required: false
+      is_full_allocation_enabled:
+        description: Whether the LDEV is a full allocation volume.
+        type: bool
+        required: false
+      should_format_volume:
+        description: Whether to format the volume after creation or existing volume.
+        type: bool
+        required: false
+      format_type:
+        description: >
+          The format type of the volume. Valid values are:
+          - "quick" - Quick formatting.
+          - "normal" - Normal formatting, It may take time to finish the formatting process.
+        type: str
+        required: false
+        choices: ["quick", "normal"]
+        default: "quick"
+      start_ldev_id:
+        description: >
+          The starting LDEV ID for the range of LDEVs to be created. This is used when creating multiple LDEVs.
+          If not specified, a free LDEV ID will be assigned.
+        type: int
+        required: false
+      end_ldev_id:
+        description: >
+          The ending LDEV ID for the range of LDEVs to be created. This is used when creating multiple LDEVs.
+          If not specified, only one LDEV will be created.
+        type: int
+        required: false
+      mp_blade_id:
+        description: >
+          The MP blade ID to which the LDEV will be assigned. This is used for specifying the MP blade for the LDEV.
+          If not specified, the LDEV will be assigned to the default MP blade.
+        type: int
+        required: false
+      should_reclaim_zero_pages:
+        description: >
+          Whether to reclaim zero pages of a DP volume. This is used to reclaim space in a DP volume.
+          If set to true, it will reclaim the zero pages of the DP volume.
+        type: bool
+        required: false
+      external_parity_group:
+        description: >
+          The external parity group ID to which the LDEV will be assigned. This is used for specifying the external parity group for the LDEV.
+          If not specified, the LDEV will be assigned to the default parity group.
+        type: str
+        required: false
+      is_parallel_execution_enabled:
+        description: >
+          Whether to enable parallel execution for the LDEV operations. This is used to speed up the LDEV operations.
+          If set to true, it will enable parallel execution for the LDEV operations.
+        type: bool
 """
 
 EXAMPLES = """
@@ -278,6 +342,54 @@ EXAMPLES = """
         lower_alert_allowable_time: 500
         response_priority: 1000
         response_alert_allowable_time: 1000
+
+- name: Set MP blade id of a volume.
+  hitachivantara.vspone_block.vsp.hv_ldev:
+    connection_info:
+      address: storage.company.com
+      username: "admin"
+      password: "passw0rd"
+    state: "present"
+    spec:
+      ldev_id: 11
+      mp_blade_id: 1
+
+- name: Reclaiming zero pages of a DP volume.
+  hitachivantara.vspone_block.vsp.hv_ldev:
+    connection_info:
+      address: storage.company.com
+      username: "admin"
+      password: "passw0rd"
+    state: "present"
+    spec:
+      ldev_id: 12
+      should_reclaim_zero_pages: true
+
+- name: Format a volume.
+  hitachivantara.vspone_block.vsp.hv_ldev:
+    connection_info:
+      address: storage.company.com
+      username: "admin"
+      password: "passw0rd"
+    state: "present"
+    spec:
+      ldev_id: 12
+      should_format_volume: true
+
+- name: Change volume settings.
+  hitachivantara.vspone_block.vsp.hv_ldev:
+    connection_info:
+      address: storage.company.com
+      username: "admin"
+      password: "passw0rd"
+    state: "present"
+    spec:
+      ldev_id: 12
+      is_alua_enabled: true
+      is_full_allocation_enabled: true
+      is_compression_acceleration_enabled: true
+      is_relocation_enabled: true
+      data_reduction_process_mode: "inline"
 """
 
 RETURN = r"""
@@ -495,6 +607,16 @@ class VSPVolume:
                     volume_response = self.extract_volume_properties(volume_data)
                 if self.spec.should_shred_volume_enable:
                     comment = "Volume shredded successfully," + comment
+                if self.spec.should_format_volume:
+                    if self.spec.is_task_timeout:
+                        comment = (
+                            "Volume format task is still in progress. It will finish after sometime "
+                            + comment
+                        )
+                    else:
+                        comment = "Volume formatted successfully," + comment
+                if self.spec.should_reclaim_zero_pages:
+                    comment = "Volume reclaimed to zero pages successfully," + comment
 
                 if self.spec.vldev_id:
                     vldev_id = self.spec.vldev_id
@@ -511,6 +633,8 @@ class VSPVolume:
                             + " successfully."
                             + comment
                         )
+                if self.spec.comment:
+                    comment = f"{self.spec.comment} " + comment
 
         except Exception as e:
             self.logger.writeError(f"An error occurred: {str(e)}")

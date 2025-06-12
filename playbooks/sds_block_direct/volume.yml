@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Create volume
+    # Task Name : Create volume
     ####################################################################
     - name: Create volume
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
@@ -37,7 +37,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Create volume with QoS parameters
+    # Task Name : Create volume with QoS parameters
     ####################################################################
     - name: Create volume with QoS parameters
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
@@ -59,7 +59,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Update volume
+    # Task Name : Update volume
     ####################################################################
     - name: Update volume
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
@@ -76,7 +76,7 @@
         var: result
 
     ####################################################################
-    # Task 4 : Update volume QoS parameters
+    # Task Name : Update volume QoS parameters
     ####################################################################
     - name: Update volume QoS parameters
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
@@ -95,7 +95,7 @@
         var: result
 
     ####################################################################
-    # Task 5 : Expand volume by name
+    # Task Name : Expand volume by name
     ####################################################################
     - name: Expand volume by name
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
@@ -111,7 +111,7 @@
         var: result
 
     ####################################################################
-    # Task 6 : Expand volume by id
+    # Task Name : Expand volume by id
     ####################################################################
     - name: Expand volume by id
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
@@ -127,7 +127,7 @@
         var: result
 
     ####################################################################
-    # Task 7 : Add volume to compute nodes
+    # Task Name : Add volume to compute nodes
     ####################################################################
     - name: Add volume to compute nodes
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
@@ -144,7 +144,7 @@
         var: result
 
     ####################################################################
-    # Task 8 : Remove volume from compute nodes
+    # Task Name : Remove volume from compute nodes
     ####################################################################
     - name: Remove volume from compute nodes
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
@@ -161,7 +161,7 @@
         var: result
 
     ####################################################################
-    # Task 9 : Delete volume by name
+    # Task Name : Delete volume by name
     ####################################################################
     - name: Delete volume by name
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
@@ -176,7 +176,7 @@
         var: result
 
     ####################################################################
-    # Task 10 : Delete volume by id
+    # Task Name : Delete volume by id
     ####################################################################
     - name: Delete volume by id
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume:

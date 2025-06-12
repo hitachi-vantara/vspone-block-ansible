@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all storage pools
+    # Task Name : Get all storage pools
     ####################################################################
     - name: Get all storage pools
       hitachivantara.vspone_block.vsp.hv_storagepool_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get one storage pool
+    # Task Name : Get one storage pool
     ####################################################################
     - name: Get one storage pool
       hitachivantara.vspone_block.vsp.hv_storagepool_facts:
@@ -44,7 +44,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Get one storage pool using pool name
+    # Task Name : Get one storage pool using pool name
     ####################################################################
     - name: Get one storage pool using pool name
       hitachivantara.vspone_block.vsp.hv_storagepool_facts:

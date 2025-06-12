@@ -176,11 +176,6 @@ class VSPQuorumDiskProvisioner:
             #     continue
             return extvol
 
-    @log_entry_exit
-    def get_external_path_groups(self):
-        resp = self.gateway.get_external_path_groups()
-        return resp
-
     # def undo(self):
     #     # unpresent lun from the two hgs
     #     rsp = gateway.delete_volume(1345, False)
@@ -213,7 +208,7 @@ class VSPQuorumDiskProvisioner:
             connection_info, GatewayClassTypes.VSP_VOLUME
         )
 
-        gateway.format_volume(ldev, False)
+        gateway.format_volume(ldev_id=ldev, force_format=False)
         return
 
     @log_entry_exit

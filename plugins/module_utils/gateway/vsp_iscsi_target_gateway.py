@@ -11,13 +11,13 @@ try:
         VSPIscsiTargetsInfo,
         VSPIscsiTargetInfo,
         VSPIqnInitiatorDirectGw,
-        VSPLunDirectGw,
         VSPChapUserDirectGw,
         VSPPortsInfo,
         VSPPortInfo,
         VSPOneIscsiTargetInfo,
         IscsiTargetPayLoad,
     )
+    from ..model.vsp_host_group_models import VSPLunResponses
     from ..common.hv_constants import VSPIscsiTargetConstant
     from ..message.vsp_iscsi_target_msgs import VSPIscsiTargetMessage
 except ImportError:
@@ -32,13 +32,13 @@ except ImportError:
         VSPIscsiTargetsInfo,
         VSPIscsiTargetInfo,
         VSPIqnInitiatorDirectGw,
-        VSPLunDirectGw,
         VSPChapUserDirectGw,
         VSPPortsInfo,
         VSPPortInfo,
         VSPOneIscsiTargetInfo,
         IscsiTargetPayLoad,
     )
+    from model.vsp_host_group_models import VSPLunResponses
     from common.hv_constants import VSPIscsiTargetConstant
     from message.vsp_iscsi_target_msgs import VSPIscsiTargetMessage
 
@@ -151,7 +151,7 @@ class VSPIscsiTargetDirectGateway:
             "?portId={}&hostGroupNumber={}".format(port_id, iscsi_target_number)
         )
         resp = self.connectionManager.get(end_point)
-        return dicts_to_dataclass_list(resp["data"], VSPLunDirectGw)
+        return VSPLunResponses().dump_to_object(resp)
 
     def get_chap_users(self, port_id, iscsi_target_number):
         end_point = Endpoints.GET_CHAP_USERS.format(
@@ -160,7 +160,7 @@ class VSPIscsiTargetDirectGateway:
         resp = self.connectionManager.get(end_point)
         return dicts_to_dataclass_list(resp["data"], VSPChapUserDirectGw)
 
-    def parse_iscsi_target(self, iscsi_target, is_get_details=True):
+    def parse_iscsi_target(self, iscsi_target, is_get_details=True, lun_id=None):
         tmp_iscsi_target = {}
         port_id = iscsi_target["portId"]
         iscsi_target_name = iscsi_target["hostGroupName"]
@@ -177,13 +177,40 @@ class VSPIscsiTargetDirectGateway:
         if is_get_details:
             iqn_initiators = self.get_iqn_initiators(port_id, iscsi_target_number)
             for iqn_initiator in iqn_initiators:
-                tmp_iscsi_target["iqnInitiators"].append(iqn_initiator.iscsiName)
+                tmp_iscsi_target["iqnInitiators"].append(
+                    {
+                        "iqn": iqn_initiator.iscsiName,
+                        "nick_name": iqn_initiator.iscsiNickname,
+                    }
+                )
 
             luns = self.get_luns(port_id, iscsi_target_number)
-            for lun in luns:
-                tmp_iscsi_target["logicalUnits"].append(
-                    {"hostLunId": lun.lun, "logicalUnitId": lun.ldevId}
-                )
+            if not lun_id:
+                for lun in luns.data:
+                    tmp_iscsi_target["logicalUnits"].append(
+                        {"hostLun": lun.lun, "logicalUnitId": lun.ldevId}
+                    )
+            else:
+                for lun in luns.data:
+                    if lun_id > 0 and lun.lun != lun_id:
+                        continue
+                    new_lun = {
+                        "hostLun": lun.lun,
+                        "logicalUnitId": lun.ldevId,
+                        "isCommandDevice": lun.isCommandDevice,
+                        "hostGroupNumber": lun.hostGroupNumber,
+                        "portId": lun.portId,
+                        "hostMode": lun.hostMode,
+                        "lunId": lun.lunId,
+                        "luHostReserve": {
+                            "openSystem": lun.luHostReserve.openSystem,
+                            "persistent": lun.luHostReserve.persistent,
+                            "pgrKey": lun.luHostReserve.pgrKey,
+                            "mainframe": lun.luHostReserve.mainframe,
+                            "acaReserve": lun.luHostReserve.acaReserve,
+                        },
+                    }
+                    tmp_iscsi_target["logicalUnits"].append(new_lun)
 
             chap_users = self.get_chap_users(port_id, iscsi_target_number)
             for chap_user in chap_users:
@@ -294,6 +321,9 @@ class VSPIscsiTargetDirectGateway:
         lst_iscsi_target = []
         ports_input = spec.ports
         name_input = None
+        iscsi_id = None
+        if hasattr(spec, "iscsi_id"):
+            iscsi_id = spec.iscsi_id
         if hasattr(spec, "name"):
             name_input = spec.name
         port_set = None
@@ -317,22 +347,35 @@ class VSPIscsiTargetDirectGateway:
             )
             resp = self.connectionManager.get(end_point)
             for iscsi_target in resp["data"]:
-                if (
+
+                if iscsi_id is not None and iscsi_id != iscsi_target["hostGroupNumber"]:
+                    continue
+                elif (
                     name_input is not None
+                    and iscsi_id is None
                     and name_input != iscsi_target["hostGroupName"]
                 ):
                     continue
+
                 is_get_details = False
-                if port_set is not None and name_input is not None:
+                if (
+                    port_set is not None
+                    and name_input is not None
+                    or iscsi_id is not None
+                ):
                     is_get_details = True
-                tmp_iscsi_target = self.parse_iscsi_target(iscsi_target, is_get_details)
+                    spec.lun = float("-inf")
+
+                tmp_iscsi_target = self.parse_iscsi_target(
+                    iscsi_target, is_get_details, spec.lun
+                )
                 lst_iscsi_target.append(tmp_iscsi_target)
 
         return VSPIscsiTargetsInfo(
             dicts_to_dataclass_list(lst_iscsi_target, VSPIscsiTargetInfo)
         )
 
-    def get_one_iscsi_target(self, port_id, name, serial=None):
+    def get_one_iscsi_target(self, port_id, name, serial=None, iscsi_id=None):
         if not self.check_valid_port(port_id):
             return VSPOneIscsiTargetInfo(**{"data": None})
         ret_iscsi_target = {}
@@ -342,8 +385,13 @@ class VSPIscsiTargetDirectGateway:
         resp = self.connectionManager.get(end_point)
 
         for iscsi_target in resp["data"]:
-            if name == iscsi_target["hostGroupName"]:
-                ret_iscsi_target = self.parse_iscsi_target(iscsi_target)
+            if (
+                name == iscsi_target["hostGroupName"]
+                or iscsi_id == iscsi_target["hostGroupNumber"]
+            ):
+                ret_iscsi_target = self.parse_iscsi_target(
+                    iscsi_target, lun_id=float("-inf")
+                )
                 return VSPOneIscsiTargetInfo(VSPIscsiTargetInfo(**ret_iscsi_target))
         return VSPOneIscsiTargetInfo(**{"data": None})
 
@@ -368,6 +416,8 @@ class VSPIscsiTargetDirectGateway:
             and len(iscsi_target_payload.host_mode_options) > 0
         ):
             data["hostModeOptions"] = iscsi_target_payload.host_mode_options
+        if iscsi_target_payload.iscsi_id is not None:
+            data["hostGroupNumber"] = iscsi_target_payload.iscsi_id
         logger.writeInfo(data)
         resp = self.connectionManager.post(end_point, data)
         logger.writeInfo(resp)
@@ -380,7 +430,9 @@ class VSPIscsiTargetDirectGateway:
             end_point = Endpoints.GET_HOST_GROUP_ONE.format(port, number)
             read_resp = self.connectionManager.get(end_point)
             logger.writeInfo(read_resp)
-            ret_iscsi_target = self.parse_iscsi_target(read_resp, False)
+            ret_iscsi_target = self.parse_iscsi_target(
+                read_resp, False, lun_id=float("-inf")
+            )
             iscsi_target_info = VSPIscsiTargetInfo(**ret_iscsi_target)
             if iscsi_target_payload.luns is not None:
                 self.add_luns_to_iscsi_target(
@@ -429,6 +481,7 @@ class VSPIscsiTargetDirectGateway:
         self, iscsi_target: VSPIscsiTargetInfo, luns, serial=None, lun_id=None
     ):
         logger = Log()
+        errors = []
         for lun in luns:
             end_point = Endpoints.POST_LUNS
             data = {}
@@ -437,7 +490,18 @@ class VSPIscsiTargetDirectGateway:
             data["hostGroupNumber"] = iscsi_target.iscsiId
             if lun_id is not None:
                 data["lun"] = lun_id
-            resp = self.connectionManager.post(end_point, data)
+            # resp = self.connectionManager.post(end_point, data)
+            try:
+                resp = self.connectionManager.post(end_point, data)
+                logger.writeInfo(resp)
+            except Exception as e:
+                logger.writeError(
+                    VSPIscsiTargetMessage.ADD_LUN_FAILED.value.format(lun, str(e))
+                )
+                errors.append(
+                    VSPIscsiTargetMessage.ADD_LUN_FAILED.value.format(lun, str(e))
+                )
+                raise ValueError(errors)
             logger.writeInfo(resp)
 
     def add_iqn_initiators_to_iscsi_target(
@@ -447,11 +511,32 @@ class VSPIscsiTargetDirectGateway:
         for iqn_initiator in iqn_initiators:
             end_point = Endpoints.POST_HOST_ISCSIS
             data = {}
-            data["iscsiName"] = iqn_initiator
+            data["iscsiName"] = iqn_initiator.iqn
             data["portId"] = iscsi_target.portId
             data["hostGroupNumber"] = iscsi_target.iscsiId
             resp = self.connectionManager.post(end_point, data)
             logger.writeInfo(resp)
+            if iqn_initiator.nick_name is not None:
+                try:
+                    self.set_nickname_of_iqn(iscsi_target, iqn_initiator)
+                except Exception as e:
+                    logger.writeError(
+                        "Failed to set nickname for IQN {}: {}".format(
+                            iqn_initiator.iqn, str(e)
+                        )
+                    )
+                    pass
+
+    def set_nickname_of_iqn(self, iscsi_target, iqn):
+        logger = Log()
+        end_point = Endpoints.PATCH_IQN_NICK_NAME.format(
+            iscsi_target.portId, iscsi_target.iscsiId, iqn.iqn
+        )
+        data = {}
+        data["iscsiNickname"] = iqn.nick_name if iqn.nick_name is not None else ""
+        resp = self.connectionManager.patch(end_point, data)
+        logger.writeInfo(resp)
+        return resp
 
     def add_chap_users_to_iscsi_target(
         self, iscsi_target: VSPIscsiTargetInfo, chap_users, serial=None
@@ -522,7 +607,7 @@ class VSPIscsiTargetDirectGateway:
                     logical_unit.logicalUnitId,
                 )
                 if lun == logical_unit.logicalUnitId:
-                    lun_id = logical_unit.hostLunId
+                    lun_id = logical_unit.hostLun
                     end_point = Endpoints.DELETE_LUNS.format(
                         iscsi_target.portId, iscsi_target.iscsiId, lun_id
                     )
@@ -576,7 +661,7 @@ class VSPIscsiTargetDirectGateway:
         if is_delete_all_luns:
             for logical_unit in iscsi_target.logicalUnits:
                 self.delete_one_lun_from_iscsi_target(
-                    iscsi_target, logical_unit.hostLunId
+                    iscsi_target, logical_unit.hostLun
                 )
                 if self.is_volume_empty(logical_unit.logicalUnitId):
                     self.delete_one_volume(logical_unit.logicalUnitId)
@@ -586,3 +671,18 @@ class VSPIscsiTargetDirectGateway:
         )
         resp = self.connectionManager.delete(end_point)
         logger.writeInfo(resp)
+
+    def release_host_reservation_status(self, port_id, iscsi_id, lun=None):
+        end_point = Endpoints.RELEASE_HOST_RES_STATUS.format(port_id, iscsi_id)
+        if lun is not None:
+            end_point = Endpoints.RELEASE_HOST_RES_STATUS_LU.format(
+                port_id, iscsi_id, lun
+            )
+        try:
+            resp = self.connectionManager.post(end_point, None)
+            return resp
+        except Exception as e:
+            if "affectedResources" in str(e):
+                pass
+            else:
+                raise e

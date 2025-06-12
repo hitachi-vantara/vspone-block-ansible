@@ -10,6 +10,9 @@ except ImportError:
 @dataclass
 class GetShadowImageSpec:
     pvol: Optional[int] = None
+    copy_group_name: Optional[str] = None
+    copy_pair_name: Optional[str] = None
+    refresh: Optional[bool] = None
     # svol: Optional[int] = None
 
     def __init__(self, **kwargs):
@@ -101,6 +104,8 @@ class ShadowImagePairSpec:
     primary_volume_device_group_name: Optional[str] = None
     secondary_volume_device_group_name: Optional[str] = None
     should_delete_svol: Optional[bool] = None
+    should_force_split: Optional[bool] = None
+    create_for_migration: Optional[bool] = None
 
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():

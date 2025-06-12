@@ -20,7 +20,7 @@ version_added: '3.2.0'
 author:
   - Hitachi Vantara, LTD. (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -44,11 +44,15 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
+        type: str
+        required: false
+      api_token:
+        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
       connection_type:

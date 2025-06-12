@@ -15,6 +15,13 @@ class GetHostGroupSpec:
     ports: Optional[List[str]] = None
     lun: Optional[int] = None
     query: Optional[List[str]] = None
+    host_group_number: Optional[int] = None
+
+
+@dataclass
+class HostWWN(SingleBaseClass):
+    wwn: str = None
+    nick_name: str = None
 
 
 @dataclass
@@ -25,13 +32,22 @@ class HostGroupSpec(SingleBaseClass):
     host_mode: Optional[str] = None
     host_mode_options: Optional[List[int]] = None
     ldevs: Optional[List[int]] = None
-    wwns: Optional[List[str]] = None
+    wwns: Optional[List[HostWWN]] = None
     delete_all_luns: Optional[bool] = None
+    asymmetric_access_priority: Optional[str] = None
+    host_group_number: Optional[int] = None
+    should_release_host_reserve: Optional[bool] = None
+    lun: Optional[int] = None
 
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():
             setattr(self, field, kwargs.get(field, None))
         self.delete_all_luns = kwargs.get("should_delete_all_ldevs", None)
+        self.__post_init__()
+
+    def __post_init__(self):
+        if self.wwns:
+            self.wwns = [HostWWN(**wwn) for wwn in self.wwns]
 
 
 @dataclass
@@ -57,33 +73,90 @@ class VSPWwnResponse:
 
 
 @dataclass
-class VSPLunResponse:
-    portId: str = None
-    lun: int = None
-    ldevId: int = None
-
-    def __init__(self, **kwargs):
-        self.portId = kwargs.get("portId")
-        self.lun = kwargs.get("lun")
-        self.ldevId = kwargs.get("ldevId")
+class LuHostReserve(SingleBaseClass):
+    openSystem: bool = None
+    persistent: bool = None
+    pgrKey: bool = None
+    mainframe: bool = None
+    acaReserve: bool = None
 
 
 @dataclass
-class VSPHostModeOption:
+class VSPLunResponse(SingleBaseClass):
+    portId: Optional[str] = None
+    lun: Optional[int] = None
+    ldevId: Optional[int] = None
+    hostGroupNumber: Optional[int] = None
+    hostMode: Optional[str] = None
+    lunId: Optional[str] = None
+    isCommandDevice: Optional[bool] = None
+    luHostReserve: Optional[LuHostReserve] = None
+    asymmetricAccessState: Optional[str] = None
+    isAluaEnabled: Optional[bool] = None
+    hostModeOptions: Optional[List[str]] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.luHostReserve = (
+            LuHostReserve(**kwargs.get("luHostReserve"))
+            if kwargs.get("luHostReserve")
+            else None
+        )
+
+
+@dataclass
+class VSPLunResponses(BaseDataClass):
+    data: List[VSPLunResponse] = None
+
+
+@dataclass
+class VSPHostModeOption(SingleBaseClass):
     hostModeOption: str = None
     hostModeOptionNumber: int = None
 
 
 @dataclass
-class VSPLunPath:
+class VSPLunPathDetails(SingleBaseClass):
     ldevId: int = None
-    lunId: int = None
+    portId: str = None
+    hostGroupNumber: int = None
+    hostMode: str = None
+    isCommandDevice: bool = None
+    luHostReserve: Optional[LuHostReserve] = None
+    lunId: str = None
+    lun: int = None
+    asymmetricAccessState: Optional[str] = None
+    isAluaEnabled: Optional[bool] = None
+    hostModeOptions: Optional[List[str]] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if kwargs.get("luHostReserve"):
+            self.luHostReserve = LuHostReserve(**kwargs.get("luHostReserve"))
 
 
 @dataclass
-class VSPWwn:
+class VSPLunPath(SingleBaseClass):
+    # lunId: int = None
+    ldevId: int = None
+    # portId: str = None
+    lun: int = None
+    # hostGroupNumber: int = None
+    # hostMode: str = None
+
+    # isCommandDevice: bool = None
+    # luHostReserve: Optional[LuHostReserve] = None
+    # hostModeOptions: List = None
+
+    # def __init__(self, **kwargs):
+    # if kwargs.get("luHostReserve"):
+    #     self.luHostReserve = LuHostReserve(**kwargs.get("luHostReserve"))
+
+
+@dataclass
+class VSPWwn(SingleBaseClass):
     id: int = None
-    name: str = None
+    nick_name: str = None
 
 
 @dataclass
@@ -92,7 +165,7 @@ class VSPHostGroupInfo(SingleBaseClass):
     hostGroupName: str = None
     hostMode: str = None
     hostModeOptions: List[VSPHostModeOption] = None
-    lunPaths: List[VSPLunPath] = None
+    lunPaths: List[VSPLunPathDetails] = None
     wwns: List[VSPWwn] = None
     port: str = None
     resourceGroupId: int = None
@@ -101,7 +174,11 @@ class VSPHostGroupInfo(SingleBaseClass):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.hostGroupId = kwargs.get("hostGroupId")
+        self.hostGroupId = (
+            kwargs.get("hostGroupNumber")
+            if kwargs.get("hostGroupNumber")
+            else kwargs.get("hostGroupId")
+        )
         self.hostGroupName = kwargs.get("hostGroupName")
         self.hostMode = kwargs.get("hostMode")
         if "hostModeOptions" in kwargs:
@@ -109,13 +186,31 @@ class VSPHostGroupInfo(SingleBaseClass):
                 kwargs.get("hostModeOptions"), VSPHostModeOption
             )
         if "lunPaths" in kwargs:
-            self.lunPaths = [
-                VSPLunPath(**lunPath) for lunPath in kwargs.get("lunPaths")
-            ]
+            if (
+                kwargs.get("lunPaths")
+                and "luHostReserve" in kwargs.get("lunPaths")[0].keys()
+            ):
+                self.lunPaths = [
+                    VSPLunPathDetails(**lunPath) for lunPath in kwargs.get("lunPaths")
+                ]
+            else:
+                self.lunPaths = [
+                    VSPLunPath(**lunPath) for lunPath in kwargs.get("lunPaths")
+                ]
         if "wwns" in kwargs:
             self.wwns = [VSPWwn(**wwn) for wwn in kwargs.get("wwns")]
         self.port = kwargs.get("port")
         self.resourceGroupId = kwargs.get("resourceGroupId")
+        self.__post__init__()
+
+    def __post__init__(self):
+        self.hostGroupNumber = self.hostGroupId
+
+    def camel_to_snake_dict(self) -> dict:
+        data = super().camel_to_snake_dict()
+        data["port_id"] = data.pop("port")
+        data.pop("host_group_number", None)
+        return data
 
 
 @dataclass
@@ -129,11 +224,22 @@ class VSPOneHostGroupInfo(BaseDataClass):
 
 
 @dataclass
-class VSPModifyHostGroupProvResponse:
+class VSPModifyHostGroupProvResponse(SingleBaseClass):
     changed: bool = None
-    hostGroup: VSPHostGroupInfo = None
+    host_group: VSPHostGroupInfo = None
     comments: List[str] = None
     comment: str = None
+    errors: List[str] = None
+
+    def camel_to_snake_dict(self):
+        data = super().camel_to_snake_dict()
+        if not data.get("comment"):
+            data.pop("comment")
+        if not data.get("comments"):
+            data.pop("comments")
+        if not data.get("errors"):
+            data.pop("errors")
+        return data
 
 
 @dataclass

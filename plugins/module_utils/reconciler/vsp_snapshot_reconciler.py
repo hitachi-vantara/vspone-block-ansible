@@ -119,10 +119,14 @@ class VSPHtiSnapshotReconciler:
         state = spec.state.lower()
         resp_data = None
         if state == StateValue.ABSENT:
-            msg = self.provisioner.delete_snapshot(
-                pvol=spec.pvol, mirror_unit_id=spec.mirror_unit_id
-            )
-            return msg
+            if spec.should_delete_tree:
+                msg = self.provisioner.delete_ti_by_snapshot_tree(pvol=spec.pvol)
+                return msg
+            else:
+                msg = self.provisioner.delete_snapshot(
+                    pvol=spec.pvol, mirror_unit_id=spec.mirror_unit_id
+                )
+                return msg
         elif state == StateValue.PRESENT:
             # this is incorrect if an existing pair is in the spec
             # ex. for assign/unassign, we don't need pool id
@@ -147,11 +151,17 @@ class VSPHtiSnapshotReconciler:
                 mirror_unit_id=spec.mirror_unit_id,
                 enable_quick_mode=spec.enable_quick_mode,
             )
+        elif state == StateValue.DEFRAGMENT:
+            resp_data = self.provisioner.delete_garbage_data_snapshot_tree(
+                spec.primary_volume_id,
+                operation_type=spec.operation_type,
+            )
         elif state == StateValue.CLONE:
             resp_data = self.provisioner.clone_snapshot(
                 pvol=spec.pvol,
                 mirror_unit_id=spec.mirror_unit_id,
                 svol=spec.svol,
+                copy_speed=spec.copy_speed,
             )
             return resp_data
         elif state == StateValue.RESTORE:
@@ -178,6 +188,7 @@ class VSPHtiSnapshotReconciler:
             StateValue.SPLIT: self.provisioner.split_snapshots_by_gid,
             StateValue.SYNC: self.provisioner.resync_snapshots_by_gid,
             StateValue.RESTORE: self.provisioner.restore_snapshots_by_gid,
+            StateValue.CLONE: self.provisioner.clone_snapshots_by_gid,
         }
         sng = self.provisioner.get_snapshot_grp_by_name(spec.snapshot_group_name)
         if not sng:
@@ -238,20 +249,14 @@ class SnapshotCommonPropertiesExtractor:
             "copyPaceTrackSize": str,
             "status": str,
             "type": str,
-            "isCloned": bool,
+            "isClone": bool,
             "snapshotId": str,
             "isConsistencyGroup": bool,
             "canCascade": bool,
             "isRedirectOnWrite": bool,
-            "isSVolWrittenTo": bool,
             "isSnapshotDataReadOnly": bool,
             "snapshotGroupName": str,
             "svolProcessingStatus": str,
-            # "thinImagePropertiesDto": dict,
-            # "thinImageProperties": dict,
-            # "entitlementStatus": str,
-            # "partnerId": str,
-            # "subscriberId": str,
             "pvolNvmSubsystemName": str,
             "svolNvmSubsystemName": str,
             "pvolHostGroups": list,
@@ -259,6 +264,9 @@ class SnapshotCommonPropertiesExtractor:
             "retentionPeriodInHours": int,
             "progressRate": int,
             "concordanceRate": int,
+            "pvolProcessingStatus": str,
+            "splitTime": str,
+            "isWrittenInSvol": bool,
         }
 
         self.parameter_mapping = {
@@ -270,7 +278,7 @@ class SnapshotCommonPropertiesExtractor:
             # 20240801 "poolId": "snapshotPoolId",
             "mirrorUnitId": "muNumber",
             "thinImagePropertiesDto": "properties",
-            "isCloned": "isClone",
+            # "isCloned": "isClone",
             "retentionPeriodInHours": "retentionPeriod",
         }
         self.hex_values = {
@@ -282,7 +290,7 @@ class SnapshotCommonPropertiesExtractor:
         logger = Log()
         new_items = []
         for response in responses:
-            new_dict = {"storage_serial_number": self.storage_serial_number}
+            new_dict = {}
             for key, value_type in self.common_properties.items():
 
                 # Get the corresponding key from the response or its mapped key

@@ -18,6 +18,7 @@ class LocalCopyGroupSpec(SingleBaseClass):
     copy_pace: Optional[int] = None
     force_suspend: Optional[bool] = None
     force_delete: Optional[bool] = None
+    should_force_split: Optional[bool] = None
 
     # secondary_connection_info: Optional[ConnectionInfo] = None
     # secondary_storage_serial_number: Optional[int] = None
@@ -45,6 +46,8 @@ class LocalCopyGroupFactSpec(SingleBaseClass):
     # secondary_storage_serial_number: Optional[int] = None
     # copy_group_name: Optional[str] = None
     name: Optional[str] = None
+    primary_volume_device_group_name: Optional[str] = None
+    secondary_volume_device_group_name: Optional[str] = None
     should_include_copy_pairs: Optional[bool] = None
 
     def __init__(self, **kwargs):

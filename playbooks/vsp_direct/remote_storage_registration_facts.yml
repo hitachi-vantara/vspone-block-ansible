@@ -23,7 +23,7 @@
 
   tasks:
     ######################################################################################
-    # Task 1 : Get Remote Storage Facts
+    # Task Name : Get Remote Storage Facts
     ######################################################################################
     - name: Remote Storage Registration Facts
       hitachivantara.vspone_block.vsp.hv_remote_storage_registration_facts:

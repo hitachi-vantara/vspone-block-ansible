@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Detach ldevs from host group with direct connection
+    # Task Name : Detach ldevs from host group with direct connection
     ####################################################################
     - name: Detach ldevs from host group with direct connection
       hitachivantara.vspone_block.vsp.hv_hg:
@@ -36,7 +36,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Delete ldev with direct connection
+    # Task Name : Delete ldev with direct connection
     ####################################################################
     - name: Delete ldev with direct connection
       hitachivantara.vspone_block.vsp.hv_ldev:

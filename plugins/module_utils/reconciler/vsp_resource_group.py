@@ -43,10 +43,16 @@ class VSPResourceGroupReconciler:
     def __init__(self, connection_info, serial=None, state=None):
 
         self.connection_info = connection_info
-
-        self.provisioner = VSPResourceGroupProvisioner(connection_info, serial)
-        self.volume_provisioner = VSPVolumeProvisioner(connection_info, serial)
         self.storage_serial_number = serial
+        if self.storage_serial_number is None:
+            self.storage_serial_number = self.get_storage_serial_number()
+        self.provisioner = VSPResourceGroupProvisioner(
+            connection_info, self.storage_serial_number
+        )
+        self.volume_provisioner = VSPVolumeProvisioner(
+            connection_info, self.storage_serial_number
+        )
+
         if state:
             self.state = state
 
@@ -56,8 +62,7 @@ class VSPResourceGroupReconciler:
         logger.writeDebug("RC:resource_groups={}", resource_groups)
         if resource_groups is None or not resource_groups.data_to_list():
             return []
-        if self.storage_serial_number is None:
-            self.storage_serial_number = self.get_storage_serial_number()
+
         extracted_data = ResourceGroupInfoExtractor(self.storage_serial_number).extract(
             resource_groups.data_to_list()
         )
@@ -109,8 +114,6 @@ class VSPResourceGroupReconciler:
             logger.writeDebug("RC:reconcile_resource_group:rg2={}", rg2)
             if not rg2:
                 return None, "Resource Group not found."
-            if self.storage_serial_number is None:
-                self.storage_serial_number = self.get_storage_serial_number()
             extracted_data = ResourceGroupInfoExtractor(
                 self.storage_serial_number
             ).extract([rg2.to_dict()])

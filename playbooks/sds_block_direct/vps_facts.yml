@@ -17,7 +17,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all VPS
+    # Task Name : Get all VPS
     ####################################################################
     - name: Get all VPS
       hitachivantara.vspone_block.sds_block.hv_sds_block_vps_facts:
@@ -29,7 +29,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get VPS by name
+    # Task Name : Get VPS by name
     ####################################################################
     - name: Get VPS by name
       hitachivantara.vspone_block.sds_block.hv_sds_block_vps_facts:
@@ -43,7 +43,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Get VPS by id
+    # Task Name : Get VPS by id
     ####################################################################
     - name: Get VPS by id
       hitachivantara.vspone_block.sds_block.hv_sds_block_vps_facts:

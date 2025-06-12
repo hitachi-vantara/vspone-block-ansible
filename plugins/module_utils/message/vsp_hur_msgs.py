@@ -70,7 +70,7 @@ class VSPHurValidateMsg(Enum):
     NEW_VOLUME_SIZE = (
         "new_volume_size is a required field for resize operation, which is missing."
     )
-    EXPAND_VOLUME_FAILED = "Failed to expand the volume. Ensure System Option Mode (SOM) 1198 is enabled and 1199 is disabled."
+    EXPAND_VOLUME_FAILED = "Failed to expand the volume. Ensure System Option Mode ( SOM ) 1198 is enabled and 1199 is disabled."
     REDUCE_VOLUME_SIZE_NOT_SUPPORTED = "Shrink/reduce volume size is not supported."
     SECONDARY_RANGE_ID_IS_NOT_SUPPORTED = "Parameters begin_secondary_volume_id and end_secondary_volume_id is not supported for direct connect."
     SECONDARY_RANGE_ID_INVALID = "Please specify both begin_secondary_volume_id and end_secondary_volume_id. Specifying either one is not supported."

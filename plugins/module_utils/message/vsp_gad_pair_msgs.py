@@ -62,3 +62,4 @@ class GADPairValidateMSG(Enum):
         "Could not find GAD pair for the input parameters supplied."
     )
     NO_REMOTE_HGS_FOUND = "Specified host groups not found on secondary storage."
+    NO_REMOTE_ISCSI_FOUND = "Specified iSCSI targets not found on secondary storage."

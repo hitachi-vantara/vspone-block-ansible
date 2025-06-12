@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all disk drives
+    # Task Name : Get all disk drives
     ####################################################################
     - name: Get all disk drives
       hitachivantara.vspone_block.vsp.hv_disk_drive_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get one disk drive
+    # Task Name : Get one disk drive
     ####################################################################
     - name: Get one disk drive
       hitachivantara.vspone_block.vsp.hv_disk_drive_facts:

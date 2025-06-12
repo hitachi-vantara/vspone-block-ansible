@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Create an NVM Subsystem with a specific ID
+    # Task Name : Create an NVM Subsystem with a specific ID
     ####################################################################
     - name: Create an NVM Subsystem
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
@@ -47,7 +47,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Create an NVM Subsystem with a free ID
+    # Task Name : Create an NVM Subsystem with a free ID
     ####################################################################
     - name: Create an NVM Subsystem with a free ID
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
@@ -76,7 +76,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Add host NQNs to an NVM Subsystem with a specific ID
+    # Task Name : Add host NQNs to an NVM Subsystem with a specific ID
     ####################################################################
     - name: Add host NQNs to an NVM Subsystem with a specific ID
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
@@ -94,7 +94,7 @@
         var: result
 
     ####################################################################
-    # Task 4 : Add host NQNs to an NVM Subsystem with a specific Name
+    # Task Name : Add host NQNs to an NVM Subsystem with a specific Name
     ####################################################################
     - name: Add host NQNs to an NVM Subsystem with a specific Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
@@ -112,7 +112,7 @@
         var: result
 
     #####################################################################################
-    # Task 5 : Add namespaces and namespace paths to an NVM Subsystem with a specific ID
+    # Task Name : Add namespaces and namespace paths to an NVM Subsystem with a specific ID
     #####################################################################################
     - name: Add namespaces and namespace paths to an NVM Subsystem with a specific ID
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
@@ -133,7 +133,7 @@
         var: result
 
     #######################################################################################
-    # Task 6 : Add namespaces and namespace paths to an NVM Subsystem with a specific Name
+    # Task Name : Add namespaces and namespace paths to an NVM Subsystem with a specific Name
     #######################################################################################
     - name: Add namespaces and namespace paths to an NVM Subsystem with a specific Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
@@ -154,7 +154,7 @@
         var: result
 
     ####################################################################
-    # Task 7 : Add ports to an NVM Subsystem with a specific ID
+    # Task Name : Add ports to an NVM Subsystem with a specific ID
     ####################################################################
     - name: Add ports to an NVM Subsystem with a specific ID
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
@@ -170,7 +170,7 @@
         var: result
 
     ####################################################################
-    # Task 8 : Add ports to an NVM Subsystem with a specific Name
+    # Task Name : Add ports to an NVM Subsystem with a specific Name
     ####################################################################
     - name: Add ports to an NVM Subsystem with a specific Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
@@ -186,7 +186,7 @@
         var: result
 
     #########################################################################
-    # Task 9 : Remove ports from an NVM Subsystem with a specific Name or ID
+    # Task Name : Remove ports from an NVM Subsystem with a specific Name or ID
     #########################################################################
     # This exanple uses name, if you want to use id, uncomment id from
     # the playbook and comment out the name.
@@ -205,7 +205,7 @@
         var: result
 
     #####################################################################################
-    # Task 10 : Remove namespace paths from an NVM Subsystem with specific ID
+    # Task Name : Remove namespace paths from an NVM Subsystem with specific ID
     #####################################################################################
     - name: Remove namespace paths from an NVM Subsystem with specific Id or Name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
@@ -226,7 +226,7 @@
         var: result
 
     #####################################################################################
-    # Task 11 : Remove namespace from an NVM Subsystem with specific Id or Name
+    # Task Name : Remove namespace from an NVM Subsystem with specific Id or Name
     #####################################################################################
     # This exanple uses id, if you want to use name, uncomment name from
     # the playbook and comment out the id.
@@ -257,7 +257,7 @@
         var: result
 
     ########################################################################################
-    # Task 12 : Remove namespace from an NVM Subsystem with specific Id or Name using force
+    # Task Name : Remove namespace from an NVM Subsystem with specific Id or Name using force
     ########################################################################################
     # This exanple uses id, if you want to use name, uncomment name from
     # the playbook and comment out the id.
@@ -285,7 +285,7 @@
         var: result
 
     #####################################################################################
-    # Task 13 : Remove host NQNs from an NVM Subsystem with a specific Id or Name
+    # Task Name : Remove host NQNs from an NVM Subsystem with a specific Id or Name
     #####################################################################################
     # This exanple uses id, if you want to use name, uncomment name from
     # the playbook and comment out the id.
@@ -310,7 +310,7 @@
         var: result
 
     ##########################################################################################
-    # Task 14 : Remove host NQNs from an NVM Subsystem with a specific Id or Name using force
+    # Task Name : Remove host NQNs from an NVM Subsystem with a specific Id or Name using force
     ##########################################################################################
     # This exanple uses id, if you want to use name, uncomment name from
     # the playbook and comment out the id.
@@ -333,7 +333,7 @@
         var: result
 
     #####################################################################################
-    # Task 15 : Update host NQNs nickname of an NVM Subsystem with a specific Id or Name
+    # Task Name : Update host NQNs nickname of an NVM Subsystem with a specific Id or Name
     #####################################################################################
     # This exanple uses id, if you want to use name, uncomment name from
     # the playbook and comment out the id.
@@ -356,7 +356,7 @@
         var: result
 
     #######################################################################################
-    # Task 16 : Update namespace nicknames of an NVM Subsystem with a specific Id or Name
+    # Task Name : Update namespace nicknames of an NVM Subsystem with a specific Id or Name
     #######################################################################################
     # This exanple uses id, if you want to use name, uncomment name from
     # the playbook and comment out the id.
@@ -379,7 +379,7 @@
         var: result
 
     #######################################################################################
-    # Task 17 : Delete an NVM Subsystem with a specific Id
+    # Task Name : Delete an NVM Subsystem with a specific Id
     #######################################################################################
     # This task will try to delete an NVN subsystem, but it will fail if it has namespaces
     # and namespace paths.
@@ -398,7 +398,7 @@
         var: result
 
     #####################################################################################
-    # Task 18 : Delete an NVM Subsystem with a specific Id forcefully
+    # Task Name : Delete an NVM Subsystem with a specific Id forcefully
     #####################################################################################
     # This task will try to delete an NVN subsystem forcefully.
     - name: Delete an NVM Subsystem with a specific Id forcefully
@@ -415,7 +415,7 @@
         var: result
 
     #####################################################################################
-    # Task 19 : Delete an NVM Subsystem with a specific Name
+    # Task Name : Delete an NVM Subsystem with a specific Name
     #####################################################################################
     # This task will try to delete an NVN subsystem, but it will fail if it has namespaces
     # and namespace paths.
@@ -434,7 +434,7 @@
         var: result
 
     #####################################################################################
-    # Task 20 : Delete an NVM Subsystem with a specific Name forcefully
+    # Task Name : Delete an NVM Subsystem with a specific Name forcefully
     #####################################################################################
     # This task will try to delete an NVN subsystem forcefully.
     - name: Delete an NVM Subsystem with a specific Name forcefully

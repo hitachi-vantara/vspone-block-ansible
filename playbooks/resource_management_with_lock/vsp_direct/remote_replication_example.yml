@@ -12,7 +12,7 @@
 # 5. Delete TrueCopy Pair
 # 6. Unlock Resource Groups on both primary and secondary storage systems
 
-# Opertion # 3 and # 4 are not affected by the locks, so these operations
+# Operation # 3 and # 4 are not affected by the locks, so these operations
 # can be done with or without the lock tokens. Here we used the lock tokens.
 #############################################################################
 - name: Resource Group Lock Playbook

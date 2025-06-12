@@ -554,10 +554,10 @@ class VSPHurProvisioner:
     @log_entry_exit
     def create_hur_direct(self, spec):
         pair_exiting = self.gateway.get_replication_pair(spec)
-        if spec.begin_secondary_volume_id or spec.end_secondary_volume_id:
-            raise ValueError(
-                VSPHurValidateMsg.SECONDARY_RANGE_ID_IS_NOT_SUPPORTED.value
-            )
+        # if spec.begin_secondary_volume_id or spec.end_secondary_volume_id:
+        #     raise ValueError(
+        #         VSPHurValidateMsg.SECONDARY_RANGE_ID_IS_NOT_SUPPORTED.value
+        #     )
         if pair_exiting is not None:
             if pair_exiting["pvol_ldev_id"] != spec.primary_volume_id:
                 return "Copy pair name : {} already exits in copy group: {}".format(
@@ -653,14 +653,6 @@ class VSPHurProvisioner:
         volume = self.vol_gw.get_volume_by_id(primary_volume_id)
         # return vol_gw.get_volume_by_id(device_id, primary_volume_id)
         self.logger.writeDebug(f"PROV:get_volume_by_id:volume: {volume}")
-
-        return volume
-
-    @log_entry_exit
-    def get_volume_by_id_v2(self, storage_id, volume_id):
-        volume = self.vol_gw.get_volume_by_id_v2(storage_id, volume_id)
-        # return vol_gw.get_volume_by_id(device_id, primary_volume_id)
-        self.logger.writeDebug(f"PROV:get_volume_by_id_v2:volume: {volume}")
 
         return volume
 

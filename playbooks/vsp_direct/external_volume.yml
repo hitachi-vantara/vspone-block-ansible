@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Create External Volume
+    # Task Name : Create External Volume
     ####################################################################
     - name: Create External Volume
       hitachivantara.vspone_block.vsp.hv_external_volume:
@@ -35,7 +35,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Delete External Volume
+    # Task Name : Delete External Volume
     ####################################################################
     - name: Delete External Volume
       hitachivantara.vspone_block.vsp.hv_external_volume:
@@ -43,6 +43,22 @@
         state: "absent"
         spec:
           ldev_id: 151
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################
+    # Task Name : Disconnect from a volume on the external storage system
+    ######################################################################
+    - name: Disconnect from a volume on the external storage system
+      hitachivantara.vspone_block.vsp.hv_external_volume:
+        connection_info: "{{ connection_info }}"
+        state: "disconnect"
+        spec:
+          external_parity_group: "1-2"
 
       register: result
 

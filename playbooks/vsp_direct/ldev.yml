@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Create ldev
+    # Task Name : Create ldev with a specific LDEV ID
     ####################################################################
     - name: Create ldev
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -35,7 +35,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Create ldev with free id and present to NVM System
+    # Task Name : Create ldev with free id and present to NVM System
     ####################################################################
     - name: Create ldev with free id and present to NVM System
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -57,8 +57,31 @@
       ansible.builtin.debug:
         var: result
 
+    ##############################################################################
+    # Task Name : Create ldev within a range of LDEV IDs using parallel execution
+    ##############################################################################
+    - name: Create ldev within a range of LDEV ids using parallel execution
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          # ldev_id: 12000
+          name: "my_name"
+          capacity_saving: compression_deduplication
+          is_compression_acceleration_enabled: false
+          is_parallel_execution_enabled: true
+          start_ldev_id: 10000
+          end_ldev_id: 11000
+          pool_id: 1
+          size: 1GB
+      register: result
+
+    - name: Debug result
+      ansible.builtin.debug:
+        var: result
+
     ####################################################################
-    # Task 3 : Present existing volume to NVM System
+    # Task Name : Present existing volume to NVM System
     ####################################################################
     - name: Present existing volume to NVM System
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -78,7 +101,7 @@
         var: result
 
     ####################################################################
-    # Task 4 : Expand size of ldev
+    # Task Name : Expand size of ldev
     ####################################################################
     - name: Expand size of ldev
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -94,7 +117,7 @@
         var: result
 
     #########################################################################
-    # Task 5 : Create ldev using parity group and auto free ldev id selection
+    # Task Name : Create ldev using parity group and auto free ldev id selection
     #########################################################################
     - name: Create ldev using parity group and auto free ldev id selection
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -110,8 +133,25 @@
       ansible.builtin.debug:
         var: result
 
+    #####################################################################################
+    # Task Name : Create ldev using external parity group and auto free ldev id selection
+    #####################################################################################
+    - name: Create ldev using external parity group and auto free ldev id selection
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          external_parity_group: "1-1"
+          size: "10GB"
+          name: "database_volume5"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
     ###########################################################################
-    # Task 6 : Create ldev with capacity saving and data_reduction_share
+    # Task Name : Create ldev with capacity saving and data_reduction_share
     ###########################################################################
     - name: Create ldev with capacity saving and data_reduction_share
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -129,7 +169,7 @@
         var: result
 
     ###########################################################################
-    # Task 7 : Remove host nqns from existing volume of NVM System
+    # Task Name : Remove host nqns from existing volume of NVM System
     ###########################################################################
     - name: Remove host nqns from existing volume of NVM System
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -148,7 +188,7 @@
         var: result
 
     ###########################################################################
-    # Task 8 : Delete ldev
+    # Task Name : Delete ldev
     ###########################################################################
     - name: Delete ldev
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -163,7 +203,7 @@
         var: result
 
     #########################################################################################################
-    # Task 9 : Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
+    # Task Name : Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
     #########################################################################################################
     - name: Force delete ldev removes the ldev from hostgroups, iscsi targets or NVMe subsystem namespace
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -179,7 +219,7 @@
         var: result
 
     #########################################################################################################
-    # Task 10 : Shredding a existing volume
+    # Task Name : Shredding a existing volume
     #########################################################################################################
     - name: The following request shreds an LDEV (basic volume) or DP volume. Overwrite the volume three times with dummy data
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -195,7 +235,7 @@
         var: result
 
     #########################################################################################################
-    # Task 11 : Shredding a existing volume before deleting
+    # Task Name : Shredding a existing volume before deleting
     #########################################################################################################
     - name: The following request shreds an LDEV (basic volume) or DP volume. Overwrite the volume three times with dummy data before delete
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -211,7 +251,7 @@
         var: result
 
     #########################################################################################################
-    # Task 12 : Configuring QoS settings for an existing volume
+    # Task Name : Configuring QoS settings for an existing volume
     #########################################################################################################
     - name: It configures the QoS settings for a specified volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -234,7 +274,7 @@
         var: result
 
     #########################################################################################################
-    # Task 13 : Configuring QoS settings for a  new volume
+    # Task Name : Configuring QoS settings for a  new volume
     #########################################################################################################
     - name: It configures the QoS settings for a new volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -258,7 +298,7 @@
         var: result
 
     #########################################################################################################
-    # Task 14 : Create new volume with tiering policy
+    # Task Name : Create new volume with tiering policy
     #########################################################################################################
     - name: It configures the tiering policy for a new volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -282,7 +322,7 @@
         var: result
 
     #########################################################################################################
-    # Task 15 : Create new volume with virtual ldev
+    # Task Name : Create new volume with virtual ldev
     #########################################################################################################
     - name: It configures the virtual ldev for a new volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -299,7 +339,7 @@
         var: result
 
     #########################################################################################################
-    # Task 16 : Update volume with virtual ldev
+    # Task Name : Update volume with virtual ldev
     #########################################################################################################
     - name: It configures the virtual ldev for a volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -315,7 +355,7 @@
         var: result
 
     #########################################################################################################
-    # Task 17 : Unset virtual ldev from  the volume
+    # Task Name : Unset virtual ldev from  the volume
     #########################################################################################################
     - name: It configures the virtual ldev for a volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
@@ -324,6 +364,75 @@
         spec:
           ldev_id: 11
           vldev_id: -1
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Set MP blade id of a volume
+    #########################################################################################################
+    - name: Set MP blade id of a volume.
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_id: 11
+          mp_blade_id: 1
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Reclaiming zero pages of a DP volume
+    #########################################################################################################
+    - name: Reclaiming zero pages of a DP volume.
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_id: 12
+          should_reclaim_zero_pages: true
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Format a volume
+    #########################################################################################################
+    - name: Format a  volume
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_id: 12
+          should_format_volume: true
+          format_type: "quick"
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Change volume settings
+    #########################################################################################################
+    - name: Change volume settings
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_id: 12
+          data_reduction_process_mode: "post_process"
+          is_compression_acceleration_enabled: true
+          is_relocation_enabled: true
+          is_full_allocation_enabled: true
+          is_alua_enabled: true
 
       register: result
     - name: Debug the result variable

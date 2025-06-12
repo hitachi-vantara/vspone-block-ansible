@@ -229,6 +229,8 @@ def operation_constants(state):
         return "created/updated"
     elif state == "absent":
         return "deleted"
+    elif state == "defragment":
+        return "defragmented"
     else:
         return state
 

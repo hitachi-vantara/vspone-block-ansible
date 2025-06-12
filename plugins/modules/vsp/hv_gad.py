@@ -21,7 +21,7 @@ version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -57,11 +57,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -84,11 +84,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This field is required for secondary storage connection.
+        description: Username for authentication. This field is required for secondary storage connection if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This field is required for secondary storage connection.
+        description: Password for authentication. This field is required for secondary storage connection if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -212,7 +212,7 @@ options:
         required: false
         suboptions:
           name:
-            description: Name of the NVM subsytem on the secondary storage system.
+            description: Name of the NVM subsystem on the secondary storage system.
             type: str
             required: true
           paths:
@@ -274,6 +274,22 @@ options:
         description: Specify true for consistency group.
         type: bool
         required: false
+      begin_secondary_volume_id:
+        description: >
+          Specify beginning ldev id for LDEV range for svol. This is an optional field during create operation.
+          If this field is specified, end_secondary_volume_id must also be specified.
+          If this field is not specified, Ansible modules will try to create SVOL ID same as the PVOL ID if available,
+          otherwise it will use the first available LDEV ID.
+        required: false
+        type: int
+      end_secondary_volume_id:
+        description: >
+          Specify end ldev id for LDEV range for svol. This is an optional field during create operation.
+          If this field is specified, begin_secondary_volume_id must also be specified.
+          If this field is not specified, Ansible modules will try to create SVOL ID same as PVOL ID iff available,
+          otherwise it will use the first available LDEV ID.
+        required: false
+        type: int
       should_delete_svol:
         description: Specify true to delete the SVOL.
         type: bool

@@ -18,6 +18,28 @@ class VSPHostGroupMessage(Enum):
     HG_NAME_EMPTY = "The host group name parameter cannot be empty."
     HG_CREATE_FAILED = "Host group create failed. "
     HG_IN_META_NOT_AVAILABLE = "Host group in meta resource not available."
+    PRIORITY_LEVEL_SET_FOR_ALUA = (
+        "Asymmetric access priority level is set for ALUA host group. "
+    )
+    FAILED_TO_SET_PRIORITY_LEVEL = (
+        "Failed to set asymmetric access priority level for ALUA host group."
+    )
+    RELEASE_HOST_RESERVE_SUCCESS = "Host reservation released successfully."
+    RELEASE_HOST_RESERVE_SUCCESS_FOR_LU = (
+        "Host reservation released successfully for LU path {}."
+    )
+    RELEASE_HOST_RESERVE_FAILED = "Failed to release host reservation."
+    WWN_NICKNAME_SET = "WWN nickname set successfully for host group {} with wwn {}."
+    WWN_NICKNAME_SET_FAILED = (
+        "Failed to set wwn nickname for host group {} with wwn {} error: {}"
+    )
+    ADD_WWN_SUCCESS = "WWN {} added successfully to host group {}."
+    REMOVE_WWN_SUCCESS = "WWN {} removed successfully from host group {}."
+    REMOVE_WWN_FAILED = "Failed to remove wwn {} from host group {} error: {}"
+    ADD_LUN_SUCCESS = "LUN {} added successfully to host group {}."
+    REMOVE_LUN_SUCCESS = "LUN {} removed successfully from host group {}."
+    ADD_LUN_FAILED = "Failed to add LUN {} to host group {} error: {}"
+    REMOVE_LUN_FAILED = "Failed to remove LUN {} from host group {} error: {}"
 
 
 class VSPHostGroupValidationMsg(Enum):

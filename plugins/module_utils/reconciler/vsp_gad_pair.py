@@ -341,7 +341,7 @@ class VSPGadPairReconciler:
     @log_entry_exit
     def validate_create_spec(self, spec: Any) -> None:
 
-        # These are commom for both direct and gateway
+        # These are common for both direct and gateway
         if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
             if spec.secondary_storage_serial_number is None:
                 raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_STORAGE_SN.value)
@@ -1020,11 +1020,11 @@ class DirectGADCopyPairInfoExtractor:
             "remoteDeviceGroupName": str,
             "primaryVSMResourceGroupName": str,
             "primaryVirtualSerialNumber": int,
-            "primaryVirtualStorageDeviceId": int,
+            # "primaryVirtualStorageDeviceId": str,
             "primaryVirtualVolumeId": int,
             "secondaryVSMResourceGroupName": str,
             "secondaryVirtualSerialNumber": int,
-            "secondaryVirtualStorageDeviceId": int,
+            #  "secondaryVirtualStorageDeviceId": str,
             "secondaryVirtualVolumeId": int,
             "pvolVirtualLdevId": int,
             "svolVirtualLdevId": int,

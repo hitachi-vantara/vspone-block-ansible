@@ -18,7 +18,7 @@
 
   tasks:
     #########################################################################
-    # Task 1 : Set port authentication mode
+    # Task Name : Set port authentication mode
     #########################################################################
     - name: Set port authentication mode
       hitachivantara.vspone_block.sds_block.hv_sds_block_compute_port_authentication:

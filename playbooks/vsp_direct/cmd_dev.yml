@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Enable a Command Device
+    # Task Name : Enable a Command Device
     ####################################################################
     - name: Enable a Command Device
       hitachivantara.vspone_block.vsp.hv_cmd_dev:
@@ -35,7 +35,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Update the settings of a Command Device
+    # Task Name : Update the settings of a Command Device
     ####################################################################
     - name: Update the settings of a Command Device
       hitachivantara.vspone_block.vsp.hv_cmd_dev:
@@ -52,7 +52,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Disable a Command Device
+    # Task Name : Disable a Command Device
     ####################################################################
     - name: Disable a Command Device
       hitachivantara.vspone_block.vsp.hv_cmd_dev:

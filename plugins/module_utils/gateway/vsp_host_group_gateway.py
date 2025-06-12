@@ -13,6 +13,7 @@ try:
         VSPLunResponse,
         VSPPortResponse,
         VSPWwnResponse,
+        VSPLunResponses,
     )
     from ..common.hv_constants import VSPHostGroupConstant
     from ..message.vsp_host_group_msgs import VSPHostGroupMessage
@@ -29,10 +30,12 @@ except ImportError:
         VSPLunResponse,
         VSPPortResponse,
         VSPWwnResponse,
+        VSPLunResponses,
     )
     from common.hv_constants import VSPHostGroupConstant
     from message.vsp_host_group_msgs import VSPHostGroupMessage
 
+logger = Log()
 
 g_raidHostModeOptions = {
     2: "VERITAS_DB_EDITION_ADV_CLUSTER",
@@ -164,19 +167,20 @@ class VSPHostGroupDirectGateway:
     @log_entry_exit
     def get_luns(self, port_id, hg_number):
         end_point = self.end_points.GET_LUNS.format(
-            "?portId={}&hostGroupNumber={}".format(port_id, hg_number)
+            "?portId={}&hostGroupNumber={}&lunOption=ALUA".format(port_id, hg_number)
         )
         resp = self.rest_api.read(end_point)
-        return dicts_to_dataclass_list(resp["data"], VSPLunResponse)
+        return VSPLunResponses().dump_to_object(resp)
 
     @log_entry_exit
-    def parse_host_group(self, hg, is_get_wwns, is_get_luns):
+    def parse_host_group(self, hg, is_get_wwns, is_get_luns, is_ldev_detail):
         tmpHg = {}
         port_id = hg["portId"]
         hg_name = hg["hostGroupName"]
         tmpHg["hostGroupName"] = hg_name
         hg_number = hg["hostGroupNumber"]
-        tmpHg["hostGroupId"] = hg_number
+        tmpHg["hostGroupId"] = hg["hostGroupId"]
+        tmpHg["hostGroupNumber"] = hg_number
         for hm in gHostMode:
             if gHostMode[hm] == hg["hostMode"]:
                 tmpHg["hostMode"] = hm
@@ -189,14 +193,40 @@ class VSPHostGroupDirectGateway:
             tmpHg["wwns"] = []
             for wwn in wwns:
                 tmpHg["wwns"].append(
-                    {"id": wwn.hostWwn.upper(), "name": wwn.wwnNickname}
+                    {"id": wwn.hostWwn.upper(), "nick_name": wwn.wwnNickname}
                 )
 
-        if is_get_luns:
+        if is_ldev_detail:
             luns = self.get_luns(port_id, hg_number)
             tmpHg["lunPaths"] = []
-            for lun in luns:
-                tmpHg["lunPaths"].append({"lunId": lun.lun, "ldevId": lun.ldevId})
+            logger.writeDebug(f"Inside the luns {luns}")
+            for lun in luns.data:
+                tmpHg["lunPaths"].append({"lun": lun.lun, "ldevId": lun.ldevId})
+            # logger.writeDebug(f"Inside the ldev_details {tmpHg["lunPaths"]}")
+        elif is_get_luns:
+            luns = self.get_luns(port_id, hg_number)
+            tmpHg["lunPaths"] = []
+            for lun in luns.data:
+                new_lun = {
+                    "lun": lun.lun,
+                    "ldevId": lun.ldevId,
+                    "isCommandDevice": lun.isCommandDevice,
+                    "hostGroupNumber": lun.hostGroupNumber,
+                    "portId": lun.portId,
+                    "hostMode": lun.hostMode,
+                    "lunId": lun.lunId,
+                    "isAluaEnabled": lun.isAluaEnabled,
+                    "asymmetricAccessState": lun.asymmetricAccessState,
+                    "hostModeOptions": lun.hostModeOptions,
+                    "luHostReserve": {
+                        "openSystem": lun.luHostReserve.openSystem,
+                        "persistent": lun.luHostReserve.persistent,
+                        "pgrKey": lun.luHostReserve.pgrKey,
+                        "mainframe": lun.luHostReserve.mainframe,
+                        "acaReserve": lun.luHostReserve.acaReserve,
+                    },
+                }
+                tmpHg["lunPaths"].append(new_lun)
 
         host_mode_options = hg.get("hostModeOptions", None)
         tmpHg["hostModeOptions"] = []
@@ -239,7 +269,15 @@ class VSPHostGroupDirectGateway:
         return
 
     @log_entry_exit
-    def get_host_groups(self, ports_input, name_input, is_get_wwns, is_get_luns):
+    def get_host_groups(
+        self,
+        ports_input,
+        name_input,
+        hg_number,
+        is_get_wwns,
+        is_get_luns,
+        is_ldev_detail,
+    ):
         logger = Log()
         lstHg = []
         port_set = None
@@ -267,9 +305,14 @@ class VSPHostGroupDirectGateway:
             )
             resp = self.rest_api.read(end_point)
             for hg in resp["data"]:
-                if name_input and hg["hostGroupName"] != name_input:
+                if hg_number is not None and hg["hostGroupNumber"] != hg_number:
                     continue
-                tmpHg = self.parse_host_group(hg, is_get_wwns, is_get_luns)
+                elif name_input and hg["hostGroupName"] != name_input:
+                    continue
+
+                tmpHg = self.parse_host_group(
+                    hg, is_get_wwns, is_get_luns, is_ldev_detail
+                )
                 lstHg.append(tmpHg)
 
         return VSPHostGroupsInfo(dicts_to_dataclass_list(lstHg, VSPHostGroupInfo))
@@ -299,11 +342,17 @@ class VSPHostGroupDirectGateway:
         )
         resp = self.rest_api.read(end_point)
         for hg in resp["data"]:
-            tmpHg = self.parse_host_group(hg, None, None)
+            tmpHg = self.parse_host_group(hg, None, None, None)
             lstHg.append(tmpHg)
 
             return VSPHostGroupsInfo(dicts_to_dataclass_list(lstHg, VSPHostGroupInfo))
         return None
+
+    @log_entry_exit
+    def get_specific_lun_details(self, port_id, hg_id, lun_id):
+        end_point = self.end_points.GET_SPECIFIC_LUN.format(port_id, hg_id, lun_id)
+        resp = self.rest_api.read(end_point)
+        return VSPLunResponse(**resp)
 
     @log_entry_exit
     def get_hg_by_id(self, object_id):
@@ -329,13 +378,17 @@ class VSPHostGroupDirectGateway:
         for hg in resp["data"]:
             logger.writeDebug("20250324 hg = {}", hg)
             if name == hg["hostGroupName"]:
-                retHg = self.parse_host_group(hg, True, True)
+                retHg = self.parse_host_group(hg, True, True, False)
                 return VSPOneHostGroupInfo(VSPHostGroupInfo(**retHg))
 
         return VSPOneHostGroupInfo(**{"data": None})
 
     @log_entry_exit
-    def create_host_group(self, port, name, wwns, luns, host_mode, host_mode_options):
+    def create_host_group(
+        self, port, name, wwns, luns, host_mode, host_mode_options, hg_number=None
+    ):
+
+        errors, comments = [], []
         if not self.check_valid_port(port):
             raise Exception(VSPHostGroupMessage.PORT_TYPE_INVALID.value)
 
@@ -354,6 +407,8 @@ class VSPHostGroupDirectGateway:
             data["hostMode"] = gHostMode[host_mode]
         if len(host_mode_options) > 0:
             data["hostModeOptions"] = host_mode_options
+        if hg_number is not None:
+            data["hostGroupNumber"] = hg_number
         logger.writeInfo(data)
         resp = self.rest_api.post(end_point, data)
         logger.writeInfo(resp)
@@ -366,44 +421,99 @@ class VSPHostGroupDirectGateway:
             end_point = self.end_points.GET_HOST_GROUP_ONE.format(port, number)
             read_resp = self.rest_api.read(end_point)
             logger.writeInfo(read_resp)
-            ret_hg = self.parse_host_group(read_resp, False, False)
+            ret_hg = self.parse_host_group(read_resp, False, False, False)
             hg_info = VSPHostGroupInfo(**ret_hg)
             if wwns:
-                self.add_wwns_to_host_group(hg_info, wwns)
+                error, comment = self.add_wwns_to_host_group(hg_info, wwns)
+                errors.extend(error)
+                comments.extend(comment)
             if luns:
-                self.add_luns_to_host_group(hg_info, luns)
+                error, comment = self.add_luns_to_host_group(hg_info, luns)
+                errors.extend(error)
+                comments.extend(comment)
+        return errors, comments
 
     @log_entry_exit
     def add_wwns_to_host_group(self, hg, wwns):
-        logger = Log()
-        for wwn in wwns:
+        errors = []
+        comments = []
+        for host_wwn in wwns:
             end_point = self.end_points.POST_WWNS
             data = {}
-            data["hostWwn"] = wwn
+            data["hostWwn"] = host_wwn.wwn
             data["portId"] = hg.port
-            data["hostGroupNumber"] = hg.hostGroupId
-            resp = self.rest_api.post(end_point, data)
-            logger.writeInfo(resp)
+            data["hostGroupNumber"] = hg.hostGroupNumber
+            unused = self.rest_api.post(end_point, data)
+            if host_wwn.nick_name:
+                try:
+                    self.set_nickname_of_wwn(hg, host_wwn)
+
+                except Exception as e:
+                    errors.append(
+                        VSPHostGroupMessage.WWN_NICKNAME_SET_FAILED.value.format(
+                            hg.hostGroupName, host_wwn.wwn, str(e)
+                        )
+                    )
+                    pass
+            comments.append(
+                VSPHostGroupMessage.ADD_WWN_SUCCESS.value.format(
+                    host_wwn.wwn, hg.hostGroupName
+                )
+            )
+        return comments, errors
+
+    @log_entry_exit
+    def set_nickname_of_wwn(self, hg, wwn):
+        logger = Log()
+        end_point = self.end_points.PATCH_WWNS.format(
+            hg.port, hg.hostGroupNumber, wwn.wwn
+        )
+        data = {}
+        data["wwnNickname"] = wwn.nick_name if wwn.nick_name else ""
+        resp = self.rest_api.patch(end_point, data)
+        logger.writeInfo(resp)
+        return resp
 
     @log_entry_exit
     def add_luns_to_host_group(self, hg, luns, lun_id=None):
         logger = Log()
+        errors = []
+        comments = []
         for lun in luns:
             end_point = self.end_points.POST_LUNS
             data = {}
             data["ldevId"] = lun
             data["portId"] = hg.port
-            data["hostGroupNumber"] = hg.hostGroupId
+            data["hostGroupNumber"] = hg.hostGroupNumber
             if lun_id is not None:
                 data["lun"] = lun_id
-            resp = self.rest_api.post(end_point, data)
-            logger.writeInfo(resp)
+            try:
+                resp = self.rest_api.post(end_point, data)
+                logger.writeInfo(resp)
+                comments.append(
+                    VSPHostGroupMessage.ADD_LUN_SUCCESS.value.format(
+                        lun, hg.hostGroupName
+                    )
+                )
+            except Exception as e:
+                logger.writeError(
+                    VSPHostGroupMessage.ADD_LUN_FAILED.value.format(
+                        lun, hg.hostGroupName, str(e)
+                    )
+                )
+                errors.append(
+                    VSPHostGroupMessage.ADD_LUN_FAILED.value.format(
+                        lun, hg.hostGroupName, str(e)
+                    )
+                )
+                raise ValueError(errors)
+        return comments, errors
 
     @log_entry_exit
     def delete_one_lun_from_host_group(self, host_group: VSPHostGroupInfo, lun_id):
         logger = Log()
         end_point = self.end_points.DELETE_LUNS.format(
-            host_group.port, host_group.hostGroupId, lun_id
+            host_group.port, host_group.hostGroupNumber, lun_id
         )
         resp = self.rest_api.delete(end_point)
         logger.writeInfo(resp)
@@ -427,7 +537,7 @@ class VSPHostGroupDirectGateway:
 
     @log_entry_exit
     def unpresent_lun_from_hg_and_delete_lun(self, hg, lun):
-        self.delete_one_lun_from_host_group(hg, lun.lunId)
+        self.delete_one_lun_from_host_group(hg, lun.lun)
         if self.is_volume_not_associated_with_hgs(lun.ldevId):
             self.delete_one_volume(lun.ldevId)
 
@@ -442,40 +552,87 @@ class VSPHostGroupDirectGateway:
                     )
                     for logical_unit in hg.lunPaths
                 ]
-            # Re-raise exceptions if they occured in the threads
+            # Re-raise exceptions if they occurred in the threads
             for future in concurrent.futures.as_completed(future_tasks):
                 future.result()
 
-        end_point = self.end_points.DELETE_HOST_GROUPS.format(hg.port, hg.hostGroupId)
+        end_point = self.end_points.DELETE_HOST_GROUPS.format(
+            hg.port, hg.hostGroupNumber
+        )
         resp = self.rest_api.delete(end_point)
         logger.writeInfo(resp)
 
     @log_entry_exit
     def delete_wwns_from_host_group(self, hg, wwns):
         logger = Log()
+        errors = []
+        comments = []
         for wwn in wwns:
-            end_point = self.end_points.DELETE_WWNS.format(hg.port, hg.hostGroupId, wwn)
-            resp = self.rest_api.delete(end_point)
-            logger.writeInfo(resp)
+            end_point = self.end_points.DELETE_WWNS.format(
+                hg.port, hg.hostGroupNumber, wwn
+            )
+            try:
+                resp = self.rest_api.delete(end_point)
+                logger.writeInfo(resp)
+                comments.append(
+                    VSPHostGroupMessage.REMOVE_WWN_SUCCESS.value.format(
+                        wwn, hg.hostGroupName
+                    )
+                )
+            except Exception as e:
+                logger.writeError(
+                    VSPHostGroupMessage.REMOVE_WWN_FAILED.value.format(
+                        wwn, hg.hostGroupName, str(e)
+                    )
+                )
+                errors.append(
+                    VSPHostGroupMessage.REMOVE_WWN_FAILED.value.format(
+                        wwn, hg.hostGroupName, str(e)
+                    )
+                )
+        return comments, errors
 
     @log_entry_exit
     def delete_luns_from_host_group(self, hg, luns):
         logger = Log()
+        errors = []
+        comments = []
         for lun in luns:
-            for lunPath in hg.lunPaths:
-                if lun == lunPath.ldevId:
-                    lunId = lunPath.lunId
-                    end_point = self.end_points.DELETE_LUNS.format(
-                        hg.port, hg.hostGroupId, lunId
+            try:
+                for lunPath in hg.lunPaths:
+                    if lun == lunPath.ldevId:
+                        lunId = lunPath.lun
+                        end_point = self.end_points.DELETE_LUNS.format(
+                            hg.port, hg.hostGroupNumber, lunId
+                        )
+                        logger.writeInfo(f"{lunId}, {hg.port}, {hg.hostGroupNumber}")
+                        resp = self.rest_api.delete(end_point)
+                        logger.writeInfo(resp)
+                        break
+                comments.append(
+                    VSPHostGroupMessage.REMOVE_LUN_SUCCESS.value.format(
+                        lun, hg.hostGroupName
                     )
-                    resp = self.rest_api.delete(end_point)
-                    logger.writeInfo(resp)
-                    break
+                )
+            except Exception as e:
+                logger.writeError(
+                    VSPHostGroupMessage.REMOVE_LUN_FAILED.value.format(
+                        lun, hg.hostGroupName, str(e)
+                    )
+                )
+                errors.append(
+                    VSPHostGroupMessage.REMOVE_LUN_FAILED.value.format(
+                        lun, hg.hostGroupName, str(e)
+                    )
+                )
+        return comments, errors
 
     @log_entry_exit
     def set_host_mode(self, hg, host_mode, host_mode_options):
         logger = Log()
-        end_point = self.end_points.PATCH_HOST_GROUPS.format(hg.port, hg.hostGroupId)
+        end_point = self.end_points.PATCH_HOST_GROUPS.format(
+            hg.port, hg.hostGroupNumber
+        )
         data = {}
         if host_mode and host_mode in gHostMode:
             data["hostMode"] = gHostMode[host_mode]
@@ -488,3 +645,37 @@ class VSPHostGroupDirectGateway:
                 data["hostModeOptions"] = [-1]
         resp = self.rest_api.patch(end_point, data)
         logger.writeInfo(resp)
+
+    @log_entry_exit
+    def set_prirotiy_level_of_alua_path(self, port_id, hg_number, access_state):
+        logger = Log()
+        end_point = self.end_points.SET_ALUA_PRIORITY
+        access_state = (
+            "Active/Optimized" if access_state == "high" else "Active/Non-Optimized"
+        )
+        data = {
+            "parameters": {
+                "portId": port_id,
+                "hostGroupNumber": hg_number,
+                "asymmetricAccessState": access_state,
+            }
+        }
+
+        resp = self.rest_api.post(end_point, data)
+        logger.writeInfo(resp)
+
+    @log_entry_exit
+    def release_host_reservation_status(self, port_id, hg_number, lun=None):
+        end_point = self.end_points.RELEASE_HOST_RES_STATUS.format(port_id, hg_number)
+        if lun is not None:
+            end_point = self.end_points.RELEASE_HOST_RES_STATUS_LU.format(
+                port_id, hg_number, lun
+            )
+        try:
+            resp = self.rest_api.post(end_point, None)
+            return resp
+        except Exception as e:
+            if "affectedResources" in str(e):
+                pass
+            else:
+                raise e

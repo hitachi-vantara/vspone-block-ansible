@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get storage system facts
+    # Task Name : Get storage system facts
     ####################################################################
     - name: Get storage system facts
       hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get storage system facts using query
+    # Task Name : Get storage system facts using query
     ####################################################################
     - name: Get storage system facts using query
       hitachivantara.vspone_block.vsp.hv_storagesystem_facts:

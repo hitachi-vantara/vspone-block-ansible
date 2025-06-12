@@ -21,7 +21,7 @@ version_added: '3.4.0'
 author:
   - Hitachi Vantara, LTD. (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -47,11 +47,11 @@ options:
       username:
         description: Username for authentication. This is a required field.
         type: str
-        required: false
+        required: true
       password:
         description: Password for authentication. This is a required field.
         type: str
-        required: false
+        required: true
   spec:
     description: Specification for DDP pool tasks.
     type: dict

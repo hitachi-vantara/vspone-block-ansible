@@ -21,7 +21,7 @@ version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -33,10 +33,10 @@ notes:
     These were deprecated due to internal API simplification and are no longer supported.
 options:
   state:
-    description: The level of the snapshot task. Choices are C(present), C(absent), C(split), C(sync), C(restore), C(clone).
+    description: The level of the snapshot task. Choices are C(present), C(absent), C(split), C(sync), C(restore), C(clone), C(defragment).
     type: str
     required: false
-    choices: ['present', 'absent', 'split', 'sync', 'restore', 'clone']
+    choices: ['present', 'absent', 'split', 'sync', 'restore', 'clone', 'defragment']
     default: 'present'
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -57,11 +57,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -144,6 +144,18 @@ options:
           You can specify this item when true is specified for the is_clone attribute.
         required: false
         type: bool
+      should_delete_tree:
+        description: >
+          Specify whether to delete garbage data of all Thin Image pairs in a snapshot tree.
+        required: false
+        type: bool
+      operation_type:
+        description: >
+          Specify the operation type for garbage data deletion.
+          This can be set when the should_delete_tree attribute is set to true.
+        required: false
+        type: str
+        choices: ["start", "stop"]
 """
 
 EXAMPLES = """
@@ -319,6 +331,17 @@ EXAMPLES = """
       primary_volume_id: 100
       secondary_volume_id: -1
       mirror_unit_id: 1
+
+- name: Deleting garbage data of all Thin Image pairs in a snapshot tree
+  hitachivantara.vspone_block.vsp.hv_snapshot:
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+    state: "defragment"
+    spec:
+      primary_volume_id: 100
+      operation_type: "start"
 """
 
 RETURN = """
@@ -463,15 +486,21 @@ class VSPHtiSnapshotManager:
 
             snapshot_data = self.reconcile_snapshot()
             operation = operation_constants(self.module.params["state"])
-            msg = (
-                f"Snapshot {operation} successfully"
-                if not isinstance(snapshot_data, str)
-                else snapshot_data
-            )
+            msg = ""
+            if operation == "defragmented" and self.spec.operation_type == "start":
+                msg = "Started deleting garbage data of all Thin Image pairs in a snapshot tree"
+            elif operation == "defragmented" and self.spec.operation_type == "stop":
+                msg = "Stopped deleting garbage data of all Thin Image pairs in a snapshot tree"
+            else:
+                msg = (
+                    f"Snapshot {operation} successfully"
+                    if not isinstance(snapshot_data, str)
+                    else snapshot_data
+                )
             resp = {
                 "changed": self.connection_info.changed,
                 "snapshot_data": (
-                    snapshot_data if isinstance(snapshot_data, dict) else None
+                    snapshot_data if isinstance(snapshot_data, dict) else ""
                 ),
                 "msg": msg,
             }

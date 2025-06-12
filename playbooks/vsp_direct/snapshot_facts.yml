@@ -18,7 +18,7 @@
 
   tasks:
     ######################################################################################
-    # Task 1 : Get all snapshot pairs
+    # Task Name : Get all snapshot pairs
     ######################################################################################
     - name: Get all snapshot pairs
       hitachivantara.vspone_block.vsp.hv_snapshot_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ######################################################################################
-    # Task 2 : Get snapshot pairs with same primary_volume_id
+    # Task Name : Get snapshot pairs with same primary_volume_id
     ######################################################################################
     - name: Get snapshot pairs with same primary_volume_id
       hitachivantara.vspone_block.vsp.hv_snapshot_facts:
@@ -44,7 +44,7 @@
         var: result
 
     ######################################################################################
-    # Task 3 : Get one snapshot pair
+    # Task Name : Get one snapshot pair
     ######################################################################################
     - name: Get one snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot_facts:

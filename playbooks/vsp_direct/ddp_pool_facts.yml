@@ -18,7 +18,7 @@
 
   tasks:
     ######################################################################################
-    # Task 1 : Get all DDP Pool information
+    # Task Name : Get all DDP Pool information
     ######################################################################################
     - name: Get all DDP Pool information
       hitachivantara.vspone_block.vsp.hv_ddp_pool_facts:
@@ -31,7 +31,7 @@
         var: result
 
     ######################################################################################
-    # Task 2 : Get DDP Pool information using using pool id
+    # Task Name : Get DDP Pool information using using pool id
     ######################################################################################
     - name: Get DDP Pool information using pool id
       hitachivantara.vspone_block.vsp.hv_ddp_pool_facts:
@@ -46,7 +46,7 @@
         var: result
 
     ######################################################################################
-    # Task 2 : Get DDP Pool information using using pool name
+    # Task Name : Get DDP Pool information using using pool name
     ######################################################################################
     - name: Get DDP Pool information using using pool name
       hitachivantara.vspone_block.vsp.hv_ddp_pool_facts:

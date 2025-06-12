@@ -19,6 +19,7 @@ try:
         USER_CONSENT_FILE_PATH,
         CONSENT_FILE_NAME,
         APIG_URL,
+        ENABLE_AUDIT_LOG,
     )
     from ..common.uaig_constants import Endpoints as UAIGEndpoints
     from ..model.common_base_models import APIGRequestModel
@@ -33,6 +34,7 @@ except ImportError:
         USER_CONSENT_FILE_PATH,
         CONSENT_FILE_NAME,
         APIG_URL,
+        ENABLE_AUDIT_LOG,
     )
     from common.uaig_constants import Endpoints as UAIGEndpoints
     from model.common_base_models import APIGRequestModel
@@ -41,9 +43,12 @@ except ImportError:
 MODEL_INFO = None
 
 AWS_UPDATE_THREADS = []
+AUDIT_THREADS = []
 
 USER_CONSENT, CONSENT_FILE_PRESENT = False, False
 SITE_ID = "common_site_id"
+
+logger = Log()
 
 
 def open_url(*args, **kwargs):
@@ -228,6 +233,14 @@ class OpenUrlWithTelemetry:
                 # Write updated data to file
                 self._write_to_file()
 
+            if ENABLE_AUDIT_LOG:
+                # write_to_audit_log(url=url, kwargs=kwargs)
+                audit_thread = threading.Thread(
+                    target=write_to_audit_log, args=(url, kwargs, result)
+                )
+                AUDIT_THREADS.append(audit_thread)
+                audit_thread.daemon = True
+                audit_thread.start()
             if not success:
                 raise exception_message  # Exception(f"open_url failed: {exception_message}")
 
@@ -461,3 +474,13 @@ def get_consent_flag():
     if USER_CONSENT and CONSENT_FILE_PRESENT:
         return True
     return False
+
+
+def write_to_audit_log(url, request, response):
+    """
+    Writes the API call details to the audit log if enabled.
+    """
+
+    logger.writeAudit(
+        f'API: {url}, Method: {request.get("method")}, Data: {request.get("data", None)}, Response Status: {response.status}'
+    )

@@ -22,7 +22,7 @@
 
   tasks:
     ######################################################################################
-    # Task 1 : Register Remote Storage
+    # Task Name : Register Remote Storage
     ######################################################################################
     - name: Register Remote Storage
       hitachivantara.vspone_block.vsp.hv_remote_storage_registration:
@@ -39,7 +39,7 @@
         var: result
 
     ######################################################################################
-    # Task 2 : Unregister Remote Storage
+    # Task Name : Unregister Remote Storage
     ######################################################################################
     - name: Unregister Remote Storage
       hitachivantara.vspone_block.vsp.hv_remote_storage_registration:

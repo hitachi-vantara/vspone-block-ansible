@@ -15,5 +15,8 @@ class VSPCopyGroupsValidateMsg(Enum):
     GROUP_RESYNC_FAILED = "Failed to resync the copy group."
     GROUP_RESTORE_FAILED = "Failed to restore the copy group."
     GROUP_DELETE_FAILED = "Failed to delete the copy group."
-    NO_PVOL_DEVICE_NAME_FOUND = "Incorrect pvol_device_group_name for existing copy_group {}. Provide correct existing value {}."
-    NO_SVOL_DEVICE_NAME_FOUND = "Incorrect svol_device_group_name for existing copy_group {}. Provide correct existing value {}."
+    NO_PVOL_DEVICE_NAME_FOUND = "Incorrect primary_volume_device_group_name for existing copy_group {}. Provide correct existing value {}."
+    NO_SVOL_DEVICE_NAME_FOUND = "Incorrect secondary_volume_device_group_name for existing copy_group {}. Provide correct existing value {}."
+
+    LOCAL_COPY_GROUP_NAME_REQD = "When primary_volume_device_group_name and secondary_volume_device_group_name are specified, you must specify name."
+    LOCAL_COPY_GROUP_BOTH_PVOL_SVOL_DEVICE_REQD = "Both primary_volume_device_group_name and secondary_volume_device_group_name must be specified together."

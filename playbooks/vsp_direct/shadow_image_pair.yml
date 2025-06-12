@@ -147,6 +147,39 @@
         var: result
 
     ####################################################################
+    # Task Name : Migrate shadow image pair
+    ####################################################################
+    - name: Migrate shadow image pair
+      hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
+        connection_info: "{{ connection_info }}"
+        state: "migrate"
+        spec:
+          copy_group_name: "CGTest"
+          copy_pair_name: "CPTest"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Cancel Migration of Shadow Image Pair
+    ####################################################################
+    - name: Cancel migration of Shadow Image Pair
+      hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
+        connection_info: "{{ connection_info }}"
+        state: "split"
+        spec:
+          copy_group_name: "copy_group_name1"
+          copy_pair_name: "CPTest"
+          should_force_split: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
     # Task Name : Delete shadow image pair
     ####################################################################
     - name: Delete shadow image pair
@@ -177,6 +210,49 @@
           copy_group_name: "CGTest"
           copy_pair_name: "CPTest"
           should_delete_svol: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ###################################################################################
+    # Task Name : Create shadow image pair for an existing secondary volume for migration
+    ##################################################################################
+    - name: Create shadow image pair for an existing secondary volume for migration
+      hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          primary_volume_id: 274
+          secondary_volume_id: 277
+          copy_group_name: "CGTest"
+          copy_pair_name: "CPTest"
+          primary_volume_device_group_name: "CPTestP"
+          secondary_volume_device_group_name: "CPTestS"
+          create_for_migration: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################
+    # Task Name : Create shadow image pair for non-existing secondary volume for migration
+    #########################################################################
+    - name: Create shadow image pair for non-existing secondary volume for migration
+      hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          primary_volume_id: 274
+          secondary_pool_id: 1
+          copy_group_name: "CGTest"
+          copy_pair_name: "CPTest"
+          primary_volume_device_group_name: "CPTestP"
+          secondary_volume_device_group_name: "CPTestS"
+          create_for_migration: true
+
       register: result
 
     - name: Debug the result variable

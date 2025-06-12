@@ -20,8 +20,8 @@ This collection includes modules for managing both Hitachi VSP One SDS Block and
 ## VSP Ansible Modules
 
 - **hv_ldev_facts:** Retrieves information about logical devices.
-- **hv_nvm_subsystems:** Manages NVM subsystems (direct connection type only).
-- **hv_nvm_subsystems_facts:** Retrieves information about NVM subsystems (direct connection type only).
+- **hv_nvm_subsystems:** Manages NVM subsystems.
+- **hv_nvm_subsystems_facts:** Retrieves information about NVM subsystems.
 - **hv_paritygroup:** Manages parity groups.
 - **hv_paritygroup_facts:** Retrieves information about parity groups.
 - **hv_quorum_disk:** Manages quorum disks.
@@ -36,8 +36,8 @@ This collection includes modules for managing both Hitachi VSP One SDS Block and
 - **hv_resource_group_facts:** Retrieves information about resource groups.
 - **hv_hg:** Manages host groups.
 - **hv_hg_facts:** Retrieves information about host groups.
-- **hv_hur:** Manages HUR pairs (gateway connection type only).
-- **hv_hur_facts:** Retrieves information about HUR pairs (gateway connection type only).
+- **hv_hur:** Manages HUR pairs
+- **hv_hur_facts:** Retrieves information about HUR pairs.
 - **hv_iscsi_remote_connection:** Manages iSCSI remote connections.
 - **hv_iscsi_remote_connection_facts:** Retrieves information about iSCSI remote connections.
 - **hv_iscsi_target:** Manages iSCSI targets.
@@ -52,17 +52,17 @@ This collection includes modules for managing both Hitachi VSP One SDS Block and
 - **hv_resource_group_lock:** Manages resource group locks.
 - **hv_snapshot:** Manages snapshots.
 - **hv_disk_drive_facts:** Retrieves information about disk drives.
-- **hv_troubleshooting_facts:** Collects log bundles from the Ansible modules host and gateway service host.
+- **hv_troubleshooting_facts:** Collects log bundles from the Ansible modules host.
 - **hv_cmd_dev:** Manages command devices.
 - **hv_shadow_image_pair_facts:** Retrieves information about shadow image pairs.
 - **hv_snapshot_facts:** Retrieves information about snapshots.
 - **hv_snapshot_group:** Manages snapshot groups.
 - **hv_snapshot_group_facts:** Retrieves information about snapshot groups.
-- **hv_storage_port:** Manages storage port settings (direct connection type only).
+- **hv_storage_port:** Manages storage port settings.
 - **hv_user:** Manages users.
-- **hv_storage_port_facts:** Retrieves information about storage ports (direct connection type only).
+- **hv_storage_port_facts:** Retrieves information about storage ports.
 - **hv_user_facts:** Retrieves information about users.
-- **hv_storagepool:** Manages storage pools (gateway connection type only).
+- **hv_storagepool:** Manages storage pools.
 - **hv_user_group:** Manages user groups.
 - **hv_user_group_facts:** Retrieves information about user groups.
 - **hv_storagepool_facts:** Retrieves information about storage pools.
@@ -75,3 +75,7 @@ This collection includes modules for managing both Hitachi VSP One SDS Block and
 - **hv_gad:** Manages GAD pairs.
 - **hv_external_volume:** Manages external volumes.
 - **hv_gad_facts:** Retrieves information about GAD pairs.
+- **hv_external_parity_group_facts:** Retrieves information about External Parity Group.
+- **hv_external_path_group:** Manages External Path Groups.
+- **hv_external_path_group_facts:** Retrieves information about External Path Group.
+- **hv_mp_facts:** Retrieves MP blades information.

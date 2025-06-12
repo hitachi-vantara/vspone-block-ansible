@@ -61,13 +61,15 @@ class VSPShadowImagePairProvisioner:
         self.nvme_provisioner = VSPNvmeProvisioner(self.connection_info)
 
     @log_entry_exit
-    def get_all_shadow_image_pairs(self, serial, pvol):
+    def get_all_shadow_image_pairs(self, serial, pvol, refresh=None):
         if pvol is not None:
             shadow_image_pairs = self.get_shadow_image_pair_by_pvol_and_svol(
                 serial, pvol
             )
         else:
-            shadow_image_pairs = self.gateway.get_all_shadow_image_pairs(serial)
+            shadow_image_pairs = self.gateway.get_all_shadow_image_pairs(
+                serial, refresh
+            )
             shadow_image_pairs = shadow_image_pairs.data_to_list()
 
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
@@ -344,7 +346,7 @@ class VSPShadowImagePairProvisioner:
                     return shadow_image_pair
 
         if copy_pair_name is not None:
-            if shadow_image_list is not None:
+            if len(shadow_image_list) > 0:
                 return shadow_image_list[0]
             else:
                 return None
@@ -378,6 +380,15 @@ class VSPShadowImagePairProvisioner:
 
         return self.get_si_pair_with_latest_data(
             serial, updateShadowImagePairSpec.pair_id, PairStatus.PAIR
+        )
+
+    @log_entry_exit
+    def migrate_shadow_image_pair(self, serial, updateShadowImagePairSpec):
+        unused = self.gateway.migrate_shadow_image_pair(
+            serial, updateShadowImagePairSpec
+        )
+        return self.get_si_pair_with_latest_data(
+            serial, updateShadowImagePairSpec.pair_id, PairStatus.PSUS
         )
 
     @log_entry_exit

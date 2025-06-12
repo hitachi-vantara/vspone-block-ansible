@@ -21,7 +21,7 @@ version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -451,7 +451,7 @@ def main(module=None):
         logger.writeDebug("serial={}", conv_system_serial)
         logger.writeDebug("gateway={}", conv_mgmt_address)
 
-        # ucp is mantatory input
+        # ucp is mandatory input
         # get the puma getway info out of it
         theUCP = ucpManager.getUcpSystem(conv_system_name)
         if theUCP is None:

@@ -25,6 +25,7 @@ class Endpoints(object):
     PEGASUS_JOB = "simple/v1/objects/command-status/{}"
     SESSIONS = "v1/objects/sessions"
     DELETE_SESSION = "v1/objects/sessions/{}"
+    GET_TOTAL_EFFICIENCY = "v1/objects/total-efficiencies/instance"
 
     # Volumes
     POST_LDEVS = "v1/objects/ldevs"
@@ -47,6 +48,9 @@ class Endpoints(object):
     GET_FREE_LDEV_MATCHING_PVOL = (
         "v1/objects/ldevs?ldevOption=undefined&count=1&headLdevId={}"
     )
+    GET_FREE_LDEV_FROM_META_FOR_SVOL_RANGE = (
+        "v1/objects/ldevs?ldevOption=undefined&headLdevId={}&count={}"
+    )
     GET_LDEVS_BY_POOL_ID = "v1/objects/ldevs?poolId={}"
     POST_UNASSIGN_VLDEV = "v1/objects/ldevs/{}/actions/unassign-virtual-ldevid/invoke"
     POST_ASSIGN_VLDEV = "v1/objects/ldevs/{}/actions/assign-virtual-ldevid/invoke"
@@ -54,6 +58,8 @@ class Endpoints(object):
     GET_LDEV_EXT_VOL = "v1/objects/ldevs/{}?detailInfoType=externalVolume"
     GET_QOS_SETTINGS = "v1/objects/ldevs?headLdevId={}&count=1&detailInfoType=qos"
     GET_CMD_DEVICE = "v1/objects/ldevs?headLdevId={}&count=1&detailInfoType=class"
+    RECLAIM_ZERO_PAGES = "v1/objects/ldevs/{}/actions/discard-zero-page/invoke"
+    CHANGE_MP_BLADE = "v1/objects/ldevs/{}/actions/assign-mp-blade/invoke"
     # Port
     GET_PORTS = "v1/objects/ports"
     GET_PORTS_DETAILS = "v1/objects/ports?detailInfoType=portMode"
@@ -62,17 +68,29 @@ class Endpoints(object):
     UPDATE_PORT = "v1/objects/ports/{}"
     UAIG_GET_PORTS_V2 = "v2/storage/devices/{}/ports{}"
     UAIG_GET_PORTS_V3 = "v3/storage/{}/ports{}"
+    SEND_PING_COMMAND = "v1/objects/ports/{}/actions/ping/invoke"
 
     # HG
     POST_HOST_GROUPS = "v1/objects/host-groups"
     GET_WWNS = "v1/objects/host-wwns{}"
     POST_WWNS = "v1/objects/host-wwns"
+    PATCH_WWNS = "v1/objects/host-wwns/{},{},{}"
     DELETE_WWNS = "v1/objects/host-wwns/{},{},{}"
     GET_HOST_GROUPS = "v1/objects/host-groups{}"
     GET_HOST_GROUP_BY_ID = "v1/objects/host-groups/{}"
     GET_HOST_GROUP_ONE = "v1/objects/host-groups/{},{}"
     DELETE_HOST_GROUPS = "v1/objects/host-groups/{},{}"
     PATCH_HOST_GROUPS = "v1/objects/host-groups/{},{}"
+    GET_SPECIFIC_LUN = "v1/objects/luns/{},{},{}"
+    SET_ALUA_PRIORITY = (
+        "v1/services/lun-service/actions/change-asymmetric-access-state/invoke"
+    )
+    RELEASE_HOST_RES_STATUS_LU = (
+        "v1/objects/luns/{},{},{}/actions/release-lu-host-reserve/invoke"
+    )
+    RELEASE_HOST_RES_STATUS = (
+        "v1/objects/host-groups/{},{}/actions/release-lu-host-reserves/invoke"
+    )
 
     # ISCSI
     GET_HOST_ISCSISS = "v1/objects/host-iscsis{}"
@@ -89,6 +107,7 @@ class Endpoints(object):
     UAIG_POST_CHAP_USER = "v2/storage/devices/{}/iscsiTargets/{}/chapUser"
     UAIG_PATCH_CHAP_USER = "v2/storage/devices/{}/iscsiTargets/{}/chapUser"
     UAIG_DELETE_CHAP_USER = "v2/storage/devices/{}/iscsiTargets/{}/chapUsers/{}"
+    PATCH_IQN_NICK_NAME = "v1/objects/host-iscsis/{},{},{}"
 
     # CHAP
     POST_CHAP_USERS = "v1/objects/chap-users"
@@ -183,6 +202,9 @@ class Endpoints(object):
     DIRECT_SPLIT_SHADOW_IMAGE_PAIR = (
         "v1/objects/local-clone-copypairs/{pairId}/actions/split/invoke"
     )
+    DIRECT_MIGRATE_SHADOW_IMAGE_PAIR = (
+        "v1/objects/local-clone-copypairs/{pairId}/actions/migrate/invoke"
+    )
     DIRECT_RESYNC_SHADOW_IMAGE_PAIR = (
         "v1/objects/local-clone-copypairs/{pairId}/actions/resync/invoke"
     )
@@ -210,6 +232,8 @@ class Endpoints(object):
     POST_SNAPSHOTS_RESYNC = "v1/objects/snapshots/{}/actions/resync/invoke"
     POST_SNAPSHOTS_RESTORE = "v1/objects/snapshots/{}/actions/restore/invoke"
     SNAPSHOT_RETENTION = "v1/objects/snapshots/{}/actions/set-retention/invoke"
+    DELETE_GARBAGE_DATA = "v1/services/snapshot-tree/actions/delete-garbage-data/invoke"
+    DELETE_TI_BY_SS_TREE = "v1/services/snapshot-tree/actions/delete/invoke"
 
     SNAPSHOTS_BY_GROUP_ID = "v1/objects/snapshot-groups/{}"
     SNAPSHOTS_BY_GROUP_ID_WITH_RETAIN = (
@@ -217,6 +241,7 @@ class Endpoints(object):
     )
     GET_SNAPSHOTS_BY_GROUP = "v1/objects/snapshot-groups"
     SPLIT_SNAPSHOT_BY_GRP = "v1/objects/snapshot-groups/{}/actions/split/invoke"
+    CLONE_SNAPSHOT_BY_GRP = "v1/objects/snapshot-groups/{}/actions/clone/invoke"
     RESYNC_SNAPSHOT_BY_GRP = "v1/objects/snapshot-groups/{}/actions/resync/invoke"
     RESTORE_SNAPSHOT_BY_GRP = "v1/objects/snapshot-groups/{}/actions/restore/invoke"
     SNAPSHOT_RETENTION_BY_GRP = (
@@ -272,6 +297,9 @@ class Endpoints(object):
     GET_RECOMMENDED_POOL_SINGLE = (
         "simple/v1/objects/recommended-pool-configurations?poolId={}"
     )
+
+    # MP blades
+    GET_MP_BLADES = "v1/objects/mps"
 
 
 class Http(object):
@@ -457,6 +485,12 @@ class VolumePayloadConst:
     STATUS = "status"
     ENHANCED_EXPANSION = "enhancedExpansion"
     VIRTUAL_LDEVID = "virtualLdevId"
+    MP_BLADE_ID = "mpBladeId"
+    DATA_REDUCTION_PROCESS_MODE = "dataReductionProcessMode"
+    IS_COMPRESSION_ACCELERATION_ENABLED = "isCompressionAccelerationEnabled"
+    IS_RELOCATION_ENABLED = "isRelocationEnabled"
+    IS_FULL_ALLOCATION_ENABLED = "isFullAllocationEnabled"
+    IS_ALUA_ENABLED = "isAluaEnabled"
 
     # URL PARAMS
     HEAD_LDEV_ID = "?headLdevId={}"
@@ -470,8 +504,14 @@ class VolumePayloadConst:
     IS_DATA_REDUCTION_DELETE_FORCE_EXECUTE = "isDataReductionDeleteForceExecute"
     IS_COMPRESSION_ACCELERATION_ENABLED = "isCompressionAccelerationEnabled"
 
+    IS_PARALLEL_EXECUTION_ENABLED = "isParallelExecutionEnabled"
+    START_LDEV_ID = "startLdevId"
+    END_LDEV_ID = "endLdevId"
+    EXTERNAL_PARITY_GROUP_ID = "externalParityGroupId"
+
     DISABLED = "disabled"
     BLOCK = "BLK"
+    NORMAL = "NML"
 
     # Volume operation type
     FMT = "FMT"
@@ -505,6 +545,8 @@ class VSPSnapShotReq:
     retentionPeriod = "retentionPeriod"
     copySpeed = "copySpeed"
     clonesAutomation = "clonesAutomation"
+    primaryLdevId = "ldevId"
+    operationType = "operationType"
 
 
 class PairStatus:
@@ -529,6 +571,7 @@ class VSPPortSetting:
     PORT_SPEED = "portSpeed"
     PORT_CONNECTION = "portConnection"
     FABRIC_MODE = "fabricMode"
+    HOST_IP_ADDRESS = "ipAddress"
 
 
 class DefaultValues:

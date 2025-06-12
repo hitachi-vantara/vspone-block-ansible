@@ -58,11 +58,31 @@ class VSPShadowImagePairReconciler:
 
     @log_entry_exit
     def shadow_image_pair_facts(self, shadowImagePairSpec):
-        if shadowImagePairSpec is None:
-            data = self.provisioner.get_all_shadow_image_pairs(self.serial)
+        if (
+            shadowImagePairSpec.pvol is None
+            and shadowImagePairSpec.copy_group_name is None
+            and shadowImagePairSpec.copy_pair_name is None
+        ):
+            data = self.provisioner.get_all_shadow_image_pairs(
+                self.serial, None, shadowImagePairSpec.refresh
+            )
+        elif shadowImagePairSpec.copy_pair_name and shadowImagePairSpec.copy_group_name:
+            data = self.provisioner.get_shadow_image_pair_by_copy_pair_name(
+                self.serial,
+                shadowImagePairSpec.copy_pair_name,
+                shadowImagePairSpec.copy_group_name,
+            )
+            data = (
+                ShadowImagePairPropertyExtractor(self.serial).extract(
+                    [data], self.port_type_dict
+                )[0]
+                if isinstance(data, dict)
+                else data
+            )
+            return data
         else:
             data = self.provisioner.get_all_shadow_image_pairs(
-                self.serial, shadowImagePairSpec.pvol
+                self.serial, shadowImagePairSpec.pvol, None
             )
         return ShadowImagePairPropertyExtractor(self.serial).extract(
             data, self.port_type_dict
@@ -140,7 +160,10 @@ class VSPShadowImagePairReconciler:
                     self.connectionInfo.changed = True
             elif state == StateValue.SPLIT:
                 if pairId is not None:
-                    if shadow_image_data.get("status") == "PSUS":
+                    if (
+                        shadow_image_data.get("status") == "PSUS"
+                        and self.shadowImagePairSpec.should_force_split is None
+                    ):
                         shadow_image_response = shadow_image_data
                         self.connectionInfo.changed = False
                     else:
@@ -183,6 +206,15 @@ class VSPShadowImagePairReconciler:
             elif state == StateValue.ABSENT:
                 if pairId is not None:
                     shadow_image_response = self.shadow_image_pair_delete(
+                        self.shadowImagePairSpec
+                    )
+                    self.connectionInfo.changed = True
+                else:
+                    shadow_image_response = "Shadow image pair is not available."
+                    self.connectionInfo.changed = False
+            elif state == StateValue.MIGRATE:
+                if pairId is not None:
+                    shadow_image_response = self.shadow_image_pair_migrate(
                         self.shadowImagePairSpec
                     )
                     self.connectionInfo.changed = True
@@ -251,6 +283,13 @@ class VSPShadowImagePairReconciler:
     @log_entry_exit
     def shadow_image_pair_restore(self, shadowImagePairSpec):
         data = self.provisioner.restore_shadow_image_pair(
+            self.serial, shadowImagePairSpec
+        )
+        return data
+
+    @log_entry_exit
+    def shadow_image_pair_migrate(self, shadowImagePairSpec):
+        data = self.provisioner.migrate_shadow_image_pair(
             self.serial, shadowImagePairSpec
         )
         return data
