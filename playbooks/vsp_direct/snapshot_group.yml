@@ -19,7 +19,7 @@
 
   tasks:
     ######################################################################################
-    # Task 1 : Split the snapshot pairs using group name
+    # Task Name : Split the snapshot pairs using group name
     ######################################################################################
     - name: Split the snapshot pairs using group name
       hitachivantara.vspone_block.vsp.hv_snapshot_group:
@@ -34,7 +34,7 @@
         var: result
 
     ######################################################################################
-    # Task 2 : Restore the snapshot pairs using group name
+    # Task Name : Restore the snapshot pairs using group name
     ######################################################################################
     - name: Restore the snapshot pairs using group name
       hitachivantara.vspone_block.vsp.hv_snapshot_group:
@@ -49,7 +49,7 @@
         var: result
 
     ######################################################################################
-    # Task 3 : Restore the snapshot pairs using group name and auto split
+    # Task Name : Restore the snapshot pairs using group name and auto split
     ######################################################################################
     - name: Restore the snapshot pairs using group name and auto split
       hitachivantara.vspone_block.vsp.hv_snapshot_group:
@@ -65,7 +65,7 @@
         var: result
 
     ######################################################################################
-    # Task 4 : Resync the snapshot pairs using group name
+    # Task Name : Resync the snapshot pairs using group name
     ######################################################################################
     - name: Resync the snapshot pairs using group name
       hitachivantara.vspone_block.vsp.hv_snapshot_group:
@@ -80,7 +80,7 @@
         var: result
 
     ######################################################################################
-    # Task 5 : Delete the snapshot pairs using group name
+    # Task Name : Delete the snapshot pairs using group name
     ######################################################################################
     - name: Delete the snapshot pairs using group name
       hitachivantara.vspone_block.vsp.hv_snapshot_group:
@@ -95,7 +95,7 @@
         var: result
 
     ######################################################################################
-    # Task 6 : Set retention period of snapshots using group name
+    # Task Name : Set retention period of snapshots using group name
     ######################################################################################
     - name: Set retention period of snapshots using group name
       hitachivantara.vspone_block.vsp.hv_snapshot_group:
@@ -104,6 +104,22 @@
         spec:
           snapshot_group_name: "snapshot-group-name-1"
           retention_period: 120
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Clone the snapshot pairs using group name
+    ######################################################################################
+    - name: Clone the snapshot pairs using group name
+      hitachivantara.vspone_block.vsp.hv_snapshot_group:
+        connection_info: "{{ connection_info }}"
+        state: "clone"
+        spec:
+          snapshot_group_name: "snapshot-group-name-1"
+          copy_speed: 'SLOW'
       register: result
 
     - name: Debug the result variable

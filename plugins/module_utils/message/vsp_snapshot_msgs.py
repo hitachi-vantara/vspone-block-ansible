@@ -27,3 +27,8 @@ class VSPSnapShotValidateMsg(Enum):
     NO_SNAPSHOTS_FOUND = "No snapshots found."
     MU_ID_NOT_FOUND_IN_TASK = "Mirror Unit ID not found in task information."
     MIRROR_UNIT_ID_NOT_FOUND = "Mirror Unit ID not found."
+    PVOL_REQUIRED_FOR_DEL = "primary_volume_id is required for the 'absent' state."
+    MU_PVOL_REQUIRED_FOR_REG_DEL = (
+        "primary_volume_id and mirror_unit_id is required for the 'absent' state, "
+        "when deleting a regular snapshot. mirror_unit_id is not required when deleing by snapshot tree."
+    )

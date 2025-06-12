@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get storage system facts
+    # Task Name : Get storage system facts
     ####################################################################
     - name: Get storage system facts
       hitachivantara.vspone_block.sds_block.hv_sds_block_storage_system_facts:

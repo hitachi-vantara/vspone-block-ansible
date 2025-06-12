@@ -64,18 +64,45 @@ class ExternalPathInfoList(BaseDataClass):
 
 
 @dataclass
+class SalamanderExternalPathInfo(SingleBaseClass):
+    portId: str
+    portProtocol: str
+    externalPortIpAddress: str
+    externalPortIscsiName: str
+    externalTcpPortNumber: int
+    virtualPortNumber: int = None
+    externalPortWwn: str = None
+
+
+@dataclass
+class SalamanderExternalPathInfoList(BaseDataClass):
+    data: List[SalamanderExternalPathInfo]
+
+
+@dataclass
 class ExternalPathGroupInfo(SingleBaseClass):
     externalPathGroupId: int
     externalSerialNumber: str
     externalProductId: str
     externalParityGroups: List[Any]
     externalPaths: List[ExternalPathInfo]
-    nextPageHeadPathGroupId: int
+    nextPageHeadPathGroupId: int = None
 
 
 @dataclass
 class ExternalPathGroupInfoList(BaseDataClass):
     data: List[ExternalPathGroupInfo]
+
+
+@dataclass
+class SalamanderExternalPathGroupInfo(SingleBaseClass):
+    id: int
+    externalPaths: List[SalamanderExternalPathInfo]
+
+
+@dataclass
+class SalamanderExternalPathGroupInfoList(BaseDataClass):
+    data: List[SalamanderExternalPathGroupInfo]
 
 
 @dataclass

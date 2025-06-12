@@ -23,6 +23,7 @@ GET_LOCAL_COPY_GROUPS = "v1/objects/local-clone-copygroups"
 GET_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}"
 GET_STORAGES_DIRECT = "v1/objects/storages"
 SPLIT_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}/actions/split/invoke"
+MIGRATE_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}/actions/migrate/invoke"
 RESYNC_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}/actions/resync/invoke"
 RESTORE_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}/actions/restore/invoke"
 
@@ -127,6 +128,8 @@ class VSPLocalCopyGroupDirectGateway:
             parameters["copyPace"] = spec.copy_pace
         if spec.force_suspend is not None:
             parameters["forceSuspend"] = spec.force_suspend
+        if spec.should_force_split is not None:
+            parameters["forceSplit"] = spec.should_force_split
 
         payload = {"parameters": parameters}
         logger.writeDebug(f"GW:split_local_copy_group:payload={payload}")
@@ -216,12 +219,35 @@ class VSPLocalCopyGroupDirectGateway:
         end_point = GET_ONE_COPY_GROUP.format(shadowImagePairid)
         # headers = self.populateHeader()
         if spec.force_delete is not None:
-            parameters = {}
-            parameters["forceDelete"] = spec.force_delete
-            payload = {"parameters": parameters}
+            # parameters = {}
+            # parameters["forceDelete"] = spec.force_delete
+            payload = {"forceDelete": spec.force_delete}
             logger.writeDebug(f"GW:delete_local_copy_group:payload={payload}")
             response = self.connection_manager.delete(end_point, payload)
         else:
             response = self.connection_manager.delete(end_point)
+        logger.writeDebug("{} Response={}", funcName, response)
+        return response
+
+    @log_entry_exit
+    def migrate_local_copy_group(self, spec, localCloneCopygroupId):
+        funcName = "VSPShadowImagePairDirectGateway: migrate_local_copy_group"
+        if (
+            spec.copy_group_name is not None
+            and spec.primary_volume_device_group_name is not None
+            and spec.secondary_volume_device_group_name is not None
+        ):
+            shadowImagePairid = (
+                spec.copy_group_name
+                + ","
+                + spec.primary_volume_device_group_name
+                + ","
+                + spec.secondary_volume_device_group_name
+            )
+        else:
+            shadowImagePairid = localCloneCopygroupId
+        end_point = MIGRATE_ONE_COPY_GROUP.format(shadowImagePairid)
+        # headers = self.populateHeader()
+        response = self.connection_manager.post(end_point, data=None)
         logger.writeDebug("{} Response={}", funcName, response)
         return response

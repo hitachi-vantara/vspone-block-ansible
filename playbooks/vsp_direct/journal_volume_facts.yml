@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all Journal Volume
+    # Task Name : Get all Journal Volume
     ####################################################################
     - name: Get all journal volumes
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get specific Journal Volume
+    # Task Name : Get specific Journal Volume
     ####################################################################
     - name: Get specific journal volumes
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
@@ -44,7 +44,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Get Free Journal Pool IDs
+    # Task Name : Get Free Journal Pool IDs
     ####################################################################
     - name: Get specific journal volumes
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
@@ -58,7 +58,7 @@
       ansible.builtin.debug:
         var: result
     ####################################################################
-    # Task 4 : Get Journal pool data with mirror not used
+    # Task Name : Get Journal pool data with mirror not used
     ####################################################################
     - name: Get specific journal volumes
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:

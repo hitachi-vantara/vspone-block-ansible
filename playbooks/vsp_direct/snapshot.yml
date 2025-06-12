@@ -153,7 +153,23 @@
         var: result
 
     ######################################################################################
-    # Task Name : Clone snapshot pair
+    # Task Name : Delete Thin Image pairs by snapshot tree
+    ######################################################################################
+    - name: Delete Thin Image pairs by snapshot tree
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          primary_volume_id: 100
+          should_delete_tree: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Clone snapshot pair / Thin Image pair
     ######################################################################################
     - name: Clone snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -325,6 +341,22 @@
           retention_period: 60
           pool_id: 1
           snapshot_group_name: "snapshot-group-name-1"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Deleting garbage data of all Thin Image pairs in a snapshot tree
+    ######################################################################################
+    - name: Deleting garbage data of all Thin Image pairs in a snapshot tree
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "defragment"
+        spec:
+          primary_volume_id: 100
+          operation_type: "start"
       register: result
 
     - name: Debug the result variable

@@ -21,7 +21,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Create GAD pair with single server configuration
+    # Task Name : Create GAD pair with single server configuration
     ####################################################################
     - name: Create GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:
@@ -41,7 +41,6 @@
               lun_id: 1
           quorum_disk_id: 1
           mu_number: 4
-
       register: result
 
     - name: Debug the result variable
@@ -49,7 +48,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Create GAD pair with  server cluster configuration
+    # Task Name : Create GAD pair with  server cluster configuration
     ####################################################################
     - name: Create GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:
@@ -80,7 +79,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Create GAD pair with cross path server configuration
+    # Task Name : Create GAD pair with cross path server configuration
     ####################################################################
     - name: Create GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:
@@ -113,127 +112,34 @@
       ansible.builtin.debug:
         var: result
 
-    ####################################################################
-    # Task 4 : Split GAD pair
-    ####################################################################
-    - name: Split GAD pair
+    #######################################################################
+    # Task Name : Create a GAD pair using a range for secondary volume id
+    #######################################################################
+    - name: Create a GAD pair using a range for secondary volume id
       hitachivantara.vspone_block.vsp.hv_gad:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-
-        state: "split"
         spec:
           copy_group_name: "copy_group_name_1"
           copy_pair_name: "copy_pair_name_1"
-          local_device_group_name: "local_device_group_name"
-          remote_device_group_name: "remote_device_group_name"
+          primary_volume_id: 5242
+          quorum_disk_id: 20
+          begin_secondary_volume_id: 4720
+          end_secondary_volume_id: 4730
+          secondary_pool_id: 0
+          secondary_hostgroups:
+            - name: "hg_5242"
+              port: CL2-B
+            - name: "hg_1"
+              port: "CL2-B"
       register: result
 
-    - name: Debug the result variable
+    - name: Debug result
       ansible.builtin.debug:
         var: result
 
     ####################################################################
-    # Task 5 : Resync GAD pair
-    ####################################################################
-    - name: Resync GAD pair
-      hitachivantara.vspone_block.vsp.hv_gad:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
-
-        state: "resync"
-        spec:
-          copy_group_name: "copy_group_name_1"
-          copy_pair_name: "copy_pair_name_1"
-          local_device_group_name: "local_device_group_name"
-          remote_device_group_name: "remote_device_group_name"
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    ####################################################################
-    # Task 6 : Delete GAD pair
-    ####################################################################
-    - name: Delete GAD pair
-      hitachivantara.vspone_block.vsp.hv_gad:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
-
-        state: "absent"
-        spec:
-          copy_group_name: "copy_group_name_1"
-          primary_volume_id: 6
-          should_delete_svol: false
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    ####################################################################
-    # Task 7 : Swap-Split GAD pair
-    # Storages need to be swapped before swap-split operation.
-    # Please specify connection_info and secondary_connection_info accordingly.
-    ####################################################################
-    - name: Swap-Split GAD pair
-      hitachivantara.vspone_block.vsp.hv_gad:
-        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
-        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
-        state: "swap_split"
-        spec:
-          copy_group_name: "copy_group_name_1"
-          copy_pair_name: "copy_pair_name_1"
-          local_device_group_name: "local_device_group_name"
-          remote_device_group_name: "remote_device_group_name"
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    ####################################################################
-    # Task 8 : Swap-Resync GAD pair
-    # Similar storage conection details as per swap-split operation
-    ####################################################################
-    - name: Swap-Resync GAD pair
-      hitachivantara.vspone_block.vsp.hv_gad:
-        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
-        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
-        state: "swap_resync"
-        spec:
-          copy_group_name: "copy_group_name_1"
-          copy_pair_name: "copy_pair_name_1"
-          local_device_group_name: "local_device_group_name"
-          remote_device_group_name: "remote_device_group_name"
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    #####################################################################
-    # Task 9 : Expand GAD pair
-    ######################################################################
-    - name: Expand GAD pair
-      hitachivantara.vspone_block.vsp.hv_gad:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
-        state: "expand"
-        spec:
-          copy_group_name: "copy_group_name_1"
-          copy_pair_name: "copy_pair_name_1"
-          new_volume_size: "10GB"
-
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    ####################################################################
-    # Task 10 : Create GAD-NVMe Pair
+    # Task Name : Create GAD-NVMe Pair
     ####################################################################
     - name: Create GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:
@@ -259,7 +165,7 @@
         var: result
 
     ####################################################################
-    # Task 11 : Create GAD-ISCSI pair
+    # Task Name : Create GAD-ISCSI pair
     ####################################################################
     - name: Create GAD-ISCSI pair
       hitachivantara.vspone_block.vsp.hv_gad:
@@ -278,6 +184,125 @@
               enable_preferred_path: false
               lun_id: 1
           quorum_disk_id: 1
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Split GAD pair
+    ####################################################################
+    - name: Split GAD pair
+      hitachivantara.vspone_block.vsp.hv_gad:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+
+        state: "split"
+        spec:
+          copy_group_name: "copy_group_name_1"
+          copy_pair_name: "copy_pair_name_1"
+          local_device_group_name: "local_device_group_name"
+          remote_device_group_name: "remote_device_group_name"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Resync GAD pair
+    ####################################################################
+    - name: Resync GAD pair
+      hitachivantara.vspone_block.vsp.hv_gad:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+
+        state: "resync"
+        spec:
+          copy_group_name: "copy_group_name_1"
+          copy_pair_name: "copy_pair_name_1"
+          local_device_group_name: "local_device_group_name"
+          remote_device_group_name: "remote_device_group_name"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Delete GAD pair
+    ####################################################################
+    - name: Delete GAD pair
+      hitachivantara.vspone_block.vsp.hv_gad:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+
+        state: "absent"
+        spec:
+          copy_group_name: "copy_group_name_1"
+          primary_volume_id: 6
+          should_delete_svol: false
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Swap-Split GAD pair
+    # Storages need to be swapped before swap-split operation.
+    # Please specify connection_info and secondary_connection_info accordingly.
+    ####################################################################
+    - name: Swap-Split GAD pair
+      hitachivantara.vspone_block.vsp.hv_gad:
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
+        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
+        state: "swap_split"
+        spec:
+          copy_group_name: "copy_group_name_1"
+          copy_pair_name: "copy_pair_name_1"
+          local_device_group_name: "local_device_group_name"
+          remote_device_group_name: "remote_device_group_name"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Swap-Resync GAD pair
+    # Similar storage connection details as per swap-split operation
+    ####################################################################
+    - name: Swap-Resync GAD pair
+      hitachivantara.vspone_block.vsp.hv_gad:
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
+        secondary_connection_info: "{{ connection_info }}" # Local Storage connection details
+        state: "swap_resync"
+        spec:
+          copy_group_name: "copy_group_name_1"
+          copy_pair_name: "copy_pair_name_1"
+          local_device_group_name: "local_device_group_name"
+          remote_device_group_name: "remote_device_group_name"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task Name : Expand GAD pair
+    ######################################################################
+    - name: Expand GAD pair
+      hitachivantara.vspone_block.vsp.hv_gad:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "expand"
+        spec:
+          copy_group_name: "copy_group_name_1"
+          copy_pair_name: "copy_pair_name_1"
+          new_volume_size: "10GB"
 
       register: result
 

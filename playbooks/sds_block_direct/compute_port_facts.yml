@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all compute ports
+    # Task Name : Get all compute ports
     ####################################################################
     - name: Get all compute ports
       hitachivantara.vspone_block.sds_block.hv_sds_block_port_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get compute nodes by names
+    # Task Name : Get compute nodes by names
     ####################################################################
     - name: Get compute port by name
       hitachivantara.vspone_block.sds_block.hv_sds_block_port_facts:
@@ -44,7 +44,7 @@
         var: result
 
     ##########################################################################
-    # Task 3 : Get compute port by nicknames
+    # Task Name : Get compute port by nicknames
     ##########################################################################
     - name: Get compute port by nicknames
       hitachivantara.vspone_block.sds_block.hv_sds_block_port_facts:

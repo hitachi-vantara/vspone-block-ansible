@@ -440,7 +440,7 @@ class VSPTrueCopyProvisioner:
             )
             logger.writeError(err_msg)
             raise ValueError(err_msg)
-        # DO NOT NEED THIS FUCTION AS WE ARE NOW DIRECTLY RUNNING FROM SECONDARY
+        # DO NOT NEED THIS FUNCTION AS WE ARE NOW DIRECTLY RUNNING FROM SECONDARY
         # swap_pair_id =  self.gateway.swap_resync_true_copy_pair(spec)
         # pair_id = self.gateway.get_pair_id_from_swap_pair_id(swap_pair_id, spec.secondary_connection_info)
         # logger.writeDebug(f"PV:swap_resync_true_copy_pair: swap_pair_id = {swap_pair_id} pair_id = {pair_id}")
@@ -682,11 +682,6 @@ class VSPTrueCopyProvisioner:
 
     @log_entry_exit
     def create_true_copy(self, spec) -> Dict[str, Any]:
-
-        if spec.begin_secondary_volume_id or spec.end_secondary_volume_id:
-            raise ValueError(
-                VSPTrueCopyValidateMsg.SECONDARY_RANGE_ID_IS_NOT_SUPPORTED.value
-            )
         tc_exits = self.get_tc_by_cp_group_and_primary_vol_id(spec)
         if tc_exits:
             return tc_exits
@@ -731,7 +726,7 @@ class VSPTrueCopyProvisioner:
             else:
                 secondary_vol_id = rr_prov.get_secondary_volume_id(pvol, spec, False)
             spec.secondary_volume_id = secondary_vol_id
-            # spec.is_data_reduction_force_copy = pvol.isDataReductionShareEnabled
+            spec.is_data_reduction_force_copy = pvol.isDataReductionShareEnabled
             result = self.gateway.create_true_copy(spec)
             logger.writeDebug(f"create_true_copy: {result}")
             pair = self.cg_gw.get_one_copy_pair_by_id(
@@ -760,14 +755,6 @@ class VSPTrueCopyProvisioner:
         volume = self.vol_gw.get_volume_by_id(primary_volume_id)
         # return vol_gw.get_volume_by_id(device_id, primary_volume_id)
         logger.writeDebug(f"PROV:get_volume_by_id:volume: {volume}")
-
-        return volume
-
-    @log_entry_exit
-    def get_volume_by_id_v2(self, storage_id, volume_id):
-        volume = self.vol_gw.get_volume_by_id_v2(storage_id, volume_id)
-        # return vol_gw.get_volume_by_id(device_id, primary_volume_id)
-        logger.writeDebug(f"PROV:get_volume_by_id_v2:volume: {volume}")
 
         return volume
 
@@ -825,12 +812,59 @@ class RemoteReplicationHelperForSVol:
             raise ValueError(err_msg)
 
     @log_entry_exit
-    def select_secondary_volume_id(self, pvol_id):
-        free_vol_info = self.vol_gateway.get_free_ldev_matching_pvol(pvol_id)
-        logger.writeDebug(
-            "PROV:select_secondary_volume_id:free_vol_info = {}", free_vol_info
-        )
-        return free_vol_info.data[0].ldevId
+    def select_secondary_volume_id(self, pvol_id, spec=None):
+        if spec is None:
+            free_vol_info = self.vol_gateway.get_free_ldev_matching_pvol(pvol_id)
+            logger.writeDebug(
+                "PROV:select_secondary_volume_id:free_vol_info = {}", free_vol_info
+            )
+            return free_vol_info.data[0].ldevId
+        else:
+            if (
+                spec.begin_secondary_volume_id is not None
+                and spec.end_secondary_volume_id is not None
+            ):
+                # Select the first free volume in the range
+                free_vol_info = self.vol_gateway.get_free_ldev_matching_svol_range(
+                    spec.begin_secondary_volume_id, spec.end_secondary_volume_id
+                )
+                logger.writeDebug(
+                    "PROV:select_secondary_volume_id:for range:free_vol_info = {}",
+                    free_vol_info,
+                )
+                if free_vol_info.data:
+                    for free_vol in free_vol_info.data:
+                        if free_vol.resourceGroupId == 0:
+                            if (
+                                free_vol.ldevId > spec.begin_secondary_volume_id
+                                and free_vol.ldevId < spec.end_secondary_volume_id
+                            ):
+                                return free_vol.ldevId
+                            else:
+                                logger.writeDebug(
+                                    "PROV:select_secondary_volume_id:free_vol = {}",
+                                    free_vol,
+                                )
+
+                err_msg = VSPTrueCopyValidateMsg.NO_FREE_LDEV_IN_RANGE.value.format(
+                    spec.begin_secondary_volume_id, spec.end_secondary_volume_id
+                )
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
+            else:
+                # If no range is specified, get the first free volume
+                free_vol_info = self.vol_gateway.get_free_ldev_matching_pvol(pvol_id)
+                logger.writeDebug(
+                    "PROV:select_secondary_volume_id:free_vol_info = {}", free_vol_info
+                )
+                if free_vol_info.data:
+                    return free_vol_info.data[0].ldevId
+                else:
+                    err_msg = VSPTrueCopyValidateMsg.NO_FREE_LDEV_FOUND.value.format(
+                        pvol_id
+                    )
+                    logger.writeError(err_msg)
+                    raise ValueError(err_msg)
 
     @log_entry_exit
     def get_secondary_volume_id(self, vol_info, spec, is_iscsi=False):
@@ -868,7 +902,7 @@ class RemoteReplicationHelperForSVol:
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
-        svol_id = self.select_secondary_volume_id(vol_info.ldevId)
+        svol_id = self.select_secondary_volume_id(vol_info.ldevId, spec)
         secondary_pool_id = spec.secondary_pool_id
         sec_vol_spec = CreateVolumeSpec()
         sec_vol_spec.pool_id = secondary_pool_id
@@ -1065,7 +1099,7 @@ class RemoteReplicationHelperForSVol:
         #     logger.writeError(err_msg)
         #     raise ValueError(err_msg)
 
-        svol_id = self.select_secondary_volume_id(vol_info.ldevId)
+        svol_id = self.select_secondary_volume_id(vol_info.ldevId, spec)
         secondary_pool_id = spec.secondary_pool_id
         sec_vol_spec = CreateVolumeSpec()
         sec_vol_spec.pool_id = secondary_pool_id

@@ -19,7 +19,7 @@ version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -131,7 +131,7 @@ class GatewayPasswordManager:
                 ).gateway_password(self.spec)
             else:
                 data = "Absent operation is not supported"
-            if "Sucessfully updated apiadmin password" in data:
+            if "Successfully updated apiadmin password" in data:
                 self.connection_info.changed = True
 
         except Exception as e:

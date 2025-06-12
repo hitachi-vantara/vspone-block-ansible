@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all NVM Subsystems
+    # Task Name : Get all NVM Subsystems
     ####################################################################
     - name: Get all NVM Subsystems
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get NVM Subsystem by name
+    # Task Name : Get NVM Subsystem by name
     ####################################################################
     - name: Get NVM Subsystem by name
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:
@@ -44,7 +44,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Get NVM Subsystem by id
+    # Task Name : Get NVM Subsystem by id
     ####################################################################
     - name: Get NVM Subsystem by id
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems_facts:

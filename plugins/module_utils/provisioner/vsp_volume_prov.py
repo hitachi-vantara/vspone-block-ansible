@@ -28,6 +28,7 @@ class VSPVolumeProvisioner:
         self.gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_VOLUME
         )
+        self.connection_info = connection_info
         if serial:
             self.serial = serial
             self.gateway.set_serial(serial)
@@ -44,13 +45,7 @@ class VSPVolumeProvisioner:
 
     @log_entry_exit
     def get_volume_by_ldev(self, ldev):
-
         return self.gateway.get_volume_by_id(ldev)
-
-    @log_entry_exit
-    def get_volume_by_ldev_uaig(self, storage_id, ldev_id):
-
-        return self.gateway.get_volume_by_id_v2(storage_id, ldev_id)
 
     @log_entry_exit
     def unassign_vldev(self, ldev_id, vldev_id):
@@ -121,7 +116,11 @@ class VSPVolumeProvisioner:
     # sng20241205 prov create_volume
     @log_entry_exit
     def create_volume(self, spec):
-        if not spec.ldev_id:
+        if (
+            not spec.ldev_id
+            and not spec.start_ldev_id
+            and not spec.is_parallel_execution_enabled
+        ):
             spec.ldev_id = self.get_free_ldev_from_meta()
         vol_id = self.gateway.create_volume(spec)
 
@@ -133,7 +132,7 @@ class VSPVolumeProvisioner:
                 and vol_info.dataReductionMode.lower() != VolumePayloadConst.DISABLED
                 else False
             )
-            self.gateway.format_volume(vol_id, force_format)
+            self.gateway.format_volume(ldev_id=vol_id, force_format=force_format)
 
         self.gateway.change_volume_settings_tier_reloc(vol_id, spec)
         self.gateway.change_volume_settings_tier_policy(vol_id, spec)
@@ -156,19 +155,33 @@ class VSPVolumeProvisioner:
         return self.gateway.expand_volume(ldev_id, payload, enhanced_expansion)
 
     @log_entry_exit
-    def format_volume(self, ldev_id, payload):
+    def format_volume(
+        self, ldev_id, force_format=True, format_type="quick", check_job_status=True
+    ):
 
-        return self.gateway.format_volume(ldev_id, payload)
+        return self.gateway.format_volume(
+            ldev_id,
+            force_format=force_format,
+            format_type=format_type,
+            check_job_status=check_job_status,
+        )
 
     @log_entry_exit
-    def change_volume_settings(self, ldev_id, name=None, adr_setting=None):
+    def change_volume_settings(self, ldev_id, name=None, adr_setting=None, spec=None):
         try:
-            self.gateway.update_volume(ldev_id, name, adr_setting)
+            self.gateway.update_volume(ldev_id, name, adr_setting, spec)
+            self.connection_info.changed = True
+            if spec and hasattr(spec, "comment") is not None:
+                spec.comment = "Volume settings updated successfully."
         except Exception as e:
             if "The specified volume is not found" in str(e):
                 err_msg = VSPVolValidationMsg.VOL_NOT_FOUND.value + str(e)
                 logger.writeError(err_msg)
                 raise Exception(err_msg)
+            elif spec and hasattr(spec, "comment") is not None:
+                spec.comment = "Failed to update volume settings: " + str(e)
+            else:
+                raise e
         return True
 
     def get_qos_settings(self, ldev_id):
@@ -193,6 +206,23 @@ class VSPVolumeProvisioner:
     @log_entry_exit
     def change_qos_settings(self, ldev_id, qos_spec):
         return self.gateway.change_qos_settings(ldev_id, qos_spec)
+
+    @log_entry_exit
+    def change_mp_blade(self, ldev_id, mp_blade_id):
+        return self.gateway.change_mp_blade(ldev_id, mp_blade_id)
+
+    @log_entry_exit
+    def reclaim_zero_pages(self, ldev_id):
+        try:
+            return self.gateway.reclaim_zero_pages(ldev_id)
+        except Exception as e:
+            if "412" in str(e):
+                pass
+                logger.writeError(
+                    f"Reclaim zero pages is not supported for this volume {e}"
+                )
+            else:
+                raise e
 
     @log_entry_exit
     def get_volume_by_name(self, name):

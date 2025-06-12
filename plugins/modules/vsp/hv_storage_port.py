@@ -20,7 +20,7 @@ version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -28,6 +28,12 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 options:
+  state:
+    description: The level of the port tasks. Choices are C(present), C(login_test), C(register_external_iscsi_target), C(unregister_external_iscsi_target).
+    type: str
+    required: false
+    choices: ['present', 'login_test', 'register_external_iscsi_target', 'unregister_external_iscsi_target']
+    default: 'present'
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
     type: dict
@@ -47,11 +53,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided..
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -101,6 +107,30 @@ options:
         description: Specify whether to enable the lun security setting for the port.
         type: bool
         required: false
+      external_iscsi_targets:
+        description: Information about the iSCSI target of the external storage system.
+        type: list
+        required: false
+        elements: dict
+        suboptions:
+          ip_address:
+            description: IP address of the iSCSI target of the external storage system.
+            type: str
+            required: true
+          name:
+            description: ISCSI name of the iSCSI target of the external storage system.
+            type: str
+            required: true
+          tcp_port:
+            description: TCP port number of the iSCSI target of the external storage system.
+            type: int
+            required: false
+      host_ip_address:
+        description: >
+                Sending the ping command from a specified iSCSI port or NVMe/TCP port on the storage system to the host,
+                It will return ping results when this is provided by ignoring other parameter.
+        type: str
+        required: false
 """
 
 EXAMPLES = """
@@ -133,6 +163,25 @@ EXAMPLES = """
     spec:
       port: "CL1-A"
       enable_port_security: true
+
+- name: Perform a login test
+  hitachivantara.vspone_block.vsp.hv_storage_port:
+    connection_info: "{{ connection_info }}"
+    state: "login_test"
+    spec:
+      port: "CL1-C"
+      external_iscsi_target:
+        ip_address: "172.25.59.213"
+        name: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10045.1c019"
+
+- name: Sending the ping command to a specified host
+  hitachivantara.vspone_block.vsp.hv_storage_port:
+    connection_info: "{{ connection_info }}"
+    state: "login_test"
+    spec:
+      port: "CL1-C"
+      host_ip_address: "172.25.59.213"
+
 """
 
 RETURN = """
@@ -254,6 +303,7 @@ class VSPStoragePortManager:
             self.connection_info = self.params_manager.connection_info
             self.storage_serial_number = self.params_manager.storage_system_info.serial
             self.spec = self.params_manager.port_module_spec()
+            self.state = self.params_manager.get_state()
         except Exception as e:
             self.logger.writeException(e)
             self.module.fail_json(msg=str(e))
@@ -261,6 +311,7 @@ class VSPStoragePortManager:
     def apply(self):
         self.logger.writeInfo("=== Start of Storage Port operation. ===")
         port_data = None
+        resp = {}
         registration_message = validate_ansible_product_registration()
         try:
 
@@ -270,12 +321,17 @@ class VSPStoragePortManager:
             self.logger.writeError(str(e))
             self.logger.writeInfo("=== End of Storage Port operation. ===")
             self.module.fail_json(msg=str(e))
+        if self.spec.host_ip_address:
 
-        resp = {
-            "changed": self.connection_info.changed,
-            "port_info": port_data,
-            "msg": "Storage port updated successfully",
-        }
+            resp["ping_result"] = port_data
+        else:
+            resp = {
+                "changed": self.connection_info.changed,
+                "port_info": port_data,
+                "msg": "Storage port updated successfully",
+            }
+        if self.state and self.state == "login_test":
+            resp["msg"] = "Login test performed successfully"
         if registration_message:
             resp["user_consent_required"] = registration_message
         self.logger.writeInfo(f"{resp}")
@@ -286,6 +342,7 @@ class VSPStoragePortManager:
         reconciler = VSPStoragePortReconciler(
             self.connection_info,
             self.storage_serial_number,
+            self.state,
         )
         result = reconciler.vsp_storage_port_reconcile(self.spec)
         return result

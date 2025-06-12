@@ -18,7 +18,7 @@
 
   tasks:
     #########################################################################
-    # Task 1 :  Update VPS Volume ADR setting by id
+    # Task Name :  Update VPS Volume ADR setting by id
     #########################################################################
     - name: Update VPS Volume ADR setting by id
       hitachivantara.vspone_block.sds_block.hv_sds_block_vps:
@@ -34,7 +34,7 @@
         var: result
 
     #########################################################################
-    # Task 2 :  Update VPS Volume ADR setting by name
+    # Task Name :  Update VPS Volume ADR setting by name
     #########################################################################
     - name: Update VPS Volume ADR setting by name
       hitachivantara.vspone_block.sds_block.hv_sds_block_vps:

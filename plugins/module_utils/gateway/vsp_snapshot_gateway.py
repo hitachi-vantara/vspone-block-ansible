@@ -158,10 +158,19 @@ class VSPHtiSnapshotDirectGateway:
             pvol, mirror_unit_id, self.end_points.POST_SNAPSHOTS_SPLIT, data=None
         )
 
-    def clone_snapshot(self, pvol: int, mirror_unit_id: int, *args) -> Dict[str, Any]:
+    def clone_snapshot(
+        self, pvol: int, mirror_unit_id: int, copy_speed=None, *args
+    ) -> Dict[str, Any]:
         self.logger.writeDebug("clone_snapshot direct")
+        payload = None
+        if copy_speed is not None:
+            payload = {
+                VSPSnapShotReq.parameters: {
+                    VSPSnapShotReq.copySpeed: COPY_SPEED_CONST.get(copy_speed.upper())
+                }
+            }
         return self._snapshot_action(
-            pvol, mirror_unit_id, self.end_points.POST_SNAPSHOTS_CLONE, data=None
+            pvol, mirror_unit_id, self.end_points.POST_SNAPSHOTS_CLONE, data=payload
         )
 
     def assign_svol_to_snapshot(
@@ -208,6 +217,31 @@ class VSPHtiSnapshotDirectGateway:
     def split_snapshot_using_ssg(self, group_id: int, *args) -> Dict[str, Any]:
         end_point = self.end_points.SPLIT_SNAPSHOT_BY_GRP.format(group_id)
         return self.rest_api.post(end_point, data=None)
+
+    def clone_snapshot_using_ssg(
+        self, group_id: int, copy_speed: str, *args
+    ) -> Dict[str, Any]:
+        end_point = self.end_points.CLONE_SNAPSHOT_BY_GRP.format(group_id)
+        payload = None
+        if copy_speed is not None:
+            payload = {
+                VSPSnapShotReq.parameters: {
+                    VSPSnapShotReq.copySpeed: COPY_SPEED_CONST.get(copy_speed.upper())
+                }
+            }
+        return self.rest_api.post(end_point, payload)
+
+    def delete_garbage_data_snapshot_tree(
+        self, primary_volume_id: int, operation_type: str, *args
+    ) -> Dict[str, Any]:
+        end_point = self.end_points.DELETE_GARBAGE_DATA
+        payload = {
+            VSPSnapShotReq.parameters: {
+                VSPSnapShotReq.primaryLdevId: primary_volume_id,
+                VSPSnapShotReq.operationType: operation_type,
+            }
+        }
+        return self.rest_api.post(end_point, payload)
 
     def restore_snapshot_using_ssg(self, group_id: int, auto_split) -> Dict[str, Any]:
         payload = None
@@ -352,3 +386,14 @@ class VSPHtiSnapshotDirectGateway:
             payload[VSPSnapShotReq.clonesAutomation] = clones_automation
 
         return end_point, payload, False
+
+    def delete_ti_by_snapshot_tree(
+        self, primary_volume_id: int, *args
+    ) -> Dict[str, Any]:
+        end_point = self.end_points.DELETE_TI_BY_SS_TREE
+        payload = {
+            VSPSnapShotReq.parameters: {
+                VSPSnapShotReq.primaryLdevId: primary_volume_id,
+            }
+        }
+        return self.rest_api.post(end_point, payload)

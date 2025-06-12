@@ -23,7 +23,7 @@
 
   tasks:
     #####################################################################
-    # Task 1: Get Specific Journal Volumes Primary Storage
+    # Task Name : Get Specific Journal Volumes Primary Storage
     #####################################################################
     - name: Get specific journal volumes Primary
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
@@ -33,7 +33,7 @@
       register: primary_journal_volumes
 
     #####################################################################
-    # Task 2: Get Specific Journal Volumes secondary Storage
+    # Task Name : Get Specific Journal Volumes secondary Storage
     #####################################################################
     - name: Get specific journal volumes Secondary
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
@@ -43,7 +43,7 @@
       register: secondary_journal_volumes
 
     #####################################################################
-    # Task 3: Create HUR Pair and Debug Result
+    # Task Name : Create HUR Pair and Debug Result
     #####################################################################
     - name: Create HUR pair and debug result
       hitachivantara.vspone_block.vsp.hv_hur:
@@ -76,7 +76,7 @@
       when: result is defined
 
     #####################################################################
-    # Task 4: Create HUR-ISCSI Pair and Debug Result
+    # Task Name : Create HUR-ISCSI Pair and Debug Result
     #####################################################################
     - name: Create HUR-ISCSI pair and debug result
       hitachivantara.vspone_block.vsp.hv_hur:

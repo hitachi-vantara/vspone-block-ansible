@@ -22,7 +22,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all HUR pairs
+    # Task Name : Get all HUR pairs
     ####################################################################
     - name: Get all HUR pairs
       hitachivantara.vspone_block.vsp.hv_hur_facts:
@@ -35,7 +35,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get HUR pair using copy group
+    # Task Name : Get HUR pair using copy group
     ####################################################################
     - name: Get HUR pair using copy group
       hitachivantara.vspone_block.vsp.hv_hur_facts:
@@ -50,7 +50,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Get HUR pair using primary volume Id
+    # Task Name : Get HUR pair using primary volume Id
     ####################################################################
     - name: Get HUR pair using only primary volume Id
       hitachivantara.vspone_block.vsp.hv_hur_facts:
@@ -65,7 +65,7 @@
         var: result
 
     ####################################################################
-    # Task 4 : Get HUR pair using secondary volume Id
+    # Task Name : Get HUR pair using secondary volume Id
     ####################################################################
     - name: Get HUR pair using secondary volume Id
       hitachivantara.vspone_block.vsp.hv_hur_facts:
@@ -80,7 +80,7 @@
         var: result
 
     ####################################################################
-    # Task 5 : Get HUR pair using copy group and copy pair name
+    # Task Name : Get HUR pair using copy group and copy pair name
     ####################################################################
     - name: Get HUR pair using copy group and copy pair name
       hitachivantara.vspone_block.vsp.hv_hur_facts:

@@ -64,6 +64,7 @@ from .vsp_local_copy_group_gateway import (
     VSPLocalCopyGroupDirectGateway,
 )
 from .vsp_dynamic_pool_gateway import VspDynamicPoolGateway
+from .vsp_uvm_gateway import VSPUvmGateway
 
 GATEWAY_MAP = {
     ConnectionTypes.DIRECT: {
@@ -104,6 +105,7 @@ GATEWAY_MAP = {
         GatewayClassTypes.VSP_REMOTE_CONNECTION: VSPRemoteConnectionDirectGateway,
         GatewayClassTypes.VSP_ISCSI_REMOTE_CONNECTION: VSPIscsiRemoteConnectionDirectGateway,
         GatewayClassTypes.VSP_DYNAMIC_POOL: VspDynamicPoolGateway,
+        GatewayClassTypes.VSP_UVM: VSPUvmGateway,
     },
 }
 

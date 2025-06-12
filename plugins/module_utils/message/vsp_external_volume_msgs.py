@@ -18,3 +18,4 @@ class VSPSExternalVolumeValidateMsg(Enum):
     LDEV_REQUIRED_FOR_DELETE = (
         "For delete operation, ldev_id parameter is mandatory, which is not provided."
     )
+    EXTERNAL_PARITY_GROUP_REQUIRED_FOR_DISCONNECT = "For disconnect operation, external_parity_group parameter is mandatory, which is not provided."

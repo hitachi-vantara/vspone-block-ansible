@@ -13,7 +13,7 @@ DOCUMENTATION = """
 module: hv_shadow_image_pair
 short_description: Manages shadow image pairs on Hitachi VSP storage systems.
 description:
-  - This module allows for the creation, deletion, splitting, syncing and restoring of shadow image pairs on Hitachi VSP storage systems.
+  - This module allows for the creation, deletion, splitting, syncing, restoring and migrating of shadow image pairs on Hitachi VSP storage systems.
   - It supports various shadow image pairs operations based on the specified task level.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/shadow_image_pair.yml)
@@ -21,7 +21,7 @@ version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -33,10 +33,10 @@ notes:
     They were also deprecated due to internal API simplification and are no longer supported.
 options:
   state:
-    description: The level of the shadow image pairs task. Choices are C(present), C(absent), C(split), C(restore), C(sync).
+    description: The level of the shadow image pairs task. Choices are C(present), C(absent), C(split), C(restore), C(sync), C(migrate).
     type: str
     required: false
-    choices: ['present', 'absent', 'split', 'restore', 'sync']
+    choices: ['present', 'absent', 'split', 'restore', 'sync', 'migrate']
     default: 'present'
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -57,11 +57,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -142,6 +142,14 @@ options:
         required: false
       should_delete_svol:
         description: Specify to delete SVOL from hostgroup, iSCSI Target, and NVM Subsystem.
+        type: bool
+        required: false
+      should_force_split:
+        description: Specify to force split.
+        type: bool
+        required: false
+      create_for_migration:
+        description: Specify to create shadow image pair for migration.
         type: bool
         required: false
 """
@@ -302,6 +310,8 @@ class VSPShadowImagePairManager:
             self.logger.writeInfo("=== End of Shadow Image operation. ===")
             self.module.fail_json(msg=str(e))
         operation = operation_constants(self.module.params["state"])
+        if operation == "split" and self.spec.should_split_force is not None:
+            operation = "migration cancelled"
         msg = (
             f"Shadow image pair {operation} successfully."
             if not isinstance(shadow_image_resposne, str)

@@ -20,7 +20,7 @@ version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -44,23 +44,19 @@ options:
     type: dict
     suboptions:
       address:
-        description:
-          - IP address or hostname of the Hitachi storage system.
+        description: IP address or hostname of the Hitachi storage system.
         type: str
         required: true
       username:
-        description:
-          - Username for authentication. This field is a required field if api_token is not provided.
+        description: Username for authentication. This field is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description:
-          - Password for authentication. This field is a required field if api_token is not provided.
+        description: Password for authentication. This field is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
-        description:
-          - This field is used to pass the value of the lock token of the secondary storage to operate on locked resources.
+        description: This field is used to pass the value of the lock token of the secondary storage to operate on locked resources.
         type: str
         required: false
   connection_info:
@@ -73,11 +69,11 @@ options:
           type: str
           required: true
         username:
-          description: Username for authentication. This is a required field.
+          description: Username for authentication for secondary storage. This is a required field if api_token is not provided.
           type: str
           required: false
         password:
-          description: Password for authentication. This is a required field.
+          description: Password for authentication for secondary storage. This is a required field if api_token is not provided.
           type: str
           required: false
         api_token:

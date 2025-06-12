@@ -16,7 +16,7 @@ class VSPUserValidateMsg(Enum):
     INVALID_PASS_LEN = "Invalid password provided. Specify a password consisting of {} to {} characters."
     INVALID_USER_GROUPS = "Exceeded maximum number of user groups. Maximum number of user groups that can be specified is 8."
     USER_NAME_REQD = "User name is required for user creation."
-    AITH_REQD = "Authentication type is required for user creation."
+    AUTH_REQD = "Authentication type is required for user creation."
     PASS_REQD = "Password is required for local authentication."
     GROUP_NAME_MUST_BE_LIST = "Group names must be provided as a list."
     PASSWORD_SAME = "New password must be different from the old password."

@@ -14,6 +14,11 @@ class VSPIscsiTargetMessage(Enum):
     LDEVS_PRESENT = "The iSCSI target has LDEVs presented. Make sure to unpresent all LDEV prior to deleting the iSCSI target."
     RESOURCE_PRESENT = "The resource is already present."
     CATCH_MSG_ISCSI_TARGET = "The specified target alias cannot be registered because it is already used on the same port"
+    RELEASE_HOST_RESERVE = "Release host reservation status is done"
+    RELEASE_HOST_RESERVE_LU = (
+        "Release host reservation status is done for the logical unit {}"
+    )
+    ADD_LUN_FAILED = "Failed to add LUN {} error: {}"
 
 
 class VSPIscsiTargetValidationMsg(Enum):

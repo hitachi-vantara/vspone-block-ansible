@@ -9,7 +9,7 @@
 # 4. Get LDEV information
 # 5. Create Hostgroup and present LDEV to it
 # 6. Unlock Resource Groups
-# Opertion # 4 is not affected by the lock, so for this operation can be done
+# Operation # 4 is not affected by the lock, so for this operation can be done
 # with or without the lock token. Here we did it without the lock token.
 ###########################################################################
 - name: Resource Group Lock Management

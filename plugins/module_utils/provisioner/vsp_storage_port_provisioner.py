@@ -8,6 +8,7 @@ try:
         PortsInfo,
     )
     from ..message.vsp_storage_port_msgs import StoragePortFailedMsg
+    from .vsp_uvm_provisioner import VSPUvmProvisioner
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
@@ -16,6 +17,7 @@ except ImportError:
     from common.hv_log import Log
     from model.vsp_storage_port_models import PortInfo, PortsInfo
     from message.vsp_storage_port_msgs import StoragePortFailedMsg
+    from .vsp_uvm_provisioner import VSPUvmProvisioner
 
 logger = Log()
 
@@ -96,6 +98,10 @@ class VSPStoragePortProvisioner:
         return change_needed
 
     @log_entry_exit
+    def sending_ping_command_to_host(self, port: str, host_ip: str):
+        return self.gateway.sending_ping_command_to_host(port, host_ip)
+
+    @log_entry_exit
     def change_port_settings(self, spec) -> PortInfo:
         port_details = self.get_single_storage_port(spec.port)
         if not self.is_change_needed(port_details, spec):
@@ -108,3 +114,23 @@ class VSPStoragePortProvisioner:
             err_msg = StoragePortFailedMsg.CHANGE_SETTING_FAILED.value + str(e)
             logger.writeError(err_msg)
             raise ValueError(err_msg)
+
+    @log_entry_exit
+    def login_test(self, spec):
+        uvm_provisioner = VSPUvmProvisioner(self.connection_info)
+        return uvm_provisioner.login_test(spec)
+
+    @log_entry_exit
+    def register_external_iscsi_target(self, spec):
+        uvm_provisioner = VSPUvmProvisioner(self.connection_info)
+        return uvm_provisioner.register_external_iscsi_target(spec)
+
+    @log_entry_exit
+    def unregister_external_iscsi_target(self, spec):
+        uvm_provisioner = VSPUvmProvisioner(self.connection_info)
+        return uvm_provisioner.unregister_external_iscsi_target(spec)
+
+    @log_entry_exit
+    def disconnect_from_a_volume_on_external_storag(self, spec):
+        uvm_provisioner = VSPUvmProvisioner(self.connection_info)
+        return uvm_provisioner.disconnect_from_a_volume_on_external_storage(spec)

@@ -7,6 +7,7 @@ try:
         PortInfo,
         ShortPortInfo,
         ShortPortInfoList,
+        PingInfo,
     )
     from ..common.vsp_constants import VSPPortSetting
 except ImportError:
@@ -18,6 +19,7 @@ except ImportError:
         PortInfo,
         ShortPortInfo,
         ShortPortInfoList,
+        PingInfo,
     )
     from common.vsp_constants import VSPPortSetting
 
@@ -52,6 +54,18 @@ class VSPStoragePortDirectGateway:
         endPoint = Endpoints.GET_ONE_PORT_WITH_MODE.format(port_id)
         portInfo = self.connectionManager.get(endPoint)
         return PortInfo(**portInfo)
+
+    @log_entry_exit
+    def sending_ping_command_to_host(self, port: str, host_ip: str):
+        endPoint = Endpoints.SEND_PING_COMMAND.format(port)
+
+        data = {
+            "parameters": {
+                VSPPortSetting.HOST_IP_ADDRESS: host_ip,
+            }
+        }
+        ping_response = self.connectionManager.post_without_job(endPoint, data)
+        return PingInfo(**ping_response)
 
     @log_entry_exit
     def change_port_settings(self, spec) -> None:

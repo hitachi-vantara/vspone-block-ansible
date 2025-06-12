@@ -12,7 +12,7 @@ DOCUMENTATION = """
 module: hv_shadow_image_group
 short_description: Manages Remote Copy Group on Hitachi VSP storage systems.
 description: >
-  - This module allows for the splitting, re-syncing, restore and deletion of Shadow Image Group on Hitachi VSP storage systems.
+  - This module allows for the splitting, re-syncing, restore, deletion and migration of Shadow Image Group on Hitachi VSP storage systems.
   - It supports various Shadow image pairs operations based on the specified task level.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/shadow_image_group.yml)
@@ -20,7 +20,7 @@ version_added: '3.2.0'
 author:
   - Hitachi Vantara, LTD. (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -29,10 +29,10 @@ extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 options:
   state:
-    description: The level of the Shadow Image Group pairs task. Choices are C(present), C(absent), C(split), C(sync), C(restore).
+    description: The level of the Shadow Image Group pairs task. Choices are C(present), C(absent), C(split), C(sync), C(restore), C(migrate).
     type: str
     required: false
-    choices: ['present', 'absent', 'split', 'resync', 'sync', 'restore']
+    choices: ['present', 'absent', 'split', 'resync', 'sync', 'restore', 'migrate']
     default: 'present'
   connection_info:
     description: Information required to establish a connection to the storage system.
@@ -44,11 +44,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication.  This is a required field.
+        description: Username for authentication.  This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication.  This is a required field.
+        description: Password for authentication.  This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -86,6 +86,10 @@ options:
         required: false
       force_delete:
         description: Specify whether force delete.
+        type: bool
+        required: false
+      should_force_split:
+        description: Specify whether to force split.
         type: bool
         required: false
 """
@@ -146,6 +150,27 @@ EXAMPLES = """
       primary_volume_device_group_name: remote_copy_group_local_device_group_name_1
       secondary_volume_device_group_name: remote_copy_group_remote_device_group_name_1
       force_delete: true
+
+- name: Migrate local copy group
+  hitachivantara.vspone_block.vsp.hv_shadow_image_group:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    state: migrate
+    spec:
+      copy_group_name: remote_copy_group_copy_group_name_1
+
+- name: Cancel migration of local copy group
+  hitachivantara.vspone_block.vsp.hv_shadow_image_group:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    state: split
+    spec:
+      copy_group_name: remote_copy_group_copy_group_name_1
+      should_force_split: true
 """
 
 RETURN = """
@@ -357,10 +382,14 @@ class VSPLocalCopyGroupManager:
             return "Shadow Image Group deleted successfully."
         elif self.state == "resync" or self.state == "sync":
             return "Shadow Image Group resynced successfully."
-        elif self.state == "split":
+        elif self.state == "split" and self.spec.should_force_split is None:
             return "Shadow Image Group split successfully."
+        elif self.state == "split" and self.spec.should_force_split is not None:
+            return "Shadow Image Group migration cancelled successfully."
         elif self.state == "restore":
             return "Shadow Image Group restored successfully."
+        elif self.state == "migrate":
+            return "Shadow Image Group migrated successfully."
         else:
             return "Unknown state provided."
 

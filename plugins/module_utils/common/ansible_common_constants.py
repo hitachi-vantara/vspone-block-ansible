@@ -13,6 +13,7 @@ ANSIBLE_LOG_PATH = os.environ.get(
 )
 LOGGER_LEVEL = os.getenv("HV_ANSIBLE_LOG_LEVEL", "INFO").upper()
 LOGFILE_NAME = os.getenv("HV_ANSIBLE_LOG_FILE", "hv_vspone_block_modules.log")
+AUDIT_LOGFILE_NAME = os.getenv("HV_ANSIBLE_AUDIT_LOG_FILE", "hv_vspone_block_audit.log")
 ROOT_LEVEL = os.getenv("HV_ANSIBLE_ROOT_LEVEL", "INFO").upper()
 ENABLE_TELEMETRY = os.getenv("HV_ENABLE_TELEMETRY", "False").lower()
 TELEMETRY_FILE_PATH = os.getenv(
@@ -27,6 +28,12 @@ REGISTRATION_FILE_PATH = os.getenv(
 USER_CONSENT_FILE_PATH = os.getenv(
     "HV_REGISTRATION_FILE_PATH",
     os.path.expanduser(f"~/ansible/{NAMESPACE}/{PROJECT_NAME}/user_consent"),
+)
+
+ENABLE_AUDIT_LOG = os.getenv("HV_ENABLE_AUDIT_LOG", "true").lower() in (
+    "true",
+    "1",
+    "yes",
 )
 
 # File Name Constants

@@ -62,6 +62,7 @@ class VSPStorageSystemCommonPropertiesExtractor:
             "storagePools": list,
             "quorumDisks": list,
             "freeLogicalUnitList": VSPNormalizedFreeLun,
+            "totalEfficiency": dict,
         }
 
     def extract(self, response):

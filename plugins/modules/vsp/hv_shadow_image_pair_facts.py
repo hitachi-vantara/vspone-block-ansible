@@ -21,7 +21,7 @@ version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -51,11 +51,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -76,6 +76,18 @@ options:
       primary_volume_id:
         type: int
         description: Primary volume id.
+        required: false
+      copy_group_name:
+        type: str
+        description: Name of the copy group.
+        required: false
+      copy_pair_name:
+        type: str
+        description: Name of the copy pair.
+        required: false
+      refresh:
+        type: bool
+        description: Whether refresh pairs
         required: false
 """
 
@@ -98,6 +110,16 @@ EXAMPLES = """
       password: "password"
     spec:
       primary_volume_id: 274
+
+- name: Retrieve information about a specific shadow image pair using copy group name and copy pair name
+  hitachivantara.vspone_block.vsp.hv_shadow_image_pair_facts:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      copy_group_name: "copy_group_1"
+      copy_pair_name: "copy_pair_1"
 """
 
 RETURN = """
@@ -214,6 +236,16 @@ class VSPShadowImagePairManager:
         if not shadow_image_pair_data:
             if self.spec.pvol is not None:
                 data["comment"] = "Data not available with pvol " + str(self.spec.pvol)
+            elif (
+                self.spec.copy_group_name is not None
+                and self.spec.copy_pair_name is not None
+            ):
+                data["comment"] = (
+                    "Shadow image pair not available with copy group name "
+                    + str(self.spec.copy_group_name)
+                    + " and copy pair name "
+                    + str(self.spec.copy_pair_name)
+                )
             else:
                 data["comment"] = "Couldn't read shadow image pairs. "
         if registration_message:

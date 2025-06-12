@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all External Volume for specific ldev_id
+    # Task Name : Get all External Volume for specific ldev_id
     ####################################################################
     - name: Get all External Volume for specific ldev_id
       hitachivantara.vspone_block.vsp.hv_external_volume_facts:
@@ -35,7 +35,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get all External Volumes
+    # Task Name : Get all External Volumes
     ####################################################################
     - name: Get all External Volumes
       hitachivantara.vspone_block.vsp.hv_external_volume_facts:

@@ -38,6 +38,12 @@ class ShortPortInfoList(BaseDataClass):
 
 
 @dataclass
+class PingInfo(SingleBaseClass):
+    receivedPackets: Optional[int] = None
+    transmittedPackets: Optional[int] = None
+
+
+@dataclass
 class PortInfo(SingleBaseClass):
     portId: Optional[str] = None
     portType: Optional[str] = None
@@ -78,6 +84,13 @@ class PortsInfo(BaseDataClass):
 
 
 @dataclass
+class ExternalIscsiTarget:
+    ip_address: Optional[str] = None
+    name: Optional[str] = None
+    tcp_port: Optional[int] = None
+
+
+@dataclass
 class ChangePortSettingSpec:
     port: Optional[str] = None
     port_attribute: Optional[str] = None
@@ -86,11 +99,18 @@ class ChangePortSettingSpec:
     fabric_mode: Optional[bool] = None
     port_connection: Optional[str] = None
     enable_port_security: Optional[bool] = None
+    host_ip_address: Optional[str] = None
+    external_iscsi_targets: Optional[List[ExternalIscsiTarget]] = None
 
 
 @dataclass
 class PortFactSpec:
     ports: Optional[List] = None
+    query: Optional[List[str]] = None
+    external_iscsi_ip_address: Optional[str] = None
+    external_iscsi_name: Optional[str] = None
+    external_tcp_port: Optional[int] = None
+    external_wwn: Optional[str] = None
 
 
 @dataclass

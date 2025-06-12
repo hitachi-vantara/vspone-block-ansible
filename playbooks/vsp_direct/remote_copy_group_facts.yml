@@ -23,7 +23,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all remote copy groups
+    # Task Name : Get all remote copy groups
     ####################################################################
     - name: Get all remote copy groups
       hitachivantara.vspone_block.vsp.hv_remote_copy_group_facts:
@@ -36,7 +36,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get one remote copy group using copy group name
+    # Task Name : Get one remote copy group using copy group name
     ####################################################################
     - name: Get one remote copy group using copy group name
       hitachivantara.vspone_block.vsp.hv_remote_copy_group_facts:
@@ -51,7 +51,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Get one remote copy group details using copy group name
+    # Task Name : Get one remote copy group details using copy group name
     ####################################################################
     - name: Get one remote copy group details using copy group name
       hitachivantara.vspone_block.vsp.hv_remote_copy_group_facts:

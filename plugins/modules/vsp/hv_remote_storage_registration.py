@@ -19,7 +19,7 @@ version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -43,11 +43,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -64,11 +64,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication to the secondary storage system.
+        description: Username for authentication to the secondary storage system. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication to the secondary storage system.
+        description: Password for authentication to the secondary storage system. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:

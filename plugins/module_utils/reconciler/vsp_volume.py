@@ -108,6 +108,7 @@ class VSPVolumeReconciler:
                 return "NVM subsystem updated successfully."
 
             volume = None
+            new_vol = False
             if spec.ldev_id:
                 volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
                 logger.writeDebug("RC:sng20241205 volume={}", volume)
@@ -118,15 +119,15 @@ class VSPVolumeReconciler:
                     self.update_volume_name(spec.ldev_id, spec.name)
                 else:
                     self.update_volume_name(spec.ldev_id, None)
-            else:
-                # sng20241202 update_volume
-                self.update_volume(volume, spec)
 
-            vol = self.provisioner.get_volume_by_ldev(spec.ldev_id)
+                volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
+                new_vol = True
+
+            self.update_volume(volume, spec, new_vol)
 
             # Check if the ldev is a command device
-            if vol.attributes and "CMD" in vol.attributes:
-                self.provisioner.fill_cmd_device_info(vol)
+            if volume.attributes and "CMD" in volume.attributes:
+                self.provisioner.fill_cmd_device_info(volume)
 
             if spec.should_shred_volume_enable:
                 unused = self.provisioner.shredding_volume(
@@ -137,7 +138,54 @@ class VSPVolumeReconciler:
             if spec.qos_settings:
                 self.provisioner.change_qos_settings(spec.ldev_id, spec.qos_settings)
                 logger.writeInfo("RC:volume_reconcile:qos_settings finished")
-            return self.get_volume_detail_info(vol)
+                self.connection_info.changed = True
+
+            if spec.mp_blade_id is not None and spec.mp_blade_id != volume.mpBladeId:
+                self.provisioner.change_mp_blade(spec.ldev_id, spec.mp_blade_id)
+                self.connection_info.changed = True
+
+            if spec.should_reclaim_zero_pages:
+                self.provisioner.reclaim_zero_pages(spec.ldev_id)
+                logger.writeInfo("RC:volume_reconcile:reclaim_zero_pages finished")
+                self.connection_info.changed = True
+
+            # Keep this logic always at the end of the volume creation
+            if spec.should_format_volume:
+                if volume.status.upper() != VolumePayloadConst.BLOCK:
+                    logger.writeDebug(
+                        "RC:volume_reconcile:formatting volume as it is not in BLOCK state"
+                    )
+                    self.provisioner.change_volume_status(spec.ldev_id, True)
+
+                force_format = (
+                    True
+                    if volume.dataReductionMode
+                    and volume.dataReductionMode.lower() != VolumePayloadConst.DISABLED
+                    else False
+                )
+                try:
+                    self.provisioner.format_volume(
+                        spec.ldev_id,
+                        force_format=force_format,
+                        format_type=spec.format_type,
+                    )
+                except Exception as e:
+                    if "Timeout Error!" in str(e):
+                        spec.is_task_timeout = True
+                    else:
+                        self.provisioner.change_volume_status(spec.ldev_id, False)
+                        raise e
+
+                logger.writeInfo("RC:volume_reconcile:format volume finished")
+                self.connection_info.changed = True
+
+            if self.connection_info.changed:
+                volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
+
+            if new_vol:
+                if spec and hasattr(spec, "comment") is not None:
+                    spec.comment = "Volume created successfully."
+            return self.get_volume_detail_info(volume)
 
         elif state == StateValue.ABSENT:
             volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
@@ -170,8 +218,13 @@ class VSPVolumeReconciler:
             self.process_update_nvme(found, spec)
 
     @log_entry_exit
-    def update_volume(self, volume_data: VSPVolumeInfo, spec: CreateVolumeSpec):
+    def update_volume(
+        self, volume_data: VSPVolumeInfo, spec: CreateVolumeSpec, new_vol: bool
+    ):
 
+        if new_vol:
+            spec.name = None
+            spec.capacity_saving = None
         # sng20241205 VLDEVID_META_RSRC
         logger.writeDebug("RC: sng20241205 volume_data={}", volume_data)
         logger.writeDebug("RC: sng20241205 spec.vldev_id={}", spec.vldev_id)
@@ -216,16 +269,27 @@ class VSPVolumeReconciler:
                 self.connection_info.changed = True
             elif expand_val < 0:
                 raise ValueError(VSPVolValidationMsg.VALID_SIZE.value)
+        if (
+            spec.capacity_saving is not None
+            and spec.capacity_saving == volume_data.dataReductionMode
+        ):
+            spec.capacity_saving = None
+        if spec.name is not None and spec.name == volume_data.label:
+            spec.name = None
 
         # update the volume by comparing the existing details
         if (
-            spec.capacity_saving
-            and spec.capacity_saving != volume_data.dataReductionMode
-        ) or (spec.name and spec.name != volume_data.label):
+            (spec.capacity_saving is not None)
+            or (spec.name is not None)
+            or spec.is_alua_enabled is not None
+            or spec.is_relocation_enabled is not None
+            or spec.data_reduction_process_mode is not None
+            or spec.is_compression_acceleration_enabled is not None
+            or spec.is_full_allocation_enabled is not None
+        ):
             self.provisioner.change_volume_settings(
-                volume_data.ldevId, spec.name, spec.capacity_saving
+                volume_data.ldevId, spec.name, spec.capacity_saving, spec
             )
-            self.connection_info.changed = True
 
         # sng20241202 update change_volume_settings_tier
         self.provisioner.change_volume_settings_tier(spec, volume_data.ldevId)
@@ -622,12 +686,21 @@ class VSPVolumeReconciler:
     @log_entry_exit
     def create_volume(self, spec: CreateVolumeSpec):
         logger.writeDebug("RC:create_volume:spec={}", spec)
-        if spec.pool_id is not None and spec.parity_group:
+        if spec.pool_id is not None and (
+            spec.parity_group or spec.external_parity_group
+        ):
             raise ValueError(VSPVolValidationMsg.POOL_ID_PARITY_GROUP.value)
-        if spec.parity_group and spec.tiering_policy:
+        if spec.parity_group and spec.external_parity_group:
+            raise ValueError(VSPVolValidationMsg.BOTH_PARITY_GROUPS_SPECIFIED.value)
+        if (spec.parity_group or spec.external_parity_group) and spec.tiering_policy:
             raise ValueError(VSPVolValidationMsg.BOTH_PARITY_GRP_TIERING.value)
+
         self.validate_tiering_policy(spec)
-        if spec.pool_id is None and not spec.parity_group:
+        if (
+            spec.pool_id is None
+            and not spec.parity_group
+            and not spec.external_parity_group
+        ):
             raise ValueError(VSPVolValidationMsg.NOT_POOL_ID_OR_PARITY_ID.value)
         if not spec.size:
             raise ValueError(VSPVolValidationMsg.SIZE_REQUIRED.value)
@@ -1191,6 +1264,10 @@ class VolumeCommonPropertiesExtractor:
             "is_write_protected_by_key": bool,
             "is_compression_acceleration_enabled": bool,
             "compression_acceleration_status": str,
+            "mp_blade_id": int,
+            "data_reduction_process_mode": str,
+            "is_relocation_enabled": bool,
+            "is_full_allocation_enabled": bool,
         }
 
         self.parameter_mapping = {

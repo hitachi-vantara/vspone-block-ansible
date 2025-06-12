@@ -18,7 +18,7 @@
 
   tasks:
     ######################################################################################
-    # Task 1 : Create a Resource Group without any resources
+    # Task Name : Create a Resource Group without any resources
     ######################################################################################
     - name: Create a Resource Group without any resources
       hitachivantara.vspone_block.vsp.hv_resource_group:
@@ -32,7 +32,7 @@
         var: result
 
     ######################################################################################
-    # Task 2 : Create a Resource Group with virtual storage serial number of VSM
+    # Task Name : Create a Resource Group with virtual storage serial number of VSM
     ######################################################################################
     - name: Create a Resource Group with virtual storage serial number of VSM
       hitachivantara.vspone_block.vsp.hv_resource_group:
@@ -48,7 +48,7 @@
         var: result
 
     ######################################################################################
-    # Task 3 : Create a Resource Group with ldevs
+    # Task Name : Create a Resource Group with ldevs
     ######################################################################################
     - name: Create a Resource Group with ldevs
       hitachivantara.vspone_block.vsp.hv_resource_group:
@@ -63,7 +63,7 @@
         var: result
 
     ######################################################################################
-    # Task 4 : Create a Resource Group with with the following resources
+    # Task Name : Create a Resource Group with with the following resources
     # Resources : ldevs, parity groups, ports, host groups, nvm subsystem ids
     ######################################################################################
     - name: Create a Resource Group with above resources
@@ -87,7 +87,7 @@
         var: result
 
     ######################################################################################
-    # Task 5 : Create a Resource Group with storage pool IDs, and parity groups
+    # Task Name : Create a Resource Group with storage pool IDs, and parity groups
     ######################################################################################
     - name: Create a Resource Group with storage pool IDs, and parity groups
       hitachivantara.vspone_block.vsp.hv_resource_group:
@@ -103,7 +103,7 @@
         var: result
 
     ######################################################################################
-    # Task 6 : Add the following resources to an existing Resource Group by ID
+    # Task Name : Add the following resources to an existing Resource Group by ID
     # Resources : ldevs, ports, host groups, nvm subsystem ids
     ######################################################################################
     - name: Add the above resources to an existing Resource Group by ID
@@ -127,7 +127,7 @@
         var: result
 
     ######################################################################################
-    # Task 7 : Add the following resources to an existing Resource Group by Name
+    # Task Name : Add the following resources to an existing Resource Group by Name
     # Resources : ldevs, ports, host groups, iscsi targets
     ######################################################################################
     - name: Add the above resources to an existing Resource Group by Name
@@ -153,7 +153,7 @@
         var: result
 
     ######################################################################################
-    # Task 8 : Remove the following resources from an existing Resource Group by ID
+    # Task Name : Remove the following resources from an existing Resource Group by ID
     # Resources : ldevs, ports, host groups, nvm subsystem ids
     ######################################################################################
     - name: Remove resources from an existing Resource Group by ID
@@ -175,7 +175,7 @@
         var: result
 
     ######################################################################################
-    # Task 9 : Remove the following resources from an existing Resource Group by Name
+    # Task Name : Remove the following resources from an existing Resource Group by Name
     # Resources : ldevs, ports, host groups, iscsi targets
     ######################################################################################
     - name: Remove resources from an existing Resource Group by Name
@@ -201,7 +201,7 @@
         var: result
 
     ######################################################################################
-    # Task 10 : Delete a Resource Group by ID
+    # Task Name : Delete a Resource Group by ID
     ######################################################################################
     - name: Delete a Resource Group by ID
       hitachivantara.vspone_block.vsp.hv_resource_group:
@@ -216,7 +216,7 @@
         var: result
 
     ######################################################################################
-    # Task 11 : Delete a Resource Group by Name
+    # Task Name : Delete a Resource Group by Name
     ######################################################################################
     - name: Delete a Resource Group by ID
       hitachivantara.vspone_block.vsp.hv_resource_group:
@@ -231,7 +231,7 @@
         var: result
 
     ######################################################################################
-    # Task 12 : Delete a Resource Group by ID forcefully
+    # Task Name : Delete a Resource Group by ID forcefully
     ######################################################################################
     - name: Delete a Resource Group by ID forcefully
       hitachivantara.vspone_block.vsp.hv_resource_group:

@@ -19,6 +19,7 @@ try:
         VSPFreeLunPfrest,
         VSPSyslogServerPfrest,
         VSPStorageCapacitiesPfrest,
+        TotalEfficiency,
     )
     from .gateway_manager import VSPConnectionManager
     from ..common.ansible_common import log_entry_exit
@@ -43,6 +44,7 @@ except ImportError:
         VSPFreeLunPfrest,
         VSPSyslogServerPfrest,
         VSPStorageCapacitiesPfrest,
+        TotalEfficiency,
     )
     from common.ansible_common import log_entry_exit
     from .gateway_manager import VSPConnectionManager
@@ -82,6 +84,13 @@ class VSPStorageSystemDirectGateway:
         endPoint = Endpoints.GET_STORAGE_INFO
         storageSystemInfo = self.connectionManager.get(endPoint)
         return VSPStorageSystemInfoPfrest(**storageSystemInfo)
+
+    @log_entry_exit
+    def get_total_efficiency_of_storage_system(self):
+        # logger = Log()
+        endPoint = Endpoints.GET_TOTAL_EFFICIENCY
+        totalEfficiency = self.connectionManager.get(endPoint)
+        return TotalEfficiency(**totalEfficiency)
 
     @log_entry_exit
     def get_journal_pools(self, journal_info_query):

@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass  # , asdict
 from typing import Optional, List
 
 try:
@@ -40,6 +40,42 @@ class VSPStorageSystemsInfoPfrestList(BaseDataClass):
 
 
 @dataclass
+class DedupCompression(SingleBaseClass):
+    totalRatio: str = None
+    compressionRatio: str = None
+    dedupeRatio: str = None
+    reclaimRatio: str = None
+
+
+@dataclass
+class AcceleratedCompression(SingleBaseClass):
+    totalRatio: str = None
+    compressionRatio: str = None
+    reclaimRatio: str = None
+
+
+@dataclass
+class TotalEfficiency(SingleBaseClass):
+    isCalculated: bool = None
+    totalRatio: str = None
+    compressionRatio: str = None
+    snapshotRatio: str = None
+    provisioningRate: str = None
+    calculationStartTime: str = None
+    calculationEndTime: str = None
+    dedupeAndCompression: dict = None
+    acceleratedCompression: dict = None
+
+    def __post_init__(self):
+        if self.dedupeAndCompression:
+            self.dedupeAndCompression = DedupCompression(**self.dedupeAndCompression)
+        if self.acceleratedCompression:
+            self.acceleratedCompression = AcceleratedCompression(
+                **self.acceleratedCompression
+            )
+
+
+@dataclass
 class VSPStorageSystemInfoPfrest:
     storageDeviceId: str = None
     model: str = None
@@ -53,6 +89,7 @@ class VSPStorageSystemInfoPfrest:
     ctl2MicroVersion: str = None
     communicationModes: List[dict] = None
     isSecure: bool = None
+    totalEfficiency: dict = None
 
     def __init__(self, **kwargs):
         self.storageDeviceId = kwargs.get("storageDeviceId")
@@ -72,9 +109,6 @@ class VSPStorageSystemInfoPfrest:
             self.ctl2MicroVersion = kwargs.get("ctl2MicroVersion")
         self.communicationModes = kwargs.get("communicationModes")
         self.isSecure = kwargs.get("isSecure")
-
-    def to_dict(self):
-        return asdict(self)
 
 
 @dataclass
@@ -439,6 +473,7 @@ class VSPStorageSystemInfo:
     storage_pools: List[VSPNormalizedPool] = None
     quorum_disks: List[VSPNormalizedQuorumDisk] = None
     free_logical_unit_list: VSPNormalizedFreeLun = None
+    total_efficiency: TotalEfficiency = None
 
 
 @dataclass

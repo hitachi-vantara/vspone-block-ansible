@@ -18,7 +18,7 @@
 
   tasks:
     ######################################################################################
-    # Task 1 : Get all remote connection information
+    # Task Name : Get all remote connection information
     ######################################################################################
     - name: Get all remote connection information
       hitachivantara.vspone_block.vsp.hv_remote_connection_facts:
@@ -31,7 +31,7 @@
         var: result
 
     ######################################################################################
-    # Task 2 : Get remote connection information using path group id
+    # Task Name : Get remote connection information using path group id
     ######################################################################################
     - name: Get remote connection information using path group id
       hitachivantara.vspone_block.vsp.hv_remote_connection_facts:

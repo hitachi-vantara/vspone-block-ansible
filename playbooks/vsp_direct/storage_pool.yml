@@ -17,7 +17,7 @@
       password: "{{ vault_storage_secret }}"
   tasks:
     ######################################################################################
-    # Task 1 : Create a storage pool using required details
+    # Task Name : Create a storage pool using required details
     ######################################################################################
     - name: Create a storage pool using required details
       hitachivantara.vspone_block.vsp.hv_storagepool:
@@ -37,7 +37,7 @@
         var: result
 
     ######################################################################################
-    # Task 2 : Create a storage pool using more details
+    # Task Name : Create a storage pool using more details
     ######################################################################################
     - name: Create a storage pool using other details
       hitachivantara.vspone_block.vsp.hv_storagepool:
@@ -60,7 +60,7 @@
         var: result
 
     ######################################################################################
-    # Task 3 : Create a Thin Image pool
+    # Task Name : Create a Thin Image pool
     ######################################################################################
     - name: Create a storage pool using other details
       hitachivantara.vspone_block.vsp.hv_storagepool:
@@ -81,7 +81,7 @@
         var: result
 
     ######################################################################################
-    # Task 4 : Expand pool by pool Name
+    # Task Name : Expand pool by pool Name
     ######################################################################################
     - name: Expand pool by pool Name
       hitachivantara.vspone_block.vsp.hv_storagepool:
@@ -99,7 +99,7 @@
         var: result
 
     ######################################################################################
-    # Task 5 : Expand pool by pool ID
+    # Task Name : Expand pool by pool ID
     ######################################################################################
     - name: Expand pool by pool ID
       hitachivantara.vspone_block.vsp.hv_storagepool:
@@ -117,7 +117,7 @@
         var: result
 
     ######################################################################################
-    # Task 6 : Delete pool by pool ID
+    # Task Name : Delete pool by pool ID
     ######################################################################################
     - name: Delete pool by pool ID
       hitachivantara.vspone_block.vsp.hv_storagepool:
@@ -132,7 +132,7 @@
         var: result
 
     ######################################################################################
-    # Task 7 : Delete pool by pool Name
+    # Task Name : Delete pool by pool Name
     ######################################################################################
     - name: Delete pool by pool Name
       hitachivantara.vspone_block.vsp.hv_storagepool:

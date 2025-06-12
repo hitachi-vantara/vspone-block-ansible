@@ -73,11 +73,9 @@ class VSPUserDirectGateway:
         end_point = CREATE_USER_DIRECT
         payload = {}
         payload["userId"] = spec.name
-        # payload["authentication"] = spec.authentication
-        # if spec.authentication == "local":
-        #     payload["userPassword"] = spec.password
-        payload["authentication"] = "local"
-        payload["userPassword"] = spec.password
+        payload["authentication"] = spec.authentication
+        if spec.authentication == "local":
+            payload["userPassword"] = spec.password
         payload["userGroupNames"] = spec.group_names
 
         user_group = self.connection_manager.post(end_point, payload)

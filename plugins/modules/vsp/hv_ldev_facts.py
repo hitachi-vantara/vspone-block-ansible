@@ -21,7 +21,7 @@ version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -48,11 +48,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -99,7 +99,7 @@ options:
         description: >
           Getting all the additional properties of the LDEV facts output is time-consuming.
           To optimize the performance, you can specify a list of additional properties to be retrieved.
-          This field allows you to specify a list of strings, where each string indicates which additional properties are retrived.
+          This field allows you to specify a list of strings, where each string indicates which additional properties are retrieved.
           If is_detailed is set to true, this field will be ignored and all additional properties will be retrieved.
           The supported additional properties are: "cmd_device_settings", "encryption_settings", "nvm_subsystem_info", "qos_settings", and "snapshots_info".
         type: list

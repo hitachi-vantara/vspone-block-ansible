@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Create chap user
+    # Task Name : Create chap user
     ####################################################################
     - name: Create chap user
       hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user:
@@ -36,7 +36,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Update chap user name
+    # Task Name : Update chap user name
     ####################################################################
     - name: Update chap user name
       hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user:
@@ -52,7 +52,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Update chap user name and secret
+    # Task Name : Update chap user name and secret
     ####################################################################
     - name: Update chap user secret
       hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user:
@@ -69,7 +69,7 @@
         var: result
 
     ####################################################################
-    # Task 4 : Delete chap user
+    # Task Name : Delete chap user
     ####################################################################
     - name: Delete chap user
       hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user:

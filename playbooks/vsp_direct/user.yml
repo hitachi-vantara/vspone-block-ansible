@@ -25,6 +25,7 @@
         connection_info: "{{ connection_info }}"
         spec:
           name: "devUser"
+          authentication: "local"
           password: "devPassword"
           group_names: ["Audit Log Administrator (View Only) User Group", "Storage Administrator (View & Modify) User Group"]
       register: result

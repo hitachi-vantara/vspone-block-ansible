@@ -24,3 +24,24 @@ class ModuleDocFragment:
     notes:
       - This module is deprecated and will be removed in a future release.
     """
+    CONNECTION_INFO = r"""
+    options:
+      connection_info:
+        description: Information required to establish a connection to the storage system.
+        type: dict
+        required: true
+        suboptions:
+          address:
+            description: IP address or hostname of the storage system.
+            type: str
+            required: true
+          username:
+            description: Username for authentication. This is a required field.
+            type: str
+            required: true
+          password:
+            description: Password for authentication. This is a required field.
+            type: str
+            required: true
+
+    """

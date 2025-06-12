@@ -20,7 +20,7 @@ version_added: '3.1.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -219,7 +219,7 @@ class UnsubscriberManager:
 
     def unsubscribe_module(self):
 
-        reconciler = self.VSPUnsubscriberReconciler(
+        reconciler = self.argument_spec.VSPUnsubscriberReconciler(
             self.connection_info, self.storage_serial_number, self.state
         )
         if self.connection_info.connection_type == ConnectionTypes.GATEWAY:

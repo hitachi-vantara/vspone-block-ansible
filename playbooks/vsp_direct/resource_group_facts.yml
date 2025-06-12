@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all Resource Groups
+    # Task Name : Get all Resource Groups
     ####################################################################
     - name: Get all Resource Groups
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get Resource Group by name
+    # Task Name : Get Resource Group by name
     ####################################################################
     - name: Get Resource Group by name
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
@@ -44,7 +44,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Get Resource Group by id
+    # Task Name : Get Resource Group by id
     ####################################################################
     - name: Get Resource Group by id
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
@@ -58,7 +58,7 @@
         var: result
 
     ##########################################################################
-    # Task 4 : Get all information about the Resource Groups which are locked
+    # Task Name : Get all information about the Resource Groups which are locked
     ##########################################################################
     - name: Get all information about the Resource Groups which are locked
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
@@ -72,7 +72,7 @@
         var: result
 
     #############################################################################
-    # Task 5 : Get all information about the Resource Groups which are unlocked
+    # Task Name : Get all information about the Resource Groups which are unlocked
     #############################################################################
     - name: Get all information about the Resource Groups which are unlocked
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
@@ -86,7 +86,7 @@
         var: result
 
     ######################################################################################
-    # Task 6 : Get information about the Resource Groups which are specified in the query
+    # Task Name : Get information about the Resource Groups which are specified in the query
     ######################################################################################
     - name: Get information about the Resource Groups which are specified in the query
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:
@@ -105,7 +105,7 @@
         var: result
 
     ###################################################################################################
-    # Task 7 : Get information about the Resource Groups which are unlocked and specified in the query
+    # Task Name : Get information about the Resource Groups which are unlocked and specified in the query
     ###################################################################################################
     - name: Get information about the Resource Groups which are unlocked and specified in the query
       hitachivantara.vspone_block.vsp.hv_resource_group_facts:

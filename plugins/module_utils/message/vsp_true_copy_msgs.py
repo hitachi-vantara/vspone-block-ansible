@@ -123,3 +123,4 @@ class VSPTrueCopyValidateMsg(Enum):
     PVOL_VLDEV_MISSING = "A GAD pair cannot be created because the primary volume {} does not have a virtual LDEV ID"
     EXPAND_PVOL_FAILED = "Failed to perform operation for primary volume {}."
     EXPAND_SVOL_FAILED = "Failed to perform operation for secondary volume {}."
+    NO_FREE_LDEV_IN_RANGE = "No free LDEV found in the range {} - {}."

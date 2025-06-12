@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all iscsi targets
+    # Task Name : Get all iscsi targets
     ####################################################################
     - name: Get all iscsi targets
       hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get iscsi targets by ports
+    # Task Name : Get iscsi targets by ports
     ####################################################################
     - name: Get iscsi targets by ports
       hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
@@ -44,7 +44,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Get iscsi targets by ports and name
+    # Task Name : Get iscsi targets by ports and name
     ####################################################################
     - name: Get iscsi targets by ports and name
       hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
@@ -52,6 +52,20 @@
         spec:
           name: "iscsi-target-server-1"
           ports: ["CL1-A", "CL1-B"]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get iscsi targets by iscsi Id
+    ####################################################################
+    - name: Get iscsi targets by iscsi Id
+      hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          iscsi_id: 14
       register: result
 
     - name: Debug the result variable

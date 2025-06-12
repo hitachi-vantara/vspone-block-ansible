@@ -2,7 +2,7 @@
 # User will use Ansible Vault to encrypt this file.
 # Ansible will decrypt this file when it executes the playbook.
 
-# storage_serial and secondary_storage_serial are optional fields, they are kept for backward compatiblity.
+# storage_serial and secondary_storage_serial are optional fields, they are kept for backward compatibility.
 # You can remove these fields if you don't need them.
 
 # Hitachi Vantara VSP One Block Storage Modules use REST API to communicate with the storage.

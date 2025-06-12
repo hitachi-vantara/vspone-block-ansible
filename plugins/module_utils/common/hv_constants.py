@@ -48,6 +48,14 @@ class StateValue:
     SWAP_SPLIT = "swap_split"
     EXPAND_JOURNAL_VOLUME = "expand_journal_volume"
     SHRINK_JOURNAL_VOLUME = "shrink_journal_volume"
+    MIGRATE = "migrate"
+    RM_EXTERNAL_PATH = "remove_external_path"
+    ADD_EXTERNAL_PATH = "add_external_path"
+    DEFRAGMENT = "defragment"
+    LOGIN_TEST = "login_test"
+    REGISTER_EXTERNAL_ISCSI_TARGET = "register_external_iscsi_target"
+    UNREGISTER_EXTERNAL_ISCSI_TARGET = "unregister_external_iscsi_target"
+    DISCONNECT = "disconnect"
 
 
 class CommonConstants:
@@ -116,6 +124,7 @@ class GatewayClassTypes:
     VSP_REMOTE_CONNECTION = "vsp_remote_connection"
     VSP_ISCSI_REMOTE_CONNECTION = "vsp_iscsi_remote_connection"
     VSP_DYNAMIC_POOL = "vsp_dynamic_pool"
+    VSP_UVM = "vsp_uvm"
 
 
 class VSPHostGroupConstant:

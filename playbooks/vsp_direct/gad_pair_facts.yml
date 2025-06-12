@@ -20,7 +20,7 @@
       password: "{{ vault_secondary_storage_secret }}"
   tasks:
     ####################################################################
-    # Task 1 : Get all GAD pairs by copy group name
+    # Task Name : Get all GAD pairs by copy group name
     ####################################################################
     - name: Get all GAD pairs
       hitachivantara.vspone_block.vsp.hv_gad_facts:
@@ -36,7 +36,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get GAD pair using secondary volume Id
+    # Task Name : Get GAD pair using secondary volume Id
     ####################################################################
     - name: Get GAD pair using secondary volume Id
       hitachivantara.vspone_block.vsp.hv_gad_facts:
@@ -51,7 +51,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Get GAD pair using primary volume Id
+    # Task Name : Get GAD pair using primary volume Id
     ####################################################################
     - name: Get GAD pair using only primary volume Id
       hitachivantara.vspone_block.vsp.hv_gad_facts:
@@ -66,7 +66,7 @@
         var: result
 
     ####################################################################
-    # Task 4 : Get all GAD pairs from all copy groups
+    # Task Name : Get all GAD pairs from all copy groups
     ####################################################################
     - name: Get all GAD pairs from all copy groups
       hitachivantara.vspone_block.vsp.hv_gad_facts:

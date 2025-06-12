@@ -78,16 +78,72 @@
       ansible.builtin.debug:
         var: result
 
-    ###########################################################################################
-    # Task Name : Change port speed and port security settings of the storage port by port id
-    ###########################################################################################
-    - name: Change port speed and port security settings of the storage port by port id
+    ###############################################################################################
+    # Task Name : Perform a login test on an iSCSI targets of an external storage system that is
+    #             registered to a port on the local storage system
+    ###############################################################################################
+    - name: Perform a login test
+      hitachivantara.vspone_block.vsp.hv_storage_port:
+        connection_info: "{{ connection_info }}"
+        state: "login_test"
+        spec:
+          port: "CL1-C"
+          external_iscsi_targets:
+            - ip_address: "172.25.59.213"
+              name: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10045.1c019"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #############################################################################################################
+    # Task Name : Register iSCSI names of an external storage system to a port on the local storage system
+    ############################################################################################################
+    - name: Register iSCSI names of an external storage system to a port on the local storage system
+      hitachivantara.vspone_block.vsp.hv_storage_port:
+        connection_info: "{{ connection_info }}"
+        state: "register_external_iscsi_target"
+        spec:
+          port: "CL1-C"
+          external_iscsi_targets:
+            - ip_address: "172.25.59.213"
+              name: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10045.1c019"
+            - ip_address: "172.25.59.214"
+              name: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10045.1c020"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #############################################################################################################
+    # Task Name : Unregister iSCSI names of an external storage system from a port on the local storage system
+    ############################################################################################################
+    - name: Unregister iSCSI names of an external storage system from a port on the local storage system
+      hitachivantara.vspone_block.vsp.hv_storage_port:
+        connection_info: "{{ connection_info }}"
+        state: "unregister_external_iscsi_target"
+        spec:
+          port: "CL1-C"
+          external_iscsi_targets:
+            - ip_address: "172.25.59.214"
+              name: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10045.1c020"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #############################################################################################################
+    # Task Name : Sending the ping command to a specified host
+    ############################################################################################################
+    - name: Sending the ping command to a specified host
       hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info: "{{ connection_info }}"
         spec:
-          port: "CL8-B"
-          port_speed: "AUT" # Options: "AUT", "nG" - where n is a number and G can be omitted
-          enable_port_security: true
+          port: "CL1-C"
+          host_ip_address: "172.25.59.213"
       register: result
 
     - name: Debug the result variable

@@ -29,7 +29,7 @@ version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -67,11 +67,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided..
         type: str
         required: false
       api_token:
@@ -107,7 +107,16 @@ options:
       wwns:
         description: List of host WWN to add or remove.
         type: list
-        elements: str
+        elements: dict
+        suboptions:
+          wwn:
+            description: WWN of the host.
+            type: str
+            required: true
+          nick_name:
+            description: Nickname of the host.
+            type: str
+            required: false
         required: false
       ldevs:
         description: LDEVs to be mapped/unmapped with the host group. Supported format can be decimal or HEX.
@@ -179,6 +188,23 @@ options:
         description: If the value is true, destroy the logical devices that are no longer attached to any host group or iSCSI target.
         required: false
         type: bool
+      host_group_number:
+        description: The host group number.
+        type: int
+        required: false
+      should_release_host_reserve:
+        description: If the value is true, release the host reserve.
+        type: bool
+        required: false
+      lun:
+        description: LUN ID to be releases the host reservation status of the LU mapped to a specified LU path.
+        type: int
+        required: false
+      asymmetric_access_priority:
+        description: Asymmetric access priority level for ALUA host group.
+        type: str
+        required: false
+        choices: ['low', 'high']
 """
 
 EXAMPLES = """
@@ -194,7 +220,11 @@ EXAMPLES = """
       port: 'CL1-A'
       host_mode: 'VMWARE_EXTENSION'
       host_mode_options: [40]
-      wwns: ['100000109B583B2D', '100000109B583B2C']
+      wwns:
+        - wwn: '100000109B583B2D'
+          nick_name: 'test1'
+        - wwn: '100000109B583B2C'
+          nick_name: 'test2'
       ldevs: [393, 851]
 
 - name: Create host group with LUN in HEX
@@ -209,7 +239,11 @@ EXAMPLES = """
       port: 'CL1-A'
       host_mode: 'VMWARE_EXTENSION'
       host_mode_options: [54, 63]
-      wwns: ['100000109B583B2D', '100000109B583B2C']
+      wwns:
+        - wwn: '200000109B3C0FD3'
+          nick_name: 'test1'
+        - wwn: '200000109B3C0FD4'
+          nick_name: 'test2'
       ldevs: ['00:23:A4']
 
 - name: Delete host group
@@ -260,7 +294,11 @@ EXAMPLES = """
       state: add_wwn
       name: 'testhg26dec'
       port: 'CL1-A'
-      wwns: ['200000109B3C0FD3']
+      wwns:
+        - wwn: '200000109B3C0FD3'
+          nick_name: 'test1'
+        - wwn: '200000109B3C0FD4'
+        - wwn: '200000109B3C0FD5'
 
 - name: Remove WWN
   hitachivantara.vspone_block.vsp.hv_hg:
@@ -273,7 +311,8 @@ EXAMPLES = """
       state: remove_wwn
       name: 'testhg26dec'
       port: 'CL1-A'
-      wwns: ['200000109B3C0FD3']
+      wwns:
+        - wwn: '200000109B3C0FD3'
 
 - name: Update host group
   hitachivantara.vspone_block.vsp.hv_hg:
@@ -288,6 +327,31 @@ EXAMPLES = """
       port: 'CL1-A'
       host_mode: 'VMWARE_EXTENSION'
       host_mode_options: [54, 63]
+
+- name: Asymmetric access priority level for ALUA host group.
+  hitachivantara.vspone_block.vsp.hv_hg:
+    state: present
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+    spec:
+      host_group_number: 208
+      port: 'CL1-A'
+      asymmetric_access_priority: 'high'
+
+- name: Release host reserve status of the LU mapped to a specified LU path.
+  hitachivantara.vspone_block.vsp.hv_hg:
+    state: present
+    connection_info:
+      address: storage1.company.com
+      username: "dummy_user"
+      password: "dummy_password"
+    spec:
+      host_group_number: 150
+      port: 'CL1-A'
+      should_release_host_reserve: true
+      lun: 0
 """
 
 RETURN = """
@@ -362,7 +426,6 @@ hostGroups:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from dataclasses import asdict
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
@@ -408,13 +471,10 @@ class VSPHostGroupManager:
         host_group_data = None
         host_group_data_extracted = None
         try:
-            host_group_data = asdict(self.direct_host_group_modification())
+            host_group_data = self.direct_host_group_modification()
             self.logger.writeInfo("host_group_data {}", host_group_data)
-            host_group_data_extracted = (
-                vsp_host_group.VSPHostGroupCommonPropertiesExtractor(
-                    self.serial_number
-                ).extract_dict(host_group_data)
-            )
+            host_group_data_extracted = host_group_data
+
         except Exception as e:
             self.logger.writeError(str(e))
             self.logger.writeInfo("=== End of Host Group operation ===")

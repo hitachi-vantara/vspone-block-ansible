@@ -22,7 +22,7 @@
 
   tasks:
     ######################################################################################
-    # Task 1 : Get all TrueCopy pairs
+    # Task Name : Get all TrueCopy pairs
     ######################################################################################
     - name: Get all TrueCopy pairs
       hitachivantara.vspone_block.vsp.hv_truecopy_facts:
@@ -35,7 +35,7 @@
         var: result
 
     ######################################################################################
-    # Task 2 : Get TrueCopy pair by primary volume ID
+    # Task Name : Get TrueCopy pair by primary volume ID
     ######################################################################################
     - name: Get TrueCopy pair by primary volume ID
       hitachivantara.vspone_block.vsp.hv_truecopy_facts:
@@ -50,7 +50,7 @@
         var: result
 
     ######################################################################################
-    # Task 3 : Get TrueCopy pair by secondary volume ID
+    # Task Name : Get TrueCopy pair by secondary volume ID
     ######################################################################################
     - name: Get TrueCopy pair by secondary volume ID
       hitachivantara.vspone_block.vsp.hv_truecopy_facts:
@@ -65,7 +65,7 @@
         var: result
 
     ######################################################################################
-    # Task 4 : Get TrueCopy pair by copy group name
+    # Task Name : Get TrueCopy pair by copy group name
     ######################################################################################
     - name: Get TrueCopy pair by copy group name
       hitachivantara.vspone_block.vsp.hv_truecopy_facts:

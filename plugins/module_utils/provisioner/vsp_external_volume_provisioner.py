@@ -60,10 +60,29 @@ class VSPExternalVolumeProvisioner:
         return resp
 
     @log_entry_exit
+    def get_one_external_path_group(self, ext_path_group_id, is_salamander=False):
+        resp = self.gateway.get_one_external_path_group(
+            ext_path_group_id, is_salamander
+        )
+        if resp is None:
+            return
+        return resp
+
+    @log_entry_exit
+    def get_all_external_parity_groups(self):
+        return self.pg_gateway.get_all_external_parity_groups()
+
+    @log_entry_exit
     def get_free_ldev_from_meta(self):
         items = self.vol_gateway.get_free_ldev_from_meta()
         for item in items.data:
             return item.ldevId
+
+    @log_entry_exit
+    def get_one_external_parity_group(self, external_parity_group):
+        epg = self.pg_gateway.get_external_parity_group(external_parity_group)
+        logger.writeDebug("20250528 epg={}", epg)
+        return epg
 
     @log_entry_exit
     def get_next_external_parity_group(self):
@@ -344,11 +363,6 @@ class VSPExternalVolumeProvisioner:
                 continue
 
         return rsp
-
-    @log_entry_exit
-    def get_external_path_groups(self):
-        resp = self.gateway.get_external_path_groups()
-        return resp
 
     @log_entry_exit
     def delete_volume(self, connection_info, ldev):

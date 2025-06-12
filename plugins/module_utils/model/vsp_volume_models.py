@@ -83,6 +83,23 @@ class CreateVolumeSpec:
     state: Optional[str] = None
     should_shred_volume_enable: Optional[bool] = None
     qos_settings: Optional[VolumeQosParamsSpec] = None
+    mp_blade_id: Optional[int] = None
+    should_reclaim_zero_pages: Optional[bool] = None
+    # Added for UCA-3302
+    is_parallel_execution_enabled: Optional[bool] = None
+    start_ldev_id: Optional[int] = None
+    end_ldev_id: Optional[int] = None
+    external_parity_group: Optional[str] = None
+    is_compression_acceleration_enabled: Optional[bool] = None
+    should_format_volume: Optional[bool] = None
+    data_reduction_process_mode: Optional[str] = None
+    is_relocation_enabled: Optional[bool] = None
+    is_full_allocation_enabled: Optional[bool] = None
+    is_alua_enabled: Optional[bool] = None
+    format_type: Optional[str] = None
+    is_task_timeout: Optional[bool] = None
+    # added comment for ldev module
+    comment: Optional[str] = None
 
     def __post_init__(self):
         if self.qos_settings:
@@ -179,6 +196,9 @@ class VSPVolumeInfo(SingleBaseClass):
     tier3AllocationRateMax: Optional[int] = None
     isCompressionAccelerationEnabled: Optional[bool] = None
     compressionAccelerationStatus: Optional[str] = None
+    dataReductionProcessMode: Optional[str] = None
+    isRelocationEnabled: Optional[bool] = None
+    isFullAllocationEnabled: Optional[bool] = None
 
     def __init__(self, **kwargs):
         try:

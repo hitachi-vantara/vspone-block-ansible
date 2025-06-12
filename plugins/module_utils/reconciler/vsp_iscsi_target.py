@@ -94,7 +94,7 @@ class VSPIscsiTargetReconciler:
             # make sure all the ports are defined in the storage
             # so we can add comments properly
             sports = self.provisioner.get_ports(self.serial).data
-            logger.writeInfo("sports = {}", sports)
+            logger.writeDebug("sports = {}", sports)
             found = [x for x in sports if x.portId == port]
             logger.writeDebug("found={}", found)
             if found is None or len(found) == 0:
@@ -105,7 +105,7 @@ class VSPIscsiTargetReconciler:
             raise Exception(VSPIscsiTargetMessage.PORTS_PARAMETER_INVALID.value)
         logger = Log()
         spec.name = generate_random_name_prefix_string() if not spec.name else spec.name
-        logger.writeInfo("spec.port={0}".format(spec.port))
+        logger.writeDebug("spec.port={0}".format(spec.port))
         try:
             self.provisioner.create_one_iscsi_target(
                 IscsiTargetPayLoad(
@@ -116,6 +116,7 @@ class VSPIscsiTargetReconciler:
                     luns=spec.ldevs,
                     iqn_initiators=spec.iqn_initiators,
                     chap_users=spec.chap_users,
+                    iscsi_id=spec.iscsi_id,
                 ),
                 self.serial,
             )
@@ -125,10 +126,13 @@ class VSPIscsiTargetReconciler:
                 return self.handle_create_iscsi_target(spec, result)
             else:
                 raise e
-        result["iscsiTarget"] = self.provisioner.get_one_iscsi_target(
+        one_iscsi_info = self.provisioner.get_one_iscsi_target(
             spec.port, spec.name, self.serial
         ).data
+        logger.writeDebug("060525 one_iscsi_info={}", one_iscsi_info)
+        result["iscsiTarget"] = one_iscsi_info
         result["changed"] = True
+        return one_iscsi_info
 
     def handle_update_iscsi_target(self, spec, iscsi_target, result):
         logger = Log()
@@ -209,11 +213,13 @@ class VSPIscsiTargetReconciler:
             )
             result["changed"] = True
 
-    def handle_update_iqn_initiators(self, state, iqn_initiators, iscsi_target, result):
+    def handle_update_iqn_initiators(
+        self, state, iqn_initiators_new, iscsi_target, result
+    ):
         logger = Log()
-        iqn_initiators = set(iqn_initiators)
+        iqn_initiators = set(iqn.iqn for iqn in iqn_initiators_new)
         iscsi_target_iqn_initiators = set(
-            iqnInitiator for iqnInitiator in iscsi_target.iqnInitiators or []
+            iqnInitiator.iqn for iqnInitiator in iscsi_target.iqnInitiators or []
         )
         logger.writeDebug("iqn_initiators={0}", iqn_initiators)
         add_iqn_initiators = iqn_initiators - iscsi_target_iqn_initiators
@@ -223,6 +229,9 @@ class VSPIscsiTargetReconciler:
         )
         logger.writeDebug("add_iqn_initiators={0}", add_iqn_initiators)
         logger.writeDebug("del_iqn_initiators={0}", del_iqn_initiators)
+        add_iqns_with_nick_names = [
+            iqn for iqn in iqn_initiators_new if iqn.iqn in add_iqn_initiators
+        ]
 
         if (
             state == VSPIscsiTargetConstant.STATE_ADD_INITIATOR
@@ -230,7 +239,7 @@ class VSPIscsiTargetReconciler:
         ) and add_iqn_initiators:
             if len(add_iqn_initiators) > 0:
                 self.provisioner.add_iqn_initiators_to_iscsi_target(
-                    iscsi_target, list(add_iqn_initiators), self.serial
+                    iscsi_target, add_iqns_with_nick_names, self.serial
                 )
                 result["changed"] = True
 
@@ -252,6 +261,23 @@ class VSPIscsiTargetReconciler:
                 result["comment"] = (
                     VSPIscsiTargetMessage.IQN_IS_NOT_IN_ISCSI_TARGET.value
                 )
+
+        for iqn_initiator in iqn_initiators_new:
+            match_iqn = next(
+                (
+                    iqn
+                    for iqn in iscsi_target.iqnInitiators
+                    if iqn.iqn == iqn_initiator.iqn
+                ),
+                None,
+            )
+            if (
+                match_iqn
+                and iqn_initiator.nick_name is not None
+                and match_iqn.nick_name != iqn_initiator.nick_name
+            ):
+                self.provisioner.update_iqn_nick_name(iscsi_target, iqn_initiator)
+                result["changed"] = True
 
     def handle_update_luns(self, state, luns, iscsi_target, result):
         logger = Log()
@@ -355,7 +381,12 @@ class VSPIscsiTargetReconciler:
         result = {"changed": False}
         self.pre_check_sub_state(spec)
         self.pre_check_port(spec.port)
-        if spec.name:
+        iscsi_target = None
+        if spec.iscsi_id:
+            iscsi_target = self.provisioner.get_one_iscsi_target_using_id(
+                spec.port, spec.iscsi_id
+            ).data
+        elif spec.name and not iscsi_target:
             iscsi_target = self.provisioner.get_one_iscsi_target(
                 spec.port, spec.name, self.serial
             ).data
@@ -365,14 +396,29 @@ class VSPIscsiTargetReconciler:
             result["iscsiTarget"] = iscsi_target
             if iscsi_target is None:
                 # Handle create iscsi target
-                self.handle_create_iscsi_target(spec, result)
+                iscsi_target = self.handle_create_iscsi_target(spec, result)
             else:
                 # Handle update iscsi target
                 self.handle_update_iscsi_target(spec, iscsi_target, result)
-                if result["changed"] is True:
-                    result["iscsiTarget"] = self.provisioner.get_one_iscsi_target(
-                        iscsi_target.portId, iscsi_target.iscsiName, self.serial
-                    ).data
+            target_id = iscsi_target.iscsiId if iscsi_target else spec.iscsi_id
+            logger.writeDebug(f"060525 target_id = {target_id}")
+
+            if spec.should_release_host_reserve:
+                self.provisioner.release_host_reservation_status(
+                    spec.port, target_id, spec.lun
+                )
+                result["changed"] = True
+                result["comment"] = (
+                    VSPIscsiTargetMessage.RELEASE_HOST_RESERVE.value
+                    if spec.lun is None
+                    else VSPIscsiTargetMessage.RELEASE_HOST_RESERVE_LU.value.format(
+                        spec.lun
+                    )
+                )
+            if result["changed"]:
+                result["iscsiTarget"] = self.provisioner.get_one_iscsi_target_using_id(
+                    spec.port, target_id
+                ).data
 
         elif state == StateValue.ABSENT:
             if iscsi_target is None:

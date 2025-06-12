@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get volumes by default count
+    # Task Name : Get volumes by default count
     ####################################################################
     - name: Get volumes by default count
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get volumes by count
+    # Task Name : Get volumes by count
     ####################################################################
     - name: Get volumes by count
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume_facts:
@@ -44,7 +44,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Get volumes by names
+    # Task Name : Get volumes by names
     ####################################################################
     - name: Get volumes by names
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume_facts:
@@ -58,7 +58,7 @@
         var: result
 
     ####################################################################
-    # Task 4 : Get volumes by nicknames
+    # Task Name : Get volumes by nicknames
     ####################################################################
     - name: Get volumes by nicknames
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume_facts:
@@ -72,7 +72,7 @@
         var: result
 
     ####################################################################
-    # Task 5 : Get volumes by other filters
+    # Task Name : Get volumes by other filters
     ####################################################################
     - name: Get volumes by other filters
       hitachivantara.vspone_block.sds_block.hv_sds_block_volume_facts:

@@ -26,9 +26,12 @@ except ImportError:
     from model.vsp_host_group_models import VSPModifyHostGroupProvResponse
     from common.hv_constants import VSPHostGroupConstant, StateValue
     from message.vsp_host_group_msgs import VSPHostGroupMessage
+logger = Log()
 
 
 class VSPHostGroupReconciler:
+    comments = []
+    errors = []
 
     def __init__(self, connectionInfo, serial, hostGroupSpec=None):
         self.connectionInfo = connectionInfo
@@ -56,16 +59,15 @@ class VSPHostGroupReconciler:
 
     def pre_check_wwns(self, subobjState, wwns, result):
         logger = Log()
-        newWWN = set()
         if wwns == "":
             wwns = None
-        if wwns is not None:
-            logger.writeDebug("wwns={}", wwns)
-            logger.writeDebug("wwns={}", wwns[0])
-            logger.writeDebug("wwns={}", len(wwns))
+        # if wwns is not None:
+        #     logger.writeDebug("wwns={}", wwns)
+        #     logger.writeDebug("wwns={}", wwns[0])
+        #     logger.writeDebug("wwns={}", len(wwns))
 
-            if len(wwns[0]) == 1:
-                raise Exception(VSPHostGroupMessage.WWNS_INVALID.value)
+        #     if len(wwns[0]) == 1:
+        #         raise Exception(VSPHostGroupMessage.WWNS_INVALID.value)
         if (
             subobjState == VSPHostGroupConstant.STATE_PRESENT_LDEV
             or subobjState == VSPHostGroupConstant.STATE_UNPRESENT_LDEV
@@ -75,12 +77,12 @@ class VSPHostGroupReconciler:
             if wwns is not None:
                 wwns = None
                 result["comments"].append(VSPHostGroupMessage.IGNORE_WWNS.value)
-
+        logger.writeDebug("wwns={}", wwns)
         if wwns:
             # Convert WWNs to uppercase and ensure they are strings, removing duplicates
-            newWWN = {str(wwn).upper() for wwn in wwns}
+            (wwn.wwn.upper() for wwn in wwns)
 
-        return newWWN
+        return wwns
 
     def pre_check_luns(self, subobjState, luns, result):
         logger = Log()
@@ -147,7 +149,7 @@ class VSPHostGroupReconciler:
         return subobjState
 
     def create_host_group(
-        self, port, hgName, hostmodename, hostoptlist, newWWN, newLun
+        self, port, hgName, hostmodename, hostoptlist, newWWN, newLun, hg_number=None
     ):
         logger = Log()
 
@@ -161,17 +163,17 @@ class VSPHostGroupReconciler:
             hostoptlist = []
         logger.writeDebug("hostoptlist={}", hostoptlist)
 
-        self.provisioner.create_host_group(
-            port, hgName, newWWN, newLun, hostmodename, hostoptlist
+        comments, errors = self.provisioner.create_host_group(
+            port, hgName, newWWN, newLun, hostmodename, hostoptlist, hg_number
         )
 
         hostGroup = self.provisioner.get_one_host_group(port, hgName).data
-        return hostGroup
+        return hostGroup, comments, errors
 
     def delete_host_group(self, spec, hg, result):
         self.provisioner.delete_host_group(hg, spec.delete_all_luns)
         result["changed"] = True
-        result["hostGroup"] = None
+        result["host_group"] = None
         result["comment"] = VSPHostGroupMessage.DELETE_SUCCESSFULLY.value.format(
             hg.hostGroupName
         )
@@ -214,24 +216,76 @@ class VSPHostGroupReconciler:
 
     def handle_update_wwns(self, subobjState, hg, newWWN, result):
         logger = Log()
+        host_wwn = {wwn.wwn for wwn in newWWN}
         wwns = (str(path.id) for path in hg.wwns or [])
         hgWWN = set(wwns)
-        addWWN = newWWN - hgWWN
-        delWWN = hgWWN.intersection(newWWN)
+        addWWN = host_wwn - hgWWN
+        delWWN = hgWWN.intersection(host_wwn)
 
+        wwn_to_be_added = [wwn for wwn in newWWN if wwn.wwn in addWWN]
         logger.writeDebug("old hgWWN={}", hgWWN)
-        logger.writeDebug("newWWN={}", newWWN)
+        logger.writeDebug("old hg.wwns={}", hg.wwns)
+        logger.writeDebug("wwn_to_be_added={}", wwn_to_be_added)
         logger.writeDebug("addWWN={}", addWWN)
         logger.writeDebug("delWWN={}", delWWN)
 
         if addWWN and subobjState == StateValue.PRESENT:
             if len(addWWN) > 0:
-                self.provisioner.add_wwns_to_host_group(hg, addWWN)
-                result["changed"] = True
+                comments, errors = self.provisioner.add_wwns_to_host_group(
+                    hg, wwn_to_be_added
+                )
+                if errors:
+                    self.errors.append(errors)
+                if comments:
+                    self.comments.extend(comments)
+                    result["changed"] = True
+
         if delWWN and subobjState == StateValue.ABSENT:
             if len(delWWN) > 0:
-                self.provisioner.delete_wwns_from_host_group(hg, delWWN)
-                result["changed"] = True
+                comments, errors = self.provisioner.delete_wwns_from_host_group(
+                    hg, delWWN
+                )
+                if errors:
+                    self.errors.append(errors)
+                if comments:
+                    result["changed"] = True
+                    self.comments.extend(comments)
+            return
+
+        logger.writeDebug("update wwn nickname")
+
+        for wwn in newWWN:
+            # if not wwn.nick_name:
+            #     continue
+
+            matched_wwn = next(
+                (hgwwn for hgwwn in hg.wwns if wwn.wwn == hgwwn.id), None
+            )
+            if (
+                matched_wwn
+                and wwn.nick_name is not None
+                and wwn.nick_name != matched_wwn.nick_name
+            ):
+                logger.writeDebug(
+                    "update wwn nickname from {0} to {1}".format(
+                        matched_wwn.nick_name, wwn.nick_name
+                    )
+                )
+                try:
+                    self.provisioner.update_wwn_nickname(hg, wwn)
+                    self.comments.append(
+                        VSPHostGroupMessage.WWN_NICKNAME_SET.value.format(
+                            hg.hostGroupName, wwn.wwn
+                        )
+                    )
+                    result["changed"] = True
+                except Exception as e:
+                    self.errors.append(
+                        VSPHostGroupMessage.WWN_NICKNAME_SET_FAILED.value.format(
+                            hg.hostGroupName, wwn.wwn, str(e)
+                        )
+                    )
+                    logger.writeException(e)
 
     def luns_to_add(self, new_lun: list, hg_lun: set):
         luns_to_add = []
@@ -260,15 +314,25 @@ class VSPHostGroupReconciler:
 
         if subobjState == StateValue.PRESENT and addLun:
             if len(addLun) > 0:
-                self.provisioner.add_luns_to_host_group(hg, addLun)
-                result["changed"] = True
+                comments, errors = self.provisioner.add_luns_to_host_group(hg, addLun)
+                if errors:
+                    self.errors.append(errors)
+                if comments:
+                    self.comments.extend(comments)
+                    result["changed"] = True
 
         if subobjState == StateValue.ABSENT:
             if delLun:
                 logger.writeDebug("delete_luns_from_host_group delLun={0}", delLun)
                 if len(delLun) > 0:
-                    self.provisioner.delete_luns_from_host_group(hg, delLun)
-                    result["changed"] = True
+                    comments, errors = self.provisioner.delete_luns_from_host_group(
+                        hg, delLun
+                    )
+                    if errors:
+                        self.errors.append(errors)
+                    if comments:
+                        self.comments.extend(comments)
+                        result["changed"] = True
             else:
                 result["comment"] = VSPHostGroupMessage.LUN_IS_NOT_IN_HG.value
 
@@ -306,13 +370,14 @@ class VSPHostGroupReconciler:
             self.handle_update_luns(subobjState, hg, newLun, result)
 
     def host_group_reconcile(self, state, spec):
-        logger = Log()
+
         result = {"changed": False}
         data = spec
         subobjState = data.state
         port = data.port
         hgName = data.name
         hostmodename = data.host_mode
+        hg_number = data.host_group_number
         hostoptlist = data.host_mode_options
         logger.writeDebug(hostoptlist)
         if hostmodename == "":
@@ -320,6 +385,7 @@ class VSPHostGroupReconciler:
         if hostoptlist == "":
             hostoptlist = None
         result["comments"] = []
+        result["errors"] = []
         self.pre_check_port(port)
         newWWN = self.pre_check_wwns(subobjState, data.wwns, result)
         newLun = self.pre_check_luns(subobjState, data.ldevs, result)
@@ -335,7 +401,13 @@ class VSPHostGroupReconciler:
         # get all hgs
         # see if all the (hg,port)s are created
         hostGroup = None
-        if hgName:
+        if hg_number is not None:
+            # get hg by hg_number
+            hostGroup = self.provisioner.get_one_host_group_using_hg_port_id(
+                port, hg_number
+            )
+
+        if hgName and hg_number is None:
             hostGroup = self.provisioner.get_one_host_group(port, hgName).data
         logger.writeInfo("hostGroup = {}", hostGroup)
         result["changed"] = False
@@ -359,10 +431,20 @@ class VSPHostGroupReconciler:
                 if not port:
                     raise Exception(VSPHostGroupMessage.PORTS_PARAMETER_INVALID.value)
                 else:
-                    hostGroup = self.create_host_group(
-                        port, hgName, hostmodename, hostoptlist, newWWN, newLun
+                    hostGroup, comments, errors = self.create_host_group(
+                        port,
+                        hgName,
+                        hostmodename,
+                        hostoptlist,
+                        newWWN,
+                        newLun,
+                        hg_number,
                     )
                     result["changed"] = True
+                    if comments:
+                        result["comments"].extend(comments)
+                    if errors:
+                        self.errors.extend(errors)
         elif state == StateValue.ABSENT:
 
             # if we want to support the case:
@@ -401,18 +483,74 @@ class VSPHostGroupReconciler:
 
         logger.writeDebug("changed={}", result["changed"])
         logger.writeDebug("state={}", state)
-        if result["changed"] and state != StateValue.ABSENT:
-            result["hostGroup"] = self.provisioner.get_one_host_group(
+        if state != StateValue.ABSENT:
+            self.perform_misc_operations(spec, state, hostGroup, result)
+
+        if (
+            result["changed"]
+            and state != StateValue.ABSENT
+            and hostGroup is not None
+            and hostGroup.hostModeOptions is None
+        ):
+            result["host_group"] = self.provisioner.get_one_host_group(
                 hostGroup.port, hostGroup.hostGroupName
             ).data
 
-        if state != StateValue.ABSENT and "hostGroup" not in result:
-            result["hostGroup"] = hostGroup
-        return VSPModifyHostGroupProvResponse(**result)
+        if state != StateValue.ABSENT and "host_group" not in result:
+            result["host_group"] = hostGroup
+
+        if len(self.errors) > 0:
+            result["errors"] = self.errors
+        if len(self.comments) > 0:
+            result["comments"].extend(self.comments)
+
+        data = VSPModifyHostGroupProvResponse(**result)
+        # data.host_group.camel_to_snake_dict()
+        return data.camel_to_snake_dict()
+
+    def perform_misc_operations(self, spec, state, hostGroup, result):
+        result["comments"] = []
+        result["errors"] = []
+        if spec.asymmetric_access_priority is not None:
+            try:
+                self.provisioner.set_asymmetric_access_priority(
+                    hostGroup.port,
+                    hostGroup.hostGroupNumber,
+                    spec.asymmetric_access_priority,
+                )
+                result["changed"] = True
+                result["comments"].append(
+                    VSPHostGroupMessage.PRIORITY_LEVEL_SET_FOR_ALUA.value
+                )
+            except Exception as e:
+                logger.writeException(e)
+                result["errors"].append(
+                    VSPHostGroupMessage.FAILED_TO_SET_PRIORITY_LEVEL.value
+                )
+                result["changed"] = False
+        if spec.should_release_host_reserve:
+            try:
+                self.provisioner.release_host_reserve(
+                    hostGroup.port, hostGroup.hostGroupNumber, spec.lun
+                )
+                result["changed"] = True
+                result["comments"].append(
+                    VSPHostGroupMessage.RELEASE_HOST_RESERVE_SUCCESS_FOR_LU.value.format(
+                        spec.lun
+                    )
+                    if spec.lun is not None
+                    else VSPHostGroupMessage.RELEASE_HOST_RESERVE_SUCCESS.value
+                )
+            except Exception as e:
+                logger.writeException(e)
+                result["errors"].append(
+                    VSPHostGroupMessage.RELEASE_HOST_RESERVE_FAILED.value
+                )
+                result["changed"] = False
 
     def get_host_groups(self, spec):
         return self.provisioner.get_host_groups(
-            spec.ports, spec.name, spec.lun, spec.query
+            spec.ports, spec.name, spec.lun, spec.query, spec.host_group_number
         )
 
 
@@ -433,13 +571,16 @@ class VSPHostGroupCommonPropertiesExtractor:
             "changed": bool,
             "comment": str,
             "comments": list,
-            "hostGroup": dict,
+            "host_group": dict,
+            "errors": list,
         }
 
     def extract(self, responses):
         new_items = []
         for response in responses:
             new_dict = {}
+            if response.get("port") is not None:
+                continue
             for key, value_type in self.common_properties.items():
                 # Get the corresponding key from the response or its mapped key
                 response_key = None

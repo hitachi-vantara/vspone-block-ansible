@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all Quorum Disk
+    # Task Name : Get all Quorum Disk
     ####################################################################
     - name: Get all Quorum Disks
       hitachivantara.vspone_block.vsp.hv_quorum_disk_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get specific Quorum Disk
+    # Task Name : Get specific Quorum Disk
     ####################################################################
     - name: Get specific Quorum Disks
       hitachivantara.vspone_block.vsp.hv_quorum_disk_facts:

@@ -96,8 +96,7 @@ class VspDynamicPoolGateway:
         :param pool_spec: VspDynamicPoolSpec
         :return: VspDynamicPoolInfo
         """
-        payload = {VspDDPConst.name: pool_spec.pool_name}
-        payload[VspDDPConst.drives] = []
+        payload = {VspDDPConst.name: pool_spec.pool_name, VspDDPConst.drives: []}
         for drive in pool_spec.drives:
             drive_payload = {
                 VspDDPConst.driveTypeCode: drive.drive_type_code,

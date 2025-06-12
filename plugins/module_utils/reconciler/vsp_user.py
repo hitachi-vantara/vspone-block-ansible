@@ -139,11 +139,9 @@ class VSPUserReconciler:
     def validate_create_spec(self, spec: Any) -> None:
         if not spec.name:
             raise ValueError(VSPUserValidateMsg.USER_NAME_REQD.value)
-        # if not spec.authentication:
-        #     raise ValueError(VSPUserValidateMsg.AITH_REQD.value)
-        # if spec.authentication == "local" and not spec.password:
-        #     raise ValueError(VSPUserValidateMsg.PASS_REQD.value)
-        if not spec.password:
+        if not spec.authentication:
+            raise ValueError(VSPUserValidateMsg.AUTH_REQD.value)
+        if spec.authentication == "local" and not spec.password:
             raise ValueError(VSPUserValidateMsg.PASS_REQD.value)
         if not isinstance(spec.group_names, list):
             raise ValueError(VSPUserValidateMsg.GROUP_NAME_MUST_BE_LIST.value)
@@ -163,7 +161,7 @@ class UserInfoExtractor:
         self.parameter_mapping = {
             "user_id": "name",
             "user_object_id": "id",
-            "user_group_names": "group_names",
+            "user_storage_port": "group_names",
         }
 
     def process_list(self, response_key):

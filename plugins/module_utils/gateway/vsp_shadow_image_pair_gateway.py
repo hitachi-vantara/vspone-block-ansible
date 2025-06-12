@@ -39,10 +39,10 @@ class VSPShadowImagePairDirectGateway:
         )
 
     @log_entry_exit
-    def get_all_shadow_image_pairs(self, serial):
+    def get_all_shadow_image_pairs(self, serial, refresh=None):
         funcName = "VSPShadowImagePairDirectGateway: get_all_shadow_image_pairs"
         self.logger.writeEnterSDK(funcName)
-        response = self.get_all_shadow_image_pairs_by_copy_group(serial)
+        response = self.get_all_shadow_image_pairs_by_copy_group(serial, refresh)
         self.logger.writeDebug("{} Response={}", funcName, response)
         shadow_image_list = []
         for shadow_image_item in response["data"]:
@@ -146,6 +146,19 @@ class VSPShadowImagePairDirectGateway:
         self.logger.writeExitSDK(funcName)
         return response
 
+    def migrate_shadow_image_pair(self, serial, updateShadowImagePairSpec):
+
+        funcName = "VSPShadowImagePairDirectGateway: migrate_shadow_image_pair"
+        self.logger.writeEnterSDK(funcName)
+        end_point = Endpoints.DIRECT_MIGRATE_SHADOW_IMAGE_PAIR.format(
+            pairId=updateShadowImagePairSpec.pair_id
+        )
+        # headers = self.populateHeader()
+        response = self.connectionManager.post(end_point, data=None)
+        self.logger.writeDebug("{} Response={}", funcName, response)
+        self.logger.writeExitSDK(funcName)
+        return response
+
     def delete_shadow_image_pair(self, serial, deleteShadowImagePairSpec):
 
         funcName = "VSPShadowImagePairDirectGateway: delete_shadow_image_pair"
@@ -202,51 +215,62 @@ class VSPShadowImagePairDirectGateway:
                 if createShadowImagePairSpec.is_new_group_creation is not None
                 else True
             ),
-            "copyPace": copy_pace,
+            "copyPace": (
+                copy_pace
+                if createShadowImagePairSpec.create_for_migration is None
+                else None
+            ),
         }
-        if createShadowImagePairSpec.auto_split is not None:
-            payload["autoSplit"] = bool(createShadowImagePairSpec.auto_split)
-        else:
-            payload["autoSplit"] = False
+        if createShadowImagePairSpec.create_for_migration is None:
+            if createShadowImagePairSpec.auto_split is not None:
+                payload["autoSplit"] = bool(createShadowImagePairSpec.auto_split)
+            else:
+                payload["autoSplit"] = False
 
-        if (
-            createShadowImagePairSpec.is_new_group_creation is None
-            or createShadowImagePairSpec.is_new_group_creation is True
-        ):
-            payload["pvolMuNumber"] = pvol_mu_number
+            if (
+                createShadowImagePairSpec.is_new_group_creation is None
+                or createShadowImagePairSpec.is_new_group_creation is True
+            ):
+                payload["pvolMuNumber"] = pvol_mu_number
 
-        if (
-            payload["autoSplit"] is True
-            and createShadowImagePairSpec.new_consistency_group is not None
-            and createShadowImagePairSpec.new_consistency_group is True
-        ):
-            raise ValueError(VSPShadowImagePairValidateMsg.AUTO_SPLIT_VALIDATION.value)
-        if createShadowImagePairSpec.new_consistency_group is not None:
-            payload["isConsistencyGroup"] = bool(
-                createShadowImagePairSpec.new_consistency_group
-            )
-        if createShadowImagePairSpec.consistency_group_id is not None:
-            payload["consistencyGroupId"] = int(
-                createShadowImagePairSpec.consistency_group_id
-            )
-            if createShadowImagePairSpec.new_consistency_group is None:
-                payload["isConsistencyGroup"] = True
+            if (
+                payload["autoSplit"] is True
+                and createShadowImagePairSpec.new_consistency_group is not None
+                and createShadowImagePairSpec.new_consistency_group is True
+            ):
+                raise ValueError(
+                    VSPShadowImagePairValidateMsg.AUTO_SPLIT_VALIDATION.value
+                )
+            if createShadowImagePairSpec.new_consistency_group is not None:
+                payload["isConsistencyGroup"] = bool(
+                    createShadowImagePairSpec.new_consistency_group
+                )
+            if createShadowImagePairSpec.consistency_group_id is not None:
+                payload["consistencyGroupId"] = int(
+                    createShadowImagePairSpec.consistency_group_id
+                )
+                if createShadowImagePairSpec.new_consistency_group is None:
+                    payload["isConsistencyGroup"] = True
 
-        if (
-            payload["autoSplit"] is False
-            and createShadowImagePairSpec.enable_quick_mode is not None
-            and createShadowImagePairSpec.enable_quick_mode is True
-        ):
-            raise ValueError(
-                VSPShadowImagePairValidateMsg.ENABLE_QUICK_MODE_VALIDATION.value
-            )
+            if (
+                payload["autoSplit"] is False
+                and createShadowImagePairSpec.enable_quick_mode is not None
+                and createShadowImagePairSpec.enable_quick_mode is True
+            ):
+                raise ValueError(
+                    VSPShadowImagePairValidateMsg.ENABLE_QUICK_MODE_VALIDATION.value
+                )
         if createShadowImagePairSpec.enable_quick_mode is not None:
             payload["quickMode"] = bool(createShadowImagePairSpec.enable_quick_mode)
         if createShadowImagePairSpec.is_data_reduction_force_copy is not None:
             payload["isDataReductionForceCopy"] = bool(
                 createShadowImagePairSpec.is_data_reduction_force_copy
             )
-
+        if (
+            createShadowImagePairSpec.create_for_migration is not None
+            and createShadowImagePairSpec.create_for_migration is True
+        ):
+            payload["copyMode"] = "NotSynchronized"
         self.logger.writeDebug(payload)
         return payload
 
@@ -261,6 +285,11 @@ class VSPShadowImagePairDirectGateway:
         }
         if updateShadowImagePairSpec.enable_quick_mode is not None:
             parameters["quickMode"] = bool(updateShadowImagePairSpec.enable_quick_mode)
+        else:
+            parameters["quickMode"] = False
+
+        if updateShadowImagePairSpec.should_force_split is not None:
+            parameters["quickMode"] = bool(updateShadowImagePairSpec.should_force_split)
         else:
             parameters["quickMode"] = False
 
@@ -386,7 +415,7 @@ class VSPShadowImagePairDirectGateway:
         return md5_hash.hexdigest()
 
     @log_entry_exit
-    def get_all_shadow_image_pairs_by_copy_group(self, serial):
+    def get_all_shadow_image_pairs_by_copy_group(self, serial, refresh=None):
         funcName = (
             "VSPShadowImagePairDirectGateway: get_all_shadow_image_pairs_by_copy_pair"
         )
@@ -398,7 +427,10 @@ class VSPShadowImagePairDirectGateway:
         shadow_image_list = []
         for copy_group_item in response["data"]:
             copy_group_id = copy_group_item["localCloneCopygroupId"]
-            uri = local_cp_pairs.format(copy_group_id)
+            if refresh is not None and refresh is True:
+                uri = local_cp_pairs.format(copy_group_id) + "&refresh=true"
+            else:
+                uri = local_cp_pairs.format(copy_group_id)
             try:
                 resp = self.connectionManager.read(uri)
                 for shadow_image_item in resp.get("data"):

@@ -748,6 +748,22 @@ class VSPHtiSnapshotProvisioner:
         return
 
     @log_entry_exit
+    def delete_garbage_data_snapshot_tree(self, pvol: int, operation_type: str):
+        self.logger.writeDebug(
+            f"20250324 delete_garbage_data_snapshot_tree pvol: {pvol}"
+        )
+        self.gateway.delete_garbage_data_snapshot_tree(pvol, operation_type)
+        self.connection_info.changed = True
+        return
+
+    @log_entry_exit
+    def delete_ti_by_snapshot_tree(self, pvol: int):
+        self.logger.writeDebug(f"20250324 delete_ti_by_snapshot_tree pvol: {pvol}")
+        self.gateway.delete_ti_by_snapshot_tree(pvol)
+        self.connection_info.changed = True
+        return
+
+    @log_entry_exit
     def resync_snapshot(self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool):
         ssp = self.get_one_snapshot(pvol, mirror_unit_id)
         if ssp.status == PairStatus.PAIR:
@@ -768,7 +784,9 @@ class VSPHtiSnapshotProvisioner:
         return ssp
 
     @log_entry_exit
-    def clone_snapshot(self, pvol: int, mirror_unit_id: int, svol: int):
+    def clone_snapshot(
+        self, pvol: int, mirror_unit_id: int, svol: int, copy_speed: str
+    ):
 
         ssp = self.get_one_snapshot(pvol, mirror_unit_id)
         svol = (
@@ -855,6 +873,14 @@ class VSPHtiSnapshotProvisioner:
     @log_entry_exit
     def delete_snapshots_by_gid(self, spec, *args):
         data = self.gateway.delete_snapshot_using_ssg(spec.snapshot_group_id)
+        self.connection_info.changed = True
+        return data
+
+    @log_entry_exit
+    def clone_snapshots_by_gid(self, spec, *args):
+        data = self.gateway.clone_snapshot_using_ssg(
+            spec.snapshot_group_id, spec.copy_speed
+        )
         self.connection_info.changed = True
         return data
 

@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Create Parity Group
+    # Task Name : Create Parity Group
     ####################################################################
     - name: Create Parity Group
       hitachivantara.vspone_block.vsp.hv_paritygroup:
@@ -40,7 +40,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Delete Parity Group
+    # Task Name : Delete Parity Group
     ####################################################################
     - name: Delete Parity Group
       hitachivantara.vspone_block.vsp.hv_paritygroup:
@@ -55,7 +55,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Update Parity Group
+    # Task Name : Update Parity Group
     ####################################################################
     - name: Update Parity Group
       hitachivantara.vspone_block.vsp.hv_paritygroup:

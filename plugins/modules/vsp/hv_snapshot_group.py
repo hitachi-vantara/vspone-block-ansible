@@ -21,7 +21,7 @@ version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -30,10 +30,10 @@ extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 options:
   state:
-    description: The level of the snapshot task. Choices are C(absent), C(split), C(sync), C(restore), C(clone).
+    description: The level of the snapshot task. Choices are C(absent), C(split), C(sync), C(restore), C(clone), C(defragment).
     type: str
     required: true
-    choices: ['absent', 'split', 'sync', 'restore', 'clone']
+    choices: ['split', 'sync', 'restore', 'clone', 'absent', 'defragment']
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
     type: dict
@@ -53,11 +53,11 @@ options:
         type: str
         required: true
       username:
-        description: Username for authentication. This is a required field.
+        description: Username for authentication. This is a required field if api_token is not provided..
         type: str
         required: false
       password:
-        description: Password for authentication. This is a required field.
+        description: Password for authentication. This is a required field if api_token is not provided.
         type: str
         required: false
       api_token:
@@ -87,6 +87,11 @@ options:
         description: Specify the retention period for the snapshot in hours.This can be set when the snapshot status is PSUS.
         type: int
         required: false
+      copy_speed:
+        description: The speed of the copy operation.
+        type: str
+        required: false
+        choices: ['SLOW', 'MEDIUM', 'FAST']
 """
 
 EXAMPLES = """
@@ -140,6 +145,17 @@ EXAMPLES = """
     state: absent
     spec:
       snapshot_group_name: 'NewNameSPG'
+
+- name: Clone snapshots using snapshot group name
+  hitachivantara.vspone_block.vsp.hv_snapshot_group:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    state: clone
+    spec:
+      snapshot_group_name: 'NewNameSPG'
+      copy_speed: 'SLOW'
 """
 
 RETURN = """

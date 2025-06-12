@@ -4,14 +4,19 @@ try:
     from ..message.vsp_gad_pair_msgs import GADPairValidateMSG
     from ..provisioner.vsp_storage_system_provisioner import VSPStorageSystemProvisioner
     from ..common.hv_constants import CommonConstants
-    from ..common.vsp_constants import PairStatus, DEFAULT_NAME_PREFIX
+    from ..common.vsp_constants import (
+        PairStatus,
+        DEFAULT_NAME_PREFIX,
+        VolumePayloadConst,
+    )
+    from ..model.vsp_volume_models import (
+        CreateVolumeSpec,
+    )
     from ..provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
     from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
     from ..message.vsp_gad_pair_msgs import GADFailedMsg
-    from ..common.vsp_constants import VolumePayloadConst
     from ..common.hv_constants import ConnectionTypes
     from ..common.hv_log import Log
-    from ..model.vsp_volume_models import CreateVolumeSpec
     from ..model.vsp_resource_group_models import VSPResourceGroupSpec
     from ..model.vsp_copy_groups_models import (
         DirectCopyPairInfo,
@@ -33,14 +38,12 @@ except ImportError:
     from message.vsp_gad_pair_msgs import GADPairValidateMSG
     from provisioner.vsp_storage_system_provisioner import VSPStorageSystemProvisioner
     from common.hv_constants import CommonConstants
-    from common.vsp_constants import PairStatus, DEFAULT_NAME_PREFIX
+    from common.vsp_constants import PairStatus, DEFAULT_NAME_PREFIX, VolumePayloadConst
     from provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
     from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
     from message.vsp_gad_pair_msgs import GADFailedMsg
-    from common.vsp_constants import VolumePayloadConst
     from common.hv_constants import ConnectionTypes
     from common.hv_log import Log
-    from model.vsp_volume_models import CreateVolumeSpec
     from model.vsp_resource_group_models import VSPResourceGroupSpec
     from model.vsp_copy_groups_models import (
         DirectCopyPairInfo,
@@ -55,6 +58,7 @@ except ImportError:
         log_entry_exit,
         convert_decimal_size_to_bytes,
     )
+    from model.vsp_volume_models import CreateVolumeSpec
 
 logger = Log()
 
@@ -83,13 +87,13 @@ class GADPairProvisioner:
 
     @log_entry_exit
     def create_gad_pair(self, gad_pair_spec):
-        if (
-            gad_pair_spec.begin_secondary_volume_id
-            or gad_pair_spec.end_secondary_volume_id
-        ):
-            raise ValueError(
-                GADPairValidateMSG.SECONDARY_RANGE_ID_IS_NOT_SUPPORTED.value
-            )
+        # if (
+        #     gad_pair_spec.begin_secondary_volume_id
+        #     or gad_pair_spec.end_secondary_volume_id
+        # ):
+        #     raise ValueError(
+        #         GADPairValidateMSG.SECONDARY_RANGE_ID_IS_NOT_SUPPORTED.value
+        #     )
         return self.create_gad_pair_direct(gad_pair_spec)
 
     @log_entry_exit
@@ -1017,14 +1021,6 @@ class GADPairProvisioner:
 
         return volume
 
-    @log_entry_exit
-    def get_volume_by_id_v2(self, storage_id, volume_id):
-        volume = self.vol_gw.get_volume_by_id_v2(storage_id, volume_id)
-        # return vol_gw.get_volume_by_id(device_id, primary_volume_id)
-        logger.writeDebug(f"PROV:get_volume_by_id_v2:volume: {volume}")
-
-        return volume
-
 
 class RemoteReplicationHelperForSVol:
 
@@ -1134,12 +1130,59 @@ class RemoteReplicationHelperForSVol:
             raise ValueError(err_msg)
 
     @log_entry_exit
-    def select_secondary_volume_id(self, pvol_id):
-        free_vol_info = self.vol_gateway.get_free_ldev_matching_pvol(pvol_id)
-        logger.writeDebug(
-            "PROV:select_secondary_volume_id:free_vol_info = {}", free_vol_info
-        )
-        return free_vol_info.data[0].ldevId
+    def select_secondary_volume_id(self, pvol_id, spec=None):
+        if spec is None:
+            free_vol_info = self.vol_gateway.get_free_ldev_matching_pvol(pvol_id)
+            logger.writeDebug(
+                "PROV:select_secondary_volume_id:free_vol_info = {}", free_vol_info
+            )
+            return free_vol_info.data[0].ldevId
+        else:
+            if (
+                spec.begin_secondary_volume_id is not None
+                and spec.end_secondary_volume_id is not None
+            ):
+                # Select the first free volume in the range
+                free_vol_info = self.vol_gateway.get_free_ldev_matching_svol_range(
+                    spec.begin_secondary_volume_id, spec.end_secondary_volume_id
+                )
+                logger.writeDebug(
+                    "PROV:select_secondary_volume_id:for range:free_vol_info = {}",
+                    free_vol_info,
+                )
+                if free_vol_info.data:
+                    for free_vol in free_vol_info.data:
+                        if free_vol.resourceGroupId == 0:
+                            if (
+                                free_vol.ldevId > spec.begin_secondary_volume_id
+                                and free_vol.ldevId < spec.end_secondary_volume_id
+                            ):
+                                return free_vol.ldevId
+                            else:
+                                logger.writeDebug(
+                                    "PROV:select_secondary_volume_id:free_vol = {}",
+                                    free_vol,
+                                )
+
+                err_msg = VSPTrueCopyValidateMsg.NO_FREE_LDEV_IN_RANGE.value.format(
+                    spec.begin_secondary_volume_id, spec.end_secondary_volume_id
+                )
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
+            else:
+                # If no range is specified, get the first free volume
+                free_vol_info = self.vol_gateway.get_free_ldev_matching_pvol(pvol_id)
+                logger.writeDebug(
+                    "PROV:select_secondary_volume_id:free_vol_info = {}", free_vol_info
+                )
+                if free_vol_info.data:
+                    return free_vol_info.data[0].ldevId
+                else:
+                    err_msg = VSPTrueCopyValidateMsg.NO_FREE_LDEV_FOUND.value.format(
+                        pvol_id
+                    )
+                    logger.writeError(err_msg)
+                    raise ValueError(err_msg)
 
     @log_entry_exit
     def get_secondary_volume_id(self, vol_info, spec):
@@ -1156,7 +1199,7 @@ class RemoteReplicationHelperForSVol:
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
-        svol_id = self.select_secondary_volume_id(vol_info.ldevId)
+        svol_id = self.select_secondary_volume_id(vol_info.ldevId, spec)
         secondary_pool_id = spec.secondary_pool_id
         sec_vol_spec = CreateVolumeSpec()
         sec_vol_spec.pool_id = secondary_pool_id
@@ -1411,7 +1454,7 @@ class RemoteReplicationHelperForSVol:
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
-        svol_id = self.select_secondary_volume_id(vol_info.ldevId)
+        svol_id = self.select_secondary_volume_id(vol_info.ldevId, spec)
         secondary_pool_id = spec.secondary_pool_id
         sec_vol_spec = CreateVolumeSpec()
         sec_vol_spec.pool_id = secondary_pool_id
@@ -1571,16 +1614,15 @@ class RemoteReplicationHelperForSVol:
                 raise ValueError(err_msg)
         # Fail early, save time
         # Before creating the secondary volume check if secondary hostgroup exists
-        iscsi_target = self.get_secondary_hostgroup(spec.secondary_iscsi_targets, True)
-        if iscsi_target is None:
-            err_msg = VSPTrueCopyValidateMsg.NO_REMOTE_ISCSI_FOUND.value.format(
-                spec.secondary_iscsi_targets[0].name,
-                spec.secondary_iscsi_targets[0].port,
-            )
+        iscsi_targets = self.get_secondary_hostgroups(
+            spec.secondary_iscsi_targets, True
+        )
+        if iscsi_targets is None:
+            err_msg = GADPairValidateMSG.NO_REMOTE_ISCSI_FOUND.value
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
-        svol_id = self.select_secondary_volume_id(vol_info.ldevId)
+        svol_id = self.select_secondary_volume_id(vol_info.ldevId, spec)
         secondary_pool_id = spec.secondary_pool_id
         sec_vol_spec = CreateVolumeSpec()
         sec_vol_spec.pool_id = secondary_pool_id
@@ -1642,7 +1684,6 @@ class RemoteReplicationHelperForSVol:
 
                 add_resource_spec = VSPResourceGroupSpec()
                 add_resource_spec.ldevs = [int(sec_vol_id)]
-                resourceGroupId = iscsi_target.resourceGroupId
                 self.rg_gateway.remove_resource(
                     vol_info.resourceGroupId, add_resource_spec
                 )
@@ -1654,7 +1695,7 @@ class RemoteReplicationHelperForSVol:
             #  sng1104 - on the 2nd storage, find the hg.RG, move lun to RG
             add_resource_spec = VSPResourceGroupSpec()
             add_resource_spec.ldevs = [int(sec_vol_id)]
-            resourceGroupId = iscsi_target.resourceGroupId
+            resourceGroupId = iscsi_targets[0].resourceGroupId
             logger.writeDebug(
                 "PROV:get_secondary_volume_id:resourceGroupId = {}", resourceGroupId
             )
@@ -1666,16 +1707,19 @@ class RemoteReplicationHelperForSVol:
                 self.vol_gateway.assign_vldev(sec_vol_id, 65535)
             vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
             logger.writeDebug("PROV:813:sec_vol_id 1397 = {}", sec_vol_id)
-            self.iscsi_gateway.add_luns_to_iscsi_target(
-                iscsi_target,
-                [sec_vol_id],
-                None,
-                (
-                    spec.secondary_iscsi_targets[0].lun_id
-                    if spec.secondary_iscsi_targets[0].lun_id is not None
-                    else None
-                ),
-            )
+
+            for i in range(0, len(iscsi_targets)):
+                iscsi_target = iscsi_targets[i]
+                self.iscsi_gateway.add_luns_to_iscsi_target(
+                    iscsi_target,
+                    [sec_vol_id],
+                    None,
+                    (
+                        spec.secondary_iscsi_targets[i].lun_id
+                        if spec.secondary_iscsi_targets[i].lun_id is not None
+                        else None
+                    ),
+                )
 
         except Exception as ex:
             err_msg = GADFailedMsg.SEC_VOLUME_OPERATION_FAILED.value + str(ex)

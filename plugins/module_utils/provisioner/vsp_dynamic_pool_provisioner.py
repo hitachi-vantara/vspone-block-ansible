@@ -50,7 +50,7 @@ class VspDynamicPoolProvisioner:
         Get dynamic pool information by ID.
         :return: VspDynamicPoolInfo
         """
-        dynamic_pool = self.gateway.get_all_dynamic_pool_info_by_id(object_id)
+        dynamic_pool = self.gateway.get_dynamic_pool_by_id(object_id)
         return dynamic_pool
 
     @log_entry_exit

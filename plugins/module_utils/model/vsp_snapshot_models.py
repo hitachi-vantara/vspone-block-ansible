@@ -27,6 +27,7 @@ class SnapshotGroupSpec:
     snapshot_group_id: Optional[str] = None
     auto_split: Optional[bool] = None
     retention_period: Optional[int] = None
+    copy_speed: Optional[str] = None
 
 
 @dataclass
@@ -60,6 +61,8 @@ class SnapshotReconcileSpec:
     retention_period: Optional[int] = None
     copy_speed: Optional[str] = None
     clones_automation: Optional[bool] = None
+    operation_type: Optional[str] = None
+    should_delete_tree: Optional[bool] = False
 
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():
@@ -205,11 +208,11 @@ class UAIGSnapshotInfo(SingleBaseClass):
                 #  only if the base value is None
                 if getattr(self, field) is None:
                     setattr(self, field, thinImageProperties.get(field, None))
-                #  specail overwrite
+                #  special overwrite
                 if field == "type":
                     setattr(self, field, thinImageProperties.get(field, None))
 
-        #  flattern the struct from v3
+        #  flatten the struct from v3
         if snapshot_pair_info:
             thinImagePropertiesDto = snapshot_pair_info.get("thinImagePropertiesDto")
             for field in self.__dataclass_fields__.keys():
@@ -220,7 +223,7 @@ class UAIGSnapshotInfo(SingleBaseClass):
                 #  only if the base value is None
                 if getattr(self, field) is None:
                     setattr(self, field, thinImagePropertiesDto.get(field, None))
-                #  specail overwrite
+                #  special overwrite
                 if field == "type":
                     setattr(self, field, thinImagePropertiesDto.get(field, None))
 

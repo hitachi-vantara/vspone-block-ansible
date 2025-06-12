@@ -20,7 +20,7 @@ version_added: '3.2.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -46,11 +46,11 @@ options:
       username:
         description: Username for authentication. This is a required field.
         type: str
-        required: false
+        required: true
       password:
         description: Password for authentication. This is a required field.
         type: str
-        required: false
+        required: true
   spec:
     description: Specification for the hard drive tasks.
     type: dict

@@ -21,7 +21,7 @@
 
   tasks:
     #####################################################################
-    # Task 1 : Create HUR pair in new copy group
+    # Task Name : Create HUR pair in new copy group
     ######################################################################
     - name: Create HUR pair in new copy group
       hitachivantara.vspone_block.vsp.hv_hur:
@@ -53,7 +53,7 @@
         var: result
 
     #####################################################################
-    # Task 2 : Create HUR pair with existing copy group
+    # Task Name : Create HUR pair with existing copy group
     ######################################################################
     - name: Create HUR pair with existing copy group
       hitachivantara.vspone_block.vsp.hv_hur:
@@ -76,20 +76,29 @@
         var: result
 
     #####################################################################
-    # Task 3 : Split HUR pair
+    # Task Name : Create an HUR pair using a range for secondary volume id
     ######################################################################
-    - name: Split HUR pair
+    - name: Create an HUR pair using a range for secondary volume id
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
-        state: "split"
+        state: "present"
         spec:
-          local_device_group_name: "hur_local_device_group_name_1"
-          remote_device_group_name: "hur_remote_device_group_name_1"
           copy_group_name: "hur_copy_group_name_1"
           copy_pair_name: "hur_copy_pair_name_1"
-          is_svol_readwriteable: false
-
+          primary_volume_id: 1273
+          secondary_pool_id: 0
+          primary_volume_journal_id: 11
+          secondary_volume_journal_id: 13
+          local_device_group_name: "hur_local_device_group_name_1"
+          remote_device_group_name: "hur_remote_device_group_name_1"
+          consistency_group_id: 1
+          secondary_hostgroup:
+            name: "smrha-5565537478"
+            port: CL1-A
+          mirror_unit_id: 0
+          begin_secondary_volume_id: 4720
+          end_secondary_volume_id: 4730
       register: result
 
     - name: Debug the result variable
@@ -97,110 +106,7 @@
         var: result
 
     #####################################################################
-    # Task 4 : Resync HUR pair
-    ######################################################################
-    - name: Resync HUR pair
-      hitachivantara.vspone_block.vsp.hv_hur:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
-        state: "resync"
-        spec:
-          local_device_group_name: "hur_local_device_group_name_1"
-          remote_device_group_name: "hur_remote_device_group_name_1"
-          copy_group_name: "hur_copy_group_name_1"
-          copy_pair_name: "hur_copy_pair_name_1"
-
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    #########################################################################
-    # Task 5 : Swap-Split HUR pair
-    # Storages need to be swapped before swap-split operation. Please specify
-    # connection_info and secondary_connection_info accordingly.
-    #########################################################################
-    - name: Swap-Split HUR pair
-      hitachivantara.vspone_block.vsp.hv_hur:
-        connection_info: "{{ secondary_connection_info }}" # Remote Storage Connection info
-        secondary_connection_info: "{{ connection_info }}" # Local Storage Connection info
-        state: "swap_split"
-        spec:
-          local_device_group_name: "hur_local_device_group_name_1"
-          remote_device_group_name: "hur_remote_device_group_name_1"
-          copy_group_name: "hur_copy_group_name_1"
-          copy_pair_name: "hur_copy_pair_name_1"
-
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    #####################################################################
-    # Task 6 : Swap-Resync HUR pair
-    # Similar connection info details as per swap-split
-    ######################################################################
-    - name: Swap-Resync HUR pair
-      hitachivantara.vspone_block.vsp.hv_hur:
-        connection_info: "{{ secondary_connection_info }}" # Remote Storage Connection info
-        secondary_connection_info: "{{ connection_info }}" # Local Storage Connection info
-        state: "swap_resync"
-        spec:
-          local_device_group_name: "hur_local_device_group_name_1"
-          remote_device_group_name: "hur_remote_device_group_name_1"
-          copy_group_name: "hur_copy_group_name_1"
-          copy_pair_name: "hur_copy_pair_name_1"
-
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    #####################################################################
-    # Task 7 : Delete HUR pair
-    ######################################################################
-    - name: Delete HUR pair
-      hitachivantara.vspone_block.vsp.hv_hur:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
-        state: "absent"
-        spec:
-          local_device_group_name: "hur_local_device_group_name_1"
-          remote_device_group_name: "hur_remote_device_group_name_1"
-          copy_group_name: "hur_copy_group_name_1"
-          copy_pair_name: "hur_copy_pair_name_1"
-          should_delete_svol: false
-
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    #####################################################################
-    # Task 8 : Expand HUR pair
-    ######################################################################
-    - name: Expand HUR pair
-      hitachivantara.vspone_block.vsp.hv_hur:
-        connection_info: "{{ connection_info }}"
-        secondary_connection_info: "{{ secondary_connection_info }}"
-        state: "expand"
-        spec:
-          copy_group_name: "hur_copy_group_name_1"
-          copy_pair_name: "hur_copy_pair_name_1"
-          new_volume_size: "10GB"
-
-      register: result
-
-    - name: Debug the result variable
-      ansible.builtin.debug:
-        var: result
-
-    #####################################################################
-    # Task 9 : Create HUR-NVMe pair
+    # Task Name : Create HUR-NVMe pair
     ######################################################################
     - name: Create HUR pair in new copy group
       hitachivantara.vspone_block.vsp.hv_hur:
@@ -232,7 +138,7 @@
         var: result
 
     #####################################################################
-    # Task 10 : Create HUR-ISCSI pair
+    # Task Name : Create HUR-ISCSI pair
     ######################################################################
     - name: Create HUR-ISCSI pair
       hitachivantara.vspone_block.vsp.hv_hur:
@@ -256,6 +162,130 @@
           mirror_unit_id: 0
           is_data_reduction_force_copy: false
           path_group_id: 5
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task Name : Split HUR pair
+    ######################################################################
+    - name: Split HUR pair
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "split"
+        spec:
+          local_device_group_name: "hur_local_device_group_name_1"
+          remote_device_group_name: "hur_remote_device_group_name_1"
+          copy_group_name: "hur_copy_group_name_1"
+          copy_pair_name: "hur_copy_pair_name_1"
+          is_svol_readwriteable: false
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task Name : Resync HUR pair
+    ######################################################################
+    - name: Resync HUR pair
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "resync"
+        spec:
+          local_device_group_name: "hur_local_device_group_name_1"
+          remote_device_group_name: "hur_remote_device_group_name_1"
+          copy_group_name: "hur_copy_group_name_1"
+          copy_pair_name: "hur_copy_pair_name_1"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################
+    # Task Name : Swap-Split HUR pair
+    # Storages need to be swapped before swap-split operation. Please specify
+    # connection_info and secondary_connection_info accordingly.
+    #########################################################################
+    - name: Swap-Split HUR pair
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage Connection info
+        secondary_connection_info: "{{ connection_info }}" # Local Storage Connection info
+        state: "swap_split"
+        spec:
+          local_device_group_name: "hur_local_device_group_name_1"
+          remote_device_group_name: "hur_remote_device_group_name_1"
+          copy_group_name: "hur_copy_group_name_1"
+          copy_pair_name: "hur_copy_pair_name_1"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task Name : Swap-Resync HUR pair
+    # Similar connection info details as per swap-split
+    ######################################################################
+    - name: Swap-Resync HUR pair
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage Connection info
+        secondary_connection_info: "{{ connection_info }}" # Local Storage Connection info
+        state: "swap_resync"
+        spec:
+          local_device_group_name: "hur_local_device_group_name_1"
+          remote_device_group_name: "hur_remote_device_group_name_1"
+          copy_group_name: "hur_copy_group_name_1"
+          copy_pair_name: "hur_copy_pair_name_1"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task Name : Delete HUR pair
+    ######################################################################
+    - name: Delete HUR pair
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "absent"
+        spec:
+          local_device_group_name: "hur_local_device_group_name_1"
+          remote_device_group_name: "hur_remote_device_group_name_1"
+          copy_group_name: "hur_copy_group_name_1"
+          copy_pair_name: "hur_copy_pair_name_1"
+          should_delete_svol: false
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################
+    # Task Name : Expand HUR pair
+    ######################################################################
+    - name: Expand HUR pair
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "expand"
+        spec:
+          copy_group_name: "hur_copy_group_name_1"
+          copy_pair_name: "hur_copy_pair_name_1"
+          new_volume_size: "10GB"
 
       register: result
 

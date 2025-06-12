@@ -21,7 +21,7 @@ version_added: '3.3.0'
 author:
     - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
-  - python >= 3.8
+  - python >= 3.9
 attributes:
   check_mode:
     description: Determines if the module should run in check mode.
@@ -57,6 +57,12 @@ options:
         type: dict
         required: true
         suboptions:
+            authentication:
+                description: The authentication method for the user. Required for user creation.
+                type: str
+                required: false
+                choices: ['local', 'external']
+                default: 'local'
             password:
                 description: The password of the user.
                 type: str

@@ -18,7 +18,7 @@
 
   tasks:
     ######################################################################################
-    # Task 1 : Create a DDP Pool
+    # Task Name : Create a DDP Pool
     ######################################################################################
     - name: Create a DDP Pool
       hitachivantara.vspone_block.vsp.hv_ddp_pool:
@@ -40,7 +40,7 @@
         var: result
 
     ######################################################################################
-    # Task 2 : Update the DDP Pool Settings
+    # Task Name : Update the DDP Pool Settings
     ######################################################################################
     - name: Update the DDP Pool Settings
       hitachivantara.vspone_block.vsp.hv_ddp_pool:
@@ -59,7 +59,7 @@
         var: result
 
     ######################################################################################
-    # Task 3 : Expand the DDP Pool size
+    # Task Name : Expand the DDP Pool size
     ######################################################################################
     - name: Expand the DDP Pool size
       hitachivantara.vspone_block.vsp.hv_ddp_pool:
@@ -78,7 +78,7 @@
         var: result
 
     ######################################################################################
-    # Task 4 : Delete the DDP Pool
+    # Task Name : Delete the DDP Pool
     ######################################################################################
     - name: Delete the DDP Pool
       hitachivantara.vspone_block.vsp.hv_ddp_pool:
@@ -94,7 +94,7 @@
         var: result
 
     ######################################################################################
-    # Task 5 : Create a DDP Pool with auto assigned drives
+    # Task Name : Create a DDP Pool with auto assigned drives
     ######################################################################################
     - name: Create a DDP Pool with auto assigned drives
       hitachivantara.vspone_block.vsp.hv_ddp_pool:

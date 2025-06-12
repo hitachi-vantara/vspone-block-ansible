@@ -18,7 +18,7 @@
 
   tasks:
     ####################################################################
-    # Task 1 : Get all compute nodes
+    # Task Name : Get all compute nodes
     ####################################################################
     - name: Get all compute nodes
       hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node_facts:
@@ -30,7 +30,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Get compute nodes by names
+    # Task Name : Get compute nodes by names
     ####################################################################
     - name: Get compute nodes by names
       hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node_facts:
@@ -46,7 +46,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Get compute nodes by hba_name
+    # Task Name : Get compute nodes by hba_name
     ####################################################################
     - name: Get compute nodes by hba_name
       hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node_facts:
