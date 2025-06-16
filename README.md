@@ -93,9 +93,7 @@ For support, please use one of the following channels:
 - [Hitachi Vantara Support Portal](https://support.hitachivantara.com/) – for enterprise-grade support (requires valid support contract)
 - Community discussion is welcome via GitHub or user forums
 
-## Release Notes and Roadmap
-
-### Release Notes
+## Release Notes
 
 For User Guide and Release Notes, see [User Guide and Release Notes](https://docs.hitachivantara.com/search/all?query=ansible&value-filters=Option~%2522Red+Hat%2522*Product_custom~%2522Adapters+and+Drivers%2522&content-lang=en-US)
 
