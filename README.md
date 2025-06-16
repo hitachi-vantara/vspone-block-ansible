@@ -103,23 +103,7 @@ Version **3.5.0** highlights:
 
 - General performance enhancements and bug fixes
 
-### Roadmap
 
-The following roadmap outlines upcoming features and improvements:
-
-#### **Version 4.0** (Target: July 18, 2025)
-
-- Initial storage system setup automation
-- Remaining Pool Management features
-- I/O performance optimization enhancements
-- Support for remote replication failover workflows
-
-#### **Version 4.1** (Target: August 15, 2025)
-
-- Expansion of SDS Storage Cluster capabilities
-- Support for user password reset operations
-- Storage pool expansion features
-- Initial support for SDS Block on AWS deployments
 
 ## License
 
