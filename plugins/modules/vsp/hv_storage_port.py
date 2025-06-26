@@ -181,7 +181,6 @@ EXAMPLES = """
     spec:
       port: "CL1-C"
       host_ip_address: "172.25.59.213"
-
 """
 
 RETURN = """

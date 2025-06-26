@@ -38,10 +38,10 @@
           local_device_group_name: "hur_local_device_group_name_1"
           remote_device_group_name: "hur_remote_device_group_name_1"
           consistency_group_id: 1
-          secondary_hostgroup:
-            name: "ansible-hostgroup-2"
-            port: "CL1-A"
-            lun_id: 5
+          secondary_hostgroups:
+            - name: "ansible-hostgroup-2"
+              port: "CL1-A"
+              lun_id: 5
           mirror_unit_id: 0
           is_data_reduction_force_copy: false
           path_group_id: 5
@@ -65,10 +65,10 @@
           copy_pair_name: "hur_copy_pair_name_2"
           primary_volume_id: 1274
           secondary_pool_id: 0
-          secondary_hostgroup:
-            name: "ansible-hostgroup-2"
-            port: "CL1-A"
-            lun_id: 5
+          secondary_hostgroups:
+            - name: "ansible-hostgroup-2"
+              port: "CL1-A"
+              lun_id: 5
       register: result
 
     - name: Debug the result variable
@@ -93,9 +93,9 @@
           local_device_group_name: "hur_local_device_group_name_1"
           remote_device_group_name: "hur_remote_device_group_name_1"
           consistency_group_id: 1
-          secondary_hostgroup:
-            name: "smrha-5565537478"
-            port: CL1-A
+          secondary_hostgroups:
+            - name: "smrha-5565537478"
+              port: CL1-A
           mirror_unit_id: 0
           begin_secondary_volume_id: 4720
           end_secondary_volume_id: 4730
@@ -166,6 +166,62 @@
       register: result
 
     - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #######################################################################################
+    # Task Name : Create an HUR pair by specifying the provisioned_secondary_volume_id.
+    # Use this playbook if the secondary volume is already attached to hostgroups or iscsi
+    # targets, and there is no need to attach additional hostgroups or iscsi targets.
+    #######################################################################################
+    - name: Create HUR pair with provisioned_secondary_volume_id
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "present"
+        spec:
+          copy_group_name: "hur_copy_group_name_0604"
+          copy_pair_name: "hur_copy_pair_name_0604"
+          primary_volume_id: 75
+          secondary_pool_id: 0
+          primary_volume_journal_id: 11
+          secondary_volume_journal_id: 13
+          mirror_unit_id: 3
+          provisioned_secondary_volume_id: 5612
+      register: result
+
+    - name: Debug result
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task Name : Create a HUR pair by specifying the provisioned_secondary_volume_id.
+    # Use this playbook if the secondary volume is not already attached to hostgroups
+    # or if you want to attach additional hostgroups to the secondary volume.
+    #####################################################################################
+    - name: Create HUR pair with provisioned_secondary_volume_id and hostgroups
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "present"
+        spec:
+          copy_group_name: "hur_copy_group_name_0604"
+          copy_pair_name: "hur_copy_pair_name_0604"
+          primary_volume_id: 75
+          secondary_pool_id: 0
+          primary_volume_journal_id: 11
+          secondary_volume_journal_id: 13
+          mirror_unit_id: 3
+          provisioned_secondary_volume_id: 5612
+          secondary_hostgroups:
+            - name: "smrha-2449965918"
+              port: CL2-B
+            - name: "smrha-1840203863"
+              port: CL2-B
+              lun_id: 3
+      register: result
+
+    - name: Debug result
       ansible.builtin.debug:
         var: result
 

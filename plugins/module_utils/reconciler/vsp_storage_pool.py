@@ -8,7 +8,7 @@ try:
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..model.vsp_storage_pool_models import StoragePoolSpec
     from ..common.hv_constants import StateValue
-
+    from ..message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
 except ImportError:
     from common.ansible_common import (
         log_entry_exit,
@@ -19,6 +19,7 @@ except ImportError:
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from model.vsp_storage_pool_models import StoragePoolSpec
     from common.hv_constants import StateValue
+    from ..message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
 
 logger = Log()
 
@@ -65,11 +66,14 @@ class VSPStoragePoolReconciler:
         if pool is None:
             return self.provisioner.create_storage_pool(spec)
         else:
+            if spec.id is not None and spec.name is not None:
+                raise ValueError(VSPStoragePoolValidateMsg.BOTH_POOL_ID_AND_NAME.value)
             return self.provisioner.update_storage_pool(spec, pool)
 
     @log_entry_exit
     def delete_storage_pool(self, spec):
-
+        if spec.id is not None and spec.name is not None:
+            raise ValueError(VSPStoragePoolValidateMsg.BOTH_POOL_ID_AND_NAME.value)
         return self.provisioner.delete_storage_pool(spec)
 
     @log_entry_exit

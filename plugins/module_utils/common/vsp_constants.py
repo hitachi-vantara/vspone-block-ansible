@@ -444,6 +444,7 @@ class AutomationConstants(object):
     PASS_LEN_MIN = 6
     PASS_LEN_MAX = 256
     MAX_USER_GROUPS = 8
+    MAX_LDEVS_IN_DP = 64
 
 
 class LogMessages(object):

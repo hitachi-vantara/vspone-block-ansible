@@ -77,6 +77,10 @@ class VSPStoragePoolDirectGateway:
             )
         if spec.ldev_ids:
             payload[StoragePoolPayloadConst.LDEV_IDS] = spec.ldev_ids
+        if spec.start_ldev_id:
+            payload[StoragePoolPayloadConst.START_LDEV_ID] = spec.start_ldev_id
+        if spec.end_ldev_id:
+            payload[StoragePoolPayloadConst.END_LDEV_ID] = spec.end_ldev_id
         if spec.should_enable_deduplication:
             payload[StoragePoolPayloadConst.IS_ENABLE_DEDUPLICATION] = (
                 spec.duplication_ldev_ids

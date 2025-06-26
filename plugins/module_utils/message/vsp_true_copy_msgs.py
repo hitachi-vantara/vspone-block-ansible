@@ -59,9 +59,11 @@ class VSPTrueCopyValidateMsg(Enum):
     NO_TC_PAIR_FOUND_FOR_INPUTS = (
         "Could not find TrueCopy pair for the input parameters supplied."
     )
-    NO_REMOTE_HG_FOUND = "Could not find hostgroup {} on port {} on secondary storage."
+    NO_REMOTE_HG_FOUND = (
+        "Could not find hostgroups specified in the spec on secondary storage."
+    )
     NO_REMOTE_ISCSI_FOUND = (
-        "Could not find iscsi target {} on port {} on secondary storage."
+        "Could not find iscsi targets specified in the spec on secondary storage."
     )
     HG_SUBSCRIBER_ID_MISMATCH = (
         "Provided subscriber_id {} and hostgroup subscriber Id {} did not match."
@@ -110,12 +112,11 @@ class VSPTrueCopyValidateMsg(Enum):
     SEC_PORT_NOT_FOUND = (
         "Could not find the port {} for the host group on secondary storage system."
     )
-    SECONDARY_RANGE_ID_IS_NOT_SUPPORTED = "Parameters begin_secondary_volume_id and end_secondary_volume_id is not supported for direct connect."
     SECONDARY_RANGE_ID_INVALID = "Please specify both begin_secondary_volume_id and end_secondary_volume_id. Specifying either one is not supported."
 
     PVOL_ID_OR_CP_NAME_NEEDED_WITH_CG_NAME = "Please provide either primary_volume_id or copy_pair_name with copy_group_name."
     NO_REMOTE_NVME_FOUND = "Could not find NVMe subsystem {} secondary storage."
-    SECONDARY_HOSTGROUPS_OR_NVME = "Either specify secondary_hostgroup or secondary_nvm_subsystems or iscsi targets all cannot be empty."
+    SECONDARY_HOSTGROUPS_OR_NVME = "Either specify secondary_hostgroup or secondary_nvm_subsystems or secondary_iscsi_targets all cannot be empty."
     NVMSUBSYSTEM_DIFFER = "A pair cannot be created because the NVM subsystem ID {} specified for S-VOL differs from the NVM subsystem ID {} for the P-VOL."
     PVOL_NAMESPACE_MISSING = (
         "A pair cannot be created because there does not exist a namespace for PVOL {}"
@@ -124,3 +125,8 @@ class VSPTrueCopyValidateMsg(Enum):
     EXPAND_PVOL_FAILED = "Failed to perform operation for primary volume {}."
     EXPAND_SVOL_FAILED = "Failed to perform operation for secondary volume {}."
     NO_FREE_LDEV_IN_RANGE = "No free LDEV found in the range {} - {}."
+    SECONDARY_VOLUME_ID_OUT_OF_RANGE = "provisioned_secondary_volume_id does not lie between begin_secondary_volume_id and end_secondary_volume_id."
+    BOTH_HGS_ARE_SPECIFIED = (
+        "Both secondary_hostgroups and secondary_hostgroup are specified. "
+        "Use secondary_hostgroups only, secondary_hostgroup is there for backward compatibility."
+    )

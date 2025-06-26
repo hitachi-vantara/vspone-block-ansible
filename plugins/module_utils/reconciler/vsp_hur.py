@@ -17,8 +17,7 @@ try:
         DirectCopyPairInfo,
     )
     from ..message.vsp_hur_msgs import VSPHurValidateMsg
-
-
+    from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
 except ImportError:
     from common.ansible_common import (
         log_entry_exit,
@@ -34,6 +33,7 @@ except ImportError:
     from model.vsp_hur_models import VSPHurPairInfoList, VSPHurPairInfo
     from model.vsp_copy_groups_models import DirectCopyPairInfo
     from message.vsp_hur_msgs import VSPHurValidateMsg
+    from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
 
 
 logger = Log()
@@ -88,8 +88,67 @@ class VSPHurReconciler:
     @log_entry_exit
     def create_hur(self, spec):
         logger.writeDebug("RC:create_hur:spec={} ", spec)
+        self.validate_create_spec(spec)
+
+        pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
+        logger.writeDebug("RC:create_hur:pvol={} ", pvol)
+        if not pvol:
+            raise ValueError(
+                VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
+                    spec.primary_volume_id
+                )
+            )
 
         return self.provisioner.create_hur_pair(spec)
+
+    @log_entry_exit
+    def validate_create_spec(self, spec: Any) -> None:
+        if spec.primary_volume_id is None:
+            raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
+
+        if (
+            spec.secondary_pool_id is None
+            and spec.provisioned_secondary_volume_id is None
+        ):
+            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_POOL_ID.value)
+
+        if (
+            spec.secondary_hostgroup is not None
+            and spec.secondary_hostgroups is not None
+        ):
+            raise ValueError(VSPTrueCopyValidateMsg.BOTH_HGS_ARE_SPECIFIED.value)
+
+        if spec.secondary_hostgroup is not None and spec.secondary_hostgroups is None:
+            spec.secondary_hostgroups = spec.secondary_hostgroup
+
+        if (
+            spec.secondary_hostgroups is None
+            and spec.secondary_nvm_subsystem is None
+            and spec.secondary_iscsi_targets is None
+            and spec.provisioned_secondary_volume_id is None
+        ):
+            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS_OR_NVME.value)
+
+        if self.secondary_connection_info is None:
+            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_CONNECTION_INFO.value)
+        else:
+            spec.secondary_connection_info = self.secondary_connection_info
+        if spec.copy_group_name is None:
+            raise ValueError(VSPTrueCopyValidateMsg.COPY_GROUP_NAME.value)
+        if spec.copy_pair_name is None:
+            raise ValueError(VSPTrueCopyValidateMsg.COPY_PAIR_NAME.value)
+
+        if (
+            spec.provisioned_secondary_volume_id
+            and spec.begin_secondary_volume_id
+            and spec.end_secondary_volume_id
+        ):
+            if (
+                spec.provisioned_secondary_volume_id < spec.begin_secondary_volume_id
+            ) or (spec.provisioned_secondary_volume_id > spec.end_secondary_volume_id):
+                raise ValueError(
+                    VSPHurValidateMsg.SECONDARY_VOLUME_ID_OUT_OF_RANGE.value
+                )
 
     @log_entry_exit
     def validate_hur_spec_ctg(self, spec: Any) -> None:

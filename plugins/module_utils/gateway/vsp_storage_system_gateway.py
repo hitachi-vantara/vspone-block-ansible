@@ -1,6 +1,9 @@
+import re
+
 try:
     from ..common.vsp_constants import Endpoints
     from ..common.ansible_common import dicts_to_dataclass_list
+    from ..common.hv_log import Log
     from ..model.vsp_storage_system_models import (
         VSPStorageSystemsInfoPfrestList,
         VSPStorageSystemsInfoPfrest,
@@ -47,10 +50,20 @@ except ImportError:
         TotalEfficiency,
     )
     from common.ansible_common import log_entry_exit
+    from common.hv_log import Log
     from .gateway_manager import VSPConnectionManager
+
+logger = Log()
 
 
 class VSPStorageSystemDirectGateway:
+    _instance = None
+    _cache = {}
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(VSPStorageSystemDirectGateway, cls).__new__(cls)
+        return cls._instance
 
     def __init__(self, connection_info):
         self.connectionManager = VSPConnectionManager(
@@ -59,31 +72,97 @@ class VSPStorageSystemDirectGateway:
             connection_info.password,
             connection_info.api_token,
         )
+        self.address = connection_info.address
+
+    @log_entry_exit
+    def get_site_cache(self):
+        value = self._cache.get(self.address, None)
+        if value is not None:
+            return value
+        else:
+            site_cache = {}
+            self._cache[self.address] = site_cache
+            return site_cache
 
     @log_entry_exit
     def get_storage_systems(self):
-        endPoint = Endpoints.GET_STORAGE_SYSTEMS
-        storageSystemsDict = self.connectionManager.get(endPoint)
-        return VSPStorageSystemsInfoPfrestList(
-            dicts_to_dataclass_list(
-                storageSystemsDict["data"], VSPStorageSystemsInfoPfrest
+        logger.writeDebug("get_storage_systems called")
+        cache = self.get_site_cache()
+        value = cache.get("get_storage_systems", None)
+        if value is not None:
+            return value
+        else:
+            endPoint = Endpoints.GET_STORAGE_SYSTEMS
+            storageSystemsDict = self.connectionManager.get(endPoint)
+            result = VSPStorageSystemsInfoPfrestList(
+                dicts_to_dataclass_list(
+                    storageSystemsDict["data"], VSPStorageSystemsInfoPfrest
+                )
             )
-        )
+            cache["get_storage_systems"] = result
+            return result
 
     @log_entry_exit
     def get_storage_system(self, instance):
-        # logger = Log()
-        path = instance + "?detailInfoType=version"
-        endPoint = Endpoints.GET_STORAGE_SYSTEM.format(path)
-        storageSystemInfo = self.connectionManager.get(endPoint)
-        return VSPStorageSystemInfoPfrest(**storageSystemInfo)
+        logger.writeDebug("get_storage_system called")
+        cache = self.get_site_cache()
+        value = cache.get("get_storage_system", None)
+        if value is not None:
+            return value
+        else:
+            path = instance + "?detailInfoType=version"
+            endPoint = Endpoints.GET_STORAGE_SYSTEM.format(path)
+            storageSystemInfo = self.connectionManager.get(endPoint)
+            result = VSPStorageSystemInfoPfrest(**storageSystemInfo)
+            cache["get_storage_system"] = result
+            return result
 
     @log_entry_exit
     def get_current_storage_system_info(self):
-        # logger = Log()
-        endPoint = Endpoints.GET_STORAGE_INFO
-        storageSystemInfo = self.connectionManager.get(endPoint)
-        return VSPStorageSystemInfoPfrest(**storageSystemInfo)
+        logger.writeDebug("get_current_storage_system_info called")
+        cache = self.get_site_cache()
+        value = cache.get("get_current_storage_system_info", None)
+        if value is not None:
+            return value
+        else:
+            endPoint = Endpoints.GET_STORAGE_INFO
+            storageSystemInfo = self.connectionManager.get(endPoint)
+            result = VSPStorageSystemInfoPfrest(**storageSystemInfo)
+            cache["get_current_storage_system_info"] = result
+            return result
+
+    @log_entry_exit
+    def is_vsp_5000_series(self):
+        cache = self.get_site_cache()
+        value = cache.get("is_vsp_5000_series", None)
+        if value is not None:
+            return value
+        else:
+            storage_system_info = self.get_current_storage_system_info()
+            model = storage_system_info.model
+            pattern = r"VSP 5[0-9]00*"
+            match = re.search(pattern, model)
+            if match:
+                cache["is_vsp_5000_series"] = True
+                return True
+            else:
+                cache["is_vsp_5000_series"] = False
+                return False
+
+    @log_entry_exit
+    def is_svp_present(self):
+        cache = self.get_site_cache()
+        value = cache.get("is_svp_present", None)
+        if value is not None:
+            return value
+        else:
+            storage_system_info = self.get_current_storage_system_info()
+            if storage_system_info.svpIp:
+                cache["is_svp_present"] = True
+                return True
+            else:
+                cache["is_svp_present"] = False
+                return False
 
     @log_entry_exit
     def get_total_efficiency_of_storage_system(self):

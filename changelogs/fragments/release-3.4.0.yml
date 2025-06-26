@@ -5,7 +5,8 @@ minor_changes:
   - "Added new module `hv_ddp_pool_facts` to retrieve DDP-based pool details on VSP One Block storage models."
   - "Added iSCSI target support for GAD, TrueCopy, HUR, ShadowImage, and Snapshot/ThinImage modules."
   - "Enhanced `hv_shadow_image` module: support for local copy group and copy pair name for shadow image pair management; group management of shadow image pairs."
-  - "Enhanced `hv_snapshot` module: added copy speed, clones automation, retention period, support for Floating Snapshot, and pair creation with specific or auto-selected SVOL and mirror unit."
+  - "Enhanced `hv_snapshot` module: added copy speed, clones automation, retention period, support for Floating Snapshot, and pair creation with specific or auto-selected
+    SVOL and mirror unit."
   - "Enhanced `hv_snapshot_group` module to support retention period."
   - "Enhanced `hv_storage_port` module to support attributes like connection, speed, and type."
   - "Enhanced `hv_ldev_facts` module to support query parameters."

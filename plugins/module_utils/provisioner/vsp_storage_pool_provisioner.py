@@ -272,33 +272,34 @@ class VSPStoragePoolProvisioner:
             err_msg = VSPStoragePoolValidateMsg.POOL_TYPE_REQUIRED.value
             logger.writeError(err_msg)
             raise ValueError(err_msg)
-        if pool_spec.pool_volumes is None:
-            err_msg = VSPStoragePoolValidateMsg.POOL_VOLUME_REQUIRED.value
-            logger.writeError(err_msg)
-            raise ValueError(err_msg)
+        # if pool_spec.pool_volumes is None:
+        #     err_msg = VSPStoragePoolValidateMsg.POOL_VOLUME_REQUIRED.value
+        #     logger.writeError(err_msg)
+        #     raise ValueError(err_msg)
         pool_spec.type = pool_spec.type.upper()
 
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            if pool_spec.should_enable_deduplication:
-                storage_system = (
-                    self.storage_system_prov.get_current_storage_system_info()
-                )
+        if pool_spec.should_enable_deduplication:
+            storage_system = self.storage_system_prov.get_current_storage_system_info()
 
-                if storage_system.model.strip().upper() not in DEDUP_MODELS:
-                    err_msg = (
-                        VSPStoragePoolValidateMsg.DEDUPLICATION_NOT_SUPPORTED.value
-                    )
+            if storage_system.model.strip().upper() not in DEDUP_MODELS:
+                err_msg = VSPStoragePoolValidateMsg.DEDUPLICATION_NOT_SUPPORTED.value
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
+            else:
+                dup_ldev = self.vol_prov.get_free_ldev_from_meta()
+                if dup_ldev is None:
+                    err_msg = VSPStoragePoolValidateMsg.NO_DUP_VOLUMES.value
                     logger.writeError(err_msg)
                     raise ValueError(err_msg)
-                else:
-                    dup_ldev = self.vol_prov.get_free_ldev_from_meta()
-                    if dup_ldev is None:
-                        err_msg = VSPStoragePoolValidateMsg.NO_DUP_VOLUMES.value
-                        logger.writeError(err_msg)
-                        raise ValueError(err_msg)
-                    pool_spec.duplication_ldev_ids = [dup_ldev]
+                pool_spec.duplication_ldev_ids = [dup_ldev]
+
+        if pool_spec.id:
+            pool_spec.pool_id = pool_spec.id
+        else:
             pool_spec.pool_id = self.get_free_pool_id()
-            # handle the case to create a volume in the parity group id
+
+        # handle the case to create a volume in the parity group id
+        if pool_spec.pool_volumes:
             pool_spec.ldev_ids = self.create_ldev_for_pool(pool_spec)
         try:
             pool_id = self.gateway.create_storage_pool(pool_spec)

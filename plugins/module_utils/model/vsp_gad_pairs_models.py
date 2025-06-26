@@ -65,7 +65,6 @@ class VspGadPairSpec:
     quorum_disk_id: Optional[str] = None
     remote_ucp_system: Optional[str] = None
 
-    #  sng1104
     path_group_id: Optional[int] = None
     mu_number: Optional[int] = None
     copy_pace: Optional[str] = None
@@ -86,6 +85,7 @@ class VspGadPairSpec:
     end_secondary_volume_id: Optional[int] = None
     is_svol_readwriteable: Optional[bool] = False
     should_delete_svol: Optional[bool] = False
+    provisioned_secondary_volume_id: Optional[int] = None
 
     def __post_init__(self, **kwargs):
         if self.primary_hostgroups:

@@ -63,7 +63,7 @@
         var: result
 
     ######################################################################################
-    # Task Name : Create a Resource Group with with the following resources
+    # Task Name : Create a Resource Group with the following resources
     # Resources : ldevs, parity groups, ports, host groups, nvm subsystem ids
     ######################################################################################
     - name: Create a Resource Group with above resources

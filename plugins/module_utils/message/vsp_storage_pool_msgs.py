@@ -19,3 +19,5 @@ class VSPStoragePoolValidateMsg(Enum):
     DEDUPLICATION_NOT_SUPPORTED = (
         "Deduplication is not supported for this storage system."
     )
+    SPECIFY_ONE = "Specify only one of pool_volumes, ldev_ids, or range (start_ldev_id and end_ldev_id)."
+    NO_MORE_THAN_64_LDEVS = "Specify a number such that the range indicated by the start_ldev_id and end_ldev_id attributes consists of no more than 64 LDEVs."

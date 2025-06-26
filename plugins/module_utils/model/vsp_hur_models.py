@@ -91,6 +91,7 @@ class HurSpec(SingleBaseClass):
     end_secondary_volume_id: Optional[int] = None
     path_group_id: Optional[int] = None
     should_delete_svol: Optional[bool] = False
+    provisioned_secondary_volume_id: Optional[int] = None
 
     # Making a single hg
     secondary_hostgroup: Optional[HurHostGroupSpec] = None
@@ -101,8 +102,15 @@ class HurSpec(SingleBaseClass):
             "secondary_hostgroup" in kwargs
             and kwargs.get("secondary_hostgroup") is not None
         ):
-            self.secondary_hostgroups = [
+            self.secondary_hostgroup = [
                 HurHostGroupSpec(**kwargs.get("secondary_hostgroup"))
+            ]
+        if (
+            "secondary_hostgroups" in kwargs
+            and kwargs.get("secondary_hostgroups") is not None
+        ):
+            self.secondary_hostgroups = [
+                HurHostGroupSpec(**x) for x in self.secondary_hostgroups
             ]
         if (
             "secondary_iscsi_targets" in kwargs
