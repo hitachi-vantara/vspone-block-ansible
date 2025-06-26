@@ -137,36 +137,54 @@ class VSPTrueCopyReconciler:
 
     @log_entry_exit
     def validate_create_spec(self, spec: Any) -> None:
-        """
-        Validate the TrueCopy specification.
-        """
-        # These are common for both direct and gateway
 
         if spec.primary_volume_id is None:
             raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
 
-        if spec.secondary_pool_id is None:
+        if (
+            spec.secondary_pool_id is None
+            and spec.provisioned_secondary_volume_id is None
+        ):
             raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_POOL_ID.value)
+
+        if (
+            spec.secondary_hostgroup is not None
+            and spec.secondary_hostgroups is not None
+        ):
+            raise ValueError(VSPTrueCopyValidateMsg.BOTH_HGS_ARE_SPECIFIED.value)
+
+        if spec.secondary_hostgroup is not None and spec.secondary_hostgroups is None:
+            spec.secondary_hostgroups = spec.secondary_hostgroup
 
         if (
             spec.secondary_hostgroups is None
             and spec.secondary_nvm_subsystem is None
             and spec.secondary_iscsi_targets is None
+            and spec.provisioned_secondary_volume_id is None
         ):
             raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS_OR_NVME.value)
 
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            if self.secondary_connection_info is None:
-                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_CONNECTION_INFO.value)
-            else:
-                spec.secondary_connection_info = self.secondary_connection_info
-            if spec.copy_group_name is None:
-                raise ValueError(VSPTrueCopyValidateMsg.COPY_GROUP_NAME.value)
-            if spec.copy_pair_name is None:
-                raise ValueError(VSPTrueCopyValidateMsg.COPY_PAIR_NAME.value)
+        if self.secondary_connection_info is None:
+            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_CONNECTION_INFO.value)
         else:
-            if spec.secondary_storage_serial_number is None:
-                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_STORAGE_SN.value)
+            spec.secondary_connection_info = self.secondary_connection_info
+
+        if spec.copy_group_name is None:
+            raise ValueError(VSPTrueCopyValidateMsg.COPY_GROUP_NAME.value)
+        if spec.copy_pair_name is None:
+            raise ValueError(VSPTrueCopyValidateMsg.COPY_PAIR_NAME.value)
+
+        if (
+            spec.provisioned_secondary_volume_id
+            and spec.begin_secondary_volume_id
+            and spec.end_secondary_volume_id
+        ):
+            if (
+                spec.provisioned_secondary_volume_id < spec.begin_secondary_volume_id
+            ) or (spec.provisioned_secondary_volume_id > spec.end_secondary_volume_id):
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.SECONDARY_VOLUME_ID_OUT_OF_RANGE.value
+                )
 
     @log_entry_exit
     def reconcile_true_copy(self, spec: Any) -> Any:

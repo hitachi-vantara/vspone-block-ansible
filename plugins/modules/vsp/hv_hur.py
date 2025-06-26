@@ -28,7 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 notes:
-  - The input parameters C(begin_secondary_volume_id) and C(end_secondary_volume_id) were removed in version 3.4.0.
+  - The output parameters C(entitlement_status), C(subscriber_id), and C(partner_id) were removed in version 3.4.0.
     These were deprecated due to internal API simplification and are no longer supported.
 options:
   state:
@@ -157,6 +157,24 @@ options:
             description: LUN ID can be provided along with host group on the secondary storage system.
             type: int
             required: false
+      secondary_hostgroups:
+        description: List of hostgroup objects for the secondary volume.
+        type: list
+        elements: dict
+        required: false
+        suboptions:
+          name:
+            description: Name of the host group on the secondary storage system. This is required for create operation.
+            type: str
+            required: true
+          port:
+            description: Port of the host group on the secondary storage system. This is required for create operation.
+            type: str
+            required: true
+          lun_id:
+            description: LUN ID of the host group on the secondary storage system. This is not required for create operation.
+            type: int
+            required: false
       secondary_iscsi_targets:
         description: The list of iscsi targets on the secondary storage device.
         type: list
@@ -241,6 +259,10 @@ options:
       new_volume_size:
         description: New volume size.
         type: str
+        required: false
+      provisioned_secondary_volume_id:
+        description: ID of the provisioned secondary volume that you want to use for the HUR pair creation.
+        type: int
         required: false
       begin_secondary_volume_id:
         description: >
@@ -518,9 +540,7 @@ class VSPSHurManager:
 
     def apply(self):
         self.logger.writeInfo("=== Start of HUR operation. ===")
-        self.logger.writeDebug(
-            f"{self.params_manager.connection_info.connection_type} connection type"
-        )
+
         registration_message = validate_ansible_product_registration()
         try:
 

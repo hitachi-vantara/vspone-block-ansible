@@ -17,8 +17,8 @@ try:
     from ..common.hv_log import Log
 
     from ..common.ansible_common import log_entry_exit
-    from ..model.common_base_models import VSPStorageDevice
     from ..common.vsp_constants import PEGASUS_MODELS
+    from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 
 except ImportError:
     from common.ansible_common import log_entry_exit
@@ -32,9 +32,9 @@ except ImportError:
         VSPUndefinedVolumeInfo,
         VSPUndefinedVolumeInfoList,
     )
-    from model.common_base_models import VSPStorageDevice
     from common.hv_log import Log
     from common.vsp_constants import PEGASUS_MODELS
+    from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 
 
 logger = Log()
@@ -52,6 +52,7 @@ class VSPVolumeDirectGateway:
             connection_info.password,
             connection_info.api_token,
         )
+        self.storage_gw = VSPStorageSystemDirectGateway(connection_info)
         self.end_points = Endpoints
         self.is_pegasus = self.get_storage_details()
         self.serial = None
@@ -456,11 +457,22 @@ class VSPVolumeDirectGateway:
         return self.rest_api.post(end_point, payload)
 
     @log_entry_exit
+    def is_vsp_5000_series(self):
+        return self.storage_gw.is_vsp_5000_series()
+
+    @log_entry_exit
+    def is_svp_present(self):
+        return self.storage_gw.is_svp_present()
+
+    @log_entry_exit
     def fill_cmd_device_info(self, volume):
-        logger.writeDebug(f"fill_cmd_device_info: is_pegasus= {self.is_pegasus}")
+        logger.writeDebug(
+            f"fill_cmd_device_info: is_vsp_5000_series= {self.is_vsp_5000_series()}"
+        )
         volume.isCommandDevice = True
-        if self.is_pegasus:
+        if not self.is_vsp_5000_series() and not self.is_svp_present():
             # VSP One does not support detailInfoType=class
+            logger.writeDebug(f"fill_cmd_device_info: vol_data for no SVP= {volume}")
             return volume
 
         end_point = self.end_points.GET_CMD_DEVICE.format(volume.ldevId)
@@ -572,11 +584,7 @@ class VSPVolumeDirectGateway:
     # use all ldev operations above this function
     @log_entry_exit
     def get_storage_details(self):
-        end_point = self.end_points.GET_STORAGE_INFO
-        storage_info = self.rest_api.get(end_point)
-        logger.writeDebug(f"Found storage details{storage_info}")
-        storage_info = VSPStorageDevice(**storage_info)
-
+        storage_info = self.storage_gw.get_current_storage_system_info()
         pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
         logger.writeDebug(f"Storage Model: {storage_info.model}")
         return pegasus_model

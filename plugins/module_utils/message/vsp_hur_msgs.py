@@ -72,7 +72,7 @@ class VSPHurValidateMsg(Enum):
     )
     EXPAND_VOLUME_FAILED = "Failed to expand the volume. Ensure System Option Mode ( SOM ) 1198 is enabled and 1199 is disabled."
     REDUCE_VOLUME_SIZE_NOT_SUPPORTED = "Shrink/reduce volume size is not supported."
-    SECONDARY_RANGE_ID_IS_NOT_SUPPORTED = "Parameters begin_secondary_volume_id and end_secondary_volume_id is not supported for direct connect."
     SECONDARY_RANGE_ID_INVALID = "Please specify both begin_secondary_volume_id and end_secondary_volume_id. Specifying either one is not supported."
     EXPAND_PVOL_FAILED = "Failed to perform operation for primary volume {}."
     EXPAND_SVOL_FAILED = "Failed to perform operation for secondary volume {}."
+    SECONDARY_VOLUME_ID_OUT_OF_RANGE = "provisioned_secondary_volume_id does not lie between begin_secondary_volume_id and end_secondary_volume_id."

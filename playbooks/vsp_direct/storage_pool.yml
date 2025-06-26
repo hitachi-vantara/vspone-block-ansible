@@ -60,6 +60,47 @@
         var: result
 
     ######################################################################################
+    # Task Name : Create a storage pool with a specific pool ID and LDEV numbers
+    # Ensure the LDEVs specified in ldev_ids are in NML state and size of each LDEV
+    # is greater than 8.0GB
+    ######################################################################################
+    - name: Create a storage pool with a specific pool ID and LDEV numbers
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          id: 5
+          name: "storagepool-5"
+          type: "HDP"
+          ldev_ids: [534]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ###########################################################################################
+    # Task Name : Create a storage pool with a specific pool ID and start and end LDEV numbers
+    # Ensure the LDEVs specified by the start_ldev_id and end_ldev_id range are in NML state
+    # and size of each LDEV is greater than 8.0GB
+    ###########################################################################################
+    - name: Create a storage pool with a specific pool ID and start and end LDEV numbers
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          id: 6
+          name: "storagepool-6"
+          type: "HDP"
+          start_ldev_id: 15
+          end_ldev_id: 20
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
     # Task Name : Create a Thin Image pool
     ######################################################################################
     - name: Create a storage pool using other details

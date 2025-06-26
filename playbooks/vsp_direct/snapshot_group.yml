@@ -119,7 +119,7 @@
         state: "clone"
         spec:
           snapshot_group_name: "snapshot-group-name-1"
-          copy_speed: 'SLOW'
+          copy_speed: "SLOW"
       register: result
 
     - name: Debug the result variable

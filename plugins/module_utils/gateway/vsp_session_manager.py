@@ -30,9 +30,9 @@ class SessionManager(SingletonClass):
 
     def get_current_session(self, connection_info):
         logger.writeDebug("generate_token current_sessions = {}", self.current_sessions)
-        key = self.current_sessions.get(connection_info.address, None)
-        if key is not None:
-            return self.current_sessions.get(connection_info.address)
+        value = self.current_sessions.get(connection_info.address, None)
+        if value is not None:
+            return value
         else:
             token = self.generate_token(connection_info)
             self.current_sessions[connection_info.address] = token

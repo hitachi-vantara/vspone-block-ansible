@@ -31,6 +31,8 @@ class StoragePoolSpec:
     should_enable_deduplication: bool = None
     ldev_ids: List[int] = None
     duplication_ldev_ids: List[int] = None
+    start_ldev_id: int = None
+    end_ldev_id: int = None
 
     def __post_init__(self):
         if self.pool_volumes:

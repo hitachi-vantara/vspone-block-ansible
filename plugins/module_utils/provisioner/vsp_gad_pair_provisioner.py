@@ -4,14 +4,7 @@ try:
     from ..message.vsp_gad_pair_msgs import GADPairValidateMSG
     from ..provisioner.vsp_storage_system_provisioner import VSPStorageSystemProvisioner
     from ..common.hv_constants import CommonConstants
-    from ..common.vsp_constants import (
-        PairStatus,
-        DEFAULT_NAME_PREFIX,
-        VolumePayloadConst,
-    )
-    from ..model.vsp_volume_models import (
-        CreateVolumeSpec,
-    )
+    from ..common.vsp_constants import PairStatus, DEFAULT_NAME_PREFIX
     from ..provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
     from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
     from ..message.vsp_gad_pair_msgs import GADFailedMsg
@@ -31,6 +24,7 @@ try:
         log_entry_exit,
         convert_decimal_size_to_bytes,
     )
+    from .vsp_remote_replication_helper import RemoteReplicationHelperForSVol
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
@@ -38,7 +32,7 @@ except ImportError:
     from message.vsp_gad_pair_msgs import GADPairValidateMSG
     from provisioner.vsp_storage_system_provisioner import VSPStorageSystemProvisioner
     from common.hv_constants import CommonConstants
-    from common.vsp_constants import PairStatus, DEFAULT_NAME_PREFIX, VolumePayloadConst
+    from common.vsp_constants import PairStatus, DEFAULT_NAME_PREFIX
     from provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
     from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
     from message.vsp_gad_pair_msgs import GADFailedMsg
@@ -58,7 +52,7 @@ except ImportError:
         log_entry_exit,
         convert_decimal_size_to_bytes,
     )
-    from model.vsp_volume_models import CreateVolumeSpec
+    from .vsp_remote_replication_helper import RemoteReplicationHelperForSVol
 
 logger = Log()
 
@@ -87,13 +81,7 @@ class GADPairProvisioner:
 
     @log_entry_exit
     def create_gad_pair(self, gad_pair_spec):
-        # if (
-        #     gad_pair_spec.begin_secondary_volume_id
-        #     or gad_pair_spec.end_secondary_volume_id
-        # ):
-        #     raise ValueError(
-        #         GADPairValidateMSG.SECONDARY_RANGE_ID_IS_NOT_SUPPORTED.value
-        #     )
+
         return self.create_gad_pair_direct(gad_pair_spec)
 
     @log_entry_exit
@@ -104,7 +92,7 @@ class GADPairProvisioner:
             spec.secondary_storage_serial_number = self.gateway.get_secondary_serial(
                 spec
             )
-        rr_prov = RemoteReplicationHelperForSVol(
+        rr_prov = GadHelperForSvol(
             secondary_storage_connection_info, spec.secondary_storage_serial_number
         )
         vol = rr_prov.get_resource_group_by_id(resourceGroupId)
@@ -126,7 +114,7 @@ class GADPairProvisioner:
             spec.secondary_storage_serial_number = self.gateway.get_secondary_serial(
                 spec
             )
-        rr_prov = RemoteReplicationHelperForSVol(
+        rr_prov = GadHelperForSvol(
             secondary_storage_connection_info, spec.secondary_storage_serial_number
         )
         vsms = rr_prov.get_vsm_all()
@@ -140,7 +128,7 @@ class GADPairProvisioner:
             spec.secondary_storage_serial_number = self.gateway.get_secondary_serial(
                 spec
             )
-        rr_prov = RemoteReplicationHelperForSVol(
+        rr_prov = GadHelperForSvol(
             secondary_storage_connection_info, spec.secondary_storage_serial_number
         )
         vol = rr_prov.get_volume_by_id(ldev)
@@ -185,7 +173,7 @@ class GADPairProvisioner:
             spec.secondary_storage_serial_number = self.gateway.get_secondary_serial(
                 spec
             )
-        rr_prov = RemoteReplicationHelperForSVol(
+        rr_prov = GadHelperForSvol(
             secondary_storage_connection_info, spec.secondary_storage_serial_number
         )
         secondary_vol_id = None
@@ -413,7 +401,7 @@ class GADPairProvisioner:
                         spec.secondary_storage_serial_number = (
                             self.gateway.get_secondary_serial(spec)
                         )
-                    rr_prov = RemoteReplicationHelperForSVol(
+                    rr_prov = GadHelperForSvol(
                         spec.secondary_storage_connection_info,
                         spec.secondary_storage_serial_number,
                     )
@@ -429,7 +417,7 @@ class GADPairProvisioner:
                         spec.secondary_storage_serial_number = (
                             self.gateway.get_secondary_serial(spec)
                         )
-                    rr_prov = RemoteReplicationHelperForSVol(
+                    rr_prov = GadHelperForSvol(
                         spec.secondary_storage_connection_info,
                         spec.secondary_storage_serial_number,
                     )
@@ -1022,37 +1010,12 @@ class GADPairProvisioner:
         return volume
 
 
-class RemoteReplicationHelperForSVol:
-
-    DEFAULT_HOSTGROUP_NAME = "ANSIBLE_DEFAULT_HOSTGROUP"
-    DEFAULT_HOST_MODE = "VMWARE_EXTENSION"  # "STANDARD"
-
-    #  sng1104 - RemoteReplicationHelperForSVol
+class GadHelperForSvol(RemoteReplicationHelperForSVol):
     def __init__(self, connection_info, serial):
+        super().__init__(connection_info, serial)
         self.rg_gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_RESOURCE_GROUP
         )
-        self.hg_gateway = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.VSP_HOST_GROUP
-        )
-        self.sp_gateway = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.STORAGE_PORT
-        )
-        self.vol_gateway = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.VSP_VOLUME
-        )
-        if connection_info.connection_type.lower() == ConnectionTypes.DIRECT:
-            self.nvme_gateway = GatewayFactory.get_gateway(
-                connection_info, GatewayClassTypes.VSP_NVME_SUBSYSTEM
-            )
-            self.iscsi_gateway = GatewayFactory.get_gateway(
-                connection_info, GatewayClassTypes.VSP_ISCSI_TARGET
-            )
-        self.connection_info = connection_info
-        self.serial = serial
-        self.hg_gateway.set_serial(serial)
-        self.sp_gateway.set_serial(serial)
-        self.vol_gateway.set_serial(serial)
 
     @log_entry_exit
     def get_resource_group_by_id(self, resourceGroupId):
@@ -1071,168 +1034,89 @@ class RemoteReplicationHelperForSVol:
     def delete_volume(self, secondary_vol_id, volume=None):
         if volume is None:
             volume = self.vol_gateway.get_volume_by_id(secondary_vol_id)
-        if volume.ports is not None and len(volume.ports) > 0:
-            for port in volume.ports:
-                logger.writeDebug("PROV:delete_volume:port = {}", port)
-                self.vol_gateway.delete_lun_path(port)
 
+        self.delete_lun_path(volume)
         self.move_volume_back_to_meta(volume)
-
-        force_execute = (
-            True
-            if volume.dataReductionMode
-            and volume.dataReductionMode.lower() != VolumePayloadConst.DISABLED
-            else None
-        )
-        try:
-            self.vol_gateway.delete_volume(secondary_vol_id, force_execute)
-            self.connection_info.changed = False
-            return
-        except Exception as e:
-            err_msg = GADFailedMsg.SEC_VOLUME_DELETE_FAILED.value + str(e)
-            logger.writeError(err_msg)
-            raise ValueError(err_msg)
+        self.delete_actual_volume(secondary_vol_id, volume)
 
     @log_entry_exit
     def delete_volume_when_nvme(
-        self, secondary_vol_id, nvm_id, nvmsubsystem, namespaceId, volume=None
+        self, secondary_vol_id, nvm_id, nvmsubsystem, namespace_id, volume=None
     ):
         if volume is None:
             volume = self.vol_gateway.get_volume_by_id(secondary_vol_id)
         if nvm_id is None:
             nvm_id = volume.nvmSubsystemId
-        if namespaceId is None:
-            namespaceId = volume.namespaceId
-        nqns = []
-        if nvmsubsystem is not None and nvmsubsystem.paths is not None:
-            nqns = nvmsubsystem.paths
-        else:
-            host_nqns = self.nvme_gateway.get_host_nqns(nvm_id)
-            nqns = [nqn.hostNqn for nqn in host_nqns.data]
+        if namespace_id is None:
+            namespace_id = volume.namespaceId
 
-        for nqn in nqns:
-            self.nvme_gateway.delete_host_namespace_path(nvm_id, nqn, namespaceId)
-        self.nvme_gateway.delete_namespace(nvm_id, namespaceId)
+        self.delete_ns_path_and_namespace(nvm_id, nvmsubsystem, namespace_id)
         self.move_volume_back_to_meta(volume)
-        force_execute = (
-            True
-            if volume.dataReductionMode
-            and volume.dataReductionMode.lower() != VolumePayloadConst.DISABLED
-            else None
-        )
-        try:
-            self.vol_gateway.delete_volume(secondary_vol_id, force_execute)
-            self.connection_info.changed = False
-            return
-        except Exception as e:
-            err_msg = GADFailedMsg.SEC_VOLUME_DELETE_FAILED.value + str(e)
-            logger.writeError(err_msg)
-            raise ValueError(err_msg)
-
-    @log_entry_exit
-    def select_secondary_volume_id(self, pvol_id, spec=None):
-        if spec is None:
-            free_vol_info = self.vol_gateway.get_free_ldev_matching_pvol(pvol_id)
-            logger.writeDebug(
-                "PROV:select_secondary_volume_id:free_vol_info = {}", free_vol_info
-            )
-            return free_vol_info.data[0].ldevId
-        else:
-            if (
-                spec.begin_secondary_volume_id is not None
-                and spec.end_secondary_volume_id is not None
-            ):
-                # Select the first free volume in the range
-                free_vol_info = self.vol_gateway.get_free_ldev_matching_svol_range(
-                    spec.begin_secondary_volume_id, spec.end_secondary_volume_id
-                )
-                logger.writeDebug(
-                    "PROV:select_secondary_volume_id:for range:free_vol_info = {}",
-                    free_vol_info,
-                )
-                if free_vol_info.data:
-                    for free_vol in free_vol_info.data:
-                        if free_vol.resourceGroupId == 0:
-                            if (
-                                free_vol.ldevId > spec.begin_secondary_volume_id
-                                and free_vol.ldevId < spec.end_secondary_volume_id
-                            ):
-                                return free_vol.ldevId
-                            else:
-                                logger.writeDebug(
-                                    "PROV:select_secondary_volume_id:free_vol = {}",
-                                    free_vol,
-                                )
-
-                err_msg = VSPTrueCopyValidateMsg.NO_FREE_LDEV_IN_RANGE.value.format(
-                    spec.begin_secondary_volume_id, spec.end_secondary_volume_id
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-            else:
-                # If no range is specified, get the first free volume
-                free_vol_info = self.vol_gateway.get_free_ldev_matching_pvol(pvol_id)
-                logger.writeDebug(
-                    "PROV:select_secondary_volume_id:free_vol_info = {}", free_vol_info
-                )
-                if free_vol_info.data:
-                    return free_vol_info.data[0].ldevId
-                else:
-                    err_msg = VSPTrueCopyValidateMsg.NO_FREE_LDEV_FOUND.value.format(
-                        pvol_id
-                    )
-                    logger.writeError(err_msg)
-                    raise ValueError(err_msg)
+        self.delete_actual_volume(secondary_vol_id, volume)
 
     @log_entry_exit
     def get_secondary_volume_id(self, vol_info, spec):
-
-        # sng1104 GAD Work Flow: provisioning svol for GAD pair creation
-
         logger.writeDebug("PROV:813:primary_volume = {}", vol_info)
 
         # Fail early, save time
         # Before creating the secondary volume check if secondary hostgroups exist
         host_groups = self.get_secondary_hostgroups(spec.secondary_hostgroups)
-        if host_groups is None:
+        if host_groups is None and spec.provisioned_secondary_volume_id is None:
             err_msg = GADPairValidateMSG.NO_REMOTE_HGS_FOUND.value
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
-        svol_id = self.select_secondary_volume_id(vol_info.ldevId, spec)
-        secondary_pool_id = spec.secondary_pool_id
-        sec_vol_spec = CreateVolumeSpec()
-        sec_vol_spec.pool_id = secondary_pool_id
-
-        sec_vol_spec.size = self.get_size_from_byte_format_capacity(
-            vol_info.byteFormatCapacity
-        )
-        sec_vol_spec.capacity_saving = vol_info.dataReductionMode
-        sec_vol_spec.ldev_id = svol_id
-
-        sec_vol_id = self.vol_gateway.create_volume(sec_vol_spec)
-
-        # per UCA-2281
-        if vol_info.label is not None and vol_info.label != "":
-            sec_vol_name = vol_info.label
+        if spec.provisioned_secondary_volume_id:
+            svol_id = spec.provisioned_secondary_volume_id
+            sec_vol_info = self.vol_gateway.get_volume_by_id(svol_id)
+            hgs_prov_svol = self.get_hgs_for_provisioned_svol(sec_vol_info)
+            logger.writeDebug(
+                "PROV:get_secondary_volume_id:hgs_prov_svol = {}", hgs_prov_svol
+            )
+            host_groups = self.find_hgs_to_add_for_provisioned_svol(
+                host_groups, hgs_prov_svol
+            )
+            logger.writeDebug(
+                "PROV:get_secondary_volume_id:host_groups = {}", host_groups
+            )
         else:
-            sec_vol_name = f"{DEFAULT_NAME_PREFIX}-{vol_info.ldevId}"
+            svol_id = self.select_secondary_volume_id(vol_info.ldevId, spec)
 
-        # the name change is done in the update_volume method
-        logger.writeDebug("PROV:1221:sec_vol_name = {}", sec_vol_name)
+        sec_vol_spec = self.construct_svol_spec(svol_id, vol_info, spec)
+
+        sec_vol_name = None
+        if spec.provisioned_secondary_volume_id:
+            sec_vol_id = spec.provisioned_secondary_volume_id
+        else:
+            sec_vol_id = self.vol_gateway.create_volume(sec_vol_spec)
+            # the name change is done in the update_volume method
+            if vol_info.label is not None and vol_info.label != "":
+                sec_vol_name = vol_info.label
+            else:
+                sec_vol_name = f"{DEFAULT_NAME_PREFIX}-{vol_info.ldevId}"
+
+            logger.writeDebug("PROV:1221:sec_vol_name = {}", sec_vol_name)
 
         # sng20241127 - set svol label/name and set_alua_mode
         set_alua_mode = None
         if spec.set_alua_mode:
             set_alua_mode = spec.set_alua_mode
 
-        try:
-            logger.writeDebug("PROV:813:sec_vol_name = {}", sec_vol_name)
-            logger.writeDebug("PROV:813:set_alua_mode = {}", set_alua_mode)
-            self.vol_gateway.change_volume_settings(
-                sec_vol_id, sec_vol_name, set_alua_mode
-            )
+        if not spec.provisioned_secondary_volume_id:
+            try:
+                self.vol_gateway.change_volume_settings(
+                    sec_vol_id, sec_vol_name, set_alua_mode
+                )
+            except Exception as ex:
+                err_msg = GADFailedMsg.SEC_VOLUME_OPERATION_FAILED.value + str(ex)
+                logger.writeError(err_msg)
+                # if setting the volume name fails, delete the secondary volume
+                self.delete_volume(sec_vol_id)
+                raise ValueError(err_msg)
+        else:
+            self.vol_gateway.change_volume_settings(sec_vol_id, None, set_alua_mode)
 
+        try:
             # verify the svol set label and set_alua_mode
             vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
             logger.writeDebug("PROV:813:sec_vol_id = {}", sec_vol_id)
@@ -1279,161 +1163,38 @@ class RemoteReplicationHelperForSVol:
                 self.vol_gateway.assign_vldev(sec_vol_id, 65535)
             vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
             logger.writeDebug("PROV:813:sec_vol_id 1397 = {}", sec_vol_id)
-            for i in range(0, len(host_groups)):
-                hg = host_groups[i]
-                self.hg_gateway.add_luns_to_host_group(
-                    hg,
-                    [sec_vol_id],
-                    (
-                        spec.secondary_hostgroups[i].lun_id
-                        if spec.secondary_hostgroups[i].lun_id is not None
-                        else None
-                    ),
+
+            if host_groups is not None and len(host_groups) > 0:
+                lun_ids = self.find_lun_ids_from_spec(
+                    host_groups, spec.secondary_hostgroups
                 )
+                self.add_luns_to_host_groups(sec_vol_id, host_groups, lun_ids)
 
         except Exception as ex:
             err_msg = GADFailedMsg.SEC_VOLUME_OPERATION_FAILED.value + str(ex)
             logger.writeError(err_msg)
-            # if setting the volume name fails, delete the secondary volume
-            # if attaching the volume to the host group fails, delete the secondary volume
-            self.delete_volume(sec_vol_id)
+            if not spec.provisioned_secondary_volume_id:
+                # if attaching the volume to the host group fails, delete the secondary volume
+                try:
+                    self.delete_volume(sec_vol_id)
+                except Exception as e:
+                    logger.writeError(err_msg)
+            else:
+                # if attaching the volume to the host group fails, detach them
+                self.dettach_hostgroups(sec_vol_id, host_groups)
+
             raise Exception(err_msg)
         return sec_vol_id
 
-    def get_secondary_hostgroups(self, secondary_hostgroup, is_iscsi=False):
-        hostgroups_list = self.validate_secondary_hostgroups(
-            secondary_hostgroup, is_iscsi
-        )
-        logger.writeDebug(
-            "PROV:get_secondary_hostgroups:hostgroups_list = {}", hostgroups_list
-        )
-        if hostgroups_list is None or len(hostgroups_list) == 0:
-            return None
-        return hostgroups_list
-        # return hostgroups_list[0]
-
-    @log_entry_exit
-    def parse_hostgroup(self, hostgroup):
-        hostgroup.port = hostgroup.portId
-        return hostgroup
-
-    @log_entry_exit
-    def get_size_from_byte_format_capacity(self, byte_format):
-        value = byte_format.split(" ")[0]
-        unit = byte_format.split(" ")[1]
-        int_value = value.split(".")[0]
-        return f"{int_value}{unit}"
-
-    def get_secondary_hostgroups_payload(self, secondary_hostgroups):
-        hostgroups_list = self.validate_secondary_hostgroups(secondary_hostgroups)
-        payload = self.create_secondary_hgs_payload(hostgroups_list)
-        return payload
-
-    def validate_secondary_hostgroups(self, secondary_hgs, is_iscsi=False):
-        logger.writeDebug("PROV:validate_secondary_hostgroups:hgs = {}", secondary_hgs)
-        logger.writeDebug(
-            "PROV:validate_secondary_hostgroups:connection_info = {}",
-            self.connection_info,
-        )
-
-        hostgroup_list = []
-        for hg in secondary_hgs:
-            hostgroup = self.get_hg_by_name_port(hg.name, hg.port, is_iscsi=is_iscsi)
-            if hostgroup is None:
-                err_msg = ""
-                if is_iscsi:
-                    err_msg = VSPTrueCopyValidateMsg.NO_REMOTE_ISCSI_FOUND.value.format(
-                        hg.name, hg.port
-                    )
-                else:
-                    err_msg = VSPTrueCopyValidateMsg.NO_REMOTE_HG_FOUND.value.format(
-                        hg.name, hg.port
-                    )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-
-            hostgroup_list.append(hostgroup)
-
-        logger.writeDebug(
-            f"PROV:validate_secondary_hostgroups:hostgroup_list = {hostgroup_list}"
-        )
-
-        for hg in secondary_hgs:
-            port = self.get_port_by_name(hg.port)
-            if port is None:
-                err_msg = VSPTrueCopyValidateMsg.SEC_PORT_NOT_FOUND.value.format(
-                    hg.port
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
-
-            # if port.portInfo["portType"] != "FIBRE" or port.portInfo["mode"] != "SCSI":
-            #     raise ValueError(VSPTrueCopyValidateMsg.WRONG_PORT_PROVIDED.value.format(port.resourceId, port.portInfo["portType"], port.portInfo["mode"]))
-
-        return hostgroup_list
-
-    @log_entry_exit
-    def get_hg_by_name_port(self, name, port, is_iscsi=False):
-        hg = {}
-        if is_iscsi is True:
-            hg = self.iscsi_gateway.get_one_iscsi_target(port, name)
-        else:
-            hg = self.hg_gateway.get_one_host_group(port, name)
-        logger.writeDebug("PROV:get_hg_by_name_port:hgs = {}", hg)
-        if hg is None:
-            return None
-        return hg.data
-
-    @log_entry_exit
-    def get_port_by_name(self, port):
-        return self.sp_gateway.get_single_storage_port(port)
-
-    @log_entry_exit
-    def create_secondary_hgs_payload(self, hgs):
-        ret_list = []
-        for hg in hgs:
-            item = {}
-            item["hostGroupID"] = hg.hostGroupInfo["hostGroupId"]
-            item["name"] = hg.hostGroupInfo["hostGroupName"]
-            item["port"] = hg.hostGroupInfo["port"]
-            item["resourceGroupID"] = hg.hostGroupInfo["resourceGroupId"] or 0
-            ret_list.append(item)
-        return ret_list
-
-    @log_entry_exit
-    def get_secondary_hg_payload(self, hg):
-        ret_list = []
-        item = {}
-        item["hostGroupID"] = hg.hostGroupInfo["hostGroupId"]
-        item["name"] = hg.hostGroupInfo["hostGroupName"]
-        item["port"] = hg.hostGroupInfo["port"]
-        item["resourceGroupID"] = hg.hostGroupInfo["resourceGroupId"] or 0
-        ret_list.append(item)
-        return ret_list
-
     @log_entry_exit
     def get_secondary_volume_id_when_nvme(self, vol_info, spec):
-
-        # sng1104 GAD Work Flow: provisioning svol for GAD pair creation
 
         logger.writeDebug("PROV:813:primary_volume = {}", vol_info)
         # capture namespace ID
         pvolNameSpaceId = vol_info.namespaceId
         pvolNvmSubsystemId = vol_info.nvmSubsystemId
-        # Check pvol vldId
-        if vol_info.virtualLdevId == 65535 or vol_info.virtualLdevId == 65534:
-            err_msg = VSPTrueCopyValidateMsg.PVOL_VLDEV_MISSING.value.format(
-                vol_info.ldevId
-            )
-            logger.writeError(err_msg)
-            raise ValueError(err_msg)
-        # Check for namespace
-        if pvolNameSpaceId is None or pvolNameSpaceId == "":
-            err_msg = VSPTrueCopyValidateMsg.PVOL_NAMESPACE_MISSING.value.format(
-                vol_info.ldevId
-            )
-            logger.writeError(err_msg)
-            raise ValueError(err_msg)
+        self.validate_virtual_ldev_id(vol_info)
+        self.validate_namespace_id(vol_info)
 
         # Fail early, save time
         # Before creating the secondary volume check if secondary hostgroup exists
@@ -1454,19 +1215,15 @@ class RemoteReplicationHelperForSVol:
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
-        svol_id = self.select_secondary_volume_id(vol_info.ldevId, spec)
-        secondary_pool_id = spec.secondary_pool_id
-        sec_vol_spec = CreateVolumeSpec()
-        sec_vol_spec.pool_id = secondary_pool_id
+        if spec.provisioned_secondary_volume_id:
+            svol_id = spec.provisioned_secondary_volume_id
+        else:
+            svol_id = self.select_secondary_volume_id(vol_info.ldevId, spec)
 
-        sec_vol_spec.size = self.get_size_from_byte_format_capacity(
-            vol_info.byteFormatCapacity
-        )
-        sec_vol_spec.capacity_saving = vol_info.dataReductionMode
-        sec_vol_spec.ldev_id = svol_id
+        sec_vol_spec = self.construct_svol_spec(svol_id, vol_info, spec)
 
         sec_vol_id = self.vol_gateway.create_volume(sec_vol_spec)
-
+        sec_vol_name = None
         # per UCA-2281
         if vol_info.label is not None and vol_info.label != "":
             sec_vol_name = vol_info.label
@@ -1557,45 +1314,7 @@ class RemoteReplicationHelperForSVol:
         return sec_vol_id
 
     @log_entry_exit
-    def get_nvmesubsystem_by_name(self, nvmsubsystem):
-        nvme_subsystems = self.nvme_gateway.get_nvme_subsystems()
-        for nvme in nvme_subsystems.data:
-            if nvme.nvmSubsystemName == nvmsubsystem.name:
-                logger.writeDebug("PROV:get_nvmesubsystem_by_name:nvme = {}", nvme)
-                return nvme
-        return None
-
-    @log_entry_exit
-    def create_namespace_for_svol(self, nvm_subsystem_id, ldev_id, ns_id):
-        ns_id = self.nvme_gateway.create_namespace(nvm_subsystem_id, ldev_id, ns_id)
-        logger.writeDebug("PROV:add_svol_to_nvmesubsystem:ns_id = {}", ns_id)
-        return ns_id
-
-    @log_entry_exit
-    def create_namespace_paths(self, nvm_subsystem_id, namespace_id, nvmsubsystem):
-        nqns = []
-        if nvmsubsystem.paths is not None:
-            nqns = nvmsubsystem.paths
-        else:
-            host_nqns = self.nvme_gateway.get_host_nqns(nvm_subsystem_id)
-            nqns = [nqn.hostNqn for nqn in host_nqns.data]
-
-        for nqn in nqns:
-            host_ns_path_id = self.nvme_gateway.set_host_namespace_path(
-                nvm_subsystem_id, nqn, namespace_id
-            )
-            logger.writeDebug(
-                "PROV:create_namespace_paths:host_ns_path_id = {}", host_ns_path_id
-            )
-        return None
-
-    @log_entry_exit
-    def get_secondary_volume_id_when_iscsi_target(self, vol_info, spec):
-
-        # sng1104 GAD Work Flow: provisioning svol for GAD pair creation
-
-        logger.writeDebug("PROV:813:primary_volume = {}", vol_info)
-
+    def validate_virtual_ldev_id(self, vol_info):
         if vol_info.virtualLdevId == 65535 or vol_info.virtualLdevId == 65534:
             err_msg = VSPTrueCopyValidateMsg.PVOL_VLDEV_MISSING.value.format(
                 vol_info.ldevId
@@ -1603,63 +1322,73 @@ class RemoteReplicationHelperForSVol:
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
-        # check if pvol is iscsi
-        if vol_info.ports is not None and len(vol_info.ports) > 0:
-            port = vol_info.ports[0]
-            if isinstance(port, dict) and port.get("hostGroupNumber") is None:
-                err_msg = VSPTrueCopyValidateMsg.PVOL_ISCSI_MISSING.value.format(
-                    vol_info.ldevId
-                )
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
+    @log_entry_exit
+    def get_secondary_volume_id_when_iscsi_target(self, vol_info, spec):
+        logger.writeDebug("PROV:813:primary_volume = {}", vol_info)
+        self.validate_virtual_ldev_id(vol_info)
+        self.validate_for_iscsi(vol_info)
+
         # Fail early, save time
         # Before creating the secondary volume check if secondary hostgroup exists
         iscsi_targets = self.get_secondary_hostgroups(
             spec.secondary_iscsi_targets, True
         )
-        if iscsi_targets is None:
+        if iscsi_targets is None and spec.provisioned_secondary_volume_id is None:
             err_msg = GADPairValidateMSG.NO_REMOTE_ISCSI_FOUND.value
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
-        svol_id = self.select_secondary_volume_id(vol_info.ldevId, spec)
-        secondary_pool_id = spec.secondary_pool_id
-        sec_vol_spec = CreateVolumeSpec()
-        sec_vol_spec.pool_id = secondary_pool_id
-
-        sec_vol_spec.size = self.get_size_from_byte_format_capacity(
-            vol_info.byteFormatCapacity
-        )
-        sec_vol_spec.capacity_saving = vol_info.dataReductionMode
-        if vol_info.dataReductionMode != VolumePayloadConst.DISABLED:
-            sec_vol_spec.is_compression_acceleration_enabled = (
-                vol_info.isCompressionAccelerationEnabled
+        if spec.provisioned_secondary_volume_id:
+            svol_id = spec.provisioned_secondary_volume_id
+            sec_vol_info = self.vol_gateway.get_volume_by_id(svol_id)
+            hgs_prov_svol = self.get_hgs_for_provisioned_svol(sec_vol_info)
+            logger.writeDebug(
+                "PROV:get_secondary_volume_id:hgs_prov_svol = {}", hgs_prov_svol
             )
-
-        sec_vol_spec.ldev_id = svol_id
-        sec_vol_id = self.vol_gateway.create_volume(sec_vol_spec)
-
-        # per UCA-2281
-        if vol_info.label is not None and vol_info.label != "":
-            sec_vol_name = vol_info.label
+            iscsi_targets = self.find_hgs_to_add_for_provisioned_svol(
+                iscsi_targets, hgs_prov_svol
+            )
+            logger.writeDebug(
+                "PROV:get_secondary_volume_id:host_groups = {}", iscsi_targets
+            )
         else:
-            sec_vol_name = f"{DEFAULT_NAME_PREFIX}-{vol_info.ldevId}"
+            svol_id = self.select_secondary_volume_id(vol_info.ldevId, spec)
 
-        # the name change is done in the update_volume method
-        logger.writeDebug("PROV:1221:sec_vol_name = {}", sec_vol_name)
+        sec_vol_spec = self.construct_svol_spec(svol_id, vol_info, spec)
+
+        sec_vol_name = None
+        if spec.provisioned_secondary_volume_id:
+            sec_vol_id = spec.provisioned_secondary_volume_id
+        else:
+            sec_vol_id = self.vol_gateway.create_volume(sec_vol_spec)
+            # the name change is done in the update_volume method
+            if vol_info.label is not None and vol_info.label != "":
+                sec_vol_name = vol_info.label
+            else:
+                sec_vol_name = f"{DEFAULT_NAME_PREFIX}-{vol_info.ldevId}"
+
+            logger.writeDebug("PROV:1221:sec_vol_name = {}", sec_vol_name)
 
         # sng20241127 - set svol label/name and set_alua_mode
         set_alua_mode = None
         if spec.set_alua_mode:
             set_alua_mode = spec.set_alua_mode
 
-        try:
-            logger.writeDebug("PROV:813:sec_vol_name = {}", sec_vol_name)
-            logger.writeDebug("PROV:813:set_alua_mode = {}", set_alua_mode)
-            self.vol_gateway.change_volume_settings(
-                sec_vol_id, sec_vol_name, set_alua_mode
-            )
+        if not spec.provisioned_secondary_volume_id:
+            try:
+                self.vol_gateway.change_volume_settings(
+                    sec_vol_id, sec_vol_name, set_alua_mode
+                )
+            except Exception as ex:
+                err_msg = GADFailedMsg.SEC_VOLUME_OPERATION_FAILED.value + str(ex)
+                logger.writeError(err_msg)
+                # if setting the volume name fails, delete the secondary volume
+                self.delete_volume(sec_vol_id)
+                raise ValueError(err_msg)
+        else:
+            self.vol_gateway.change_volume_settings(sec_vol_id, None, set_alua_mode)
 
+        try:
             # verify the svol set label and set_alua_mode
             vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
             logger.writeDebug("PROV:813:sec_vol_id = {}", sec_vol_id)
@@ -1708,25 +1437,25 @@ class RemoteReplicationHelperForSVol:
             vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
             logger.writeDebug("PROV:813:sec_vol_id 1397 = {}", sec_vol_id)
 
-            for i in range(0, len(iscsi_targets)):
-                iscsi_target = iscsi_targets[i]
-                self.iscsi_gateway.add_luns_to_iscsi_target(
-                    iscsi_target,
-                    [sec_vol_id],
-                    None,
-                    (
-                        spec.secondary_iscsi_targets[i].lun_id
-                        if spec.secondary_iscsi_targets[i].lun_id is not None
-                        else None
-                    ),
+            if iscsi_targets is not None and len(iscsi_targets) > 0:
+                lun_ids = self.find_lun_ids_from_spec(
+                    iscsi_targets, spec.secondary_iscsi_targets
                 )
+                self.add_luns_to_iscsi_targets(sec_vol_id, iscsi_targets, lun_ids)
 
         except Exception as ex:
             err_msg = GADFailedMsg.SEC_VOLUME_OPERATION_FAILED.value + str(ex)
             logger.writeError(err_msg)
-            # if setting the volume name fails, delete the secondary volume
-            # if attaching the volume to the host group fails, delete the secondary volume
-            self.delete_volume(sec_vol_id)
+            if not spec.provisioned_secondary_volume_id:
+                # if attaching the volume to the host group fails, delete the secondary volume
+                try:
+                    self.delete_volume(sec_vol_id)
+                except Exception as e:
+                    logger.writeError(err_msg)
+            else:
+                # if attaching the volume to the host group fails, detach them
+                self.dettach_iscsi_targets(sec_vol_id, iscsi_targets)
+
             raise Exception(err_msg)
         return sec_vol_id
 

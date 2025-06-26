@@ -23,9 +23,9 @@ class TrueCopyFactSpec(SingleBaseClass):
 
 @dataclass
 class TrueCopyHostGroupSpec:
-    # id: int = None
-    name: str = None
-    port: str = None
+    # id: Optional[int] = None
+    name: Optional[str] = None
+    port: Optional[str] = None
     lun_id: Optional[int] = None
     # resource_group_id: Optional[int] = None
 
@@ -81,6 +81,7 @@ class TrueCopySpec(SingleBaseClass):
     begin_secondary_volume_id: Optional[int] = None
     end_secondary_volume_id: Optional[int] = None
     should_delete_svol: Optional[bool] = False
+    provisioned_secondary_volume_id: Optional[int] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -88,8 +89,15 @@ class TrueCopySpec(SingleBaseClass):
             "secondary_hostgroup" in kwargs
             and kwargs.get("secondary_hostgroup") is not None
         ):
-            self.secondary_hostgroups = [
+            self.secondary_hostgroup = [
                 TrueCopyHostGroupSpec(**kwargs.get("secondary_hostgroup"))
+            ]
+        if (
+            "secondary_hostgroups" in kwargs
+            and kwargs.get("secondary_hostgroups") is not None
+        ):
+            self.secondary_hostgroups = [
+                TrueCopyHostGroupSpec(**x) for x in self.secondary_hostgroups
             ]
         if (
             "secondary_iscsi_targets" in kwargs

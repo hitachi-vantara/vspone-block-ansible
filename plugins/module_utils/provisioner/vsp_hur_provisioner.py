@@ -11,7 +11,7 @@ try:
         convert_decimal_size_to_bytes,
     )
     from ..model.vsp_hur_models import VSPHurPairInfoList
-    from .vsp_true_copy_provisioner import RemoteReplicationHelperForSVol
+    from .vsp_remote_replication_helper import RemoteReplicationHelperForSVol
     from ..message.vsp_hur_msgs import VSPHurValidateMsg, HurFailedMsg
 
     from ..model.vsp_copy_groups_models import (
@@ -30,7 +30,7 @@ except ImportError:
     )
     from model.vsp_hur_models import VSPHurPairInfoList
     from message.vsp_hur_msgs import VSPHurValidateMsg, HurFailedMsg
-    from .vsp_true_copy_provisioner import RemoteReplicationHelperForSVol
+    from .vsp_remote_replication_helper import RemoteReplicationHelperForSVol
     from model.vsp_copy_groups_models import (
         DirectCopyPairInfo,
         DirectSpecificCopyGroupInfoList,
@@ -554,10 +554,7 @@ class VSPHurProvisioner:
     @log_entry_exit
     def create_hur_direct(self, spec):
         pair_exiting = self.gateway.get_replication_pair(spec)
-        # if spec.begin_secondary_volume_id or spec.end_secondary_volume_id:
-        #     raise ValueError(
-        #         VSPHurValidateMsg.SECONDARY_RANGE_ID_IS_NOT_SUPPORTED.value
-        #     )
+
         if pair_exiting is not None:
             if pair_exiting["pvol_ldev_id"] != spec.primary_volume_id:
                 return "Copy pair name : {} already exits in copy group: {}".format(
@@ -644,7 +641,8 @@ class VSPHurProvisioner:
                         pvol.namespaceId,
                     )
                 else:
-                    rr_prov.delete_volume(secondary_vol_id)
+                    if spec.provisioned_secondary_volume_id is None:
+                        rr_prov.delete_volume(secondary_vol_id)
                 logger.writeError(err_msg)
             raise ValueError(err_msg)
 

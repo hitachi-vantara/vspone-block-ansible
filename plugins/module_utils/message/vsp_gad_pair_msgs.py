@@ -57,7 +57,6 @@ class GADPairValidateMSG(Enum):
     EXPAND_VOLUME_FAILED = "Failed to expand the volume. Ensure System Option Mode (SOM) 1198 is enabled and 1199 is disabled."
     EXPAND_PVOL_FAILED = "Failed to perform operation for primary volume {}."
     EXPAND_SVOL_FAILED = "Failed to perform operation for secondary volume {}."
-    SECONDARY_RANGE_ID_IS_NOT_SUPPORTED = "Parameters begin_secondary_volume_id and end_secondary_volume_id is not supported for GAD pairs."
     NO_GAD_PAIR_FOUND_FOR_INPUTS = (
         "Could not find GAD pair for the input parameters supplied."
     )

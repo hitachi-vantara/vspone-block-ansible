@@ -1745,6 +1745,19 @@ class VSPStoragePoolArguments:
                     },
                 },
             },
+            "start_ldev_id": {
+                "required": False,
+                "type": "int",
+            },
+            "end_ldev_id": {
+                "required": False,
+                "type": "int",
+            },
+            "ldev_ids": {
+                "required": False,
+                "type": "list",
+                "elements": "int",
+            },
         }
         cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
@@ -2553,23 +2566,14 @@ class VSPTrueCopyArguments:
                 "required": False,
                 "type": "int",
             },
+            "provisioned_secondary_volume_id": {
+                "required": False,
+                "type": "int",
+            },
             "secondary_hostgroup": {
                 "required": False,
                 "type": "dict",
-                "options": {
-                    "name": {
-                        "required": True,
-                        "type": "str",
-                    },
-                    "port": {
-                        "required": True,
-                        "type": "str",
-                    },
-                    "lun_id": {
-                        "required": False,
-                        "type": "int",
-                    },
-                },
+                "options": hg_options,
             },
             "copy_group_name": {
                 "required": False,
@@ -2642,6 +2646,12 @@ class VSPTrueCopyArguments:
                 },
             },
             "secondary_iscsi_targets": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "secondary_hostgroups": {
                 "required": False,
                 "type": "list",
                 "elements": "dict",
@@ -2916,23 +2926,20 @@ class VSPHurArguments:
                 "required": False,
                 "type": "int",
             },
+            "provisioned_secondary_volume_id": {
+                "required": False,
+                "type": "int",
+            },
             "secondary_hostgroup": {
                 "required": False,
                 "type": "dict",
-                "options": {
-                    "name": {
-                        "required": True,
-                        "type": "str",
-                    },
-                    "port": {
-                        "required": True,
-                        "type": "str",
-                    },
-                    "lun_id": {
-                        "required": False,
-                        "type": "int",
-                    },
-                },
+                "options": hg_options,
+            },
+            "secondary_hostgroups": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
             },
             "secondary_nvm_subsystem": {
                 "required": False,
@@ -3552,7 +3559,6 @@ class VSPGADArguments:
                 "required": False,
                 "type": "int",
             },
-            #  sng1104
             "local_device_group_name": {
                 "required": False,
                 "type": "str",
@@ -3616,6 +3622,10 @@ class VSPGADArguments:
                 "type": "int",
             },
             "end_secondary_volume_id": {
+                "required": False,
+                "type": "int",
+            },
+            "provisioned_secondary_volume_id": {
                 "required": False,
                 "type": "int",
             },
@@ -4610,6 +4620,48 @@ class VSPSpecValidators:
 
         if state == StateValue.PRESENT:
 
+            count = 0
+            if input_spec.pool_volumes:
+                count = count + 1
+            if input_spec.ldev_ids:
+                count = count + 1
+            if input_spec.start_ldev_id or input_spec.end_ldev_id:
+                count = count + 1
+            if count != 1:
+                raise ValueError(VSPStoragePoolValidateMsg.SPECIFY_ONE.value)
+
+            if input_spec.start_ldev_id:
+                if (
+                    input_spec.start_ldev_id < AutomationConstants.START_LDEV_ID_MIN
+                    or input_spec.start_ldev_id > AutomationConstants.START_LDEV_ID_MAX
+                ):
+                    raise ValueError(VSPVolValidationMsg.INVALID_START_LDEV_ID.value)
+
+                if input_spec.end_ldev_id is None:
+                    raise ValueError(VSPVolValidationMsg.END_LDEV_ID_REQUIRED.value)
+                else:
+                    if (
+                        input_spec.end_ldev_id < AutomationConstants.END_LDEV_ID_MIN
+                        or input_spec.end_ldev_id > AutomationConstants.END_LDEV_ID_MAX
+                    ):
+                        raise ValueError(VSPVolValidationMsg.INVALID_END_LDEV_ID.value)
+                    if input_spec.end_ldev_id < input_spec.start_ldev_id:
+                        raise ValueError(
+                            VSPVolValidationMsg.END_LDEV_LESS_START_LDEV.value
+                        )
+                    else:
+                        if (
+                            input_spec.end_ldev_id - input_spec.start_ldev_id + 1
+                            > AutomationConstants.MAX_LDEVS_IN_DP
+                        ):
+                            raise ValueError(
+                                VSPStoragePoolValidateMsg.NO_MORE_THAN_64_LDEVS.value
+                            )
+
+            else:
+                if input_spec.end_ldev_id:
+                    raise ValueError(VSPVolValidationMsg.START_LDEV_ID_REQUIRED.value)
+
             if input_spec.pool_volumes is not None:
                 for pool_volume in input_spec.pool_volumes:
                     if (
@@ -4638,8 +4690,6 @@ class VSPSpecValidators:
                     size_in_bytes = convert_to_bytes(pool_volume.capacity)
                     if size_in_bytes < AutomationConstants.POOL_SIZE_MIN:
                         raise ValueError(VSPStoragePoolValidateMsg.POOL_SIZE_MIN.value)
-        if input_spec.id is not None and input_spec.name is not None:
-            raise ValueError(VSPStoragePoolValidateMsg.BOTH_POOL_ID_AND_NAME.value)
 
     @staticmethod
     def validate_shadow_image_module(spec: ShadowImagePairSpec, conn: ConnectionInfo):

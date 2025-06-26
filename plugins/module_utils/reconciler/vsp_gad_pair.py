@@ -356,21 +356,33 @@ class VSPGadPairReconciler:
             spec.secondary_hostgroups is None
             and spec.secondary_nvm_subsystem is None
             and spec.secondary_iscsi_targets is None
+            and spec.provisioned_secondary_volume_id is None
         ):
             raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS_OR_NVME.value)
 
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            if self.secondary_connection_info is None:
-                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_CONNECTION_INFO.value)
-            else:
-                spec.secondary_connection_info = self.secondary_connection_info
-                spec.remote_connection_info = self.secondary_connection_info
+        if self.secondary_connection_info is None:
+            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_CONNECTION_INFO.value)
+        else:
+            spec.secondary_connection_info = self.secondary_connection_info
+            spec.remote_connection_info = self.secondary_connection_info
 
-            if spec.copy_group_name is None:
-                raise ValueError(VSPTrueCopyValidateMsg.COPY_GROUP_NAME.value)
+        if spec.copy_group_name is None:
+            raise ValueError(VSPTrueCopyValidateMsg.COPY_GROUP_NAME.value)
 
-            if spec.copy_pair_name is None:
-                raise ValueError(VSPTrueCopyValidateMsg.COPY_PAIR_NAME.value)
+        if spec.copy_pair_name is None:
+            raise ValueError(VSPTrueCopyValidateMsg.COPY_PAIR_NAME.value)
+
+        if (
+            spec.provisioned_secondary_volume_id
+            and spec.begin_secondary_volume_id
+            and spec.end_secondary_volume_id
+        ):
+            if (
+                spec.provisioned_secondary_volume_id < spec.begin_secondary_volume_id
+            ) or (spec.provisioned_secondary_volume_id > spec.end_secondary_volume_id):
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.SECONDARY_VOLUME_ID_OUT_OF_RANGE.value
+                )
 
     @log_entry_exit
     def create_update_gad_pair(self, spec, pair):

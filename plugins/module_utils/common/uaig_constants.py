@@ -296,6 +296,8 @@ class StoragePoolPayloadConst:
     POOL_ID = "poolId"
     POOL_NAME = "poolName"
     LDEV_IDS = "ldevIds"
+    START_LDEV_ID = "startLdevId"
+    END_LDEV_ID = "endLdevId"
     WARNING_THRESHOLD = "warningThreshold"
     DEPLETION_THRESHOLD = "depletionThreshold"
     POOL_TYPE = "poolType"

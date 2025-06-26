@@ -147,6 +147,10 @@ options:
         description: ID of the dynamic pool where the secondary volume will be created.
         type: int
         required: false
+      provisioned_secondary_volume_id:
+        description: ID of the provisioned secondary volume that you want to use for the true copy creation.
+        type: int
+        required: false
       begin_secondary_volume_id:
         description: >
           Specify beginning ldev id for LDEV range for svol. This is an optional field during create operation.
@@ -177,6 +181,24 @@ options:
       secondary_hostgroup:
         description: Host group details of the secondary volume.
         type: dict
+        required: false
+        suboptions:
+          name:
+            description: Name of the host group on the secondary storage system. This is required for create operation.
+            type: str
+            required: true
+          port:
+            description: Port of the host group on the secondary storage system. This is required for create operation.
+            type: str
+            required: true
+          lun_id:
+            description: LUN ID of the host group on the secondary storage system. This is not required for create operation.
+            type: int
+            required: false
+      secondary_hostgroups:
+        description: List of hostgroup objects for the secondary volume.
+        type: list
+        elements: dict
         required: false
         suboptions:
           name:
@@ -511,9 +533,7 @@ class VSPSTrueCopyManager:
         self.logger.writeInfo("=== Start of TrueCopy operation. ===")
         data = None
         registration_message = validate_ansible_product_registration()
-        self.logger.writeDebug(
-            f"{self.params_manager.connection_info.connection_type} connection type"
-        )
+
         self.logger.writeDebug("state = {}", self.state)
         try:
             data = self.true_copy_module()

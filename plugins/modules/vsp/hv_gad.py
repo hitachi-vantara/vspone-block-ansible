@@ -28,9 +28,6 @@ attributes:
     support: none
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
-notes:
-  - The input parameters C(begin_secondary_volume_id) and C(end_secondary_volume_id) were removed in version 3.4.0.
-    These were deprecated due to internal API simplification and are no longer supported.
 options:
   state:
     description: The level of the GAD pairs task.
@@ -273,6 +270,10 @@ options:
       is_consistency_group:
         description: Specify true for consistency group.
         type: bool
+        required: false
+      provisioned_secondary_volume_id:
+        description: ID of the provisioned secondary volume that you want to use for the GAD pair creation.
+        type: int
         required: false
       begin_secondary_volume_id:
         description: >

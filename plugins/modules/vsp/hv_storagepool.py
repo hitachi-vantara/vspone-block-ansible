@@ -121,8 +121,21 @@ options:
         type: int
         required: false
       resource_group_id:
-        description: ID of the resource group the pool belongs to .
+        description: ID of the resource group the pool belongs to.
         type: int
+        required: false
+      start_ldev_id:
+        description: The first LDEV number in the range of consecutive LDEV numbers, if such a range is specified.
+        type: int
+        required: false
+      end_ldev_id:
+        description: The last LDEV number in the range of consecutive LDEV numbers, if such a range is specified.
+        type: int
+        required: false
+      ldev_ids:
+        description: LDEV numbers.
+        type: list
+        elements: int
         required: false
       pool_volumes:
         description: Details about the volumes in the pool.

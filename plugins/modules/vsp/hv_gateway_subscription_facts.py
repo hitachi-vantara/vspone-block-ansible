@@ -159,9 +159,7 @@ class SubscriberResourceFactsManager:
         self.logger.writeInfo("=== Start of Gateway Subscriber Facts ===")
         registration_message = validate_ansible_product_registration()
         subscriber_data = None
-        self.logger.writeInfo(
-            f"{self.params_manager.connection_info.connection_type} connection type"
-        )
+
         try:
             subscriber_data = self.SubscriberResourceReconciler(
                 self.connection_info, self.storage_serial_number

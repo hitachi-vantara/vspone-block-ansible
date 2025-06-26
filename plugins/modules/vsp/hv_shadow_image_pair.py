@@ -298,9 +298,7 @@ class VSPShadowImagePairManager:
     def apply(self):
         self.logger.writeInfo("=== Start of Shadow Image operation. ===")
         registration_message = validate_ansible_product_registration()
-        self.logger.writeInfo(
-            f"{self.params_manager.connection_info.connection_type} connection type"
-        )
+
         shadow_image_resposne = None
         try:
             shadow_image_resposne = self.shadow_image_pair()

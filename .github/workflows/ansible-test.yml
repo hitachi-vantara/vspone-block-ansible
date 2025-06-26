@@ -1,3 +1,4 @@
+---
 name: Ansible Collection CI Test
 
 on:

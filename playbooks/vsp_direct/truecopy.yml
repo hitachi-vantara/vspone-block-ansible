@@ -33,13 +33,63 @@
           copy_pair_name: "tc-copy-pair-1"
           primary_volume_id: 188
           secondary_pool_id: 0
-          secondary_hostgroup:
-            name: "hostgroup-server1"
-            port: "CL1-A"
-            lun_id: 5
+          secondary_hostgroups:
+            - name: "hostgroup-server1"
+              port: "CL1-A"
+              lun_id: 5
       register: result
 
     - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #######################################################################################
+    # Task Name : Create a TrueCopy pair by specifying the provisioned_secondary_volume_id.
+    # Use this playbook if the secondary volume is already attached to hostgroups or iscsi
+    # targets, and there is no need to attach additional hostgroups or iscsi targets.
+    #######################################################################################
+    - name: Create TrueCopy pair with provisioned_secondary_volume_id
+      hitachivantara.vspone_block.vsp.hv_truecopy:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: "present"
+        spec:
+          copy_group_name: "tc-copy-group-1"
+          copy_pair_name: "tc-copy-pair-1"
+          primary_volume_id: 188
+          provisioned_secondary_volume_id: 188
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #######################################################################################
+    # Task Name : Create a TrueCopy pair by specifying the provisioned_secondary_volume_id.
+    # Use this playbook if the secondary volume is not already attached to hostgroups
+    # or if you want to attach additional hostgroups to the secondary volume.
+    #######################################################################################
+    - name: Create TrueCopy Pair with provisioned_secondary_volume_id and hostgroups
+      hitachivantara.vspone_block.vsp.hv_truecopy:
+        connection_info: "{{ connection_info }}"
+        storage_system_info:
+          serial: "{{ storage_serial }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          copy_group_name: "tc-copy-group-10"
+          copy_pair_name: "tc-copy-pair-10"
+          primary_volume_id: 1361
+          provisioned_secondary_volume_id: 5609
+          secondary_hostgroups:
+            - name: "smrha-2449965918"
+              port: CL2-B
+            - name: "smrha-1840203863"
+              port: CL2-B
+              lun_id: 3
+      register: result
+
+    - name: Debug result
       ansible.builtin.debug:
         var: result
 
@@ -56,10 +106,10 @@
           copy_pair_name: "tc-copy-pair-2"
           primary_volume_id: 189
           secondary_pool_id: 0
-          secondary_hostgroup:
-            name: "hostgroup-server1"
-            port: "CL1-A"
-            lun_id: 5
+          secondary_hostgroups:
+            - name: "hostgroup-server1"
+              port: "CL1-A"
+              lun_id: 5
           fence_level: "NEVER"
           path_group_id: 5
           local_device_group_name: "ansible-local-device-group-1"
@@ -88,9 +138,9 @@
           primary_volume_id: 2707
           begin_secondary_volume_id: 4720
           end_secondary_volume_id: 4730
-          secondary_hostgroup:
-            name: "smrha-5565537478"
-            port: CL1-A
+          secondary_hostgroups:
+            - name: "smrha-5565537478"
+              port: CL1-A
           fence_level: NEVER
           secondary_pool_id: 0
       register: result

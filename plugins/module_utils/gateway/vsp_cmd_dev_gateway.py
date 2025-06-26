@@ -6,12 +6,14 @@ try:
     from ..common.ansible_common import log_entry_exit
     from ..model.common_base_models import VSPStorageDevice
     from ..common.vsp_constants import PEGASUS_MODELS
+    from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 except ImportError:
     from .gateway_manager import VSPConnectionManager
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from model.common_base_models import VSPStorageDevice
     from common.vsp_constants import PEGASUS_MODELS
+    from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 
 SET_CMD_DEVICE_DIRECT = "v1/objects/ldevs/{}/actions/set-as-command-device/invoke"
 POST_UPDATE_CACHE = "v1/services/storage-cache-service/actions/refresh/invoke"
@@ -54,8 +56,18 @@ class VSPCmdDevDirectGateway:
         return self.pegasus_model
 
     @log_entry_exit
+    def is_vsp_5000_series(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        return storage_gw.is_vsp_5000_series()
+
+    @log_entry_exit
+    def is_svp_present(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        return storage_gw.is_svp_present()
+
+    @log_entry_exit
     def update_cache_of_storage_system(self):
-        if self.is_pegasus():
+        if not self.is_vsp_5000_series() and not self.is_svp_present():
             return
         end_point = POST_UPDATE_CACHE
         self.connection_manager.post_wo_job(end_point, data=None)

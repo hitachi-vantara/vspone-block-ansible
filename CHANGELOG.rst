@@ -4,6 +4,19 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v3.5.1
+======
+
+Release Summary
+---------------
+
+This minor release of `hitachivantara.vspone_block` adds new modules, enhances existing features, and includes various bug fixes.
+
+Bugfixes
+--------
+
+- Resolved an issue where adding a path to an external path group for FC and retrieving external path group facts would fail.
+
 v3.5.0
 ======
 
@@ -16,7 +29,7 @@ Minor Changes
 -------------
 
 - Added additional parameters primary_volume_device_group_name and secondary_volume_device_group_name to retrieve ShadowImage group details more quickly.
-- Added new module `hv_external_parity_group_facts` to retrieve information about External Parity Group.
+- Added new module `hv_external_paritygroup_facts` to retrieve information about External Parity Group.
 - Added new module `hv_external_path_group_facts` to retrieve information about External Path Group.
 - Added new module `hv_external_path_group` to manage External Path Groups.
 - Added new module `hv_mp_facts` to retrieve MP Blades information from VSP storage models.
@@ -62,7 +75,7 @@ New Modules
 Vsp
 ~~~
 
-- hitachivantara.vspone_block.vsp.hv_external_parity_group_facts - Retrieves information about External Parity Group from Hitachi VSP storage systems.
+- hitachivantara.vspone_block.vsp.hv_external_paritygroup_facts - Retrieves information about External Parity Group from Hitachi VSP storage systems.
 - hitachivantara.vspone_block.vsp.hv_external_path_group - Manages External Path Groups in the Hitachi VSP storage systems.
 - hitachivantara.vspone_block.vsp.hv_external_path_group_facts - Retrieves information about External Path Group from Hitachi VSP storage systems.
 - hitachivantara.vspone_block.vsp.hv_mp_facts - Retrieves MP blades information from Hitachi VSP storage systems.
