@@ -21,7 +21,7 @@
     # Task Name : Get all External Parity Groups
     ####################################################################
     - name: Get all External Path Groups
-      hitachivantara.vspone_block.vsp.hv_external_parity_group_facts:
+      hitachivantara.vspone_block.vsp.hv_external_paritygroup_facts:
         connection_info: "{{ connection_info }}"
 
       register: result
@@ -34,7 +34,7 @@
     # Task Name : Get a specific External Parity Group
     ####################################################################
     - name: Get a specific External Path Group
-      hitachivantara.vspone_block.vsp.hv_external_parity_group_facts:
+      hitachivantara.vspone_block.vsp.hv_external_paritygroup_facts:
         connection_info: "{{ connection_info }}"
         spec:
           external_parity_group: "1-1"
