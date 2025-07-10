@@ -1,6 +1,10 @@
 from dataclasses import dataclass, field, asdict
-from typing import Optional, List, get_type_hints, get_origin
+from typing import Optional, List, get_type_hints, get_origin, get_args, Union
 import re
+
+from ..common.hv_log import Log
+
+logger = Log()
 
 
 @dataclass
@@ -113,29 +117,42 @@ class SingleBaseClass:
             if value is None:
                 origin = type_hints.get(key)
                 field_type = get_origin(origin)
-                if origin == str:
+                actual_types = set(get_args(origin)) if field_type is Union else set()
+                actual_types.discard(type(None))  # Remove NoneType if Optional
+
+                if origin == str or field_type == str or str in actual_types:
                     value = ""
-                elif origin == int:
+                elif origin == int or field_type == int or int in actual_types:
                     value = -1
-                elif origin == float:
+                elif origin == float or field_type == float or float in actual_types:
                     value = -1.0
-                elif origin == bool:
+                elif origin == bool or field_type == bool or bool in actual_types:
                     value = None
-                elif field_type == list:
+                elif (
+                    field_type == list
+                    or origin == List
+                    or any(get_origin(t) == list for t in actual_types)
+                ):
                     value = []
-                elif field_type == dict:
+                elif (
+                    field_type == dict
+                    or origin == dict
+                    or any(get_origin(t) == dict for t in actual_types)
+                ):
                     value = {}
                 else:
                     value = None  # Default for unsupported types
 
+            # Handle nested SingleBaseClass instances or list of them
             if (
                 isinstance(value, list)
-                and len(value) > 0
+                and value
                 and isinstance(value[0], SingleBaseClass)
             ):
                 value = [item.camel_to_snake_dict() for item in value]
-            if isinstance(value, dict) or isinstance(value, SingleBaseClass):
+            if isinstance(value, SingleBaseClass):
                 value = value.camel_to_snake_dict()
+
             new_dict[cased_key] = value
 
         return new_dict

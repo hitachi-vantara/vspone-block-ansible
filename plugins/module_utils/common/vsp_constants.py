@@ -45,6 +45,10 @@ class Endpoints(object):
     GET_FREE_LDEV_FROM_META = (
         "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0&count=1"
     )
+    GET_FREE_LDEVS_FROM_META = "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0"
+    GET_FREE_LDEVS_FROM_META_HEAD_LDEV = (
+        "v1/objects/ldevs?ldevOption=undefined&headLdevId={}"
+    )
     GET_FREE_LDEV_MATCHING_PVOL = (
         "v1/objects/ldevs?ldevOption=undefined&count=1&headLdevId={}"
     )
@@ -60,6 +64,7 @@ class Endpoints(object):
     GET_CMD_DEVICE = "v1/objects/ldevs?headLdevId={}&count=1&detailInfoType=class"
     RECLAIM_ZERO_PAGES = "v1/objects/ldevs/{}/actions/discard-zero-page/invoke"
     CHANGE_MP_BLADE = "v1/objects/ldevs/{}/actions/assign-mp-blade/invoke"
+    ASSIGN_LDEV = "v1/objects/ldevs/{}/actions/assign-clpr/invoke"
     # Port
     GET_PORTS = "v1/objects/ports"
     GET_PORTS_DETAILS = "v1/objects/ports?detailInfoType=portMode"
@@ -175,6 +180,9 @@ class Endpoints(object):
     UAIG_GET_SHADOW_IMAGE_PAIR_BY_ID = (
         "v2/storage/devices/{deviceId}/shadowimage/{pairId}"
     )
+    GET_STORAGE_SYSTEMS_INFO = "v1/objects/date-times/instance"
+    GET_TIME_ZONE_LIST = "v1/objects/time-zones"
+    SET_TIME_ZONE = "v1/objects/date-times/instance"
     # UAIG_CREATE_SHADOW_IMAGE_PAIR = 'v2/storage/devices/{deviceId}/shadowimage'
     UAIG_CREATE_SHADOW_IMAGE_PAIR = "v3/storage/devices/{deviceId}/shadowimage"
     UAIG_GET_SHADOW_IMAGE_PAIR_BY_PVOL = (
@@ -253,6 +261,12 @@ class Endpoints(object):
     POST_POOL = "v1/objects/pools"
     GET_POOL = "v1/objects/pools/{}"
     POOL_EXPAND = "v1/objects/pools/{}/actions/expand/invoke"
+    PERFORMANCE_MONITORING = "v1/objects/pools/{}/actions/monitor/invoke"
+    TIER_LOCATION = "v1/objects/pools/{}/actions/relocate/invoke"
+    RESTORE_POOL = "v1/objects/pools/{}/actions/recover/invoke"
+    INITIALIZE_CAPACITY_SAVINGS = (
+        "v1/objects/pools/{}/actions/data-reduction-initialize/invoke"
+    )
 
     # Journal Volumes
     GET_JOURNAL_POOLS = "v1/objects/journals"
@@ -269,6 +283,7 @@ class Endpoints(object):
     GET_EXTERNAL_PARITY_GROUP = "v1/objects/external-parity-groups/{}"
     GET_DRIVES = "v1/objects/drives"
     GET_DRIVE = "v1/objects/drives/{}"
+    ASSIGN_PARITY = "v1/objects/parity-groups/{}/actions/assign-clpr/invoke"
 
     # Tag device resources
     UAIG_ADD_STORAGE_RESOURCE = "v3/storage/{}/resource"
@@ -300,6 +315,18 @@ class Endpoints(object):
 
     # MP blades
     GET_MP_BLADES = "v1/objects/mps"
+
+    # Initial config api
+    UPLOAD_TRANSFER_DESTINATION_FILE = "v1/objects/actions/file-upload/invoke"
+    GET_AUDIT_LOG_FILE_TRANSFER_DESTINATION = (
+        "v1/objects/auditlog-syslog-servers/instance"
+    )
+    SPECIFY_TRANSFER_DESTINATION_FILE = "v1/objects/auditlog-syslog-servers/instance"
+    SEND_TEST_MESSAGE = (
+        "v1/objects/auditlog-syslog-servers/instance/actions/send-test/invoke"
+    )
+    GET_SNMP_SETTINGS = "v1/objects/snmp-settings/instance"
+    SEND_SNMP_TRAP = "v1/objects/snmp-settings/instance/actions/send-trap-test/invoke"
 
 
 class Http(object):
@@ -492,6 +519,7 @@ class VolumePayloadConst:
     IS_RELOCATION_ENABLED = "isRelocationEnabled"
     IS_FULL_ALLOCATION_ENABLED = "isFullAllocationEnabled"
     IS_ALUA_ENABLED = "isAluaEnabled"
+    CLPR_ID = "clprId"
 
     # URL PARAMS
     HEAD_LDEV_ID = "?headLdevId={}"
@@ -690,3 +718,52 @@ class VspDDPConst:
     thresholdWarning = "thresholdWarning"
     thresholdDepletion = "thresholdDepletion"
     additionalDrives = "additionalDrives"
+
+
+class InitialConfig:
+    FileType = "fileType"
+    file = "file"
+    transferProtocol = "transferProtocol"
+    locationName = "locationName"
+    retries = "retries"
+    retryInterval = "retryInterval"
+    isDetailed = "isDetailed"
+    primarySyslogServer = "primarySyslogServer"
+    secondarySyslogServer = "secondarySyslogServer"
+    isEnabled = "isEnabled"
+    ipAddress = "ipAddress"
+    port = "port"
+    clientCertFileName = "clientCertFileName"
+    clientCertFilePassword = "clientCertFilePassword"
+    rootCertFileName = "rootCertFileName"
+    isSNMPAgentEnabled = "isSNMPAgentEnabled"
+    snmpVersion = "snmpVersion"
+    sendingTrapSetting = "sendingTrapSetting"
+    community = "community"
+    sendTrapTo = "sendTrapTo"
+    userName = "userName"
+    sendTrapTo = "sendTrapTo"
+    authentication = "authentication"
+    requestAuthenticationSetting = "requestAuthenticationSetting"
+    snmpv1v2cSettings = "snmpv1v2cSettings"
+    community = "community"
+    requestsPermitted = "requestsPermitted"
+    snmpv3Settings = "snmpv3Settings"
+    systemGroupInformation = "systemGroupInformation"
+    storageSystemName = "storageSystemName"
+    contact = "contact"
+    location = "location"
+    protocol = "protocol"
+    password = "password"
+    encryption = "encryption"
+    key = "key"
+
+
+class TimeZoneConst:
+    isNtpEnabled = "isNtpEnabled"
+    ntpServerNames = "ntpServerNames"
+    timeZoneId = "timeZoneId"
+    systemTime = "systemTime"
+    synchronizingLocalTime = "synchronizingLocalTime"
+    adjustsDaylightSavingTime = "adjustsDaylightSavingTime"
+    synchronizesNow = "synchronizesNow"

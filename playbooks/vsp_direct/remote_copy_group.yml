@@ -33,7 +33,7 @@
           local_device_group_name: "hur_local_device_group_name_1"
           remote_device_group_name: "hur_remote_device_group_name_1"
           copy_group_name: "hur_copy_group_name_1"
-          replication_type: "UR"
+          replication_type: "HUR"
           is_svol_writable: false
           do_data_suspend: false
 
@@ -97,7 +97,7 @@
           local_device_group_name: "tc_device_group_name_1"
           remote_device_group_name: "tc_remote_device_group_name_1"
           copy_group_name: "tc_copy_group_name_1"
-          replication_type: "UR"
+          replication_type: "HUR"
 
       register: result
 
@@ -165,7 +165,7 @@
           local_device_group_name: "hur_local_device_group_name_1"
           remote_device_group_name: "hur_remote_device_group_name_1"
           copy_group_name: "hur_copy_group_name_1"
-          replication_type: "UR"
+          replication_type: "HUR"
 
       register: result
 
@@ -186,7 +186,7 @@
           local_device_group_name: "hur_local_device_group_name_1"
           remote_device_group_name: "hur_remote_device_group_name_1"
           copy_group_name: "hur_copy_group_name_1"
-          replication_type: "UR"
+          replication_type: "HUR"
 
       register: result
 
@@ -253,6 +253,26 @@
           local_device_group_name: "rcg_local_device_group_name_1"
           remote_device_group_name: "rcg_remote_device_group_name_1"
           copy_group_name: "rcg_copy_group_name_1"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################################
+    # Task Name : Secondary volume takeover Remote Copy Group for HUR replication type
+    # Please specify secondary storage connection details in connection_info and
+    # remote_device_group_name in local_device_group_name:
+    ###################################################################################
+    - name: Takeover Remote Copy Group for HUR replication type
+      hitachivantara.vspone_block.vsp.hv_remote_copy_group:
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage connection details
+        state: "takeover"
+        spec:
+          remote_device_group_name: "hur_remote_device_group_name_1" # required for takeover. Provide remote_device_group_name
+          copy_group_name: "hur_copy_group_name_1"
+          replication_type: "HUR"
 
       register: result
 

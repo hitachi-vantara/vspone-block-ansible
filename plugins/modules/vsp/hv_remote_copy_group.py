@@ -12,7 +12,7 @@ DOCUMENTATION = """
 module: hv_remote_copy_group
 short_description: Manages Remote Copy Group on Hitachi VSP storage systems.
 description: >
-  - This module allows for the splitting, swap-splitting, re-syncing, swap-resyncing and deletion of Remote Copy Group on Hitachi VSP storage systems.
+  - This module allows for the splitting, swap-splitting, re-syncing, swap-resyncing, takeover and deletion of Remote Copy Group on Hitachi VSP storage systems.
   - It supports various remote copy pairs operations based on the specified task level.
   - The module supports the following replication types: HUR, TC, GAD.
   - For examples go to URL
@@ -28,12 +28,15 @@ attributes:
     support: none
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+- hitachivantara.vspone_block.common.connection_info
 options:
   state:
-    description: The level of the Remote Copy Group pairs task. Choices are C(present), C(absent), C(split), C(resync), C(swap_split), C(swap_resync).
+    description: >
+      - The level of the Remote Copy Group pairs task.
+      - Choices are C(present), C(absent), C(split), C(resync), C(swap_split), C(swap_resync), C(takeover).
     type: str
     required: false
-    choices: ['present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync']
+    choices: ['present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync', 'takeover']
     default: 'present'
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -42,27 +45,6 @@ options:
     suboptions:
       serial:
         description: The serial number of the storage system.
-        type: str
-        required: false
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    type: dict
-    required: true
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      password:
-        description: Password for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      api_token:
-        description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
   secondary_connection_info:
@@ -99,7 +81,7 @@ options:
         description: Replication type, either C(UR), C(TC) or C(GAD).
         type: str
         required: false
-        choices: ['UR', 'TC', 'GAD']
+        choices: ['TC', 'UR', 'GAD', 'HUR']
       is_svol_writable:
         description: Whether svol is writable or not.
         type: bool
@@ -361,6 +343,18 @@ EXAMPLES = """
     state: absent
     spec:
       copy_group_name: remote_copy_group_copy_group_name_1
+
+- name: Takeover remote copy group for HUR
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    state: takeover
+    spec:
+      local_device_group_name: remote_copy_group_local_device_group_name_1
+      copy_group_name: remote_copy_group_copy_group_name_1
+      replication_type: hur
 """
 
 RETURN = """
@@ -604,6 +598,8 @@ class VSPCopyGroupManager:
             return "Copy Group  swapped split successfully."
         elif self.state == "swap_resync":
             return "Copy Group  swapped resynced successfully"
+        elif self.state == "takeover":
+            return "HUR Copy Group takeover done successfully."
         else:
             return "Unknown state provided."
 

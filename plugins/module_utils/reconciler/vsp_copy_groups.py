@@ -106,6 +106,10 @@ class VSPCopyGroupsReconciler:
         return self.provisioner.split_copy_group(spec)
 
     @log_entry_exit
+    def takeover_copy_group(self, spec):
+        return self.provisioner.takeover_copy_group(spec)
+
+    @log_entry_exit
     def swap_split_copy_group(self, spec):
         return self.provisioner.swap_split_copy_group(spec)
 
@@ -118,10 +122,16 @@ class VSPCopyGroupsReconciler:
         self, state: str, spec: CopyGroupSpec, secondary_connection_info: str
     ):
         state = state.lower()
-        if self.secondary_connection_info is None:
-            raise ValueError(VSPCopyGroupsValidateMsg.SECONDARY_CONNECTION_INFO.value)
-        else:
+        # if self.secondary_connection_info is None:
+        #     raise ValueError(VSPCopyGroupsValidateMsg.SECONDARY_CONNECTION_INFO.value)
+        # else:
+        if secondary_connection_info is not None:
             spec.secondary_connection_info = secondary_connection_info
+
+        # Normalize replication type to UR
+        if hasattr(spec, "replication_type") and spec.replication_type:
+            if spec.replication_type.upper() in ["UR", "HUR"]:
+                spec.replication_type = "UR"
 
         resp_data = None
         if state == StateValue.SPLIT:
@@ -134,6 +144,9 @@ class VSPCopyGroupsReconciler:
             resp_data = self.swap_resync_copy_group(spec)
         elif state == StateValue.ABSENT:
             resp_data = self.delete_copy_group(spec)
+        elif state == StateValue.TAKEOVER:
+            resp_data = self.takeover_copy_group(spec)
+            return resp_data
         else:
             return
 

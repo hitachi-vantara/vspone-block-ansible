@@ -12,6 +12,26 @@ plugins:
   inventory: {}
   lookup: {}
   module:
+    hv_audit_log_transfer_dest:
+      description: This module specifies settings related to the transfer of audit log files from a storage system to the syslog servers.
+      name: hv_audit_log_transfer_dest
+      namespace: vsp
+      version_added: 4.0.0
+    hv_audit_log_transfer_dest_facts:
+      description: Retrieves about the settings related to the transfer of audit log files to the syslog servers.
+      name: hv_audit_log_transfer_dest_facts
+      namespace: vsp
+      version_added: 4.0.0
+    hv_clpr:
+      description: Manages CLPRs on Hitachi VSP storage systems.
+      name: hv_clpr
+      namespace: vsp
+      version_added: 3.0.0
+    hv_clpr_facts:
+      description: Retrieves information about clprs from Hitachi VSP storage systems.
+      name: hv_clpr_facts
+      namespace: vsp
+      version_added: 3.0.0
     hv_cmd_dev:
       description: Manages command devices on Hitachi VSP storage systems.
       name: hv_cmd_dev
@@ -37,6 +57,11 @@ plugins:
       name: hv_disk_drive_facts
       namespace: vsp
       version_added: 3.2.0
+    hv_external_paritygroup:
+      description: Manages assignment of MP blade and CLPR to an External Parity Group from Hitachi VSP storage systems.
+      name: hv_external_paritygroup
+      namespace: vsp
+      version_added: 4.0.0
     hv_external_paritygroup_facts:
       description: Retrieves information about External Parity Group from Hitachi VSP storage systems.
       name: hv_external_paritygroup_facts
@@ -70,31 +95,6 @@ plugins:
     hv_gad_facts:
       description: Retrieves GAD pairs information from Hitachi VSP storage systems.
       name: hv_gad_facts
-      namespace: vsp
-      version_added: 3.1.0
-    hv_gateway_admin_password:
-      description: Updates password of gateway admin on Hitachi VSP storage systems.
-      name: hv_gateway_admin_password
-      namespace: vsp
-      version_added: 3.0.0
-    hv_gateway_subscriber:
-      description: Manages subscribers of a partner on Hitachi VSP storage systems.
-      name: hv_gateway_subscriber
-      namespace: vsp
-      version_added: 3.0.0
-    hv_gateway_subscriber_facts:
-      description: Retrieves information about subscriber on Hitachi VSP storage systems.
-      name: hv_gateway_subscriber_facts
-      namespace: vsp
-      version_added: 3.0.0
-    hv_gateway_subscription_facts:
-      description: Retrieves information about resources of a subscriber on Hitachi VSP storage systems.
-      name: hv_gateway_subscription_facts
-      namespace: vsp
-      version_added: 3.1.0
-    hv_gateway_unsubscribe_resource:
-      description: Manages un-subscription of resources for a subscriber on Hitachi VSP storage systems.
-      name: hv_gateway_unsubscribe_resource
       namespace: vsp
       version_added: 3.1.0
     hv_hg:
@@ -292,6 +292,16 @@ plugins:
       name: hv_sds_block_vps_facts
       namespace: sds_block
       version_added: 3.1.0
+    hv_server_priority_manager:
+      description: Manage Server Priority Manager information on Hitachi VSP storage systems.
+      name: hv_server_priority_manager
+      namespace: vsp
+      version_added: 4.0.0
+    hv_server_priority_manager_facts:
+      description: Retrieves Server Priority Manager information from Hitachi VSP storage systems.
+      name: hv_server_priority_manager_facts
+      namespace: vsp
+      version_added: 4.0.0
     hv_shadow_image_group:
       description: Manages Remote Copy Group on Hitachi VSP storage systems.
       name: hv_shadow_image_group
@@ -332,6 +342,16 @@ plugins:
       name: hv_snapshot_group_facts
       namespace: vsp
       version_added: 3.2.0
+    hv_snmp_settings:
+      description: Manage SNMP settings on Hitachi Vantara storage systems.
+      name: hv_snmp_settings
+      namespace: vsp
+      version_added: 4.0.0
+    hv_snmp_settings_facts:
+      description: Retrieves SNMP configuration from Hitachi VSP storage systems.
+      name: hv_snmp_settings_facts
+      namespace: vsp
+      version_added: 4.0.0
     hv_storage_port:
       description: Change the storage port settings in the Hitachi VSP storage systems.
       name: hv_storage_port
@@ -342,6 +362,16 @@ plugins:
       name: hv_storage_port_facts
       namespace: vsp
       version_added: 3.0.0
+    hv_storage_system:
+      description: This module specifies storage systems settings like updating the date and time.
+      name: hv_storage_system
+      namespace: vsp
+      version_added: 4.0.0
+    hv_storage_system_monitor_facts:
+      description: Retrieves alerts, hardware installed, and channel boards information from Hitachi VSP storage systems.
+      name: hv_storage_system_monitor_facts
+      namespace: vsp
+      version_added: 4.0.0
     hv_storagepool:
       description: Manage storage pool information on Hitachi VSP storage systems.
       name: hv_storagepool
@@ -350,11 +380,6 @@ plugins:
     hv_storagepool_facts:
       description: Retrieves storage pool information from Hitachi VSP storage systems.
       name: hv_storagepool_facts
-      namespace: vsp
-      version_added: 3.0.0
-    hv_storagesystem:
-      description: Manages Hitachi VSP storage systems.
-      name: hv_storagesystem
       namespace: vsp
       version_added: 3.0.0
     hv_storagesystem_facts:
@@ -377,11 +402,11 @@ plugins:
       name: hv_truecopy_facts
       namespace: vsp
       version_added: 3.1.0
-    hv_uaig_token_facts:
-      description: Retrieves an API token for the Hitachi gateway service host.
-      name: hv_uaig_token_facts
+    hv_upload_file:
+      description: This uploads the files required to set the transfer destination of audit log files
+      name: hv_upload_file
       namespace: vsp
-      version_added: 3.0.0
+      version_added: 4.0.0
     hv_user:
       description: Manages users on Hitachi VSP storage systems.
       name: hv_user
@@ -407,4 +432,4 @@ plugins:
   strategy: {}
   test: {}
   vars: {}
-version: 3.5.1
+version: 4.0.0

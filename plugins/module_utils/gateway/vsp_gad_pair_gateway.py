@@ -131,6 +131,7 @@ class VSPGadPairDirectGateway(VSPReplicationPairsDirectGateway):
             "copyPace": 3,
             "doInitialCopy": True,
             "isDataReductionForceCopy": True,
+            "quorumDiskId": spec.quorum_disk_id,
         }
 
         isConsistencyGroup = None
@@ -158,8 +159,6 @@ class VSPGadPairDirectGateway(VSPReplicationPairsDirectGateway):
         if is_new_group_creation:
             payload["muNumber"] = mu_number
 
-        if spec.quorum_disk_id is not None:
-            payload["quorumDiskId"] = spec.quorum_disk_id
         if spec.path_group_id is not None:
             payload["pathGroupId"] = spec.path_group_id
         if spec.local_device_group_name:
@@ -185,6 +184,7 @@ class VSPGadPairDirectGateway(VSPReplicationPairsDirectGateway):
         # end_point = CREATE_GAD_PAIR_DIRECT.format(storage_deviceId)
         end_point = CREATE_GAD_PAIR_DIRECT
         logger.writeDebug("GW-Direct:create_gad:end_point={}", end_point)
+        logger.writeDebug("GW-Direct:create_gad:payload={}", payload)
         return self.connection_manager.post(end_point, payload, headers_input=headers)
 
     def get_copy_pace_value(self, copy_pace=None):

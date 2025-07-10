@@ -152,3 +152,7 @@ class VSPHurDirectGateway(VSPReplicationPairsDirectGateway):
     @log_entry_exit
     def resize_hur_pair(self, pair, spec):
         return super().resize_replication_pair(pair, spec)
+
+    @log_entry_exit
+    def secondary_takeover_hur_pair(self, spec):
+        return super().secondary_takeover_replication_pair(spec, "UR")

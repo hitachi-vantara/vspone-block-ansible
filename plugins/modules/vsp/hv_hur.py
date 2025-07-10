@@ -27,6 +27,7 @@ attributes:
     support: none
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+- hitachivantara.vspone_block.common.connection_with_type
 notes:
   - The output parameters C(entitlement_status), C(subscriber_id), and C(partner_id) were removed in version 3.4.0.
     These were deprecated due to internal API simplification and are no longer supported.
@@ -35,7 +36,7 @@ options:
     description: The level of the HUR pairs task.
     type: str
     required: false
-    choices: ['present', 'absent', 'split', 'resync', 'resize', 'expand', 'swap_split', 'swap_resync']
+    choices: ['present', 'absent', 'split', 'resync', 'resize', 'expand', 'swap_split', 'swap_resync', 'takeover']
     default: 'present'
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -67,33 +68,6 @@ options:
         description: Value of the lock token to operate on locked resources.
         type: str
         required: false
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    type: dict
-    required: true
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      password:
-        description: Password for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      api_token:
-        description: This field is used to pass the value of the lock token to operate on locked resources.
-        type: str
-        required: false
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   spec:
     description: Specification for the HUR pairs task.
     type: dict
@@ -596,6 +570,8 @@ class VSPSHurManager:
             return "HUR Pair split successfully."
         elif self.state == "swap_split":
             return "HUR Pair swapped split successfully."
+        elif self.state == "takeover":
+            return "HUR Pair secondary volume takeover successfully."
         elif self.state == "swap_resync":
             return "HUR Pair swapped resynced successfully"
         elif self.state == "resize" or self.state == "expand":

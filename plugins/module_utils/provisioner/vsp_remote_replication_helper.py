@@ -1,4 +1,3 @@
-
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
@@ -8,7 +7,7 @@ try:
         log_entry_exit,
     )
     from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg, TrueCopyFailedMsg
-    from ..model.vsp_volume_models import CreateVolumeSpec, VSPVolumePortInfo
+    from ..model.vsp_volume_models import CreateVolumeSpec
     from .vsp_storage_port_provisioner import VSPStoragePortProvisioner
     from .vsp_host_group_provisioner import VSPHostGroupProvisioner
 except ImportError:
@@ -20,7 +19,7 @@ except ImportError:
         log_entry_exit,
     )
     from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg, TrueCopyFailedMsg
-    from model.vsp_volume_models import CreateVolumeSpec, VSPVolumePortInfo
+    from model.vsp_volume_models import CreateVolumeSpec
     from .vsp_storage_port_provisioner import VSPStoragePortProvisioner
     from .vsp_host_group_provisioner import VSPHostGroupProvisioner
 
@@ -596,34 +595,40 @@ class RemoteReplicationHelperForSVol:
         iscsi_targets = []
         if volume.numOfPorts is not None and volume.numOfPorts > 0:
             logger.writeDebug(
-                "PROV:get_hostgroup_and_iscsi_target_info:ports={}", volume.ports
+                "PROV:get_hgs_for_provisioned_svol:ports={}", volume.ports
             )
             for port in volume.ports:
                 port_type = self.get_port_type(port["portId"])
                 port_details = self.hg_prov.get_one_host_group_using_hg_port_id(
                     port["portId"], port["hostGroupNumber"]
                 )
+                logger.writeDebug(
+                    "PROV:get_hgs_for_provisioned_svol:port_details={}", port_details
+                )
                 hg_name = (
                     port_details.hostGroupName
                     if port_details
                     else port["hostGroupName"]
                 )
+                port_details.hostGroupName = hg_name
                 if port_type == "ISCSI":
-                    iscsi_targets.append(
-                        VSPVolumePortInfo(
-                            port["portId"],
-                            port["hostGroupNumber"],
-                            hg_name,
-                        )
-                    )
+                    # iscsi_targets.append(
+                    #     VSPVolumePortInfo(
+                    #         port["portId"],
+                    #         port["hostGroupNumber"],
+                    #         hg_name,
+                    #     )
+                    # )
+                    iscsi_targets.append(port_details)
                 elif port_type == "FIBRE":
-                    hostgroups.append(
-                        VSPVolumePortInfo(
-                            port["portId"],
-                            port["hostGroupNumber"],
-                            hg_name,
-                        )
-                    )
+                    # hostgroups.append(
+                    #     VSPVolumePortInfo(
+                    #         port["portId"],
+                    #         port["hostGroupNumber"],
+                    #         hg_name,
+                    #     )
+                    # )
+                    hostgroups.append(port_details)
                 else:
                     pass
         if is_iscsi:
@@ -646,7 +651,7 @@ class RemoteReplicationHelperForSVol:
 
         hg_map = {}
         for hg in hgs_for_prov_svol:
-            key = f"{hg.portId},{hg.id}"
+            key = f"{hg.portId},{hg.hostGroupId}"
             hg_map[key] = hg
 
         for hg in hgs_from_spec:

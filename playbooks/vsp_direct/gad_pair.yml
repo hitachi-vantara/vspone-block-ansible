@@ -48,7 +48,7 @@
         var: result
 
     ####################################################################
-    # Task Name : Create GAD pair with  server cluster configuration
+    # Task Name : Create GAD pair with server cluster configuration
     ####################################################################
     - name: Create GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:
@@ -188,6 +188,25 @@
       register: result
 
     - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Create a GAD pair with provisioned secondary volume id
+    ####################################################################
+    - name: Create a GAD pair with provisioned secondary volume id
+      hitachivantara.vspone_block.vsp.hv_gad:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          copy_group_name: "GAD_pair1"
+          copy_pair_name: "GAD_Pair_20250618035641_1"
+          primary_volume_id: 3010
+          provisioned_secondary_volume_id: 5686
+          quorum_disk_id: 10
+      register: result
+
+    - name: Debug result
       ansible.builtin.debug:
         var: result
 

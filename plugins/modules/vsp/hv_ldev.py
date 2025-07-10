@@ -27,6 +27,7 @@ attributes:
     support: none
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+- hitachivantara.vspone_block.common.connection_with_type
 notes:
   - The output parameters C(entitlement_status), C(subscriber_id) and C(partner_id) were removed in version 3.4.0.
     They were also deprecated due to internal API simplification and are no longer supported.
@@ -46,33 +47,6 @@ options:
         description: The serial number of the storage system.
         type: str
         required: false
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    type: dict
-    required: true
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      password:
-        description: Password for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      api_token:
-        description: This field is used to pass the value of the lock token to operate on locked resources.
-        type: str
-        required: false
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   spec:
     description: Specification for the LDEV.
     type: dict
@@ -263,6 +237,12 @@ options:
           If not specified, the LDEV will be assigned to the default MP blade.
         type: int
         required: false
+      clpr_id:
+        description: >
+          The CLPR (Control Logical Partition) ID to which the LDEV will be assigned. This is used for specifying the CLPR for the LDEV.
+          If not specified, the LDEV will be assigned to the default CLPR.
+        type: int
+        required: false
       should_reclaim_zero_pages:
         description: >
           Whether to reclaim zero pages of a DP volume. This is used to reclaim space in a DP volume.
@@ -353,6 +333,17 @@ EXAMPLES = """
     spec:
       ldev_id: 11
       mp_blade_id: 1
+
+- name: Set CLPR ID of a volume.
+  hitachivantara.vspone_block.vsp.hv_ldev:
+    connection_info:
+      address: storage.company.com
+      username: "admin"
+      password: "passw0rd"
+    state: "present"
+    spec:
+      ldev_id: 11
+      clpr_id: 1
 
 - name: Reclaiming zero pages of a DP volume.
   hitachivantara.vspone_block.vsp.hv_ldev:

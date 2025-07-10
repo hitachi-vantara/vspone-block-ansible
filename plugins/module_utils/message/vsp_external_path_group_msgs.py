@@ -3,7 +3,7 @@ from enum import Enum
 
 class VSPSExternalPathGroupValidateMsg(Enum):
     EXT_PATH_GROUP_ID_REQD = (
-        "external_path_group_ide is a required field, which is missing."
+        "external_path_group_id is a required field, which is missing."
     )
     PATHS_REQD = "External path group specification must contain at least one external path. Please specify external_fc_paths or external_iscsi_target_paths."
     FC_PATH_FIELDS = "External FC path must contain port and external_wwn."

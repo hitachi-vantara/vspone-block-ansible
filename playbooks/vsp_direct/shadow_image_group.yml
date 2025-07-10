@@ -25,7 +25,7 @@
         connection_info: "{{ connection_info }}"
         state: "split"
         spec:
-          copy_group_name: copy_group_name1
+          copy_group_name: "copy_group_name1"
           quick_mode: true
           copy_pace: 100
           force_suspend: true
@@ -43,7 +43,7 @@
         connection_info: "{{ connection_info }}"
         state: "sync"
         spec:
-          copy_group_name: copy_group_name1
+          copy_group_name: "copy_group_name1"
           quick_mode: true
           copy_pace: 100
       register: result
@@ -60,7 +60,7 @@
         connection_info: "{{ connection_info }}"
         state: "restore"
         spec:
-          copy_group_name: copy_group_name1
+          copy_group_name: "copy_group_name1"
           quick_mode: true
           copy_pace: 100
       register: result
@@ -77,7 +77,7 @@
         connection_info: "{{ connection_info }}"
         state: "absent"
         spec:
-          copy_group_name: copy_group_name1
+          copy_group_name: "copy_group_name1"
           force_delete: true
       register: result
 
@@ -93,7 +93,7 @@
         connection_info: "{{ connection_info }}"
         state: "migrate"
         spec:
-          copy_group_name: copy_group_name1
+          copy_group_name: "copy_group_name1"
       register: result
 
     - name: Debug the result variable
@@ -108,7 +108,7 @@
         connection_info: "{{ connection_info }}"
         state: "split"
         spec:
-          copy_group_name: copy_group_name1
+          copy_group_name: "copy_group_name1"
           should_force_split: true
       register: result
 

@@ -4,6 +4,7 @@ import re
 import string
 import random
 from typing import List
+import ipaddress
 
 
 try:
@@ -410,3 +411,17 @@ def get_size_from_byte_format_capacity(byte_format):
     unit = byte_format.split(" ")[1]
     int_value = value.split(".")[0]
     return f"{int_value}{unit}"
+
+
+def is_valid_ip(ip):
+    try:
+        ipaddress.ip_address(ip)
+        return True
+    except ValueError:
+        return False
+
+
+def is_valid_email(email):
+    # Basic regex for email validation
+    email_regex = r"^[\w\.-]+@[\w\.-]+\.\w{2,}$"
+    return re.match(email_regex, email) is not None

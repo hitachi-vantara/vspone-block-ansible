@@ -93,11 +93,11 @@ class VSPPfrestExternalParityGroup(SingleBaseClass):
     usedCapacityRate: int = None
     spaces: List[VSPPfrestParityGroupSpace] = None
     # Not used fields
-    # numOfLdevs: int = None
-    # emulationType: str = None
-    # clprId: int = None
-    # externalProductId: str = None
-    # availableVolumeCapacityInKB: int = None
+    numOfLdevs: int = None
+    emulationType: str = None
+    clprId: int = None
+    externalProductId: str = None
+    availableVolumeCapacityInKB: int = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

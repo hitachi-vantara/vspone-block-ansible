@@ -38,10 +38,91 @@ class ModuleDocFragment:
           username:
             description: Username for authentication. This is a required field.
             type: str
+            required: false
+          password:
+            description: Password for authentication. This is a required field.
+            type: str
+            required: false
+          api_token:
+            description: Token used to operate on locked resources.
+            type: str
+            required: false
+    """
+    CONNECTION_INFO_BASIC = r"""
+      options:
+        connection_info:
+          description: Information required to establish a connection to the storage system.
+          type: dict
+          required: true
+          suboptions:
+            address:
+              description: IP address or hostname of the storage system.
+              type: str
+              required: true
+            username:
+              description: Username for authentication. This is a required field.
+              type: str
+              required: true
+            password:
+              description: Password for authentication. This is a required field.
+              type: str
+              required: true
+    """
+
+    CONNECTION_WITH_TYPE = r"""
+    options:
+      connection_info:
+        description: Information required to establish a connection to the storage system.
+        type: dict
+        required: true
+        suboptions:
+          connection_type:
+            description: Type of connection to the storage system.
+            type: str
+            required: false
+            choices: ['direct']
+            default: 'direct'
+          address:
+            description: IP address or hostname of the storage system.
+            type: str
+            required: true
+          username:
+            description: Username for authentication. This is a required field.
+            type: str
+            required: false
+          password:
+            description: Password for authentication. This is a required field.
+            type: str
+            required: false
+          api_token:
+            description: Token used to operate on locked resources.
+            type: str
+            required: false
+    """
+
+    CONNECTION_WITHOUT_TOKEN = r"""
+    options:
+      connection_info:
+        description: Information required to establish a connection to the storage system.
+        type: dict
+        required: true
+        suboptions:
+          connection_type:
+            description: Type of connection to the storage system.
+            type: str
+            required: false
+            choices: ['direct']
+            default: 'direct'
+          address:
+            description: IP address or hostname of the storage system.
+            type: str
+            required: true
+          username:
+            description: Username for authentication. This is a required field.
+            type: str
             required: true
           password:
             description: Password for authentication. This is a required field.
             type: str
             required: true
-
     """

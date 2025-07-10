@@ -84,6 +84,7 @@ class CreateVolumeSpec:
     should_shred_volume_enable: Optional[bool] = None
     qos_settings: Optional[VolumeQosParamsSpec] = None
     mp_blade_id: Optional[int] = None
+    clpr_id: Optional[int] = None
     should_reclaim_zero_pages: Optional[bool] = None
     # Added for UCA-3302
     is_parallel_execution_enabled: Optional[bool] = None

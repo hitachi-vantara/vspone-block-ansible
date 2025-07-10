@@ -5,6 +5,9 @@ class CopyGroupFailedMsg(Enum):
     NOT_SUPPORTED_FOR_UAI_GATEWAY = (
         "Copy group {} operation is not supported by UAI Gateway."
     )
+    NOT_SUPPORTED_FOR_TC_GAD = (
+        "Copy group {} operation is only supported for HUR pairs."
+    )
 
 
 class VSPCopyGroupsValidateMsg(Enum):

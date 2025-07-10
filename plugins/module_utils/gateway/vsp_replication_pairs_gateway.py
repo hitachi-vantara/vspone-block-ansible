@@ -34,6 +34,9 @@ CREATE_REMOTE_COPY_PAIR_DIRECT = "v1/objects/storages/{}/remote-mirror-copypairs
 SPLIT_REMOTE_COPY_PAIR_DIRECT = (
     "v1/objects/storages/{}/remote-mirror-copypairs/{}/actions/split/invoke"
 )
+SECONDARY_TAKEOVER_COPY_PAIR_DIRECT = (
+    "v1/objects/storages/{}/remote-mirror-copypairs/{}/actions/takeover/invoke"
+)
 RESYNC_REMOTE_COPY_PAIR_DIRECT = (
     "v1/objects/storages/{}/remote-mirror-copypairs/{}/actions/resync/invoke"
 )
@@ -657,4 +660,74 @@ class VSPReplicationPairsDirectGateway:
                 pair.replicationType,
             )
             logger.writeDebug("GW:resize_replication_pair:resync:response={}", response)
+        return response
+
+    @log_entry_exit
+    def secondary_takeover_replication_pair(self, spec, remote_pair_type, mode=None):
+
+        # secondary_storage_info = self.get_secondary_storage_info(
+        #     spec.secondary_connection_info
+        # )
+        # logger.writeDebug(
+        #     "GW:secondary_takeover_replication_pair:secondary_storage_info={}",
+        #     secondary_storage_info,
+        # )
+        # remote_storage_deviceId = secondary_storage_info.get("storageDeviceId")
+
+        storage_deviceId = self.get_storage_device_id(str(self.storage_serial_number))
+        # remoteStorageDeviceId,copyGroupName,localDeviceGroupName,remoteDeviceGroupName, copyPairName
+        parameters = {"mode": "auto"}
+        # if mode:
+        #     parameters["svolOperationMode"] = mode
+
+        if spec.remote_device_group_name:
+            object_id = f"NotSpecified,{spec.copy_group_name},{spec.remote_device_group_name},NotSpecified,{spec.copy_pair_name}"
+            logger.writeDebug("GW:sng1119 spec={}", spec.remote_device_group_name)
+            logger.writeDebug("GW:sng1119 object_id={}", object_id)
+        else:
+            raise ValueError(
+                "remote_device_group_name is required for takeover operation"
+            )
+        payload = {"parameters": parameters}
+        # headers = self.get_remote_token(spec.secondary_connection_info)
+        # headers["Remote-Authorization"] = headers.pop("Authorization")
+        # headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
+        end_point = SECONDARY_TAKEOVER_COPY_PAIR_DIRECT.format(
+            storage_deviceId, object_id
+        )
+        start_time = time.time()
+
+        response = self.connection_manager.post(
+            end_point, payload  # , headers_input=headers
+        )
+        end_time = time.time()
+        logger.writeDebug(
+            "PF_REST:secondary_takeover_replication_pair:time={:.2f}",
+            end_time - start_time,
+        )
+        response = self.connection_manager.get(
+            GET_ONE_REMOTE_COPY_PAIRS_DIRECT.format(storage_deviceId, object_id)
+        )
+        logger.writeDebug(f"GW:get_storage_device_id:response={response}")
+        # Inline code to convert all keys to snake_case
+        for key, value in list(response.items()):
+            # Convert camelCase to snake_case for top-level keys
+            new_key = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", key).lower()
+            response[new_key] = response.pop(key)
+
+            # Convert keys in nested dictionaries or lists
+            if isinstance(value, dict):
+                for sub_key, sub_value in list(value.items()):
+                    new_sub_key = re.sub(
+                        r"([a-z0-9])([A-Z])", r"\1_\2", sub_key
+                    ).lower()
+                    value[new_sub_key] = value.pop(sub_key)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        for sub_key, sub_value in list(item.items()):
+                            new_sub_key = re.sub(
+                                r"([a-z0-9])([A-Z])", r"\1_\2", sub_key
+                            ).lower()
+                            item[new_sub_key] = item.pop(sub_key)
         return response

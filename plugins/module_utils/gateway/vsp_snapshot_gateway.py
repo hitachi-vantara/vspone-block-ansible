@@ -12,8 +12,8 @@ try:
     from ..common.hv_log import Log
     from ..common.hv_log_decorator import LogDecorator
     from ..common.vsp_constants import Endpoints as DirectEndPoints
-    from ..common.vsp_constants import VSPSnapShotReq, PEGASUS_MODELS
-    from ..model.common_base_models import VSPStorageDevice
+    from ..common.vsp_constants import VSPSnapShotReq
+    from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 except ImportError:
     from common.ansible_common import dicts_to_dataclass_list
     from .gateway_manager import VSPConnectionManager
@@ -26,8 +26,8 @@ except ImportError:
     from common.hv_log import Log
     from common.hv_log_decorator import LogDecorator
     from common.vsp_constants import Endpoints as DirectEndPoints
-    from common.vsp_constants import VSPSnapShotReq, PEGASUS_MODELS
-    from model.common_base_models import VSPStorageDevice
+    from common.vsp_constants import VSPSnapShotReq
+    from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 
 
 COPY_SPEED_CONST = {
@@ -35,7 +35,6 @@ COPY_SPEED_CONST = {
     "FAST": "faster",
     "MEDIUM": "medium",
 }
-GET_STORAGE_INFO_DIRECT = "v1/objects/storages/instance"
 
 
 @LogDecorator.debug_methods
@@ -50,27 +49,18 @@ class VSPHtiSnapshotDirectGateway:
         )
         self.end_points = DirectEndPoints
         self.pegasus_model = None
+        self.connection_info = connection_info
 
     def is_pegasus(self):
         if self.pegasus_model is None:
-            logger = Log()
-            end_point = GET_STORAGE_INFO_DIRECT
-            storage_info = self.rest_api.get(end_point)
-            logger.writeDebug(f"58:storage details{storage_info}")
-            storage_info = VSPStorageDevice(**storage_info)
-
-            pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
-            logger.writeDebug(f"62: Storage Model: {storage_info.model}")
-            self.pegasus_model = pegasus_model
+            storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+            self.pegasus_model = storage_gw.is_pegasus()
         return self.pegasus_model
 
     def get_all_snapshots(
         self, pvol: Optional[int] = None, mirror_unit_id: Optional[int] = None
     ) -> DirectSnapshotsInfo:
-        storage_info = self.get_storage_details()
-
-        pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
-        self.logger.writeDebug(f"Storage Model: {storage_info.model}")
+        pegasus_model = self.is_pegasus()
         if pegasus_model and not pvol:
             return self._get_pegasus_snapshots()
         else:
@@ -271,12 +261,6 @@ class VSPHtiSnapshotDirectGateway:
             data=None,
         )
 
-    def get_storage_details(self) -> VSPStorageDevice:
-        end_point = self.end_points.GET_STORAGE_INFO
-        storage_info = self.rest_api.get(end_point)
-        self.logger.writeDebug(f"Found storage details{storage_info}")
-        return VSPStorageDevice(**storage_info)
-
     def create_snapshot(
         self,
         pvol: int,
@@ -374,8 +358,7 @@ class VSPHtiSnapshotDirectGateway:
                 payload[VSPSnapShotReq.canCascade] = True
 
         if retention_period is not None:
-            storage_info = self.get_storage_details()
-            pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
+            pegasus_model = self.is_pegasus()
             if pegasus_model:
                 payload[VSPSnapShotReq.retentionPeriod] = retention_period
 

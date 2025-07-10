@@ -302,6 +302,15 @@ class StoragePoolPayloadConst:
     DEPLETION_THRESHOLD = "depletionThreshold"
     POOL_TYPE = "poolType"
     PARAMETERS = "parameters"
+    OPERATION_TYPE = "operationType"
+    monitoringMode = "monitoringMode"
+    tier = "tier"
+    blockingMode = "blockingMode"
+    virtualVolumeCapacityRate = "virtualVolumeCapacityRate"
+    suspendSnapshot = "suspendSnapshot"
+    tierNumber = "tierNumber"
+    tablespaceRate = "tablespaceRate"
+    bufferRate = "bufferRate"
 
 
 class GADPairConst:

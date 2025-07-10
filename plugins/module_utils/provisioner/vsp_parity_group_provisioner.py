@@ -258,6 +258,24 @@ class VSPParityGroupProvisioner:
         return self.get_parity_group(spec.parity_group_id)
 
     @log_entry_exit
+    def assign_parity_group_to_clpr(self, spec):
+        parity_group_exits = self.get_parity_group(
+            spec.parity_group_id
+        )  # self.direct_get_parity_group_by_id(spec.parity_group_id)
+        self.logger.writeDebug(f"PV:parity_group: parity_group =  {parity_group_exits}")
+        if parity_group_exits is not None:
+            if parity_group_exits.clprId == spec.clpr_id:
+                return parity_group_exits
+        else:
+            return VSPParityGroupValidateMsg.NO_PARITY_GROUP_ID.value.format(
+                spec.parity_group_id
+            )
+        response = self.gateway.assign_parity_group_to_clpr(spec)
+        self.logger.writeDebug(f"assign_parity_group_to_clpr result: {response}")
+        self.connection_info.changed = True
+        return self.get_parity_group(spec.parity_group_id)
+
+    @log_entry_exit
     def get_all_drives(self):
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
             drives = self.gateway.get_all_drives()

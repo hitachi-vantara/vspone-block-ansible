@@ -30,7 +30,6 @@ RESYNC_TRUE_COPY_PAIR_DIRECT = (
 GET_REMOTE_STORAGES_DIRECT = "v1/objects/remote-storages"
 GET_STORAGES_DIRECT = "v1/objects/storages"
 GET_TRUE_COPY_PAIRS_DIRECT = "v1/objects/remote-copypairs?replicationType=TC"
-# DELETE_TRUE_COPY_PAIR_DIRECT = "v1/objects/storages/{}/remote-mirror-copypairs/{}"
 DELETE_TRUE_COPY_PAIR_DIRECT = "v1/objects/remote-mirror-copypairs/{}"
 
 
@@ -206,16 +205,6 @@ class VSPTrueCopyDirectGateway(VSPReplicationPairsDirectGateway):
     @log_entry_exit
     def delete_true_copy_pair_by_pair_id(self, spec):
         return super().delete_replication_pair(spec)
-
-        # secondary_storage_info = self.get_secondary_storage_info(spec.secondary_connection_info)
-        # logger.writeDebug("GW:delete_true_copy_pair_by_pair_id:secondary_storage_info={}", secondary_storage_info)
-        # remote_storage_deviceId = secondary_storage_info.get("storageDeviceId")
-        # # remoteStorageDeviceId,copyGroupName,localDeviceGroupName,remoteDeviceGroupName, copyPairName
-        # local_device_group_name = spec.local_device_group_name if spec.local_device_group_name else spec.copy_group_name + "P_"
-        # remote_device_group_name = spec.remote_device_group_name if spec.remote_device_group_name else spec.copy_group_name + "S_"
-        # object_id = f"{remote_storage_deviceId},{spec.copy_group_name},{local_device_group_name},{remote_device_group_name},{spec.copy_pair_name}"
-
-        # return self.delete_true_copy_pair_by_object_id(object_id, spec.secondary_connection_info)
 
     @log_entry_exit
     def get_copy_pair_for_primary_volume_id_from_cp_gr(self, cg_gw, spec):

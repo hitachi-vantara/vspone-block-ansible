@@ -13,14 +13,14 @@ DOCUMENTATION = """
 module: hv_user_group
 short_description: Manages user groups on Hitachi VSP storage systems.
 description:
-    - This module allows the creation and deletion of user groups on Hitachi VSP storage systems.
-    - It also enables adding or removing resource groups to/from the user group.
-    - This module is supported for C(direct) connection types.
-    - For examples, go to URL
-      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/user_group.yml)
-version_added: '3.3.0'
+  - This module allows the creation and deletion of user groups on Hitachi VSP storage systems.
+  - It also enables adding or removing resource groups to/from the user group.
+  - This module is supported for C(direct) connection types.
+  - For examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/user_group.yml)
+version_added: "3.3.0"
 author:
-    - Hitachi Vantara LTD (@hitachi-vantara)
+  - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
   - python >= 3.9
 attributes:
@@ -28,88 +28,78 @@ attributes:
     description: Determines if the module should run in check mode.
     support: none
 extends_documentation_fragment:
-- hitachivantara.vspone_block.common.gateway_note
+  - hitachivantara.vspone_block.common.gateway_note
+  - hitachivantara.vspone_block.common.connection_info
 options:
-    state:
-        description: The desired state of the user group task.
+  state:
+    description: The desired state of the user group task.
+    type: str
+    required: false
+    default: "present"
+    choices: ["present", "absent"]
+  spec:
+    description: Specification for the user  group.
+    type: dict
+    required: true
+    suboptions:
+      name:
+        description: The name of the user group.
         type: str
         required: false
-        default: 'present'
-        choices: ['present', 'absent']
-    connection_info:
-        description: Information required to establish a connection to the storage system.
-        type: dict
-        required: true
-        suboptions:
-            address:
-                description: IP address or hostname of the storage system.
-                type: str
-                required: true
-            username:
-                description: Username for authentication. This is a required field.
-                type: str
-                required: false
-            password:
-                description: Password for authentication. This is a required field.
-                type: str
-                required: false
-    spec:
-        description: Specification for the user  group.
-        type: dict
-        required: true
-        suboptions:
-            name:
-                description: The name of the user group.
-                type: str
-                required: false
-            id:
-                description: The ID of the user group.
-                type: str
-                required: false
-            role_names:
-                description:
-                    - The role name. Specify one or more of the following role names.
-                    - "AUDIT_LOG_ADMIN_VIEW_N_MODIFY"
-                    - "AUDIT_LOG_ADMIN_VIEW_ONLY"
-                    - "SECURITY_ADMIN_VIEW_N_MODIFY"
-                    - "SECURITY_ADMIN_VIEW_ONLY"
-                    - "STORAGE_ADMIN_INIT_CONFIG"
-                    - "STORAGE_ADMIN_LOCAL_COPY"
-                    - "STORAGE_ADMIN_PERF_MGMT"
-                    - "STORAGE_ADMIN_PROVISION"
-                    - "STORAGE_ADMIN_REMOTE_COPY"
-                    - "STORAGE_ADMIN_SYS_RESOURCE_MGMT"
-                    - "STORAGE_ADMIN_VIEW_ONLY"
-                    - "SUPPORT_PERSONNEL"
-                    - "USER_MAINTENANCE"
-                type: list
-                required: false
-                elements: str
-            resource_group_ids:
-                description:
-                    - List of resource group IDs to be added or removed from the user group.
-                    - The following six role names has access to all the resource groups, so this field will be ignored
-                        if you specify any one of them in the role_names field.
-                    - AUDIT_LOG_ADMIN_VIEW_N_MODIFY
-                    - AUDIT_LOG_ADMIN_VIEW_ONLY
-                    - SECURITY_ADMIN_VIEW_N_MODIFY
-                    - SECURITY_ADMIN_VIEW_ONLY
-                    - SUPPORT_PERSONNEL
-                    - USER_MAINTENANCE
-                type: list
-                required: false
-                elements: int
-            state:
-                description:
-                    - Operation to be performed on the resource groups in the user group.
-                    - C(add_resource_group) -  To add resource groups to the user group.
-                    - C(remove_resource_group) - To remove resource groups from the user group.
-                    - C(add_role) - To add roles to the user group.
-                    - C(remove_role) - To remove roles from the user group.
-                type: str
-                required: false
-                choices: ['add_resource_group', 'remove_resource_group', 'add_role', 'remove_role']
-                default: null
+      id:
+        description: The ID of the user group.
+        type: str
+        required: false
+      role_names:
+        description:
+          - The role name. Specify one or more of the following role names.
+          - "AUDIT_LOG_ADMIN_VIEW_N_MODIFY"
+          - "AUDIT_LOG_ADMIN_VIEW_ONLY"
+          - "SECURITY_ADMIN_VIEW_N_MODIFY"
+          - "SECURITY_ADMIN_VIEW_ONLY"
+          - "STORAGE_ADMIN_INIT_CONFIG"
+          - "STORAGE_ADMIN_LOCAL_COPY"
+          - "STORAGE_ADMIN_PERF_MGMT"
+          - "STORAGE_ADMIN_PROVISION"
+          - "STORAGE_ADMIN_REMOTE_COPY"
+          - "STORAGE_ADMIN_SYS_RESOURCE_MGMT"
+          - "STORAGE_ADMIN_VIEW_ONLY"
+          - "SUPPORT_PERSONNEL"
+          - "USER_MAINTENANCE"
+        type: list
+        required: false
+        elements: str
+      resource_group_ids:
+        description:
+          - List of resource group IDs to be added or removed from the user group.
+          - The following six role names has access to all the resource groups, so this field will be ignored
+            if you specify any one of them in the role_names field.
+          - AUDIT_LOG_ADMIN_VIEW_N_MODIFY
+          - AUDIT_LOG_ADMIN_VIEW_ONLY
+          - SECURITY_ADMIN_VIEW_N_MODIFY
+          - SECURITY_ADMIN_VIEW_ONLY
+          - SUPPORT_PERSONNEL
+          - USER_MAINTENANCE
+        type: list
+        required: false
+        elements: int
+      state:
+        description:
+          - Operation to be performed on the resource groups in the user group.
+          - C(add_resource_group) -  To add resource groups to the user group.
+          - C(remove_resource_group) - To remove resource groups from the user group.
+          - C(add_role) - To add roles to the user group.
+          - C(remove_role) - To remove roles from the user group.
+        type: str
+        required: false
+        choices:
+          [
+            "add_resource_group",
+            "remove_resource_group",
+            "add_role",
+            "remove_role",
+          ]
+        default: null
 """
 
 EXAMPLES = """

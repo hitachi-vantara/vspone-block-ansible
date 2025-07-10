@@ -1,9 +1,10 @@
 import re
 
 try:
-    from ..common.vsp_constants import Endpoints
-    from ..common.ansible_common import dicts_to_dataclass_list
+    from ..common.vsp_constants import Endpoints, TimeZoneConst
+    from ..common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from ..common.hv_log import Log
+    from ..common.vsp_constants import PEGASUS_MODELS
     from ..model.vsp_storage_system_models import (
         VSPStorageSystemsInfoPfrestList,
         VSPStorageSystemsInfoPfrest,
@@ -23,12 +24,15 @@ try:
         VSPSyslogServerPfrest,
         VSPStorageCapacitiesPfrest,
         TotalEfficiency,
+        StorageSystemDateTime,
+        TimeZonesInfo,
     )
     from .gateway_manager import VSPConnectionManager
-    from ..common.ansible_common import log_entry_exit
 except ImportError:
-    from common.vsp_constants import Endpoints
-    from common.ansible_common import dicts_to_dataclass_list
+    from common.vsp_constants import Endpoints, TimeZoneConst
+    from common.ansible_common import dicts_to_dataclass_list, log_entry_exit
+    from common.hv_log import Log
+    from common.vsp_constants import PEGASUS_MODELS
     from model.vsp_storage_system_models import (
         VSPStorageSystemsInfoPfrestList,
         VSPStorageSystemsInfoPfrest,
@@ -48,9 +52,9 @@ except ImportError:
         VSPSyslogServerPfrest,
         VSPStorageCapacitiesPfrest,
         TotalEfficiency,
+        StorageSystemDateTime,
+        TimeZonesInfo,
     )
-    from common.ansible_common import log_entry_exit
-    from common.hv_log import Log
     from .gateway_manager import VSPConnectionManager
 
 logger = Log()
@@ -130,6 +134,18 @@ class VSPStorageSystemDirectGateway:
             result = VSPStorageSystemInfoPfrest(**storageSystemInfo)
             cache["get_current_storage_system_info"] = result
             return result
+
+    @log_entry_exit
+    def is_pegasus(self):
+        cache = self.get_site_cache()
+        value = cache.get("is_pegasus", None)
+        if value is not None:
+            return value
+        else:
+            storage_info = self.get_current_storage_system_info()
+            pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
+            cache["is_vsp_5000_series"] = pegasus_model
+            return pegasus_model
 
     @log_entry_exit
     def is_vsp_5000_series(self):
@@ -232,3 +248,46 @@ class VSPStorageSystemDirectGateway:
         endPoint = Endpoints.GET_STORAGE_CAPACITY
         capacity = self.connectionManager.get(endPoint)
         return VSPStorageCapacitiesPfrest(**capacity)
+
+    @log_entry_exit
+    def get_storage_systems_date_and_time(self):
+        endPoint = Endpoints.GET_STORAGE_SYSTEMS_INFO
+        try:
+            storage_systems_info = self.connectionManager.get(endPoint)
+            return StorageSystemDateTime(**storage_systems_info)
+        except Exception as e:
+            # If the endpoint is not available, return None
+            return None
+
+    @log_entry_exit
+    def get_storage_systems_time_zone(self):
+        endPoint = Endpoints.GET_TIME_ZONE_LIST
+        try:
+            storage_systems_info = self.connectionManager.get(endPoint)
+            return TimeZonesInfo().dump_to_object(storage_systems_info)
+        except Exception as e:
+            # If the endpoint is not available, return None
+            return None
+
+    @log_entry_exit
+    def set_storage_systems_time_zone(self, time_zone_spec):
+        endPoint = Endpoints.SET_TIME_ZONE
+
+        payload = {
+            TimeZoneConst.isNtpEnabled: time_zone_spec.is_ntp_enabled,
+            TimeZoneConst.systemTime: time_zone_spec.system_time,
+            TimeZoneConst.timeZoneId: time_zone_spec.time_zone_id,
+        }
+        if time_zone_spec.ntp_server_names:
+            payload[TimeZoneConst.ntpServerNames] = time_zone_spec.ntp_server_names
+        if time_zone_spec.synchronizing_local_time:
+            payload[TimeZoneConst.synchronizingLocalTime] = (
+                time_zone_spec.synchronizing_local_time
+            )
+        if time_zone_spec.adjusts_daylight_saving_time:
+            payload[TimeZoneConst.adjustsDaylightSavingTime] = (
+                time_zone_spec.adjusts_daylight_saving_time
+            )
+        if time_zone_spec.synchronizes_now:
+            payload[TimeZoneConst.synchronizesNow] = time_zone_spec.synchronizes_now
+        return self.connectionManager.patch_wo_job(endPoint, payload)

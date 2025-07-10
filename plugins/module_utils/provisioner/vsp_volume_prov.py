@@ -150,6 +150,31 @@ class VSPVolumeProvisioner:
         return ldevs.data[0].ldevId
 
     @log_entry_exit
+    def get_free_ldevs_from_meta(
+        self, count=10, start_ldev=None, end_ldev=None, resource_grp_id=0
+    ):
+        count = 10 if not count else int(count)
+        ldevs = self.gateway.get_free_ldevs_from_meta(start_ldev)
+        if not ldevs.data:
+            err_msg = VSPVolValidationMsg.NO_FREE_LDEV.value
+            logger.writeError(err_msg)
+            return err_msg
+        ldevs = [
+            ldev.ldevId
+            for ldev in ldevs.data
+            if ldev.resourceGroupId == resource_grp_id
+        ]
+        ldevs = sorted(ldevs)
+
+        if start_ldev is not None:
+            ldevs = [ldev for ldev in ldevs if ldev >= start_ldev]
+        if end_ldev is not None:
+            ldevs = [ldev for ldev in ldevs if ldev <= end_ldev]
+        if count > 0:
+            ldevs = ldevs[:count]
+        return ldevs
+
+    @log_entry_exit
     def expand_volume_capacity(self, ldev_id, payload, enhanced_expansion):
 
         return self.gateway.expand_volume(ldev_id, payload, enhanced_expansion)
@@ -210,6 +235,10 @@ class VSPVolumeProvisioner:
     @log_entry_exit
     def change_mp_blade(self, ldev_id, mp_blade_id):
         return self.gateway.change_mp_blade(ldev_id, mp_blade_id)
+
+    @log_entry_exit
+    def assign_ldev_to_clpr(self, ldev_id, clpr_id):
+        return self.gateway.assign_ldev_to_clpr(ldev_id, clpr_id)
 
     @log_entry_exit
     def reclaim_zero_pages(self, ldev_id):

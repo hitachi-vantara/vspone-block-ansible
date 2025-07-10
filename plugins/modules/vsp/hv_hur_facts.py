@@ -27,6 +27,7 @@ attributes:
     support: full
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+- hitachivantara.vspone_block.common.connection_with_type
 options:
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -37,33 +38,6 @@ options:
         description: The serial number of the storage system.
         type: str
         required: false
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    type: dict
-    required: true
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      password:
-        description: Password for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      api_token:
-        description: This field is used to pass the value of the lock token to operate on locked resources.
-        type: str
-        required: false
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   secondary_connection_info:
     description: Information required to establish a connection to the secondary storage system.
     required: false
@@ -191,93 +165,61 @@ ansible_facts:
       elements: dict
       contains:
         consistency_group_id:
-          description: ID of the consistency group.
-          type: int
-          sample: 1
-        copy_pace_track_size:
-          description: Size of the copy pace track.
+          description: Consistency Group ID.
           type: int
           sample: -1
+        copy_group_name:
+          description: Name of the copy group.
+          type: str
+          sample: "HUR_TEST_1107"
+        copy_pair_name:
+          description: Name of the copy pair.
+          type: str
+          sample: "rd_copy_pair_202"
         copy_rate:
-          description: Rate of the copy process.
+          description: Copy rate.
+          type: int
+          sample: ""
+        mirror_unit_id:
+          description: Mirror unit ID.
           type: int
           sample: 0
-        mirror_unit_id:
-          description: ID of the mirror unit.
+        primary_journal_pool:
+          description: Primary journal pool.
           type: int
-          sample: 1
-        primary_hex_volume_id:
-          description: Hexadecimal ID of the primary volume.
-          type: str
-          sample: "00:00:01"
-        primary_v_s_m_resource_group_name:
-          description: Name of the primary VSM resource group.
-          type: str
-          sample: ""
-        primary_virtual_hex_volume_id:
-          description: Hexadecimal ID of the primary virtual volume.
-          type: str
-          sample: "00:00:01"
-        primary_virtual_storage_id:
-          description: ID of the primary virtual storage.
-          type: str
-          sample: ""
-        primary_virtual_volume_id:
-          description: ID of the primary virtual volume.
-          type: int
-          sample: -1
+          sample: 59
         primary_volume_id:
-          description: ID of the primary volume.
+          description: Primary volume ID.
           type: int
-          sample: 1
+          sample: 631
         primary_volume_storage_id:
-          description: Storage ID of the primary volume.
-          type: int
-          sample: 811111
-        secondary_hex_volume_id:
-          description: Hexadecimal ID of the secondary volume.
+          description: Primary volume storage ID.
           type: str
-          sample: "00:00:02"
-        secondary_v_s_m_resource_group_name:
-          description: Name of the secondary VSM resource group.
-          type: str
-          sample: ""
-        secondary_virtual_hex_volume_id:
-          description: Hexadecimal ID of the secondary virtual volume.
-          type: str
-          sample: -1
-        secondary_virtual_storage_id:
-          description: ID of the secondary virtual storage.
-          type: str
-          sample: ""
-        secondary_virtual_volume_id:
-          description: ID of the secondary virtual volume.
-          type: int
-          sample: -1
-        secondary_volume_id:
-          description: ID of the secondary volume.
-          type: int
-          sample: 2
-        secondary_volume_storage_id:
-          description: Storage ID of the secondary volume.
-          type: int
-          sample: 811112
-        status:
-          description: Status of the HUR.
+          sample: "40014"
+        pvol_status:
+          description: PVOL status.
           type: str
           sample: "PAIR"
-        storage_serial_number:
-          description: Serial number of the storage system.
+        remote_mirror_copy_pair_id:
+          description: Remote mirror copy pair ID.
           type: str
-          sample: "811111"
-        svol_access_mode:
-          description: Access mode of the secondary volume.
+          sample: "A34000810045,TC_TEST_1107,TC_TEST_1107P_,TC_TEST_1107S_,rd_copy_pair_202"
+        secondary_journal_pool:
+          description: Secondary journal pool.
+          type: int
+          sample: 59
+        secondary_volume_id:
+          description: Secondary volume ID.
+          type: int
+          sample: 202
+        secondary_volume_storage_id:
+          description: Primary volume storage ID.
           type: str
-          sample: "READONLY"
-        type:
-          description: Type of the HUR.
+          sample: "40014"
+        svol_status:
+          description: SVOL status.
           type: str
-          sample: "HUR"
+          sample: "PAIR"
 """
 
 from ansible.module_utils.basic import AnsibleModule

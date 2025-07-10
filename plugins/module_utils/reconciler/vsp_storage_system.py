@@ -20,14 +20,16 @@ except ImportError:
 
 class VSPStorageSystemReconciler:
 
-    def __init__(self, connection_info, serial):
+    def __init__(self, connection_info, serial=None):
         self.connection_info = connection_info
         self.serial = serial
         self.provisioner = VSPStorageSystemProvisioner(self.connection_info)
 
     @log_entry_exit
-    def storage_system_reconcile(self):
-        """TO DO: will add more logic here"""
+    def storage_system_reconcile(self, spec):
+        if spec.date_time is not None:
+            return self.provisioner.set_storage_system_date_time(spec.date_time)
+        return self.provisioner.get_storage_system(None, None)
 
     @log_entry_exit
     def get_storage_system(self, get_storage_system_spec):
@@ -63,6 +65,8 @@ class VSPStorageSystemCommonPropertiesExtractor:
             "quorumDisks": list,
             "freeLogicalUnitList": VSPNormalizedFreeLun,
             "totalEfficiency": dict,
+            "systemDateTime": dict,
+            "TimeZonesInfo": dict,
         }
 
     def extract(self, response):
@@ -82,6 +86,7 @@ class VSPStorageSystemCommonPropertiesExtractor:
                     "syslogConfig",
                     "deviceLimits",
                     "freeLogicalUnitList",
+                    "TimeZonesInfo",
                 ]
                 if key in unchanged_types:
                     new_dict[cased_key] = response_key

@@ -16,8 +16,13 @@ try:
         GetShadowImageSpec,
         ShadowImagePairSpec,
     )
+    from ..model.vsp_clpr_models import ClprFactSpec, ClprSpec
     from ..model.vsp_iscsi_target_models import IscsiTargetFactSpec, IscsiTargetSpec
-    from ..model.vsp_storage_system_models import StorageSystemFactSpec
+    from ..model.vsp_storage_system_models import (
+        StorageSystemFactSpec,
+        VSPStorageSystemSpec,
+        VSPStorageSystemMonitorSpec,
+    )
     from ..model.vsp_snapshot_models import (
         SnapshotFactSpec,
         SnapshotReconcileSpec,
@@ -37,7 +42,10 @@ try:
         ExternalPathGroupSpec,
         ExternalPathGroupFactSpec,
     )
-    from ..model.vsp_external_parity_group_models import ExternalParityGroupFactSpec
+    from ..model.vsp_external_parity_group_models import (
+        ExternalParityGroupFactSpec,
+        ExternalParityGroupSpec,
+    )
     from ..model.vsp_storage_pool_models import JournalVolumeSpec, JournalVolumeFactSpec
     from ..model.vsp_parity_group_models import (
         ParityGroupFactSpec,
@@ -86,7 +94,13 @@ try:
         VspDynamicPoolSpec,
         VspDynamicPoolFactsSpec,
     )
+    from ..model.vsp_initial_system_settings_models import (
+        UploadFileSpec,
+        SpecifyTransferDestinationFileSpec,
+        SNMPRequestSpec,
+    )
     from ..model.vsp_mp_blade_models import MPBladeFactsSpec
+    from ..model.vsp_server_priority_manager_models import SpmFactSpec, SpmSpec
     from ..common.hv_constants import ConnectionTypes, StateValue
     from ..common.vsp_constants import AutomationConstants
     from ..common.ansible_common import (
@@ -114,6 +128,13 @@ try:
     from ..message.vsp_user_msgs import VSPUserValidateMsg
     from ..message.vsp_dynamic_pool_msg import DynamicPoolValidationMsg
     from ..message.vsp_copy_group_msgs import VSPCopyGroupsValidateMsg
+    from ..message.vsp_spm_msgs import VSPSpmValidateMsg
+    from ..message.vsp_storage_system_monitor_msgs import (
+        VSPStotageSystemMonitorValidateMsg,
+    )
+    from ..message.vsp_external_parity_group_msgs import (
+        VSPSExternalParityGroupValidateMsg,
+    )
 except ImportError:
     from model.common_base_models import (
         ConnectionInfo,
@@ -126,6 +147,7 @@ except ImportError:
         GetShadowImageSpec,
         ShadowImagePairSpec,
     )
+    from model.vsp_clpr_models import ClprFactSpec, ClprSpec
     from model.vsp_iscsi_target_models import IscsiTargetFactSpec, IscsiTargetSpec
     from model.vsp_snapshot_models import (
         SnapshotFactSpec,
@@ -133,7 +155,11 @@ except ImportError:
         SnapshotGroupSpec,
         SnapshotGroupFactSpec,
     )
-    from model.vsp_storage_system_models import StorageSystemFactSpec
+    from model.vsp_storage_system_models import (
+        StorageSystemFactSpec,
+        VSPStorageSystemSpec,
+        VSPStorageSystemMonitorSpec,
+    )
     from model.vsp_storage_pool_models import PoolFactSpec, StoragePoolSpec
     from model.vsp_storage_pool_models import JournalVolumeSpec, JournalVolumeFactSpec
     from model.vsp_quorum_disk_models import (
@@ -148,7 +174,10 @@ except ImportError:
         ExternalPathGroupSpec,
         ExternalPathGroupFactSpec,
     )
-    from model.vsp_external_parity_group_models import ExternalParityGroupFactSpec
+    from model.vsp_external_parity_group_models import (
+        ExternalParityGroupFactSpec,
+        ExternalParityGroupSpec,
+    )
     from model.vsp_parity_group_models import (
         ParityGroupFactSpec,
         ParityGroupSpec,
@@ -197,6 +226,12 @@ except ImportError:
         VspDynamicPoolFactsSpec,
     )
     from model.vsp_mp_blade_models import MPBladeFactsSpec
+    from model.vsp_initial_system_settings_models import (
+        UploadFileSpec,
+        SpecifyTransferDestinationFileSpec,
+        SNMPRequestSpec,
+    )
+    from model.vsp_server_priority_manager_models import SpmFactSpec, SpmSpec
     from common.hv_constants import ConnectionTypes, StateValue
     from common.vsp_constants import AutomationConstants
     from common.ansible_common import camel_to_snake_case, convert_to_bytes, check_range
@@ -220,6 +255,13 @@ except ImportError:
     from message.vsp_user_msgs import VSPUserValidateMsg
     from message.vsp_dynamic_pool_msg import DynamicPoolValidationMsg
     from message.vsp_copy_group_msgs import VSPCopyGroupsValidateMsg
+    from message.vsp_spm_msgs import VSPSpmValidateMsg
+    from message.vsp_storage_system_monitor_msgs import (
+        VSPStotageSystemMonitorValidateMsg,
+    )
+    from message.vsp_external_parity_group_msgs import (
+        VSPSExternalParityGroupValidateMsg,
+    )
 
 
 # # VSP Parameter manager # #
@@ -311,6 +353,13 @@ class VSPParametersManager:
             input_spec = GetShadowImageSpec()
         return input_spec
 
+    def set_clpr_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = ClprFactSpec(**self.params["spec"])
+        else:
+            input_spec = ClprFactSpec()
+        return input_spec
+
     def set_storage_system_fact_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
             input_spec = StorageSystemFactSpec(**self.params["spec"])
@@ -318,9 +367,20 @@ class VSPParametersManager:
             input_spec = StorageSystemFactSpec()
         return input_spec
 
+    def set_storage_system_spec(self):
+
+        input_spec = VSPStorageSystemSpec(**self.params["spec"])
+
+        return input_spec
+
     def set_shadow_image_pair_spec(self):
         input_spec = ShadowImagePairSpec(**self.params["spec"])
         VSPSpecValidators.validate_shadow_image_module(input_spec, self.connection_info)
+        return input_spec
+
+    def set_clpr_spec(self):
+        input_spec = ClprSpec(**self.params["spec"])
+        # VSPSpecValidators.validate_shadow_image_module(input_spec, self.connection_info)
         return input_spec
 
     def get_iscsi_target_fact_spec(self):
@@ -344,6 +404,23 @@ class VSPParametersManager:
         )
         VSPSpecValidators().validate_snapshot_fact(self.spec)
         return self.spec
+
+    def get_storage_system_monitor_fact_spec(self):
+        spec = VSPStorageSystemMonitorSpec(
+            **self.params["spec"] if self.params["spec"] else {}
+        )
+        VSPSpecValidators().validate_storage_system_monitor_fact(spec)
+        return spec
+
+    def get_spm_fact_spec(self):
+        spec = SpmFactSpec(**self.params["spec"] if self.params["spec"] else {})
+        VSPSpecValidators().validate_server_priority_manager_fact(spec)
+        return spec
+
+    def get_spm_spec(self):
+        input_spec = SpmSpec(**self.params["spec"])
+        VSPSpecValidators.validate_server_priority_manager(input_spec, self.get_state())
+        return input_spec
 
     def get_hur_fact_spec(self):
         self.spec = HurFactSpec(**self.params["spec"] if self.params["spec"] else {})
@@ -388,6 +465,16 @@ class VSPParametersManager:
     def get_external_parity_group_fact_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
             input_spec = ExternalParityGroupFactSpec(**self.params["spec"])
+        else:
+            input_spec = None
+        return input_spec
+
+    def get_external_parity_group_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = ExternalParityGroupSpec(**self.params["spec"])
+            VSPSpecValidators().validate_external_parity_group(
+                input_spec, self.get_state()
+            )
         else:
             input_spec = None
         return input_spec
@@ -671,6 +758,34 @@ class VSPParametersManager:
 
     def mp_blade_facts_spec(self):
         self.spec = MPBladeFactsSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+        return self.spec
+
+    def get_upload_file_spec(self):
+        """
+        This method is used to get the upload file spec.
+        :return: Upload file spec
+        """
+        self.spec = UploadFileSpec(**self.params["spec"])
+        return self.spec
+
+    def get_audit_log_spec(self):
+        """
+        This method is used to get the upload file spec.
+        :return: Upload file spec
+        """
+        self.spec = SpecifyTransferDestinationFileSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+        return self.spec
+
+    def get_snmp_settings_spec(self):
+        """
+        This method is used to get the upload file spec.
+        :return: Upload file spec
+        """
+        self.spec = SNMPRequestSpec(
             **self.params["spec"] if self.params.get("spec") else {}
         )
         return self.spec
@@ -979,6 +1094,10 @@ class VSPVolumeArguments:
                 "type": "bool",
             },
             "mp_blade_id": {
+                "required": False,
+                "type": "int",
+            },
+            "clpr_id": {
                 "required": False,
                 "type": "int",
             },
@@ -1306,6 +1425,56 @@ class VSPShadowImagePairArguments:
         return cls.common_arguments
 
 
+class VSPClprArguments:
+
+    clpr_state = VSPCommonParameters.state()
+    clpr_state["choices"].extend(["update", "assign_ldev", "assign_parity_group"])
+
+    common_arguments = {
+        "storage_system_info": VSPCommonParameters.storage_system_info(),
+        "connection_info": VSPCommonParameters.connection_info(),
+        "state": clpr_state,
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def get_all_clpr_fact(cls):
+        spec_options = {
+            "clpr_id": {
+                "required": False,
+                "type": "int",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        return args
+
+    @classmethod
+    def clpr(cls):
+        spec_options = {
+            "clpr_id": {"required": False, "type": "int"},
+            "clpr_name": {"required": False, "type": "str"},
+            "cache_memory_capacity_mb": {"required": False, "type": "int"},
+            "ldev_id": {
+                "required": False,
+                "type": "int",
+            },
+            "parity_group_id": {
+                "required": False,
+                "type": "str",
+            },
+        }
+
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+
 class VSPSnapshotArguments:
     ssi = copy.deepcopy(VSPCommonParameters.connection_info())
     # ssi["options"].pop("api_token")
@@ -1507,10 +1676,11 @@ class VSPStorageSystemArguments:
                 "type": "list",
                 "elements": "str",
                 "choices": [
-                    "ports",
-                    "quorumdisks",
-                    "journalPools",
-                    "freeLogicalUnitList",
+                    # "ports",
+                    # "quorumdisks",
+                    # "journalPools",
+                    # "freeLogicalUnitList",
+                    "time_zone",
                 ],
             },
             # "refresh": {
@@ -1676,7 +1846,14 @@ class VSPStoragePoolArguments:
         "state": {
             "required": False,
             "type": "str",
-            "choices": ["present", "absent"],
+            "choices": [
+                "present",
+                "absent",
+                "monitor_performance",
+                "tier_relocate",
+                "restore",
+                "init_capacity_saving",
+            ],
             "default": "present",
         },
     }
@@ -1730,6 +1907,11 @@ class VSPStoragePoolArguments:
                 "required": False,
                 "type": "int",
             },
+            "operation_type": {
+                "required": False,
+                "type": "str",
+                "choices": ["start", "stop"],
+            },
             "pool_volumes": {
                 "required": False,
                 "type": "list",
@@ -1757,6 +1939,166 @@ class VSPStoragePoolArguments:
                 "required": False,
                 "type": "list",
                 "elements": "int",
+            },
+            "suspend_snapshot": {
+                "required": False,
+                "type": "bool",
+            },
+            "virtual_volume_capacity_rate": {
+                "required": False,
+                "type": "int",
+            },
+            "blocking_mode": {
+                "required": False,
+                "type": "str",
+                "choices": ["PF", "PB", "FB", "NB"],
+            },
+            "monitoring_mode": {
+                "required": False,
+                "type": "str",
+                "choices": ["PM", "CM"],
+            },
+            "tier": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "tier_number": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "table_space_rate": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "buffer_rate": {
+                        "required": False,
+                        "type": "int",
+                    },
+                },
+            },
+            "should_delete_pool_volumes": {
+                "required": False,
+                "type": "bool",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+
+class VSPStorageSystemMonitorArguments:
+
+    common_arguments = {
+        "connection_info": VSPCommonParameters.connection_info(),
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def storage_system_monitor_fact(cls):
+        spec_options = {
+            "alert_type": {
+                "required": False,
+                "type": "str",
+                "choices": [
+                    "DKC",
+                    "CTL1",
+                    "CTL2",
+                ],
+            },
+            "alert_start_number": {
+                "required": False,
+                "type": "int",
+            },
+            "alert_count": {
+                "required": False,
+                "type": "int",
+            },
+            "include_component_option": {
+                "required": False,
+                "type": "bool",
+            },
+            "query": {
+                "required": True,
+                "type": "str",
+                "choices": [
+                    "alerts",
+                    "hardware_installed",
+                    "channel_boards",
+                ],
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        # args.pop("state")
+        return args
+
+
+class VSPServerPriorityManagerArguments:
+
+    common_arguments = {
+        "connection_info": VSPCommonParameters.connection_info(),
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "absent",
+            ],
+            "default": "present",
+        },
+    }
+
+    @classmethod
+    def server_priority_manager_fact(cls):
+        spec_options = {
+            "ldev_id": {
+                "required": False,
+                "type": "int",
+            },
+            "host_wwn": {
+                "required": False,
+                "type": "str",
+            },
+            "iscsi_name": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args.pop("state")
+        return args
+
+    @classmethod
+    def server_priority_manager(cls):
+        spec_options = {
+            "ldev_id": {
+                "required": True,
+                "type": "int",
+            },
+            "host_wwn": {
+                "required": False,
+                "type": "str",
+            },
+            "iscsi_name": {
+                "required": False,
+                "type": "str",
+            },
+            "upper_limit_for_iops": {
+                "required": False,
+                "type": "int",
+            },
+            "upper_limit_for_transfer_rate_in_MBps": {
+                "required": False,
+                "type": "int",
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
@@ -1997,24 +2339,25 @@ class VSPExternalVolumeArguments:
 class VSPExternalParityGroupArguments:
 
     common_arguments = {
-        "storage_system_info": VSPCommonParameters.storage_system_info(),
+        # "storage_system_info": VSPCommonParameters.storage_system_info(),
         "connection_info": VSPCommonParameters.connection_info(),
         "spec": {
             "required": False,
             "type": "dict",
             "options": {},
         },
-        # "state": {
-        #     "required": False,
-        #     "type": "str",
-        #     "choices": [
-        #         "present",
-        #         # "absent",
-        #         "remove_external_path",
-        #         "add_external_path",
-        #     ],
-        #     "default": "present",
-        # },
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "absent",
+                "assign_external_parity_group",
+                "change_mp_blade",
+                "disconnect",
+            ],
+            "default": "present",
+        },
     }
 
     @classmethod
@@ -2027,7 +2370,115 @@ class VSPExternalParityGroupArguments:
         }
         args = copy.deepcopy(cls.common_arguments)
         args["spec"]["options"] = spec_options
-        # args.pop("state")
+        args.pop("state")
+        # args["connection_info"]["options"].pop("api_token")
+        return args
+
+    @classmethod
+    def external_parity_group(cls):
+        spec_options = {
+            "external_parity_group_id": {
+                "required": True,
+                "type": "str",
+            },
+            "mp_blade_id": {
+                "required": False,
+                "type": "int",
+            },
+            "clpr_id": {
+                "required": False,
+                "type": "int",
+            },
+            "force": {
+                "required": False,
+                "type": "bool",
+            },
+            "external_path_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "port_id": {
+                "required": False,
+                "type": "str",
+            },
+            "external_wwn": {
+                "required": False,
+                "type": "str",
+            },
+            "lun_id": {
+                "required": False,
+                "type": "int",
+            },
+            "emulation_type": {
+                "required": False,
+                "type": "str",
+                "choices": [
+                    "OPEN-3",
+                    "OPEN-8",
+                    "OPEN-9",
+                    "OPEN-E",
+                    "OPEN-K",
+                    "OPEN-L",
+                    "OPEN-V",
+                    "3380-3",
+                    "3380-3A",
+                    "3380-3B",
+                    "3380-3C",
+                    "3390-1",
+                    "3390-2",
+                    "3390-3",
+                    "3390-A",
+                    "3390-3A",
+                    "3390-3B",
+                    "3390-3C",
+                    "3390-3R",
+                    "3390-9",
+                    "3390-9A",
+                    "3390-9B",
+                    "3390-9C",
+                    "3390-L",
+                    "3390-LA",
+                    "3390-LB",
+                    "3390-LC",
+                    "3390-M",
+                    "3390-MA",
+                    "3390-MB",
+                    "3390-MC",
+                    "3390-V",
+                    "6586-G",
+                    "6586-J",
+                    "6586-K",
+                    "6586-KA",
+                    "6586-KB",
+                    "6586-KC",
+                    "6588-1",
+                    "6588-3",
+                    "6588-9",
+                    "6588-A",
+                    "6588-3A",
+                    "6588-3B",
+                    "6588-3C",
+                    "6588-9A",
+                    "6588-9B",
+                    "6588-9C",
+                    "6588-L",
+                    "6588-LA",
+                    "6588-LB",
+                    "6588-LC",
+                ],
+                "default": "OPEN-V",
+            },
+            "is_external_attribute_migration": {
+                "required": False,
+                "type": "bool",
+            },
+            "command_device_ldev_id": {
+                "required": False,
+                "type": "int",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
         # args["connection_info"]["options"].pop("api_token")
         return args
 
@@ -2230,7 +2681,7 @@ class VSPParityGroupArguments:
         "state": {
             "required": False,
             "type": "str",
-            "choices": ["present", "absent", "update"],
+            "choices": ["present", "absent", "update", "assign_clpr_id"],
             "default": "present",
         },
     }
@@ -2790,6 +3241,7 @@ class VSPHurArguments:
                 "expand",
                 "swap_split",
                 "swap_resync",
+                "takeover",
             ],
             "default": "present",
         },
@@ -3022,6 +3474,7 @@ class VSPRemoteCopyGroupArguments:
     ssi = copy.deepcopy(VSPCommonParameters.connection_info())
     # ssi["options"].pop("subscriber_id")
     ssi["options"].pop("connection_type")
+    ssi["required"] = True
     common_arguments = {
         "storage_system_info": VSPCommonParameters.storage_system_info(),
         "connection_info": VSPCommonParameters.connection_info(),
@@ -3036,6 +3489,7 @@ class VSPRemoteCopyGroupArguments:
                 "resync",
                 "swap_split",
                 "swap_resync",
+                "takeover",
             ],
             "default": "present",
         },
@@ -3060,6 +3514,7 @@ class VSPRemoteCopyGroupArguments:
                     "TC",
                     "UR",
                     "GAD",
+                    "HUR",
                 ],
             },
             "local_device_group_name": {
@@ -4082,9 +4537,6 @@ class VSPRemoteConnectionArgs:
 class VSPDynamicPoolArgs:
 
     ssi = copy.deepcopy(VSPCommonParameters.connection_info())
-    ssi["options"]["username"]["required"] = True
-    ssi["options"]["password"]["required"] = True
-    ssi["options"].pop("api_token")
     ssi["options"].pop("connection_type")
     common_arguments = {
         "connection_info": ssi,
@@ -4167,7 +4619,6 @@ class VSPUserGroupArguments:
     ssi = copy.deepcopy(VSPCommonParameters.connection_info())
     # ssi["options"].pop("subscriber_id")
     ssi["options"].pop("connection_type")
-    ssi["options"].pop("api_token")
     common_arguments = {
         "connection_info": ssi,
         "state": {
@@ -4242,7 +4693,6 @@ class VSPUserArguments:
     ssi = copy.deepcopy(VSPCommonParameters.connection_info())
     # ssi["options"].pop("subscriber_id")
     ssi["options"].pop("connection_type")
-    ssi["options"].pop("api_token")
     common_arguments = {
         "connection_info": ssi,
         "state": {
@@ -4348,6 +4798,345 @@ class VSPMPBladeArguments:
         return args
 
 
+class VSPSNMPArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    # ssi["options"].pop("subscriber_id")
+    ssi["options"].pop("connection_type")
+    common_arguments = {
+        "connection_info": ssi,
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "test"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def snmp_facts(cls):
+        args = copy.deepcopy(cls.common_arguments)
+        args.pop("spec")
+        args.pop("state")
+        return args
+
+    @classmethod
+    def snmp_args(cls):
+        authentication = {
+            "protocol": {
+                "required": False,
+                "type": "str",
+                "choices": ["MD5", "SHA"],
+            },
+            "password": {
+                "required": False,
+                "type": "str",
+                "no_log": True,
+            },
+            "encryption": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "protocol": {
+                        "required": False,
+                        "type": "str",
+                        "choices": ["AES", "DES"],
+                    },
+                    "key": {
+                        "required": False,
+                        "type": "str",
+                        "no_log": True,
+                    },
+                },
+            },
+        }
+        spec_options = {
+            "is_snmp_agent_enabled": {
+                "required": True,
+                "type": "bool",
+            },
+            "snmp_version": {
+                "required": True,
+                "type": "str",
+                "choices": ["v1", "v2c", "v3"],
+            },
+            "snmp_v1v2c_trap_destination_settings": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": {
+                    "community": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "send_trap_to": {
+                        "required": True,
+                        "type": "list",
+                        "elements": "str",
+                    },
+                },
+            },
+            "snmp_v3_trap_destination_settings": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": {
+                    "user_name": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "send_trap_to": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "authentication": {
+                        "required": False,
+                        "type": "dict",
+                        "options": authentication,
+                    },
+                },
+            },
+            "snmp_v1v2c_authentication_settings": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": {
+                    "community": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "requests_permitted": {
+                        "required": True,
+                        "type": "list",
+                        "elements": "str",
+                    },
+                },
+            },
+            "snmp_v3_authentication_settings": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": {
+                    "user_name": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "authentication": {
+                        "required": False,
+                        "type": "dict",
+                        "options": authentication,
+                    },
+                },
+            },
+            "system_group_information": {
+                "required": True,
+                "type": "dict",
+                "options": {
+                    "storage_system_name": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "contact": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "location": {
+                        "required": True,
+                        "type": "str",
+                    },
+                },
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+
+class VSPAuditLogArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    # ssi["options"].pop("subscriber_id")
+    ssi["options"].pop("connection_type")
+    common_arguments = {
+        "connection_info": ssi,
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "test"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def audit_log_facts(cls):
+        args = copy.deepcopy(cls.common_arguments)
+        args.pop("state")
+        args.pop("spec")
+        return args
+
+    @classmethod
+    def audit_log(cls):
+        sys_log_options = {
+            "is_enabled": {
+                "required": True,
+                "type": "bool",
+            },
+            "ip_address": {
+                "required": False,
+                "type": "str",
+            },
+            "port": {
+                "required": False,
+                "type": "int",
+            },
+            "client_cert_file_name": {
+                "required": False,
+                "type": "str",
+            },
+            "client_cert_file_password": {
+                "required": False,
+                "type": "str",
+                "no_log": True,
+            },
+            "root_cert_file_name": {
+                "required": False,
+                "type": "str",
+            },
+        }
+
+        spec_options = {
+            "transfer_protocol": {
+                "required": True,
+                "type": "str",
+                "choices": ["TLS", "UDP"],
+            },
+            "location_name": {
+                "required": True,
+                "type": "str",
+            },
+            "retries": {
+                "required": False,
+                "type": "bool",
+            },
+            "retry_interval": {
+                "required": False,
+                "type": "int",
+            },
+            "is_detailed": {
+                "required": False,
+                "type": "bool",
+            },
+            "primary_syslog_server": {
+                "required": False,
+                "type": "dict",
+                "options": sys_log_options,
+            },
+            "secondary_syslog_server": {
+                "required": False,
+                "type": "dict",
+                "options": sys_log_options,
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+
+class UploadCertFileArgs:
+    common_arguments = {
+        "connection_info": VSPCommonParameters.connection_info(),
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+    common_arguments["connection_info"]["options"].pop("connection_type")
+
+    @classmethod
+    def upload_cert_file_args(cls):
+        spec_options = {
+            "file_path": {
+                "required": True,
+                "type": "str",
+            },
+            "file_type": {
+                "required": True,
+                "type": "str",
+                "choices": [
+                    "primary_client",
+                    "primary_root",
+                    "secondary_client",
+                    "secondary_root",
+                ],
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        return args
+
+
+class VSPStorageSystemARgs:
+    common_arguments = {
+        "connection_info": VSPCommonParameters.connection_info(),
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+    common_arguments["connection_info"]["options"].pop("connection_type")
+
+    @classmethod
+    def storage_system_args(cls):
+        date_time = {
+            "is_ntp_enabled": {
+                "required": True,
+                "type": "bool",
+            },
+            "ntp_server_names": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+            "time_zone_id": {
+                "required": True,
+                "type": "str",
+            },
+            "system_time": {
+                "required": True,
+                "type": "str",
+            },
+            "synchronizing_local_time": {
+                "required": False,
+                "type": "str",
+            },
+            "adjusts_daylight_saving_time": {
+                "required": False,
+                "type": "bool",
+            },
+            "synchronizes_now": {
+                "required": False,
+                "type": "bool",
+            },
+        }
+        spec_options = {
+            "date_time": {
+                "required": True,
+                "type": "dict",
+                "options": date_time,
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+
 # # Validator functions # #
 
 RE_INT = re.compile(r"^([0-9]+)$")
@@ -4384,6 +5173,7 @@ class VSPSpecValidators:
             "nvm_subsystem_info",
             "qos_settings",
             "snapshots_info",
+            "free_ldev_id",
         ]
         logger = Log()
 
@@ -4610,6 +5400,60 @@ class VSPSpecValidators:
             raise ValueError(VSPParityGroupValidateMsg.EMPTY_PARITY_GROUP_ID.value)
 
     @staticmethod
+    def validate_server_priority_manager_fact(spec):
+        if spec.host_wwn and spec.iscsi_name:
+            raise ValueError(VSPSpmValidateMsg.BOTH_NOT_ALLOWED.value)
+
+    @staticmethod
+    def validate_storage_system_monitor_fact(spec):
+        if spec.query == "alerts":
+            if spec.alert_type is None:
+                raise ValueError(
+                    VSPStotageSystemMonitorValidateMsg.ALERT_TYPE_NEEDED.value
+                )
+
+    @staticmethod
+    def validate_external_parity_group(spec, state):
+        if state == StateValue.PRESENT:
+            if (
+                spec.external_path_group_id is None
+                and spec.port_id is None
+                and spec.external_wwn
+                and spec.lun_id is None
+            ):
+                raise ValueError(
+                    VSPSExternalParityGroupValidateMsg.PRESENT_STATE_FIELD_MISSING.value
+                )
+
+    @staticmethod
+    def validate_server_priority_manager(spec, state):
+        if spec.host_wwn and spec.iscsi_name:
+            raise ValueError(VSPSpmValidateMsg.BOTH_NOT_ALLOWED.value)
+        if spec.host_wwn is None and spec.iscsi_name is None:
+            raise ValueError(VSPSpmValidateMsg.ONE_HBA_RQRD.value)
+
+        if state == StateValue.PRESENT:
+            if spec.upper_limit_for_iops and spec.upper_limit_for_transfer_rate_in_MBps:
+                raise ValueError(VSPSpmValidateMsg.BOTH_LIMIT_NOT_ALLOWED.value)
+            if (
+                spec.upper_limit_for_iops is None
+                and spec.upper_limit_for_transfer_rate_in_MBps is None
+            ):
+                raise ValueError(VSPSpmValidateMsg.ONE_LIMIT_RQRD.value)
+            if spec.upper_limit_for_iops:
+                if spec.upper_limit_for_iops < 1 or spec.upper_limit_for_iops > 65535:
+                    raise ValueError(VSPSpmValidateMsg.IOPS_OUT_OF_RANGE.value)
+            if spec.host_wwn:
+                if len(spec.host_wwn) != 16:
+                    raise ValueError(VSPSpmValidateMsg.HBA_WWN_16_CHARS.value)
+            if spec.upper_limit_for_transfer_rate_in_MBps:
+                if (
+                    spec.upper_limit_for_transfer_rate_in_MBps < 1
+                    or spec.upper_limit_for_transfer_rate_in_MBps > 31
+                ):
+                    raise ValueError(VSPSpmValidateMsg.TR_OUT_OF_RANGE.value)
+
+    @staticmethod
     def validate_storage_pool_fact(input_spec: PoolFactSpec):
         pass
         # if input_spec.pool_id is None:
@@ -4619,16 +5463,6 @@ class VSPSpecValidators:
     def validate_storage_pool(input_spec: StoragePoolSpec, state: str):
 
         if state == StateValue.PRESENT:
-
-            count = 0
-            if input_spec.pool_volumes:
-                count = count + 1
-            if input_spec.ldev_ids:
-                count = count + 1
-            if input_spec.start_ldev_id or input_spec.end_ldev_id:
-                count = count + 1
-            if count != 1:
-                raise ValueError(VSPStoragePoolValidateMsg.SPECIFY_ONE.value)
 
             if input_spec.start_ldev_id:
                 if (
@@ -5446,7 +6280,10 @@ class VSPSpecValidators:
             if input_spec.primary_volume_id is None:
                 raise ValueError(GADPairValidateMSG.PRIMARY_VOLUME_ID.value)
 
-            if input_spec.secondary_pool_id is None:
+            if (
+                input_spec.secondary_pool_id is None
+                and input_spec.provisioned_secondary_volume_id is None
+            ):
                 raise ValueError(GADPairValidateMSG.SECONDARY_POOL_ID.value)
 
             if input_spec.primary_hostgroups:
@@ -5456,6 +6293,7 @@ class VSPSpecValidators:
                 input_spec.secondary_hostgroups is None
                 and input_spec.secondary_nvm_subsystem is None
                 and input_spec.secondary_iscsi_targets is None
+                and input_spec.provisioned_secondary_volume_id is None
             ):
                 raise ValueError(GADPairValidateMSG.SECONDARY_HOSTGROUPS_OR_NVME.value)
             else:

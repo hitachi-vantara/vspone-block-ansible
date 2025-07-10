@@ -45,8 +45,10 @@ class VSPVolValidationMsg(Enum):
     )
     BOTH_PARITY_GROUPS_SPECIFIED = "Both parity_group and external_parity_group are specified. Please provide only one of them."
     NO_FREE_LDEV = "No free ldevs available in the storage meta."
+    NO_FREE_LDEV_PER_COUNT = (
+        "No free ldevs available in the storage meta for the count {} specified."
+    )
     PATH_EXIST = "A path is defined in the volume. Use force=true in the spec to delete a volume with a path."
-
     SUBSCRIBER_ID_NOT_NUMERIC = "subscriber_id should have only numeric values."
 
     NVM_SUBSYSTEM_DOES_NOT_EXIST = "NVM subsystem {} does not exist."
@@ -80,3 +82,4 @@ class VSPVolValidationMsg(Enum):
     LDEV_ID_NOT_IN_START_END_LDEV = (
         "ldev_id should be in the range of start_ldev_id and end_ldev_id."
     )
+    CLPR_ID_REQUIRED = "clpr_id is required for assign_ state."

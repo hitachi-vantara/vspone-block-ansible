@@ -178,3 +178,43 @@ class VSPCopyGroupsProvisioner:
             self.logger.writeDebug(f"swap_resync_copy_group=  {swap_resync_copy_group}")
             self.connection_info.changed = True
             return self.gateway.get_one_copygroup_info_by_name(spec)
+
+    @log_entry_exit
+    def takeover_copy_group(self, spec):
+        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
+            if spec.replication_type != "UR" and spec.replication_type is not None:
+                err_msg = CopyGroupFailedMsg.NOT_SUPPORTED_FOR_TC_GAD.value.format(
+                    "takeover"
+                )
+                logger.writeError(err_msg)
+                raise Exception(err_msg)
+            # found_copy_group = self.gateway.get_one_copygroup_info_by_name(spec)
+            # if found_copy_group is None:
+            #     msg = VSPCopyGroupsValidateMsg.COPY_GROUP_NOT_FOUND.value.format(
+            #         spec.copy_group_name
+            #     )
+            #     logger.writeError(msg)
+            #     raise Exception(msg)
+            # elif found_copy_group is not None:
+            #     if found_copy_group.copyPairs:
+            #         for copy_pair in found_copy_group.copyPairs:
+            #             pvol_status = copy_pair.pvolStatus
+            #             svol_status = copy_pair.svolStatus
+            #             if (
+            #                 pvol_status == "PSUS"
+            #                 and svol_status == "SSUS"
+            #                 and spec.is_svol_writable is None
+            #                 and spec.do_pvol_write_protect is None
+            #                 and spec.do_data_suspend is None
+            #             ):
+            #                 return found_copy_group
+            takenover_copy_group = self.gateway.takeover_copy_group(spec)
+            self.logger.writeDebug(f"takenover_copy_group=  {takenover_copy_group}")
+            self.connection_info.changed = True
+            return takenover_copy_group  # self.gateway.get_one_copygroup_info_by_name(spec)
+        else:
+            err_msg = CopyGroupFailedMsg.NOT_SUPPORTED_FOR_UAI_GATEWAY.value.format(
+                "takeover"
+            )
+            logger.writeError(err_msg)
+            raise Exception(err_msg)

@@ -186,3 +186,131 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ######################################################################################
+    # Task Name : Delete a pool including pool volumes
+    ######################################################################################
+    - name: Delete a pool including pool volumes
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          name: "storagepool-2"
+          should_delete_pool_volumes: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Performing performance monitoring of a pool
+    ######################################################################################
+    - name: Performing performance monitoring of a pool
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "monitor_performance"
+        spec:
+          id: 12
+          operation_type: "start"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Performing tier relocation of a pool
+    ######################################################################################
+    - name: Performing tier relocation of a pool
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "tier_relocate"
+        spec:
+          id: 12
+          operation_type: "start"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Restoring a pool
+    ######################################################################################
+    - name: Restoring a pool
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "restore"
+        spec:
+          id: 12
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Initializing the capacity saving function for a pool
+    ######################################################################################
+    - name: Initializing the capacity saving function for a pool
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "init_capacity_saving"
+        spec:
+          id: 12
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Change Pool settings by pool Name with new parameters
+    ######################################################################################
+    - name: Change Pool settings by pool Name with new parameters
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          name: "storagepool-2"
+          warning_threshold_rate: 78
+          depletion_threshold_rate: 88
+          virtual_volume_capacity_rate: 90
+          monitoring_mode: "PM" # "PM" or "CM"
+          blocking_mode: "NB" # "NB" , "FB", "PF", "PB"
+          suspend_snapshot: true
+          tier:
+            tier_number: 1
+            table_space_rate: 45
+            buffer_rate: 20
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Change Pool settings by pool ID with new parameters
+    ######################################################################################
+    - name: Change Pool settings by pool ID with new parameters
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          id: 5
+          warning_threshold_rate: 78
+          depletion_threshold_rate: 88
+          virtual_volume_capacity_rate: 90
+          monitoring_mode: "CM" # "PM" or "CM"
+          blocking_mode: "PF" # "NB" , "FB", "PF", "PB"
+          suspend_snapshot: true
+          tier:
+            tier_number: 1
+            table_space_rate: 40
+            buffer_rate: 20
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

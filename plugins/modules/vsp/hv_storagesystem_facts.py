@@ -27,6 +27,7 @@ attributes:
     support: full
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+- hitachivantara.vspone_block.common.connection_with_type
 notes:
   - The input parameter C(refresh) was removed in version 3.4.0.
     They were deprecated due to internal API simplification and are no longer supported.
@@ -40,33 +41,6 @@ options:
         description: The serial number of the storage system.
         type: str
         required: false
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    type: dict
-    required: true
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      password:
-        description: Password for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      api_token:
-        description: This field is used to pass the value of the lock token to operate on locked resources.
-        type: str
-        required: false
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   spec:
     description: Specification for the storage system facts to be gathered.
     type: dict
@@ -76,7 +50,7 @@ options:
         description: Additional information to be gathered.
         type: list
         elements: str
-        choices: ['ports', 'quorumdisks', 'journalPools', 'freeLogicalUnitList']
+        choices: ['time_zone']
         required: false
 """
 
@@ -95,7 +69,7 @@ EXAMPLES = """
       username: "admin"
       password: "secret"
     spec:
-      query: ["ports", "quorumdisks", "journalPools", "freeLogicalUnitList"]
+      query: ["time_zone"]
 """
 
 RETURN = r"""
@@ -266,6 +240,36 @@ ansible_facts:
           description: Total capacity in megabytes.
           type: int
           sample: 28958728
+        system_date_time:
+          description: System date and time configuration.
+          returned: always
+          type: dict
+          contains:
+            adjusts_daylight_saving_time:
+              description: Indicates if daylight saving time is adjusted.
+              type: bool
+              sample: false
+            is_ntp_enabled:
+              description: Indicates if NTP is enabled.
+              type: bool
+              sample: false
+            ntp_server_names:
+              description: List of NTP server names.
+              type: list
+              elements: str
+              sample: []
+            synchronizing_local_time:
+              description: Local time synchronization status.
+              type: str
+              sample: ""
+            system_time:
+              description: Current system time in ISO 8601 format.
+              type: str
+              sample: "2025-06-13T15:30:54Z"
+            time_zone_id:
+              description: Time zone identifier.
+              type: str
+              sample: "Etc/GMT"
 """
 
 from dataclasses import asdict

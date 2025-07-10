@@ -9,6 +9,7 @@ class HurFailedMsg(Enum):
     PAIR_SWAP_RESYNC_FAILED = "Failed to swap resync the HUR pair."
     PAIR_RESYNC_FAILED = "Failed to resync the HUR pair."
     PAIR_DELETION_FAILED = "Failed to delete the HUR pair."
+    SECONDARY_TAKEOVER_FAILED = "Failed to take over the secondary volume."
 
     SEC_VOLUME_DELETE_FAILED = "Failed to delete the secondary volume."
     SEC_VOLUME_OPERATION_FAILED = "Failed to perform operation on the secondary volume."
@@ -75,4 +76,7 @@ class VSPHurValidateMsg(Enum):
     SECONDARY_RANGE_ID_INVALID = "Please specify both begin_secondary_volume_id and end_secondary_volume_id. Specifying either one is not supported."
     EXPAND_PVOL_FAILED = "Failed to perform operation for primary volume {}."
     EXPAND_SVOL_FAILED = "Failed to perform operation for secondary volume {}."
+    PAIR_NOT_IN_SSWS_STATE = (
+        "HUR pair {} is not in SSWS state. Operation is not allowed."
+    )
     SECONDARY_VOLUME_ID_OUT_OF_RANGE = "provisioned_secondary_volume_id does not lie between begin_secondary_volume_id and end_secondary_volume_id."

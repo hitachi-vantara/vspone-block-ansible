@@ -4,21 +4,15 @@ try:
     from .gateway_manager import VSPConnectionManager
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
-    from ..model.common_base_models import VSPStorageDevice
-    from ..common.vsp_constants import PEGASUS_MODELS
     from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 except ImportError:
     from .gateway_manager import VSPConnectionManager
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
-    from model.common_base_models import VSPStorageDevice
-    from common.vsp_constants import PEGASUS_MODELS
     from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 
 SET_CMD_DEVICE_DIRECT = "v1/objects/ldevs/{}/actions/set-as-command-device/invoke"
 POST_UPDATE_CACHE = "v1/services/storage-cache-service/actions/refresh/invoke"
-GET_STORAGE_INFO_DIRECT = "v1/objects/storages/instance"
-
 
 logger = Log()
 gCopyGroupList = None
@@ -44,16 +38,8 @@ class VSPCmdDevDirectGateway:
 
     @log_entry_exit
     def is_pegasus(self):
-        if self.pegasus_model is None:
-            end_point = GET_STORAGE_INFO_DIRECT
-            storage_info = self.connection_manager.get(end_point)
-            logger.writeDebug(f"CMD_DEV:storage details{storage_info}")
-            storage_info = VSPStorageDevice(**storage_info)
-
-            pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
-            logger.writeDebug(f"CMD_DEV: Storage Model: {storage_info.model}")
-            self.pegasus_model = pegasus_model
-        return self.pegasus_model
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        return storage_gw.is_pegasus()
 
     @log_entry_exit
     def is_vsp_5000_series(self):

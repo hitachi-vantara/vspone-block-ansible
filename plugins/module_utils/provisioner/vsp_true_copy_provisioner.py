@@ -3,7 +3,6 @@ from typing import Dict, Any
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
-    from ..common.uaig_utils import UAIGResourceID
     from ..common.hv_constants import ConnectionTypes
     from ..common.hv_log import Log
     from ..common.ansible_common import (
@@ -18,7 +17,6 @@ try:
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
-    from common.uaig_utils import UAIGResourceID
     from common.hv_constants import ConnectionTypes
     from common.hv_log import Log
     from common.ansible_common import (
@@ -104,41 +102,34 @@ class VSPTrueCopyProvisioner:
         if spec is None:
             ret_list = self.gateway.get_all_true_copy_pairs(serial)
             logger.writeDebug(
-                f"PROV:get_all_tc_pairs:ret_list= {ret_list} serial = {serial}"
+                f"PROV:get_all_tc_pairs_direct:ret_list= {ret_list} serial = {serial}"
             )
             return ret_list
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            # First we check if there is a copy group name present in the spec
-            spec.secondary_storage_serial_number = self.gateway.get_secondary_serial(
-                spec
-            )
 
-            if (
-                spec.copy_group_name
-                and spec.copy_pair_name
-                and spec.local_device_group_name
-                and spec.remote_device_group_name
-            ):
-                return self.cg_gw.get_remote_copy_pair_by_id(spec)
+        spec.secondary_storage_serial_number = self.gateway.get_secondary_serial(spec)
 
-            if spec.copy_group_name and spec.copy_pair_name:
-                return self.cg_gw.get_remote_pairs_by_copy_group_and_copy_pair_name(
-                    spec
-                )
+        if (
+            spec.copy_group_name
+            and spec.copy_pair_name
+            and spec.local_device_group_name
+            and spec.remote_device_group_name
+        ):
+            return self.cg_gw.get_remote_copy_pair_by_id(spec)
 
-            if spec.copy_group_name:
-                return self.cg_gw.get_remote_pairs_for_a_copy_group(spec)
+        if spec.copy_group_name and spec.copy_pair_name:
+            return self.cg_gw.get_remote_pairs_by_copy_group_and_copy_pair_name(spec)
 
-            if spec.primary_volume_id:
-                return self.cg_gw.get_remote_pairs_by_pvol(spec)
+        if spec.copy_group_name:
+            return self.cg_gw.get_remote_pairs_for_a_copy_group(spec)
 
-            if spec.secondary_volume_id:
-                return self.cg_gw.get_remote_pairs_by_svol(spec)
+        if spec.primary_volume_id:
+            return self.cg_gw.get_remote_pairs_by_pvol(spec)
 
-            # ret_list = self.cg_gw.get_all_copy_pairs(spec)
-            ret_list = self.cg_gw.get_all_remote_pairs_from_copy_groups(spec)
-            return ret_list
-            # return DirectCopyPairInfoList(data=ret_list)
+        if spec.secondary_volume_id:
+            return self.cg_gw.get_remote_pairs_by_svol(spec)
+
+        ret_list = self.cg_gw.get_all_remote_pairs_from_copy_groups(spec)
+        return ret_list
 
     @log_entry_exit
     def apply_filters(self, tc_pairs, spec):
@@ -215,11 +206,6 @@ class VSPTrueCopyProvisioner:
                 # just return the first one for now
                 logger.writeDebug("sng20241115 found copyPair={}", copyPair)
                 return copyPair
-
-    @log_entry_exit
-    def get_replication_pair_by_id(self, pair_id):
-        device_id = UAIGResourceID().storage_resourceId(self.serial)
-        return self.gateway.get_replication_pair_by_id(device_id, pair_id)
 
     @log_entry_exit
     def delete_true_copy_pair(self, spec=None):

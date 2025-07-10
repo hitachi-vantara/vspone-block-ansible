@@ -73,8 +73,6 @@
     - name: Create TrueCopy Pair with provisioned_secondary_volume_id and hostgroups
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
-        storage_system_info:
-          serial: "{{ storage_serial }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
         spec:
           copy_group_name: "tc-copy-group-10"
