@@ -65,6 +65,10 @@ from .vsp_local_copy_group_gateway import (
 )
 from .vsp_dynamic_pool_gateway import VspDynamicPoolGateway
 from .vsp_uvm_gateway import VSPUvmGateway
+from .vsp_clpr_gateway import VSPClprDirectGateway
+from .vsp_external_parity_group_gateway import VSPExternalParityGroupGateway
+from .vsp_spm_gateway import VSPSpmGateway
+from .vsp_storage_system_monitor_gateway import VSPStorageSystemMonitorGateway
 
 GATEWAY_MAP = {
     ConnectionTypes.DIRECT: {
@@ -86,12 +90,21 @@ GATEWAY_MAP = {
         GatewayClassTypes.VSP_RESOURCE_GROUP: VSPResourceGroupDirectGateway,
         GatewayClassTypes.VSP_COPY_GROUPS: VSPCopyGroupsDirectGateway,
         GatewayClassTypes.VSP_LOCAL_COPY_GROUP: VSPLocalCopyGroupDirectGateway,
+        GatewayClassTypes.VSP_CLPR: VSPClprDirectGateway,
         GatewayClassTypes.VSP_CMD_DEV: VSPCmdDevDirectGateway,
         GatewayClassTypes.VSP_RG_LOCK: VSPResourceGroupLockDirectGateway,
         GatewayClassTypes.VSP_JOURNAL_VOLUME: VSPSJournalVolumeDirectGateway,
         GatewayClassTypes.VSP_REMOTE_STORAGE_REGISTRATION: VSPRemoteStorageRegistrationDirectGateway,
         GatewayClassTypes.VSP_USER_GROUP: VSPUserGroupDirectGateway,
         GatewayClassTypes.VSP_USER: VSPUserDirectGateway,
+        GatewayClassTypes.STORAGE_PORT: VSPStoragePortDirectGateway,
+        GatewayClassTypes.VSP_REMOTE_CONNECTION: VSPRemoteConnectionDirectGateway,
+        GatewayClassTypes.VSP_ISCSI_REMOTE_CONNECTION: VSPIscsiRemoteConnectionDirectGateway,
+        GatewayClassTypes.VSP_DYNAMIC_POOL: VspDynamicPoolGateway,
+        GatewayClassTypes.VSP_UVM: VSPUvmGateway,
+        GatewayClassTypes.VSP_EXT_PARITY_GROUP: VSPExternalParityGroupGateway,
+        GatewayClassTypes.VSP_SPM: VSPSpmGateway,
+        GatewayClassTypes.VSP_STORAGE_MONITOR: VSPStorageSystemMonitorGateway,
         # Add more mappings for direct connection types here
         GatewayClassTypes.SDSB_CHAP_USER: SDSBChapUserDirectGateway,
         GatewayClassTypes.SDSB_COMPUTE_NODE: SDSBComputeNodeDirectGateway,
@@ -101,11 +114,6 @@ GATEWAY_MAP = {
         GatewayClassTypes.SDSB_PORT_AUTH: SDSBPortAuthDirectGateway,
         GatewayClassTypes.SDSB_PORT: SDSBPortDirectGateway,
         GatewayClassTypes.SDSB_VPS: SDSBVpsDirectGateway,
-        GatewayClassTypes.STORAGE_PORT: VSPStoragePortDirectGateway,
-        GatewayClassTypes.VSP_REMOTE_CONNECTION: VSPRemoteConnectionDirectGateway,
-        GatewayClassTypes.VSP_ISCSI_REMOTE_CONNECTION: VSPIscsiRemoteConnectionDirectGateway,
-        GatewayClassTypes.VSP_DYNAMIC_POOL: VspDynamicPoolGateway,
-        GatewayClassTypes.VSP_UVM: VSPUvmGateway,
     },
 }
 

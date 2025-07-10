@@ -410,6 +410,13 @@ class VSPHurProvisioner:
     @log_entry_exit
     def swap_resync_hur_pair(self, primary_volume_id, spec=None):
         pair_exiting = self.gateway.get_replication_pair(spec)
+        if pair_exiting is None:
+            err_msg = (
+                HurFailedMsg.PAIR_SWAP_RESYNC_FAILED.value
+                + VSPHurValidateMsg.NO_HUR_PAIR_FOUND.value.format(spec.copy_pair_name)
+            )
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
         if (
             pair_exiting["pvol_status"] == "PAIR"
             and pair_exiting["svol_status"] == "PAIR"
@@ -482,6 +489,25 @@ class VSPHurProvisioner:
         return pair
 
     @log_entry_exit
+    def secondary_takeover_hur_pair(self, spec=None):
+        # pair_exiting = self.gateway.get_replication_pair(spec)
+        # if (
+        #     pair_exiting["pvol_status"] != "PSUS"
+        #     and pair_exiting["svol_status"] != "SSWS"
+        # ):
+        #     err_msg = (
+        #         HurFailedMsg.SECONDARY_TAKEOVER_FAILED.value
+        #         + VSPHurValidateMsg.PAIR_NOT_IN_SSWS_STATE.value.format(spec.copy_pair_name)
+        #     )
+        #     logger.writeError(err_msg)
+        #     raise ValueError(err_msg)
+        pair = self.gateway.secondary_takeover_hur_pair(spec)
+        self.logger.writeDebug(f"PV:secondary_takeover_hur_pair: pair=  {pair}")
+        # pair = self.gateway.get_replication_pair(spec)
+        self.connection_info.changed = True
+        return pair
+
+    @log_entry_exit
     def is_resize_needed(self, volume_data, spec):
         size_in_bytes = convert_decimal_size_to_bytes(spec.new_volume_size)
         if volume_data.blockCapacity > size_in_bytes:
@@ -546,13 +572,8 @@ class VSPHurProvisioner:
     def get_copy_group_by_name(self, spec):
         return self.cg_gw.get_copy_group_by_name(spec)
 
-    # 20240808 - prov.create_hur
     @log_entry_exit
     def create_hur_pair(self, spec):
-        return self.create_hur_direct(spec)
-
-    @log_entry_exit
-    def create_hur_direct(self, spec):
         pair_exiting = self.gateway.get_replication_pair(spec)
 
         if pair_exiting is not None:
@@ -620,11 +641,10 @@ class VSPHurProvisioner:
             spec.secondary_volume_id = secondary_vol_id
             spec.is_data_reduction_force_copy = pvol.isDataReductionShareEnabled
             result = self.gateway.create_hur_pair(spec)
-            self.logger.writeDebug(f"create_hur_direct result: {result}")
+            self.logger.writeDebug(f"create_hur result: {result}")
 
             # get immediately after create returning Unable to find the resource. give 5 secs
             time.sleep(5)
-            # return self.get_replication_pair_by_id(result)
             pair = self.gateway.get_replication_pair(spec)
             self.connection_info.changed = True
             return pair

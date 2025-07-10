@@ -1,4 +1,4 @@
-# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 3.5.0
+# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 4.0.0
 
 The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of Ansible modules for managing Hitachi VSP One SDS Block and Hitachi VSP One series systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
@@ -37,7 +37,7 @@ The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of
 
 ## Changelog
 
-View the changelog [here](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/CHANGELOG.rst).
+View the [Changelog](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/CHANGELOG.rst).
 
 ## Available Modules
 
@@ -69,10 +69,10 @@ To upgrade the collection to the latest available version, run the following com
 ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 ```
 
-If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 3.5.0:
+If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.0.0:
 
 ```bash
-ansible-galaxy collection install hitachivantara.vspone_block:==3.5.0
+ansible-galaxy collection install hitachivantara.vspone_block:==4.0.0
 ```
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
@@ -99,7 +99,7 @@ For support, please use one of the following channels:
 
 For User Guide and Release Notes, see [User Guide and Release Notes](https://docs.hitachivantara.com/search/all?query=ansible&value-filters=Option~%2522Red+Hat%2522*Product_custom~%2522Adapters+and+Drivers%2522&content-lang=en-US)
 
-Version **3.5.0** highlights:
+Version **4.0.0** highlights:
 
 - General performance enhancements and bug fixes
 

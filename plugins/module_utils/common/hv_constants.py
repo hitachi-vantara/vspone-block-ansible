@@ -56,6 +56,15 @@ class StateValue:
     REGISTER_EXTERNAL_ISCSI_TARGET = "register_external_iscsi_target"
     UNREGISTER_EXTERNAL_ISCSI_TARGET = "unregister_external_iscsi_target"
     DISCONNECT = "disconnect"
+    TAKEOVER = "takeover"
+    INIT_CAPACITY = "init_capacity_saving"
+    RELOCATE = "tier_relocate"
+    MONITOR = "monitor_performance"
+    ASSIGN_LDEV = "assign_ldev"
+    ASSIGN_CLPR_ID = "assign_clpr_id"
+    TEST = "test"
+    ASSIGN_EXTERNAL_PARITY_GROUP = "assign_external_parity_group"
+    CHANGE_MP_BLADE = "change_mp_blade"
 
 
 class CommonConstants:
@@ -101,6 +110,7 @@ class GatewayClassTypes:
         "vsp_remote_copy_groups"  # TODO: sng1104 use VSP_COPY_GROUPS
     )
     VSP_LOCAL_COPY_GROUP = "vsp_local_copy_group"
+    VSP_CLPR = "vsp_clpr"
     VSP_CMD_DEV = "vsp_cmd_dev"
     VSP_RG_LOCK = "vsp_rg_lock"
     VSP_CONFIG_MAP = "vsp_config_map"
@@ -124,7 +134,10 @@ class GatewayClassTypes:
     VSP_REMOTE_CONNECTION = "vsp_remote_connection"
     VSP_ISCSI_REMOTE_CONNECTION = "vsp_iscsi_remote_connection"
     VSP_DYNAMIC_POOL = "vsp_dynamic_pool"
-    VSP_UVM = "vsp_uvm"
+    VSP_UVM = "vsp_universal_volume_manager"
+    VSP_EXT_PARITY_GROUP = "vsp_external_parity_group"
+    VSP_SPM = "vsp_server_priority_manager"
+    VSP_STORAGE_MONITOR = "vsp storage system monitor"
 
 
 class VSPHostGroupConstant:

@@ -42,6 +42,8 @@ class VSPParityGroupReconciler:
             return self.provisioner.create_parity_group(spec)
         elif state == StateValue.UPDATE:
             return self.provisioner.update_parity_group(spec)
+        elif state == StateValue.ASSIGN_CLPR_ID:
+            return self.provisioner.assign_parity_group_to_clpr(spec)
 
     @log_entry_exit
     def get_all_parity_groups(self):
@@ -77,6 +79,7 @@ class VSPParityGroupCommonPropertiesExtractor:
             "is_pool_array_group": bool,
             "is_accelerated_compression": bool,
             "is_encryption_enabled": bool,
+            "clpr_id": int,
         }
 
     @log_entry_exit

@@ -144,6 +144,10 @@ class VSPVolumeReconciler:
                 self.provisioner.change_mp_blade(spec.ldev_id, spec.mp_blade_id)
                 self.connection_info.changed = True
 
+            if spec.clpr_id is not None and spec.clpr_id != volume.clprId:
+                self.provisioner.assign_ldev_to_clpr(spec.ldev_id, spec.clpr_id)
+                self.connection_info.changed = True
+
             if spec.should_reclaim_zero_pages:
                 self.provisioner.reclaim_zero_pages(spec.ldev_id)
                 logger.writeInfo("RC:volume_reconcile:reclaim_zero_pages finished")
@@ -861,6 +865,7 @@ class VSPVolumeReconciler:
                         volume.qosSettings = qos_settings
                 if "snapshots_info" in spec.query:
                     volume.snapshots = self.get_snapshot_list_for_volume(volume)
+
         return volume
 
     @log_entry_exit
@@ -987,6 +992,14 @@ class VSPVolumeReconciler:
     @log_entry_exit
     def get_volumes(self, get_volume_spec: VolumeFactSpec):
         logger.writeDebug("RC:get_volumes:spec={}", get_volume_spec)
+
+        if get_volume_spec.query and "free_ldev_id" in get_volume_spec.query:
+            return self.provisioner.get_free_ldevs_from_meta(
+                get_volume_spec.count,
+                get_volume_spec.start_ldev_id,
+                get_volume_spec.end_ldev_id,
+            )
+
         if get_volume_spec.ldev_id is not None:
             # new_volume = None
             volume = self.provisioner.get_volume_by_ldev(get_volume_spec.ldev_id)
@@ -1265,6 +1278,7 @@ class VolumeCommonPropertiesExtractor:
             "is_compression_acceleration_enabled": bool,
             "compression_acceleration_status": str,
             "mp_blade_id": int,
+            "clpr_id": int,
             "data_reduction_process_mode": str,
             "is_relocation_enabled": bool,
             "is_full_allocation_enabled": bool,

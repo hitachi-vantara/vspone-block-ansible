@@ -27,6 +27,7 @@ attributes:
     support: none
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+- hitachivantara.vspone_block.common.connection_without_token
 options:
   state:
     description: The level of the Remote connection task. Choices are C(present), C(absent).
@@ -34,29 +35,6 @@ options:
     required: false
     choices: ['present', 'absent']
     default: 'present'
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    type: dict
-    required: true
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication. This is a required field.
-        type: str
-        required: true
-      password:
-        description: Password for authentication. This is a required field.
-        type: str
-        required: true
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   spec:
     description: Specification for the Create/update Remote connection task.
     type: dict

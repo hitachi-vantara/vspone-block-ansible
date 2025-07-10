@@ -82,6 +82,10 @@ class VSPHurReconciler:
         return self.provisioner.swap_split_hur_pair(spec.primary_volume_id, spec)
 
     @log_entry_exit
+    def secondary_takeover_hur(self, spec):
+        return self.provisioner.secondary_takeover_hur_pair(spec)
+
+    @log_entry_exit
     def swap_resync_hur(self, spec):
         return self.provisioner.swap_resync_hur_pair(spec.primary_volume_id, spec)
 
@@ -202,6 +206,9 @@ class VSPHurReconciler:
             resp_data = self.resync_hur(spec)
         elif state == StateValue.SWAP_SPLIT:
             resp_data = self.swap_split_hur(spec)
+        elif state == StateValue.TAKEOVER:
+            resp_data = self.secondary_takeover_hur(spec)
+            return comment, resp_data
         elif state == StateValue.SWAP_RESYNC:
             resp_data = self.swap_resync_hur(spec)
         elif state == StateValue.RESIZE or state == StateValue.EXPAND:
@@ -401,7 +408,7 @@ class HurInfoExtractor:
             "secondaryVolumeId": int,
             "secondaryVolumeStorageId": int,
             "status": str,
-            "svolAccessMode": str,
+            # "svolAccessMode": str,
             # "type": str,
             # "secondaryVirtualHexVolumeId": int,
             # "entitlementStatus": str,
@@ -493,6 +500,8 @@ class DirectHurCopyPairInfoExtractor:
             "svolStatus": str,
             "copyGroupName": str,
             "copyPairName": str,
+            "pvolStorageDeviceId": str,
+            "svolStorageDeviceId": str,
             # "pvolVirtualLdevId":int,
             # "svolVirtualLdevId":int,
             "muNumber": int,
@@ -513,6 +522,28 @@ class DirectHurCopyPairInfoExtractor:
             # "copy_pair_name": "pair_name",
         }
 
+    # sng20241126 get_serial_number_from_device_id
+    @log_entry_exit
+    def get_serial_number_from_device_id(self, storageDeviceId):
+
+        # for 'pvolStorageDeviceId': 'A34000810045' -> 810045
+        # for 'svolStorageDeviceId': 'A34000810050' -> 810050
+
+        len2 = len(storageDeviceId)
+        # supports up to 7 digits device id
+        len1 = len2 - 8
+
+        result = ""
+        captureOn = False
+        while len1 < len2:
+            char = storageDeviceId[len1]
+            if char != "0" or captureOn:
+                captureOn = True
+                result = result + char
+            len1 = len1 + 1
+
+        return result
+
     def fix_bad_camel_to_snake_conversion(self, key):
         new_key = key.replace("s_s_w_s", "ssws")
         return new_key
@@ -527,13 +558,10 @@ class DirectHurCopyPairInfoExtractor:
 
         for response in responses:
             new_dict = {
-                "primary_volume_storage_id": self.storage_serial_number,
-                "secondary_volume_storage_id": spec.secondary_storage_serial_number,
+                # "primary_volume_storage_id": self.storage_serial_number,
+                # "secondary_volume_storage_id": spec.secondary_storage_serial_number,
                 "copy_rate": "",
                 "mirror_unit_id": "",
-                # "primary_vsm_resource_group_name": "",
-                # "secondary_vsm_resource_group_name": "",
-                "svol_access_mode": "",
             }
             for key, value_type in self.common_properties.items():
                 # Get the corresponding key from the response or its mapped key
@@ -562,6 +590,22 @@ class DirectHurCopyPairInfoExtractor:
                 new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
                     new_dict.get("secondary_volume_id")
                 )
+
+            if response.get("pvolStorageDeviceId"):
+                logger.writeDebug("sngz={}", response.get("pvolStorageDeviceId"))
+                new_dict["primary_volume_storage_id"] = (
+                    self.get_serial_number_from_device_id(
+                        response.get("pvolStorageDeviceId")
+                    )
+                )
+
+            if response.get("svolStorageDeviceId"):
+                new_dict["secondary_volume_storage_id"] = (
+                    self.get_serial_number_from_device_id(
+                        response.get("svolStorageDeviceId")
+                    )
+                )
+
                 # new_dict["secondary_virtual_hex_volume_id"] = ""
                 # new_dict["secondary_virtual_volume_id"] = ""
             if new_dict.get("mu_number"):

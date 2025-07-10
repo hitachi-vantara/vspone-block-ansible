@@ -62,3 +62,7 @@ class GADPairValidateMSG(Enum):
     )
     NO_REMOTE_HGS_FOUND = "Specified host groups not found on secondary storage."
     NO_REMOTE_ISCSI_FOUND = "Specified iSCSI targets not found on secondary storage."
+    RG_DID_NOT_MATCH = (
+        "Resource Group ID for secondary volume and the hostgroups did not match."
+    )
+    QUORUM_DISK_ID = "quorum_disk_id is a required field, which is missing."

@@ -17,7 +17,7 @@ description:
   - It provides details such as LDEV IDs, names, and other relevant information.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/ldev_facts.yml)
-version_added: '3.0.0'
+version_added: "3.0.0"
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
@@ -27,7 +27,8 @@ attributes:
     description: Determines if the module should run in check mode.
     support: full
 extends_documentation_fragment:
-- hitachivantara.vspone_block.common.gateway_note
+  - hitachivantara.vspone_block.common.gateway_note
+  - hitachivantara.vspone_block.common.connection_with_type
 options:
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -38,33 +39,6 @@ options:
         description: The serial number of the storage system.
         type: str
         required: false
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    type: dict
-    required: true
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      password:
-        description: Password for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      api_token:
-        description: This field is used to pass the value of the lock token to operate on locked resources.
-        type: str
-        required: false
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   spec:
     description: Specification for retrieving LDEV information.
     type: dict
@@ -101,7 +75,8 @@ options:
           To optimize the performance, you can specify a list of additional properties to be retrieved.
           This field allows you to specify a list of strings, where each string indicates which additional properties are retrieved.
           If is_detailed is set to true, this field will be ignored and all additional properties will be retrieved.
-          The supported additional properties are: "cmd_device_settings", "encryption_settings", "nvm_subsystem_info", "qos_settings", and "snapshots_info".
+          The supported additional properties are: "cmd_device_settings", "encryption_settings", "nvm_subsystem_info", "qos_settings",
+          "free_ldev_id" and "snapshots_info".
         type: list
         required: false
         elements: str
@@ -331,15 +306,18 @@ class VSPVolumeFactManager:
 
         try:
             volume_data = self.direct_volume_read()
-            volume_data_extracted = vsp_volume.VolumeCommonPropertiesExtractor(
-                self.serial
-            ).extract(volume_data)
+            if not isinstance(volume_data, list):
+                volume_data_extracted = vsp_volume.VolumeCommonPropertiesExtractor(
+                    self.serial
+                ).extract(volume_data.data_to_list())
         except Exception as e:
             self.logger.writeException(e)
             self.logger.writeInfo("=== End of LDEV Facts ===")
             self.module.fail_json(msg=str(e))
-
-        data = {"volumes": volume_data_extracted}
+        if isinstance(volume_data, list) and "free_ldev_id" in self.spec.query:
+            data = {"free_ldev_ids": volume_data}
+        else:
+            data = {"volumes": volume_data_extracted}
 
         if registration_message:
             data["user_consent_required"] = registration_message
@@ -357,7 +335,7 @@ class VSPVolumeFactManager:
 
         if not result:
             raise ValueError(ModuleMessage.VOLUME_NOT_FOUND.value)
-        return result.data_to_list()
+        return result
 
 
 def main(module=None):

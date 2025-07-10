@@ -1,4 +1,5 @@
 import time
+import re
 
 try:
     from .gateway_manager import VSPConnectionManager
@@ -42,7 +43,9 @@ RESYNC_REMOTE_COPY_GROUP_DIRECT = (
     "v1/objects/storages/{}/remote-mirror-copygroups/{}/actions/resync/invoke"
 )
 DELETE_REMOTE_COPY_GROUP_DIRECT = "v1/objects/storages/{}/remote-mirror-copygroups/{}"
-
+TAKEOVER_REMOTE_COPY_GROUP_DIRECT = (
+    "v1/objects/storages/{}/remote-mirror-copygroups/{}/actions/takeover/invoke"
+)
 logger = Log()
 gCopyGroupList = None
 
@@ -826,4 +829,79 @@ class VSPCopyGroupsDirectGateway:
         logger.writeDebug(
             "PF_REST:delete_remote_copy_group:time={:.2f}", end_time - start_time
         )
+        return response
+
+    @log_entry_exit
+    def takeover_copy_group(self, spec):
+        # secondary_storage_info = self.get_secondary_storage_info(
+        #     spec.secondary_connection_info
+        # )
+        # logger.writeDebug(
+        #     "GW:takeover_copy_group:secondary_storage_info={}",
+        #     secondary_storage_info,
+        # )
+        # remote_storage_deviceId = secondary_storage_info.get("storageDeviceId")
+
+        storage_deviceId = self.get_storage_device_id(str(self.storage_serial_number))
+
+        parameters = {"mode": "auto"}
+
+        # remoteStorageDeviceId,copyGroupName,localDeviceGroupName,remoteDeviceGroupName
+        if spec.remote_device_group_name:
+            object_id = f"NotSpecified,{spec.copy_group_name},{spec.remote_device_group_name},NotSpecified"
+            logger.writeDebug("remote copy group object_id={}", object_id)
+        else:
+            raise ValueError(
+                "remote_device_group_name is required for takeover operation"
+            )
+            # copy_group_info = self.get_one_copygroup_info_by_name(spec)
+            # object_id = copy_group_info.remoteMirrorCopyGroupId
+            # parts = object_id.split(',')
+            # if len(parts) == 4:
+            #     parts[0] = "NotSpecified"
+            #     parts[3] = "NotSpecified"
+            #     object_id = ','.join(parts)
+
+        payload = {"parameters": parameters}
+        # headers = self.get_remote_token(spec.secondary_connection_info)
+        # # headers["Remote-Authorization"] = headers.pop("Authorization")
+        # headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
+        end_point = TAKEOVER_REMOTE_COPY_GROUP_DIRECT.format(
+            storage_deviceId, object_id
+        )
+        start_time = time.time()
+        response = self.connection_manager.post(
+            end_point, payload  # , headers_input=None
+        )
+        end_time = time.time()
+        logger.writeDebug(
+            "PF_REST:takeover_copy_group:time={:.2f} , response= {}",
+            end_time - start_time,
+            response,
+        )
+        response = self.connection_manager.get(
+            GET_ONE_REMOTE_COPY_GROUP.format(response)
+        )
+        logger.writeDebug(f"GW:get_storage_device_id:response={response}")
+        # Inline code to convert all keys to snake_case
+        for key, value in list(response.items()):
+            # Convert camelCase to snake_case for top-level keys
+            new_key = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", key).lower()
+            response[new_key] = response.pop(key)
+
+            # Convert keys in nested dictionaries or lists
+            if isinstance(value, dict):
+                for sub_key, sub_value in list(value.items()):
+                    new_sub_key = re.sub(
+                        r"([a-z0-9])([A-Z])", r"\1_\2", sub_key
+                    ).lower()
+                    value[new_sub_key] = value.pop(sub_key)
+            elif isinstance(value, list):
+                for item in value:
+                    if isinstance(item, dict):
+                        for sub_key, sub_value in list(item.items()):
+                            new_sub_key = re.sub(
+                                r"([a-z0-9])([A-Z])", r"\1_\2", sub_key
+                            ).lower()
+                            item[new_sub_key] = item.pop(sub_key)
         return response

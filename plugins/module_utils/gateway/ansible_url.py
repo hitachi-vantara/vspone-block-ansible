@@ -285,6 +285,8 @@ class OpenUrlWithTelemetry:
             if kwargs.get("data"):
                 kwargs["data"] = None
             if ip_address and ep:
+                ex_content_type = kwargs.get("headers").get("Content-Type", "")
+                kwargs["headers"]["Content-Type"] = "application/json"
                 result = open_request(*args, **kwargs)
                 result_content = json.loads(result.read().decode("utf-8"))
                 if storage_type == "sdsBlockStorageSystems":
@@ -305,6 +307,7 @@ class OpenUrlWithTelemetry:
                     }
                 kwargs["method"] = ex_method
                 kwargs["url"] = exiting_url
+                kwargs["headers"]["Content-Type"] = ex_content_type
                 return MODEL_INFO
             else:
                 return None
@@ -421,7 +424,8 @@ def process_request(apig_body):
         # Prepare the request body
         body = json.dumps(apig_body.to_dict())
         # # log.writeDebug(f"Processing request... {body}")
-        log.writeDebug(f"Processing request APIG_URL... {APIG_URL}")
+        log.writeDebug(f"Processing request APIG_URL {APIG_URL}")
+        # log.writeDebug(f"Processing request body {body}")
 
         # Make a request using open_url from Ansible module
         response = open_request(

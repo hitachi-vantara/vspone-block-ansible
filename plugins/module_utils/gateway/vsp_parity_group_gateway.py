@@ -156,6 +156,17 @@ class VSPParityGroupDirectGateway:
         return response
 
     @log_entry_exit
+    def assign_parity_group_to_clpr(self, spec):
+        endPoint = Endpoints.ASSIGN_PARITY.format(spec.parity_group_id)
+        payload = {
+            "parameters": {
+                "clprId": spec.clpr_id,
+            }
+        }
+        response = self.connectionManager.post(endPoint, payload)
+        return response
+
+    @log_entry_exit
     def get_all_drives(self):
         endPoint = Endpoints.GET_DRIVES
         drives_dict = self.connectionManager.get(endPoint)

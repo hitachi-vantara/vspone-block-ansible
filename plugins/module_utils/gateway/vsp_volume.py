@@ -278,6 +278,19 @@ class VSPVolumeDirectGateway:
         return VSPVolumesInfo(dicts_to_dataclass_list(vol_data["data"], VSPVolumeInfo))
 
     @log_entry_exit
+    def get_free_ldevs_from_meta(self, start_ldev=0):
+
+        end_point = self.end_points.GET_FREE_LDEVS_FROM_META
+        if start_ldev and start_ldev > 0:
+            end_point = self.end_points.GET_FREE_LDEVS_FROM_META_HEAD_LDEV.format(
+                start_ldev
+            )
+        vol_data = self.rest_api.get(end_point)
+        return VSPUndefinedVolumeInfoList(
+            dicts_to_dataclass_list(vol_data["data"], VSPUndefinedVolumeInfo)
+        )
+
+    @log_entry_exit
     def get_free_ldev_matching_svol_range(self, begin_ldev_id, end_ldev_id):
         count = end_ldev_id - begin_ldev_id + 1
         end_point = self.end_points.GET_FREE_LDEV_FROM_META_FOR_SVOL_RANGE.format(
@@ -472,7 +485,6 @@ class VSPVolumeDirectGateway:
         volume.isCommandDevice = True
         if not self.is_vsp_5000_series() and not self.is_svp_present():
             # VSP One does not support detailInfoType=class
-            logger.writeDebug(f"fill_cmd_device_info: vol_data for no SVP= {volume}")
             return volume
 
         end_point = self.end_points.GET_CMD_DEVICE.format(volume.ldevId)
@@ -588,3 +600,13 @@ class VSPVolumeDirectGateway:
         pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
         logger.writeDebug(f"Storage Model: {storage_info.model}")
         return pegasus_model
+
+    @log_entry_exit
+    def assign_ldev_to_clpr(self, ldev_id, clpr_id):
+        payload = {
+            VolumePayloadConst.PARAMS: {
+                VolumePayloadConst.CLPR_ID: clpr_id,
+            }
+        }
+        end_point = self.end_points.ASSIGN_LDEV.format(ldev_id)
+        return self.rest_api.post(end_point, payload)

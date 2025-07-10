@@ -1,42 +1,48 @@
 try:
     from ..gateway.gateway_factory import GatewayFactory
-    from ..common.hv_constants import GatewayClassTypes
+    from ..common.hv_constants import GatewayClassTypes, StateValue
     from ..common.hv_log import Log
     from ..common.ansible_common import (
         log_entry_exit,
         convert_block_capacity,
         convert_to_mb,
     )
-    from ..model.vsp_storage_pool_models import VSPStoragePool, VSPStoragePools
     from ..common.hv_constants import ConnectionTypes
     from .vsp_parity_group_provisioner import VSPParityGroupProvisioner
-    from ..message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
+    from ..message.vsp_storage_pool_msgs import (
+        VSPStoragePoolValidateMsg,
+        StoragePoolInfoMsg,
+    )
     from .vsp_volume_prov import VSPVolumeProvisioner
     from ..model.vsp_volume_models import CreateVolumeSpec
     from ..common.vsp_constants import StoragePoolLimits
     from .vsp_resource_group_provisioner import VSPResourceGroupProvisioner
     from ..model.vsp_resource_group_models import VSPResourceGroupSpec
     from .vsp_storage_system_provisioner import VSPStorageSystemProvisioner
+    from ..gateway.vsp_storage_pool_gateway import VSPStoragePoolDirectGateway
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
-    from common.hv_constants import GatewayClassTypes
+    from common.hv_constants import GatewayClassTypes, StateValue
     from common.hv_log import Log
     from common.ansible_common import (
         log_entry_exit,
         convert_block_capacity,
         convert_to_mb,
     )
-    from model.vsp_storage_pool_models import VSPStoragePool, VSPStoragePools
     from common.hv_constants import ConnectionTypes
     from .vsp_parity_group_provisioner import VSPParityGroupProvisioner
-    from message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
+    from message.vsp_storage_pool_msgs import (
+        VSPStoragePoolValidateMsg,
+        StoragePoolInfoMsg,
+    )
     from .vsp_volume_prov import VSPVolumeProvisioner
     from model.vsp_volume_models import CreateVolumeSpec
     from common.vsp_constants import StoragePoolLimits
     from .vsp_resource_group_provisioner import VSPResourceGroupProvisioner
     from model.vsp_resource_group_models import VSPResourceGroupSpec
     from .vsp_storage_system_provisioner import VSPStorageSystemProvisioner
+    from gateway.vsp_storage_pool_gateway import VSPStoragePoolDirectGateway
 
 
 from enum import Enum
@@ -85,9 +91,7 @@ logger = Log()
 class VSPStoragePoolProvisioner:
 
     def __init__(self, connection_info):
-        self.gateway = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.VSP_STORAGE_POOL
-        )
+        self.gateway = VSPStoragePoolDirectGateway(connection_info)
         self.vol_gw = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_VOLUME
         )
@@ -178,46 +182,60 @@ class VSPStoragePoolProvisioner:
         return storage_pool_dict
 
     @log_entry_exit
+    def fetch_dp_volumes(self, pool):
+        """
+        Fetches the data protection volumes for a given storage pool.
+        This method is used to populate the dpVolumes attribute of the storage pool.
+        """
+        count_query = "count={}".format(16384)
+        ldev_option_query = "ldevOption=dpVolume"
+        pool_query = "poolId={}".format(pool.poolId)
+        dpvolume_query = "?" + count_query + "&" + ldev_option_query + "&" + pool_query
+        dpvolumes = self.gateway.get_ldevs(dpvolume_query)
+        pool_vols = []
+        for dpvol in dpvolumes.data:
+            tmp_dpvol = {}
+            tmp_dpvol["logicalUnitId"] = dpvol.ldevId
+            tmp_dpvol["size"] = convert_block_capacity(dpvol.blockCapacity)
+            pool_vols.append(tmp_dpvol)
+        return pool_vols
+
+    @log_entry_exit
+    def fetch_pool_volumes_lists(self, pool):
+        """
+        Fetches the data protection volumes for a given storage pool.
+        This method is used to populate the dpVolumes attribute of the storage pool.
+        """
+        # count_query = "count={}".format(16384)
+        # ldev_option_query = "ldevOption=dpVolume"
+        pool_query = "poolId={}".format(pool.poolId)
+        dpvolume_query = f"?{pool_query}"
+        dpvolumes = self.gateway.get_ldevs(dpvolume_query)
+
+        return [dpvol.ldevId for dpvol in dpvolumes.data]
+
+    @log_entry_exit
     def get_all_storage_pools(self):
         pools = None
         storage_pools = self.gateway.get_all_storage_pools()
-        if self.connection_type == ConnectionTypes.DIRECT:
-            tmp_storage_pools = []
-            # Get a list of storage pools
+        return storage_pools
 
-            for pool in storage_pools.data:
-                tmp_storage_pools.append(
-                    VSPStoragePool(**self.format_storage_pool(pool))
-                )
-
-            pools = VSPStoragePools(data=tmp_storage_pools)
-        else:
-            # common_object = [
-            #     VSPStoragePool(**pool.to_dict()) for pool in storage_pools.data
-            # ]
-            pools = VSPStoragePools(
-                data=[
-                    VSPStoragePool(
-                        **pg.to_dict(),
-                        free_capacity_in_mb=(
-                            f"{convert_to_mb(pg.freeCapacityInUnits)} MB"
-                            if pg.freeCapacityInUnits
-                            else "0"
-                        ),
-                        total_capacity_in_mb=(
-                            f"{convert_to_mb(pg.totalCapacityInUnit)} MB"
-                            if pg.totalCapacityInUnit
-                            else "0"
-                        ),
-                    )
-                    for pg in storage_pools.data
-                ]
-            )
-            # pools = VSPStoragePools(data=common_object)
-        for pool in pools.data:
-            self.add_encryption_info(pool)
-
-        return pools
+    @log_entry_exit
+    def get_pool_details_with_more_info(self, pool_id):
+        """
+        Fetches the storage pool details with more information.
+        This method is used to get detailed information about a specific storage pool.
+        """
+        storage_pools = self.gateway.get_all_storage_pools(True)
+        for pool in storage_pools.data:
+            if pool.poolId == pool_id:
+                # Add encryption info to the pool
+                # self.add_encryption_info(pool)
+                # Fetch data protection volumes
+                # pool.dpVolumes = self.fetch_dp_volumes(pool)
+                # Format the storage pool
+                return pool
+        return None
 
     @log_entry_exit
     def add_encryption_info(self, pool):
@@ -264,6 +282,16 @@ class VSPStoragePoolProvisioner:
     def create_storage_pool(self, pool_spec):
         logger = Log()
 
+        count = 0
+        if pool_spec.pool_volumes:
+            count = count + 1
+        if pool_spec.ldev_ids:
+            count = count + 1
+        if pool_spec.start_ldev_id or pool_spec.end_ldev_id:
+            count = count + 1
+        if count != 1:
+            raise ValueError(VSPStoragePoolValidateMsg.SPECIFY_ONE.value)
+
         if pool_spec.name is None or pool_spec.name == "":
             err_msg = VSPStoragePoolValidateMsg.POOL_NAME_REQUIRED.value
             logger.writeError(err_msg)
@@ -303,6 +331,7 @@ class VSPStoragePoolProvisioner:
             pool_spec.ldev_ids = self.create_ldev_for_pool(pool_spec)
         try:
             pool_id = self.gateway.create_storage_pool(pool_spec)
+            pool_spec.name = None
 
         except Exception as e:
             logger.writeException(e)
@@ -359,60 +388,190 @@ class VSPStoragePoolProvisioner:
 
     @log_entry_exit
     def get_storage_pool_by_name_or_id_only(self, pool_name=None, id=None):
-        storage_pools = self.gateway.get_all_storage_pools()
-        for pool in storage_pools.data:
-            if (pool_name and pool.name == pool_name) or (
-                id is not None and pool.poolId == id
-            ):
-                return pool
-        return None
+
+        if id is not None:
+            return self.gateway.get_storage_pool_by_id(id)
+        else:
+            storage_pools = self.gateway.get_all_storage_pools()
+            for pool in storage_pools.data:
+                if (pool_name and pool.poolName == pool_name) or (
+                    id is not None and pool.poolId == id
+                ):
+                    # pool.dpVolumes = self.fetch_dp_volumes(pool)
+                    return pool
+            return None
 
     @log_entry_exit
     def get_storage_pool_by_id(self, pool_id):
-        if self.connection_type == ConnectionTypes.DIRECT:
-            pool = VSPStoragePool(
-                **self.format_storage_pool(self.gateway.get_storage_pool_by_id(pool_id))
-            )
-            self.add_encryption_info(pool)
+        # if self.connection_type == ConnectionTypes.DIRECT:
+        #     # pool = VSPStoragePool(
+        #     #     **self.format_storage_pool(self.gateway.get_storage_pool_by_id(pool_id))
+        #     # )
+        #     pool = self.gateway.get_storage_pool_by_id(pool_id)
+        #     # self.add_encryption_info(pool)
+        #     # pool = self.fetch_dp_volumes(pool)
+        #     return pool
+        # else:
+        pool = self.gateway.get_storage_pool_by_id(pool_id)
+        if pool:
+            # pool.dpVolumes = self.fetch_dp_volumes(pool)
             return pool
-        else:
-            return self.get_storage_pool_by_name_or_id(id=pool_id)
+        return None
 
     @log_entry_exit
     def get_storage_pool_by_resource_id(self, resource_id):
         storage_pools = self.get_all_storage_pools()
         for pool in storage_pools.data:
-            if (pool.resourceId and pool.resourceId == resource_id) or (
-                pool.poolId and pool.poolId == resource_id
-            ):
+            if pool.poolId == resource_id:
                 return pool
         return None
 
     @log_entry_exit
     def update_storage_pool(self, spec, pool):
-        resource_id = (
-            pool.poolId
-            if self.connection_type == ConnectionTypes.DIRECT
-            else pool.resourceId
-        )
+
         if spec.pool_volumes is not None and len(spec.pool_volumes) > 0:
             if self.connection_info.connection_type == ConnectionTypes.DIRECT:
                 spec.ldev_ids = self.create_ldev_for_pool(spec)
-            unused = self.gateway.update_storage_pool(resource_id, spec)
+                self.gateway.update_storage_pool(pool.poolId, spec)
+                self.connection_info.changed = True
             self.connection_info.changed = True
-        pool = self.get_storage_pool_by_id(resource_id)
+        if spec.name is not None and spec.name == pool.poolName:
+            spec.name = None
+        if spec.type is not None and spec.type == pool.poolType:
+            spec.type = None
+        if (
+            spec.warning_threshold_rate is not None
+            and spec.warning_threshold_rate == pool.warningThreshold
+        ):
+            spec.warning_threshold_rate = None
+        if (
+            spec.depletion_threshold_rate is not None
+            and spec.depletion_threshold_rate == pool.depletionThreshold
+        ):
+            spec.depletion_threshold_rate = None
+        if (
+            spec.monitoring_mode is not None
+            and pool.monitoringMode is not None
+            and spec.monitoring_mode.upper() == pool.monitoringMode.upper()
+        ):
+            spec.monitoring_mode = None
+        if (
+            spec.blocking_mode is not None
+            and pool.blockingMode is not None
+            and spec.blocking_mode.upper() == pool.blockingMode.upper()
+        ):
+            spec.blocking_mode = None
+        if (
+            spec.virtual_volume_capacity_rate is not None
+            and spec.virtual_volume_capacity_rate == pool.virtualVolumeCapacityRate
+        ):
+            spec.virtual_volume_capacity_rate = None
+        if (
+            spec.suspend_snapshot is not None
+            and spec.suspend_snapshot == pool.suspendSnapshot
+        ):
+            spec.suspend_snapshot = None
+
+        update_data = self.gateway.change_storage_pool_settings(pool.poolId, spec)
+        if update_data:
+            self.connection_info.changed = True
+
+        if self.connection_info.changed:
+            pool = self.get_pool_details_with_more_info(pool.poolId)
+
         return pool
 
     @log_entry_exit
     def delete_storage_pool(self, spec):
         pool = self.get_storage_pool_by_name_or_id_only(spec.name, spec.id)
+        pool_ldevs = []
         if pool is None:
-            return VSPStoragePoolValidateMsg.POOL_DOES_NOT_EXIST.value
+            return None, VSPStoragePoolValidateMsg.POOL_DOES_NOT_EXIST.value
         resource_id = (
             pool.poolId
             if self.connection_type == ConnectionTypes.DIRECT
             else pool.resourceId
         )
+        if spec.should_delete_pool_volumes:
+            pool_ldevs = self.fetch_pool_volumes_lists(pool)
+
         unused = self.gateway.delete_storage_pool(resource_id)
+
+        if pool_ldevs:
+            for ldev_id in pool_ldevs:
+                try:
+                    self.vol_prov.delete_volume(ldev_id, False)
+                except Exception as e:
+                    logger.writeException(
+                        f"Failed to delete volume {ldev_id} in pool {pool.poolId}: {e}"
+                    )
+
         self.connection_info.changed = True
-        return "Storage pool deleted successfully."
+        return None, StoragePoolInfoMsg.POOL_DELETED.value
+
+    @log_entry_exit
+    def perform_storage_pool_action(self, state, spec):
+        msg = ""
+
+        if (
+            state in [StateValue.MONITOR, StateValue.RELOCATE]
+            and spec.operation_type is None
+        ):
+            err_msg = VSPStoragePoolValidateMsg.OPERATION_TYPE_REQUIRED.value
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
+
+        pool = self.get_storage_pool_by_name_or_id_only(spec.name, spec.id)
+        if not pool:
+            err_msg = VSPStoragePoolValidateMsg.POOL_DOES_NOT_EXIST.value
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
+
+        if state == StateValue.INIT_CAPACITY:
+            self.gateway.initialize_capacity_savings(pool.poolId)
+            msg = StoragePoolInfoMsg.CAPACITY_SAVING_INITIATED.value
+            self.connection_info.changed = True
+        elif state == StateValue.MONITOR:
+            if (
+                pool.tierOperationStatus in ["MON", "RLM"]
+                and spec.operation_type == "start"
+            ):
+                msg = StoragePoolInfoMsg.PERFORMANCE_MONITORING_IN_PROGRESS.value
+            elif (
+                pool.tierOperationStatus not in ["MON", "RLM"]
+                and spec.operation_type == "stop"
+            ):
+                msg = StoragePoolInfoMsg.PM_ALREADY_STOPPED.value
+            else:
+                self.gateway.perform_performance_monitor(
+                    pool.poolId, spec.operation_type
+                )
+                self.connection_info.changed = True
+                msg = StoragePoolInfoMsg.PERFORMANCE_MONITOR_UPDATE.value.format(
+                    "started" if spec.operation_type != "stop" else "stopped"
+                )
+        elif state == StateValue.RESTORE:
+            self.gateway.restore_storage_pool(pool.poolId)
+            self.connection_info.changed = True
+            msg = StoragePoolInfoMsg.RESTORE_DONE.value
+        elif state == StateValue.RELOCATE:
+            if (
+                pool.tierOperationStatus in ["RLC", "RLM"]
+                and spec.operation_type == "start"
+            ):
+                msg = StoragePoolInfoMsg.TIER_RELOCATION_IN_PROGRESS.value
+            elif (
+                pool.tierOperationStatus not in ["MON", "RLM"]
+                and spec.operation_type == "stop"
+            ):
+                msg = StoragePoolInfoMsg.TIER_RELOCATION_ALREADY_STOPPED.value
+            else:
+                self.gateway.perform_tier_location(pool.poolId, spec.operation_type)
+                self.connection_info.changed = True
+                msg = StoragePoolInfoMsg.TIER_OPERATION_SUCCESS.value.format(
+                    "started" if spec.operation_type != "stop" else "stopped"
+                )
+        if self.connection_info.changed:
+            pool = self.get_pool_details_with_more_info(pool.poolId)
+
+        return pool.camel_to_snake_dict(), msg

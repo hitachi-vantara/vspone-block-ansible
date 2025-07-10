@@ -16,7 +16,7 @@ description:
   - Create, update, or delete storage pool information on Hitachi VSP storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storagepool.yml)
-version_added: '3.1.0'
+version_added: "3.1.0"
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
@@ -26,7 +26,8 @@ attributes:
     description: Determines if the module should run in check mode.
     support: none
 extends_documentation_fragment:
-- hitachivantara.vspone_block.common.gateway_note
+  - hitachivantara.vspone_block.common.gateway_note
+  - hitachivantara.vspone_block.common.connection_with_type
 notes:
   - The output parameters C(subscriber_id) and C(partner_id) were removed in version 3.4.0.
     They were also deprecated due to internal API simplification and are no longer supported.
@@ -41,38 +42,21 @@ options:
         type: str
         required: false
   state:
-    description: The level of the storage pool task. Choices are C(present), C(absent) .
+    description:
+      - The level of the storage pool task. Choices are C(present), C(absent), C(restore), C(tier_relocate), C(monitor_performance), C(init_capacity_saving).
+      - In the case you need to execute C(restore) pool, you need the operation when the pool is blocked due to Shared memory volatilization.
     type: str
     required: false
-    choices: ['present', 'absent']
-    default: 'present'
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    type: dict
-    required: true
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      password:
-        description: Password for authentication. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      api_token:
-        description: This field is used to pass the value of the lock token to operate on locked resources.
-        type: str
-        required: false
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
+    choices:
+      [
+        "present",
+        "absent",
+        "restore",
+        "tier_relocate",
+        "monitor_performance",
+        "init_capacity_saving",
+      ]
+    default: "present"
   spec:
     description: Specification for the storage pool.
     type: dict
@@ -90,7 +74,7 @@ options:
         description: Type of the pool. Supported types are C(HDT), C(HDP), C(HRT), C(HTI).
         type: str
         required: false
-        choices: ['HDT', 'HDP', 'HRT', 'HTI']
+        choices: ["HDT", "HDP", "HRT", "HTI"]
       should_enable_deduplication:
         description:
           - Whether to enable deduplication for the pool. This feature is applicable to the following models
@@ -151,7 +135,50 @@ options:
             description: ID of the parity group the volume belongs to.
             type: str
             required: true
-
+      operation_type:
+        description: Specify the operation of tier relocation and performance monitoring.
+        type: str
+        required: false
+        choices: ["start", "stop"]
+      suspend_snapshot:
+        description: Whether to suspend Thin Image pairs when the depletion threshold is exceeded.
+        type: bool
+        required: false
+      virtual_volume_capacity_rate:
+        description: The subscription limit of a virtual volume to pool capacity (%).
+        type: int # Percentage value
+        required: false
+      monitoring_mode:
+        description: Execution mode for performance monitoring (monitor mode) for HDT type.
+        type: str
+        required: false
+        choices: ["PM", "CM"]
+      blocking_mode:
+        description: Setting the protection function for a virtual volume.
+        type: str
+        required: false
+        choices: ["PF", "PB", "FB", "NB"]
+      tier:
+        description: HDT pool tier attribute.
+        type: dict
+        required: false
+        suboptions:
+          tier_number:
+            description: Tier number for the pool.
+            type: int
+            required: false
+          table_space_rate:
+            description: Ratio of free space for new tiering (in percentage)
+            type: int
+            required: false
+          buffer_rate:
+            description: Ratio of buffer areas for reallocation (in percentage)
+            type: int
+            required: false
+      should_delete_pool_volumes:
+        description: Whether to delete pool volumes when the pool is deleted.
+        type: bool
+        required: false
 """
 
 EXAMPLES = """
@@ -182,6 +209,91 @@ EXAMPLES = """
     state: "absent"
     spec:
       name: "test_pool"
+
+- name: Delete a Storage Pool including its volumes
+  hitachivantara.vspone_block.vsp.hv_storagepool:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    state: "absent"
+    spec:
+      name: "test_pool"
+      should_delete_pool_volumes: true
+
+- name: Performing performance monitoring of a pool
+  hitachivantara.vspone_block.vsp.hv_storagepool:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    state: "monitor_performance"
+    spec:
+      id: 48
+      operation_type: "start"
+
+- name: Performing tier relocation of a pool
+  hitachivantara.vspone_block.vsp.hv_storagepool:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    state: "relocate"
+    spec:
+      id: 48
+      operation_type: "start"
+
+- name: Restoring a pool
+  hitachivantara.vspone_block.vsp.hv_storagepool:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    state: "restore"
+    spec:
+      id: 48
+
+- name: Initializing the capacity saving function for a pool
+  hitachivantara.vspone_block.vsp.hv_storagepool:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    state: "init_capacity_saving"
+    spec:
+      id: 48
+
+- name: Update an existing Storage Pool
+  hitachivantara.vspone_block.vsp.hv_storagepool:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    state: "present"
+    spec:
+      name: "test_pool"
+      warning_threshold_rate: 75
+      depletion_threshold_rate: 85
+
+- name: Update Storage Pool with new parameters
+  hitachivantara.vspone_block.vsp.hv_storagepool:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "password"
+    state: "present"
+    spec:
+      name: "test_pool"
+      warning_threshold_rate: 78
+      depletion_threshold_rate: 88
+      virtual_volume_capacity_rate: 90
+      monitoring_mode: "PF"
+      blocking_mode: "PM"
+      suspend_snapshot: true
+      tier:
+        tier_number: 1
+        tablespace_rate: 60
+        buffer_rate: 20
 """
 
 RETURN = r"""
@@ -335,15 +447,11 @@ class VspStoragePoolManager:
         try:
             self.logger.writeInfo("=== Start of Storage Pool operation ===")
             registration_message = validate_ansible_product_registration()
-            response = vsp_storage_pool.VSPStoragePoolReconciler(
+            response, msg = vsp_storage_pool.VSPStoragePoolReconciler(
                 self.connection_info, self.serial
             ).storage_pool_reconcile(self.state, self.spec)
 
-            msg = (
-                response
-                if isinstance(response, str)
-                else "Storage pool created/updated successfully."
-            )
+            msg = response if isinstance(response, str) else msg
             result = response if not isinstance(response, str) else None
             response_dict = {
                 "changed": self.connection_info.changed,

@@ -27,6 +27,7 @@ attributes:
     support: full
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+- hitachivantara.vspone_block.common.connection_with_type
 options:
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -59,33 +60,6 @@ options:
         description: This field is used to pass the value of the lock token of the secondary storage to operate on locked resources.
         type: str
         required: false
-  connection_info:
-      description: Information required to establish a connection to the storage system.
-      type: dict
-      required: true
-      suboptions:
-        address:
-          description: IP address or hostname of the storage system.
-          type: str
-          required: true
-        username:
-          description: Username for authentication for secondary storage. This is a required field if api_token is not provided.
-          type: str
-          required: false
-        password:
-          description: Password for authentication for secondary storage. This is a required field if api_token is not provided.
-          type: str
-          required: false
-        api_token:
-          description: This field is used to pass the value of the lock token to operate on locked resources.
-          type: str
-          required: false
-        connection_type:
-          description: Type of connection to the storage system.
-          type: str
-          required: false
-          choices: ['direct']
-          default: 'direct'
   spec:
     description:
       - Specification for retrieving TrueCopy pair information.
@@ -152,8 +126,7 @@ EXAMPLES = """
 
 RETURN = """
 ansible_facts:
-  description: >
-    Dictionary containing the discovered properties of the TrueCopy pairs.
+  description: Dictionary containing the discovered properties of the TrueCopy pairs.
   returned: always
   type: dict
   contains:
@@ -163,69 +136,65 @@ ansible_facts:
       elements: dict
       contains:
         consistency_group_id:
-          description: ID of the consistency group.
+          description: Consistency Group ID.
           type: int
           sample: -1
-        copy_rate:
-          description: Copy rate of the TrueCopy pair.
-          type: int
-          sample: 100
-        mirror_unit_id:
-          description: ID of the mirror unit.
-          type: int
-          sample: 0
-        pair_name:
-          description: Name of the TrueCopy pair.
+        copy_group_name:
+          description: Name of the copy group.
           type: str
-          sample: ""
+          sample: "TC_TEST_1107"
+        copy_pair_name:
+          description: Name of the copy pair.
+          type: str
+          sample: "rd_copy_pair_202"
+        copy_progress_rate:
+          description: Copy progress rate.
+          type: int
+          sample: -1
+        fence_level:
+          description: Fence level.
+          type: str
+          sample: "NEVER"
         primary_hex_volume_id:
-          description: Hexadecimal ID of the primary volume.
+          description: Primary hex volume ID.
           type: str
-          sample: "00:05:01"
+          sample: "00:02:77"
         primary_volume_id:
-          description: ID of the primary volume.
+          description: Primary volume ID.
           type: int
-          sample: 1281
-        primary_volume_storage_id:
-          description: Storage ID of the primary volume.
-          type: int
-          sample: 810050
-        resource_id:
-          description: Resource ID of the TrueCopy pair.
+          sample: 631
+        pvol_status:
+          description: PVOL status.
           type: str
-          sample: "replpair-037f68f4f56351b2de6a68ff5dc0cdeb"
+          sample: "PAIR"
+        pvol_storage_device_id:
+          description: PVOL storage device ID.
+          type: str
+          sample: "A34000810045"
+        remote_mirror_copy_pair_id:
+          description: Remote mirror copy pair ID.
+          type: str
+          sample: "A34000810045,TC_TEST_1107,TC_TEST_1107P_,TC_TEST_1107S_,rd_copy_pair_202"
         secondary_hex_volume_id:
-          description: Hexadecimal ID of the secondary volume.
+          description: Secondary hex volume ID.
           type: str
-          sample: "00:00:82"
+          sample: "00:00:ca"
         secondary_volume_id:
-          description: ID of the secondary volume.
+          description: Secondary volume ID.
           type: int
-          sample: 130
-        secondary_volume_storage_id:
-          description: Storage ID of the secondary volume.
-          type: int
-          sample: 810045
-        status:
-          description: Status of the TrueCopy pair.
-          type: str
-          sample: "PSUS"
-        storage_id:
-          description: Storage ID of the TrueCopy pair.
-          type: str
-          sample: "storage-b2c93d5e8fadb70b208341b0e19c6527"
+          sample: 202
         storage_serial_number:
-          description: Serial number of the storage.
+          description: Storage serial number.
           type: str
           sample: "810050"
-        svol_access_mode:
-          description: Access mode of the secondary volume.
+        svol_status:
+          description: SVOL status.
           type: str
-          sample: "READWRITE"
-        type:
-          description: Type of the TrueCopy pair.
+          sample: "PAIR"
+        svol_storage_device_id:
+          description: SVOL storage device ID.
           type: str
-          sample: "truecopypair"
+          sample: "A34000810050"
 """
 
 from ansible.module_utils.basic import AnsibleModule

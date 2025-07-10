@@ -67,9 +67,9 @@ class ExternalPathInfoList(BaseDataClass):
 class SalamanderExternalPathInfo(SingleBaseClass):
     portId: str
     portProtocol: str
-    externalPortIpAddress: str
-    externalPortIscsiName: str
-    externalTcpPortNumber: int
+    externalPortIpAddress: str = None
+    externalPortIscsiName: str = None
+    externalTcpPortNumber: int = None
     virtualPortNumber: int = None
     externalPortWwn: str = None
 

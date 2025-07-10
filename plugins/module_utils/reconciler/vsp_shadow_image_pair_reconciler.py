@@ -318,11 +318,6 @@ class VSPShadowImagePairReconciler:
 
 class ShadowImagePairPropertyExtractor:
     def __init__(self, serial):
-        self.entitlement_properties = {
-            # "partner_id": str,
-            # "subscriber_id": str,
-            # "entitlement_status": str,
-        }
         self.common_properties = {
             # "resource_id": str,
             "consistency_group_id": int,
@@ -335,8 +330,6 @@ class ShadowImagePairPropertyExtractor:
             "secondary_hex_volume_id": str,
             "secondary_volume_id": int,
             "status": str,
-            "svol_access_mode": str,
-            # "type": str,
             "copy_group_name": str,
             "copy_pair_name": str,
             "pvol_nvm_subsystem_name": str,
@@ -350,18 +343,6 @@ class ShadowImagePairPropertyExtractor:
         new_items = []
         for response in responses:
             new_dict = {"storage_serial_number": self.serial}
-            for key, value_type in self.entitlement_properties.items():
-                # Assign the value based on the response key and its data type
-                cased_key = snake_to_camel_case(key)
-                # Get the corresponding key from the response or its mapped key
-                response_key = response.get(cased_key)
-
-                if response_key is not None:
-                    new_dict[key] = value_type(response_key)
-                else:
-                    # Handle missing keys by assigning default values
-                    default_value = get_default_value(value_type)
-                    new_dict[key] = default_value
 
             for key, value_type in self.common_properties.items():
                 # Assign the value based on the response key and its data type
@@ -447,18 +428,6 @@ class ShadowImagePairPropertyExtractor:
     def extract_object(self, response):
 
         new_dict = {"storage_serial_number": self.serial}
-        for key, value_type in self.entitlement_properties.items():
-            # Assign the value based on the response key and its data type
-            cased_key = snake_to_camel_case(key)
-            # Get the corresponding key from the response or its mapped key
-            response_key = response.get(cased_key)
-
-            if response_key is not None:
-                new_dict[key] = value_type(response_key)
-            else:
-                # Handle missing keys by assigning default values
-                default_value = get_default_value(value_type)
-                new_dict[key] = default_value
         for key, value_type in self.common_properties.items():
             # Assign the value based on the response key and its data type
             cased_key = snake_to_camel_case(key)

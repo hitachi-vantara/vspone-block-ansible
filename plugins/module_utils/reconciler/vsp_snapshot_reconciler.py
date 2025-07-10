@@ -242,7 +242,7 @@ class SnapshotCommonPropertiesExtractor:
             "primaryHexVolumeId": str,
             "secondaryVolumeId": int,
             "secondaryHexVolumeId": str,
-            "svolAccessMode": str,
+            # "svolAccessMode": str,
             "poolId": int,
             "mirrorUnitId": int,
             "copyRate": int,
@@ -355,9 +355,9 @@ class SnapshotCommonPropertiesExtractor:
     # hgs or its only, not both
     def split_host_groups_one(self, items, new_dict, key, port_type_dict):
         logger = Log()
-        logger.writeDebug(f"20250324 key: {key}")
-        logger.writeDebug(f"20250324 items: {items}")
-        logger.writeDebug(f"20250324 port_type_dict: {port_type_dict}")
+        # logger.writeDebug(f"20250324 key: {key}")
+        # logger.writeDebug(f"20250324 items: {items}")
+        # logger.writeDebug(f"20250324 port_type_dict: {port_type_dict}")
         if items is None:
             return
 
@@ -390,8 +390,8 @@ class SnapshotCommonPropertiesExtractor:
     # use this if it applies
     def split_host_groups(self, items, new_dict, key, port_type_dict):
         logger = Log()
-        logger.writeDebug(f"20250324 key: {key}")
-        logger.writeDebug(f"20250324 items: {items}")
+        # logger.writeDebug(f"20250324 key: {key}")
+        # logger.writeDebug(f"20250324 items: {items}")
         if items is None:
             return
 
@@ -403,8 +403,8 @@ class SnapshotCommonPropertiesExtractor:
             # logger.writeDebug(f"20250324 item: {item}")
             port_id = item["port_id"]
             port_type = port_type_dict[port_id]
-            logger.writeDebug(f"20250324 port_id: {port_id}")
-            logger.writeDebug(f"20250324 port_type: {port_type}")
+            # logger.writeDebug(f"20250324 port_id: {port_id}")
+            # logger.writeDebug(f"20250324 port_type: {port_type}")
             if port_type == "ISCSI":
                 its.append(item)
             else:
@@ -437,8 +437,8 @@ class SnapshotCommonPropertiesExtractor:
                 if value is None:
                     default_value = get_default_value(value_type)
                     value = default_value
-                logger.writeDebug(f"20250324 key: {key}")
-                logger.writeDebug(f"20250324 value: {value}")
+                # logger.writeDebug(f"20250324 key: {key}")
+                # logger.writeDebug(f"20250324 value: {value}")
                 new_dict[key] = value
             new_items.append(new_dict)
         return new_items

@@ -27,6 +27,7 @@ attributes:
     support: none
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+- hitachivantara.vspone_block.common.connection_info
 options:
   state:
     description: The level of the Shadow Image Group pairs task. Choices are C(present), C(absent), C(split), C(sync), C(restore), C(migrate).
@@ -34,27 +35,6 @@ options:
     required: false
     choices: ['present', 'absent', 'split', 'resync', 'sync', 'restore', 'migrate']
     default: 'present'
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    required: true
-    type: dict
-    suboptions:
-      address:
-        description: IP address or hostname of the Hitachi storage system .
-        type: str
-        required: true
-      username:
-        description: Username for authentication.  This is a required field if api_token is not provided.
-        type: str
-        required: false
-      password:
-        description: Password for authentication.  This is a required field if api_token is not provided.
-        type: str
-        required: false
-      api_token:
-        description: This field is used to pass the value of the lock token to operate on locked resources.
-        type: str
-        required: false
   spec:
     description: Specification for the Shadow Image Group task.
     type: dict

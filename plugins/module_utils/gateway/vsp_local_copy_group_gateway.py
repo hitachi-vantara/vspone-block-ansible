@@ -5,9 +5,9 @@ try:
         LocalCopyGroupInfoList,
         LocalSpecificCopyGroupInfo,
     )
-    from ..common.ansible_common import dicts_to_dataclass_list
+    from ..common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from ..common.hv_log import Log
-    from ..common.ansible_common import log_entry_exit
+    from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 except ImportError:
     from .gateway_manager import VSPConnectionManager
     from model.vsp_local_copy_group_models import (
@@ -15,9 +15,9 @@ except ImportError:
         LocalCopyGroupInfoList,
         LocalSpecificCopyGroupInfo,
     )
-    from common.ansible_common import dicts_to_dataclass_list
+    from common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from common.hv_log import Log
-    from common.ansible_common import log_entry_exit
+    from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 
 GET_LOCAL_COPY_GROUPS = "v1/objects/local-clone-copygroups"
 GET_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}"
@@ -26,7 +26,6 @@ SPLIT_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}/actions/split/invok
 MIGRATE_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}/actions/migrate/invoke"
 RESYNC_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}/actions/resync/invoke"
 RESTORE_ONE_COPY_GROUP = "v1/objects/local-clone-copygroups/{}/actions/restore/invoke"
-
 
 logger = Log()
 
@@ -51,10 +50,9 @@ class VSPLocalCopyGroupDirectGateway:
 
     @log_entry_exit
     def get_storage_serial(self):
-        storage = self.connection_manager.get(GET_STORAGES_DIRECT)
-        storage_info = storage["data"][0]
-        storage_serial = storage_info.get("serialNumber")
-        return storage_serial
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     @log_entry_exit
     def get_local_copy_groups(self, spec):

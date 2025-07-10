@@ -387,6 +387,22 @@
         var: result
 
     #########################################################################################################
+    # Task Name : Set CLPR id of a volume
+    #########################################################################################################
+    - name: Set CLPR id of a volume.
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_id: 11
+          clpr_id: 1
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
     # Task Name : Reclaiming zero pages of a DP volume
     #########################################################################################################
     - name: Reclaiming zero pages of a DP volume.

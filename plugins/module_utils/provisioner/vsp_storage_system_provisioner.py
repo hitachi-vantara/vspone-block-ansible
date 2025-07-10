@@ -409,6 +409,10 @@ class VSPStorageSystemProvisioner:
                 tmp_storage_info["total_efficiency"] = (
                     self.gateway.get_total_efficiency_of_storage_system().camel_to_snake_dict()
                 )
+                date_time = self.gateway.get_storage_systems_date_and_time()
+                tmp_storage_info["system_date_time"] = (
+                    date_time.camel_to_snake_dict() if date_time else {}
+                )
 
                 # Set default values
                 tmp_storage_info["management_address"] = ""
@@ -450,30 +454,59 @@ class VSPStorageSystemProvisioner:
                 tmp_storage_info["health_description"] = ""
 
                 if query:
+                    if (
+                        "pools" in query
+                        or "ports" in query
+                        or "quorumdisks" in query
+                        or "journalPools" in query
+                        or "freeLogicalUnitList" in query
+                    ):
+                        err_msg = CommonMessage.PORTS_JOURNALS_LUNS.value
+                        logger.writeError(err_msg)
+                        raise ValueError(err_msg)
                     # if "pools" in query:
                     #     tmp_storage_info["storage_pools"] = self.get_storage_pools()
 
-                    if "ports" in query:
-                        tmp_storage_info["ports"] = self.get_ports()
+                    # if "ports" in query:
+                    #     tmp_storage_info["ports"] = self.get_ports()
 
-                    if "quorumdisks" in query:
-                        tmp_storage_info["quorum_disks"] = self.get_quorum_disks()
+                    # if "quorumdisks" in query:
+                    #     tmp_storage_info["quorum_disks"] = self.get_quorum_disks()
 
-                    if "journalPools" in query:
-                        tmp_storage_info["journal_pools"] = self.get_journal_pools()
+                    # if "journalPools" in query:
+                    #     tmp_storage_info["journal_pools"] = self.get_journal_pools()
 
-                    if "freeLogicalUnitList" in query:
-                        tmp_storage_info["free_logical_unit_list"] = {}
-                        tmp_ldev_ids = {}
-                        ldevIds = self.get_free_luns()
-                        tmp_ldev_ids["ldev_ids"] = ldevIds
-                        tmp_storage_info["free_logical_unit_list"] = tmp_ldev_ids
+                    # if "freeLogicalUnitList" in query:
+                    #     tmp_storage_info["free_logical_unit_list"] = {}
+                    #     tmp_ldev_ids = {}
+                    #     ldevIds = self.get_free_luns()
+                    #     tmp_ldev_ids["ldev_ids"] = ldevIds
+                    #     tmp_storage_info["free_logical_unit_list"] = tmp_ldev_ids
 
+                    if "time_zone" in query:
+                        time_zones_info = self.gateway.get_storage_systems_time_zone()
+                        tmp_storage_info["time_zones_info"] = (
+                            time_zones_info.data_to_snake_case_list()
+                            if time_zones_info
+                            else "Time zone info not available on this storage system."
+                        )
                 return VSPStorageSystemInfo(**tmp_storage_info)
 
         err_msg = CommonMessage.SERIAL_NUMBER_NOT_FOUND.value.format(serial_number)
         logger.writeError(err_msg)
         raise ValueError(err_msg)
+
+    def set_storage_system_date_time(self, date_time_spec):
+        """
+        Set the storage system date and time.
+        :param date_time: The date and time to set in ISO 8601 format.
+        """
+        self.gateway.set_storage_systems_time_zone(date_time_spec)
+        self.connection_info.changed = True
+        return (
+            self.get_storage_system(None, None).camel_to_snake_dict(),
+            "Storage system date and time updated successfully.",
+        )
 
     @log_entry_exit
     def get_storage_ucp_system(self, serial):

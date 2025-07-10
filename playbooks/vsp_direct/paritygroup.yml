@@ -71,3 +71,21 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ####################################################################
+    # Task Name : Assign CLPR ID to Parity Group
+    ####################################################################
+    - name: Assign CLPR ID to Parity Group
+      hitachivantara.vspone_block.vsp.hv_paritygroup:
+        connection_info: "{{ connection_info }}"
+        state: "assign_clpr_id"
+
+        spec:
+          parity_group_id: "1-1"
+          clpr_id: 0
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

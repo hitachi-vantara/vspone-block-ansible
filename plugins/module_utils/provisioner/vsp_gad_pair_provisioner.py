@@ -80,11 +80,6 @@ class GADPairProvisioner:
         self.gateway.set_storage_serial_number(serial)
 
     @log_entry_exit
-    def create_gad_pair(self, gad_pair_spec):
-
-        return self.create_gad_pair_direct(gad_pair_spec)
-
-    @log_entry_exit
     def get_resource_group_by_id_remote(self, spec, resourceGroupId):
         secondary_storage_connection_info = spec.secondary_storage_connection_info
         secondary_storage_connection_info.connection_type = ConnectionTypes.DIRECT
@@ -135,9 +130,9 @@ class GADPairProvisioner:
         return vol
 
     @log_entry_exit
-    def create_gad_pair_direct(self, spec):
+    def create_gad_pair(self, spec, pvol):
 
-        #  sng20241123 auto config the is_new_group_creation
+        #  auto config the is_new_group_creation
         copy_group = self.cg_gw.get_copy_group_by_name(spec)
         logger.writeDebug(f"copy_group result: {copy_group}")
         if copy_group is None:
@@ -146,16 +141,16 @@ class GADPairProvisioner:
             spec.is_new_group_creation = False
             spec.muNumber = copy_group.muNumber
 
-        pvol = self.get_volume_by_id(spec.primary_volume_id)
-        if pvol is None:
-            err_msg = (
-                GADFailedMsg.PAIR_CREATION_FAILED.value
-                + VSPTrueCopyValidateMsg.NO_PRIMARY_VOLUME_FOUND.value.format(
-                    spec.primary_volume_id
-                )
-            )
-            logger.writeError(err_msg)
-            raise ValueError(err_msg)
+        # pvol = self.get_volume_by_id(spec.primary_volume_id)
+        # if pvol is None:
+        #     err_msg = (
+        #         GADFailedMsg.PAIR_CREATION_FAILED.value
+        #         + VSPTrueCopyValidateMsg.NO_PRIMARY_VOLUME_FOUND.value.format(
+        #             spec.primary_volume_id
+        #         )
+        #     )
+        #     logger.writeError(err_msg)
+        #     raise ValueError(err_msg)
 
         # sng20241127 - pvol set_alua_mode
         if spec.set_alua_mode:
@@ -163,8 +158,8 @@ class GADPairProvisioner:
                 spec.primary_volume_id, None, spec.set_alua_mode
             )
 
-        # verify the pvol isAluaEnabled
-        pvol = self.get_volume_by_id(spec.primary_volume_id)
+        # # verify the pvol isAluaEnabled
+        # pvol = self.get_volume_by_id(spec.primary_volume_id)
         logger.writeDebug("PROV:813:pvol.isAluaEnabled = {}", pvol.isAluaEnabled)
 
         secondary_storage_connection_info = spec.secondary_storage_connection_info
@@ -192,10 +187,6 @@ class GADPairProvisioner:
             pair = self.cg_gw.get_one_copy_pair_by_id(
                 result, spec.secondary_connection_info
             )
-            # get immediately after create returning Unable to find the resource. give 5 secs
-            # time.sleep(5)
-            # return self.get_replication_pair_by_id(result)
-            # pair = self.get_gad_pair_by_pvol_id(spec, spec.primary_volume_id)
             self.connection_info.changed = True
             return pair
         except Exception as ex:
@@ -211,7 +202,8 @@ class GADPairProvisioner:
                             pvol.namespaceId,
                         )
                     else:
-                        rr_prov.delete_volume(secondary_vol_id)
+                        if spec.provisioned_secondary_volume_id is None:
+                            rr_prov.delete_volume(secondary_vol_id)
             except Exception as del_err:
                 err_msg = err_msg + str(del_err)
             logger.writeError(err_msg)
@@ -447,6 +439,10 @@ class GADPairProvisioner:
 
         self.connection_info.changed = True
         return pair
+
+    @log_entry_exit
+    def get_gad_pair_by_copy_group_and_copy_pair_name(self, spec):
+        return self.cg_gw.get_gad_pair_by_copy_group_and_copy_pair_name(spec)
 
     @log_entry_exit
     def swap_split_gad_pair(self, spec=None, gad_pair=None):
@@ -1118,48 +1114,84 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
 
         try:
             # verify the svol set label and set_alua_mode
-            vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
+            sec_vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
             logger.writeDebug("PROV:813:sec_vol_id = {}", sec_vol_id)
-            logger.writeDebug("PROV:813:sec_vol = {}", vol_info)
+            logger.writeDebug("PROV:813:sec_vol = {}", sec_vol_info)
             logger.writeDebug(
-                "PROV:813:sec_vol isAluaEnabled= {}", vol_info.isAluaEnabled
+                "PROV:813:sec_vol isAluaEnabled= {}", sec_vol_info.isAluaEnabled
             )
-            if vol_info.virtualLdevId is None:
+            if sec_vol_info.virtualLdevId is None:
                 self.vol_gateway.unassign_vldev(sec_vol_id, sec_vol_id)
-            elif vol_info.virtualLdevId != 65534 and vol_info.virtualLdevId != 65535:
-                self.vol_gateway.unassign_vldev(sec_vol_id, vol_info.virtualLdevId)
+            elif (
+                sec_vol_info.virtualLdevId != 65534
+                and sec_vol_info.virtualLdevId != 65535
+            ):
+                self.vol_gateway.unassign_vldev(sec_vol_id, sec_vol_info.virtualLdevId)
 
-            self.vol_gateway.unassign_vldev(sec_vol_id, sec_vol_id)
+            # self.vol_gateway.assign_vldev(sec_vol_id, sec_vol_id)
             logger.writeDebug(
                 "PROV:get_secondary_volume_id:sec_vol_id = {}", sec_vol_id
             )
             logger.writeDebug(
                 "PROV:get_secondary_volume_id:sec_vol_spec = {}", sec_vol_spec
             )
-
-            if vol_info.resourceGroupId != 0:
-                rm_resource_spec = VSPResourceGroupSpec()
-                rm_resource_spec.ldevs = [int(sec_vol_id)]
-                self.rg_gateway.remove_resource(
-                    vol_info.resourceGroupId, rm_resource_spec
-                )
-
-            #  sng1104 - TODO enable_preferred_path goes here if needed?
-            # hg_info = self.parse_hostgroup(host_group)
-            # logger.writeDebug("PROV:get_secondary_volume_id:hg_info = {}", hg_info)
-
-            #  sng1104 - on the 2nd storage, find the hg.RG, move ldev to RG
-            add_resource_spec = VSPResourceGroupSpec()
-            add_resource_spec.ldevs = [int(sec_vol_id)]
-            resourceGroupId = host_groups[0].resourceGroupId
             logger.writeDebug(
-                "PROV:get_secondary_volume_id:resourceGroupId = {}", resourceGroupId
+                "PROV:get_secondary_volume_id:sec_vol_info= {}", sec_vol_info
             )
-            if resourceGroupId != 0:
-                self.rg_gateway.add_resource(resourceGroupId, add_resource_spec)
+
+            # Can't blindly remove the ldev from the resource group, it could be
+            # already attached to some hostgroups
+            hg_resource_id = None
+            if host_groups and len(host_groups) > 0:
+                logger.writeDebug(
+                    "PROV:get_secondary_volume_id:host_groups= {}", host_groups
+                )
+                hg_resource_id = host_groups[0].resourceGroupId
+            else:
+                if spec.provisioned_secondary_volume_id:
+                    logger.writeDebug(
+                        "PROV:get_secondary_volume_id:hgs_prov_svol= {}", hgs_prov_svol
+                    )
+                    if hgs_prov_svol and len(hgs_prov_svol):
+                        hg_resource_id = hgs_prov_svol[0].resourceGroupId
+
+            # if the secondary volume RG does not match with HG RG throw error
+            if hg_resource_id:
+                if (
+                    sec_vol_info.resourceGroupId != 0
+                    and sec_vol_info.resourceGroupId != hg_resource_id
+                ):
+                    err_msg = (
+                        GADFailedMsg.SEC_VOLUME_OPERATION_FAILED.value
+                        + GADPairValidateMSG.RG_DID_NOT_MATCH.value
+                    )
+                    raise ValueError(err_msg)
+            else:
+                # if there is a lun path you can't change RG ID
+                if sec_vol_info.resourceGroupId != 0 and sec_vol_info.numOfPorts == 0:
+                    rm_resource_spec = VSPResourceGroupSpec()
+                    rm_resource_spec.ldevs = [int(sec_vol_id)]
+                    self.rg_gateway.remove_resource(
+                        sec_vol_info.resourceGroupId, rm_resource_spec
+                    )
+            if hg_resource_id:
+                add_resource_spec = VSPResourceGroupSpec()
+                add_resource_spec.ldevs = [int(sec_vol_id)]
+                resourceGroupId = hg_resource_id
+                logger.writeDebug(
+                    "PROV:get_secondary_volume_id:resourceGroupId = {}", resourceGroupId
+                )
+                if resourceGroupId != 0:
+                    self.rg_gateway.add_resource(resourceGroupId, add_resource_spec)
+
+                #  sng1104 - TODO enable_preferred_path goes here if needed?
+                # hg_info = self.parse_hostgroup(host_group)
+                # logger.writeDebug("PROV:get_secondary_volume_id:hg_info = {}", hg_info)
+
+                #  sng1104 - on the 2nd storage, find the hg.RG, move ldev to RG
 
             # GAD reserved
-            if vol_info.virtualLdevId != 65535:
+            if sec_vol_info.virtualLdevId != 65535:
                 self.vol_gateway.assign_vldev(sec_vol_id, 65535)
             vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
             logger.writeDebug("PROV:813:sec_vol_id 1397 = {}", sec_vol_id)
@@ -1181,6 +1213,7 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
                     logger.writeError(err_msg)
             else:
                 # if attaching the volume to the host group fails, detach them
+                logger.writeDebug("PROV:062725:host_groups = {}", host_groups)
                 self.dettach_hostgroups(sec_vol_id, host_groups)
 
             raise Exception(err_msg)

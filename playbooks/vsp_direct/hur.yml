@@ -76,9 +76,9 @@
         var: result
 
     #####################################################################
-    # Task Name : Create an HUR pair using a range for secondary volume id
+    # Task Name : Create a HUR pair using a range for secondary volume id
     ######################################################################
-    - name: Create an HUR pair using a range for secondary volume id
+    - name: Create a HUR pair using a range for secondary volume id
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
@@ -108,7 +108,7 @@
     #####################################################################
     # Task Name : Create HUR-NVMe pair
     ######################################################################
-    - name: Create HUR pair in new copy group
+    - name: Create HUR-NVMe pair
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
@@ -170,7 +170,7 @@
         var: result
 
     #######################################################################################
-    # Task Name : Create an HUR pair by specifying the provisioned_secondary_volume_id.
+    # Task Name : Create a HUR pair by specifying the provisioned_secondary_volume_id.
     # Use this playbook if the secondary volume is already attached to hostgroups or iscsi
     # targets, and there is no need to attach additional hostgroups or iscsi targets.
     #######################################################################################
@@ -342,6 +342,26 @@
           copy_group_name: "hur_copy_group_name_1"
           copy_pair_name: "hur_copy_pair_name_1"
           new_volume_size: "10GB"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################
+    # Task Name : Secondary volume takeover HUR pair
+    # Please specify secondary storage connection details in connection_info and
+    # remote_device_group_name in local_device_group_name:
+    #########################################################################
+    - name: Secondary volume takeover HUR pair
+      hitachivantara.vspone_block.vsp.hv_hur:
+        connection_info: "{{ secondary_connection_info }}" # Remote Storage Connection info
+        state: "takeover"
+        spec:
+          remote_device_group_name: "hur_remote_device_group_name_1" # required for takeover. Provide remote_device_group_name
+          copy_group_name: "hur_copy_group_name_1"
+          copy_pair_name: "hur_copy_pair_name_1"
 
       register: result
 

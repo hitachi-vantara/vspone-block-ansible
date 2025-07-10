@@ -126,3 +126,21 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    #####################################################################################
+    # Task Name : Get Free Ldev ids
+    #####################################################################################
+    - name: Get Free Ldev ids
+      hitachivantara.vspone_block.vsp.hv_ldev_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          query:
+            # To retrieve free ldev ids from storage, this will return a list of free ldev ids
+            - free_ldev_id
+          start_ldev_id: 100
+          count: 15
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

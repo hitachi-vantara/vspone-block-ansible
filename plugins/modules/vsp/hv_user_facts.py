@@ -13,12 +13,12 @@ DOCUMENTATION = """
 module: hv_user_facts
 short_description: Retrieves user information from Hitachi VSP storage systems.
 description:
-    - This module retrieves information about users from Hitachi VSP storage systems.
-    - For examples, go to URL
-      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/user_facts.yml)
-version_added: '3.3.0'
+  - This module retrieves information about users from Hitachi VSP storage systems.
+  - For examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/user_facts.yml)
+version_added: "3.3.0"
 author:
-    - Hitachi Vantara LTD (@hitachi-vantara)
+  - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
   - python >= 3.9
 attributes:
@@ -26,38 +26,22 @@ attributes:
     description: Determines if the module should run in check mode.
     support: full
 extends_documentation_fragment:
-- hitachivantara.vspone_block.common.gateway_note
+  - hitachivantara.vspone_block.common.gateway_note
+  - hitachivantara.vspone_block.common.connection_info
 options:
-    connection_info:
-        description: Information required to establish a connection to the storage system.
-        type: dict
-        required: true
-        suboptions:
-            address:
-                description: IP address or hostname of the storage system.
-                type: str
-                required: true
-            username:
-                description: Username for authentication. This is a required field.
-                type: str
-                required: false
-            password:
-                description: Password for authentication. This is a required field.
-                type: str
-                required: false
-    spec:
-        description: Specification for the user facts to be gathered.
-        type: dict
+  spec:
+    description: Specification for the user facts to be gathered.
+    type: dict
+    required: false
+    suboptions:
+      name:
+        description: The name of the specific user to retrieve.
+        type: str
         required: false
-        suboptions:
-            name:
-                description: The name of the specific user to retrieve.
-                type: str
-                required: false
-            id:
-                description: The id of the specific user to retrieve.
-                type: str
-                required: false
+      id:
+        description: The id of the specific user to retrieve.
+        type: str
+        required: false
 """
 
 EXAMPLES = """

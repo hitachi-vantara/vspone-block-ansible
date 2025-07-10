@@ -66,7 +66,11 @@ class ConnectionManager(ABC):
         try:
             text = response.read().decode("utf-8")
             if "token" not in text:
-                logger.writeDebug(f"{text[:5000]} ...")
+                if "jobId" in text:
+                    logger.writeDebug("Job response: {}", text)
+                else:
+                    logger.writeDebug(f"{text[:5000]} ...")
+
             msg = {}
             raw_message = json.loads(text)
             if not len(raw_message):
@@ -164,7 +168,7 @@ class ConnectionManager(ABC):
     def _process_job(self, job_id):
         response = None
         retryCount = 0
-        while response is None and retryCount < 60:
+        while response is None and retryCount < 600:
             job_response = self.get_job(job_id)
             logger.writeDebug("_process_job: job_response = {}", job_response)
             job_status = job_response[API.STATUS]
@@ -182,7 +186,7 @@ class ConnectionManager(ABC):
                     raise Exception(self.job_exception_text(job_response))
             else:
                 retryCount = retryCount + 1
-                time.sleep(10)
+                time.sleep(1)
 
         if response is None:
             raise Exception("Timeout Error! The tasks was not completed in 10 minutes")
@@ -505,6 +509,12 @@ class VSPConnectionManager(ConnectionManager):
         job_id = patch_response[API.JOB_ID]
         return self._process_job(job_id)
 
+    def patch_wo_job(self, endpoint, data):
+        patch_response = self._make_vsp_request(
+            method="PATCH", end_point=endpoint, data=data
+        )
+        return patch_response
+
     def _make_vsp_request(
         self, method, end_point, data=None, headers_input=None, token=None, retry=False
     ):
@@ -523,14 +533,22 @@ class VSPConnectionManager(ConnectionManager):
             elif self.token:
                 headers = {"Authorization": "Session {0}".format(self.token)}
 
-        headers["Content-Type"] = "application/json"
+        headers["Content-Type"] = (
+            "application/json"
+            if headers_input is None or headers_input.get("Content-Type") is None
+            else headers_input.get("Content-Type")
+        )
         if headers_input is not None:
             headers.update(headers_input)
 
         logger.writeDebug("url = {}", url)
         logger.writeDebug("headers = {}", headers)
         TIME_OUT = 300
-        if data is not None and retry is False:
+        if (
+            data is not None
+            and retry is False
+            and headers.get("Content-Type") == "application/json"
+        ):
             data = json.dumps(data)
             logger.writeDebug("data = {}", data)
         try:

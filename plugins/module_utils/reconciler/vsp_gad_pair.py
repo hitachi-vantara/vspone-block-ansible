@@ -14,7 +14,7 @@ try:
     from ..provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..model.vsp_gad_pairs_models import VspGadPairSpec
-    from ..common.hv_constants import StateValue, ConnectionTypes
+    from ..common.hv_constants import StateValue
     from ..message.vsp_gad_pair_msgs import GADPairValidateMSG
     from ..model.vsp_resource_group_models import (
         VSPResourceGroupFactSpec,
@@ -44,7 +44,7 @@ except ImportError:
     from provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from model.vsp_gad_pairs_models import VspGadPairSpec
-    from common.hv_constants import StateValue, ConnectionTypes
+    from common.hv_constants import StateValue
     from model.vsp_resource_group_models import (
         VSPResourceGroupFactSpec,
     )
@@ -205,27 +205,30 @@ class VSPGadPairReconciler:
             StateValue.EXPAND,
         ]:
             self.validate_gad_spec_for_ops(spec)
-            if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-                #  use the replication pair common
-                return self.gad_pair_reconcile_direct(
-                    state, spec, secondary_connection_info
-                )
+            return self.gad_pair_reconcile_direct(
+                state, spec, secondary_connection_info
+            )
 
-        if spec.primary_volume_id is None:
-            raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
+        pair = None
+        #  see if we can find the pair with copy group name and copy pair name
+        if spec.copy_group_name and spec.copy_pair_name:
+            pair = self.provisioner.get_gad_pair_by_copy_group_and_copy_pair_name(spec)
 
-        #  see if we can find the pair
-        if spec.primary_volume_id:
-            # sng20241218 - swap here for now until operator rework is done
-            if state in [StateValue.SWAP_SPLIT, StateValue.SWAP_RESYNC]:
-                pair = self.provisioner.get_gad_pair_by_svol_id(
-                    spec, spec.primary_volume_id
-                )
-            else:
-                pair = self.provisioner.get_gad_pair_by_pvol_id(
-                    spec, spec.primary_volume_id
-                )
-            logger.writeDebug("RC:206:pair={}", pair)
+        if pair is None:
+            if spec.primary_volume_id is None:
+                raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
+
+            if spec.primary_volume_id:
+                # sng20241218 - swap here for now until operator rework is done
+                if state in [StateValue.SWAP_SPLIT, StateValue.SWAP_RESYNC]:
+                    pair = self.provisioner.get_gad_pair_by_svol_id(
+                        spec, spec.primary_volume_id
+                    )
+                elif state != StateValue.PRESENT:
+                    pair = self.provisioner.get_gad_pair_by_pvol_id(
+                        spec, spec.primary_volume_id
+                    )
+                logger.writeDebug("RC:206:pair={}", pair)
 
         rec_methods = {
             StateValue.ABSENT: self.delete_gad_pair,
@@ -299,18 +302,16 @@ class VSPGadPairReconciler:
 
             self.validate_create_spec(spec)
 
-            if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-                # sng20241220 - this check only works for DIRECT
-                pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
-                if not pvol:
-                    raise ValueError(
-                        VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
-                            spec.primary_volume_id
-                        )
+            pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
+            if not pvol:
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
+                        spec.primary_volume_id
                     )
+                )
 
             if not pair:
-                pair = self.create_update_gad_pair(spec, pair)
+                pair = self.create_update_gad_pair(spec, pair, pvol)
                 if (
                     spec.secondary_nvm_subsystem is not None
                     or spec.secondary_iscsi_targets is not None
@@ -341,21 +342,20 @@ class VSPGadPairReconciler:
     @log_entry_exit
     def validate_create_spec(self, spec: Any) -> None:
 
-        # These are common for both direct and gateway
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            if spec.secondary_storage_serial_number is None:
-                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_STORAGE_SN.value)
-
         if spec.primary_volume_id is None:
             raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
 
-        if spec.secondary_pool_id is None:
+        if (
+            spec.secondary_pool_id is None
+            and spec.provisioned_secondary_volume_id is None
+        ):
             raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_POOL_ID.value)
 
         if (
             spec.secondary_hostgroups is None
             and spec.secondary_nvm_subsystem is None
             and spec.secondary_iscsi_targets is None
+            and spec.provisioned_secondary_volume_id is None
             and spec.provisioned_secondary_volume_id is None
         ):
             raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_HOSTGROUPS_OR_NVME.value)
@@ -384,17 +384,18 @@ class VSPGadPairReconciler:
                     VSPTrueCopyValidateMsg.SECONDARY_VOLUME_ID_OUT_OF_RANGE.value
                 )
 
+        if spec.quorum_disk_id is None:
+            raise ValueError(GADPairValidateMSG.QUORUM_DISK_ID.value)
+
     @log_entry_exit
-    def create_update_gad_pair(self, spec, pair):
+    def create_update_gad_pair(self, spec, pair, pvol):
         if pair:
             return pair
-        return self.provisioner.create_gad_pair(spec)
+        return self.provisioner.create_gad_pair(spec, pvol)
 
     @log_entry_exit
     def delete_gad_pair(self, spec, pair):
         rsp = self.provisioner.delete_gad_pair(spec, pair)
-        if self.connection_info.connection_type == ConnectionTypes.GATEWAY:
-            return rsp
 
         if rsp == GADPairValidateMSG.DELETE_GAD_FAIL_SPLIT_DIRECT.value:
             pair = self.provisioner.split_gad_pair(spec, pair)
@@ -480,37 +481,27 @@ class VSPGadPairReconciler:
         tc_pairs = self.provisioner.gad_pair_facts(spec)
         logger.writeDebug("RC:224 pairs={}", tc_pairs)
         if tc_pairs:
-            if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-                # tc_pairs = self.convert_primary_secondary_on_volume_type(tc_pairs.data)
-                spec.secondary_storage_serial_number
-                if hasattr(tc_pairs, "data"):
-                    # VspGadPairsInfo class
-                    cglistdict = tc_pairs.data
-                else:
-                    cglistdict = tc_pairs.data_to_list()
-
-                cglistdict = self.objs_to_dict(cglistdict)
-
-                doMore = False
-                # logger.writeDebug("RC: 299 spec ={}", spec)
-                if spec.copy_group_name and spec.copy_pair_name:
-                    doMore = True
-                logger.writeDebug("RC: 299 doMore ={}", doMore)
-                self.get_other_attributes(spec, cglistdict, doMore)
-
-                # logger.writeDebug("RC:cglistdict={}", cglistdict)
-                extracted_data = DirectGADCopyPairInfoExtractor(
-                    self.storage_serial_number
-                ).extract(spec, cglistdict)
+            spec.secondary_storage_serial_number
+            if hasattr(tc_pairs, "data"):
+                # VspGadPairsInfo class
+                cglistdict = tc_pairs.data
             else:
-                if isinstance(tc_pairs, VspGadPairInfo):
-                    logger.writeDebug(
-                        "RC: 379 secondaryVolumeId ={}", tc_pairs.secondaryVolumeId
-                    )
-                    return self.addDetails(
-                        tc_pairs.to_dict(), tc_pairs.secondaryVolumeId
-                    )
-                extracted_data = tc_pairs.data_to_list()
+                cglistdict = tc_pairs.data_to_list()
+
+            cglistdict = self.objs_to_dict(cglistdict)
+
+            doMore = False
+            # logger.writeDebug("RC: 299 spec ={}", spec)
+            if spec.copy_group_name and spec.copy_pair_name:
+                doMore = True
+            logger.writeDebug("RC: 299 doMore ={}", doMore)
+            self.get_other_attributes(spec, cglistdict, doMore)
+
+            # logger.writeDebug("RC:cglistdict={}", cglistdict)
+            extracted_data = DirectGADCopyPairInfoExtractor(
+                self.storage_serial_number
+            ).extract(spec, cglistdict)
+
         else:
             extracted_data = {}
         return extracted_data
@@ -726,9 +717,6 @@ class VSPGadPairReconciler:
     # sng20241115 virtual vldevid lookup
     # doSwap=true is only for swap-split
     def get_other_attributes(self, spec, gad_copy_pairs, doMore=True, doSwap=False):
-
-        if self.connection_info.connection_type != ConnectionTypes.DIRECT:
-            return
 
         spec.secondary_storage_serial_number = (
             self.provisioner.get_secondary_serial_direct(spec)
@@ -1046,6 +1034,7 @@ class DirectGADCopyPairInfoExtractor:
             # "partnerId": str,
             # "subscriberId": str,
             "isAluaEnabled": bool,
+            "quorumDiskId": int,
         }
 
         self.parameter_mapping = {
@@ -1086,7 +1075,6 @@ class DirectGADCopyPairInfoExtractor:
                 "consistency_group_id": "",  # in case we get None in the input data
                 "primary_vsm_resource_group_name": "",
                 "secondary_vsm_resource_group_name": "",
-                "svol_access_mode": "",
             }
 
             if response.get("pvolStorageDeviceId"):

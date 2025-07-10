@@ -13,13 +13,13 @@ DOCUMENTATION = """
 module: hv_user
 short_description: Manages users on Hitachi VSP storage systems.
 description:
-    - This module allows the creation and deletion of users on Hitachi VSP storage systems.
-    - It also enables add/remove user to/from the user groups.
-    - For examples, go to URL
-      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/user.yml)
-version_added: '3.3.0'
+  - This module allows the creation and deletion of users on Hitachi VSP storage systems.
+  - It also enables add/remove user to/from the user groups.
+  - For examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/user.yml)
+version_added: "3.3.0"
 author:
-    - Hitachi Vantara LTD (@hitachi-vantara)
+  - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
   - python >= 3.9
 attributes:
@@ -27,68 +27,52 @@ attributes:
     description: Determines if the module should run in check mode.
     support: none
 extends_documentation_fragment:
-- hitachivantara.vspone_block.common.gateway_note
+  - hitachivantara.vspone_block.common.gateway_note
+  - hitachivantara.vspone_block.common.connection_info
 options:
-    state:
-        description: The desired state of the user task.
+  state:
+    description: The desired state of the user task.
+    type: str
+    required: false
+    default: "present"
+    choices: ["present", "absent"]
+  spec:
+    description: Specification for the user.
+    type: dict
+    required: true
+    suboptions:
+      authentication:
+        description: The authentication method for the user. Required for user creation.
         type: str
         required: false
-        default: 'present'
-        choices: ['present', 'absent']
-    connection_info:
-        description: Information required to establish a connection to the storage system.
-        type: dict
-        required: true
-        suboptions:
-            address:
-                description: IP address or hostname of the storage system.
-                type: str
-                required: true
-            username:
-                description: Username for authentication. This is a required field.
-                type: str
-                required: false
-            password:
-                description: Password for authentication. This is a required field.
-                type: str
-                required: false
-    spec:
-        description: Specification for the user.
-        type: dict
-        required: true
-        suboptions:
-            authentication:
-                description: The authentication method for the user. Required for user creation.
-                type: str
-                required: false
-                choices: ['local', 'external']
-                default: 'local'
-            password:
-                description: The password of the user.
-                type: str
-                required: false
-            name:
-                description: The name of the user.
-                type: str
-                required: false
-            id:
-                description: The ID of the user.
-                type: str
-                required: false
-            group_names:
-                description: User group name. You can specify up to 8 group names.
-                type: list
-                required: false
-                elements: str
-            state:
-                description:
-                    - Operation to be performed on the user.
-                    - C(add_user_group) - To add the user to the user groups.
-                    - C(remove_user_group) - To remove the user from the user groups.
-                type: str
-                required: false
-                choices: ['add_user_group', 'remove_user_group']
-                default: null
+        choices: ["local", "external"]
+        default: "local"
+      password:
+        description: The password of the user.
+        type: str
+        required: false
+      name:
+        description: The name of the user.
+        type: str
+        required: false
+      id:
+        description: The ID of the user.
+        type: str
+        required: false
+      group_names:
+        description: User group name. You can specify up to 8 group names.
+        type: list
+        required: false
+        elements: str
+      state:
+        description:
+          - Operation to be performed on the user.
+          - C(add_user_group) - To add the user to the user groups.
+          - C(remove_user_group) - To remove the user from the user groups.
+        type: str
+        required: false
+        choices: ["add_user_group", "remove_user_group"]
+        default: null
 """
 
 EXAMPLES = """

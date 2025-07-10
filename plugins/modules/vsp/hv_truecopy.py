@@ -29,6 +29,7 @@ attributes:
     support: none
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+- hitachivantara.vspone_block.common.connection_with_type
 notes:
   - The output parameters C(entitlement_status), C(subscriber_id), and C(partner_id) were removed in version 3.4.0.
     They were also deprecated due to internal API simplification and are no longer supported.
@@ -78,33 +79,6 @@ options:
         description: This field is used to pass the value of the lock token of the secondary storage to operate on locked resources.
         type: str
         required: false
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    type: dict
-    required: true
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication for secondary storage. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      password:
-        description: Password for authentication for secondary storage. This is a required field if api_token is not provided.
-        type: str
-        required: false
-      api_token:
-        description: This field is used to pass the value of the lock token to operate on locked resources.
-        type: str
-        required: false
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   spec:
     description: Specification for the TrueCopy pairs task.
     type: dict
@@ -436,10 +410,10 @@ data:
       description: Primary hex volume ID.
       type: str
       sample: "00:02:77"
-    primary_or_secondary:
-      description: Primary or secondary.
-      type: str
-      sample: ""
+    # primary_or_secondary:
+    #   description: Primary or secondary.
+    #   type: str
+    #   sample: ""
     primary_volume_id:
       description: Primary volume ID.
       type: int
@@ -464,18 +438,14 @@ data:
       description: Secondary volume ID.
       type: int
       sample: 202
-    status:
-      description: Status.
-      type: str
-      sample: ""
+    # status:
+    #   description: Status.
+    #   type: str
+    #   sample: ""
     storage_serial_number:
       description: Storage serial number.
       type: str
       sample: "810050"
-    svol_access_mode:
-      description: SVOL access mode.
-      type: str
-      sample: ""
     svol_status:
       description: SVOL status.
       type: str

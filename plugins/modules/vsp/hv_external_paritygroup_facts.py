@@ -27,16 +27,8 @@ attributes:
     support: full
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
+- hitachivantara.vspone_block.common.connection_with_type
 options:
-  storage_system_info:
-    description: Information about the storage system. This field is an optional field.
-    type: dict
-    required: false
-    suboptions:
-      serial:
-        description: The serial number of the storage system.
-        type: str
-        required: false
   connection_info:
     description: Information required to establish a connection to the storage system.
     type: dict
@@ -170,7 +162,7 @@ class FactManager:
             self.module.fail_json(msg=str(e))
 
     def apply(self):
-        self.logger.writeInfo("=== Start of External Parity Group Facts ===")
+        self.logger.writeInfo("=== Start of External Parity Group operation ===")
         registration_message = validate_ansible_product_registration()
         try:
             result = []
@@ -181,7 +173,7 @@ class FactManager:
         except Exception as ex:
 
             self.logger.writeException(ex)
-            self.logger.writeInfo("=== End of External Parity Group Facts ===")
+            self.logger.writeInfo("=== End of External Parity Group operation ===")
             self.module.fail_json(msg=str(ex))
         data = {
             "external_parity_groups": result,
@@ -189,7 +181,7 @@ class FactManager:
         if registration_message:
             data["user_consent_required"] = registration_message
         # self.logger.writeInfo(f"{data}")
-        self.logger.writeInfo("=== End of External  Parity Group Facts ===")
+        self.logger.writeInfo("=== End of External  Parity Group operation ===")
         self.module.exit_json(changed=False, ansible_facts=data)
 
 

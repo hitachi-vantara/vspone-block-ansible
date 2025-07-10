@@ -449,7 +449,30 @@ class VSPDeviceLimits:
 
 
 @dataclass
-class VSPStorageSystemInfo:
+class StorageSystemDateTime(SingleBaseClass):
+    isNtpEnabled: bool = None
+    ntpServerNames: List[str] = None
+    timeZoneId: str = None
+    systemTime: str = None
+    synchronizingLocalTime: str = None
+    adjustsDaylightSavingTime: bool = None
+
+
+@dataclass
+class TimeZoneInfo(SingleBaseClass):
+    timeZoneId: str = None
+    timeZone: str = None
+    displayName: str = None
+    observesDaylightSavingTime: bool = None
+
+
+@dataclass
+class TimeZonesInfo(BaseDataClass):
+    data: List[TimeZoneInfo] = None
+
+
+@dataclass
+class VSPStorageSystemInfo(SingleBaseClass):
     model: str = None
     serial_number: str = None
     microcode_version: str = None
@@ -474,6 +497,8 @@ class VSPStorageSystemInfo:
     quorum_disks: List[VSPNormalizedQuorumDisk] = None
     free_logical_unit_list: VSPNormalizedFreeLun = None
     total_efficiency: TotalEfficiency = None
+    system_date_time: StorageSystemDateTime = None
+    time_zones_info: TimeZonesInfo = None
 
 
 @dataclass
@@ -511,3 +536,92 @@ class UCPStorageSystemInfo(SingleBaseClass):
 @dataclass
 class UCPStorageSystemsInfo(BaseDataClass):
     data: List[UCPStorageSystemInfo] = None
+
+
+@dataclass
+class DateTimeSpec(SingleBaseClass):
+    is_ntp_enabled: bool = None
+    ntp_server_names: list = None
+    time_zone_id: str = None
+    system_time: str = None
+    synchronizing_local_time: str = None
+    adjusts_daylight_saving_time: bool = None
+    synchronizes_now: bool = None
+
+
+@dataclass
+class VSPStorageSystemSpec(SingleBaseClass):
+    date_time: DateTimeSpec = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.date_time = DateTimeSpec(**kwargs.get("date_time", {}))
+
+
+@dataclass
+class VSPStorageSystemMonitorSpec(SingleBaseClass):
+    query: str = None
+    alert_type: str = None
+    alert_start_number: int = None
+    alert_count: int = None
+    include_component_option: bool = False
+
+
+@dataclass
+class ActionCode(SingleBaseClass):
+    actionCode: int = None
+    possibleFailureParts: str = None
+    accLocation: str = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
+@dataclass
+class VSPAlertInfo(SingleBaseClass):
+    alertIndex: str = None
+    alertID: int = None
+    occurenceTime: str = None
+    referenceCode: int = None
+    errorLevel: str = None
+    errorSection: str = None
+    errorDetail: str = None
+    location: str = None
+    actionCodes: List[ActionCode] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        action_codes = kwargs.get("actionCodes")
+        if action_codes:
+            self.actionCodes = [ActionCode(**ac) for ac in action_codes]
+
+
+@dataclass
+class VSPAlertInfoList(BaseDataClass):
+    data: List[VSPAlertInfo] = None
+
+
+@dataclass
+class VSPChannelBoardInfo(SingleBaseClass):
+    channelBoardId: int = None
+    location: str = None
+    clusterNumber: int = None
+    channelBoardNumber: int = None
+    channelBoardType: str = None
+    numOfPorts: str = None
+    maxPortSpeed: str = None
+    cableMaterial: str = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
+@dataclass
+class VSPChannelBoardInfoList(BaseDataClass):
+    data: List[VSPChannelBoardInfo] = None

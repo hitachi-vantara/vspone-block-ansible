@@ -11,3 +11,4 @@ class CommonMessage(Enum):
         "third parties. To provide your consent, run the accept_user_consent.yml playbook."
     )
     FAILED_CONNECTION = "Failed to establish a connection, please check the Management System address or the credentials."
+    PORTS_JOURNALS_LUNS = "Ports, Journals, Pools, Quorum disks and LUNs information are not supported for storage system facts."

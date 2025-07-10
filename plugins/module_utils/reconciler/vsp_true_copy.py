@@ -8,14 +8,11 @@ try:
         get_default_value,
     )
     from ..common.hv_log import Log
-    from ..common.hv_constants import ConnectionTypes, StateValue
+    from ..common.hv_constants import StateValue
     from ..provisioner.vsp_true_copy_provisioner import VSPTrueCopyProvisioner
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg, TrueCopyFailedMsg
-    from ..model.vsp_true_copy_models import (
-        VSPTrueCopyPairInfoList,
-        VSPTrueCopyPairInfo,
-    )
+    from ..model.vsp_true_copy_models import VSPTrueCopyPairInfoList
 except ImportError:
     from common.ansible_common import (
         log_entry_exit,
@@ -24,11 +21,11 @@ except ImportError:
         get_default_value,
     )
     from common.hv_log import Log
-    from common.hv_constants import ConnectionTypes, StateValue
+    from common.hv_constants import StateValue
     from provisioner.vsp_true_copy_provisioner import VSPTrueCopyProvisioner
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg, TrueCopyFailedMsg
-    from model.vsp_true_copy_models import VSPTrueCopyPairInfoList, VSPTrueCopyPairInfo
+    from model.vsp_true_copy_models import VSPTrueCopyPairInfoList
 
 
 logger = Log()
@@ -118,21 +115,6 @@ class VSPTrueCopyReconciler:
         logger.writeDebug("RC:create_true_copy:spec={} ", spec)
         self.validate_create_spec(spec)
 
-        pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
-        logger.writeDebug("RC:create_true_copy:pvol={} ", pvol)
-        if not pvol:
-            raise ValueError(
-                VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
-                    spec.primary_volume_id
-                )
-            )
-
-        copy_group = self.provisioner.get_copy_group_by_name(spec)
-        if copy_group:
-            spec.is_new_copy_group = False
-        else:
-            spec.is_new_copy_group = True
-
         return self.provisioner.create_true_copy(spec=spec)
 
     @log_entry_exit
@@ -192,11 +174,10 @@ class VSPTrueCopyReconciler:
         Reconcile the TrueCopy based on the desired state in the specification.
         """
         state = self.state.lower()
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            if self.secondary_connection_info is None:
-                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_CONNECTION_INFO.value)
-            else:
-                spec.secondary_connection_info = self.secondary_connection_info
+        if self.secondary_connection_info is None:
+            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_CONNECTION_INFO.value)
+        else:
+            spec.secondary_connection_info = self.secondary_connection_info
 
         resp_data = None
         if state == StateValue.ABSENT:
@@ -223,43 +204,21 @@ class VSPTrueCopyReconciler:
 
             resp_in_dict = resp_data.to_dict()
             logger.writeDebug("RC:reconcile_true_copy:tc_pairs={}", resp_in_dict)
-            if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-                # resp_in_dict["serialNumber"] = self.storage_serial_number
-                # resp_in_dict["remoteSerialNumber"] = spec.secondary_storage_serial_number
-                remote_serial = spec.secondary_storage_serial_number
-                return DirectTrueCopyInfoExtractor(
-                    self.storage_serial_number, remote_serial
-                ).extract([resp_in_dict])
-            else:
-                return TrueCopyInfoExtractor(self.storage_serial_number).extract(
-                    [resp_in_dict]
-                )
+
+            remote_serial = spec.secondary_storage_serial_number
+            return DirectTrueCopyInfoExtractor(
+                self.storage_serial_number, remote_serial
+            ).extract([resp_in_dict])
+
         else:
             return None
 
     @log_entry_exit
-    def get_all_tc_pairs(self, spec):
-        tc_pairs = self.provisioner.get_true_copy_facts(
-            spec=spec, serial=self.storage_serial_number
-        )
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            extracted_data = TrueCopyInfoExtractor(self.storage_serial_number).extract(
-                tc_pairs
-            )
-        else:
-            remote_serial = spec.secondary_storage_serial_number
-            extracted_data = DirectTrueCopyInfoExtractor(
-                self.storage_serial_number, remote_serial
-            ).extract(tc_pairs)
-        return extracted_data
-
-    @log_entry_exit
     def validate_tc_fact_spec(self, spec: Any) -> None:
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            if self.secondary_connection_info is None:
-                raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_CONNECTION_INFO.value)
-            else:
-                spec.secondary_connection_info = self.secondary_connection_info
+        if self.secondary_connection_info is None:
+            raise ValueError(VSPTrueCopyValidateMsg.SECONDARY_CONNECTION_INFO.value)
+        else:
+            spec.secondary_connection_info = self.secondary_connection_info
 
     def get_true_copy_facts(self, spec=None):
 
@@ -271,31 +230,10 @@ class VSPTrueCopyReconciler:
         if tc_pairs is None:
             return []
         else:
-            if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-                # tc_pairs = self.convert_primary_secondary_on_volume_type(tc_pairs.data)
-                remote_serial = spec.secondary_storage_serial_number
-                # cg_list_dict = tc_pairs.data_to_list()
-                # self.get_other_attributes(spec, cg_list_dict)
-
-                # data = tc_pairs.data
-                # if isinstance(data, DirectSpecificCopyGroupInfo):
-                #     extracted_data = DirectCopyGroupInfoExtractor(self.storage_serial_number, remote_serial).extract([data.to_dict()])
-
-                # if isinstance(data, list):
-                #     extracted_data = DirectCopyGroupInfoExtractor(self.storage_serial_number, remote_serial).extract(data.data_to_list())
-                extracted_data = DirectTrueCopyInfoExtractor(
-                    self.storage_serial_number, remote_serial
-                ).extract(tc_pairs.data_to_list())
-            else:
-                if isinstance(tc_pairs, VSPTrueCopyPairInfo):
-                    extracted_data = TrueCopyInfoExtractor(
-                        self.storage_serial_number
-                    ).extract([tc_pairs.to_dict()])
-                else:
-                    extracted_data = TrueCopyInfoExtractor(
-                        self.storage_serial_number
-                    ).extract(tc_pairs.data_to_list())
-
+            remote_serial = spec.secondary_storage_serial_number
+            extracted_data = DirectTrueCopyInfoExtractor(
+                self.storage_serial_number, remote_serial
+            ).extract(tc_pairs.data_to_list())
         return extracted_data
 
     @log_entry_exit
@@ -313,124 +251,6 @@ class VSPTrueCopyReconciler:
             items.append(item)
 
         return VSPTrueCopyPairInfoList(data=items)
-
-
-class TrueCopyInfoExtractor:
-    def __init__(self, serial):
-        self.storage_serial_number = serial
-        self.common_properties = {
-            # "resourceId": str,
-            "consistencyGroupId": int,
-            # "storageId": str,
-            # "entitlementStatus": str,
-            # "copyPaceTrackSize": int,
-            "copyRate": int,
-            "mirrorUnitId": int,
-            "pairName": str,
-            "primaryHexVolumeId": str,
-            # "primaryVSMResourceGroupName": str,
-            # "primaryVirtualHexVolumeId": str,
-            # "primaryVirtualStorageId": str,
-            # "primaryVirtualVolumeId": int,
-            "primaryVolumeId": int,
-            "primaryVolumeStorageId": int,
-            "secondaryHexVolumeId": str,
-            # "secondaryVSMResourceGroupName": str,
-            # "secondaryVirtualStorageId": str,
-            # "secondaryVirtualVolumeId": int,
-            "secondaryVolumeId": int,
-            "secondaryVolumeStorageId": int,
-            "status": str,
-            "svolAccessMode": str,
-            # "type": str,
-            # "secondaryVirtualHexVolumeId": int,
-            # "partnerId": str,
-            # "subscriberId": str,
-        }
-
-        self.parameter_mapping = {
-            "primary_volume_storage_id": "primary_storage_serial",
-            "secondary_volume_storage_id": "secondary_storage_serial",
-        }
-
-    def fix_bad_camel_to_snake_conversion(self, key):
-        new_key = key.replace("v_s_m", "vsm")
-        return new_key
-
-    @log_entry_exit
-    def extract(self, responses):
-        new_items = []
-        for response in responses:
-            new_dict = {"storage_serial_number": self.storage_serial_number}
-            for key, value_type in self.common_properties.items():
-                # Get the corresponding key from the response or its mapped key
-                response_key = response.get(key)
-                # Assign the value based on the response key and its data type
-                cased_key = camel_to_snake_case(key)
-                if "v_s_m" in cased_key:
-                    cased_key = self.fix_bad_camel_to_snake_conversion(cased_key)
-                if response_key is not None:
-                    if cased_key in self.parameter_mapping.keys():
-                        cased_key = self.parameter_mapping[cased_key]
-                    new_dict[cased_key] = value_type(response_key)
-                else:
-                    # Handle missing keys by assigning default values
-                    default_value = get_default_value(value_type)
-                    new_dict[cased_key] = default_value
-            # new_dict["partner_id"] = "apiadmin"
-            if (
-                new_dict.get("primary_hex_volume_id") == ""
-                or new_dict.get("primary_hex_volume_id") is None
-            ):
-                new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
-                    new_dict.get("primary_volume_id")
-                )
-            if (
-                new_dict.get("secondary_hex_volume_id") == ""
-                or new_dict.get("secondary_hex_volume_id") is None
-            ):
-                new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
-                    new_dict.get("secondary_volume_id")
-                )
-            new_items.append(new_dict)
-
-        return new_items
-
-    @log_entry_exit
-    def extract_dict(self, response):
-        new_dict = {"storage_serial_number": self.storage_serial_number}
-        for key, value_type in self.common_properties.items():
-            # Get the corresponding key from the response or its mapped key
-            response_key = response.get(key)
-            # Assign the value based on the response key and its data type
-            cased_key = camel_to_snake_case(key)
-            if "v_s_m" in cased_key:
-                cased_key = self.fix_bad_camel_to_snake_conversion(cased_key)
-            if response_key is not None:
-                new_dict[cased_key] = value_type(response_key)
-                if cased_key in self.parameter_mapping.keys():
-                    cased_key = self.parameter_mapping[cased_key]
-            else:
-                # Handle missing keys by assigning default values
-                default_value = get_default_value(value_type)
-                new_dict[cased_key] = default_value
-        # new_dict["partner_id"] = "apiadmin"
-        if (
-            new_dict.get("primary_hex_volume_id") == ""
-            or new_dict.get("primary_hex_volume_id") is None
-        ):
-            new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
-                new_dict.get("primary_volume_id")
-            )
-        if (
-            new_dict.get("secondary_hex_volume_id") == ""
-            or new_dict.get("secondary_hex_volume_id") is None
-        ):
-            new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
-                new_dict.get("secondary_volume_id")
-            )
-
-        return new_dict
 
 
 class DirectTrueCopyInfoExtractor:
@@ -471,29 +291,20 @@ class DirectTrueCopyInfoExtractor:
             # "remoteSerialNumber": str,
             # "remoteStorageTypeId": str,
             # "remoteLdevId": int,
-            "primaryOrSecondary": str,
+            # "primaryOrSecondary": str,
             "secondaryHexVolumeId": str,
             # "muNumber": int,
-            "status": str,
+            # "status": str,
             # "serialNumber": str,
-            "svolAccessMode": str,
+            # "svolAccessMode": str,
             # "storageTypeId": str,
             # "isMainframe": bool,
-            # "copyPairs": list,
-            # "entitlementStatus": str,
-            # "partnerId": str,
-            # "subscriberId": str,
+            # "copyPairs": list,r,
         }
 
         self.parameter_mapping = {
-            # "ldev_id": "primary_volume_id",
             "pvol_ldev_id": "primary_volume_id",
             "svol_ldev_id": "secondary_volume_id",
-            # "remote_ldev_id": "secondary_volume_id",
-            # "mu_number": "mirror_unit_id",
-            # "remote_serial_number": "secondary_storage_serial",
-            # "serial_number": "primary_storage_serial",
-            # "remote_storage_type_id": "secondary_storage_type_id",
         }
 
     def fix_bad_camel_to_snake_conversion(self, key):

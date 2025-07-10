@@ -30,17 +30,14 @@
         var: result
 
     ####################################################################
-    # Task Name : Get storage system facts using query
+    # Task Name : Getting a list of time zones that can be used in a storage system
     ####################################################################
-    - name: Get storage system facts using query
+    - name: Getting a list of time zones that can be used in a storage system
       hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
         connection_info: "{{ connection_info }}"
         spec:
           query:
-            - "ports"
-            - "quorumdisks"
-            - "journalPools"
-            - "freeLogicalUnitList"
+            - "time_zone"
       register: result
 
     - name: Debug the result variable
