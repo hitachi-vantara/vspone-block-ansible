@@ -83,15 +83,52 @@ For troubleshooting tips and common issues, please refer to the [Troubleshooting
 
 ## Testing
 
-This collection is tested using the official Ansible sanity tests to ensure compliance with Ansible coding standards and best practices.
+This collection has been tested using the following methods:
+
+### Sanity Tests
+
+```bash
+ansible-test sanity
+```
+
+## Use Cases
+
+Below is an example of how this collection can be used to manage Hitachi VSP One block storage:
+
+### Create an LDEV with a specific LDEV ID
+
+This example shows how to create a logical device (LDEV) with a specific ID, pool, and size.
+
+```yaml
+- name: Create LDEV with specific ID
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Create ldev
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_id: 345
+          pool_id: 15
+          size: "1GB"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+```
 
 ## Support
 
-For support, please use one of the following channels:
+As Red Hat Ansible Certified Content, this collection is entitled to support through the Ansible Automation Platform (AAP) using the **Create issue** button on the top right corner.
+
+If a support case cannot be opened with Red Hat and the collection has been obtained either from Galaxy or GitHub, there may be community help available on the [Ansible Forum](https://forum.ansible.com/).
+
+For additional support, please use one of the following channels:
 
 - [GitHub Issues](https://github.com/hitachi-vantara/vspone-block-ansible/issues) – for bug reports, feature requests, and technical assistance
-- [Hitachi Vantara Support Portal](https://support.hitachivantara.com/) – for enterprise-grade support (requires valid support contract)
-- Community discussion is welcome via GitHub or user forums
+- [Hitachi Vantara Support Portal](https://support.hitachivantara.com/) – for enterprise-grade support (requires valid Hitachi Vantara support contract)
 
 ## Release Notes and Roadmap
 
