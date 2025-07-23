@@ -3,4 +3,3 @@ release_summary: "This minor release of `hitachivantara.vspone_block` adds new m
 minor_changes:
   - Added support to get ldev details using 'pool_id', 'resource_group_id', 'journal_id' and 'parity_group_id' in the `"hv_ldev_facts"` module.
   - Added support to 'create' and 'delete' external parity group in the 'hv_external_paritygroup' modules.
- 
