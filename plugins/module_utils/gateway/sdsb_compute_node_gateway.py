@@ -27,7 +27,6 @@ except ImportError:
     from common.ansible_common import log_entry_exit
 
 logger = Log()
-moduleName = "Gateway Manager"
 
 
 class SDSBComputeNodeDirectGateway:

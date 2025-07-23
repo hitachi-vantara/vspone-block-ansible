@@ -278,7 +278,7 @@ class VSPShadowImagePairManager:
             self.logger.writeInfo("=== End of Shadow Image operation. ===")
             self.module.fail_json(msg=str(e))
         operation = operation_constants(self.module.params["state"])
-        if operation == "split" and self.spec.should_split_force is not None:
+        if operation == "split" and self.spec.should_force_split is not None:
             operation = "migration cancelled"
         msg = (
             f"Shadow image pair {operation} successfully."

@@ -21,6 +21,10 @@ class VolumeFactSpec:
     start_ldev_id: Optional[int] = None
     is_detailed: Optional[bool] = None
     query: Optional[List[str]] = None
+    pool_id: Optional[int] = None
+    resource_group_id: Optional[int] = None
+    journal_id: Optional[int] = None
+    parity_group_id: Optional[str] = None
 
 
 @dataclass

@@ -428,9 +428,6 @@ class SDSBVolumeManager:
     def __init__(self):
 
         self.argument_spec = SDSBVolumeArguments().volume()
-        logger.writeDebug(
-            f"MOD:hv_sds_block_volume:argument_spec= {self.argument_spec}"
-        )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=False,
@@ -440,9 +437,6 @@ class SDSBVolumeManager:
             self.state = params_manager.get_state()
             self.connection_info = params_manager.get_connection_info()
             self.spec = params_manager.get_volume_spec()
-            logger.writeDebug(
-                f"MOD:hv_sds_block_compute_node:argument_spec= {self.spec}"
-            )
         except Exception as e:
             logger.writeError(f"An error occurred during initialization: {str(e)}")
             self.module.fail_json(msg=str(e))

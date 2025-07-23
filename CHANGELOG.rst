@@ -4,6 +4,20 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.0.1
+======
+
+Release Summary
+---------------
+
+This minor release of `hitachivantara.vspone_block` adds new modules, enhances existing features, and includes various bug fixes.
+
+Minor Changes
+-------------
+
+- Added support to 'create' and 'delete' external parity group in the `"hv_external_paritygroup"` modules.
+- Added support to get ldev details using 'pool_id', 'resource_group_id', 'journal_id' and 'parity_group_id' in the `"hv_ldev_facts"` module.
+
 v4.0.0
 ======
 

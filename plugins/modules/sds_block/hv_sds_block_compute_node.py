@@ -316,9 +316,6 @@ class SDSBComputeNodeManager:
     def __init__(self):
 
         self.argument_spec = SDSBComputeNodeArguments().compute_node()
-        logger.writeDebug(
-            f"MOD:hv_sds_block_compute_node:argument_spec= {self.argument_spec}"
-        )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=False,
@@ -331,7 +328,6 @@ class SDSBComputeNodeManager:
         self.connection_info = params_manager.get_connection_info()
         # logger.writeDebug(f"MOD:hv_sds_block_compute_node_facts:argument_spec= {self.connection_info}")
         self.spec = params_manager.get_compute_node_spec()
-        logger.writeDebug(f"MOD:hv_sds_block_compute_node:argument_spec= {self.spec}")
 
     def apply(self):
         compute_node = None

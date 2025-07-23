@@ -69,6 +69,22 @@ options:
         type: bool
         required: false
         default: false
+      pool_id:
+        description: ID of the pool to filter LDEVs.
+        type: int
+        required: false
+      resource_group_id:
+        description: ID of the resource group to filter LDEVs.
+        type: int
+        required: false
+      journal_id:
+        description: ID of the journal to filter LDEVs.
+        type: int
+        required: false
+      parity_group_id:
+        description: ID of the parity group to filter LDEVs.
+        type: str
+        required: false
       query:
         description: >
           Getting all the additional properties of the LDEV facts output is time-consuming.
@@ -306,15 +322,21 @@ class VSPVolumeFactManager:
 
         try:
             volume_data = self.direct_volume_read()
-            if not isinstance(volume_data, list):
+            if not isinstance(volume_data, list) and not isinstance(volume_data, str):
                 volume_data_extracted = vsp_volume.VolumeCommonPropertiesExtractor(
                     self.serial
                 ).extract(volume_data.data_to_list())
+            else:
+                volume_data_extracted = volume_data
         except Exception as e:
             self.logger.writeException(e)
             self.logger.writeInfo("=== End of LDEV Facts ===")
             self.module.fail_json(msg=str(e))
-        if isinstance(volume_data, list) and "free_ldev_id" in self.spec.query:
+        if (
+            isinstance(volume_data, list)
+            or (isinstance(volume_data, str))
+            and "free_ldev_id" in self.spec.query
+        ):
             data = {"free_ldev_ids": volume_data}
         else:
             data = {"volumes": volume_data_extracted}

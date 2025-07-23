@@ -2,7 +2,10 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional, List, get_type_hints, get_origin, get_args, Union
 import re
 
-from ..common.hv_log import Log
+try:
+    from ..common.hv_log import Log
+except ImportError:
+    from common.hv_log import Log
 
 logger = Log()
 

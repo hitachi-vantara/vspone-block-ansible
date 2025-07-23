@@ -46,9 +46,10 @@ class Endpoints(object):
         "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0&count=1"
     )
     GET_FREE_LDEVS_FROM_META = "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0"
-    GET_FREE_LDEVS_FROM_META_HEAD_LDEV = (
-        "v1/objects/ldevs?ldevOption=undefined&headLdevId={}"
+    GET_FREE_LDEVS_FROM_META_RES = (
+        "v1/objects/ldevs?ldevOption=undefined&resourceGroupId={}&count=16384"
     )
+    GET_FREE_LDEVS_FROM_META_HEAD_LDEV = "v1/objects/ldevs?ldevOption=undefined&headLdevId={}&resourceGroupId={}&count=16384"
     GET_FREE_LDEV_MATCHING_PVOL = (
         "v1/objects/ldevs?ldevOption=undefined&count=1&headLdevId={}"
     )
@@ -523,8 +524,13 @@ class VolumePayloadConst:
 
     # URL PARAMS
     HEAD_LDEV_ID = "?headLdevId={}"
+    HEAD_LDEV_ID_NEXT = "headLdevId={}"
     COUNT = "&count={}"
-    LDEV_OPTION = "&ldevOption={}"
+    LDEV_OPTION = "?&ldevOption={}"
+    POOL_ID_PARAM = "?poolId={}"
+    RESOURCE_GROUP_ID = "?resourceGroupId={}"
+    JOURNAL_ID = "?journalId={}"
+    PARITY_GROUP_ID = "?parityGroupId={}"
 
     # volume emulation type
     NOT_DEFINED = "NOT DEFINED"

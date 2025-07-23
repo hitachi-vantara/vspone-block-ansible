@@ -68,92 +68,137 @@ ansible_facts:
   returned: always
   type: dict
   contains:
-    snapshots:
-      description: A list of snapshots gathered from the storage system.
-      type: list
-      elements: dict
+    snapshot_groups:
+      description: Snapshot group information.
+      type: dict
       contains:
         snapshot_group_id:
           description: Unique identifier for the snapshot group.
           type: str
-          sample: "SampleNameSPG"
+          sample: "spc-snapshot"
         snapshot_group_name:
           description: Name of the snapshot group.
           type: str
-          sample: "SampleNameSPG"
+          sample: "spc-snapshot"
         snapshots:
           description: List of snapshots within the group.
           type: list
           elements: dict
           contains:
-            storage_serial_number:
-              description: Serial number of the storage system.
-              type: int
-              sample: 810050
-            primary_volume_id:
-              description: ID of the primary volume.
-              type: int
-              sample: 1030
-            primary_hex_volume_id:
-              description: Hexadecimal ID of the primary volume.
-              type: str
-              sample: "00:04:06"
-            secondary_volume_id:
-              description: ID of the secondary volume.
-              type: int
-              sample: 1031
-            secondary_hex_volume_id:
-              description: Hexadecimal ID of the secondary volume.
-              type: str
-              sample: "00:04:07"
-            pool_id:
-              description: ID of the pool.
-              type: int
-              sample: 12
-            consistency_group_id:
-              description: ID of the consistency group.
-              type: int
-              sample: -1
-            mirror_unit_id:
-              description: ID of the mirror unit.
-              type: int
-              sample: 3
-            copy_rate:
-              description: Copy rate of the snapshot.
+            can_cascade:
+              description: Indicates if the snapshot can cascade.
+              type: bool
+              sample: true
+            concordance_rate:
+              description: Concordance rate of the snapshot.
               type: int
               sample: -1
             copy_pace_track_size:
               description: Track size for copy pace.
               type: str
               sample: ""
-            status:
-              description: Status of the snapshot.
-              type: str
-              sample: "PAIR"
-            type:
-              description: Type of the snapshot.
-              type: str
-              sample: ""
-            snapshot_id:
-              description: ID of the snapshot.
-              type: str
-              sample: "1030,3"
+            copy_rate:
+              description: Copy rate of the snapshot.
+              type: int
+              sample: -1
+            is_clone:
+              description: Indicates if the snapshot is a clone.
+              type: bool
+              sample: false
             is_consistency_group:
               description: Indicates if it is a consistency group.
               type: bool
-              sample: true
-            primary_or_secondary:
-              description: Indicates if it is a primary or secondary volume.
-              type: str
-              sample: "P-VOL"
-            can_cascade:
-              description: Indicates if the snapshot can cascade.
+              sample: false
+            is_redirect_on_write:
+              description: Indicates if redirect-on-write is enabled.
               type: bool
               sample: true
-            retention_period:
-              description: Retention period for the snapshot.
+            is_snapshot_data_read_only:
+              description: Indicates if the snapshot data is read-only.
+              type: bool
+              sample: null
+            is_written_in_svol:
+              description: Indicates if data is written in secondary volume.
+              type: bool
+              sample: false
+            mirror_unit_id:
+              description: ID of the mirror unit.
               type: int
-              sample: 60
+              sample: 3
+            pool_id:
+              description: ID of the pool.
+              type: int
+              sample: 22
+            primary_hex_volume_id:
+              description: Hexadecimal ID of the primary volume.
+              type: str
+              sample: "00:03:4A"
+            primary_volume_id:
+              description: ID of the primary volume.
+              type: int
+              sample: 842
+            progress_rate:
+              description: Progress rate of the snapshot.
+              type: int
+              sample: -1
+            pvol_host_groups:
+              description: Host groups for the primary volume.
+              type: list
+              elements: str
+              sample: []
+            pvol_nvm_subsystem_name:
+              description: NVM subsystem name for the primary volume.
+              type: str
+              sample: ""
+            pvol_processing_status:
+              description: Processing status for the primary volume.
+              type: str
+              sample: "N"
+            retention_period_in_hours:
+              description: Retention period for the snapshot in hours.
+              type: int
+              sample: -1
+            secondary_hex_volume_id:
+              description: Hexadecimal ID of the secondary volume.
+              type: str
+              sample: "00:06:36"
+            secondary_volume_id:
+              description: ID of the secondary volume.
+              type: int
+              sample: 1590
+            snapshot_group_name:
+              description: Name of the snapshot group.
+              type: str
+              sample: "spc-snapshot"
+            snapshot_id:
+              description: ID of the snapshot.
+              type: str
+              sample: "842,3"
+            split_time:
+              description: Time when the snapshot was split.
+              type: str
+              sample: "2025-06-27T23:28:06"
+            status:
+              description: Status of the snapshot.
+              type: str
+              sample: "PSUS"
+            svol_host_groups:
+              description: Host groups for the secondary volume.
+              type: list
+              elements: str
+              sample: []
+            svol_nvm_subsystem_name:
+              description: NVM subsystem name for the secondary volume.
+              type: str
+              sample: ""
+            svol_processing_status:
+              description: Processing status for the secondary volume.
+              type: str
+              sample: ""
+            type:
+              description: Type of the snapshot.
+              type: str
+              sample: "CASCADE"
 """
 
 from ansible.module_utils.basic import AnsibleModule
