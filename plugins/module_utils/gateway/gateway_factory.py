@@ -8,10 +8,12 @@ from .sdsb_compute_node_gateway import (
 )
 from .sdsb_volume_gateway import SDSBVolumeDirectGateway
 from .sdsb_chap_user_gateway import SDSBChapUserDirectGateway
-from .sdsb_pool_gateway import SDSBPoolDirectGateway
 from .sdsb_port_auth_gateway import SDSBPortAuthDirectGateway
 from .sdsb_port_gateway import SDSBPortDirectGateway
 from .sdsb_vps_gateway import SDSBVpsDirectGateway
+from .sdsb_storage_node_gateway import SDSBStorageNodeDirectGateway
+from .sdsb_storage_pool_gateway import SDSBStoragePoolDirectGateway
+from .sdsb_cluster_gateway import SDSBClusterGateway
 
 from .vsp_snapshot_gateway import VSPHtiSnapshotDirectGateway
 
@@ -83,7 +85,6 @@ GATEWAY_MAP = {
         GatewayClassTypes.VSP_PARITY_GROUP: VSPParityGroupDirectGateway,
         GatewayClassTypes.VSP_NVME_SUBSYSTEM: VSPOneNvmeSubsystemDirectGateway,
         GatewayClassTypes.VSP_TRUE_COPY: VSPTrueCopyDirectGateway,
-        #  sng1104
         GatewayClassTypes.VSP_QUORUM_DISK: VSPQuorumDiskDirectGateway,
         GatewayClassTypes.VSP_GAD_PAIR: VSPGadPairDirectGateway,
         GatewayClassTypes.VSP_HUR: VSPHurDirectGateway,
@@ -105,15 +106,17 @@ GATEWAY_MAP = {
         GatewayClassTypes.VSP_EXT_PARITY_GROUP: VSPExternalParityGroupGateway,
         GatewayClassTypes.VSP_SPM: VSPSpmGateway,
         GatewayClassTypes.VSP_STORAGE_MONITOR: VSPStorageSystemMonitorGateway,
-        # Add more mappings for direct connection types here
+        # Add SDSB Gateways below and VSP Gayeways above this line
         GatewayClassTypes.SDSB_CHAP_USER: SDSBChapUserDirectGateway,
         GatewayClassTypes.SDSB_COMPUTE_NODE: SDSBComputeNodeDirectGateway,
         GatewayClassTypes.SDSB_STORAGE_SYSTEM: SDSBStorageSystemDirectGateway,
         GatewayClassTypes.SDSB_VOLUME: SDSBVolumeDirectGateway,
-        GatewayClassTypes.SDSB_POOL: SDSBPoolDirectGateway,
         GatewayClassTypes.SDSB_PORT_AUTH: SDSBPortAuthDirectGateway,
         GatewayClassTypes.SDSB_PORT: SDSBPortDirectGateway,
         GatewayClassTypes.SDSB_VPS: SDSBVpsDirectGateway,
+        GatewayClassTypes.SDSB_STORAGE_NODE: SDSBStorageNodeDirectGateway,
+        GatewayClassTypes.SDSB_STORAGE_POOL: SDSBStoragePoolDirectGateway,
+        GatewayClassTypes.SDSB_CLUSTER: SDSBClusterGateway,
     },
 }
 

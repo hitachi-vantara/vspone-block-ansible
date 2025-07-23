@@ -944,6 +944,22 @@ class VSPVolumeArguments:
                 "type": "list",
                 "elements": "str",
             },
+            "pool_id": {
+                "required": False,
+                "type": "int",
+            },
+            "resource_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "journal_id": {
+                "required": False,
+                "type": "int",
+            },
+            "parity_group_id": {
+                "required": False,
+                "type": "str",
+            },
         }
         args = copy.deepcopy(cls.common_arguments)
         args["spec"]["options"] = spec_options

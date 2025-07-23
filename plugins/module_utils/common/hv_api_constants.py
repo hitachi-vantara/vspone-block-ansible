@@ -98,6 +98,7 @@ class API:
     REDUNDANT_TYPE = "redundantType"
     REPLICATION_TYPE = "replicationType"
     RESOURCE_ID = "resourceId"
+    RUNNING = "Running"
 
     SERVER_DEFAULT = "localhost"
     SERVER_ID = "serverId"
@@ -111,6 +112,7 @@ class API:
     SOLUTION_TYPE = "solutionType"
     START_ID = "startId"
     START_NUMBER = "startNumber"
+    STARTED = "Started"
     STATE = "state"
     STATUS = "status"
     STORAGE_NODE_ID = "storageNodeId"

@@ -36,11 +36,26 @@ class VSPVolumeProvisioner:
             VSPStorageSystemProvisioner(connection_info).populate_basic_storage_info()
 
     @log_entry_exit
-    def get_volumes(self, start_ldev=None, count=None):
+    def get_volumes(
+        self,
+        start_ldev=None,
+        count=None,
+        pool_id=None,
+        resource_group_id=None,
+        journal_id=None,
+        parity_group_id=None,
+    ):
 
         count = 0 if not count else int(count)
         start_ldev = 0 if not start_ldev else int(start_ldev)
-        volumes = self.gateway.get_volumes(start_ldev=start_ldev, count=count)
+        volumes = self.gateway.get_volumes(
+            start_ldev=start_ldev,
+            count=count,
+            pool_id=pool_id,
+            resource_group_id=resource_group_id,
+            journal_id=journal_id,
+            parity_group_id=parity_group_id,
+        )
         return volumes
 
     @log_entry_exit
@@ -154,7 +169,8 @@ class VSPVolumeProvisioner:
         self, count=10, start_ldev=None, end_ldev=None, resource_grp_id=0
     ):
         count = 10 if not count else int(count)
-        ldevs = self.gateway.get_free_ldevs_from_meta(start_ldev)
+        resource_grp_id = 0 if not resource_grp_id else int(resource_grp_id)
+        ldevs = self.gateway.get_free_ldevs_from_meta(start_ldev, resource_grp_id)
         if not ldevs.data:
             err_msg = VSPVolValidationMsg.NO_FREE_LDEV.value
             logger.writeError(err_msg)
@@ -265,3 +281,14 @@ class VSPVolumeProvisioner:
     @log_entry_exit
     def fill_cmd_device_info(self, volume):
         return self.gateway.fill_cmd_device_info(volume)
+
+    @log_entry_exit
+    def get_all_ldevs_using_filter(self, filter_spec):
+        """
+        Get all LDEVs using the provided filter specification.
+        """
+        query_dict = {}
+        if filter_spec.pool_id is None:
+            query_dict["poolId"] = filter_spec.pool_id
+
+        return self.gateway.get_all_ldevs_using_filter(filter_spec)

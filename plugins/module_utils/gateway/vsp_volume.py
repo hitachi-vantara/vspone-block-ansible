@@ -81,11 +81,29 @@ class VSPVolumeDirectGateway:
 
     @log_entry_exit
     def get_volumes(
-        self, start_ldev=0, ldev_option="defined", count=0
+        self,
+        start_ldev=0,
+        ldev_option="defined",
+        count=0,
+        pool_id=None,
+        resource_group_id=None,
+        journal_id=None,
+        parity_group_id=None,
     ) -> VSPVolumesInfo:
 
-        path = VolumePayloadConst.HEAD_LDEV_ID.format(start_ldev)
-        path += VolumePayloadConst.LDEV_OPTION.format(ldev_option)
+        if pool_id is None:
+            path = VolumePayloadConst.LDEV_OPTION.format(ldev_option)
+            path += VolumePayloadConst.HEAD_LDEV_ID_NEXT.format(start_ldev)
+        else:
+            path = VolumePayloadConst.POOL_ID_PARAM.format(pool_id)
+
+        if resource_group_id:
+            path = VolumePayloadConst.RESOURCE_GROUP_ID.format(resource_group_id)
+        if journal_id:
+            path = VolumePayloadConst.JOURNAL_ID.format(journal_id)
+        if parity_group_id:
+            path = VolumePayloadConst.PARITY_GROUP_ID.format(parity_group_id)
+
         path += VolumePayloadConst.COUNT.format(
             count if count > 0 else AutomationConstants.LDEV_MAX_NUMBER
         )
@@ -278,12 +296,14 @@ class VSPVolumeDirectGateway:
         return VSPVolumesInfo(dicts_to_dataclass_list(vol_data["data"], VSPVolumeInfo))
 
     @log_entry_exit
-    def get_free_ldevs_from_meta(self, start_ldev=0):
+    def get_free_ldevs_from_meta(self, start_ldev=0, resource_group_id=0):
 
-        end_point = self.end_points.GET_FREE_LDEVS_FROM_META
+        end_point = self.end_points.GET_FREE_LDEVS_FROM_META_RES.format(
+            resource_group_id
+        )
         if start_ldev and start_ldev > 0:
             end_point = self.end_points.GET_FREE_LDEVS_FROM_META_HEAD_LDEV.format(
-                start_ldev
+                start_ldev, resource_group_id
             )
         vol_data = self.rest_api.get(end_point)
         return VSPUndefinedVolumeInfoList(
@@ -610,3 +630,17 @@ class VSPVolumeDirectGateway:
         }
         end_point = self.end_points.ASSIGN_LDEV.format(ldev_id)
         return self.rest_api.post(end_point, payload)
+
+    @log_entry_exit
+    def get_all_ldevs_using_filter(self, filter_dict):
+        """
+        Get all LDEVs using filter parameters.
+        :param filter_params: Dictionary containing filter parameters.
+        :return: VSPVolumesInfo object containing the filtered LDEVs.
+        """
+        query_params = "&".join(
+            f"{key}={value}" for key, value in filter_dict.items() if value is not None
+        )
+        end_point = self.end_points.GET_LDEVS.format(query_params)
+        vol_data = self.rest_api.get(end_point)
+        return VSPVolumesInfo(dicts_to_dataclass_list(vol_data["data"], VSPVolumeInfo))

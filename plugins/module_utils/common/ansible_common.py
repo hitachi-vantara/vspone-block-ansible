@@ -1,4 +1,5 @@
 import os
+import tarfile
 import functools
 import re
 import string
@@ -425,3 +426,24 @@ def is_valid_email(email):
     # Basic regex for email validation
     email_regex = r"^[\w\.-]+@[\w\.-]+\.\w{2,}$"
     return re.match(email_regex, email) is not None
+
+
+def unzip_targz(file_path, extract_path):
+    """
+    Unzips a .tar.gz file to a specified directory.
+
+    Args:
+        file_path (str): The path to the .tar.gz file to be unzipped.
+        extract_path (str): The directory where the contents should be extracted.
+    """
+    if not os.path.exists(extract_path):
+        os.makedirs(extract_path)  # Create the directory if it doesn't exist
+
+    try:
+        with tarfile.open(file_path, "r:gz") as tar:
+            tar.extractall(path=extract_path)
+        return f"Successfully extracted '{file_path}' to '{extract_path}'"
+    except tarfile.ReadError as e:
+        raise Exception(f"Error reading tar.gz file: {e}")
+    except Exception as e:
+        raise Exception(f"An unexpected error occurred: {e}")

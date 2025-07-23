@@ -144,3 +144,59 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    #####################################################################################
+    # Task Name : Get Ldev details using pool id
+    #####################################################################################
+    - name: Get Ldev details using pool id
+      hitachivantara.vspone_block.vsp.hv_ldev_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          pool_id: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task Name : Get Ldev details using journal id
+    #####################################################################################
+    - name: Get Ldev details using journal id
+      hitachivantara.vspone_block.vsp.hv_ldev_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          journal_id: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task Name : Get Ldev details using parity group id
+    #####################################################################################
+    - name: Get Ldev details using parity group id
+      hitachivantara.vspone_block.vsp.hv_ldev_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          parity_group_id: 1-1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task Name : Get Ldev details using resource group id
+    #####################################################################################
+    - name: Get Ldev details using resource group id
+      hitachivantara.vspone_block.vsp.hv_ldev_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          resource_group_id: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

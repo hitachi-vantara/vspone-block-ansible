@@ -2,7 +2,7 @@ import re
 
 try:
     from ..provisioner.sdsb_volume_provisioner import SDSBVolumeProvisioner
-    from ..provisioner.sdsb_pool_provisioner import SDSBPoolProvisioner
+    from ..provisioner.sdsb_storage_pool_provisioner import SDSBStoragePoolProvisioner
     from ..provisioner.sdsb_vps_provisioner import SDSBVpsProvisioner
     from ..provisioner.sdsb_compute_node_provisioner import SDSBComputeNodeProvisioner
     from ..model.sdsb_volume_models import ComputeNodeSummaryInfo
@@ -13,7 +13,7 @@ try:
     from ..message.sdsb_vps_msgs import SDSBVpsValidationMsg
 except ImportError:
     from provisioner.sdsb_volume_provisioner import SDSBVolumeProvisioner
-    from provisioner.sdsb_pool_provisioner import SDSBPoolProvisioner
+    from provisioner.sdsb_storage_pool_provisioner import SDSBStoragePoolProvisioner
     from provisioner.sdsb_compute_node_provisioner import SDSBComputeNodeProvisioner
     from model.sdsb_volume_models import ComputeNodeSummaryInfo
     from common.hv_constants import StateValue
@@ -115,9 +115,9 @@ class SDSBVolumeReconciler:
 
     @log_entry_exit
     def get_pool_id(self, pool_name):
-        pool_details = SDSBPoolProvisioner(self.connection_info).get_pool_by_name(
-            pool_name
-        )
+        pool_details = SDSBStoragePoolProvisioner(
+            self.connection_info
+        ).get_pool_by_name(pool_name)
         if pool_details:
             return pool_details.id
         else:

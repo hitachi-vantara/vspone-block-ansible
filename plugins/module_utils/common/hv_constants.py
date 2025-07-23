@@ -65,6 +65,10 @@ class StateValue:
     TEST = "test"
     ASSIGN_EXTERNAL_PARITY_GROUP = "assign_external_parity_group"
     CHANGE_MP_BLADE = "change_mp_blade"
+    MAINTENANCE = "maintenance"
+    ADD_STORAGE_NODE = "add_storage_node"
+    REMOVE_STORAGE_NODE = "remove_storage_node"
+    DOWNLOAD_CONFIG_FILE = "download_config_file"
 
 
 class CommonConstants:
@@ -119,10 +123,12 @@ class GatewayClassTypes:
     SDSB_COMPUTE_NODE = "sdsb_compute_node"
     SDSB_VOLUME = "sdsb_volume"
     SDSB_STORAGE_SYSTEM = "sdsb_storage_system"
-    SDSB_POOL = "sdsb_pool"
     SDSB_PORT_AUTH = "sdsb_port_auth"
     SDSB_PORT = "sdsb_port"
     SDSB_VPS = "sdsb_vps"
+    SDSB_STORAGE_NODE = "sdsb_storage_node"
+    SDSB_STORAGE_POOL = "sdsb_storage_pool"
+    SDSB_CLUSTER = "sdsb_cluster"
 
     UAIG_SUBSCRIBER = "uaig_subscriber"
     UAIG_PASSWORD = "uaig_password"

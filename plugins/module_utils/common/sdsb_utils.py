@@ -3,6 +3,9 @@ try:
     from ..model.common_base_models import ConnectionInfo
     from ..model.sdsb_volume_models import VolumeFactSpec, VolumeSpec
     from ..model.sdsb_compute_node_models import ComputeNodeFactSpec, ComputeNodeSpec
+    from ..model.sdsb_storage_node_models import StorageNodeFactSpec, StorageNodeSpec
+    from ..model.sdsb_storage_pool_models import StoragePoolFactSpec, StoragePoolSpec
+    from ..model.sdsb_cluster_models import ClusterFactSpec, ClusterSpec
     from ..model.sdsb_chap_user_models import ChapUserFactSpec, ChapUserSpec
     from ..model.sdsb_port_auth_models import PortAuthSpec
     from ..model.sdsb_port_models import PortFactSpec
@@ -15,6 +18,9 @@ except ImportError:
     from model.common_base_models import ConnectionInfo
     from model.sdsb_volume_models import VolumeFactSpec, VolumeSpec
     from model.sdsb_compute_node_models import ComputeNodeFactSpec, ComputeNodeSpec
+    from model.sdsb_storage_node_models import StorageNodeFactSpec, StorageNodeSpec
+    from model.sdsb_storage_pool_models import StoragePoolFactSpec, StoragePoolSpec
+    from model.sdsb_cluster_models import ClusterFactSpec, ClusterSpec
     from model.sdsb_chap_user_models import ChapUserFactSpec, ChapUserSpec
     from model.sdsb_port_auth_models import PortAuthSpec
     from model.sdsb_port_models import PortFactSpec
@@ -76,6 +82,48 @@ class SDSBParametersManager:
             input_spec = PortFactSpec()
         return input_spec
 
+    def get_cluster_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = ClusterSpec(**self.params["spec"])
+        else:
+            input_spec = ClusterSpec()
+        return input_spec
+
+    def get_cluster_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = ClusterFactSpec(**self.params["spec"])
+        else:
+            input_spec = ClusterFactSpec()
+        return input_spec
+
+    def get_storage_node_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = StorageNodeSpec(**self.params["spec"])
+        else:
+            input_spec = StorageNodeSpec()
+        return input_spec
+
+    def get_storage_node_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = StorageNodeFactSpec(**self.params["spec"])
+            return input_spec
+        else:
+            return None
+
+    def get_storage_pool_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = StoragePoolSpec(**self.params["spec"])
+        else:
+            input_spec = StoragePoolSpec()
+        return input_spec
+
+    def get_storage_pool_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = StoragePoolFactSpec(**self.params["spec"])
+            return input_spec
+        else:
+            return None
+
     def get_chap_user_fact_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
             input_spec = ChapUserFactSpec(**self.params["spec"])
@@ -110,6 +158,10 @@ class SDSBParametersManager:
         else:
             input_spec = VpsSpec()
         return input_spec
+
+    def get_ticket_mgmt_spec(self):
+
+        return self.params.get("spec", {})
 
 
 class SDSBCommonParameters:
@@ -239,6 +291,181 @@ class SDSBComputeNodeArguments:
             #     "type": "str",
             #     "description": "Compute nodes that belongs to this vps",
             # },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments.pop("state")
+        cls.common_arguments["spec"]["required"] = False
+        return cls.common_arguments
+
+
+class SDSBClusterArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": True,
+            "type": "str",
+            "choices": [
+                "add_storage_node",
+                "remove_storage_node",
+                "download_config_file",
+            ],
+            # "default": "present",
+        },
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def cluster(cls):
+        spec_options = {
+            "configuration_file": {
+                "required": False,
+                "type": "str",
+            },
+            "setup_user_password": {
+                "required": False,
+                "type": "str",
+            },
+            "config_file_location": {
+                "required": False,
+                "type": "str",
+            },
+            "node_id": {
+                "required": False,
+                "type": "str",
+            },
+            "node_name": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+    @classmethod
+    def cluster_facts(cls):
+        spec_options = {
+            "query": {"required": False, "type": "str", "choices": ["cluster_config"]},
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments.pop("state")
+        cls.common_arguments["spec"]["required"] = False
+        return cls.common_arguments
+
+
+class SDSBStorageNodeArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": True,
+            "type": "str",
+            "choices": ["maintenance", "restore"],
+            # "default": "present",
+        },
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def storage_node(cls):
+        spec_options = {
+            "name": {
+                "required": False,
+                "type": "str",
+            },
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+    @classmethod
+    def storage_node_facts(cls):
+        spec_options = {
+            "fault_domain_id": {
+                "required": False,
+                "type": "str",
+            },
+            "name": {
+                "required": False,
+                "type": "str",
+            },
+            "cluster_role": {
+                "required": False,
+                "type": "str",
+                "choices": ["Master", "Worker"],
+            },
+            "protection_domain_id": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments.pop("state")
+        cls.common_arguments["spec"]["required"] = False
+        return cls.common_arguments
+
+
+class SDSBStoragePoolArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": True,
+            "type": "str",
+            "choices": ["expand"],
+            # "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def storage_pool(cls):
+        spec_options = {
+            "name": {
+                "required": False,
+                "type": "str",
+            },
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            "drive_ids": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = True
+        return cls.common_arguments
+
+    @classmethod
+    def storage_pool_facts(cls):
+        spec_options = {
+            "names": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+            "id": {
+                "required": False,
+                "type": "str",
+            },
         }
         cls.common_arguments["spec"]["options"] = spec_options
         cls.common_arguments.pop("state")
@@ -443,6 +670,35 @@ class SDSBPortAuthArguments:
         }
         cls.common_arguments["spec"]["options"] = spec_options
         cls.common_arguments["spec"]["required"] = True
+        return cls.common_arguments
+
+
+class SDSBTicketManagementArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "absent"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def ticket_management(cls):
+        spec_options = {
+            "max_age_days": {
+                "required": False,
+                "type": "int",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
 
 

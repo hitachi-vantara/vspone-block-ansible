@@ -70,6 +70,17 @@ class SDSBlockEndpoints(object):
     POST_VPS = "v1/objects/virtual-private-storages"
     UPDATE_VPS = "v1/objects/virtual-private-storages/{}"
 
+    # Ticket Management Endpoints
+    POST_TICKET = "v1/objects/tickets"
+    DISCARD_TICKETS = "v1/objects/tickets/actions/revoke-all/invoke"
+
+    # snapshot Endpoints
+    GET_SNAPSHOTS_VOLUMES = "v1/objects/volumes/{}/snapshot-volumes"
+    CREATE_SNAPSHOT = "v1/objects/volumes/actions/create-snapshot/invoke"
+    DELETE_SNAPSHOT = "v1/objects/volumes/actions/delete-snapshot/invoke"
+    RESTORE_SNAPSHOT = "v1/objects/volumes/actions/restore-snapshot/invoke"
+    GET_MASTER_VOLUME = "v1/objects/volumes/{}/master-volume"
+
 
 class Http(object):
     GET = "GET"

@@ -44,9 +44,9 @@ class VSPVolValidationMsg(Enum):
         "Either pool id or parity group is required for volume creation."
     )
     BOTH_PARITY_GROUPS_SPECIFIED = "Both parity_group and external_parity_group are specified. Please provide only one of them."
-    NO_FREE_LDEV = "No free ldevs available in the storage meta."
+    NO_FREE_LDEV = "No free ldevs available in the storage device."
     NO_FREE_LDEV_PER_COUNT = (
-        "No free ldevs available in the storage meta for the count {} specified."
+        "No free ldevs available in the storage device for the count {} specified."
     )
     PATH_EXIST = "A path is defined in the volume. Use force=true in the spec to delete a volume with a path."
     SUBSCRIBER_ID_NOT_NUMERIC = "subscriber_id should have only numeric values."

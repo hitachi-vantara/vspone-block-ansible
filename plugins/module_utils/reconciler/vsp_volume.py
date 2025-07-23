@@ -998,6 +998,7 @@ class VSPVolumeReconciler:
                 get_volume_spec.count,
                 get_volume_spec.start_ldev_id,
                 get_volume_spec.end_ldev_id,
+                get_volume_spec.resource_group_id,
             )
 
         if get_volume_spec.ldev_id is not None:
@@ -1025,7 +1026,12 @@ class VSPVolumeReconciler:
                 get_volume_spec.end_ldev_id - get_volume_spec.start_ldev_id + 1
             )
         volume_data = self.provisioner.get_volumes(
-            get_volume_spec.start_ldev_id, get_volume_spec.count
+            get_volume_spec.start_ldev_id,
+            get_volume_spec.count,
+            get_volume_spec.pool_id,
+            get_volume_spec.resource_group_id,
+            get_volume_spec.journal_id,
+            get_volume_spec.parity_group_id,
         )
 
         if get_volume_spec.end_ldev_id:
