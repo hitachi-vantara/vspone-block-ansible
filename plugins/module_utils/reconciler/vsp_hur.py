@@ -215,6 +215,11 @@ class VSPHurReconciler:
             resp_data = self.resize_hur_copy(spec)
 
         # Match output with Gateway
+        if isinstance(resp_data, str):
+            self.logger.writeDebug("RC:resp_data={}", resp_data)
+            raise ValueError(
+                VSPHurValidateMsg.HUR_OPERATION_FAILED.value.format(resp_data)
+            )
         updated_resp_data = update_response_data(self, resp_data)
         # for key, value in resp_data.items():
         #     new_key = key.replace("svol", "secondary_volume").replace("pvol", "primary_volume").replace("ldev_id", "id")

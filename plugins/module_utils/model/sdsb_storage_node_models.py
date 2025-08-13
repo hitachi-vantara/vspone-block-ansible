@@ -68,6 +68,14 @@ class SDSBStorageNodeInfo(SingleBaseClass):
     )
     rebuildableResources: RebuildableResources = None
     availabilityZoneId: str = None
+    physicalZone: str = None
+    logicalZone: str = None
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        super().__init__(**kwargs)
 
     # def __init__(self, **kwargs):
     #     self.id = kwargs.get("id")

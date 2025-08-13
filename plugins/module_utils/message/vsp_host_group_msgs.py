@@ -36,7 +36,10 @@ class VSPHostGroupMessage(Enum):
     ADD_WWN_SUCCESS = "WWN {} added successfully to host group {}."
     REMOVE_WWN_SUCCESS = "WWN {} removed successfully from host group {}."
     REMOVE_WWN_FAILED = "Failed to remove wwn {} from host group {} error: {}"
-    ADD_LUN_SUCCESS = "LUN {} added successfully to host group {}."
+    ADD_LUN_SUCCESS = (
+        "LUN {} was successfully added to the host group {}. It may take a few minutes for the LDEV to appear in the lun_path."
+        "If it doesn't show up immediately, wait a bit and then run hostgroup facts to check again."
+    )
     REMOVE_LUN_SUCCESS = "LUN {} removed successfully from host group {}."
     ADD_LUN_FAILED = "Failed to add LUN {} to host group {} error: {}"
     REMOVE_LUN_FAILED = "Failed to remove LUN {} from host group {} error: {}"

@@ -240,9 +240,10 @@ class VSPVolumeDirectGateway:
                             VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED
                         ] = is_true
             else:
-                payload[VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED] = (
-                    spec.data_reduction_share
-                )
+                if spec.data_reduction_share is not None:
+                    payload[
+                        VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED
+                    ] = spec.data_reduction_share
             # if spec.capacity_saving.lower() != VolumePayloadConst.DISABLED:
             #     if spec.is_compression_acceleration_enabled is not None:
             #         payload[VolumePayloadConst.IS_COMPRESSION_ACCELERATION_ENABLED] = (

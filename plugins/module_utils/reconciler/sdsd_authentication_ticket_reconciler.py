@@ -34,7 +34,7 @@ class SDSBTicketManagementReconciler:
             response = self.provisioner.discard_all_tickets()
             logger.writeInfo("Discarded all tickets successfully.")
         else:
-            max_age_days = spec.get("max_age_days", None)
+            max_age_days = spec.get("max_age_days", None) if spec else None
             response = self.provisioner.issue_ticket(max_age_days)
             logger.writeInfo("Issued a new ticket successfully.")
 

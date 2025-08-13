@@ -160,9 +160,9 @@
         var: result
 
     #####################################################################################
-    # Task Name : Get Ldev details using journal id
+    # Task Name : Get Ldev details using pool journal id
     #####################################################################################
-    - name: Get Ldev details using journal id
+    - name: Get Ldev details using pool journal id
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
         connection_info: "{{ connection_info }}"
         spec:
@@ -174,13 +174,13 @@
         var: result
 
     #####################################################################################
-    # Task Name : Get Ldev details using parity group id
+    # Task Name : Get Ldev details using pool parity group id
     #####################################################################################
-    - name: Get Ldev details using parity group id
+    - name: Get Ldev details using pool parity group id
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          parity_group_id: 1-1
+          parity_group_id: 1
       register: result
 
     - name: Debug the result variable
@@ -188,9 +188,9 @@
         var: result
 
     #####################################################################################
-    # Task Name : Get Ldev details using resource group id
+    # Task Name : Get Ldev details using pool resource group id
     #####################################################################################
-    - name: Get Ldev details using resource group id
+    - name: Get Ldev details using pool resource group id
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
         connection_info: "{{ connection_info }}"
         spec:

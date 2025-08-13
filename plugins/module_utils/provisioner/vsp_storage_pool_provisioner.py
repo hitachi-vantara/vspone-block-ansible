@@ -379,7 +379,7 @@ class VSPStoragePoolProvisioner:
             logger.writeDebug(f"pool check{pool}")
             logger.writeDebug(f"pool check{pool_name} {id}")
             if (
-                (pool_name and pool.name and pool.name == pool_name)
+                (pool_name and pool.poolName and pool.poolName == pool_name)
                 or (id is not None and pool.poolId == id)
                 or (id is not None and pool.resourceId == id)
             ):

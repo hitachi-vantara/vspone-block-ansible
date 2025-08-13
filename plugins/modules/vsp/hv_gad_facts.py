@@ -143,7 +143,7 @@ ansible_facts:
           type: int
           sample: 0
         is_alua_enabled:
-          description: Wheather ALUA is enabled or not.
+          description: Whether ALUA is enabled or not.
           type: bool
           sample: false
         local_device_group_name:

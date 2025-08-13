@@ -45,9 +45,15 @@ class VSPJournalVolumeReconciler:
         else:
             if spec.journal_id is None:
                 raise ValueError(VSPSJournalVolumeValidateMsg.JP_ID.value)
-            if state == StateValue.EXPAND_JOURNAL_VOLUME:
+            if (
+                state == StateValue.EXPAND_JOURNAL_VOLUME
+                or state == StateValue.EXPAND_JOURNAL
+            ):
                 return self.provisioner.expand_journal_pool(spec, spec.journal_id)
-            elif state == StateValue.SHRINK_JOURNAL_VOLUME:
+            elif (
+                state == StateValue.SHRINK_JOURNAL_VOLUME
+                or state == StateValue.SHRINK_JOURNAL
+            ):
                 return self.provisioner.shrink_journal_pool(spec, spec.journal_id)
             elif state == StateValue.UPDATE:
                 return self.provisioner.update_journal_pool(spec, spec.journal_id)

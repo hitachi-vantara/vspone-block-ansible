@@ -26,30 +26,9 @@ attributes:
   check_mode:
     description: Determines if the module should run in check mode.
     support: full
+extends_documentation_fragment:
+  - hitachivantara.vspone_block.common.sdsb_connection_info
 options:
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    required: true
-    type: dict
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication.
-        type: str
-        required: true
-      password:
-        description: Password for authentication.
-        type: str
-        required: true
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   spec:
     description: Specification for retrieving compute node information.
     type: dict
@@ -201,16 +180,11 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     validate_ansible_product_registration,
 )
 
-logger = Log()
-
 
 class SDSBComputeNodeFactsManager:
     def __init__(self):
-
+        self.logger = Log()
         self.argument_spec = SDSBComputeNodeArguments().compute_node_facts()
-        logger.writeDebug(
-            f"MOD:hv_sds_block_compute_node_facts:argument_spec= {self.argument_spec}"
-        )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
@@ -218,20 +192,21 @@ class SDSBComputeNodeFactsManager:
 
         parameter_manager = SDSBParametersManager(self.module.params)
         self.connection_info = parameter_manager.get_connection_info()
-        # logger.writeDebug(f"MOD:hv_sds_block_compute_node_facts:argument_spec= {self.connection_info}")
+        # self.logger.writeDebug(f"MOD:hv_sds_block_compute_node_facts:argument_spec= {self.connection_info}")
         self.spec = parameter_manager.get_compute_node_fact_spec()
-        logger.writeDebug(f"MOD:hv_sds_block_compute_node_facts:spec= {self.spec}")
+        self.logger.writeDebug(f"MOD:hv_sds_block_compute_node_facts:spec= {self.spec}")
 
     def apply(self):
+        self.logger.writeInfo("=== Start of SDSB Compute Node Facts ===")
         compute_nodes = None
         compute_node_data_extracted = None
         registration_message = validate_ansible_product_registration()
-        logger.writeInfo(f"{self.connection_info.connection_type} connection type")
+
         try:
             sdsb_reconciler = SDSBComputeNodeReconciler(self.connection_info)
             compute_nodes = sdsb_reconciler.get_compute_nodes(self.spec)
 
-            logger.writeDebug(
+            self.logger.writeDebug(
                 f"MOD:hv_sds_block_compute_node_facts:compute_nodes= {compute_nodes}"
             )
             output_dict = compute_nodes.data_to_list()
@@ -240,12 +215,15 @@ class SDSBComputeNodeFactsManager:
             )
 
         except Exception as e:
+            self.logger.writeException(e)
+            self.logger.writeInfo("=== End of SDSB Compute Node Facts ===")
             self.module.fail_json(msg=str(e))
         data = {
             "compute_nodes": compute_node_data_extracted,
         }
         if registration_message:
             data["user_consent_required"] = registration_message
+        self.logger.writeInfo("=== End of SDSB Compute Node Facts ===")
         self.module.exit_json(changed=False, ansible_facts=data)
 
 

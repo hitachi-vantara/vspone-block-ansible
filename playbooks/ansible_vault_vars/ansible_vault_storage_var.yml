@@ -10,8 +10,8 @@
 # For system configuration of the REST API for different Hitachi Storage Models, please refer to the following link:
 # https://docs.hitachivantara.com/r/en-us/virtual-storage-platform-g130-g/f350-g/f370-g/f700-g/f900/93-07-2x/mk-23vsp1b003/overview-of-the-rest-api
 
-storage_serial: <your_storage_serial_number> # Example: 810018
-storage_address: <your_storage_ip_address_or_fqdn> # Example: storage1.company.com or sds1.company.com or 10.10.10.10
+storage_serial: <your_storage_serial_number> # Example: 810018 Not required for VSP One SDS Block
+storage_address: <your_storage_ip_address_or_fqdn> # Example: storage1.company.com or sds1.company.com or 10.10.10.10. For VSP One SDS Block, this can be cluster address or master node address
 vault_storage_username: <your_storage_user_name>
 vault_storage_secret: <your_storage_password>
 

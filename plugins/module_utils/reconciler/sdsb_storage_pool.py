@@ -112,7 +112,9 @@ class SDSBStoragePoolReconciler:
                     spec.name
                 )
             )
-        return self.provisioner.expand_storage_pool(spec.id, spec.drive_ids)
+        resp = self.provisioner.expand_storage_pool(spec.id, spec.drive_ids)
+        self.connection_info.changed = True
+        return resp
 
     @log_entry_exit
     def validate_expand_spec(self, spec: Any) -> None:

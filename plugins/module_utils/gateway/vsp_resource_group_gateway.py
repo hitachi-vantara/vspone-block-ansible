@@ -302,7 +302,12 @@ class VSPResourceGroupDirectGateway:
 
         payload = {"parameters": parameters}
         end_point = ADD_RESOURCE_TO_RESOURCE_GROUP_DIRECT.format(rg_id)
-        resource_group = self.connection_manager.post(end_point, payload)
+        timeout = None
+        # if spec.add_resource_time_out_in_sec:
+        #     timeout = spec.add_resource_time_out_in_sec
+        resource_group = self.connection_manager.post(
+            end_point, payload, timeout=timeout
+        )
         self.connection_info.changed = True
         return resource_group
 

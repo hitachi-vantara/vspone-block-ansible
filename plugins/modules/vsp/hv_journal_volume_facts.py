@@ -17,7 +17,14 @@ description:
   - It provides details such as journalId, journalStatus, and other relevant information..
   - Forexamples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/journal_volume_facts.yml)
+  - It provides details such as journalId, journalStatus, and other relevant information.
+  - DEPRECATED - Use hv_journal_facts instead.
+  - This module will be removed in a future release.
 version_added: '3.2.0'
+deprecated:
+    alternative: hv_journal_facts
+    why: Replaced by improved module with consistent naming
+    removed_in: '5.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
@@ -224,6 +231,12 @@ class VSPJournalVolumeFactManager:
     def apply(self):
         self.logger.writeInfo("=== Start of Journal Volume Facts ===")
         registration_message = validate_ansible_product_registration()
+        deprecation_message = (
+            "The Ansible module hv_journal_volume_facts is deprecated "
+            "and has been replaced by the new hv_journal_facts module. "
+            "hv_journal_volume_facts will be removed in a future release. "
+            "Please use the hv_journal_facts module instead."
+        )
         try:
             result = []
             result = vsp_journal_volume.VSPJournalVolumeReconciler(
@@ -237,6 +250,7 @@ class VSPJournalVolumeFactManager:
             self.module.fail_json(msg=str(ex))
         data = {
             "journal_volume": result,
+            "warning_deprecated_module": deprecation_message,
         }
         if registration_message:
             data["user_consent_required"] = registration_message

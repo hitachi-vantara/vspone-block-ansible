@@ -56,6 +56,7 @@ class VSPResourceGroupSpec(SingleBaseClass):
     nvm_subsystem_ids: Optional[List[int]] = None
     state: Optional[str] = None
     force: Optional[bool] = False
+    add_resource_time_out_in_sec: Optional[int] = None
 
 
 @dataclass

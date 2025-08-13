@@ -26,6 +26,8 @@ attributes:
   check_mode:
     description: Determines if the module should run in check mode.
     support: none
+extends_documentation_fragment:
+  - hitachivantara.vspone_block.common.sdsb_connection_info
 options:
   state:
     description: The level of the CHAP user task. Choices are C(present) and C(absent).
@@ -33,29 +35,6 @@ options:
     required: false
     choices: ['present', 'absent']
     default: 'present'
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    required: true
-    type: dict
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication.
-        type: str
-        required: true
-      password:
-        description: Password for authentication.
-        type: str
-        required: true
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   spec:
     description: Specification for the CHAP user task.
     type: dict
@@ -177,14 +156,13 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     validate_ansible_product_registration,
 )
 
-logger = Log()
-
 
 class SDSBChapUserManager:
     def __init__(self):
 
+        self.logger = Log()
         self.argument_spec = SDSBChapUserArguments().chap_user()
-        logger.writeDebug(
+        self.logger.writeDebug(
             f"MOD:hv_sds_block_chap_user:argument_spec= {self.argument_spec}"
         )
         self.module = AnsibleModule(
@@ -195,21 +173,21 @@ class SDSBChapUserManager:
         parameter_manager = SDSBParametersManager(self.module.params)
         self.state = parameter_manager.get_state()
         self.connection_info = parameter_manager.get_connection_info()
-        # logger.writeDebug(f"MOD:hv_sds_block_chap_user_facts:argument_spec= {self.connection_info}")
+        # self.logger.writeDebug(f"MOD:hv_sds_block_chap_user_facts:argument_spec= {self.connection_info}")
         self.spec = parameter_manager.get_chap_user_spec()
-        # logger.writeDebug(f"MOD:hv_sds_block_chap_user_facts:spec= {self.spec}")
+        # self.logger.writeDebug(f"MOD:hv_sds_block_chap_user_facts:spec= {self.spec}")
 
     def apply(self):
+        self.logger.writeInfo("=== Start of SDSB CHAP User Operation ===")
         chap_users = None
         chap_user_data_extracted = None
         registration_message = validate_ansible_product_registration()
 
-        logger.writeInfo(f"{self.connection_info.connection_type} connection type")
         try:
             sdsb_reconciler = SDSBChapUserReconciler(self.connection_info)
             chap_users = sdsb_reconciler.reconcile_chap_user(self.state, self.spec)
 
-            logger.writeDebug(
+            self.logger.writeDebug(
                 f"MOD:hv_sds_block_chap_user_facts:chap_users= {chap_users}"
             )
             if self.state.lower() == StateValue.ABSENT:
@@ -220,6 +198,8 @@ class SDSBChapUserManager:
                     output_dict
                 )
         except Exception as e:
+            self.logger.writeException(e)
+            self.logger.writeInfo("=== End of SDSB CHAP User Operation ===")
             self.module.fail_json(msg=str(e))
 
         response = {
@@ -228,6 +208,7 @@ class SDSBChapUserManager:
         }
         if registration_message:
             response["user_consent_required"] = registration_message
+        self.logger.writeInfo("=== End of SDSB CHAP User Operation ===")
         self.module.exit_json(**response)
 
 

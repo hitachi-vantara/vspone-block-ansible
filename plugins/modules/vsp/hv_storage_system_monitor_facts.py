@@ -90,7 +90,7 @@ options:
         type: int
         required: false
       include_component_option:
-        description: This feild is valid when query field is C(hardware_installed). Then this field is optional.
+        description: This field is valid when query field is C(hardware_installed). Then this field is optional.
           If set to true, it will bring the information about the components, otherwise not.
         type: bool
         required: false

@@ -27,6 +27,8 @@ attributes:
   check_mode:
     description: Determines if the module should run in check mode.
     support: none
+extends_documentation_fragment:
+  - hitachivantara.vspone_block.common.sdsb_connection_info
 options:
   state:
     description: The level of the compute node task. Choices are C(present) and C(absent).
@@ -34,29 +36,6 @@ options:
     required: false
     choices: ['present', 'absent']
     default: 'present'
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    required: true
-    type: dict
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication.
-        type: str
-        required: true
-      password:
-        description: Password for authentication.
-        type: str
-        required: true
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   spec:
     description: Specification for the compute node task.
     type: dict
@@ -309,12 +288,10 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     validate_ansible_product_registration,
 )
 
-logger = Log()
-
 
 class SDSBComputeNodeManager:
     def __init__(self):
-
+        self.logger = Log()
         self.argument_spec = SDSBComputeNodeArguments().compute_node()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
@@ -323,23 +300,21 @@ class SDSBComputeNodeManager:
 
         params_manager = SDSBParametersManager(self.module.params)
         self.state = params_manager.get_state()
-        # self.compute_node_fact_spec = params_manager.get_compute_node_spec()
 
         self.connection_info = params_manager.get_connection_info()
-        # logger.writeDebug(f"MOD:hv_sds_block_compute_node_facts:argument_spec= {self.connection_info}")
         self.spec = params_manager.get_compute_node_spec()
 
     def apply(self):
+        self.logger.writeInfo("=== Start of SDSB Compute Node Operation ===")
         compute_node = None
         compute_node_data_extracted = None
         registration_message = validate_ansible_product_registration()
 
-        logger.writeInfo(f"{self.connection_info.connection_type} connection type")
         try:
             sdsb_reconciler = SDSBComputeNodeReconciler(self.connection_info)
             compute_node = sdsb_reconciler.reconcile_compute_node(self.state, self.spec)
 
-            logger.writeDebug(
+            self.logger.writeDebug(
                 f"MOD:hv_sds_block_compute_node:compute_nodes= {compute_node}"
             )
 
@@ -347,16 +322,18 @@ class SDSBComputeNodeManager:
                 compute_node_data_extracted = compute_node
             else:
                 output_dict = compute_node.to_dict()
-                logger.writeDebug(
+                self.logger.writeDebug(
                     f"MOD:hv_sds_block_compute_node:output_dict= {output_dict}"
                 )
                 compute_node_data_extracted = (
                     ComputeNodeAndVolumePropertiesExtractor().extract_dict(output_dict)
                 )
-                logger.writeDebug(
+                self.logger.writeDebug(
                     f"MOD:hv_sds_block_compute_node:compute_node_data_extracted= {compute_node_data_extracted}"
                 )
         except Exception as e:
+            self.logger.writeException(e)
+            self.logger.writeInfo("=== End of SDSB Compute Node Operation ===")
             self.module.fail_json(msg=str(e))
 
         response = {
@@ -365,7 +342,8 @@ class SDSBComputeNodeManager:
         }
         if registration_message:
             response["user_consent_required"] = registration_message
-        # self.module.exit_json(compute_nodes=compute_node_data_extracted)
+
+        self.logger.writeInfo("=== End of SDSB Compute Node Operation ===")
         self.module.exit_json(**response)
 
 

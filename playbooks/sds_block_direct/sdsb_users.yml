@@ -1,0 +1,55 @@
+---
+####################################################################
+# Example : Users Playbook
+####################################################################
+- name: User Facts
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+  ####################################################################
+  # Task Name : Create a user
+  ####################################################################
+    - name: Create a user
+      hitachivantara.vspone_block.sds_block.hv_sds_block_user:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          user_id: "new_user"
+          password: "new_password"
+          user_group_ids:
+            - "SecurityAdministrators"
+          authentication: "local"
+          is_enabled_console_login: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Update user password
+    ####################################################################
+    - name: Update user password
+      hitachivantara.vspone_block.sds_block.hv_sds_block_user:
+        connection_info: "{{ connection_info }}"
+        state: update
+        spec:
+          user_id: "new_user"
+          current_password: "current_password"
+          new_password: "updated_password"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

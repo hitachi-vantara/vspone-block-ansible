@@ -4,7 +4,7 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
-v4.0.1
+v4.1.0
 ======
 
 Release Summary
@@ -15,8 +15,60 @@ This minor release of `hitachivantara.vspone_block` adds new modules, enhances e
 Minor Changes
 -------------
 
-- Added support to 'create' and 'delete' external parity group in the `"hv_external_paritygroup"` modules.
-- Added support to get ldev details using 'pool_id', 'resource_group_id', 'journal_id' and 'parity_group_id' in the `"hv_ldev_facts"` module.
+- Added a new `"hv_journal"` module as a replacement for the `"hv_journal_volume"` module.
+- Added a new `"hv_journal_facts"` module as a replacement for the `"hv_journal_volume_facts"` module.
+- Added a new `"hv_sds_block_authentication_ticket"` module to create, delete and update authentication tickets.
+- Added a new `"hv_sds_block_cluster"` module to add and remove storage nodes from the cluster, and download cluster configuration files.
+- Added a new `"hv_sds_block_cluster_config_facts"` module to retrieve information about SDS block cluster configurations.
+- Added a new `"hv_sds_block_control_port_facts"` module to retrieve control port information from SDS block cluster.
+- Added a new `"hv_sds_block_drives_facts"` module to retrieve drive information from SDS block cluster.
+- Added a new `"hv_sds_block_event_logs_facts"` module to retrieve event logs from SDS block cluster.
+- Added a new `"hv_sds_block_fault_domain_facts"` module to retrieve fault domains information from SDS block cluster.
+- Added a new `"hv_sds_block_internode_port_facts"` module to retrieve internode port information from SDS block cluster.
+- Added a new `"hv_sds_block_job_facts"` module to retrieve job details from SDS block cluster.
+- Added a new `"hv_sds_block_protection_domain_facts"` module to retrieve protection domains from SDS block cluster.
+- Added a new `"hv_sds_block_snapshot"` module to manage snapshots on SDS block cluster.
+- Added a new `"hv_sds_block_snapshot_facts"` module to retrieve snapshot information from SDS block cluster.
+- Added a new `"hv_sds_block_storage_controller_facts"` module to retrieve storage controller information from SDS block cluster.
+- Added a new `"hv_sds_block_storage_network_setting_facts"` module to retrieve storage network settings from SDS block cluster.
+- Added a new `"hv_sds_block_storage_node"` module to block and restore storage nodes.
+- Added a new `"hv_sds_block_storage_node_facts"` module to retrieve information about storage nodes.
+- Added a new `"hv_sds_block_storage_node_network_settings_facts"` module to retrieve storage node network settings from SDS block cluster.
+- Added a new `"hv_sds_block_storage_pool"` module to expand storage pools on SDS block cluster.
+- Added a new `"hv_sds_block_storage_pool_facts"` module to retrieve storage pools from SDS block cluster.
+- Added a new `"hv_sds_block_storage_time_facts"` module to retrieve storage time from SDS block cluster.
+- Added a new `"hv_sds_block_user"` module to create and update users on SDS block cluster.
+- Added a new `"hv_sds_block_user_facts"` module to retrieve users on SDS block cluster.
+- Note `"hv_journal_volume"` and `"hv_journal_volume_facts"` modules will be deprecated from future release.
+
+New Modules
+-----------
+
+Sds Block
+~~~~~~~~~
+
+- hitachivantara.vspone_block.sds_block.hv_sds_block_authentication_ticket - Manages Hitachi SDS block storage system authentication tickets.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_cluster - Manages storage cluster on Hitachi SDS block storage systems.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_cluster_config_facts - Retrieves information about configuration of SDS block clusters from Hitachi SDS block storage systems.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_control_port_facts - Get control port from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_drives_facts - Get drives from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_event_logs_facts - Get event logs from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_fault_domain_facts - Get fault domains from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_internode_port_facts - Get internode port from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_job_facts - Retrieves information about Hitachi SDS block storage system storage nodes.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_protection_domain_facts - Get protection domains  from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_snapshot - Manages snapshots on Hitachi SDS Block storage systems.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_snapshot_facts - Gather facts about snapshots on Hitachi SDS Block storage systems.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_controller_facts - Get storage_controllers from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_network_setting_facts - Get storage network settings from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_node - Manages storage node on Hitachi VSP storage systems.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_node_facts - Retrieves information about Hitachi SDS block storage system storage nodes.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_node_network_settings_facts - Get storage node network settings  from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_pool - Manages storage pool on Hitachi VSP storage systems.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_pool_facts - Retrieves information about Hitachi SDS block storage system storage pools.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_time_facts - Get storage time from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_user - Create and update users from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_user_facts - Get users from storage system.
 
 v4.0.0
 ======
