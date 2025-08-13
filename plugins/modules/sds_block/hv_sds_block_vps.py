@@ -25,30 +25,9 @@ attributes:
   check_mode:
     description: Determines if the module should run in check mode.
     support: none
+extends_documentation_fragment:
+  - hitachivantara.vspone_block.common.sdsb_connection_info
 options:
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    required: true
-    type: dict
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication.
-        type: str
-        required: true
-      password:
-        description: Password for authentication.
-        type: str
-        required: true
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   state:
     description: State of the VPS volume ADR setting.
     required: false
@@ -251,9 +230,9 @@ class SDSBVpsManager:
         logger.writeDebug(f"MOD:hv_sds_block_vsp:spec= {self.spec}")
 
     def apply(self):
-
+        self.logger.writeInfo("=== Start of SDSB VPS Operation ===")
         registration_message = validate_ansible_product_registration()
-        logger.writeInfo(f"{self.connection_info.connection_type} connection type")
+
         try:
             sdsb_reconciler = SDSBVpsReconciler(self.connection_info)
             vps = sdsb_reconciler.reconcile_vps(self.state, self.spec)
@@ -261,6 +240,8 @@ class SDSBVpsManager:
             logger.writeDebug(f"MOD:hv_sds_block_vps:vps= {vps}")
 
         except Exception as e:
+            self.logger.writeException(e)
+            self.logger.writeInfo("=== End of SDSB VPS Operation ===")
             self.module.fail_json(msg=str(e))
 
         response = {
@@ -270,8 +251,8 @@ class SDSBVpsManager:
 
         if registration_message:
             response["user_consent_required"] = registration_message
+        self.logger.writeInfo("=== End of SDSB VPS Operation ===")
         self.module.exit_json(**response)
-        # self.module.exit_json(vsp=vps)
 
 
 def main(module=None):

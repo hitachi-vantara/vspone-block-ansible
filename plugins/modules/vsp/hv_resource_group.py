@@ -178,7 +178,10 @@ options:
         type: bool
         required: false
         default: false
-
+      # add_resource_time_out_in_sec:
+      #   description: Timeout for a operation. The default timeout is 300 secs.
+      #   type: int
+      #   required: false
 """
 
 EXAMPLES = """

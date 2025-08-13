@@ -76,6 +76,7 @@ class SDSBStorageNodeReconciler:
 
         resp = self.provisioner.block_node_for_maintenance(spec.id)
         logger.writeDebug("RC:block_node_for_maintenance:resp={}", resp)
+        self.connection_info.changed = True
         return resp
 
     @log_entry_exit
@@ -100,6 +101,7 @@ class SDSBStorageNodeReconciler:
             )
         resp = self.provisioner.restore_from_maintenance(spec.id)
         logger.writeDebug("RC:restore_from_maintenance:resp={}", resp)
+        self.connection_info.changed = True
         return resp
 
     @log_entry_exit
@@ -131,6 +133,8 @@ class SDSBStorageNodeExtractor:
             "insufficientResourcesForRebuildCapacity": dict,
             "rebuildableResources": dict,
             "availabilityZoneId": str,
+            "physicalZone": str,
+            "logicalZone": str,
         }
         self.parameter_mapping = {
             "memory": "memory_mb",

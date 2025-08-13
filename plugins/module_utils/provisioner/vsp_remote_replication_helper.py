@@ -191,7 +191,7 @@ class RemoteReplicationHelperForSVol:
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
-        if spec.provisioned_secondary_volume_id:
+        if spec.provisioned_secondary_volume_id is not None:
             svol_id = spec.provisioned_secondary_volume_id
             sec_vol_info = self.vol_gateway.get_volume_by_id(svol_id)
             hgs_prov_svol = self.get_hgs_for_provisioned_svol(sec_vol_info, is_iscsi)
@@ -210,7 +210,7 @@ class RemoteReplicationHelperForSVol:
         sec_vol_spec = self.construct_svol_spec(svol_id, vol_info, spec)
 
         sec_vol_name = None
-        if spec.provisioned_secondary_volume_id:
+        if spec.provisioned_secondary_volume_id is not None:
             sec_vol_id = spec.provisioned_secondary_volume_id
         else:
             sec_vol_id = self.vol_gateway.create_volume(sec_vol_spec)

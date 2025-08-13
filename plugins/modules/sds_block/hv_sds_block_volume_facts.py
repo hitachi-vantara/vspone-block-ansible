@@ -26,30 +26,9 @@ attributes:
   check_mode:
     description: Determines if the module should run in check mode.
     support: full
+extends_documentation_fragment:
+  - hitachivantara.vspone_block.common.sdsb_connection_info
 options:
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    required: true
-    type: dict
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication.
-        type: str
-        required: true
-      password:
-        description: Password for authentication.
-        type: str
-        required: true
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   spec:
     description: Specification for retrieving volume information.
     type: dict
@@ -302,48 +281,44 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     validate_ansible_product_registration,
 )
 
-logger = Log()
-
 
 class SDSBVolumeFactsManager:
     def __init__(self):
 
+        self.logger = Log()
         self.argument_spec = SDSBVolumeArguments().volume_facts()
-        logger.writeDebug(
-            f"MOD:hv_sds_volume_facts:argument_spec= {self.argument_spec}"
-        )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
         )
-
         parameter_manager = SDSBParametersManager(self.module.params)
         self.connection_info = parameter_manager.get_connection_info()
-        # logger.writeDebug(f"MOD:hv_sds_block_compute_node_facts:argument_spec= {self.connection_info}")
         self.spec = parameter_manager.get_volume_fact_spec()
-        logger.writeDebug(f"MOD:hv_sds_volume_facts:spec= {self.spec}")
+        self.logger.writeDebug(f"MOD:hv_sds_volume_facts:spec= {self.spec}")
 
     def apply(self):
+        self.logger.writeInfo("=== Start of SDSB Volume Facts ===")
         volumes = None
         volumes_data_extracted = None
         registration_message = validate_ansible_product_registration()
 
-        logger.writeInfo(f"{self.connection_info.connection_type} connection type")
         try:
             sdsb_reconciler = SDSBVolumeReconciler(self.connection_info)
             volumes = sdsb_reconciler.get_volumes(self.spec)
 
-            logger.writeDebug(f"MOD:hv_sds_volume_facts:volumes= {volumes}")
+            self.logger.writeDebug(f"MOD:hv_sds_volume_facts:volumes= {volumes}")
             output_dict = volumes.data_to_list()
             volumes_data_extracted = VolumePropertiesExtractor().extract(output_dict)
-            # volumes_data_extracted = VolumePropertiesExtractor().extract(output_dict)
 
         except Exception as e:
+            self.logger.writeException(e)
+            self.logger.writeInfo("=== End of SDSB Volume Facts ===")
             self.module.fail_json(msg=str(e))
 
         data = {"volumes": volumes_data_extracted}
         if registration_message:
             data["user_consent_required"] = registration_message
+        self.logger.writeInfo("=== End of SDSB Volume Facts ===")
         self.module.exit_json(changed=False, ansible_facts=data)
 
 

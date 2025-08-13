@@ -80,3 +80,4 @@ class VSPHurValidateMsg(Enum):
         "HUR pair {} is not in SSWS state. Operation is not allowed."
     )
     SECONDARY_VOLUME_ID_OUT_OF_RANGE = "provisioned_secondary_volume_id does not lie between begin_secondary_volume_id and end_secondary_volume_id."
+    HUR_OPERATION_FAILED = "HUR operation failed with response: {}"

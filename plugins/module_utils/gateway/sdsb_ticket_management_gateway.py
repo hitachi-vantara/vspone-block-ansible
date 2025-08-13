@@ -33,7 +33,7 @@ class TicketManagementGateway:
         """
         payload = None
         if max_age_days is not None:
-            payload = {"max_age_days": max_age_days}
+            payload = {"maxAgeDays": max_age_days}
 
         endPoint = SDSBlockEndpoints.POST_TICKET
         response = self.connection_manager.post_wo_job(endPoint, data=payload)

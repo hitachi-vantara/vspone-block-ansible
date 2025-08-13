@@ -1,0 +1,50 @@
+---
+####################################################################
+# Example : Storage Pool Playbook
+####################################################################
+- name: Storage Pool
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name : Expand storage pool by pool name
+    ####################################################################
+    - name: Expand storage pool by pool name
+      hitachivantara.vspone_block.sds_block.hv_sds_block_storage_pool:
+        connection_info: "{{ connection_info }}"
+        state: "expand"
+        spec:
+          name: "SP01"
+          drive_ids: ["6a14d3cb-264f-41b1-81c0-cdbfab73d358"]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Expand storage pool by pool ID
+    ####################################################################
+    - name: Expand storage pool by pool ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_storage_pool:
+        connection_info: "{{ connection_info }}"
+        state: "expand"
+        spec:
+          id: "3f9bcecc-9ac5-4c21-abed-5b03e682e7b4"
+          drive_ids: ["6a14d3cb-264f-41b1-81c0-cdbfab73d358"]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

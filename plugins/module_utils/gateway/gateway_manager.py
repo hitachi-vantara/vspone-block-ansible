@@ -193,7 +193,10 @@ class ConnectionManager(ABC):
                 if job_state == API.SUCCEEDED:
                     # For POST call to add chap user to port, affected resource is empty
                     # For PATCH port-auth-settings, affected resource is empty
-                    if len(job_response[API.AFFECTED_RESOURCES]) > 0:
+                    if (
+                        job_response[API.AFFECTED_RESOURCES]
+                        and len(job_response[API.AFFECTED_RESOURCES]) > 0
+                    ):
                         response = job_response[API.AFFECTED_RESOURCES][0]
                     else:
                         response = job_response["self"]
@@ -219,6 +222,8 @@ class ConnectionManager(ABC):
             method="POST", end_point=endpoint, data=data, headers_input=headers_input
         )
         logger.writeDebug("post_response = {}", post_response)
+        if API.JOB_ID not in post_response:
+            return post_response
         job_id = post_response[API.JOB_ID]
         return self._process_job(job_id)
 
@@ -234,6 +239,9 @@ class ConnectionManager(ABC):
         patch_response = self._make_request(
             method="PATCH", end_point=endpoint, data=data
         )
+        logger.writeDebug("patch_response = {}", patch_response)
+        if API.JOB_ID not in patch_response:
+            return patch_response
         job_id = patch_response[API.JOB_ID]
         return self._process_job(job_id)
 
@@ -297,6 +305,7 @@ class SDSBConnectionManager(ConnectionManager):
     def _process_job_till_running_state(self, job_id):
         retry_count = 0
 
+        time.sleep(5)
         while retry_count < 600:
             job_response = self.get_job(job_id)
             logger.writeDebug(
@@ -307,6 +316,10 @@ class SDSBConnectionManager(ConnectionManager):
 
             if job_status == API.RUNNING and job_state == API.STARTED:
                 return job_id
+            elif job_status == API.COMPLETED and job_state == API.FAILED:
+                raise ValueError(
+                    self.job_exception_text(job_response) + f" job_id : {job_id}"
+                )
             else:
                 retry_count = retry_count + 1
                 time.sleep(1)
@@ -478,59 +491,6 @@ class VSPConnectionManager(ConnectionManager):
         headers = {"Authorization": "Session {0}".format(self.token)}
         return headers
 
-    # def getAuthToken(self):
-    #     logger.writeDebug("Entering VSPConnectionManager.getAuthToken")
-
-    #     if self.token is not None:
-    #         logger.writeDebug(
-    #             "VSPConnectionManager.getAuthToken:self.token is not None"
-    #         )
-    #         return {"Authorization": "Session {0}".format(self.token)}
-
-    #     headers = {}
-    #     if self.session:
-    #         logger.writeDebug(
-    #             "VSPConnectionManager.getAuthToken:self.session is not None"
-    #         )
-    #         if self.session.expiry_time > time.time():
-    #             headers = {"Authorization": "Session {0}".format(self.session.token)}
-    #             return headers
-
-    #     end_point = Endpoints.SESSIONS
-    #     try:
-    #         logger.writeDebug(
-    #             "VSPConnectionManager.getAuthToken:generate a new session"
-    #         )
-    #         response = self._make_request(method="POST", end_point=end_point, data=None)
-    #     except Exception as e:
-    #         # can be due to wrong address or kong is not ready
-    #         logger.writeException(e)
-    #         err_msg = (
-    #             "Failed to establish a connection, please check the Management System address or the credentials."
-    #             + str(e)
-    #         )
-    #         raise Exception(err_msg)
-
-    #     session_id = response.get(API.SESSION_ID)
-    #     token = response.get(API.TOKEN)
-    #     logger.writeDebug(
-    #         f"VSPConnectionManager.getAuthToken session id = {session_id} token = {token}"
-    #     )
-    #     if self.session and self.session.expiry_time > 0:
-    #         previous_session_id = self.session.session_id
-    #         try:
-    #             self.delete_session(previous_session_id)
-    #         except Exception:
-    #             logger.writeDebug(
-    #                 "could not delete previous session id = {}", previous_session_id
-    #             )
-    #             # do not throw exception as this session is not active
-
-    #     self.session = SessionObject(session_id, token)
-    #     self.token = token
-    #     headers = {"Authorization": "Session {0}".format(token)}
-    #     return headers
-
     def get_lock_session_token(self):
         end_point = Endpoints.SESSIONS
         try:
@@ -665,7 +625,7 @@ class VSPConnectionManager(ConnectionManager):
         job_id = delete_response[API.JOB_ID]
         return self._process_job(job_id)
 
-    def post(self, endpoint, data, headers_input=None, token=None):
+    def post(self, endpoint, data, headers_input=None, token=None, timeout=None):
 
         post_response = self._make_vsp_request(
             method="POST",
@@ -673,12 +633,15 @@ class VSPConnectionManager(ConnectionManager):
             data=data,
             headers_input=headers_input,
             token=token,
+            timeout=timeout,
         )
         logger.writeDebug("post_response = {}", post_response)
         job_id = post_response[API.JOB_ID]
         return self._process_job(job_id)
 
-    def post_without_job(self, endpoint, data, headers_input=None, token=None):
+    def post_without_job(
+        self, endpoint, data, headers_input=None, token=None, timeout=None
+    ):
 
         post_response = self._make_vsp_request(
             method="POST",
@@ -686,13 +649,18 @@ class VSPConnectionManager(ConnectionManager):
             data=data,
             headers_input=headers_input,
             token=token,
+            timeout=timeout,
         )
         logger.writeDebug("post_response = {}", post_response)
         return post_response
 
-    def post_wo_job(self, endpoint, data=None, headers_input=None):
+    def post_wo_job(self, endpoint, data=None, headers_input=None, timeout=None):
         post_response = self._make_vsp_request(
-            method="POST", end_point=endpoint, data=data, headers_input=headers_input
+            method="POST",
+            end_point=endpoint,
+            data=data,
+            headers_input=headers_input,
+            timeout=timeout,
         )
         logger.writeDebug("post_response = {}", post_response)
         return post_response
@@ -711,7 +679,14 @@ class VSPConnectionManager(ConnectionManager):
         return patch_response
 
     def _make_vsp_request(
-        self, method, end_point, data=None, headers_input=None, token=None, retry=False
+        self,
+        method,
+        end_point,
+        data=None,
+        headers_input=None,
+        token=None,
+        retry=False,
+        timeout=None,
     ):
 
         logger.writeDebug(
@@ -738,7 +713,15 @@ class VSPConnectionManager(ConnectionManager):
 
         logger.writeDebug("url = {}", url)
         logger.writeDebug("headers = {}", headers)
-        TIME_OUT = 300
+
+        if timeout:
+            TIME_OUT = timeout
+            logger.writeDebug(
+                f"VSPConnectionManager._make_vsp_request TIME_OUT= {TIME_OUT}"
+            )
+        else:
+            TIME_OUT = 300
+
         if (
             data is not None
             and retry is False

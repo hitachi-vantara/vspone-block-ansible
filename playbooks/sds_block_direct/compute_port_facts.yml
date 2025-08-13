@@ -30,13 +30,13 @@
         var: result
 
     ####################################################################
-    # Task Name : Get compute nodes by names
+    # Task Name : Get compute ports by names
     ####################################################################
-    - name: Get compute port by name
+    - name: Get compute ports by names
       hitachivantara.vspone_block.sds_block.hv_sds_block_port_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          name: "iqn_1994-04_jp_co_hitachi:rsd_sph_t_0a85a_002"
+          names: ["iqn_1994-04_jp_co_hitachi:rsd_sph_t_0a85a_002"]
       register: result
 
     - name: Debug the result variable

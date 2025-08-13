@@ -2224,6 +2224,85 @@ class VSPJournalVolumeArguments:
         return args
 
 
+class VSPJournalArguments:
+
+    common_arguments = {
+        "storage_system_info": VSPCommonParameters.storage_system_info(),
+        "connection_info": VSPCommonParameters.connection_info(),
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "absent",
+                "update",
+                "expand_journal",
+                "shrink_journal",
+            ],
+            "default": "present",
+        },
+    }
+
+    @classmethod
+    def journal_fact(cls):
+        return VSPJournalVolumeArguments.journal_volume_fact()
+
+    @classmethod
+    def journal(cls):
+        spec_options = {
+            "journal_id": {
+                "required": False,
+                "type": "int",
+            },
+            "startLdevId": {
+                "required": False,
+                "type": "int",
+            },
+            "endLdevId": {
+                "required": False,
+                "type": "int",
+            },
+            "is_cache_mode_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "data_overflow_watchIn_seconds": {
+                "required": False,
+                "type": "int",
+            },
+            "mp_blade_id": {
+                "required": False,
+                "type": "int",
+            },
+            "ldev_ids": {
+                "required": False,
+                "type": "list",
+                "elements": "int",
+            },
+            "mirror_unit_number": {
+                "required": False,
+                "type": "int",
+            },
+            "copy_pace": {
+                "required": False,
+                "type": "str",
+                "choices": ["SLOW", "MEDIUM", "FAST"],
+            },
+            "path_blockade_watch_in_minutes": {
+                "required": False,
+                "type": "int",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        return args
+
+
 class VSPQuorumDiskArguments:
 
     common_arguments = {
@@ -3868,6 +3947,10 @@ class VSPResourceGroupArguments:
                 "type": "bool",
                 "default": False,
             },
+            # "add_resource_time_out_in_sec": {
+            #     "required": False,
+            #     "type": "int",
+            # },
             "state": {
                 "required": False,
                 "type": "str",

@@ -25,31 +25,8 @@ attributes:
   check_mode:
     description: Determines if the module should run in check mode.
     support: full
-options:
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    required: true
-    type: dict
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication.
-        type: str
-        required: true
-      password:
-        description: Password for authentication.
-        type: str
-        required: true
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
-
+extends_documentation_fragment:
+  - hitachivantara.vspone_block.common.sdsb_connection_info
 """
 
 EXAMPLES = """
@@ -162,11 +139,10 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     validate_ansible_product_registration,
 )
 
-logger = Log()
-
 
 class SDSBStorageSystemFactManager:
     def __init__(self):
+        self.logger = Log()
         self.argument_spec = SDSBStorageSystemArguments().storage_system_fact()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
@@ -178,6 +154,7 @@ class SDSBStorageSystemFactManager:
             self.module.fail_json(msg=str(e))
 
     def apply(self):
+        self.logger.writeInfo("=== Start of SDSB Storage System Facts ===")
         sdsb_storage_system_data = None
 
         registration_message = validate_ansible_product_registration()
@@ -188,11 +165,14 @@ class SDSBStorageSystemFactManager:
             )
 
         except Exception as e:
+            self.logger.writeException(e)
+            self.logger.writeInfo("=== End of SDSB Storage System Facts ===")
             self.module.fail_json(msg=str(e))
 
         data = {"storage_system": snake_case_storage_system_data}
         if registration_message:
             data["user_consent_required"] = registration_message
+        self.logger.writeInfo("=== End of SDSB Storage System Facts ===")
         self.module.exit_json(changed=False, ansible_facts=data)
 
     def direct_sdsb_storage_system_read(self):

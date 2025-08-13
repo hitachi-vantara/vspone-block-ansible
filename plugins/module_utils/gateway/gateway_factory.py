@@ -8,13 +8,18 @@ from .sdsb_compute_node_gateway import (
 )
 from .sdsb_volume_gateway import SDSBVolumeDirectGateway
 from .sdsb_chap_user_gateway import SDSBChapUserDirectGateway
+from .sdsb_event_logs_gateway import SDSBEventLogsDirectGateway
+from .sdsb_block_drives_gateway import SDSBBlockDrivesDirectGateway
+from .sdsb_fault_domain_gateway import SDSBBlockFaultDomainDirectGateway
+from .sdsb_block_control_port_gateway import SDSBBlockControlPortDirectGateway
+from .sdsb_storage_controller_gateway import SDSBStorageControllerDirectGateway
 from .sdsb_port_auth_gateway import SDSBPortAuthDirectGateway
 from .sdsb_port_gateway import SDSBPortDirectGateway
 from .sdsb_vps_gateway import SDSBVpsDirectGateway
 from .sdsb_storage_node_gateway import SDSBStorageNodeDirectGateway
 from .sdsb_storage_pool_gateway import SDSBStoragePoolDirectGateway
 from .sdsb_cluster_gateway import SDSBClusterGateway
-
+from .sdsb_job_gateway import SDSBJobGateway
 from .vsp_snapshot_gateway import VSPHtiSnapshotDirectGateway
 
 from .vsp_volume import VSPVolumeDirectGateway
@@ -71,6 +76,8 @@ from .vsp_clpr_gateway import VSPClprDirectGateway
 from .vsp_external_parity_group_gateway import VSPExternalParityGroupGateway
 from .vsp_spm_gateway import VSPSpmGateway
 from .vsp_storage_system_monitor_gateway import VSPStorageSystemMonitorGateway
+from .sdsb_cluster_information_gateway import SDSBBlockClusterInformationDirectGateway
+from .sdsb_users_gateway import SDSBBlockUsersDirectGateway
 
 GATEWAY_MAP = {
     ConnectionTypes.DIRECT: {
@@ -117,6 +124,14 @@ GATEWAY_MAP = {
         GatewayClassTypes.SDSB_STORAGE_NODE: SDSBStorageNodeDirectGateway,
         GatewayClassTypes.SDSB_STORAGE_POOL: SDSBStoragePoolDirectGateway,
         GatewayClassTypes.SDSB_CLUSTER: SDSBClusterGateway,
+        GatewayClassTypes.SDSB_JOB: SDSBJobGateway,
+        GatewayClassTypes.SDSB_EVENT_LOGS: SDSBEventLogsDirectGateway,
+        GatewayClassTypes.SDSB_BLOCK_DRIVES: SDSBBlockDrivesDirectGateway,
+        GatewayClassTypes.SDSB_FAULT_DOMAIN: SDSBBlockFaultDomainDirectGateway,
+        GatewayClassTypes.SDSB_STORAGE_CONTROLLER: SDSBStorageControllerDirectGateway,
+        GatewayClassTypes.SDSB_CONTROL_PORT: SDSBBlockControlPortDirectGateway,
+        GatewayClassTypes.SDSB_CLUSTER_INFORMATION: SDSBBlockClusterInformationDirectGateway,
+        GatewayClassTypes.SDSB_USER: SDSBBlockUsersDirectGateway,
     },
 }
 

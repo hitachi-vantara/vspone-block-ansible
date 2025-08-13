@@ -524,7 +524,7 @@ class VolumePayloadConst:
 
     # URL PARAMS
     HEAD_LDEV_ID = "?headLdevId={}"
-    HEAD_LDEV_ID_NEXT = "headLdevId={}"
+    HEAD_LDEV_ID_NEXT = "&headLdevId={}"
     COUNT = "&count={}"
     LDEV_OPTION = "?&ldevOption={}"
     POOL_ID_PARAM = "?poolId={}"

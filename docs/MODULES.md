@@ -5,17 +5,39 @@ This collection includes modules for managing both Hitachi VSP One SDS Block and
 
 ## VSP One SDS Block Ansible Modules
 
-- **hv_sds_block_chap_user_facts:** Retrieves information about Hitachi SDS block storage system CHAP users.
+- **hv_sds_block_authentication_ticket:** Manages authentication tickets for SDS block storage systems.
 - **hv_sds_block_chap_user:** Manages Hitachi SDS block storage system CHAP users.
-- **hv_sds_block_compute_node_facts:** Retrieves information about compute nodes.
+- **hv_sds_block_chap_user_facts:** Retrieves information about Hitachi SDS block storage system CHAP users.
+- **hv_sds_block_cluster:** Manages SDS block storage clusters.
+- **hv_sds_block_cluster_config_facts:** Retrieves cluster configuration information.
 - **hv_sds_block_compute_node:** Manages compute nodes.
+- **hv_sds_block_compute_node_facts:** Retrieves information about compute nodes.
 - **hv_sds_block_compute_port_authentication:** Manages compute port authentication mode settings.
+- **hv_sds_block_control_port_facts:** Retrieves information about control ports.
+- **hv_sds_block_drives_facts:** Retrieves information about storage drives.
+- **hv_sds_block_event_logs_facts:** Retrieves event log information.
+- **hv_sds_block_fault_domain_facts:** Retrieves information about fault domains.
+- **hv_sds_block_internode_port_facts:** Retrieves information about internode ports.
+- **hv_sds_block_job_facts:** Retrieves information about storage system jobs.
 - **hv_sds_block_port_facts:** Retrieves information about compute ports.
+- **hv_sds_block_protection_domain_facts:** Retrieves information about protection domains.
+- **hv_sds_block_snapshot:** Manages snapshots.
+- **hv_sds_block_snapshot_facts:** Retrieves information about snapshots.
+- **hv_sds_block_storage_controller_facts:** Retrieves information about storage controllers.
+- **hv_sds_block_storage_network_setting_facts:** Retrieves storage network setting information.
+- **hv_sds_block_storage_node:** Manages storage nodes.
+- **hv_sds_block_storage_node_facts:** Retrieves information about storage nodes.
+- **hv_sds_block_storage_node_network_settings_facts:** Retrieves network settings for storage nodes.
+- **hv_sds_block_storage_pool:** Manages storage pools.
+- **hv_sds_block_storage_pool_facts:** Retrieves information about storage pools.
 - **hv_sds_block_storage_system_facts:** Retrieves information about a specific SDS block storage system.
-- **hv_sds_block_volume_facts:** Retrieves information about storage system volumes.
+- **hv_sds_block_storage_time_facts:** Retrieves storage system time information.
+- **hv_sds_block_user:** Manages users.
+- **hv_sds_block_user_facts:** Retrieves information about users.
 - **hv_sds_block_volume:** Manages volumes.
-- **hv_sds_block_vps_fact:** Retrieves information about Virtual Private Storages (VPS).
+- **hv_sds_block_volume_facts:** Retrieves information about storage system volumes.
 - **hv_sds_block_vps:** Manages VPS volume ADR settings.
+- **hv_sds_block_vps_facts:** Retrieves information about Virtual Private Storages (VPS).
 
 ## VSP Ansible Modules
 
@@ -23,6 +45,7 @@ This collection includes modules for managing both Hitachi VSP One SDS Block and
 - **hv_audit_log_transfer_dest_facts:** Retrieves information about the transfer destinations of audit log files.
 - **hv_clpr:** Creates, updates, and deletes CLPR information.
 - **hv_clpr_facts:** Retrieves CLPR information.
+- **hv_cmd_dev:** Manages command devices.
 - **hv_ddp_pool:** Manages DDP pools.
 - **hv_ddp_pool_facts:** Retrieves information about DDP pools.
 - **hv_disk_drive:** Manages disk drives.
@@ -43,6 +66,8 @@ This collection includes modules for managing both Hitachi VSP One SDS Block and
 - **hv_iscsi_remote_connection_facts:** Retrieves information about iSCSI remote connections.
 - **hv_iscsi_target:** Manages iSCSI targets.
 - **hv_iscsi_target_facts:** Retrieves information about iSCSI targets.
+- **hv_journal:** Manages journal configuration.
+- **hv_journal_facts:** Retrieves information about journal configuration.
 - **hv_journal_volume:** Manages journal volumes.
 - **hv_journal_volume_facts:** Retrieves information about journal volumes.
 - **hv_ldev:** Manages logical devices.

@@ -14,9 +14,16 @@ module: hv_journal_volume
 short_description: Create, update, expand, shrink, delete journal volume from Hitachi VSP storage systems.
 description:
   - This module creates, update, expand, shrink, delete journal volume from Hitachi VSP storage systems.
+  - DEPRECATED - Use hv_journal instead.
+  - This module will be removed in a future release.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/journal_volume.yml)
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/journal.yml)
 version_added: '3.2.0'
+deprecated:
+    alternative: hv_journal
+    why: Replaced by improved module with consistent naming
+    removed_in: '5.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
@@ -244,6 +251,12 @@ class VSPJournalVolumeManager:
         self.logger.writeInfo("=== Start of Journal Volume operation. ===")
         try:
             registration_message = validate_ansible_product_registration()
+            deprecation_message = (
+                "The Ansible module hv_journal_volume is deprecated "
+                "and has been replaced by the new hv_journal module. "
+                "hv_journal_volume will be removed in a future release. "
+                "Please use the hv_journal module instead."
+            )
             result, res_msg = vsp_journal_volume.VSPJournalVolumeReconciler(
                 self.params_manager.connection_info, self.serial
             ).journal_volume_reconcile(self.state, self.spec)
@@ -254,6 +267,7 @@ class VSPJournalVolumeManager:
                 "changed": self.connection_info.changed,
                 "data": result,
                 "msg": msg,
+                "warning_deprecated_module": deprecation_message,
             }
             if registration_message:
                 response_dict["user_consent_required"] = registration_message

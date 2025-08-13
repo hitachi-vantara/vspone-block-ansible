@@ -25,30 +25,9 @@ attributes:
   check_mode:
     description: Determines if the module should run in check mode.
     support: full
+extends_documentation_fragment:
+  - hitachivantara.vspone_block.common.sdsb_connection_info
 options:
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    required: true
-    type: dict
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication.
-        type: str
-        required: true
-      password:
-        description: Password for authentication.
-        type: str
-        required: true
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   spec:
     description: Specification for retrieving VPS information.
     type: dict
@@ -271,16 +250,12 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     validate_ansible_product_registration,
 )
 
-logger = Log()
-
 
 class SDSBVpsFactsManager:
     def __init__(self):
 
+        self.logger = Log()
         self.argument_spec = SDSBVpsArguments().vps_facts()
-        logger.writeDebug(
-            f"MOD:hv_sds_block_vps_facts:argument_spec= {self.argument_spec}"
-        )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
@@ -289,24 +264,26 @@ class SDSBVpsFactsManager:
         parameter_manager = SDSBParametersManager(self.module.params)
         self.connection_info = parameter_manager.get_connection_info()
         self.spec = parameter_manager.get_vps_fact_spec()
-        logger.writeDebug(f"MOD:hv_sds_block_vsp_facts:spec= {self.spec}")
+        self.logger.writeDebug(f"MOD:hv_sds_block_vsp_facts:spec= {self.spec}")
 
     def apply(self):
-
+        self.logger.writeInfo("=== Start of SDSB VPS Facts ===")
         registration_message = validate_ansible_product_registration()
-        logger.writeInfo(f"{self.connection_info.connection_type} connection type")
+
         try:
             sdsb_reconciler = SDSBVpsReconciler(self.connection_info)
             vps = sdsb_reconciler.get_vps_facts(self.spec)
 
-            logger.writeDebug(f"MOD:hv_sds_block_vps_facts:vps= {vps}")
+            self.logger.writeDebug(f"MOD:hv_sds_block_vps_facts:vps= {vps}")
 
         except Exception as e:
+            self.logger.writeInfo("=== End of SDSB VPS Facts ===")
             self.module.fail_json(msg=str(e))
         data = {"vsp_info": vps}
 
         if registration_message:
             data["user_consent_required"] = registration_message
+        self.logger.writeInfo("=== End of SDSB VPS Facts ===")
         self.module.exit_json(changed=False, ansible_facts=data)
 
 

@@ -2,16 +2,26 @@ try:
     from .gateway_manager import SDSBConnectionManager
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
+
 except ImportError:
     from .gateway_manager import SDSBConnectionManager
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
 
 DOWNLOAD_CONFIG_FILE = "v1/objects/configuration-file/download"
+CREATE_CONFIG_FILE = "v1/objects/configuration-file/actions/create/invoke"
 ADD_STORAGE_NODE = "v1/objects/storage-nodes"
 DELETE_STORAGE_NODE = "v1/objects/storage-nodes/{}"
 
 logger = Log()
+
+export_file_type_map = {
+    "normal": "Normal",
+    "add_storage_nodes": "AddStorageNodes",
+    "replace_storage_nodes": "ReplaceStorageNode",
+    "add_drives": "AddDrives",
+    "replace_drives": "ReplaceDrive",
+}
 
 
 class SDSBClusterGateway:
@@ -20,6 +30,13 @@ class SDSBClusterGateway:
         self.connection_manager = SDSBConnectionManager(
             connection_info.address, connection_info.username, connection_info.password
         )
+
+    def create_config_file(self, export_file_type):
+        end_point = CREATE_CONFIG_FILE
+        payload = {"exportFileType": export_file_type_map[export_file_type]}
+        resp = self.connection_manager.post(end_point, data=payload)
+        logger.writeDebug(f"GW:create_config_file:resp={resp}")
+        return
 
     @log_entry_exit
     def download_config_file(self, file_name):

@@ -26,6 +26,8 @@ attributes:
   check_mode:
     description: Determines if the module should run in check mode.
     support: none
+extends_documentation_fragment:
+  - hitachivantara.vspone_block.common.sdsb_connection_info
 options:
   state:
     description: The level of the volume task. Choices are C(present) and C(absent).
@@ -33,29 +35,6 @@ options:
     required: false
     choices: ['present', 'absent']
     default: 'present'
-  connection_info:
-    description: Information required to establish a connection to the storage system.
-    required: true
-    type: dict
-    suboptions:
-      address:
-        description: IP address or hostname of the storage system.
-        type: str
-        required: true
-      username:
-        description: Username for authentication.
-        type: str
-        required: true
-      password:
-        description: Password for authentication.
-        type: str
-        required: true
-      connection_type:
-        description: Type of connection to the storage system.
-        type: str
-        required: false
-        choices: ['direct']
-        default: 'direct'
   spec:
     description: Specification for the volume task.
     type: dict
@@ -421,12 +400,11 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     validate_ansible_product_registration,
 )
 
-logger = Log()
-
 
 class SDSBVolumeManager:
     def __init__(self):
 
+        self.logger = Log()
         self.argument_spec = SDSBVolumeArguments().volume()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
@@ -438,19 +416,20 @@ class SDSBVolumeManager:
             self.connection_info = params_manager.get_connection_info()
             self.spec = params_manager.get_volume_spec()
         except Exception as e:
-            logger.writeError(f"An error occurred during initialization: {str(e)}")
+            self.logger.writeError(f"An error occurred during initialization: {str(e)}")
             self.module.fail_json(msg=str(e))
 
     def apply(self):
+        self.logger.writeInfo("=== Start of SDSB Volume Operation ===")
         volumes = None
         volumes_data_extracted = None
         registration_message = validate_ansible_product_registration()
-        logger.writeInfo(f"{self.connection_info.connection_type} connection type")
+
         try:
             sdsb_reconciler = SDSBVolumeReconciler(self.connection_info)
             volumes = sdsb_reconciler.reconcile_volume(self.state, self.spec)
 
-            logger.writeDebug(f"MOD:hv_sds_block_volume:volumes= {volumes}")
+            self.logger.writeDebug(f"MOD:hv_sds_block_volume:volumes= {volumes}")
             if self.state.lower() == StateValue.ABSENT:
                 volumes_data_extracted = volumes
             else:
@@ -460,6 +439,8 @@ class SDSBVolumeManager:
                 )
 
         except Exception as e:
+            self.logger.writeException(e)
+            self.logger.writeInfo("=== End of SDSB Volume Operation ===")
             self.module.fail_json(msg=str(e))
 
         response = {
@@ -468,6 +449,7 @@ class SDSBVolumeManager:
         }
         if registration_message:
             response["user_consent_required"] = registration_message
+        self.logger.writeInfo("=== End of SDSB Volume Operation ===")
         self.module.exit_json(**response)
 
 
