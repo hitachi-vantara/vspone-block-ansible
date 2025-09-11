@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_storage_node_network_settings_facts
-short_description: Get storage node network settings  from storage system
+short_description: Get storage node network settings from storage system
 description:
   - Get storage node network settings from storage system.
   - For examples go to URL

@@ -36,7 +36,7 @@ options:
     description: The desired state of the LDEV.
     type: str
     required: false
-    choices: ['present', 'absent']
+    choices: ['present', 'absent', 'assign_virtual_ldev']
     default: 'present'
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -138,7 +138,7 @@ options:
             type: int
             required: false
       vldev_id:
-        description: Specify the virtual LDEV id.
+        description: Specify the virtual LDEV id. Specify -1 if you want to unassign the vldev_id.
         type: int
         required: false
       force:

@@ -60,14 +60,6 @@ options:
         description: Journal ID of the Journal Volume.
         type: int
         required: false
-      startLdevId:
-        description: Start LDEV ID of the Journal Volume.
-        type: int
-        required: false
-      endLdevId:
-        description: End LDEV ID of the Journal Volume.
-        type: int
-        required: false
       is_cache_mode_enabled:
         description: Cache mode enabled or not.
         type: bool

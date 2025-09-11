@@ -44,6 +44,20 @@
         var: result
 
     ####################################################################
+    # Task Name : Get storage node by ID
+    ####################################################################
+    - name: Get storage node by ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_storage_node_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          id: "f3d27b43-8763-4638-838c-60cd9aa60805"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
     # Task Name : Get storage nodes by fault domain ID
     ####################################################################
     - name: Get storage nodes by fault domain ID

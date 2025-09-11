@@ -31,9 +31,9 @@ options:
   state:
     description: The desired state of the storage pool.
     type: str
-    required: true
-    # default: "present"
-    choices: ["expand"]
+    required: false
+    choices: ['present', 'expand']
+    default: 'present'
   spec:
     description: Specification for the storage pool.
     type: dict
@@ -52,6 +52,17 @@ options:
         type: list
         required: false
         elements: str
+      rebuild_capacity_policy:
+        description: Rebuild capacity policy. Fixed means secures capacity required for Rebuild as a fixed Rebuild-dedicated capacity.
+          Variable means secures a part of user data capacity as rebuild capacity when the storage pool usage is low, and uses the capacity
+          entirely as user data capacity when the storage pool usage increases.
+        type: str
+        required: false
+        choices: ["Fixed", "Variable"]
+      number_of_tolerable_drive_failures:
+        description: The number of drive failures that can be tolerated. Must be in the range 0 to 23.
+        type: int
+        required: false
 """
 
 EXAMPLES = """
@@ -285,33 +296,41 @@ class SDSBStoragePoolManager:
 
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB Storage Pool Operation ===")
-        storage_nodes = None
+        storage_pools = None
         registration_message = validate_ansible_product_registration()
         try:
             sdsb_reconciler = SDSBStoragePoolReconciler(
                 self.connection_info, self.state
             )
-            storage_nodes = sdsb_reconciler.reconcile_storage_pool(self.spec)
+            storage_pools = sdsb_reconciler.reconcile_storage_pool(self.spec)
         except Exception as e:
             self.logger.writeException(e)
             self.logger.writeInfo("=== End of SDSB Storage Pool Operation ===")
             self.module.fail_json(msg=str(e))
         msg = ""
-        if storage_nodes:
-            msg = (
-                "The storage system will generate additional jobs for capacity and metadata allocation."
-                "Please wait for these tasks to finish and then verify the storage pool capacity."
-            )
+        if storage_pools:
+            msg = self.get_message()
         data = {
             "changed": self.connection_info.changed,
-            "storage_nodes": storage_nodes,
+            "storage_pools": storage_pools,
             "message": msg,
         }
         if registration_message:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of SDSB Storage Pool Operation ===")
-        self.module.exit_json(changed=False, ansible_facts=data)
+        self.module.exit_json(**data)
+
+    def get_message(self):
+        msg = ""
+        if self.state == "present":
+            msg = "Successfully modified the storage pool settings."
+        elif self.state == "expand":
+            msg = (
+                "The storage system will generate additional jobs for capacity and metadata allocation. "
+                "Please wait for these tasks to finish and then verify the storage pool capacity."
+            )
+        return msg
 
 
 def main():

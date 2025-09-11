@@ -9,6 +9,7 @@ try:
         camel_to_snake_case,
     )
     from ..message.sdsb_storage_node_msgs import SDSBStorageNodeValidationMsg
+    from ..model.sdsb_storage_node_models import SDSBStorageNodeInfo
 except ImportError:
     from provisioner.sdsb_storage_node_provisioner import SDSBStorageNodeProvisioner
     from common.hv_log import Log
@@ -17,6 +18,7 @@ except ImportError:
         camel_to_snake_case,
     )
     from message.sdsb_storage_node_msgs import SDSBStorageNodeValidationMsg
+    from model.sdsb_storage_node_models import SDSBStorageNodeInfo
 
 logger = Log()
 
@@ -32,8 +34,13 @@ class SDSBStorageNodeReconciler:
     def get_storage_nodes(self, spec=None):
         try:
             snodes = self.provisioner.get_storage_nodes(spec)
-            logger.writeDebug("RC:get_compute_nodes:cnodes={}", snodes)
-            extracted_data = SDSBStorageNodeExtractor().extract(snodes.data_to_list())
+            logger.writeDebug("RC:get_storage_nodes:cnodes={}", snodes)
+            if isinstance(snodes, SDSBStorageNodeInfo):
+                extracted_data = SDSBStorageNodeExtractor().extract([snodes.to_dict()])
+            else:
+                extracted_data = SDSBStorageNodeExtractor().extract(
+                    snodes.data_to_list()
+                )
             return extracted_data
         except Exception as e:
             if "HTTP Error 400: Bad Request" in str(e):
@@ -44,7 +51,9 @@ class SDSBStorageNodeReconciler:
         state = self.state.lower()
 
         resp_data = None
-        if state == StateValue.MAINTENANCE:
+        if state == StateValue.PRESENT:
+            resp_data = self.edit_capacity_management_settings(spec=spec)
+        elif state == StateValue.MAINTENANCE:
             resp_data = self.block_node_for_maintenance(spec=spec)
         elif state == StateValue.RESTORE:
             resp_data = self.restore_from_maintenance(spec=spec)
@@ -52,6 +61,45 @@ class SDSBStorageNodeReconciler:
             s_node = self.provisioner.get_storage_node_by_id(resp_data)
             extracted_data = SDSBStorageNodeExtractor().extract([s_node.to_dict()])
             return extracted_data
+
+    @log_entry_exit
+    def edit_capacity_management_settings(self, spec):
+        self.validate_operation_spec(spec)
+        node = None
+        if spec.id is None:
+            spec.id = self.provisioner.get_node_id_by_node_name(spec.name)
+            logger.writeDebug(
+                "RC:edit_capacity_management_settings:spec.id={} ", spec.id
+            )
+        else:
+            try:
+                node = self.provisioner.get_storage_node_by_id(spec.id)
+            except Exception as e:
+                if "HTTP Error 404: Not Found" in str(e):
+                    raise ValueError(SDSBStorageNodeValidationMsg.WRONG_NODE_ID.value)
+                else:
+                    raise Exception(e)
+        if spec.id is None:
+            raise ValueError(
+                SDSBStorageNodeValidationMsg.STORAGE_NODE_NOT_FOUND.value.format(
+                    spec.name
+                )
+            )
+
+        if spec.is_capacity_balancing_enabled is None:
+            return spec.id
+        if (
+            node
+            and node.is_capacity_balancing_enabled == spec.is_capacity_balancing_enabled
+        ):
+            return spec.id
+
+        resp = self.provisioner.edit_capacity_management_settings(
+            spec.id, spec.is_capacity_balancing_enabled
+        )
+        logger.writeDebug("RC:edit_capacity_management_settings:resp={}", resp)
+        self.connection_info.changed = True
+        return resp
 
     @log_entry_exit
     def block_node_for_maintenance(self, spec):
@@ -135,6 +183,7 @@ class SDSBStorageNodeExtractor:
             "availabilityZoneId": str,
             "physicalZone": str,
             "logicalZone": str,
+            "is_capacity_balancing_enabled": bool,
         }
         self.parameter_mapping = {
             "memory": "memory_mb",

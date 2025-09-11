@@ -26,6 +26,14 @@ class SDSBStoragePoolProvisioner:
         return self.gateway.expand_storage_pool(id, drive_ids)
 
     @log_entry_exit
+    def edit_storage_pool_settings(
+        self, id, rebuild_capacity_policy, number_of_tolerable_drive_failures
+    ):
+        return self.gateway.edit_storage_pool_settings(
+            id, rebuild_capacity_policy, number_of_tolerable_drive_failures
+        )
+
+    @log_entry_exit
     def get_storage_pools(self, names=None):
         return self.gateway.get_storage_pools(names)
 
@@ -45,3 +53,12 @@ class SDSBStoragePoolProvisioner:
         if storage_pool is None or len(storage_pool.data) == 0:
             return None
         return storage_pool.data[0].id
+
+    @log_entry_exit
+    def get_pool_by_pool_name(self, name):
+        names = [name]
+        storage_pool = self.gateway.get_storage_pools(names)
+        logger.writeDebug("PV:get_pool_id_by_pool_name:storage_pool={}", storage_pool)
+        if storage_pool is None or len(storage_pool.data) == 0:
+            return None
+        return storage_pool.data[0]

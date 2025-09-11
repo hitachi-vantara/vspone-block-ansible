@@ -339,12 +339,13 @@
         var: result
 
     #########################################################################################################
-    # Task Name : Update volume with virtual ldev
+    # Task Name : Assign/Unassign virtual LDEV Id for a volume
+    # Note: If you want to unassign the virtual LDEV ID, provide -1 for vldev_id
     #########################################################################################################
-    - name: It configures the virtual ldev for a volume.
+    - name: Assign the virtual ldev for a volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        state: "present"
+        state: "assign_virtual_ldev"
         spec:
           ldev_id: 11
           vldev_id: 10
@@ -355,12 +356,13 @@
         var: result
 
     #########################################################################################################
-    # Task Name : Unset virtual ldev from  the volume
+    # Task Name : Assign/Unassign virtual LDEV Id for a volume
+    # Note: If you want to unassign the virtual LDEV ID, provide -1 for vldev_id
     #########################################################################################################
-    - name: It configures the virtual ldev for a volume.
+    - name: Unassign the virtual ldev for a volume.
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
-        state: "present"
+        state: "assign_virtual_ldev"
         spec:
           ldev_id: 11
           vldev_id: -1

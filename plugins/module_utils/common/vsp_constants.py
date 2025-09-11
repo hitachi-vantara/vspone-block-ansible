@@ -1,7 +1,7 @@
 import logging
 
 
-PEGASUS_MODELS = ["B28", "B26"]
+PEGASUS_MODELS = ["B28", "B26", "VSP E"]
 
 BASIC_STORAGE_DETAILS = None
 
@@ -30,9 +30,22 @@ class Endpoints(object):
     # Volumes
     POST_LDEVS = "v1/objects/ldevs"
     LDEVS_ONE = "v1/objects/ldevs/{}"
+    SALAMENDER_GET_LDEVS_ONE = "simple/v1/objects/volumes/{}"
+    SIMPLE_API_VOLUME_EXPAND = "simple/v1/objects/volumes/{}/actions/expand/invoke"
+    SALAMENDER_GET_LDEVS_SERVER_CONNECTION = (
+        "simple/v1/objects/volume-server-connections"
+    )
+    SALAMENDER_GET_LDEV_SERVER_CONNECTION = (
+        "simple/v1/objects/volume-server-connections/{}"
+    )
+    SALAMENDER_UPDATE_QOS_SETTINGS = "simple/v1/objects/volumes/{}/qos-setting"
+    ATTACH_SERVER_SIMPLE = "simple/v1/objects/volume-server-connections"
+    DETACH_SERVER_SIMPLE = "simple/v1/objects/volume-server-connections/{}"
     LDEVS_JOURNAL_VOLUME = "v1/objects/ldevs/?journalId={}"
     PEGA_LDEVS_ONE = "simple/v1/objects/volumes/{}"
     GET_LDEVS = "v1/objects/ldevs{}"
+    SALAMENDER_GET_LDEVS = "simple/v1/objects/volumes"
+    SALAMENDER_GET_LDEVS_QUERY = "simple/v1/objects/volumes{}"
     PUT_LDEVS_CHANGE_STATUS = "v1/objects/ldevs/{}/actions/change-status/invoke"
     PUT_LDEVS_SHRED = "v1/objects/ldevs/{}/actions/shred/invoke"
     DELETE_LDEVS = "v1/objects/ldevs/{}"
@@ -50,6 +63,7 @@ class Endpoints(object):
         "v1/objects/ldevs?ldevOption=undefined&resourceGroupId={}&count=16384"
     )
     GET_FREE_LDEVS_FROM_META_HEAD_LDEV = "v1/objects/ldevs?ldevOption=undefined&headLdevId={}&resourceGroupId={}&count=16384"
+    GET_FREE_LDEVS_FROM_META_BASIC = "v1/objects/ldevs?ldevOption=undefined&headLdevId={}&count={}"
     GET_FREE_LDEV_MATCHING_PVOL = (
         "v1/objects/ldevs?ldevOption=undefined&count=1&headLdevId={}"
     )
@@ -62,6 +76,7 @@ class Endpoints(object):
     POST_QOS_UPDATE = "v1/objects/ldevs/{}/actions/set-qos/invoke"
     GET_LDEV_EXT_VOL = "v1/objects/ldevs/{}?detailInfoType=externalVolume"
     GET_QOS_SETTINGS = "v1/objects/ldevs?headLdevId={}&count=1&detailInfoType=qos"
+    SALAMENDER_GET_QOS_SETTINGS = "simple/v1/objects/volumes/{}/qos-setting"
     GET_CMD_DEVICE = "v1/objects/ldevs?headLdevId={}&count=1&detailInfoType=class"
     RECLAIM_ZERO_PAGES = "v1/objects/ldevs/{}/actions/discard-zero-page/invoke"
     CHANGE_MP_BLADE = "v1/objects/ldevs/{}/actions/assign-mp-blade/invoke"
@@ -521,6 +536,34 @@ class VolumePayloadConst:
     IS_FULL_ALLOCATION_ENABLED = "isFullAllocationEnabled"
     IS_ALUA_ENABLED = "isAluaEnabled"
     CLPR_ID = "clprId"
+
+    # SALMENDER PARAMS
+    CAPACITY = "capacity"
+    NUMBER = "number"
+    NICKNAME_PARAM = "nicknameParam"
+    NICK_NAME = "nickname"
+    SAVING_SETTING = "savingSetting"
+    IS_DATA_REDUCTION_SHARE_ENABLED = "isDataReductionShareEnabled"
+    POOL_ID = "poolId"
+    COMPRESSION_ACCELERATION = "compressionAcceleration"
+    threshold = "threshold"
+    alertSetting = "alertSetting"
+    isUpperIopsEnabled = "isUpperIopsEnabled"
+    upperIops = "upperIops"
+    isUpperTransferRateEnabled = "isUpperTransferRateEnabled"
+    upperTransferRate = "upperTransferRate"
+    isLowerIopsEnabled = "isLowerIopsEnabled"
+    lowerIops = "lowerIops"
+    isLowerTransferRateEnabled = "isLowerTransferRateEnabled"
+    lowerTransferRate = "lowerTransferRate"
+    isResponsePriorityEnabled = "isResponsePriorityEnabled"
+    responsePriority = "responsePriority"
+    isUpperAlertEnabled = "isUpperAlertEnabled"
+    upperAlertAllowableTime = "upperAlertAllowableTime"
+    isLowerAlertEnabled = "isLowerAlertEnabled"
+    lowerAlertAllowableTime = "lowerAlertAllowableTime"
+    isResponseAlertEnabled = "isResponseAlertEnabled"
+    responseAlertAllowableTime = "responseAlertAllowableTime"
 
     # URL PARAMS
     HEAD_LDEV_ID = "?headLdevId={}"

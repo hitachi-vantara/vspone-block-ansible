@@ -29,6 +29,8 @@ except ImportError:
     from .gateway_manager import SDSBConnectionManager
     from common.ansible_common import log_entry_exit
 
+GET_VERSION = "configuration/version"
+
 
 class SDSBStorageSystemDirectGateway:
 
@@ -73,3 +75,9 @@ class SDSBStorageSystemDirectGateway:
         return SDSBPfrestPoolList(
             dicts_to_dataclass_list(pools["data"], SDSBPfrestPool)
         )
+
+    @log_entry_exit
+    def sdsb_get_version(self):
+        endPoint = GET_VERSION
+        response = self.connection_manager.get(endPoint)
+        return response

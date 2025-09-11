@@ -28,36 +28,23 @@ class SDSBEventLogsDirectGateway:
         self,
         spec,
     ):
-        # logger.writeDebug(f"fault_domain_id={fault_domain_id}, name={name}, cluster_role={cluster_role}, protection_domain_id={protection_domain_id}")
-        first = True
-        query = ""
+        params = {}
         if spec.start_time:
-            query = query + f"?startTime={spec.start_time}"
-            first = False
+            params["startTime"] = spec.start_time
         if spec.end_time:
-            if first:
-                query = query + f"?endTime={spec.end_time}"
-                first = False
-            else:
-                query = query + f"&endTime={spec.end_time}"
+            params["endTime"] = spec.end_time
         if spec.severity:
-            if first:
-                query = query + f"?severity={spec.severity}"
-                first = False
-            else:
-                query = query + f"&severity={spec.severity}"
+            params["severity"] = spec.severity
         if spec.severity_ge:
-            if first:
-                query = query + f"?severitGey={spec.severity_ge}"
-                first = False
-            else:
-                query = query + f"&severityGe={spec.severity_ge}"
+            params["severityGe"] = spec.severity_ge
         if spec.max_events:
-            if first:
-                query = query + f"?maxEvents={spec.max_events}"
-                first = False
-            else:
-                query = query + f"&maxEvents={spec.max_events}"
+            params["maxEvents"] = spec.max_events
+
+        query = ""
+        if params:
+            query_parts = ["{}={}".format(k, v) for k, v in params.items()]
+            query = "?" + "&".join(query_parts)
+
         return query
 
     @log_entry_exit

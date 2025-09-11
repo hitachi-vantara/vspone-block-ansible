@@ -2,52 +2,80 @@ import re
 
 try:
     from ..common.hv_constants import ConnectionTypes
+    from ..common.sdsb_constants import AutomationConstants
+    from ..message.sdsb_connection_msgs import SDSBConnectionValidationMsg
+    from ..message.sdsb_volume_msgs import SDSBVolValidationMsg
+    from ..message.sdsb_job_msgs import SDSBJobValidationMsg
+    from ..message.sdsb_event_log_msgs import SDSBEventLogValidationMsg
+    from ..message.sdsb_storage_pool_msgs import SDSBStoragePoolValidationMsg
+    from ..message.sdsb_estimated_capacity_msgs import SDSBEstimatedCapacityValidateMsg
     from ..model.common_base_models import ConnectionInfo
     from ..model.sdsb_volume_models import VolumeFactSpec, VolumeSpec
     from ..model.sdsb_job_models import JobFactSpec
     from ..model.sdsb_compute_node_models import ComputeNodeFactSpec, ComputeNodeSpec
-    from ..model.sdsb_storage_node_models import StorageNodeFactSpec, StorageNodeSpec
+    from ..model.sdsb_storage_node_models import (
+        StorageNodeFactSpec,
+        StorageNodeSpec,
+        StorageNodeBmcAccessSettingFactSpec,
+    )
     from ..model.sdsb_storage_pool_models import StoragePoolFactSpec, StoragePoolSpec
     from ..model.sdsb_cluster_models import ClusterFactSpec, ClusterSpec
     from ..model.sdsb_chap_user_models import ChapUserFactSpec, ChapUserSpec
     from ..model.sdsb_event_logs_model import EventLogFactSpec
-    from ..model.sdsb_block_drives_model import SDSBBlockDrivesSpec
+    from ..model.sdsb_drive_models import SDSBDriveFactSpec, SDSBDriveSpec
     from ..model.sdsb_control_port_model import SDSBControlPortSpec
     from ..model.sdsb_fault_domain_model import SDSBFaultDomainSpec
     from ..model.sdsb_users_model import SDSBUsersSpec
-    from ..model.sdsb_storage_controller_model import SDSBStorageControllerSpec
+    from ..model.sdsb_storage_controller_model import (
+        SDSBStorageControllerFactSpec,
+        SDSBStorageControllerSpec,
+    )
     from ..model.sdsb_port_auth_models import PortAuthSpec
     from ..model.sdsb_port_models import PortFactSpec
     from ..model.sdsb_vps_models import VpsFactSpec, VpsSpec
-    from ..message.sdsb_connection_msgs import SDSBConnectionValidationMsg
-    from ..message.sdsb_volume_msgs import SDSBVolValidationMsg
-    from ..message.sdsb_job_msgs import SDSBJobValidationMsg
-    from ..common.sdsb_constants import AutomationConstants
     from ..model.sdsb_snapshot_models import SDSBSnapshotSpec, SDSBSnapshotFactsSpec
+    from ..model.sdsb_capacity_management_settings_model import (
+        SDSBCapacityManagementSettingsFactSpec,
+    )
+    from ..model.sdsb_estimated_capacity_model import SDSBEstimatedCapacityFactSpec
 except ImportError:
     from common.hv_constants import ConnectionTypes
+    from common.sdsb_constants import AutomationConstants
+    from message.sdsb_connection_msgs import SDSBConnectionValidationMsg
+    from message.sdsb_volume_msgs import SDSBVolValidationMsg
+    from message.sdsb_job_msgs import SDSBJobValidationMsg
+    from message.sdsb_event_log_msgs import SDSBEventLogValidationMsg
+    from message.sdsb_storage_pool_msgs import SDSBStoragePoolValidationMsg
+    from message.sdsb_estimated_capacity_msgs import SDSBEstimatedCapacityValidateMsg
     from model.common_base_models import ConnectionInfo
     from model.sdsb_volume_models import VolumeFactSpec, VolumeSpec
     from model.sdsb_job_models import JobFactSpec
     from model.sdsb_compute_node_models import ComputeNodeFactSpec, ComputeNodeSpec
-    from model.sdsb_storage_node_models import StorageNodeFactSpec, StorageNodeSpec
+    from model.sdsb_storage_node_models import (
+        StorageNodeFactSpec,
+        StorageNodeSpec,
+        StorageNodeBmcAccessSettingFactSpec,
+    )
     from model.sdsb_storage_pool_models import StoragePoolFactSpec, StoragePoolSpec
     from model.sdsb_cluster_models import ClusterFactSpec, ClusterSpec
     from model.sdsb_chap_user_models import ChapUserFactSpec, ChapUserSpec
     from model.sdsb_event_logs_model import EventLogFactSpec
-    from model.sdsb_block_drives_model import SDSBBlockDrivesSpec
+    from model.sdsb_drive_models import SDSBDriveFactSpec, SDSBDriveSpec
     from model.sdsb_control_port_model import SDSBControlPortSpec
     from model.sdsb_fault_domain_model import SDSBFaultDomainSpec
-    from ..model.sdsb_users_model import SDSBUsersSpec
-    from model.sdsb_storage_controller_model import SDSBStorageControllerSpec
+    from model.sdsb_users_model import SDSBUsersSpec
+    from model.sdsb_storage_controller_model import (
+        SDSBStorageControllerFactSpec,
+        SDSBStorageControllerSpec,
+    )
     from model.sdsb_port_auth_models import PortAuthSpec
     from model.sdsb_port_models import PortFactSpec
     from model.sdsb_vps_models import VpsFactSpec, VpsSpec
-    from message.sdsb_connection_msgs import SDSBConnectionValidationMsg
-    from message.sdsb_volume_msgs import SDSBVolValidationMsg
-    from message.sdsb_job_msgs import SDSBJobValidationMsg
-    from common.sdsb_constants import AutomationConstants
     from model.sdsb_snapshot_models import SDSBSnapshotSpec, SDSBSnapshotFactsSpec
+    from model.sdsb_capacity_management_settings_model import (
+        SDSBCapacityManagementSettingsFactSpec,
+    )
+    from model.sdsb_estimated_capacity_model import SDSBEstimatedCapacityFactSpec
 
 
 # SDSB Parameter manager
@@ -141,6 +169,7 @@ class SDSBParametersManager:
     def get_storage_pool_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
             input_spec = StoragePoolSpec(**self.params["spec"])
+            SDSBSpecValidators.validate_storage_pool_spec(input_spec)
         else:
             input_spec = StoragePoolSpec()
         return input_spec
@@ -148,6 +177,13 @@ class SDSBParametersManager:
     def get_storage_pool_fact_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
             input_spec = StoragePoolFactSpec(**self.params["spec"])
+            return input_spec
+        else:
+            return None
+
+    def get_storage_node_bmc_access_setting_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = StorageNodeBmcAccessSettingFactSpec(**self.params["spec"])
             return input_spec
         else:
             return None
@@ -162,15 +198,24 @@ class SDSBParametersManager:
     def get_event_log_fact_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
             input_spec = EventLogFactSpec(**self.params["spec"])
+            SDSBSpecValidators.validate_event_log_facts_spec(input_spec)
         else:
             input_spec = EventLogFactSpec()
         return input_spec
 
+    def get_drive_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = SDSBDriveSpec(**self.params["spec"])
+            SDSBSpecValidators.validate_drive_spec(input_spec)
+        else:
+            input_spec = SDSBDriveSpec()
+        return input_spec
+
     def get_drives_fact_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
-            input_spec = SDSBBlockDrivesSpec(**self.params["spec"])
+            input_spec = SDSBDriveFactSpec(**self.params["spec"])
         else:
-            input_spec = SDSBBlockDrivesSpec()
+            input_spec = SDSBDriveFactSpec()
         return input_spec
 
     def get_fault_domain_fact_spec(self):
@@ -187,11 +232,33 @@ class SDSBParametersManager:
             input_spec = SDSBUsersSpec()
         return input_spec
 
-    def get_storage_controller_fact_spec(self):
+    def get_storage_controller_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
             input_spec = SDSBStorageControllerSpec(**self.params["spec"])
         else:
             input_spec = SDSBStorageControllerSpec()
+        return input_spec
+
+    def get_capacity_management_settings_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = SDSBCapacityManagementSettingsFactSpec(**self.params["spec"])
+        else:
+            input_spec = SDSBCapacityManagementSettingsFactSpec()
+        return input_spec
+
+    def get_estimated_capacity_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = SDSBEstimatedCapacityFactSpec(**self.params["spec"])
+            SDSBSpecValidators().validate_estimated_capacity_fact_spec(input_spec)
+        else:
+            input_spec = SDSBEstimatedCapacityFactSpec()
+        return input_spec
+
+    def get_storage_controller_fact_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = SDSBStorageControllerFactSpec(**self.params["spec"])
+        else:
+            input_spec = SDSBStorageControllerFactSpec()
         return input_spec
 
     def get_control_port_fact_spec(self):
@@ -385,14 +452,17 @@ class SDSBClusterArguments:
     common_arguments = {
         "connection_info": SDSBCommonParameters.get_connection_info(),
         "state": {
-            "required": True,
+            "required": False,
             "type": "str",
             "choices": [
+                "present",
                 "add_storage_node",
                 "remove_storage_node",
                 "download_config_file",
+                "stop_removing_storage_node",
+                "replace_storage_node",
             ],
-            # "default": "present",
+            "default": "present",
         },
         "spec": {
             "required": False,
@@ -572,6 +642,34 @@ class SDSBClusterArguments:
                 "required": False,
                 "type": "str",
             },
+            "machine_image_id": {
+                "required": False,
+                "type": "str",
+            },
+            "is_capacity_balancing_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "controller_id": {
+                "required": False,
+                "type": "str",
+            },
+            "export_file_type": {
+                "required": False,
+                "type": "str",
+                "choices": [
+                    "Normal",
+                    "AddStorageNodes",
+                    # "ReplaceStorageNode",
+                    "AddDrives",
+                    # "ReplaceDrive",
+                ],
+                "default": "Normal",
+            },
+            "no_of_drives": {
+                "required": False,
+                "type": "int",
+            },
         }
         cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
@@ -616,10 +714,10 @@ class SDSBStorageNodeArguments:
     common_arguments = {
         "connection_info": SDSBCommonParameters.get_connection_info(),
         "state": {
-            "required": True,
+            "required": False,
             "type": "str",
-            "choices": ["maintenance", "restore"],
-            # "default": "present",
+            "choices": ["present", "maintenance", "restore"],
+            "default": "present",
         },
         "spec": {
             "required": True,
@@ -639,6 +737,10 @@ class SDSBStorageNodeArguments:
                 "required": False,
                 "type": "str",
             },
+            "is_capacity_balancing_enabled": {
+                "required": False,
+                "type": "bool",
+            },
         }
         cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
@@ -647,6 +749,10 @@ class SDSBStorageNodeArguments:
     def storage_node_facts(cls):
         spec_options = {
             "fault_domain_id": {
+                "required": False,
+                "type": "str",
+            },
+            "id": {
                 "required": False,
                 "type": "str",
             },
@@ -675,10 +781,10 @@ class SDSBStoragePoolArguments:
     common_arguments = {
         "connection_info": SDSBCommonParameters.get_connection_info(),
         "state": {
-            "required": True,
+            "required": False,
             "type": "str",
-            "choices": ["expand"],
-            # "default": "present",
+            "choices": ["present", "expand"],
+            "default": "present",
         },
         "spec": {
             "required": False,
@@ -702,6 +808,15 @@ class SDSBStoragePoolArguments:
                 "required": False,
                 "type": "list",
                 "elements": "str",
+            },
+            "rebuild_capacity_policy": {
+                "required": False,
+                "type": "str",
+                "choices": ["Fixed", "Variable"],
+            },
+            "number_of_tolerable_drive_failures": {
+                "required": False,
+                "type": "int",
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
@@ -1180,6 +1295,24 @@ class SDSBDrivesArguments:
     }
 
     @classmethod
+    def drive(cls):
+        spec_options = {
+            "id": {
+                "required": True,
+                "type": "str",
+            },
+            "should_drive_locator_led_on": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = True
+
+        return cls.common_arguments
+
+    @classmethod
     def drives_facts(cls):
         spec_options = {
             "status_summary": {
@@ -1210,16 +1343,33 @@ class SDSBDrivesArguments:
         return cls.common_arguments
 
 
+class SDSBStotagrNodeBmcAccessSettingArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def storage_node_bmc_access_setting_facts(cls):
+        spec_options = {
+            "id": {
+                "required": True,
+                "type": "str",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+
 class SDSBControlPortArguments:
 
     common_arguments = {
         "connection_info": SDSBCommonParameters.get_connection_info(),
-        # "state": {
-        #     "required": False,
-        #     "type": "str",
-        #     "choices": ["present", "absent"],
-        #     "default": "present",
-        # },
         "spec": {
             "required": False,
             "type": "dict",
@@ -1234,10 +1384,6 @@ class SDSBControlPortArguments:
                 "required": False,
                 "type": "str",
             },
-            # "storage_node_name": {
-            #     "required": False,
-            #     "type": "str",
-            # },
         }
         cls.common_arguments["spec"]["options"] = spec_options
         cls.common_arguments["spec"]["required"] = False
@@ -1385,14 +1531,14 @@ class SDSBUsersArguments:
         return cls.common_arguments
 
 
-class SDSBStorageControllerArguments:
+class SDSBCapacityManagementSettingsArguments:
 
     common_arguments = {
         "connection_info": SDSBCommonParameters.get_connection_info(),
         "state": {
             "required": False,
             "type": "str",
-            "choices": ["present", "absent"],
+            "choices": ["present"],
             "default": "present",
         },
         "spec": {
@@ -1401,6 +1547,114 @@ class SDSBStorageControllerArguments:
             "options": {},
         },
     }
+
+    @classmethod
+    def capacity_management_settings(cls):
+        spec_options = {
+            "storage_controller_id": {
+                "required": False,
+                "type": "str",
+            },
+            "is_detailed_logging_mode": {
+                "required": False,
+                "type": "bool",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+
+        return cls.common_arguments
+
+    @classmethod
+    def capacity_management_settings_facts(cls):
+        spec_options = {
+            "storage_controller_id": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments.pop("state")
+
+        return cls.common_arguments
+
+
+class SDSBEstimatedCapacityArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def estimated_capacity_facts(cls):
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            "name": {
+                "required": False,
+                "type": "str",
+            },
+            "number_of_storage_nodes": {
+                "required": True,
+                "type": "int",
+            },
+            "number_of_drives": {
+                "required": True,
+                "type": "int",
+            },
+            "number_of_tolerable_drive_failures": {
+                "required": True,
+                "type": "int",
+            },
+            "query": {
+                "required": True,
+                "type": "str",
+                "choices": ["specified_configuration", "updated_configuration"],
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+
+        return cls.common_arguments
+
+
+class SDSBStorageControllerArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def storage_controller(cls):
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            "is_detailed_logging_mode": {
+                "required": False,
+                "type": "bool",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+
+        return cls.common_arguments
 
     @classmethod
     def storage_controller_facts(cls):
@@ -1419,7 +1673,6 @@ class SDSBStorageControllerArguments:
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
-        cls.common_arguments["spec"]["required"] = False
         cls.common_arguments.pop("state")
 
         return cls.common_arguments
@@ -1429,11 +1682,6 @@ class SDSBStorageSystemArguments:
 
     common_arguments = {
         "connection_info": SDSBCommonParameters.get_connection_info(),
-        # "spec": {
-        #     "required": False,
-        #     "type": "dict",
-        #     "options": {},
-        # },# commented out as it is not used
     }
 
     @classmethod
@@ -1593,6 +1841,54 @@ class SDSBSpecValidators:
                 or spec.count > AutomationConstants.JOB_COUNT_MAX
             ):
                 raise ValueError(SDSBJobValidationMsg.INVALID_COUNT.value)
+
+    @staticmethod
+    def validate_event_log_facts_spec(spec: EventLogFactSpec):
+        if spec and spec.severity and spec.severity_ge:
+            raise ValueError(SDSBEventLogValidationMsg.BOTH_SEVERITY_SPECIFIED.value)
+
+    @staticmethod
+    def validate_drive_spec(spec: SDSBDriveSpec):
+        if spec and spec.id is None:
+            raise ValueError(SDSBEventLogValidationMsg.BOTH_SEVERITY_SPECIFIED.value)
+
+    @staticmethod
+    def validate_storage_pool_spec(spec):
+        if spec.name is None and spec.id is None:
+            raise ValueError(SDSBStoragePoolValidationMsg.BOTH_ID_AND_NAME_NONE.value)
+        if spec and spec.number_of_tolerable_drive_failures:
+            if (
+                spec.number_of_tolerable_drive_failures < 0
+                or spec.number_of_tolerable_drive_failures > 23
+            ):
+                raise ValueError(
+                    SDSBStoragePoolValidationMsg.TOLERABLE_DRIVES_OUT_OF_RANGE.value
+                )
+        if (
+            spec
+            and spec.rebuild_capacity_policy and spec.rebuild_capacity_policy == "Fixed"
+            and spec.number_of_tolerable_drive_failures is None
+        ):
+            raise ValueError(
+                SDSBStoragePoolValidationMsg.MUST_SPECIFY_NO_OF_TOLERABLE_DRIVES.value
+            )
+        if (
+            spec
+            and spec.number_of_tolerable_drive_failures
+            and spec.rebuild_capacity_policy is None
+        ):
+            raise ValueError(
+                SDSBStoragePoolValidationMsg.MUST_SPECIFY_REBUILD_CAPACITY_POLICY.value
+            )
+
+    @staticmethod
+    def validate_estimated_capacity_fact_spec(spec):
+        if spec.id is None and spec.name is None:
+            raise ValueError(
+                SDSBEstimatedCapacityValidateMsg.BOTH_ID_AND_NAME_NONE.value
+            )
+        # if spec.number_of_storage_nodes is None and spec.number_of_drives is None and spec.number_of_tolerable_drive_failures is None:
+        #     raise ValueError(SDSBEstimatedCapacityValidateMsg.ONE_INPUT_NEEDED.value)
 
 
 def camel_to_snake(name):

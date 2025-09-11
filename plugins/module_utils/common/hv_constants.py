@@ -71,6 +71,10 @@ class StateValue:
     ADD_STORAGE_NODE = "add_storage_node"
     REMOVE_STORAGE_NODE = "remove_storage_node"
     DOWNLOAD_CONFIG_FILE = "download_config_file"
+    ATTACH_SERVER = "attach_server"
+    DETACH_SERVER = "detach_server"
+    UPDATE_QOS = "change_qos_settings"
+    ASSIGN_VIRTUAL_LDEV = "assign_virtual_ldev"
 
 
 class CommonConstants:
@@ -139,6 +143,9 @@ class GatewayClassTypes:
     SDSB_CLUSTER = "sdsb_cluster"
     SDSB_CLUSTER_INFORMATION = "sdsb_cluster_information"
     SDSB_JOB = "sdsb_job"
+    SDSB_BMC_ACCESS_SETTING = "sdsb_bmc_access_setting"
+    SDSB_CAPACITY_MGMT_SETTING = "sdsb_capacity_mgmt_setting"
+    SDSB_ESTIMATED_CAPACITY = "sdsb_estimated_capacity"
 
     UAIG_SUBSCRIBER = "uaig_subscriber"
     UAIG_PASSWORD = "uaig_password"

@@ -97,9 +97,14 @@ class ClusterSpec(SingleBaseClass):
 
     config_file_location: Optional[str] = None
     refresh: Optional[bool] = False
-    export_file_type: Optional[str] = "normal"
+    export_file_type: Optional[str] = None
     node_id: Optional[str] = None
     node_name: Optional[str] = None
+    machine_image_id: Optional[str] = None
+    is_capacity_balancing_enabled: Optional[bool] = None
+    controller_id: Optional[str] = None
+    export_file_type: Optional[str] = None
+    no_of_drives: Optional[int] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

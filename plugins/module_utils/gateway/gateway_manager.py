@@ -27,8 +27,6 @@ except ImportError:
     from model.common_base_models import ConnectionInfo
 
 logger = Log()
-moduleName = "Gateway Manager"
-OPEN_URL_TIMEOUT = 600
 
 
 class SessionObject:
@@ -97,13 +95,18 @@ class ConnectionManager(ABC):
         url = self.base_url + "/" + end_point
         logger.writeDebug("url = {}", url)
 
-        headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-        }
+        if download:
+            headers = {
+                "Content-Length": 0,
+            }
+        else:
+            headers = {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+            }
 
-        if headers_input is not None:
-            headers.update(headers_input)
+            if headers_input is not None:
+                headers.update(headers_input)
 
         if data is not None:
             data = json.dumps(data)
@@ -325,40 +328,117 @@ class SDSBConnectionManager(ConnectionManager):
                 time.sleep(1)
 
     # Construct multipart/form-data body manually
-    def build_multipart_form_data(self, csv_path, setup_user_password):
-        # Read CSV content
-        with open(csv_path, "rb") as f:
-            csv_content = f.read()
+    # def build_multipart_form_data(self, setup_user_password, csv_path=None, exported_config_file=None):
+    #     csv_content = None
+    #     exported_content = None
 
-        # Random boundary string
-        lines = []
+    #     if csv_path:
+    #         # Read CSV content
+    #         with open(csv_path, "rb") as f:
+    #             csv_content = f.read()
 
-        # Text field
-        lines.append(f"--{self.boundary}")
-        lines.append('Content-Disposition: form-data; name="setupUserPassword"')
-        lines.append("")
-        lines.append(setup_user_password)
+    #     if exported_config_file:
+    #         # Read exported config file content
+    #         with open(exported_config_file, "rb") as f2:
+    #             exported_content = f2.read()
 
-        # File field
-        filename = os.path.basename(csv_path)
-        content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
-        lines.append(f"--{self.boundary}")
-        lines.append(
-            f'Content-Disposition: form-data; name="configurationFile"; filename="{filename}"'
-        )
-        lines.append(f"Content-Type: {content_type}")
-        lines.append("")
-        lines.append(csv_content.decode("utf-8", errors="replace"))
+    #     # Random boundary string
+    #     lines = []
+
+    #     # Text field
+    #     lines.append(f"--{self.boundary}")
+    #     lines.append('Content-Disposition: form-data; name="setupUserPassword"')
+    #     lines.append("")
+    #     lines.append(setup_user_password)
+
+    #     # File field
+    #     if csv_path:
+    #         filename = os.path.basename(csv_path)
+    #         content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    #         lines.append(f"--{self.boundary}")
+    #         lines.append(
+    #             f'Content-Disposition: form-data; name="configurationFile"; filename="{filename}"'
+    #         )
+    #         lines.append(f"Content-Type: {content_type}")
+    #         lines.append("")
+    #         lines.append(csv_content.decode("utf-8", errors="replace"))
+
+    #     if exported_config_file:
+    #         filename = os.path.basename(exported_config_file)
+    #         content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    #         lines.append(f"--{self.boundary}")
+    #         lines.append(
+    #             f'Content-Disposition: form-data; name="exportedConfigurationFile"; filename="{filename}"'
+    #         )
+    #         lines.append(f"Content-Type: {content_type}")
+    #         lines.append("")
+    #         lines.append(exported_content.decode("utf-8", errors="replace"))
+
+    #     # Final boundary
+    #     lines.append(f"--{self.boundary}--")
+    #     lines.append("")
+    #     return "\r\n".join(lines).encode("utf-8")
+
+    def build_multipart_form_data(
+        self, setup_user_password, csv_path=None, exported_config_file=None
+    ):
+        boundary = self.boundary.encode("utf-8")
+        body = bytearray()
+
+        def add_field(name, value):
+            body.extend(b"--" + boundary + b"\r\n")
+            body.extend(
+                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode("utf-8")
+            )
+            body.extend(value.encode("utf-8") if isinstance(value, str) else value)
+            body.extend(b"\r\n")
+
+        def add_file_field(field_name, file_path, file_content):
+            filename = os.path.basename(file_path)
+            content_type = (
+                mimetypes.guess_type(filename)[0] or "application/octet-stream"
+            )
+            body.extend(b"--" + boundary + b"\r\n")
+            body.extend(
+                f'Content-Disposition: form-data; name="{field_name}"; filename="{filename}"\r\n'.encode(
+                    "utf-8"
+                )
+            )
+            body.extend(f"Content-Type: {content_type}\r\n\r\n".encode("utf-8"))
+            body.extend(file_content)
+            body.extend(b"\r\n")
+
+        # Add text field
+        add_field("setupUserPassword", setup_user_password)
+
+        # Add files
+        if csv_path:
+            with open(csv_path, "rb") as f:
+                add_file_field("configurationFile", csv_path, f.read())
+
+        if exported_config_file:
+            with open(exported_config_file, "rb") as f2:
+                add_file_field(
+                    "exportedConfigurationFile", exported_config_file, f2.read()
+                )
 
         # Final boundary
-        lines.append(f"--{self.boundary}--")
-        lines.append("")
-        return "\r\n".join(lines).encode("utf-8")
+        body.extend(b"--" + boundary + b"--\r\n")
 
-    def add_storage_node(self, end_point, config_file, setup_user_password):
+        return bytes(body)
+
+    def add_storage_node(
+        self,
+        end_point,
+        setup_user_password,
+        config_file=None,
+        exported_config_file=None,
+    ):
 
         # Encode form data
-        body = self.build_multipart_form_data(config_file, setup_user_password)
+        body = self.build_multipart_form_data(
+            setup_user_password, config_file, exported_config_file
+        )
 
         # Headers
         headers = {
@@ -558,9 +638,42 @@ class VSPConnectionManager(ConnectionManager):
 
     def pegasus_post(self, endpoint, data):
         post_response = self._make_vsp_request("POST", endpoint, data)
-
+        if isinstance(post_response, list):
+            post_response = post_response[0]
         job_id = post_response.get("statusResource").split("/")[-1]
         return self._process_pegasus_job(job_id)
+
+    def pegasus_post_multi_resource(self, endpoint, data):
+        post_response = self._make_vsp_request("POST", endpoint, data)
+        affected_resources = []
+        if isinstance(post_response, list):
+            for response in post_response:
+                job_id = response.get("statusResource").split("/")[-1]
+                job_res = self._process_pegasus_job(job_id)
+                affected_resources.append(job_res.split("/")[-1])
+            return affected_resources
+        else:
+            job_id = response.get("statusResource").split("/")[-1]
+            return self._process_pegasus_job(job_id)
+
+    def pegasus_post_multi_jobs(self, endpoint, data):
+        post_response = self._make_vsp_request("POST", endpoint, data)
+        affected_resources = []
+        error_responses = []
+        if isinstance(post_response, list):
+            for response in post_response:
+                try:
+                    job_id = response.get("statusResource").split("/")[-1]
+                    job_res = self._process_pegasus_job(job_id)
+                    affected_resources.append(job_res.split("/")[-1])
+                except Exception as e:
+                    logger.writeError(f"Failed to process job: {e}")
+                    error_responses.append(str(e))
+
+            return affected_resources, error_responses
+        else:
+            job_id = response.get("statusResource").split("/")[-1]
+            return self._process_pegasus_job(job_id), error_responses
 
     def pegasus_patch(self, endpoint, data):
         patch_response = self._make_vsp_request("PATCH", endpoint, data)
@@ -595,7 +708,6 @@ class VSPConnectionManager(ConnectionManager):
                 if job_status == API.PEGASUS_NORMAL:
                     # For PATCH port-auth-settings, affected resource is empty
                     response = job_response.get(API.AFFECTED_RESOURCES)[0]
-
                 else:
                     raise Exception(job_response.get(API.ERROR_MESSAGE))
             else:
@@ -779,7 +891,7 @@ class VSPConnectionManager(ConnectionManager):
                     if error_resp.get("solution"):
                         error_dtls = error_dtls + " " + error_resp.get("solution")
 
-                    if self.session_expired_msg in error_dtls and self.retryCount < 5:
+                    if error_dtls and self.session_expired_msg in error_dtls and self.retryCount < 5:
                         logger.writeDebug(
                             "The specified token is invalid, trying to re-authenticate."
                         )
@@ -797,7 +909,8 @@ class VSPConnectionManager(ConnectionManager):
                         )
 
                     else:
-                        raise Exception(error_dtls)
+                        parsed_response = error_dtls if error_dtls else error_resp
+                        raise Exception(parsed_response)
             raise Exception(err)
         except Exception as err:
             logger.writeException(err)

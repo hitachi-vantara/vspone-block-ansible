@@ -167,3 +167,7 @@ class SDSBStorageSystemInfo(SingleBaseClass):
     numberOfDrives: int = None
     numberOfComputePorts: int = None
     numberOfStoragePools: int = None
+    apiVersion: str = None
+    productName: str = None
+    clusterId: str = None
+    clusterName: str = None

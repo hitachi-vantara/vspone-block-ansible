@@ -54,6 +54,7 @@ INPUT_TO_REST_MAP = {
     "host_groups": "hostGroupIds",
     "ports": "portIds",
     "parity_groups": "parityGroupIds",
+    "external_parity_groups": "externalParityGroupIds",
     "nvm_subsystem_ids": "nvmSubsystemIds",
 }
 
@@ -285,10 +286,16 @@ class VSPResourceGroupDirectGateway:
     def add_resource(self, rg_id, spec):
         parameters = {}
         logger.writeDebug("add_resource spec= {}", spec)
+        if spec.start_ldev:
+            parameters["startLdevId"] = spec.start_ldev
+        if spec.end_ldev:
+            parameters["endLdevId"] = spec.end_ldev
         if spec.ldevs:
             parameters["ldevIds"] = spec.ldevs
         if spec.parity_groups:
             parameters["parityGroupIds"] = spec.parity_groups
+        if spec.external_parity_groups:
+            parameters["externalParityGroupIds"] = spec.external_parity_groups
         if spec.ports:
             parameters["portIds"] = spec.ports
         if spec.host_groups or spec.iscsi_targets:
@@ -303,8 +310,9 @@ class VSPResourceGroupDirectGateway:
         payload = {"parameters": parameters}
         end_point = ADD_RESOURCE_TO_RESOURCE_GROUP_DIRECT.format(rg_id)
         timeout = None
-        # if spec.add_resource_time_out_in_sec:
-        #     timeout = spec.add_resource_time_out_in_sec
+        if spec.add_resource_time_out_in_sec:
+            timeout = spec.add_resource_time_out_in_sec
+
         resource_group = self.connection_manager.post(
             end_point, payload, timeout=timeout
         )
@@ -315,10 +323,16 @@ class VSPResourceGroupDirectGateway:
     def remove_resource(self, rg_id, spec):
         parameters = {}
 
+        if spec.start_ldev:
+            parameters["startLdevId"] = spec.start_ldev
+        if spec.end_ldev:
+            parameters["endLdevId"] = spec.end_ldev
         if spec.ldevs:
             parameters["ldevIds"] = spec.ldevs
         if spec.parity_groups:
             parameters["parityGroupIds"] = spec.parity_groups
+        if spec.external_parity_groups:
+            parameters["externalParityGroupIds"] = spec.external_parity_groups
         if spec.ports:
             parameters["portIds"] = spec.ports
         if spec.host_groups:

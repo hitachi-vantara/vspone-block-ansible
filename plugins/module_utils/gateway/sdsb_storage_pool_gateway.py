@@ -20,6 +20,7 @@ GET_STORAGE_POOLS = "v1/objects/pools"
 GET_STORAGE_POOLS_QUERY = "v1/objects/pools{}"
 GET_STORAGE_POOLBY_NAME = "v1/objects/pools?name={}"
 GET_STORAGE_POOL_BY_ID = "v1/objects/pools/{}"
+EDIT_STORAGE_POOL_SETTINGS = "v1/objects/pools/{}"
 
 logger = Log()
 
@@ -80,4 +81,24 @@ class SDSBStoragePoolDirectGateway:
         end_point = EXPAND_STORAGE_POOL.format(id)
         payload = {"driveIds": drive_ids}
         storage_pool = self.connection_manager.post(end_point, payload)
+        return storage_pool
+
+    @log_entry_exit
+    def edit_storage_pool_settings(
+        self, id, rebuild_capacity_policy, number_of_tolerable_drive_failures
+    ):
+
+        end_point = EDIT_STORAGE_POOL_SETTINGS.format(id)
+        if rebuild_capacity_policy == "Variable":
+            payload = {
+                "rebuildCapacityPolicy": rebuild_capacity_policy
+            }
+        else:
+            payload = {
+                "rebuildCapacityPolicy": rebuild_capacity_policy,
+                "rebuildCapacityResourceSetting": {
+                    "numberOfTolerableDriveFailures": number_of_tolerable_drive_failures
+                },
+            }
+        storage_pool = self.connection_manager.patch(end_point, payload)
         return storage_pool

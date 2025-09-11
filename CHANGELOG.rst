@@ -4,6 +4,47 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.2.0
+======
+
+Release Summary
+---------------
+
+This minor release of `hitachivantara.vspone_block` introduces new modules for enhanced storage management, adds Azure support, and delivers various improvements and bug fixes.
+
+Minor Changes
+-------------
+
+- Added a new `"hv_sds_block_capacity_management_settings_facts"` module to retrieve capacity management settings from SDS block cluster.
+- Added a new `"hv_sds_block_drive"` module to turn ON and Off the drive locator LED, remove a drive from SDS block cluster.
+- Added a new `"hv_sds_block_storage_controller"` module to edit storage controller settings on SDS block cluster.
+- Added a new `"hv_sds_block_storage_node_bmc_connection_facts"` module to retrieve BMC connection details from SDS block cluster.
+- Added a new `"hv_sds_block_storage_pool_estimated_capacity_facts"` module to retrieve storage pool estimated capacity from SDS block cluster on AWS.
+- Added a new `"hv_vsp_one_volume"` module to enable creation, modification, and deletion of volumes, as well as attaching and detaching to servers on VSP E series and VSP One B2X storages.
+- Added a new `"hv_vsp_one_volume_facts"` module to retrieve volumes information from servers on VSP E series and VSP One B2X storages.
+- Added support for SDS block cluster on Microsoft Azure.
+- Added support to "Edit storage pool settings" to hv_sds_block_storage_pool module.
+- Added support to "Edit the capacity balancing settings" to hv_sds_block_cluster module.
+- Added support with new parameters "start_ldev", "end_ldev", "external_parity_groups" to hv_resource_group module.
+
+New Modules
+-----------
+
+Sds Block
+~~~~~~~~~
+
+- hitachivantara.vspone_block.sds_block.hv_sds_block_capacity_management_settings_facts - Get capacity management settings from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_drive - Manages drive on Hitachi SDS Block storage systems.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_controller - Edits the settings for the storage controller on Hitachi SDS Block storage systems.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_node_bmc_connection_facts - Get storage node BMC access settings from storage system.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_pool_estimated_capacity_facts - Obtains the preliminary calculation results of the storage pool logical capacity (unit TiB).
+
+Vsp
+~~~
+
+- hitachivantara.vspone_block.vsp.hv_vsp_one_volume - Manages volumes on Hitachi VSP One storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_volume_facts - Retrieves facts about Hitachi VSP One storage system volumes.
+
 v4.1.0
 ======
 

@@ -33,8 +33,12 @@ class SDSBClusterProvisioner:
         return self.gateway.download_config_file(file_name)
 
     @log_entry_exit
-    def add_storage_node(self, config_file, setup_user_password):
-        return self.gateway.add_storage_node(config_file, setup_user_password)
+    def add_storage_node(
+        self, setup_user_password, config_file=None, exported_config_file=None
+    ):
+        return self.gateway.add_storage_node(
+            setup_user_password, config_file, exported_config_file
+        )
 
     @log_entry_exit
     def remove_storage_node(self, id):
@@ -47,4 +51,20 @@ class SDSBClusterProvisioner:
     @log_entry_exit
     def get_platform(self):
         platform_gw = SDSBPlatformInfoGateway(self.connection_info)
-        return platform_gw.get_platform()
+        return platform_gw.get_platform().strip()
+
+    @log_entry_exit
+    def create_config_file_for_add_storage_node(self, machine_image_id):
+        return self.gateway.create_config_file_for_add_storage_node(machine_image_id)
+
+    @log_entry_exit
+    def edit_capacity_management_settings(
+        self, is_capacity_balancing_enabled, controller_id=None
+    ):
+        return self.gateway.edit_capacity_management_settings(
+            is_capacity_balancing_enabled, controller_id
+        )
+
+    @log_entry_exit
+    def create_config_file_for_add_drives(self, no_of_drives):
+        return self.gateway.create_config_file_for_add_drives(no_of_drives)

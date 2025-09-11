@@ -114,7 +114,7 @@ class VSPVolumeDirectGateway:
             dicts_to_dataclass_list(vol_data["data"], VSPVolumeInfo)
         )
 
-        if self.is_pegasus:
+        if self.is_pegasus and len(volumes.data) < 100:
             for volume in volumes.data:
                 try:
                     pega_end_point = self.end_points.PEGA_LDEVS_ONE.format(
@@ -306,6 +306,18 @@ class VSPVolumeDirectGateway:
             end_point = self.end_points.GET_FREE_LDEVS_FROM_META_HEAD_LDEV.format(
                 start_ldev, resource_group_id
             )
+        vol_data = self.rest_api.get(end_point)
+        return VSPUndefinedVolumeInfoList(
+            dicts_to_dataclass_list(vol_data["data"], VSPUndefinedVolumeInfo)
+        )
+
+    @log_entry_exit
+    def get_free_ldevs_from_meta_chunks(self, start_ldev=0, count=0):
+
+        end_point = self.end_points.GET_FREE_LDEVS_FROM_META_BASIC.format(
+            start_ldev, count
+        )
+
         vol_data = self.rest_api.get(end_point)
         return VSPUndefinedVolumeInfoList(
             dicts_to_dataclass_list(vol_data["data"], VSPUndefinedVolumeInfo)

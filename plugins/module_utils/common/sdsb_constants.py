@@ -57,53 +57,9 @@ class SDSBlockEndpoints(object):
         "v1/objects/port-auth-settings/{}/chap-users/{}"
     )
 
-    # Base endpoint
-    GET_BLOCK_DRIVES = "v1/objects/drives"
-
-    # Single parameter queries
-    GET_BLOCK_DRIVES_QUERY_STATUS_SUMMARY = "/v1/objects/drives?statusSummary={}"
-    GET_BLOCK_DRIVES_QUERY_STATUS = "/v1/objects/drives?status={}"
-    GET_BLOCK_DRIVES_QUERY_STORAGE_NODE_ID = "/v1/objects/drives?storageNodeId={}"
-    GET_BLOCK_DRIVES_QUERY_LOCATOR_LED_STATUS = "/v1/objects/drives?locatorLedStatus={}"
-
-    # Two parameter combinations
-    GET_BLOCK_DRIVES_QUERY_STATUS_SUMMARY_STATUS = (
-        "/v1/objects/drives?statusSummary={}&status={}"
-    )
-    GET_BLOCK_DRIVES_QUERY_STATUS_SUMMARY_NODE = (
-        "/v1/objects/drives?statusSummary={}&storageNodeId={}"
-    )
-    GET_BLOCK_DRIVES_QUERY_STATUS_SUMMARY_LED = (
-        "/v1/objects/drives?statusSummary={}&locatorLedStatus={}"
-    )
-    GET_BLOCK_DRIVES_QUERY_STATUS_NODE = "/v1/objects/drives?status={}&storageNodeId={}"
-    GET_BLOCK_DRIVES_QUERY_STATUS_LED = (
-        "/v1/objects/drives?status={}&locatorLedStatus={}"
-    )
-    GET_BLOCK_DRIVES_QUERY_NODE_LED = (
-        "/v1/objects/drives?storageNodeId={}&locatorLedStatus={}"
-    )
-
-    # Three parameter combinations
-    GET_BLOCK_DRIVES_QUERY_STATUS_SUMMARY_STATUS_NODE = (
-        "/v1/objects/drives?statusSummary={}&status={}&storageNodeId={}"
-    )
-    GET_BLOCK_DRIVES_QUERY_STATUS_SUMMARY_STATUS_LED = (
-        "/v1/objects/drives?statusSummary={}&status={}&locatorLedStatus={}"
-    )
-    GET_BLOCK_DRIVES_QUERY_STATUS_SUMMARY_NODE_LED = (
-        "/v1/objects/drives?statusSummary={}&storageNodeId={}&locatorLedStatus={}"
-    )
-    GET_BLOCK_DRIVES_QUERY_STATUS_NODE_LED = (
-        "/v1/objects/drives?status={}&storageNodeId={}&locatorLedStatus={}"
-    )
-
     # All parameters
-    GET_BLOCK_DRIVES_QUERY_ALL = "/v1/objects/drives?statusSummary={}&status={}&storageNodeId={}&locatorLedStatus={}"
     GET_FAULT_DOMAINS = "v1/objects/fault-domains"
     GET_FAULT_DOMAINS_ID = "v1/objects/fault-domains/{}"
-    GET_STORAGE_CONTROLLERS = "v1/objects/storage-controllers"
-    GET_STORAGE_CONTROLLERS_ID = "v1/objects/storage-controllers/{}"
     GET_CONTROL_PORTS = "v1/objects/control-ports"
     GET_CONTROL_PORTS_ID = "v1/objects/control-ports/{}"
     GET_INTERNODE_PORTS = "v1/objects/internode-ports"

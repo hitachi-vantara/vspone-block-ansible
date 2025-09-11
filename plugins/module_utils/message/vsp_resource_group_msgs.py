@@ -16,17 +16,15 @@ class VSPResourceGroupValidateMsg(Enum):
         "Resource group id or resource group name should not be provided with query."
     )
     INVALID_START_LDEV_ID = (
-        "Invalid start_ldev_id provided. Supported values are 0 to 65278."
+        "Invalid start_ldev provided. Supported values are 0 to 65278."
     )
-    END_LDEV_ID_REQUIRED = "end_ldev_id is required when start_ldev_id is provided."
-    INVALID_END_LDEV_ID = (
-        "Invalid end_ldev_id provided. Supported values are 1 to 65279."
-    )
-    END_LDEV_LESS_START_LDEV = "end_ldev_id should be greater than start_ldev_id."
+    END_LDEV_ID_REQUIRED = "end_ldev is required when start_ldev is provided."
+    INVALID_END_LDEV_ID = "Invalid end_ldev provided. Supported values are 1 to 65279."
+    END_LDEV_LESS_START_LDEV = "end_ldev should be greater than start_ldev."
     NO_START_END_LDEV_AND_LDEV_IDS = (
-        "Can't provide start_ldev_id and end_ldev_id (range) with ldev_ids."
+        "Can't provide start_ldev and end_ldev (range) with ldev_ids."
     )
-    START_LDEV_ID_REQUIRED = "start_ldev_id is required when end_ldev_id is provided."
+    START_LDEV_ID_REQUIRED = "start_ldev is required when end_ldev is provided."
     INVALID_QUERY = "Invalid query provided: {}. Supported values are {}."
     CONTRADICT_INFO = "Contradicting information provided in the spec. During create, remove task was specified."
     INVALID_VIRTUAL_STORAGE_DEVICE_ID = "Invalid virtual_storage_device_id provided. Minimum number of characters 12 needed."
@@ -54,3 +52,4 @@ class VSPResourceGroupValidateMsg(Enum):
         "Updated Resource Group information not received from Gateway after 5 retries."
         "Ansible retries every 30 seconds, so waited for 2.5 minutes."
     )
+    LDEVS_LIST_AND_RANGE_NOT_ALLOWED = "If you specify this attribute, you cannot specify the start_ldev attribute or the end_ldev attribute."

@@ -36,6 +36,21 @@
         var: result
 
     #########################################################################
+    # Task Name : Add storage node to the storage cluster on Azure cloud
+    #########################################################################
+    - name: Add storage node to the cluster on Azure Cloud
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "add_storage_node"
+        spec:
+          machine_image_id: "hitachivantara:vsp_one_sds_block_image:01_18_00_50_byol:573.0.0"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################
     # Task Name : Add storage node to the cluster using ansible variables
     # Note: This task is supported for Bare Metal and Google Cloud.
     #       This task is not supported for AWS and Microsoft Azure.
@@ -70,13 +85,13 @@
       ansible.builtin.debug:
         var: result
 
-    #######################################################################
+    #################################################################################
     # Task Name : Remove storage node from the cluster by storage node ID
-    # Note: This task is supported for Bare Metal and Google Cloud.
-    #       This task is not supported for AWS and Microsoft Azure.
+    # Note: This task is supported for Bare Metal, Google Cloud, and Microsoft Azure.
+    #       This task is not supported for AWS.
     #       For Google Cloud, it works only for storage nodes, that were
     #       unsuccessful in adding storage nodes operation.
-    #######################################################################
+    #################################################################################
     - name: Remove storage node from the cluster by storage node ID
       hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
         connection_info: "{{ connection_info }}"
@@ -89,13 +104,13 @@
       ansible.builtin.debug:
         var: result
 
-    #######################################################################
+    ####################################################################################
     # Task Name : Remove storage node from the cluster by storage node name
-    # Note: This task is supported for Bare Metal and Google Cloud.
-    #       This task is not supported for AWS and Microsoft Azure.
+    # Note: This task is supported for Bare Metal, Google Cloud, and Microsoft Azure.
+    #       This task is not supported for AWS.
     #       For Google Cloud, it works only for storage nodes, that were
     #       unsuccessful in adding storage nodes operation.
-    #######################################################################
+    ####################################################################################
     - name: Remove storage node from the cluster by storage node name
       hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
         connection_info: "{{ connection_info }}"
@@ -108,11 +123,11 @@
       ansible.builtin.debug:
         var: result
 
-    ####################################################################
+    #################################################################################
     # Task Name : Download cluster configuration file
-    # Note: This task is supported for Bare Metal and Google Cloud.
-    #       This task is not supported for AWS and Microsoft Azure.
-    ####################################################################
+    # Note: This task is supported for Bare Metal, Google Cloud, and Microsoft Azure.
+    #       This task is not supported for AWS.
+    #################################################################################
     - name: Download cluster configuration file
       hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
         connection_info: "{{ connection_info }}"
@@ -125,11 +140,11 @@
       ansible.builtin.debug:
         var: result
 
-    ########################################################################
+    ##################################################################################
     # Task Name : Create the cluster configuration file and then download it
-    # Note: This task is supported for Bare Metal and Google Cloud.
-    #       This task is not supported for AWS and Microsoft Azure.
-    ########################################################################
+    # Note: This task is supported for Bare Metal, Google Cloud, and Microsoft Azure.
+    #       This task is not supported for AWS.
+    ##################################################################################
     - name: Create the cluster configuration file and then download it
       hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
         connection_info: "{{ connection_info }}"
@@ -137,6 +152,77 @@
         spec:
           config_file_location: "/tmp/download2"
           refresh: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################
+    # Task Name : Create the cluster configuration file for different export file types
+    #              Supported export file types are : Normal, AddStorageNodes, and AddDrives.
+    # Note: This task is supported for Bare Metal, Google Cloud, and Microsoft Azure.
+    #       This task is not supported for AWS.
+    ########################################################################################
+    - name: Create the cluster configuration file to add storage nodes and then download it
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "download_config_file"
+        spec:
+          config_file_location: "/tmp/download2"
+          export_file_type: "AddStorageNodes"
+          machine_image_id: "hv-gpse-sophia-lab-dev/hsds-installed-sdsc-01180060-0764"
+          refresh: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################
+    # Task Name : Create the cluster configuration file for different export file types
+    #              Supported export file types are : Normal, AddStorageNodes, and AddDrives.
+    # Note: This task is supported for Bare Metal, Google Cloud, and Microsoft Azure.
+    #       This task is not supported for AWS.
+    ########################################################################################
+    - name: Create the cluster configuration file to add drives and then download it
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "download_config_file"
+        spec:
+          config_file_location: "/tmp/download2"
+          export_file_type: "AddDrives"
+          no_of_drives: 2
+          refresh: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+   ########################################################################
+    # Task Name : Edit the capacity balancing settings of the cluster
+    #######################################################################
+    - name: Edit the capacity balancing settings of the cluster
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        spec:
+          is_capacity_balancing_enabled: false
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+   ####################################################################################
+    # Task Name : Edit the capacity balancing settings of a controller in  the cluster
+    ##################################################################################
+    - name: Edit the capacity balancing settings of a controller in  the cluster
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        spec:
+          controller_id: "46a42ce3-8445-4463-88aa-748f2c711fa1"
+          is_capacity_balancing_enabled: true
       register: result
 
     - name: Debug the result variable

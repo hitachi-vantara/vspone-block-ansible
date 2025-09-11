@@ -6,7 +6,7 @@ try:
         camel_to_snake_case,
     )
     from ..common.hv_log import Log
-    from ..common.hv_constants import StateValue, ConnectionTypes
+    from ..common.hv_constants import StateValue
     from ..provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
     from ..provisioner.vsp_volume_prov import VSPVolumeProvisioner
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
@@ -19,7 +19,7 @@ except ImportError:
         camel_to_snake_case,
     )
     from common.hv_log import Log
-    from common.hv_constants import StateValue, ConnectionTypes
+    from common.hv_constants import StateValue
     from provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
     from provisioner.vsp_volume_prov import VSPVolumeProvisioner
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
@@ -92,20 +92,12 @@ class VSPResourceGroupReconciler:
             if not rg:
                 spec.id = self.create_resource_group(spec)
             else:
-                if (
-                    self.connection_info.connection_type.lower()
-                    == ConnectionTypes.DIRECT
-                ):
-                    spec.id = rg.resourceGroupId
-                else:
-                    spec.id = rg.resourceId
+                spec.id = rg.resourceGroupId
                 self.update_resource_group(rg, spec)
 
             sp_ids = None
-            if self.connection_info.connection_type.lower() == ConnectionTypes.DIRECT:
-                sp_ids = self.provisioner.handle_storage_pools()
-            else:
-                time.sleep(60)
+            sp_ids = self.provisioner.handle_storage_pools()
+
             logger.writeDebug("RC:reconcile_resource_group:spec.id={}", spec.id)
             rg3 = self.provisioner.get_resource_group_by_id(spec.id)
             logger.writeDebug("RC:reconcile_resource_group:rg3={}", rg3)
@@ -246,10 +238,6 @@ class VSPResourceGroupReconciler:
 
     @log_entry_exit
     def update_add_resource(self, rg, spec):
-        self.update_add_resource_direct(rg, spec)
-
-    @log_entry_exit
-    def update_add_resource_direct(self, rg, spec):
         if rg:
             logger.writeDebug("RC:update_add_resource:rg={}", rg)
         ldevs_to_add = None
@@ -496,6 +484,7 @@ class ResourceGroupInfoExtractor:
             "virtualStorageId": int,
             "ldevs": list[int],
             "parityGroups": list[str],
+            "externalParityGroups": list[str],
             "ports": list[str],
             "hostGroups": list[dict],
             "iscsiTargets": list[dict],

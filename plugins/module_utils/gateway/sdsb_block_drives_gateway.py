@@ -1,16 +1,19 @@
 try:
-    from ..common.sdsb_constants import SDSBlockEndpoints
     from .gateway_manager import SDSBConnectionManager
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from ..common.sdsb_utils import convert_keys_to_snake_case
 
 except ImportError:
-    from common.sdsb_constants import SDSBlockEndpoints
     from .gateway_manager import SDSBConnectionManager
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from common.sdsb_utils import convert_keys_to_snake_case
+
+GET_DRIVES = "v1/objects/drives"
+GET_DRIVE_BY_ID = "v1/objects/drives/{}"
+CONTROL_LOCATOR_LED_DRIVE = "v1/objects/drives/{}/actions/control-locator-led/invoke"
+REMOVE_DRIVE = "v1/objects/drives/{}/actions/remove/invoke"
 
 logger = Log()
 
@@ -24,7 +27,7 @@ class SDSBBlockDrivesDirectGateway:
 
     @log_entry_exit
     def get_drives(self, spec=None):
-        end_point = SDSBlockEndpoints.GET_BLOCK_DRIVES
+        end_point = GET_DRIVES
 
         # Build query based on provided parameters
         params = {}
@@ -48,3 +51,29 @@ class SDSBBlockDrivesDirectGateway:
 
         converted = convert_keys_to_snake_case(drives)
         return converted
+
+    @log_entry_exit
+    def get_drive_by_id(self, id):
+        end_point = GET_DRIVE_BY_ID.format(id)
+        response = self.connection_manager.get(end_point)
+        converted = convert_keys_to_snake_case(response)
+        logger.writeDebug(
+            f"GW:get_drive_by_id:response = {response} converted = {converted}"
+        )
+        return converted
+
+    @log_entry_exit
+    def remove_drive(self, id):
+        end_point = REMOVE_DRIVE.format(id)
+        response = self.connection_manager.post(end_point, data=None)
+        return response
+
+    @log_entry_exit
+    def control_locator_led(self, id, turn_on=False):
+        end_point = CONTROL_LOCATOR_LED_DRIVE.format(id)
+        operation_type = "TurnOff"
+        if turn_on:
+            operation_type = "TurnOn"
+        payload = {"operationType": operation_type}
+        response = self.connection_manager.post(end_point, data=payload)
+        return response

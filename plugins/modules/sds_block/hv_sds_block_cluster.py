@@ -31,9 +31,9 @@ options:
   state:
     description: The desired state of the storage cluster.
     type: str
-    required: true
-    # default: "present"
-    choices: ["add_storage_node", "remove_storage_node", "download_config_file"]
+    required: false
+    choices: ["present", "add_storage_node", "remove_storage_node", "download_config_file", 'stop_removing_storage_node', 'replace_storage_node']
+    default: "present"
   spec:
     description: Specification for the storage node to be added to or removed from the cluster.
     type: dict
@@ -49,12 +49,40 @@ options:
           required field when the state field is C(download_config_file).
         type: str
         required: false
+      export_file_type:
+        description: Specifies the type of the configuration file to be output for download. This is a valid field
+          when the state field is C(download_config_file).
+        type: str
+        required: false
+        choices: ['Normal', 'AddStorageNodes', 'AddDrives']
+        default: 'Normal'
+      machine_image_id:
+        description: The ID of the machine image be used for storage node addition or storage node replacement. This is a
+          required field when the export_file_type is C(AddStorageNodes).
+        type: str
+        required: false
+      no_of_drives:
+        description: The number of drives to be installed per storage node after adding the drives. The specified number
+          of drives applies to all storage nodes. This is a required field when the export_file_type is C(AddDrives).
+        type: int
+        required: false
       refresh:
         description: Whether to create the cluster configuration file. This is a valid field
           when the state field is C(download_config_file).
         type: bool
         required: false
         default: false
+      controller_id:
+        description: The ID of the storage controller node for which capacity balancing setting will be
+          changded to value specified by attribute is_capacity_balancing_enabled.
+        type: str
+        required: false
+      is_capacity_balancing_enabled:
+        description: Enables or disables capacity balancing. If this is true, capacity balancing applies.
+          If this is false, capacity balancing does not apply. If controller_id is not specified it will be
+          applied to the cluster, otherwise it will be applied to the controller node.
+        type: bool
+        required: false
       node_id:
         description: The ID of the storage node that will be removed. This field is valid
           when the state field is C(remove_storage_node).

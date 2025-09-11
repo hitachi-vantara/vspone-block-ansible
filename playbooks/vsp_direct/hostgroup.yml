@@ -194,9 +194,9 @@
       ansible.builtin.debug:
         var: result
 
-    ####################################################################
+    #################################################################################
     # Task Name : Release host reserve status of the LU mapped to all LU mapped path.
-    ####################################################################
+    #################################################################################
     - name: Release host reserve status of the LU mapped to all LU mapped path.
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"

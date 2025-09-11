@@ -33,12 +33,12 @@ options:
     required: false
     suboptions:
       severity:
-          description: Filter events by exact severity level
+          description: Filter events by exact severity level. If you specify severity_ge, you can't specify this.
           required: false
           type: str
           choices: [ 'Info', 'Warning', 'Error', 'Critical' ]
       severity_ge:
-          description: Filter events by severity level greater than or equal to
+          description: Filter events by severity level greater than or equal to. If you specify severity, you can't specify this.
           required: false
           type: str
           choices: [ 'Info', 'Warning', 'Error', 'Critical' ]

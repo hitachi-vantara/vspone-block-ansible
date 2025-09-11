@@ -3,7 +3,7 @@ try:
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
 except ImportError:
-    from ..provisioner.sdsb_fault_domain_provisioner import SDSBFaultDomainProvisioner
+    from provisioner.sdsb_fault_domain_provisioner import SDSBFaultDomainProvisioner
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
 
