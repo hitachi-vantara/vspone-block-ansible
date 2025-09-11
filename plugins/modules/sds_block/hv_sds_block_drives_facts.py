@@ -146,7 +146,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     Log,
 )
 
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_block_drives_reconciler import (
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_drives_reconciler import (
     SDSBBlockDrivesReconciler,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (

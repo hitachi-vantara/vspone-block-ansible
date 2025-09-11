@@ -295,14 +295,13 @@ class SDSBStoragePoolFactsManager:
             self.logger.writeInfo("=== End of SDSB Storage Pool Facts ===")
             self.module.fail_json(msg=str(e))
         data = {
-            "changed": self.connection_info.changed,
             "storage_pools": storage_pools,
         }
         if registration_message:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of SDSB Storage Pool Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
 def main():

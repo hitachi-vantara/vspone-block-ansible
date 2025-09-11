@@ -4,6 +4,7 @@ from typing import Optional, List
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from ..common.hv_log import Log
+    from ..common.ansible_common import convert_mib_to_mb, convert_capacity_to_mib
 
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
@@ -109,6 +110,13 @@ class CreateVolumeSpec:
     def __post_init__(self):
         if self.qos_settings:
             self.qos_settings = VolumeQosParamsSpec(**self.qos_settings)
+
+
+@dataclass
+class SalamanderNicknameParam:
+    base_name: str
+    start_number: Optional[int] = None
+    number_of_digits: Optional[int] = None
 
 
 @dataclass
@@ -370,3 +378,242 @@ class VSPUndefinedVolumeInfo:
 @dataclass
 class VSPUndefinedVolumeInfoList(BaseDataClass):
     data: List[VSPUndefinedVolumeInfo] = None
+
+
+@dataclass
+class VolumeQosThreshold(SingleBaseClass):
+    isUpperIopsEnabled: Optional[bool] = None
+    upperIops: Optional[int] = None
+    isUpperTransferRateEnabled: Optional[bool] = None
+    upperTransferRate: Optional[int] = None
+    isLowerIopsEnabled: Optional[bool] = None
+    lowerIops: Optional[int] = None
+    isLowerTransferRateEnabled: Optional[bool] = None
+    lowerTransferRate: Optional[int] = None
+    isResponsePriorityEnabled: Optional[bool] = None
+    responsePriority: Optional[str] = None
+    targetResponseTime: Optional[int] = None
+
+
+@dataclass
+class VolumeQosAlertSetting(SingleBaseClass):
+    isUpperAlertEnabled: Optional[bool] = None
+    upperAlertAllowableTime: Optional[int] = None
+    isLowerAlertEnabled: Optional[bool] = None
+    lowerAlertAllowableTime: Optional[int] = None
+    isResponseAlertEnabled: Optional[bool] = None
+    responseAlertAllowableTime: Optional[int] = None
+
+
+@dataclass
+class VolumeQosAlertTime(SingleBaseClass):
+    # No fields specified in example, placeholder for future extension
+    upperAlertTime: Optional[int] = None
+    lowerAlertTime: Optional[int] = None
+    responseAlertTime: Optional[int] = None
+
+
+@dataclass
+class SimpleVolumeQosConfig(SingleBaseClass):
+    # volumeId: int
+    threshold: Optional[VolumeQosThreshold] = None
+    alertSetting: Optional[VolumeQosAlertSetting] = None
+    alertTime: Optional[VolumeQosAlertTime] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.__post_init__()
+
+    def __post_init__(self):
+        if self.threshold:
+            self.threshold = VolumeQosThreshold(**self.threshold)
+        if self.alertSetting:
+            self.alertSetting = VolumeQosAlertSetting(**self.alertSetting)
+        if self.alertTime:
+            self.alertTime = VolumeQosAlertTime(**self.alertTime)
+
+
+@dataclass
+class SimpleAPILuns(SingleBaseClass):
+    lun: int
+    portId: str
+    serverId: int
+
+
+@dataclass
+class SalamanderSimpleVolumeInfo(SingleBaseClass):
+    id: Optional[int] = None
+    nickname: Optional[str] = None
+    poolId: Optional[int] = None
+    poolName: Optional[str] = None
+    totalCapacity: Optional[int] = None
+    totalCapacityInMB: Optional[int] = None
+    freeCapacity: Optional[int] = None
+    freeCapacityInMB: Optional[int] = None
+    usedCapacity: Optional[int] = None
+    usedCapacityInMB: Optional[int] = None
+    reservedCapacity: Optional[int] = None
+    savingSetting: Optional[str] = None
+    isDataReductionShareEnabled: Optional[bool] = None
+    compressionAcceleration: Optional[bool] = None
+    compressionAccelerationStatus: Optional[str] = None
+    capacitySavingStatus: Optional[str] = None
+    numberOfConnectingServers: Optional[int] = None
+    numberOfSnapshots: Optional[int] = None
+    volumeTypes: Optional[List[str]] = None
+    luns: Optional[List[str]] = None
+    qosSettings: Optional[dict] = None
+    parentVolumeId: Optional[int] = None
+    capacitySavingProgress: Optional[int] = None
+
+    def __post_init__(self):
+        # if self.qosSettings:
+        #     self.qosSettings = SimpleVolumeQosConfig(**self.qosSettings)
+        if self.totalCapacity is not None:
+            # Convert totalCapacity from bytes to MiB
+            self.totalCapacityInMB = convert_mib_to_mb(self.totalCapacity)
+        if self.usedCapacity is not None:
+            # Convert usedCapacity from bytes to MiB
+            self.usedCapacityInMB = convert_mib_to_mb(self.usedCapacity)
+        if self.freeCapacity is not None:
+            # Convert freeCapacity from bytes to MiB
+            self.freeCapacityInMB = convert_mib_to_mb(self.freeCapacity)
+        if self.luns is not None:
+            self.luns = [SimpleAPILuns(**lun) for lun in self.luns]
+
+
+@dataclass
+class SalamanderVSPVolumesInfo(BaseDataClass):
+    data: List[SalamanderSimpleVolumeInfo] = None
+
+
+@dataclass
+class VolumeQosThresholdSimple(SingleBaseClass):
+    is_upper_iops_enabled: Optional[bool] = None
+    upper_iops: Optional[int] = None
+    is_upper_transfer_rate_enabled: Optional[bool] = None
+    upper_transfer_rate: Optional[int] = None
+    is_lower_iops_enabled: Optional[bool] = None
+    lower_iops: Optional[int] = None
+    is_lower_transfer_rate_enabled: Optional[bool] = None
+    lower_transfer_rate: Optional[int] = None
+    is_response_priority_enabled: Optional[bool] = None
+    response_priority: Optional[int] = None
+
+
+@dataclass
+class SimpleVolumeQosAlert(SingleBaseClass):
+    is_upper_alert_enabled: Optional[bool] = None
+    upper_alert_allowable_time: Optional[int] = None
+    is_lower_alert_enabled: Optional[bool] = None
+    lower_alert_allowable_time: Optional[int] = None
+    is_response_alert_enabled: Optional[bool] = None
+    response_alert_allowable_time: Optional[int] = None
+
+
+@dataclass
+class SimpleVolumeQosParamsSpec(SingleBaseClass):
+    threshold: Optional[VolumeQosThresholdSimple] = None
+    alert_setting: Optional[SimpleVolumeQosAlert] = None
+
+    def __post_init__(self):
+        if self.threshold:
+            self.threshold = VolumeQosThresholdSimple(**self.threshold)
+        if self.alert_setting:
+            self.alert_setting = SimpleVolumeQosAlert(**self.alert_setting)
+
+
+@dataclass
+class SalamanderCreateVolumeRequestSpec(SingleBaseClass):
+    capacity: Optional[int] = None  # in MiB
+    number_of_volumes: Optional[int] = 1
+    volume_name: Optional[SalamanderNicknameParam] = None
+    saving_setting: Optional[str] = None
+    is_data_reduction_share_enabled: Optional[bool] = False
+    pool_id: Optional[int] = None
+    volume_id: Optional[int] = None
+    qos_settings: Optional[SimpleVolumeQosParamsSpec] = None
+    server_ids: Optional[List[str]] = None
+    comments: Optional[List[str]] = None
+    compression_acceleration: Optional[bool] = None
+
+    def __post_init__(self):
+        # Convert dict to NicknameParam instance if needed
+        if self.volume_name and isinstance(self.volume_name, dict):
+            self.volume_name = SalamanderNicknameParam(**self.volume_name)
+        if self.capacity is not None:
+            # Convert capacity from string to MiB
+            self.capacity = convert_capacity_to_mib(self.capacity)
+        if self.comments is None:
+            self.comments = []
+        if self.qos_settings and isinstance(self.qos_settings, dict):
+            self.qos_settings = SimpleVolumeQosParamsSpec(**self.qos_settings)
+
+
+@dataclass
+class SalamanderVolumeServerLunInfo(SingleBaseClass):
+    lun: int
+    portId: str
+
+
+@dataclass
+class SalamanderVolumeServerInfo(SingleBaseClass):
+    id: str
+    volumeId: int
+    serverId: int
+    luns: List[SalamanderVolumeServerLunInfo]
+
+    def __post_init__(self):
+        # Ensure luns is a list of SalamanderVolumeServerLunInfo instances
+        if self.luns:
+            self.luns = [
+                (
+                    lun
+                    if isinstance(lun, SalamanderVolumeServerLunInfo)
+                    else SalamanderVolumeServerLunInfo(**lun)
+                )
+                for lun in self.luns
+            ]
+
+
+@dataclass
+class SalamanderVolumeServerConnectionInfo(BaseDataClass):
+    data: List[SalamanderVolumeServerInfo] = None
+
+
+@dataclass
+class SimpleAPIVolumeFactsSpec(SingleBaseClass):
+    pool_id: Optional[int] = None
+    pool_name: Optional[str] = None
+    server_id: Optional[int] = None
+    server_nickname: Optional[str] = None
+    nickname: Optional[str] = None
+    min_total_capacity: Optional[str] = None
+    max_total_capacity: Optional[str] = None
+    min_used_capacity: Optional[str] = None
+    max_used_capacity: Optional[str] = None
+    start_volume_id: Optional[int] = None
+    count: Optional[int] = None
+    volume_id: Optional[int] = None
+    comments: Optional[List[str]] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        for key, value in kwargs.items():
+            if isinstance(value, int) and value < 0 :
+                raise ValueError(f"Invalid value for '{key}': Negative value is not allowed")
+        count = kwargs.get("count", None)
+        if count is not None and count < 1:
+            raise ValueError("Invalid value for 'count': Must be greater than or equal to 1")
+
+        self.__post_init__()
+
+    def __post_init__(self):
+        if self.min_total_capacity is not None:
+            self.min_total_capacity = convert_capacity_to_mib(self.min_total_capacity)
+        if self.max_total_capacity is not None:
+            self.max_total_capacity = convert_capacity_to_mib(self.max_total_capacity)
+        if self.min_used_capacity is not None:
+            self.min_used_capacity = convert_capacity_to_mib(self.min_used_capacity)
+        if self.max_used_capacity is not None:
+            self.max_used_capacity = convert_capacity_to_mib(self.max_used_capacity)

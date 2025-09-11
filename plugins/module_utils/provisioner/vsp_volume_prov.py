@@ -36,6 +36,10 @@ class VSPVolumeProvisioner:
             VSPStorageSystemProvisioner(connection_info).populate_basic_storage_info()
 
     @log_entry_exit
+    def get_volume_by_ldev(self, ldev):
+        return self.gateway.get_volume_by_id(ldev)
+
+    @log_entry_exit
     def get_volumes(
         self,
         start_ldev=None,
@@ -57,10 +61,6 @@ class VSPVolumeProvisioner:
             parity_group_id=parity_group_id,
         )
         return volumes
-
-    @log_entry_exit
-    def get_volume_by_ldev(self, ldev):
-        return self.gateway.get_volume_by_id(ldev)
 
     @log_entry_exit
     def unassign_vldev(self, ldev_id, vldev_id):
@@ -166,29 +166,68 @@ class VSPVolumeProvisioner:
 
     @log_entry_exit
     def get_free_ldevs_from_meta(
-        self, count=10, start_ldev=None, end_ldev=None, resource_grp_id=0
+        self, count=0, start_ldev=None, end_ldev=None, resource_grp_id=0
     ):
-        count = 10 if not count else int(count)
+        if count and count > 0 and end_ldev is not None:
+            err_msg = VSPVolValidationMsg.COUNT_END_LDEV_MUTUALLY_EXCLUSIVE.value
+            logger.writeError(err_msg)
+            return err_msg
+
+        if (end_ldev is not None and start_ldev is not None) and (
+            end_ldev < start_ldev
+        ):
+            err_msg = VSPVolValidationMsg.END_LDEV_SHOULD_BE_GREATER.value
+            logger.writeError(err_msg)
+            return err_msg
+
+        count = (
+            10
+            if (not count and not end_ldev) or (not count and end_ldev)
+            else int(count)
+        )
         resource_grp_id = 0 if not resource_grp_id else int(resource_grp_id)
-        ldevs = self.gateway.get_free_ldevs_from_meta(start_ldev, resource_grp_id)
-        if not ldevs.data:
+        start_ldev = 0 if not start_ldev else int(start_ldev)
+        each_count = 500
+        ldevs_ids = []
+
+        while True:
+
+            if start_ldev > 65279:
+                break
+
+            ldevs = self.gateway.get_free_ldevs_from_meta_chunks(start_ldev, each_count)
+            raw_ldev_ids = [ldev.ldevId for ldev in ldevs.data]
+            ldevs_ids.extend(
+                [
+                    ldev.ldevId
+                    for ldev in ldevs.data
+                    if ldev.resourceGroupId == resource_grp_id
+                ]
+            )
+
+            if len(ldevs_ids) == 0:
+                start_ldev += each_count
+                continue
+
+            if end_ldev is None:
+                if len(ldevs_ids) < count:
+                    start_ldev = max(raw_ldev_ids) + 1
+                else:
+                    break
+            else:
+
+                if max(ldevs_ids) < end_ldev:
+                    start_ldev = max(raw_ldev_ids) + 1
+                else:
+                    ldevs_ids = [ldev for ldev in ldevs_ids if ldev <= end_ldev]
+                    break
+
+        if len(ldevs_ids) < 1:
             err_msg = VSPVolValidationMsg.NO_FREE_LDEV.value
             logger.writeError(err_msg)
             return err_msg
-        ldevs = [
-            ldev.ldevId
-            for ldev in ldevs.data
-            if ldev.resourceGroupId == resource_grp_id
-        ]
-        ldevs = sorted(ldevs)
 
-        if start_ldev is not None:
-            ldevs = [ldev for ldev in ldevs if ldev >= start_ldev]
-        if end_ldev is not None:
-            ldevs = [ldev for ldev in ldevs if ldev <= end_ldev]
-        if count > 0:
-            ldevs = ldevs[:count]
-        return ldevs
+        return ldevs_ids[:count] if not end_ldev else ldevs_ids
 
     @log_entry_exit
     def expand_volume_capacity(self, ldev_id, payload, enhanced_expansion):

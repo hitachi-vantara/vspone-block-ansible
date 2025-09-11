@@ -403,6 +403,60 @@ def convert_to_mb(value):
         )
 
 
+def convert_capacity_to_mib(size: str) -> int:
+    """
+    Convert size string (e.g., '1TB', '500GB', '120MB') to MiB.
+
+    Args:
+        size (str): Size string with unit (MB, GB, TB).
+
+    Returns:
+        int: Equivalent size in MiB (rounded).
+    """
+    size = size.strip().upper()
+
+    # Extract numeric part and unit
+    num = ""
+    for ch in size:
+        if ch.isdigit():
+            num += ch
+        else:
+            break
+
+    if not num:
+        raise ValueError("No numeric value found in input")
+
+    value = int(num)
+    unit = size[len(num) :].strip()
+    if not unit:
+        unit = "MB"
+
+    multipliers = {"MB": 1_000_000, "GB": 1_000_000_000, "TB": 1_000_000_000_000}
+
+    if unit not in multipliers:
+        raise ValueError("Unit must be one of: MB, GB, TB")
+
+    # Convert to bytes
+    bytes_value = value * multipliers[unit]
+
+    # Convert to MiB (rounded to nearest int)
+    return round(bytes_value / (1024 * 1024))
+
+
+def convert_mib_to_mb(mib: int) -> str:
+    """
+    Convert MiB (binary) to MB (decimal).
+    Returns string with MB unit.
+    """
+    # 1 MiB = 1,048,576 bytes
+    bytes_value = mib * 1024 * 1024
+
+    # Convert bytes → MB (1 MB = 1,000,000 bytes)
+    value = round(bytes_value / 1_000_000)
+
+    return f"{value}MB"
+
+
 def check_range(arr, lower_bound, upper_bound):
     return all(lower_bound <= x <= upper_bound for x in arr)
 

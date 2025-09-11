@@ -4,6 +4,9 @@ from typing import Any
 
 try:
     from ..provisioner.sdsb_cluster_provisioner import SDSBClusterProvisioner
+    from ..provisioner.sdsb_capacity_mgmt_settings_provisioner import (
+        SDSBCapacityManagementSettingsProvisioner,
+    )
     from ..provisioner.sdsb_storage_node_provisioner import SDSBStorageNodeProvisioner
     from ..common.hv_constants import StateValue
     from ..common.hv_log import Log
@@ -15,6 +18,9 @@ try:
     from ..message.sdsb_cluster_msgs import SDSBClusterValidationMsg
 except ImportError:
     from provisioner.sdsb_cluster_provisioner import SDSBClusterProvisioner
+    from provisioner.sdsb_capacity_mgmt_settings_provisioner import (
+        SDSBCapacityManagementSettingsProvisioner,
+    )
     from provisioner.sdsb_storage_node_provisioner import SDSBStorageNodeProvisioner
     from common.hv_log import Log
     from common.ansible_common import (
@@ -87,7 +93,9 @@ class SDSBClusterReconciler:
         state = self.state.lower()
         logger.writeDebug(f"spec = {spec}")
         resp_data = None
-        if state == StateValue.ADD_STORAGE_NODE:
+        if state == StateValue.PRESENT:
+            resp_data = self.edit_capacity_management_settings(spec=spec)
+        elif state == StateValue.ADD_STORAGE_NODE:
             resp_data = self.add_storage_node(spec=spec)
         elif state == StateValue.REMOVE_STORAGE_NODE:
             resp_data = self.remove_storage_node(spec=spec)
@@ -95,6 +103,57 @@ class SDSBClusterReconciler:
             resp_data = self.download_config_file(spec=spec)
         if resp_data:
             return resp_data
+
+    @log_entry_exit
+    def edit_capacity_management_settings(self, spec):
+
+        if spec.is_capacity_balancing_enabled is None:
+            return
+        capacity_setting_prov = SDSBCapacityManagementSettingsProvisioner(
+            self.connection_info
+        )
+        response = capacity_setting_prov.get_capacity_management_settings()
+        logger.writeDebug("RC:edit_capacity_management_settings:response={}", response)
+
+        if not self.is_edit_capacity_needed(response, spec):
+            return response
+
+        resp = self.provisioner.edit_capacity_management_settings(
+            spec.is_capacity_balancing_enabled, spec.controller_id
+        )
+        logger.writeDebug("RC:edit_capacity_management_settings:resp={}", resp)
+        self.connection_info.changed = True
+        response = capacity_setting_prov.get_capacity_management_settings()
+        return self.display_response(response)
+
+    @log_entry_exit
+    def is_edit_capacity_needed(self, response, spec):
+        if spec.controller_id is None:
+            cluster_capacity_setting = response["storage_cluster"]["is_enabled"]
+            if cluster_capacity_setting == spec.is_capacity_balancing_enabled:
+                return False
+            else:
+                return True
+        else:
+            controllers = response["storage_controllers"]
+            for x in controllers:
+                if x["id"] == spec.controller_id:
+                    if x["is_enabled"] == spec.is_capacity_balancing_enabled:
+                        return False
+                    else:
+                        return True
+        return False
+
+    @log_entry_exit
+    def display_response(self, response):
+        return {
+            "is_storage_cluster_capacity_balancing_enabled": response[
+                "storage_cluster"
+            ]["is_enabled"],
+            "storage_controllers_capacity_balancing_settings": response[
+                "storage_controllers"
+            ],
+        }
 
     @log_entry_exit
     def validate_input_for_storage_nodes(self, spec, json_object):
@@ -299,7 +358,7 @@ class SDSBClusterReconciler:
 
     @log_entry_exit
     def add_storage_node(self, spec=None):
-        cloud_platforms = ["Google, Inc.", "Msft", "aws", "AWS", "Aws"]
+        cloud_platforms = ["Google, Inc.", "Msft", "Amazon.com, Inc"]
         platform = self.provisioner.get_platform()
         logger.writeDebug(f"add_storage_node:spec = {spec}  platform = {platform}")
         if platform in cloud_platforms and spec.setup_user_password is None:
@@ -317,27 +376,36 @@ class SDSBClusterReconciler:
                     )
                 )
         else:
-            dest_folder = self.download_and_unzip_config_file()
-            file_name = "SystemConfigurationFile.csv"
-            file_path = f"{dest_folder}/{file_name}"
-            json_object = get_json_for_config_file(file_path)
-            logger.writeDebug(f"json_object = {json_object}")
-            new_json = SDSBClusterExtractor().extract(json_object)
-            logger.writeDebug(f"new_json = {new_json}")
-            self.validate_input_for_storage_nodes(spec, new_json)
-            line_entries = self.get_line_entries(spec)
-            self.append_lines_to_config_file(file_path, line_entries)
-            spec.configuration_file = file_path
-            # msg = f"""
-            # Testing the construction of the file line
-            # Here is the line:
-            # {line_entries}
-            # """
-            # return msg
+            if platform == "Msft":
+                self.create_config_file_for_add_storage_node(spec)
+                exported_config_file = self.download_config_file_azure()
+                logger.writeDebug(f"PROV:add_storage_node:spec={spec}")
+                resp = self.provisioner.add_storage_node(
+                    spec.setup_user_password, exported_config_file=exported_config_file
+                )
 
-        resp = self.provisioner.add_storage_node(
-            spec.configuration_file, spec.setup_user_password
-        )
+            else:
+                dest_folder = self.download_and_unzip_config_file()
+                file_name = "SystemConfigurationFile.csv"
+                file_path = f"{dest_folder}/{file_name}"
+                json_object = get_json_for_config_file(file_path)
+                logger.writeDebug(f"json_object = {json_object}")
+                new_json = SDSBClusterExtractor().extract(json_object)
+                logger.writeDebug(f"new_json = {new_json}")
+                self.validate_input_for_storage_nodes(spec, new_json)
+                line_entries = self.get_line_entries(spec)
+                self.append_lines_to_config_file(file_path, line_entries)
+                spec.configuration_file = file_path
+                # msg = f"""
+                # Testing the construction of the file line
+                # Here is the line:
+                # {line_entries}
+                # """
+                # return msg
+
+                resp = self.provisioner.add_storage_node(
+                    spec.setup_user_password, config_file=spec.configuration_file
+                )
         msg = f"""
         Successfully started add storage node to the cluster job. This is a long running operation, and might take an hour or so.
         You can check the status of the job started periodically using hv_sds_block_job_facts module.
@@ -345,6 +413,18 @@ class SDSBClusterReconciler:
         """
         self.connection_info.changed = True
         return msg
+
+    @log_entry_exit
+    def create_config_file_for_add_storage_node(self, spec=None):
+        logger.writeDebug(f"PROV:create_config_file:spec={spec}")
+        if spec is None:
+            raise ValueError(SDSBClusterValidationMsg.SPEC_NONE.value)
+
+        spec.export_file_type = "AddStorageNodes"
+        if spec.machine_image_id is None:
+            raise ValueError(SDSBClusterValidationMsg.SPEC_NONE.value)
+
+        self.provisioner.create_config_file_for_add_storage_node(spec.machine_image_id)
 
     @log_entry_exit
     def append_lines_to_config_file(self, file_path, lines_to_append):
@@ -394,16 +474,167 @@ class SDSBClusterReconciler:
     @log_entry_exit
     def create_config_file(self, spec=None):
         logger.writeDebug(f"PROV:create_config_file:spec={spec}")
-        if spec and spec.export_file_type:
-            self.provisioner.create_config_file(spec.export_file_type)
+        platform = self.provisioner.get_platform()
+        logger.writeDebug(f"PROV:create_config_file:platform={platform}")
+
+        # This code is for testing on bare metal to check the request before testing on cloud.
+        # comment this out when testing is done
+        # if platform == "HP":
+        # return self.create_config_file_gcp(spec)
+        # return self.create_config_file_azure(spec)
+
+        if platform == "Msft":
+            return self.create_config_file_azure(spec)
+        elif platform == "Google, Inc.":
+            return self.create_config_file_gcp(spec)
+        elif platform == "Amazon.com, Inc":
+            return self.create_config_file_aws(spec)
         else:
-            self.provisioner.create_config_file("normal")
+            return self.create_config_file_bare_matel(spec)
+
+    @log_entry_exit
+    def create_config_file_azure(self, spec=None):
+        if spec is None:
+            raise ValueError(SDSBClusterValidationMsg.SPEC_REQD_CONFIG_CLOUD.value)
+        azure_export_file_types = [
+            "AddStorageNodes",
+            "ReplaceStorageNode",
+            "AddDrives",
+            "Normal",
+        ]
+        platform = "Microsoft Azure"
+        if spec.export_file_type is None:
+            raise ValueError(
+                SDSBClusterValidationMsg.EXPORT_FILE_TYPE_REQD_CONFIG_CLOUD.value.format(
+                    platform
+                )
+            )
+        else:
+            exf_type = spec.export_file_type
+            if exf_type not in azure_export_file_types:
+                raise ValueError(
+                    SDSBClusterValidationMsg.INVALID_EXPORT_FILE_TYPE.value.format(
+                        platform, azure_export_file_types
+                    )
+                )
+
+            if exf_type == "AddStorageNodes" or exf_type == "ReplaceStorageNode":
+                if spec.machine_image_id is None:
+                    raise ValueError(
+                        SDSBClusterValidationMsg.MACHINE_IMAGE_ID_REQD_CONFIG_CLOUD.value.format(
+                            platform
+                        )
+                    )
+                if exf_type == "AddStorageNodes":
+                    return self.provisioner.create_config_file_for_add_storage_node(
+                        spec.machine_image_id
+                    )
+                if exf_type == "ReplaceStorageNode":
+                    raise ValueError(
+                        SDSBClusterValidationMsg.OPERATION_NOT_SUPPORTED_YET.value.format(
+                            platform
+                        )
+                    )
+            elif exf_type == "AddDrives":
+                if spec.no_of_drives is None:
+                    raise ValueError(
+                        SDSBClusterValidationMsg.NO_OF_DRIVES_REQD_CONFIG_CLOUD.value.format(
+                            platform
+                        )
+                    )
+                return self.provisioner.create_config_file_for_add_drives(
+                    spec.no_of_drives
+                )
+            elif exf_type == "Normal":
+                return self.provisioner.create_config_file("normal")
+
+    @log_entry_exit
+    def create_config_file_gcp(self, spec=None):
+        if spec is None:
+            raise ValueError(SDSBClusterValidationMsg.SPEC_REQD_CONFIG_CLOUD.value)
+        gcp_export_file_types = [
+            "AddStorageNodes",
+            "ReplaceStorageNode",
+            "AddDrives",
+            "ReplaceDrive",
+            "Normal",
+        ]
+        platform = "Google"
+        if spec.export_file_type is None:
+            raise ValueError(
+                SDSBClusterValidationMsg.EXPORT_FILE_TYPE_REQD_CONFIG_CLOUD.value.format(
+                    platform
+                )
+            )
+        else:
+            exf_type = spec.export_file_type
+            if exf_type not in gcp_export_file_types:
+                raise ValueError(
+                    SDSBClusterValidationMsg.INVALID_EXPORT_FILE_TYPE.value.format(
+                        platform, gcp_export_file_types
+                    )
+                )
+
+            if exf_type == "AddStorageNodes" or exf_type == "ReplaceStorageNode":
+                if spec.machine_image_id is None:
+                    raise ValueError(
+                        SDSBClusterValidationMsg.MACHINE_IMAGE_ID_REQD_CONFIG_CLOUD.value.format(
+                            platform
+                        )
+                    )
+                if exf_type == "AddStorageNodes":
+                    return self.provisioner.create_config_file_for_add_storage_node(
+                        spec.machine_image_id
+                    )
+                if exf_type == "ReplaceStorageNode":
+                    raise ValueError(
+                        SDSBClusterValidationMsg.OPERATION_NOT_SUPPORTED_YET.value.format(
+                            platform
+                        )
+                    )
+            elif exf_type == "AddDrives":
+                if spec.no_of_drives is None:
+                    raise ValueError(
+                        SDSBClusterValidationMsg.NO_OF_DRIVES_REQD_CONFIG_CLOUD.value.format(
+                            platform
+                        )
+                    )
+                return self.provisioner.create_config_file_for_add_drives(
+                    spec.no_of_drives
+                )
+            elif exf_type == "ReplaceDrive":
+                raise ValueError(
+                    SDSBClusterValidationMsg.OPERATION_NOT_SUPPORTED_YET.value.format(
+                        platform
+                    )
+                )
+            elif exf_type == "Normal":
+                return self.provisioner.create_config_file("normal")
+
+    @log_entry_exit
+    def create_config_file_aws(self, spec=None):
+        return self.provisioner.create_config_file("normal")
+
+    @log_entry_exit
+    def create_config_file_bare_matel(self, spec=None):
+        return self.provisioner.create_config_file("normal")
+
+    @log_entry_exit
+    def download_config_file_azure(self):
+        try:
+            time_stamp = time.time_ns()
+            file_name = f"/tmp/config_file_{time_stamp}.tar.gz"
+            self.provisioner.download_config_file(file_name)
+            return file_name
+        except Exception as e:
+            logger.writeException(e)
+            raise Exception(e)
 
     @log_entry_exit
     def download_and_unzip_config_file(self, spec=None):
         try:
             time_stamp = time.time_ns()
-            file_name = f"/tmp/config_file_{time_stamp}.zip"
+            file_name = f"/tmp/config_file_{time_stamp}.tar.gz"
             self.provisioner.download_config_file(file_name)
 
             file_to_unzip = file_name

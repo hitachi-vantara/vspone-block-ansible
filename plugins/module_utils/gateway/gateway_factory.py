@@ -20,8 +20,10 @@ from .sdsb_storage_node_gateway import SDSBStorageNodeDirectGateway
 from .sdsb_storage_pool_gateway import SDSBStoragePoolDirectGateway
 from .sdsb_cluster_gateway import SDSBClusterGateway
 from .sdsb_job_gateway import SDSBJobGateway
-from .vsp_snapshot_gateway import VSPHtiSnapshotDirectGateway
+from .sdsb_capacity_mgmt_settings_gateway import SDSBCapacityMgmtSettingGateway
+from .sdsb_estimated_capacity_gateway import SDSBEstimatedCapacityGateway
 
+from .vsp_snapshot_gateway import VSPHtiSnapshotDirectGateway
 from .vsp_volume import VSPVolumeDirectGateway
 from .vsp_host_group_gateway import VSPHostGroupDirectGateway
 from .vsp_shadow_image_pair_gateway import (
@@ -78,6 +80,7 @@ from .vsp_spm_gateway import VSPSpmGateway
 from .vsp_storage_system_monitor_gateway import VSPStorageSystemMonitorGateway
 from .sdsb_cluster_information_gateway import SDSBBlockClusterInformationDirectGateway
 from .sdsb_users_gateway import SDSBBlockUsersDirectGateway
+from .sdsb_bmc_access_setting_gw import SDSBBlockBmcAccessSettingGateway
 
 GATEWAY_MAP = {
     ConnectionTypes.DIRECT: {
@@ -132,6 +135,9 @@ GATEWAY_MAP = {
         GatewayClassTypes.SDSB_CONTROL_PORT: SDSBBlockControlPortDirectGateway,
         GatewayClassTypes.SDSB_CLUSTER_INFORMATION: SDSBBlockClusterInformationDirectGateway,
         GatewayClassTypes.SDSB_USER: SDSBBlockUsersDirectGateway,
+        GatewayClassTypes.SDSB_BMC_ACCESS_SETTING: SDSBBlockBmcAccessSettingGateway,
+        GatewayClassTypes.SDSB_CAPACITY_MGMT_SETTING: SDSBCapacityMgmtSettingGateway,
+        GatewayClassTypes.SDSB_ESTIMATED_CAPACITY: SDSBEstimatedCapacityGateway,
     },
 }
 

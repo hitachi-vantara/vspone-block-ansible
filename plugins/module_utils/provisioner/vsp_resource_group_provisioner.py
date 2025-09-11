@@ -1,14 +1,12 @@
 try:
     from ..gateway.gateway_factory import GatewayFactory
-    from ..common.hv_constants import GatewayClassTypes, ConnectionTypes
+    from ..common.hv_constants import GatewayClassTypes
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from ..model.vsp_resource_group_models import (
         DisplayResourceGroup,
         DisplayResourceGroupList,
         HostGroupInfo,
-        UaigResourceGroupInfo,
-        UaigResourceGroupInfoList,
     )
     from ..model.vsp_iscsi_target_models import IscsiTargetFactSpec
     from .vsp_storage_port_provisioner import VSPStoragePortProvisioner
@@ -16,15 +14,13 @@ try:
 
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
-    from common.hv_constants import GatewayClassTypes, ConnectionTypes
+    from common.hv_constants import GatewayClassTypes
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from model.vsp_resource_group_models import (
         DisplayResourceGroup,
         DisplayResourceGroupList,
         HostGroupInfo,
-        UaigResourceGroupInfo,
-        UaigResourceGroupInfoList,
     )
     from model.vsp_iscsi_target_models import IscsiTargetFactSpec
 
@@ -56,61 +52,7 @@ class VSPResourceGroupProvisioner:
         self.spec = None
 
     @log_entry_exit
-    def get_resource_groups(self, spec=None, refresh=None):
-
-        return self.get_resource_groups_direct(spec)
-
-    @log_entry_exit
-    def get_resource_groups_gw(self, spec=None, refresh=None):
-        if spec is None or spec.is_empty():
-            resource_groups = self.gateway.get_resource_groups(spec, refresh)
-            # logger.writeDebug("PV:resource_groups={}", resource_groups)
-            # return resource_groups
-            return self.convert_rg_list_to_display_rg_list(
-                resource_groups.data, None, None
-            )
-        else:
-            ret_list = []
-
-            if spec.id:
-                resource_group = self.get_resource_group_by_rg_id(spec.id)
-                logger.writeDebug("PV:resource_group={}", resource_group)
-                if resource_group is None:
-                    return None
-                display_rg = self.convert_rg_to_display_rg(
-                    resource_group, None, spec.query
-                )
-                ret_list.append(display_rg)
-                return DisplayResourceGroupList(data=ret_list)
-
-            elif spec.name:
-                resource_group = self.get_resource_group_by_name(spec.name)
-                logger.writeDebug("PV:resource_group={}", resource_group)
-                if resource_group is None:
-                    return None
-                display_rg = self.convert_rg_to_display_rg(
-                    resource_group, None, spec.query
-                )
-                ret_list.append(display_rg)
-                return DisplayResourceGroupList(data=ret_list)
-            else:
-                resource_groups = self.get_resource_groups_for_query(spec)
-                if spec.is_locked is not None:
-                    if spec.is_locked:
-                        resource_groups = self.get_locked_resource_group_gw(
-                            resource_groups
-                        )
-                    else:
-                        resource_groups = self.get_unlocked_resource_group_gw(
-                            resource_groups
-                        )
-
-                return self.convert_rg_list_to_display_rg_list(
-                    resource_groups, None, spec.query
-                )
-
-    @log_entry_exit
-    def get_resource_groups_direct(self, spec=None):
+    def get_resource_groups(self, spec=None):
         if spec is None:
             resource_groups = self.gateway.get_resource_groups()
             # logger.writeDebug("PV:resource_groups={}", resource_groups)
@@ -203,37 +145,6 @@ class VSPResourceGroupProvisioner:
             return None
 
     @log_entry_exit
-    def get_resource_groups_for_query(self, spec):
-        resource_groups = self.gateway.get_resource_groups()
-        if spec.query is None:
-            return resource_groups
-        ret_list = []
-        include_volume = True if "ldevs" in spec.query else False
-        include_parity_group = True if "parity_groups" in spec.query else False
-        include_port = True if "ports" in spec.query else False
-        include_host_group = True if "host_groups" in spec.query else False
-        # include_iscsi_target = True if "iscsi_targets" in spec.query else False
-        # include_nvm_subsystem = True if "nvm_subsystem_ids" in spec.query else False
-        include_pool = True if "storage_pool_ids" in spec.query else False
-        for rg in resource_groups.data:
-            tmp_rg = UaigResourceGroupInfo(
-                resourceId=None,
-                resourceGroupName=rg.resourceGroupName,
-                resourceGroupId=rg.resourceGroupId,
-                virtualDeviceId=rg.virtualDeviceId,
-                virtualDeviceType=rg.virtualDeviceType,
-                locked=rg.locked,
-                parityGroups=rg.parityGroups if include_parity_group else None,
-                hostGroups=rg.hostGroups if include_host_group else None,
-                volumes=rg.volumes if include_volume else None,
-                ports=rg.ports if include_port else None,
-                pools=rg.pools if include_pool else None,
-                metaResourceSerial=rg.metaResourceSerial,
-            )
-            ret_list.append(tmp_rg)
-        return ret_list
-
-    @log_entry_exit
     def get_resource_group_by_id(self, id):
         try:
             resource_group = self.gateway.get_resource_group_by_id(id)
@@ -253,8 +164,7 @@ class VSPResourceGroupProvisioner:
     def convert_rg_list_to_display_rg_list(self, rg_list, sp_ids, query):
         display_rg_list = []
         logger.writeDebug("PV:220:rg_list={}", rg_list)
-        if isinstance(rg_list, UaigResourceGroupInfoList):
-            rg_list = rg_list.data
+
         for rg in rg_list:
             # don't do all this crap for meta resource groups
             if rg.resourceGroupId == 0:
@@ -333,11 +243,13 @@ class VSPResourceGroupProvisioner:
         display_rg.lockSessionId = (
             rg.lockSessionId if hasattr(rg, "lockSessionId") else None
         )
+        logger.writeDebug("PV:get_display_resource_groups:resource_group ={}", rg)
         if query is None:
             if sp_ids:
                 display_rg.storagePoolIds = sp_ids
             display_rg.ldevs = rg.ldevIds
             display_rg.parityGroups = rg.parityGroupIds
+            display_rg.externalParityGroups = rg.externalParityGroupIds
             display_rg.ports = rg.portIds
             display_rg.hostGroups = self.get_display_host_groups(host_group_ids)
             display_rg.iscsiTargets = self.get_display_iscsi_targets(iscsi_target_ids)
@@ -353,6 +265,11 @@ class VSPResourceGroupProvisioner:
                     display_rg.parityGroups = rg.parityGroupIds
                 else:
                     display_rg.parityGroups = []
+            if "external_parity_groups" in query:
+                if rg.externalParityGroupIds:
+                    display_rg.externalParityGroups = rg.externalParityGroupIds
+                else:
+                    display_rg.externalParityGroups = []
             if "ports" in query:
                 if rg.portIds:
                     display_rg.ports = rg.portIds
@@ -409,18 +326,13 @@ class VSPResourceGroupProvisioner:
 
     @log_entry_exit
     def add_resource(self, rg, spec):
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            try:
-                ret_value = self.gateway.add_resource(rg.resourceGroupId, spec)
-                logger.writeError("PV:add_resource:ret_value={}", ret_value)
-                return ret_value
-            except Exception as e:
-                logger.writeError(
-                    f"An error occurred during add_resource call: {str(e)}"
-                )
-                raise ValueError(str(e))
-        else:
-            return self.gateway.add_resource(rg.resourceId, spec)
+        try:
+            ret_value = self.gateway.add_resource(rg.resourceGroupId, spec)
+            logger.writeError("PV:add_resource:ret_value={}", ret_value)
+            return ret_value
+        except Exception as e:
+            logger.writeError(f"An error occurred during add_resource call: {str(e)}")
+            raise ValueError(str(e))
 
     @log_entry_exit
     def get_host_group_id(self, port, name):
@@ -504,91 +416,31 @@ class VSPResourceGroupProvisioner:
 
     @log_entry_exit
     def remove_resource(self, rg, spec):
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            return self.gateway.remove_resource(rg.resourceGroupId, spec)
-        else:
-            self.update_spec_for_removal_gw(rg, spec)
-            logger.writeDebug("PV:remove_resource:updated_spec={}", spec)
-            if self.is_update_needed(spec):
-                return self.gateway.remove_resource(rg.resourceId, spec)
-            return None
+        return self.gateway.remove_resource(rg.resourceGroupId, spec)
 
     @log_entry_exit
     def is_update_needed(self, spec):
         if (
             (spec.ldevs is None or len(spec.ldevs) == 0)
             and (spec.parity_groups is None or len(spec.parity_groups) == 0)
+            and (
+                spec.external_parity_groups is None
+                or len(spec.external_parity_groups) == 0
+            )
             and (spec.ports is None or len(spec.ports) == 0)
             and (spec.host_groups is None or len(spec.host_groups) == 0)
             and (spec.iscsi_targets is None or len(spec.iscsi_targets) == 0)
             and (spec.storage_pool_ids is None or len(spec.storage_pool_ids) == 0)
             and (spec.nvm_subsystem_ids is None or len(spec.nvm_subsystem_ids) == 0)
+            and (spec.start_ldev is None)
+            and (spec.end_ldev is None)
         ):
             return False
         return True
 
     @log_entry_exit
-    def update_spec_for_removal_gw(self, rg, spec):
-        if spec.ldevs:
-            if rg.volumes:
-                spec.ldevs = list(set(rg.volumes) & set(spec.ldevs))
-            else:
-                spec.ldevs = []
-        if spec.parity_groups:
-            if rg.parityGroups:
-                spec.parity_groups = list(
-                    set(rg.parityGroups) & set(spec.parity_groups)
-                )
-            else:
-                spec.parity_groups = []
-        if spec.ports:
-            if rg.ports:
-                spec.ports = list(set(rg.ports) & set(spec.ports))
-            else:
-                spec.ports = []
-        if spec.host_groups:
-            if rg.hostGroups:
-                logger.writeDebug(
-                    "PV:update_spec_for_removal_gw:rg.hostGroups={}", rg.hostGroups
-                )
-                logger.writeDebug(
-                    "PV:update_spec_for_removal_gw:rg.spec.host_groups={}",
-                    spec.host_groups,
-                )
-                hgs_to_remove = []
-                for hg in rg.hostGroups:
-                    for spec_hg in spec.host_groups:
-                        if hg.get("hostGroupName") == spec_hg.get("name"):
-                            hgs_to_remove.append(spec_hg)
-
-                spec.host_groups = hgs_to_remove
-            else:
-                spec.host_groups = []
-        if spec.iscsi_targets:
-            if rg.iscsiTargets:
-                iscsi_targets_to_remove = []
-                for iscsi in rg.iscsiTargets:
-                    for iscsi_target in spec.iscsi_targets:
-                        if iscsi.get("iscsiName") == iscsi_target.get("name"):
-                            iscsi_targets_to_remove.append(iscsi_target)
-
-                spec.iscsi_targets = iscsi_targets_to_remove
-            else:
-                spec.iscsi_targets = []
-        if spec.storage_pool_ids:
-            if rg.pools:
-                spec.storage_pool_ids = list(set(rg.pools) & set(spec.storage_pool_ids))
-            else:
-                spec.storage_pool_ids = []
-        return
-
-    @log_entry_exit
     def delete_resource_group(self, resource_group, spec):
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            return self.gateway.delete_resource_group(resource_group.resourceGroupId)
-        else:
-            resource_id = resource_group.resourceId
-            return self.gateway.delete_resource_group(resource_id, spec)
+        return self.gateway.delete_resource_group(resource_group.resourceGroupId)
 
     @log_entry_exit
     def delete_resource_group_force(self, resource_group):

@@ -55,10 +55,10 @@ class SDSBStoragePoolReconciler:
                             s_pools.data_to_list()
                         )
 
-                    logger.writeDebug(
-                        "RC:get_storage_pools:extracted_data={}", extracted_data
-                    )
-                    return extracted_data
+                logger.writeDebug(
+                    "RC:get_storage_pools:extracted_data={}", extracted_data
+                )
+                return extracted_data
         except Exception as e:
             if "HTTP Error 404: Not Found" in str(e):
                 raise ValueError(SDSBStoragePoolValidationMsg.WRONG_POOL_ID.value)
@@ -70,26 +70,63 @@ class SDSBStoragePoolReconciler:
         state = self.state.lower()
 
         resp_data = None
-        if state == StateValue.EXPAND:
+        if state == StateValue.PRESENT:
+            resp_data = self.edit_storage_pool_settings(spec=spec)
+        elif state == StateValue.EXPAND:
             resp_data = self.expand_storage_pool(spec=spec)
-            if resp_data:
-                s_pool = self.provisioner.get_storage_pool_by_id(resp_data)
-                logger.writeDebug("RC:expand_storage_pool:s_pool={}", s_pool)
-                extracted_data = SDSBStoragePoolExtractor().extract([s_pool.to_dict()])
-                return extracted_data
 
-        # if resp_data:
-        #     logger.writeDebug("RC:resp_data={}  state={}", resp_data, state)
-        #     if isinstance(resp_data, dict):
-        #         return resp_data
-
-        #     resp_in_dict = resp_data.to_dict()
-        #     logger.writeDebug("RC:reconcile_true_copy:tc_pairs={}", resp_in_dict)
-
-        #     return SDSBStoragePoolExtractor().extract([resp_in_dict])
-
+        if resp_data:
+            s_pool = self.provisioner.get_storage_pool_by_id(resp_data)
+            logger.writeDebug("RC:expand_storage_pool:s_pool={}", s_pool)
+            extracted_data = SDSBStoragePoolExtractor().extract([s_pool.to_dict()])
+            return extracted_data
         else:
             return None
+
+    @log_entry_exit
+    def edit_storage_pool_settings(self, spec):
+        logger.writeDebug("RC:edit_storage_pool_settings:spec={} ", spec)
+
+        if spec.id is None:
+            pool = self.provisioner.get_pool_by_pool_name(spec.name)
+            if pool:
+                spec.id = pool.id
+            logger.writeDebug("RC:edit_storage_pool_settings:spec.id={} ", spec.id)
+        else:
+            try:
+                pool = self.provisioner.get_storage_pool_by_id(spec.id)
+            except Exception as e:
+                if "HTTP Error 404: Not Found" in str(e):
+                    raise ValueError(SDSBStoragePoolValidationMsg.WRONG_POOL_ID.value)
+                else:
+                    raise Exception(e)
+        if spec.id is None:
+            raise ValueError(
+                SDSBStoragePoolValidationMsg.STORAGE_POOL_NOT_FOUND.value.format(
+                    spec.name
+                )
+            )
+        if not self.is_edit_pool_needed(pool, spec):
+            return pool.id
+        resp = self.provisioner.edit_storage_pool_settings(
+            spec.id,
+            spec.rebuild_capacity_policy,
+            spec.number_of_tolerable_drive_failures,
+        )
+        self.connection_info.changed = True
+        return resp
+
+    @log_entry_exit
+    def is_edit_pool_needed(self, pool, spec):
+        changed = False
+        if spec.rebuild_capacity_policy != pool.rebuildCapacityPolicy:
+            changed = True
+        if (
+            spec.number_of_tolerable_drive_failures
+            != pool.rebuildCapacityResourceSetting["numberOfTolerableDriveFailures"]
+        ):
+            changed = True
+        return changed
 
     @log_entry_exit
     def expand_storage_pool(self, spec):
@@ -118,8 +155,6 @@ class SDSBStoragePoolReconciler:
 
     @log_entry_exit
     def validate_expand_spec(self, spec: Any) -> None:
-        if spec.name is None and spec.id is None:
-            raise ValueError(SDSBStoragePoolValidationMsg.BOTH_ID_AND_NAME_NONE.value)
         if spec.drive_ids is None or len(spec.drive_ids) == 0:
             raise ValueError(
                 SDSBStoragePoolValidationMsg.DRIVE_IDS_REQD_FOR_EXPAND.value

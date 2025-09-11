@@ -22,6 +22,9 @@ BLOCK_FOR_MAINTENANCE = (
     "v1/objects/storage-nodes/{}/actions/block-for-maintenance/invoke"
 )
 RESTORE_FROM_MAINTENANCE = "v1/objects/storage-nodes/{}/actions/recover/invoke"
+GET_CAPACITY_SETTINGS = "v1/objects/storage-node-capacity-settings"
+GET_CAPACITY_SETTING_OF_A_STORAGE_NODE = "v1/objects/storage-node-capacity-settings/{}"
+EDIT_CAPACITY_SETTING_OF_A_STORAGE_NODE = "v1/objects/storage-node-capacity-settings/{}"
 
 
 logger = Log()
@@ -42,30 +45,21 @@ class SDSBStorageNodeDirectGateway:
         cluster_role=None,
         protection_domain_id=None,
     ):
-        # logger.writeDebug(f"fault_domain_id={fault_domain_id}, name={name}, cluster_role={cluster_role}, protection_domain_id={protection_domain_id}")
-        first = True
-        query = ""
+        params = {}
         if fault_domain_id:
-            query = query + f"?faultDomainId={fault_domain_id}"
-            first = False
+            params["faultDomainId"] = fault_domain_id
         if name:
-            if first:
-                query = query + f"?name={name}"
-                first = False
-            else:
-                query = query + f"&name={name}"
+            params["name"] = name
         if cluster_role:
-            if first:
-                query = query + f"?clusterRole={cluster_role}"
-                first = False
-            else:
-                query = query + f"&clusterRole={cluster_role}"
+            params["clusterRole"] = cluster_role
         if protection_domain_id:
-            if first:
-                query = query + f"?protectionDomainId={protection_domain_id}"
-                first = False
-            else:
-                query = query + f"&protectionDomainId={protection_domain_id}"
+            params["protectionDomainId"] = protection_domain_id
+
+        query = ""
+        if params:
+            query_parts = ["{}={}".format(k, v) for k, v in params.items()]
+            query = "?" + "&".join(query_parts)
+
         return query
 
     @log_entry_exit
@@ -90,10 +84,29 @@ class SDSBStorageNodeDirectGateway:
             end_point = GET_STORAGE_NODES_WITH_QUERY.format(query)
 
         storage_node_data = self.connection_manager.get(end_point)
+        storage_node_data = self.fill_capacity_settings(storage_node_data)
 
         return SDSBStorageNodeInfoList(
             dicts_to_dataclass_list(storage_node_data["data"], SDSBStorageNodeInfo)
         )
+
+    @log_entry_exit
+    def fill_capacity_settings(self, storage_node_data):
+        capacity_settings = self.get_capacity_settings()
+        logger.writeDebug(
+            f"GW:fill_capacity_settings:capacity_settings={capacity_settings}"
+        )
+        id_to_capacity_map = {}
+        for x in capacity_settings["data"]:
+            id_to_capacity_map[x["id"]] = x["capacityBalancingSetting"]["isEnabled"]
+
+        for sn in storage_node_data["data"]:
+            value = id_to_capacity_map.get(sn["id"], None)
+            if value:
+                sn["is_capacity_balancing_enabled"] = value
+
+        logger.writeDebug(f"GW:fill_capacity_settings:resp={storage_node_data}")
+        return storage_node_data
 
     @log_entry_exit
     def block_node_for_maintenance(self, id):
@@ -113,4 +126,44 @@ class SDSBStorageNodeDirectGateway:
     def get_storage_node_by_id(self, id):
         end_point = GET_STORAGE_NODE_BY_ID.format(id)
         storage_node_data = self.connection_manager.get(end_point)
-        return SDSBStorageNodeInfo(**storage_node_data)
+        capacity_saving = self.get_capacity_settings_of_a_storage_node(id)
+        logger.writeDebug(
+            f"GW:get_storage_node_by_id:capacity_saving={capacity_saving}"
+        )
+        storage_node = SDSBStorageNodeInfo(**storage_node_data)
+        storage_node.is_capacity_balancing_enabled = capacity_saving[
+            "capacityBalancingSetting"
+        ]["isEnabled"]
+        return storage_node
+
+    @log_entry_exit
+    def get_capacity_settings_of_a_storage_node(self, id):
+        end_point = GET_CAPACITY_SETTING_OF_A_STORAGE_NODE.format(id)
+        capacity_settings = self.connection_manager.get(end_point)
+        logger.writeDebug(
+            f"GW:get_capacity_settings_storage_node:capacity_saving={capacity_settings}"
+        )
+        return capacity_settings
+
+    @log_entry_exit
+    def get_capacity_settings(self):
+        end_point = GET_CAPACITY_SETTINGS
+        capacity_settings = self.connection_manager.get(end_point)
+        logger.writeDebug(
+            f"GW:get_capacity_settings:capacity_saving={capacity_settings}"
+        )
+        return capacity_settings
+
+    @log_entry_exit
+    def edit_capacity_settings_of_a_storage_node(
+        self, id, is_capacity_balancing_enabled
+    ):
+        end_point = EDIT_CAPACITY_SETTING_OF_A_STORAGE_NODE.format(id)
+        payload = {
+            "capacityBalancingSetting": {"isEnabled": is_capacity_balancing_enabled}
+        }
+        resp = self.connection_manager.patch(end_point, data=payload)
+        logger.writeDebug(
+            f"GW:edit_capacity_settings_of_a_storage_node:capacity_saving={resp}"
+        )
+        return resp

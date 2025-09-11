@@ -114,6 +114,16 @@ options:
         type: list
         required: false
         elements: int
+      start_ldev:
+        description: First lDEV number. If you specify this attribute, you must also specify the end_ldev attribute.
+          If you specify the ldevs attribute, you cannot specify this attribute.
+        type: int
+        required: false
+      end_ldev:
+        description: Last lDEV number. If you specify this attribute, you must also specify the start_ldev attribute.
+          If you specify the ldevs attribute, you cannot specify this attribute.
+        type: int
+        required: false
       ports:
         description: List of ports to be added or removed from the resource group.
         type: list
@@ -121,6 +131,11 @@ options:
         elements: str
       parity_groups:
         description: List of parity groups to be added or removed from the resource group.
+        type: list
+        required: false
+        elements: str
+      external_parity_groups:
+        description: List of external parity groups to be added or removed from the resource group.
         type: list
         required: false
         elements: str
@@ -178,10 +193,10 @@ options:
         type: bool
         required: false
         default: false
-      # add_resource_time_out_in_sec:
-      #   description: Timeout for a operation. The default timeout is 300 secs.
-      #   type: int
-      #   required: false
+      add_resource_time_out_in_sec:
+        description: Timeout for a add resource operation. The default timeout is 300 secs.
+        type: int
+        required: false
 """
 
 EXAMPLES = """

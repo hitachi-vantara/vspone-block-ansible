@@ -15,3 +15,8 @@ class SDSBStoragePoolValidationMsg(Enum):
         "or provide a list of strings for getting information about multiple storage pools."
     )
     WRONG_POOL_ID = "Wrong pool id given, did not find storage pool with that ID."
+    TOLERABLE_DRIVES_OUT_OF_RANGE = (
+        "number_of_tolerable_drive_failures must be between 0 and 23 inclusive."
+    )
+    MUST_SPECIFY_NO_OF_TOLERABLE_DRIVES = "Must specify number_of_tolerable_drive_failures when rebuild_capacity_policy is Fixed."
+    MUST_SPECIFY_REBUILD_CAPACITY_POLICY = "Must specify rebuild_capacity_policy to 'Fixed' when number_of_tolerable_drive_failures is specified."

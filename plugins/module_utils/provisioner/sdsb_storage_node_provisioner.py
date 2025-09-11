@@ -23,9 +23,13 @@ class SDSBStorageNodeProvisioner:
 
     @log_entry_exit
     def get_storage_nodes(self, spec=None):
+        logger.writeDebug("PV:get_storage_nodes:spec={}", spec)
         if spec is None:
             return self.gateway.get_storage_nodes()
         else:
+            if spec.id:
+                storage_node = self.get_storage_node_by_id(spec.id)
+                return storage_node
             return self.gateway.get_storage_nodes(
                 spec.fault_domain_id,
                 spec.name,
@@ -52,3 +56,9 @@ class SDSBStorageNodeProvisioner:
     @log_entry_exit
     def restore_from_maintenance(self, id):
         return self.gateway.restore_from_maintenance(id)
+
+    @log_entry_exit
+    def edit_capacity_management_settings(self, id, is_capacity_balancing_enabled):
+        return self.gateway.edit_capacity_settings_of_a_storage_node(
+            id, is_capacity_balancing_enabled
+        )

@@ -103,6 +103,21 @@
         var: result
 
     ######################################################################################
+    # Task Name : Create a Resource Group with external parity groups
+    ######################################################################################
+    - name: Create a Resource Group with external parity groups
+      hitachivantara.vspone_block.vsp.hv_resource_group:
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: "rd_rg_06"
+          external_parity_groups: ["1-1", "1-2"]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
     # Task Name : Add the following resources to an existing Resource Group by ID
     # Resources : ldevs, ports, host groups, nvm subsystem ids
     ######################################################################################
@@ -146,6 +161,40 @@
               name: "rd-test-iscsi-target-1"
             - port: "CL4-C"
               name: "rd-test-iscsi-target-2"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Add ldevs using ldev range to an existing Resource Group by ID
+    ######################################################################################
+    - name: Add ldevs using ldev range to an existing Resource Group by ID
+      hitachivantara.vspone_block.vsp.hv_resource_group:
+        connection_info: "{{ connection_info }}"
+        spec:
+          state: "add_resource"
+          id: 5
+          start_ldev: 300
+          end_ldev: 310
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Remove ldevs using ldev range from an existing Resource Group by ID
+    ######################################################################################
+    - name: Remove ldevs using ldev range from an existing Resource Group by ID
+      hitachivantara.vspone_block.vsp.hv_resource_group:
+        connection_info: "{{ connection_info }}"
+        spec:
+          state: "remove_resource"
+          id: 5
+          start_ldev: 300
+          end_ldev: 310
       register: result
 
     - name: Debug the result variable

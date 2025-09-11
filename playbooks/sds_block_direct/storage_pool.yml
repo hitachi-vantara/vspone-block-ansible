@@ -48,3 +48,19 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    # #########################################################################
+    # # Task Name : Edit storage pool settings by ID
+    # #########################################################################
+    - name: Edit storage pool settings by ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_storage_pool:
+        connection_info: "{{ connection_info }}"
+        spec:
+          id: "7ab327f8-2a70-4a55-8b32-f14fd5c25a05"
+          rebuild_capacity_policy: "Fixed"
+          number_of_tolerable_drive_failures: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

@@ -38,6 +38,11 @@ This collection includes modules for managing both Hitachi VSP One SDS Block and
 - **hv_sds_block_volume_facts:** Retrieves information about storage system volumes.
 - **hv_sds_block_vps:** Manages VPS volume ADR settings.
 - **hv_sds_block_vps_facts:** Retrieves information about Virtual Private Storages (VPS).
+- **hv_sds_block_capacity_management_settings_facts:** Retrieves capacity management settings from SDS block cluster.
+- **hv_sds_block_drive:** Turns ON and OFF the drive locator LED, removes a drive from SDS block cluster.
+- **hv_sds_block_storage_controller:** Edits storage controller settings on SDS block cluster.
+- **hv_sds_block_storage_node_bmc_connection_facts:** Retrieves BMC connection details from SDS block cluster.
+- **hv_sds_block_storage_pool_estimated_capacity_facts:** Retrieves storage pool estimated capacity from SDS block cluster on AWS.
 
 ## VSP Ansible Modules
 
@@ -115,3 +120,6 @@ This collection includes modules for managing both Hitachi VSP One SDS Block and
 - **hv_user_facts:** Retrieves information about users.
 - **hv_user_group:** Manages user groups.
 - **hv_user_group_facts:** Retrieves information about user groups.
+- **hv_vsp_one_volume:** Manages volumes including creation, modification, deletion, and server attachment/detachment on VSP E series and
+    VSP One B2X storages.
+- **hv_vsp_one_volume_facts:** Retrieves volumes information from servers on VSP E series and VSP One B2X storages.

@@ -50,6 +50,10 @@ ansible_facts:
       description: The storage system information.
       type: dict
       contains:
+        api_version:
+          description: API version.
+          type: str
+          sample: "01.17.00.40"
         efficiency_data_reduction:
           description: Efficiency data reduction percentage.
           type: int
@@ -103,6 +107,10 @@ ansible_facts:
           description: Number of total volumes.
           type: int
           sample: 14
+        product_name:
+          description: API name.
+          type: str
+          sample: "Hitachi Virtual Storage Software Block REST API"
         total_efficiency:
           description: Total efficiency percentage.
           type: int

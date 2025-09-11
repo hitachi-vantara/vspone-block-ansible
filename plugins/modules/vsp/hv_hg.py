@@ -182,7 +182,7 @@ options:
 """
 
 EXAMPLES = """
-- name: Create host group with LUN in decimal
+- name: Create host group with LDEVs and WWNs
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:
@@ -201,25 +201,6 @@ EXAMPLES = """
           nick_name: 'test2'
       ldevs: [393, 851]
 
-- name: Create host group with LUN in HEX
-  hitachivantara.vspone_block.vsp.hv_hg:
-    state: present
-    connection_info:
-      address: storage1.company.com
-      username: "dummy_user"
-      password: "dummy_password"
-    host_group_info:
-      name: 'testhg26dec'
-      port: 'CL1-A'
-      host_mode: 'VMWARE_EXTENSION'
-      host_mode_options: [54, 63]
-      wwns:
-        - wwn: '200000109B3C0FD3'
-          nick_name: 'test1'
-        - wwn: '200000109B3C0FD4'
-          nick_name: 'test2'
-      ldevs: ['00:23:A4']
-
 - name: Delete host group
   hitachivantara.vspone_block.vsp.hv_hg:
     state: absent
@@ -231,7 +212,7 @@ EXAMPLES = """
       name: 'testhg26dec'
       port: 'CL1-A'
 
-- name: Present LUN
+- name: Present LDEVs to hostgroup
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:
@@ -242,9 +223,9 @@ EXAMPLES = """
       state: present_ldev
       name: 'testhg26dec'
       port: 'CL1-A'
-      ldevs: ['00:05:77', '00:05:7D']
+      ldevs: [300, 400]
 
-- name: Unpresent LUN
+- name: Unpresent LDEVs from hostgroup
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:
@@ -257,7 +238,7 @@ EXAMPLES = """
       port: 'CL1-A'
       ldevs: [800, 801]
 
-- name: Add WWN
+- name: Add WWNs to hostgroup
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:
@@ -274,7 +255,7 @@ EXAMPLES = """
         - wwn: '200000109B3C0FD4'
         - wwn: '200000109B3C0FD5'
 
-- name: Remove WWN
+- name: Remove WWNs from hostgroup
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:
@@ -314,7 +295,7 @@ EXAMPLES = """
       port: 'CL1-A'
       asymmetric_access_priority: 'high'
 
-- name: Release host reserve status of the LU mapped to a specified LU path.
+- name: Release the host reservation status by specifying the LU path.
   hitachivantara.vspone_block.vsp.hv_hg:
     state: present
     connection_info:

@@ -32,9 +32,9 @@ options:
   state:
     description: The desired state of the storage pool.
     type: str
-    required: true
-    # default: "present"
-    choices: ["maintenance", "restore"]
+    required: false
+    choices: ['present', 'maintenance', 'restore']
+    default: 'present'
   spec:
     description: Specification for the storage node.
     type: dict
@@ -47,6 +47,11 @@ options:
       id:
         description: The UUID of the storage node.
         type: str
+        required: false
+      is_capacity_balancing_enabled:
+        description: Enables or disables the capacity balancing. If true, capacity balancing applies to the storage node.
+          If false, capacity balancing does not apply to the storage node.
+        type: bool
         required: false
 """
 

@@ -76,3 +76,35 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+   ################################################################################
+    # Task Name : Edit the capacity balancing settings of a storage node by ID
+    ###############################################################################
+    - name: Edit the capacity balancing settings of a storage node by ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_storage_node:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          id: "f3d27b43-8763-4638-838c-60cd9aa60805"
+          is_capacity_balancing_enabled: false
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+   ##############################################################################
+    # Task Name : Edit the capacity balancing settings of a storage node by name
+    #############################################################################
+    - name: Edit the capacity balancing settings of a storage node by name
+      hitachivantara.vspone_block.sds_block.hv_sds_block_storage_node:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          name: "SDSB-NODE6"
+          is_capacity_balancing_enabled: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

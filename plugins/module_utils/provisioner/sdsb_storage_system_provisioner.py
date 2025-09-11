@@ -40,6 +40,8 @@ class SDSBStorageSystemProvisioner:
                 hs_obj.protectionDomainId = ""
             health_status_list.append(asdict(hs_obj))
         storage_system = {}
+        storage_system["clusterId"] = storage_cluster.id
+        storage_system["clusterName"] = storage_cluster.nickname
         storage_system["healthStatuses"] = health_status_list
         storage_system["numberOfTotalVolumes"] = (
             storage_cluster.numberOfTotalVolumes
@@ -106,7 +108,10 @@ class SDSBStorageSystemProvisioner:
         storage_system = self.sdsb_convert_to_storage_system(
             storage_cluster, health_status
         )
+        version_info = self.gateway.sdsb_get_version()
         storage_system["numberOfDrives"] = len(drives.data)
         storage_system["numberOfComputePorts"] = len(ports.data)
         storage_system["numberOfStoragePools"] = len(pools.data)
+        storage_system["apiVersion"] = version_info.get("apiVersion", None)
+        storage_system["productName"] = version_info.get("productName", None)
         return SDSBStorageSystemInfo(**storage_system)

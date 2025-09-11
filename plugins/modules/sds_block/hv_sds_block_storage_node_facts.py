@@ -38,6 +38,10 @@ options:
         description: The ID of a fault domain to which the volume belongs.
         type: str
         required: false
+      id:
+        description: Storage node ID.
+        type: str
+        required: false
       name:
         description: Storage node name.
         type: str
@@ -158,6 +162,10 @@ ansible_facts:
               description: The IP address (IPv4) of the internode port.
               type: str
               sample: "192.168.101.141"
+            is_capacity_balancing_enabled:
+              description: Capacity balancing settings of a storage node..
+              type: bool
+              sample: true
             memory_mb:
               description: The IP address (IPv4) of the internode port.
               type: int

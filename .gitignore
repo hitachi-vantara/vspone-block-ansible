@@ -23,3 +23,4 @@ run_linter.py
 test_ansible_doc.sh
 sanity_test_report.txt
 file_name_wo_ext_cwd.sh
+utilities

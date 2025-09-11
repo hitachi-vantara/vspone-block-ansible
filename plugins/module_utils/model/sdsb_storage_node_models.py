@@ -8,13 +8,13 @@ except ImportError:
 
 
 @dataclass
-class StorageNodeSpec:
+class StorageNodeBmcAccessSettingFactSpec:
     id: Optional[str] = None
-    name: Optional[str] = None
 
 
 @dataclass
 class StorageNodeFactSpec:
+    id: Optional[str] = None
     fault_domain_id: Optional[str] = None
     name: Optional[str] = None
     cluster_role: Optional[str] = None
@@ -31,6 +31,7 @@ class StorageNodeSpec:
     volumes: Optional[List[str]] = None
     host_nqns: Optional[List[str]] = None
     should_delete_all_volumes: Optional[bool] = False
+    is_capacity_balancing_enabled: Optional[bool] = None
 
 
 @dataclass
@@ -70,29 +71,17 @@ class SDSBStorageNodeInfo(SingleBaseClass):
     availabilityZoneId: str = None
     physicalZone: str = None
     logicalZone: str = None
+    is_capacity_balancing_enabled: bool = None
 
     def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
+        # for key, value in kwargs.items():
+        #     if hasattr(self, key):
+        #         setattr(self, key, value)
         super().__init__(**kwargs)
-
-    # def __init__(self, **kwargs):
-    #     self.id = kwargs.get("id")
-    #     self.nickname = kwargs.get("nickname")
-    #     self.osType = kwargs.get("osType")
-    #     self.totalCapacity = kwargs.get("totalCapacity")
-    #     self.usedCapacity = kwargs.get("usedCapacity")
-    #     self.vpsId = kwargs.get("vpsId")
-    #     self.vpsName = kwargs.get("vpsName")
-    #     if "numberOfVolumes" in kwargs:
-    #         self.numberOfVolumes = kwargs.get("numberOfVolumes")
-    #     if "numberOfPaths" in kwargs:
-    #         self.numberOfPaths = kwargs.get("numberOfPaths")
-    #     # if "lun" in kwargs:
-    #     #     self.lun = kwargs.get("lun")
-    #     if "paths" in kwargs:
-    #         self.paths = [Path(**path) for path in kwargs.get("paths")]
+        if "physicalZone" in kwargs:
+            self.physicalZone = kwargs.get("physicalZone")
+        if "logicalZone" in kwargs:
+            self.logicalZone = kwargs.get("logicalZone")
 
     def to_dict(self):
         return asdict(self)
