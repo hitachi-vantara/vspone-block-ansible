@@ -10,8 +10,8 @@ v4.2.0
 Release Summary
 ---------------
 
-This minor release of `hitachivantara.vspone_block` introduces new modules for enhanced storage management, adds Azure support, and delivers various improvements and bug fixes.
-To create multiple volumes/LDEVs in a single task on VSP One Block or VSP E Series storage systems, use `hv_vsp_one_volume` module for faster execution. See `hv_vsp_one_volume` module documentation for more information. For other volume/LDEV configurations not available in  `hv_vsp_one_volume` module, use `hv_ldev` module.
+This minor release of `hitachivantara.vspone_block` introduces new modules for enhanced storage management, adds Azure support, and delivers various improvements and bug fixes. 
+ To create multiple volumes/LDEVs in a single task on VSP One Block or VSP E Series storage systems, use `hv_vsp_one_volume` module for faster execution. See `hv_vsp_one_volume` module documentation for more information. For other volume/LDEV configurations not available in  `hv_vsp_one_volume` module, use `hv_ldev` module.
 
 Minor Changes
 -------------
