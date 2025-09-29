@@ -176,7 +176,7 @@ class VSPHostGroupInfo(SingleBaseClass):
         super().__init__(**kwargs)
         self.hostGroupId = (
             kwargs.get("hostGroupNumber")
-            if kwargs.get("hostGroupNumber")
+            if kwargs.get("hostGroupNumber") is not None
             else kwargs.get("hostGroupId")
         )
         self.hostGroupName = kwargs.get("hostGroupName")

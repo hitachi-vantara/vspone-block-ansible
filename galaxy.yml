@@ -1,7 +1,7 @@
 ---
 namespace: hitachivantara
 name: vspone_block
-version: 4.2.1
+version: 4.2.2
 readme: README.md
 authors:
   - Hitachi Vantara Ansible Team
