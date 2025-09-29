@@ -56,6 +56,12 @@ jobs:
       - name: Install Ansible
         run: pip install ansible-core --disable-pip-version-check
 
+      - name: Clean Up Existing Collection Files
+        run: |
+          echo "🧹 Cleaning up existing collection files..."
+          rm -f *.tar.gz
+          echo "✅ Cleanup completed."
+
       - name: Build Ansible Collection
         run: |
           ansible-galaxy collection build --force
@@ -64,11 +70,20 @@ jobs:
       - name: Find Collection File
         id: find-collection
         run: |
-          COLLECTION_FILE=$(ls *.tar.gz | head -n 1)
-          if [[ -z "$COLLECTION_FILE" ]]; then
+          # Count the number of tar.gz files
+          FILE_COUNT=$(ls *.tar.gz 2>/dev/null | wc -l)
+          
+          if [[ $FILE_COUNT -eq 0 ]]; then
             echo "❌ No collection file found! Exiting."
             exit 1
+          elif [[ $FILE_COUNT -gt 1 ]]; then
+            echo "❌ Multiple collection files found:"
+            ls -la *.tar.gz
+            echo "This should not happen after cleanup. Exiting."
+            exit 1
           fi
+          
+          COLLECTION_FILE=$(ls *.tar.gz)
           echo "✅ Found collection file: $COLLECTION_FILE"
           echo "COLLECTION_FILE=$COLLECTION_FILE" >> $GITHUB_ENV
 
