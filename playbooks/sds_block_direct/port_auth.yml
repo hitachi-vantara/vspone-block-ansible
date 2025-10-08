@@ -33,3 +33,37 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ####################################################################
+    # Task Name : Allow CHAP users to access the compute port
+    ####################################################################
+    - name: Allow CHAP users to access the compute port
+      hitachivantara.vspone_block.sds_block.hv_sds_block_compute_port_authentication:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          port_name: "iqn.1994-04.jp.co.hitachi:rsd.sph.t.1754a.002"
+          target_chap_users: ["tgt-chap-user2"]
+          state: "add_chap_user"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Cancel compute port access permission for CHAP users
+    ####################################################################
+    - name: Cancel compute port access permission for CHAP users
+      hitachivantara.vspone_block.sds_block.hv_sds_block_compute_port_authentication:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          port_name: "iqn.1994-04.jp.co.hitachi:rsd.sph.t.1754a.002"
+          target_chap_users: ["tgt-chap-user2"]
+          state: "remove_chap_user"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

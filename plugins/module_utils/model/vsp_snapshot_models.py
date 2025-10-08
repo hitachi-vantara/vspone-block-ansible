@@ -3,8 +3,10 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
+    from ..common.ansible_common import normalize_ldev_id
 except ImportError:
     from common_base_models import BaseDataClass, SingleBaseClass
+    from common.ansible_common import normalize_ldev_id
 
 
 @dataclass
@@ -19,6 +21,13 @@ class SnapshotFactSpec:
             setattr(self, field, kwargs.get(field, None))
         if kwargs.get("primary_volume_id"):
             self.pvol = kwargs.get("primary_volume_id")
+        self.__post_init__()
+
+    def __post_init__(self):
+        if self.primary_volume_id:
+            self.primary_volume_id = normalize_ldev_id(self.primary_volume_id)
+        if self.pvol:
+            self.pvol = normalize_ldev_id(self.pvol)
 
 
 @dataclass
@@ -75,6 +84,17 @@ class SnapshotReconcileSpec:
             self.allocate_consistency_group = kwargs.get(
                 "allocate_new_consistency_group"
             )
+        self.__post_init__()
+
+    def __post_init__(self):
+        if self.primary_volume_id:
+            self.primary_volume_id = normalize_ldev_id(self.primary_volume_id)
+        if self.pvol:
+            self.pvol = normalize_ldev_id(self.pvol)
+        if self.secondary_volume_id:
+            self.primary_volume_id = normalize_ldev_id(self.secondary_volume_id)
+        if self.svol:
+            self.svol = normalize_ldev_id(self.svol)
 
 
 @dataclass

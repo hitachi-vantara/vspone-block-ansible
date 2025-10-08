@@ -83,7 +83,7 @@ options:
         suboptions:
           ldev_id:
             description: The LDEV ID of the namespace.
-            type: int
+            type: str
             required: true
           nickname:
             description: The nickname of the namespace.
@@ -238,10 +238,10 @@ nvm_subsystems:
           description: The LDEV ID of the namespace.
           type: int
           sample: 11101
-        ldev_hex_id:
+        ldev_id_hex:
           description: The hexadecimal ID of the LDEV.
           type: str
-          sample: "00:2b:5c"
+          sample: "00:2B:5C"
         namespace_id:
           description: The ID of the namespace.
           type: int

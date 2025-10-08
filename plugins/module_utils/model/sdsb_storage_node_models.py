@@ -13,6 +13,15 @@ class StorageNodeBmcAccessSettingFactSpec:
 
 
 @dataclass
+class StorageNodeBmcAccessSettingSpec:
+    id: Optional[str] = None
+    name: Optional[str] = None
+    bmc_name: Optional[str] = None
+    bmc_user: Optional[str] = None
+    bmc_password: Optional[str] = None
+
+
+@dataclass
 class StorageNodeFactSpec:
     id: Optional[str] = None
     fault_domain_id: Optional[str] = None
@@ -72,6 +81,7 @@ class SDSBStorageNodeInfo(SingleBaseClass):
     physicalZone: str = None
     logicalZone: str = None
     is_capacity_balancing_enabled: bool = None
+    isStorageMasterNodePrimary: bool = None
 
     def __init__(self, **kwargs):
         # for key, value in kwargs.items():

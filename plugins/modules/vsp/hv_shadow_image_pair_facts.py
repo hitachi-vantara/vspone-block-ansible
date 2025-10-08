@@ -48,7 +48,7 @@ options:
     required: false
     suboptions:
       primary_volume_id:
-        type: int
+        type: str
         description: Primary volume id.
         required: false
       copy_group_name:
@@ -124,8 +124,8 @@ ansible_facts:
           description: Mirror unit ID.
           type: int
           sample: -1
-        primary_hex_volume_id:
-          description: Primary hex volume ID.
+        primary_volume_id_hex:
+          description: Primary hex volume ID in hexadecimal.
           type: str
           sample: "00:01:12"
         primary_volume_id:
@@ -136,8 +136,8 @@ ansible_facts:
           description: Resource ID.
           type: str
           sample: "localpair-2749fed78e8d23a61ed17a8af71c85f8"
-        secondary_hex_volume_id:
-          description: Secondary hex volume ID.
+        secondary_volume_id_hex:
+          description: Secondary hex volume ID in hexadecimal.
           type: str
           sample: "00:01:17"
         secondary_volume_id:

@@ -77,7 +77,7 @@
       ansible.builtin.debug:
         var: result
 
-   ################################################################################
+    ################################################################################
     # Task Name : Edit the capacity balancing settings of a storage node by ID
     ###############################################################################
     - name: Edit the capacity balancing settings of a storage node by ID
@@ -93,7 +93,7 @@
       ansible.builtin.debug:
         var: result
 
-   ##############################################################################
+    ##############################################################################
     # Task Name : Edit the capacity balancing settings of a storage node by name
     #############################################################################
     - name: Edit the capacity balancing settings of a storage node by name

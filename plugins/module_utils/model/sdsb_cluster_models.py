@@ -101,6 +101,8 @@ class ClusterSpec(SingleBaseClass):
     node_id: Optional[str] = None
     node_name: Optional[str] = None
     machine_image_id: Optional[str] = None
+    template_s3_url: Optional[str] = None
+    vm_configuration_file_s3_uri: Optional[str] = None
     is_capacity_balancing_enabled: Optional[bool] = None
     controller_id: Optional[str] = None
     export_file_type: Optional[str] = None

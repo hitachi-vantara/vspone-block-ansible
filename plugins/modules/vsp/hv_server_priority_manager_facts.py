@@ -63,7 +63,7 @@ options:
     suboptions:
       ldev_id:
         description: LDEV number.
-        type: int
+        type: str
         required: false
       host_wwn:
         description: WWN of the HBA.
@@ -124,6 +124,10 @@ ansible_facts:
           description: LDEV number.
           type: int
           sample: 80
+        ldev_id_hex:
+          description: LDEV number in hexadecimal.
+          type: int
+          sample: "00:50"
         host_wwn:
           description: WWN of the HBA.
           type: str

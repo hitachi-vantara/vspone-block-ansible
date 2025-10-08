@@ -1,11 +1,11 @@
 try:
-    from ..provisioner.sdsb_block_drives_provisioner import SDSBBlockDrivesProvisioner
+    from ..provisioner.sdsb_drives_provisioner import SDSBBlockDrivesProvisioner
     from ..common.hv_constants import StateValue
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from ..message.sdsb_drive_msgs import SDSBDriveValidationMsg
 except ImportError:
-    from ..provisioner.sdsb_block_drives_provisioner import SDSBBlockDrivesProvisioner
+    from ..provisioner.sdsb_drives_provisioner import SDSBBlockDrivesProvisioner
     from ..common.hv_constants import StateValue
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
@@ -22,6 +22,8 @@ class SDSBBlockDrivesReconciler:
 
     @log_entry_exit
     def get_drives(self, spec=None):
+        if spec and spec.id:
+            return self.provisioner.get_drive_by_id(spec.id)
         return self.provisioner.get_drives(spec)
 
     @log_entry_exit

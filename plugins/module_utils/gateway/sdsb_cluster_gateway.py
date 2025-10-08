@@ -42,12 +42,16 @@ class SDSBClusterGateway:
         logger.writeDebug(f"GW:create_config_file:resp={resp}")
         return
 
-    def create_config_file_for_add_storage_node(self, machine_image_id):
+    def create_config_file_for_add_storage_node(
+        self, machine_image_id, template_s3_url=None
+    ):
         end_point = CREATE_CONFIG_FILE
         payload = {
             "exportFileType": "AddStorageNodes",
             "machineImageId": machine_image_id,
         }
+        if template_s3_url:
+            payload["templateS3Url"] = template_s3_url
         resp = self.connection_manager.post(end_point, data=payload)
         logger.writeDebug(f"GW:create_config_file_for_add_storage_node:resp={resp}")
         return
@@ -73,14 +77,22 @@ class SDSBClusterGateway:
 
     @log_entry_exit
     def add_storage_node(
-        self, setup_user_password, config_file=None, exported_config_file=None
+        self,
+        setup_user_password,
+        config_file=None,
+        exported_config_file=None,
+        vm_configuration_file_s3_uri=None,
     ):
         logger.writeDebug(
             f"GW:add_storage_node:config_file={config_file}, setup_user_password={setup_user_password}, exported_config_file={exported_config_file}"
         )
         end_point = ADD_STORAGE_NODE
         resp = self.connection_manager.add_storage_node(
-            end_point, setup_user_password, config_file, exported_config_file
+            end_point,
+            setup_user_password,
+            config_file,
+            exported_config_file,
+            vm_configuration_file_s3_uri,
         )
 
         return resp
@@ -109,4 +121,11 @@ class SDSBClusterGateway:
         logger.writeDebug(
             f"GW:edit_capacity_management_settings:capacity_saving={resp}"
         )
+        return resp
+
+    @log_entry_exit
+    def stop_removing_storage_nodes(self):
+        end_point = STOP_REMOVING_STORAGE_NODE
+        resp = self.connection_manager.post(end_point, data=None)
+        logger.writeDebug(f"GW:stop_removing_storage_nodes:resp={resp}")
         return resp

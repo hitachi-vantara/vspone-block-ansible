@@ -71,10 +71,21 @@ class StateValue:
     ADD_STORAGE_NODE = "add_storage_node"
     REMOVE_STORAGE_NODE = "remove_storage_node"
     DOWNLOAD_CONFIG_FILE = "download_config_file"
+    STOP_REMOVING_STORAGE_NODE = "stop_removing_storage_node"
+    REPLACE_STORAGE_NODE = "replace_storage_node"
     ATTACH_SERVER = "attach_server"
     DETACH_SERVER = "detach_server"
+    SERVER_PRESENT = "server_present"
     UPDATE_QOS = "change_qos_settings"
     ASSIGN_VIRTUAL_LDEV = "assign_virtual_ldev"
+    SYNC_SERVER_NICK_NAME = "sync_server_nick_name"
+    ADD_HG_TO_SERVER = "add_host_groups"
+    ADD_HBA = "add_hba"
+    REMOVE_HBA = "remove_hba"
+    ADD_PATH = "add_path"
+    REMOVE_PATH = "remove_path"
+    CHANGE_ISCSI_TARGET_SETTINGS = "change_iscsi_target_settings"
+    SOFTWARE_UPDATE_FILE_PRESENT = "software_update_file_present"
 
 
 class CommonConstants:
@@ -146,6 +157,8 @@ class GatewayClassTypes:
     SDSB_BMC_ACCESS_SETTING = "sdsb_bmc_access_setting"
     SDSB_CAPACITY_MGMT_SETTING = "sdsb_capacity_mgmt_setting"
     SDSB_ESTIMATED_CAPACITY = "sdsb_estimated_capacity"
+    SDSB_REMOTE_ISCSI_PORT = "sdsb_remote_iscsi_port"
+    SDSB_SOFTWARE_UPDATE = "sdsb_software_update"
 
     UAIG_SUBSCRIBER = "uaig_subscriber"
     UAIG_PASSWORD = "uaig_password"

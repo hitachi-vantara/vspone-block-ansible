@@ -38,11 +38,12 @@ class VSPVolumeSimpleAPIReconciler:
         elif state == StateValue.UPDATE_QOS:
             return self.provisioner.update_qos_settings(spec)
         elif state == StateValue.ATTACH_SERVER:
+
             return self.provisioner.attach_server_to_volume(spec, spec.server_ids)
         elif state == StateValue.DETACH_SERVER:
-            return self.provisioner.detach_server_from_volume(
-                spec, spec.server_ids
-            )
+            return self.provisioner.detach_server_from_volume(spec, spec.server_ids)
+        elif state == StateValue.SERVER_PRESENT:
+            return self.provisioner.attach_servers_to_volumes(spec)
 
     @log_entry_exit
     def volume_facts_reconcile(self, spec=None) -> Any:

@@ -3,8 +3,10 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
+    from ..common.ansible_common import normalize_ldev_id
 except ImportError:
     from common_base_models import BaseDataClass, SingleBaseClass
+    from common.ansible_common import normalize_ldev_id
 
 
 @dataclass
@@ -61,6 +63,14 @@ class VSPResourceGroupSpec(SingleBaseClass):
     external_parity_groups: Optional[List[str]] = None
     start_ldev: Optional[int] = None
     end_ldev: Optional[int] = None
+
+    def __post_init__(self):
+        if self.start_ldev:
+            self.start_ldev = normalize_ldev_id(self.start_ldev)
+        if self.end_ldev:
+            self.end_ldev = normalize_ldev_id(self.end_ldev)
+        if self.ldevs:
+            self.ldevs = [normalize_ldev_id(ldev) for ldev in self.ldevs]
 
 
 @dataclass

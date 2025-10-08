@@ -3,9 +3,11 @@ from typing import Optional, List, Any
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
+    from ..common.ansible_common import normalize_ldev_id
 
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
+    from common.ansible_common import normalize_ldev_id
 
 
 @dataclass
@@ -54,12 +56,22 @@ class ExternalPathGroupInfoList(BaseDataClass):
 @dataclass
 class ExternalVolumeSpec:
     external_storage_serial: str
-    external_ldev_id: str
+    external_ldev_id: int
     external_parity_group: str
     ldev_id: Optional[int] = None
+
+    def __post_init__(self):
+        if self.ldev_id:
+            self.ldev_id = normalize_ldev_id(self.ldev_id)
+        if self.external_ldev_id:
+            self.external_ldev_id = normalize_ldev_id(self.external_ldev_id)
 
 
 @dataclass
 class ExternalVolumeFactSpec:
     external_storage_serial: str
-    external_ldev_id: str
+    external_ldev_id: int
+
+    def __post_init__(self):
+        if self.external_ldev_id:
+            self.external_ldev_id = normalize_ldev_id(self.external_ldev_id)

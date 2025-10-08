@@ -1,8 +1,8 @@
 ---
 ####################################################################
-# Example : VSP Volume  Playbook
+# Example : VSP Volume facts Playbook
 ####################################################################
-- name: VSP Volume Module
+- name: VSP Volume facts Module
   hosts: localhost
   gather_facts: false
 
@@ -24,7 +24,7 @@
       hitachivantara.vspone_block.vsp.hv_vsp_one_volume_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          pool_id: 101
+          pool_id: 1
       register: result
     - name: Debug the result variable
       ansible.builtin.debug:

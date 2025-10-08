@@ -259,47 +259,20 @@ class DirectTrueCopyInfoExtractor:
         self.remote_serial_number = remote_serial
         self.common_properties = {
             "copyGroupName": str,
-            # "remoteMirrorCopyGroupId": str,
-            # "remoteStorageDeviceId": str,
-            # "localDeviceGroupName": str,
-            # "remoteDeviceGroupName": str,
             "replicationType": str,
-            # "copyGroupName": str,
             "copyPairName": str,
-            # "consistencyGroupId": int,
-            # "copyRate": int,
-            # "ldevId": int,
             "fenceLevel": str,
             "pvolLdevId": int,
             "svolLdevId": int,
-            "primaryHexVolumeId": str,
+            "primaryVolumeIdHex": str,
             "pvolStatus": str,
             "svolStatus": str,
             "consistencyGroupId": int,
-            # "pvolIOMode" : str,
-            # "svolIOMode" : str,
             "pvolStorageDeviceId": str,
             "svolStorageDeviceId": str,
             "copyProgressRate": int,
             "remoteMirrorCopyPairId": str,
-            # "pvolDifferenceDataManagement": str,
-            # "svolDifferenceDataManagement": str,
-            # "pvolProcessingStatus": str,
-            # "svolProcessingStatus": str,
-            # "pvolJournalId" : int,
-            # "svolJournalId" : int,
-            # "remoteSerialNumber": str,
-            # "remoteStorageTypeId": str,
-            # "remoteLdevId": int,
-            # "primaryOrSecondary": str,
-            "secondaryHexVolumeId": str,
-            # "muNumber": int,
-            # "status": str,
-            # "serialNumber": str,
-            # "svolAccessMode": str,
-            # "storageTypeId": str,
-            # "isMainframe": bool,
-            # "copyPairs": list,r,
+            "secondaryVolumeIdHex": str,
         }
 
         self.parameter_mapping = {
@@ -331,20 +304,20 @@ class DirectTrueCopyInfoExtractor:
                     # Handle missing keys by assigning default values
                     default_value = get_default_value(value_type)
                     new_dict[cased_key] = default_value
-            if new_dict.get("primary_hex_volume_id") == "":
+            if new_dict.get("primary_volume_id_hex") == "":
                 if (
                     new_dict.get("primary_volume_id") is not None
                     and new_dict.get("primary_volume_id") != ""
                 ):
-                    new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+                    new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
                         new_dict.get("primary_volume_id")
                     )
-            if new_dict.get("secondary_hex_volume_id") == "":
+            if new_dict.get("secondary_volume_id_hex") == "":
                 if (
                     new_dict.get("secondary_volume_id") is not None
                     and new_dict.get("secondary_volume_id") != ""
                 ):
-                    new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+                    new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
                         new_dict.get("secondary_volume_id")
                     )
             if new_dict["replication_type"] == "TC":
@@ -371,20 +344,20 @@ class DirectTrueCopyInfoExtractor:
                 default_value = get_default_value(value_type)
                 new_dict[cased_key] = default_value
 
-            if new_dict.get("primary_hex_volume_id") == "":
+            if new_dict.get("primary_volume_id_hex") == "":
                 if (
                     new_dict.get("primary_volume_id") is not None
                     and new_dict.get("primary_volume_id") != ""
                 ):
-                    new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+                    new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
                         new_dict.get("primary_volume_id")
                     )
-            if new_dict.get("secondary_hex_volume_id") == "":
+            if new_dict.get("secondary_volume_id_hex") == "":
                 if (
                     new_dict.get("secondary_volume_id") is not None
                     and new_dict.get("secondary_volume_id") != ""
                 ):
-                    new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+                    new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
                         new_dict.get("secondary_volume_id")
                     )
 

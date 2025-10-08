@@ -8,6 +8,7 @@ try:
     from ..model.vsp_quorum_disk_models import QuorumDiskSpec
     from ..common.ansible_common import (
         log_entry_exit,
+        volume_id_to_hex_format,
     )
 
 except ImportError:
@@ -20,6 +21,7 @@ except ImportError:
     from model.vsp_quorum_disk_models import QuorumDiskSpec
     from common.ansible_common import (
         log_entry_exit,
+        volume_id_to_hex_format,
     )
 
 logger = Log()
@@ -74,10 +76,26 @@ class VSPQuorumDiskProvisioner:
             items = self.gateway.get_quorum_disk_by_id(spec.id)
             logger.writeDebug(f"PV:20250303 get_quorum_disk_by_id =  {items}")
             if items:
-                return items.camel_to_snake_dict()
+                return self.inject_ldev_hex(items.camel_to_snake_dict())
         else:
             items = self.gateway.get_all_quorum_disks().data_to_snake_case_list()
-        return None if not items else items
+        return None if not items else self.inject_ldev_list_hex(items)
+
+    @log_entry_exit
+    def inject_ldev_hex(self, qd_dict):
+        ldev_id = qd_dict.get("ldev_id", None)
+        if ldev_id:
+            qd_dict["ldev_id_hex"] = volume_id_to_hex_format(ldev_id)
+        else:
+            qd_dict["duplication_ldev_id_hex"] = ""
+        return qd_dict
+
+    @log_entry_exit
+    def inject_ldev_list_hex(self, qd_list):
+        ldev_list = []
+        for qd in qd_list:
+            ldev_list.append(self.inject_ldev_hex(qd))
+        return ldev_list
 
     @log_entry_exit
     def get_free_ldev_from_meta(self):
@@ -258,7 +276,7 @@ class VSPQuorumDiskProvisioner:
             rsp = self.gateway.get_quorum_disk_by_id(quorum_disk_id)
             if rsp:
                 return (
-                    rsp.camel_to_snake_dict(),
+                    self.inject_ldev_hex(rsp.camel_to_snake_dict()),
                     "The Quorum disk {0} is already registered.".format(quorum_disk_id),
                 )
         elif spec.ldev_id is not None:
@@ -267,7 +285,7 @@ class VSPQuorumDiskProvisioner:
             rsp = self.gateway.get_quorum_disk_by_ldev_id(spec.ldev_id)
             if rsp:
                 return (
-                    rsp.camel_to_snake_dict(),
+                    self.inject_ldev_hex(rsp.camel_to_snake_dict()),
                     "The Quorum disk with ldev_id {0} is already registered.".format(
                         spec.ldev_id
                     ),
@@ -327,5 +345,5 @@ class VSPQuorumDiskProvisioner:
 
         rsp = self.gateway.get_quorum_disk_by_id(quorum_disk_id)
         if rsp:
-            rsp = rsp.camel_to_snake_dict()
+            rsp = self.inject_ldev_hex(rsp.camel_to_snake_dict())
             return rsp

@@ -55,6 +55,8 @@ def camel_to_snake(name: str) -> str:
 
 
 # Define a parent class with the common functionality
+
+
 class BaseDataClass:
 
     def __init__(self, data=None):
@@ -93,8 +95,13 @@ class BaseDataClass:
 class SingleBaseClass:
 
     def __init__(self, **kwargs):
+
         for ds_field in self.__dataclass_fields__.keys():
             setattr(self, ds_field, kwargs.get(ds_field, None))
+
+        for key, value in kwargs.items():
+            if not hasattr(self, key):  # Only add if not already set
+                setattr(self, key, value)
 
     def to_dict(self):
         return asdict(self)

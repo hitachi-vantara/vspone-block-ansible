@@ -71,7 +71,7 @@ options:
         required: false
       ldev_id:
         description: ID of the LDEV (required for delete and update operations), for new it will assigned to this ldev if it's free.
-        type: int
+        type: str
         required: false
       name:
         description: Name of the LDEV (optional). If not given, it assigns the name of the LDEV to "smrha-<ldev_id>".
@@ -144,7 +144,7 @@ options:
             required: false
       vldev_id:
         description: Specify the virtual LDEV id. Specify -1 if you want to unassign the vldev_id.
-        type: int
+        type: str
         required: false
       force:
         description: Force delete. Delete the LDEV and removes the LDEV from hostgroups, iscsi targets or NVM subsystem namespace.
@@ -228,13 +228,13 @@ options:
         description: >
           The starting LDEV ID for the range of LDEVs to be created. This is used when creating multiple LDEVs.
           If not specified, a free LDEV ID will be assigned.
-        type: int
+        type: str
         required: false
       end_ldev_id:
         description: >
           The ending LDEV ID for the range of LDEVs to be created. This is used when creating multiple LDEVs.
           If not specified, only one LDEV will be created.
-        type: int
+        type: str
         required: false
       mp_blade_id:
         description: >

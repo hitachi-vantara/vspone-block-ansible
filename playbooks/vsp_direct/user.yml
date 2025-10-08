@@ -26,7 +26,7 @@
         spec:
           name: "devUser"
           authentication: "local"
-          password: "devPassword"
+          password: "CHANGE_ME_SET_YOUR_PASSWORD"
           group_names: ["Audit Log Administrator (View Only) User Group", "Storage Administrator (View & Modify) User Group"]
       register: result
 
@@ -42,7 +42,7 @@
         connection_info: "{{ connection_info }}"
         spec:
           id: "devUser"
-          password: "devPassword2"
+          password: "CHANGE_ME_SET_YOUR_PASSWORD"
       register: result
 
     - name: Debug the result variable
@@ -57,7 +57,7 @@
         connection_info: "{{ connection_info }}"
         spec:
           name: "devUser"
-          password: "devPassword3"
+          password: "CHANGE_ME_SET_YOUR_PASSWORD"
       register: result
 
     - name: Debug the result variable

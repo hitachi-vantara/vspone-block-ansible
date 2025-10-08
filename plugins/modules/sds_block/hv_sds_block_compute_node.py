@@ -338,7 +338,7 @@ class SDSBComputeNodeManager:
 
         response = {
             "changed": self.connection_info.changed,
-            "data": compute_node_data_extracted,
+            "compute_nodes": compute_node_data_extracted,
         }
         if registration_message:
             response["user_consent_required"] = registration_message

@@ -49,7 +49,7 @@ options:
         required: false
       external_ldev_id:
         description: The external LDEV ID.
-        type: int
+        type: str
         required: false
 
 """

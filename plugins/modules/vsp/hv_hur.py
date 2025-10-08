@@ -75,7 +75,7 @@ options:
     suboptions:
       primary_volume_id:
         description: Primary volume id.
-        type: int
+        type: str
         required: false
       primary_volume_journal_id:
         description: Primary volume journal id, required for create.
@@ -219,10 +219,6 @@ options:
         description: Secondary storage serial number.
         type: int
         required: false
-      secondary_volume_id:
-        description: Secondary volume id.
-        type: int
-        required: false
       path_group_id:
         description: >
           This is an optional field during create operation.
@@ -236,7 +232,7 @@ options:
         required: false
       provisioned_secondary_volume_id:
         description: ID of the provisioned secondary volume that you want to use for the HUR pair creation.
-        type: int
+        type: str
         required: false
       begin_secondary_volume_id:
         description: >
@@ -245,7 +241,7 @@ options:
           If this field is not specified, Ansible modules will try to create SVOL ID same as the PVOL ID if available,
           otherwise it will use the first available LDEV ID.
         required: false
-        type: int
+        type: str
       end_secondary_volume_id:
         description: >
           Specify end ldev id for LDEV range for svol. This is an optional field during create operation.
@@ -253,7 +249,7 @@ options:
           If this field is not specified, Ansible modules will try to create SVOL ID same as PVOL ID iff available,
           otherwise it will use the first available LDEV ID.
         required: false
-        type: int
+        type: str
       do_initial_copy:
         description: Perform initial copy. This is an optional field during create operation.
         type: bool

@@ -693,9 +693,9 @@ class NvmeSubsystemDetailInfoExtractor:
                 default_value = get_default_value(value_type)
                 value = default_value
             new_dict[key] = value
-            if new_dict.get("ldev_hex_id") == "" or new_dict.get("ldev_hex_id") is None:
+            if new_dict.get("ldev_id_hex") == "" or new_dict.get("ldev_id_hex") is None:
                 if new_dict.get("ldev_id") is not None or new_dict.get("ldev_id"):
-                    new_dict["ldev_hex_id"] = volume_id_to_hex_format(
+                    new_dict["ldev_id_hex"] = volume_id_to_hex_format(
                         new_dict.get("ldev_id")
                     )
         return new_dict
@@ -716,11 +716,11 @@ class NvmeSubsystemDetailInfoExtractor:
                     value = default_value
                 new_dict[key] = value
                 if (
-                    new_dict.get("ldev_hex_id") == ""
-                    or new_dict.get("ldev_hex_id") is None
+                    new_dict.get("ldev_id_hex") == ""
+                    or new_dict.get("ldev_id_hex") is None
                 ):
                     if new_dict.get("ldev_id") is not None or new_dict.get("ldev_id"):
-                        new_dict["ldev_hex_id"] = volume_id_to_hex_format(
+                        new_dict["ldev_id_hex"] = volume_id_to_hex_format(
                             new_dict.get("ldev_id")
                         )
                 if (

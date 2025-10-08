@@ -46,7 +46,7 @@ options:
     suboptions:
       primary_volume_id:
         description: The primary volume identifier. If not provided, it will be omitted.
-        type: int
+        type: str
         required: false
       mirror_unit_id:
         description: The mirror unit identifier. If not provided, it will be omitted.
@@ -146,7 +146,7 @@ ansible_facts:
           description: Identifier of the pool.
           type: int
           sample: 1
-        primary_hex_volume_id:
+        primary_volume_id_hex:
           description: Hexadecimal identifier of the primary volume.
           type: str
           sample: "00:00:A8"

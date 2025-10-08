@@ -123,7 +123,7 @@ class SDSBBlockStorageNodeBmcAccessSettingFactsManager:
 
     def apply(self):
         self.logger.writeInfo(
-            "=== Start of SDSB Storage Node BMC Access Setting Facts ==="
+            "=== Start of SDSB Storage Node BMC Connection Setting Facts ==="
         )
         response = None
         registration_message = validate_ansible_product_registration()
@@ -139,7 +139,7 @@ class SDSBBlockStorageNodeBmcAccessSettingFactsManager:
         except Exception as e:
             self.logger.writeException(e)
             self.logger.writeInfo(
-                "=== End of SDSB Storage Node BMC Access Setting Facts ==="
+                "=== End of SDSB Storage Node BMC Connection Setting Facts ==="
             )
             self.module.fail_json(msg=str(e))
 
@@ -147,7 +147,7 @@ class SDSBBlockStorageNodeBmcAccessSettingFactsManager:
         if registration_message:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo(
-            "=== End of SDSB Storage Node BMC Access Setting Facts ==="
+            "=== End of SDSB Storage Node BMC Connection Setting Facts ==="
         )
         self.module.exit_json(changed=False, ansible_facts=data)
 

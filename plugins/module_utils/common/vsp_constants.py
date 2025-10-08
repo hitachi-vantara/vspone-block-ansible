@@ -63,7 +63,9 @@ class Endpoints(object):
         "v1/objects/ldevs?ldevOption=undefined&resourceGroupId={}&count=16384"
     )
     GET_FREE_LDEVS_FROM_META_HEAD_LDEV = "v1/objects/ldevs?ldevOption=undefined&headLdevId={}&resourceGroupId={}&count=16384"
-    GET_FREE_LDEVS_FROM_META_BASIC = "v1/objects/ldevs?ldevOption=undefined&headLdevId={}&count={}"
+    GET_FREE_LDEVS_FROM_META_BASIC = (
+        "v1/objects/ldevs?ldevOption=undefined&headLdevId={}&count={}"
+    )
     GET_FREE_LDEV_MATCHING_PVOL = (
         "v1/objects/ldevs?ldevOption=undefined&count=1&headLdevId={}"
     )
@@ -344,6 +346,29 @@ class Endpoints(object):
     GET_SNMP_SETTINGS = "v1/objects/snmp-settings/instance"
     SEND_SNMP_TRAP = "v1/objects/snmp-settings/instance/actions/send-trap-test/invoke"
 
+    # VSP one server
+    GET_SIMPLE_SERVER_INFO = "simple/v1/objects/servers"
+    GET_SIMPLE_SERVER_INFO_QUERY = "simple/v1/objects/servers?{}"
+    GET_SINGLE_SIMPLE_SERVER = "simple/v1/objects/servers/{}"
+    ADD_HG_TO_SERVER = "simple/v1/objects/servers/{}/actions/add-host-groups/invoke"
+    SYNC_HG_TO_SERVER_NICKNAME = (
+        "simple/v1/objects/servers/{}/actions/sync-host-group-names/invoke"
+    )
+    GET_WWN_OF_HBA = "simple/v1/objects/servers/{}/hbas"
+    SINGLE_WWN_OF_HBA_PER_SERVER = "simple/v1/objects/servers/{}/hbas/{}"
+    ADD_WWN_OF_HBA = "simple/v1/objects/servers/{}/hbas"
+    ALL_SERVER_PATHS = "simple/v1/objects/servers/{}/paths"
+    SPECIFIC_SERVER_PATH = "simple/v1/objects/servers/{}/paths/{}"
+    ADD_PATH_TO_SERVER = "simple/v1/objects/servers/{}/paths"
+    SINGLE_SERVER_PATH = "simple/v1/objects/servers/{}/paths/{}"
+    GET_ALL_SERVER_ISCSI = "simple/v1/objects/servers/{}/target-iscsi-ports"
+    SINGLE_SERVER_ISCSI = "simple/v1/objects/servers/{}/target-iscsi-ports/{}"
+    ISCSI_TARGET_SETTINGS = "simple/v1/objects/servers/{}/target-iscsi-ports/{}"
+
+    # VSP one Port
+    VSP_ONE_GET_PORTS = "simple/v1/objects/ports"
+    VSP_ONE_SINGLE_PORT = "simple/v1/objects/ports/{}"
+
 
 class Http(object):
     GET = "GET"
@@ -606,6 +631,37 @@ class VolumePayloadConst:
     LOWER_ALERT_ALLOWABLE_TIME = "lowerAlertAllowableTime"
     RESPONSE_PRIORITY = "responsePriority"
     RESPONSE_ALERT_ALLOWABLE_TIME = "responseAlertAllowableTime"
+
+    # Vsp one server
+    serverNickname = "serverNickname"
+    protocol = "protocol"
+    osType = "osType"
+    osTypeOptions = "osTypeOptions"
+    isReserved = "isReserved"
+
+
+class ServerPayloadConst:
+    serverNickname = "serverNickname"
+    protocol = "protocol"
+    osType = "osType"
+    osTypeOptions = "osTypeOptions"
+    isReserved = "isReserved"
+    nickname = "nickname"
+    portId = "portId"
+    hostGroupId = "hostGroupId"
+    hostGroupName = "hostGroupName"
+    hbas = "hbas"
+    hbaWwn = "hbaWwn"
+    iscsiName = "iscsiName"
+    hbaWwn = "hbaWwn"
+    portIds = "portIds"
+    targetIscsiName = "targetIscsiName"
+
+
+class VSPOnePortConst:
+    portSpeed = "portSpeed"
+    portSecurity = "portSecurity"
+    fcInformation = "fcInformation"
 
 
 class VSPSnapShotReq:

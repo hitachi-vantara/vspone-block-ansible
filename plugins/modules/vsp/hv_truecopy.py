@@ -104,7 +104,7 @@ options:
         required: false
       primary_volume_id:
         description: Primary volume ID. This is a required field for create operation.
-        type: int
+        type: str
         required: false
       consistency_group_id:
         description: Consistency Group ID, 0 to 255. This is an optional field.
@@ -123,7 +123,7 @@ options:
         required: false
       provisioned_secondary_volume_id:
         description: ID of the provisioned secondary volume that you want to use for the true copy creation.
-        type: int
+        type: str
         required: false
       begin_secondary_volume_id:
         description: >
@@ -132,7 +132,7 @@ options:
           If this field is not specified, Ansible modules will try to create SVOL ID same as the PVOL ID if available,
           otherwise it will use the first available LDEV ID.
         required: false
-        type: int
+        type: str
       end_secondary_volume_id:
         description: >
           Specify end ldev id for LDEV range for svol. This is an optional field during create operation.
@@ -140,7 +140,7 @@ options:
           If this field is not specified, Ansible modules will try to create SVOL ID same as PVOL ID iff available,
           otherwise it will use the first available LDEV ID.
         required: false
-        type: int
+        type: str
       copy_pace:
         description: Copy speed.
         type: str
@@ -244,10 +244,6 @@ options:
       new_volume_size:
         description: Required only for resize or expand operation. Value should be grater than the current volume size.
         type: str
-        required: false
-      secondary_volume_id:
-        description: Secondary volume id.
-        type: int
         required: false
       is_consistency_group:
         description: >
@@ -410,10 +406,6 @@ data:
       description: Primary hex volume ID.
       type: str
       sample: "00:02:77"
-    # primary_or_secondary:
-    #   description: Primary or secondary.
-    #   type: str
-    #   sample: ""
     primary_volume_id:
       description: Primary volume ID.
       type: int
@@ -438,10 +430,6 @@ data:
       description: Secondary volume ID.
       type: int
       sample: 202
-    # status:
-    #   description: Status.
-    #   type: str
-    #   sample: ""
     storage_serial_number:
       description: Storage serial number.
       type: str

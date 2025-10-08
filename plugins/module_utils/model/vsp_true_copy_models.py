@@ -4,10 +4,12 @@ from typing import Optional, List
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from ..model.common_base_models import ConnectionInfo
+    from ..common.ansible_common import normalize_ldev_id
 
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from model.common_base_models import ConnectionInfo
+    from common.ansible_common import normalize_ldev_id
 
 
 @dataclass
@@ -19,6 +21,12 @@ class TrueCopyFactSpec(SingleBaseClass):
     local_device_group_name: Optional[str] = None
     remote_device_group_name: Optional[str] = None
     secondary_connection_info: Optional[ConnectionInfo] = None
+
+    def __post_init__(self):
+        if self.primary_volume_id:
+            self.primary_volume_id = normalize_ldev_id(self.primary_volume_id)
+        if self.secondary_volume_id:
+            self.secondary_volume_id = normalize_ldev_id(self.secondary_volume_id)
 
 
 @dataclass
@@ -112,6 +120,24 @@ class TrueCopySpec(SingleBaseClass):
         ):
             self.secondary_nvm_subsystem = NVMeSubsystemSpec(
                 **kwargs.get("secondary_nvm_subsystem")
+            )
+
+        # def __post_init__(self):
+        if self.primary_volume_id:
+            self.primary_volume_id = normalize_ldev_id(self.primary_volume_id)
+        if self.secondary_volume_id:
+            self.secondary_volume_id = normalize_ldev_id(self.secondary_volume_id)
+        if self.begin_secondary_volume_id:
+            self.begin_secondary_volume_id = normalize_ldev_id(
+                self.begin_secondary_volume_id
+            )
+        if self.end_secondary_volume_id:
+            self.end_secondary_volume_id = normalize_ldev_id(
+                self.end_secondary_volume_id
+            )
+        if self.provisioned_secondary_volume_id:
+            self.provisioned_secondary_volume_id = normalize_ldev_id(
+                self.provisioned_secondary_volume_id
             )
 
 

@@ -26,6 +26,16 @@ attributes:
     support: full
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.sdsb_connection_info
+options:
+  spec:
+    description: Specification for retrieving protection domain information.
+    type: dict
+    required: false
+    suboptions:
+      id:
+        description: The ID of the protection domain.
+        type: str
+        required: false
 """
 
 EXAMPLES = """
@@ -35,6 +45,15 @@ EXAMPLES = """
       address: sdsb.company.com
       username: "admin"
       password: "password"
+
+- name: Retrieve information about Protection Domain by ID
+  hitachivantara.vspone_block.sds_block.hv_sds_block_protection_domain_facts:
+    connection_info:
+      address: sdsb.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      id: "13d017d1-5448-4c4c-8284-7ab1b53a17cd"
 """
 
 RETURN = r"""
@@ -139,7 +158,12 @@ class SDSBBlockBlockDomainsFactsManager:
                         "default": "direct",
                     },
                 },
-            }
+            },
+            "spec": {
+                "required": False,
+                "type": "dict",
+                "options": {"id": {"required": False, "type": "str"}},
+            },
         }
 
         self.module = AnsibleModule(
@@ -147,8 +171,13 @@ class SDSBBlockBlockDomainsFactsManager:
             supports_check_mode=True,
         )
 
-        parameter_manager = SDSBParametersManager(self.module.params)
-        self.connection_info = parameter_manager.get_connection_info()
+        try:
+            parameter_manager = SDSBParametersManager(self.module.params)
+            self.connection_info = parameter_manager.get_connection_info()
+            self.spec = parameter_manager.get_protection_domain_fact_spec()
+        except Exception as e:
+            self.logger.writeException(e)
+            self.module.fail_json(msg=str(e))
 
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB Protection Domain Facts ===")
@@ -157,7 +186,7 @@ class SDSBBlockBlockDomainsFactsManager:
 
         try:
             sdsb_reconciler = SDSBClusterInformationReconciler(self.connection_info)
-            settings = sdsb_reconciler.get_protection_domain_settings()
+            settings = sdsb_reconciler.get_protection_domain_settings(self.spec)
 
             self.logger.writeDebug(
                 f"MOD:get_protection_domain_settings:get_protection_domain_settings= {settings}"

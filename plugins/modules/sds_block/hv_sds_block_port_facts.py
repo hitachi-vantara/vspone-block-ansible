@@ -32,7 +32,7 @@ options:
   spec:
     description: Specification for retrieving compute port information.
     type: dict
-    required: false
+    required: true
     suboptions:
       names:
         description: The names of the compute ports.
@@ -298,6 +298,7 @@ class SDSBPortFactsManager:
             argument_spec=self.argument_spec,
             supports_check_mode=True,
         )
+        self.logger.writeDebug(f"spec = {self.argument_spec}")
         parameter_manager = SDSBParametersManager(self.module.params)
         self.connection_info = parameter_manager.get_connection_info()
         self.spec = parameter_manager.get_compute_port_fact_spec()

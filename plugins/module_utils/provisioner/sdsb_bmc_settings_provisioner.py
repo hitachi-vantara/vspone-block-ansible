@@ -35,3 +35,7 @@ class SDSBBmcSettingsProvisioner:
         except Exception as e:
             logger.writeException(e)
             return []
+
+    @log_entry_exit
+    def update_bmc_settings(self, id, bmc_name=None, bmc_user=None, bmc_password=None):
+        return self.gateway.update_bmc_settings(id, bmc_name, bmc_user, bmc_password)

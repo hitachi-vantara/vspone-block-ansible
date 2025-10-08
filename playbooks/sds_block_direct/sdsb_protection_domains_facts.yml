@@ -28,3 +28,17 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ####################################################################
+    # Task Name : Get Protection Domain Information by ID
+    ####################################################################
+    - name: Get Protection Domain Information by ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_protection_domain_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          id: "13d017d1-5448-4c4c-8284-7ab1b53a17cd"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

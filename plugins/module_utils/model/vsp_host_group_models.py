@@ -3,10 +3,18 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from ..common.ansible_common import dicts_to_dataclass_list
+    from ..common.ansible_common import (
+        dicts_to_dataclass_list,
+        normalize_ldev_id,
+        volume_id_to_hex_format,
+    )
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from common.ansible_common import dicts_to_dataclass_list
+    from common.ansible_common import (
+        dicts_to_dataclass_list,
+        normalize_ldev_id,
+        volume_id_to_hex_format,
+    )
 
 
 @dataclass
@@ -48,6 +56,8 @@ class HostGroupSpec(SingleBaseClass):
     def __post_init__(self):
         if self.wwns:
             self.wwns = [HostWWN(**wwn) for wwn in self.wwns]
+        if self.ldevs:
+            self.ldevs = [normalize_ldev_id(ldev_id) for ldev_id in self.ldevs]
 
 
 @dataclass
@@ -118,6 +128,7 @@ class VSPHostModeOption(SingleBaseClass):
 @dataclass
 class VSPLunPathDetails(SingleBaseClass):
     ldevId: int = None
+    ldevIdHex: str = None
     portId: str = None
     hostGroupNumber: int = None
     hostMode: str = None
@@ -133,6 +144,11 @@ class VSPLunPathDetails(SingleBaseClass):
         super().__init__(**kwargs)
         if kwargs.get("luHostReserve"):
             self.luHostReserve = LuHostReserve(**kwargs.get("luHostReserve"))
+        self.__post_init__()
+
+    def __post_init__(self):
+        if self.ldevId:
+            self.ldevIdHex = volume_id_to_hex_format(self.ldevId)
 
 
 @dataclass

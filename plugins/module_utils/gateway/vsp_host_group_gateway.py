@@ -442,7 +442,14 @@ class VSPHostGroupDirectGateway:
             data = {}
             data["hostWwn"] = host_wwn.wwn
             data["portId"] = hg.port
-            data["hostGroupNumber"] = hg.hostGroupNumber
+            actual_hg_number = None
+            if isinstance(hg.hostGroupNumber, int):
+                actual_hg_number = hg.hostGroupNumber
+            elif isinstance(hg.hostGroupNumber, str) and "," in hg.hostGroupNumber:
+                actual_hg_number = hg.hostGroupNumber.split(",")[-1]
+            else:
+                raise ValueError(f"Invalid host group number {hg.hostGroupNumber}.")
+            data["hostGroupNumber"] = actual_hg_number
             unused = self.rest_api.post(end_point, data)
             if host_wwn.nick_name:
                 try:

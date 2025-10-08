@@ -36,6 +36,19 @@ except ImportError:
 UUID = ""
 
 
+class UuidInjectFilter(logging.Filter):
+    """Ensure every LogRecord has a uuid field."""
+
+    def __init__(self, default_uuid=None):
+        super().__init__()
+        self.default_uuid = default_uuid or str(uuid.uuid4())
+
+    def filter(self, record):
+        if not hasattr(record, "uuid"):
+            record.uuid = UUID or self.default_uuid
+        return True
+
+
 def setup_logging(logger, audit_logger):
     # Generate a UUID
     global UUID
@@ -48,15 +61,14 @@ def setup_logging(logger, audit_logger):
     log_file = os.path.join(ANSIBLE_LOG_PATH, LOGFILE_NAME)  # nosec
     audit_log_file = os.path.join(ANSIBLE_LOG_PATH, AUDIT_LOGFILE_NAME)  # nosec
 
-    # Custom formatter to include uuid and module_name
+    # Custom formatter to include uuid
     class CustomFormatter(logging.Formatter):
         def __init__(self, fmt=None, datefmt=None):
             super().__init__(fmt, datefmt)
-            self.uuid = UUID
 
         def format(self, record):
-            # Add UUID and module_name to each log record
-            record.uuid = self.uuid
+            if not hasattr(record, "uuid"):
+                record.uuid = UUID
             return super().format(record)
 
     # Logging configuration dictionary
@@ -64,7 +76,7 @@ def setup_logging(logger, audit_logger):
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            # Updated the formatter to include uuid and module_name placeholders
+            # Safe formatter (uuid injected via filter/formatter)
             "logfileformatter": {
                 "format": "%(asctime)s - %(levelname)s - %(uuid)s - %(message)s"
             },
@@ -104,6 +116,14 @@ def setup_logging(logger, audit_logger):
     )
     log_handler.setFormatter(formatter)
     audit_log_handler.setFormatter(formatter)
+
+    # Inject UUID into all records
+    uuid_filter = UuidInjectFilter()
+    log_handler.addFilter(uuid_filter)
+    audit_log_handler.addFilter(uuid_filter)
+    logging.getLogger().addFilter(uuid_filter)
+    logger.addFilter(uuid_filter)
+    audit_logger.addFilter(uuid_filter)
 
     # Add the handler to the root logger
     root_logger = logging.getLogger()

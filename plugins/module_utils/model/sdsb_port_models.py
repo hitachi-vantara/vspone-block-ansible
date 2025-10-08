@@ -20,6 +20,14 @@ class PortFactSpec:
 
 
 @dataclass
+class ComputePortSpec:
+    id: Optional[str] = None
+    name: Optional[str] = None
+    nick_name: Optional[str] = None
+    protocol: Optional[str] = None
+
+
+@dataclass
 class Ipv4Information:
     address: str
     subnetMask: str

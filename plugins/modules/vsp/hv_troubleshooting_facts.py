@@ -41,10 +41,15 @@ ansible_facts:
     description: The facts collected by the module.
     returned: always
     type: dict
-    sample: {
-        "filename": "$HOME/logs/hitachivantara/ansible/vspone_block/log_bundles/ansible_log_bundle_2024_05_23_13_15_36.zip",
-        "msg": "LogBundle with direct connection logs"
-    }
+    contains:
+        filename:
+            description: Path to the log bundle created.
+            type: str
+            sample: "$HOME/logs/hitachivantara/ansible/vspone_block/log_bundles/ansible_log_bundle_2024_05_23_13_15_36.zip"
+        msg:
+            description: Success or failure message.
+            type: str
+            sample: "LogBundle with direct connection logs"
 """
 
 import json

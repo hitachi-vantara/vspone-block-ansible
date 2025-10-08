@@ -211,55 +211,162 @@ EXAMPLES = """
 
 RETURN = """
 snmp_settings:
-  description: SNMP configuration details retrieved from the storage system.
+  description: SNMP configuration details.
   returned: always
   type: dict
-  sample:
-    isSNMPAgentEnabled: true
-    snmpVersion: v3
-    sendingTrapSetting:
-      snmpv3Settings:
-        - userName: MyRestSNMPUser1
-          sendTrapTo: 192.0.2.100
-          authentication:
-            protocol: SHA
-            password: ""
-            encryption:
-              protocol: AES
-              key: ""
-        - userName: MyRestSNMPUser2
-          sendTrapTo: 192.0.2.200
-    requestAuthenticationSetting:
-      snmpv3Settings:
-        - userName: MyRestSNMPUser3
-          authentication:
-            protocol: MD5
-            password: ""
-            encryption:
-              protocol: DES
-              key: ""
-    systemGroupInformation:
-      storageSystemName: VSP_G700
-      contact: confmanager.@example.com
-      location: Data Center 1F
-    snmpEngineID: "0x80000074046361336663353061"
+  contains:
+    is_snmp_agent_enabled:
+      description: Whether SNMP agent is enabled on the storage system.
+      type: bool
+      sample: true
+    snmp_version:
+      description: SNMP version configured on the system.
+      type: str
+      sample: "v2c"
+    snmp_engine_id:
+      description: SNMP engine ID of the storage system.
+      type: str
+      sample: "0x80001f88043636326431396163"
+    request_authentication_setting:
+      description: SNMP request authentication settings.
+      type: dict
+      contains:
+        snmpv3_settings:
+          description: SNMPv3 authentication settings.
+          type: list
+          elements: dict
+          contains:
+            user_name:
+              description: SNMPv3 username.
+              type: str
+              sample: "snmpv3user"
+            send_trap_to:
+              description: IP address to send traps to.
+              type: str
+              sample: "192.168.1.100"
+            authentication:
+              description: Authentication configuration.
+              type: dict
+              contains:
+                protocol:
+                  description: Authentication protocol.
+                  type: str
+                  sample: "SHA"
+                password:
+                  description: Authentication password.
+                  type: str
+                  sample: "CHANGE_ME_SET_YOUR_PASSWORD"
+                encryption:
+                  description: Encryption settings.
+                  type: dict
+                  contains:
+                    protocol:
+                      description: Encryption protocol.
+                      type: str
+                      sample: "AES"
+                    key:
+                      description: Encryption key.
+                      type: str
+                      sample: "encryptionKey456"
+        snmpv1v2c_settings:
+          description: SNMPv1/v2c authentication settings.
+          type: list
+          elements: dict
+          contains:
+            community:
+              description: SNMP community string.
+              type: str
+              sample: "public"
+            requests_permitted:
+              description: List of permitted IP addresses for requests.
+              type: list
+              elements: str
+              sample: ["192.168.1.0/24", "10.0.0.0/8"]
+    sending_trap_setting:
+      description: SNMP trap configuration settings.
+      type: dict
+      contains:
+        snmpv1v2c_settings:
+          description: SNMPv1/v2c trap settings.
+          type: list
+          elements: dict
+          contains:
+            community:
+              description: SNMP community string.
+              type: str
+              sample: "public"
+            send_trap_to:
+              description: List of IP addresses to send traps to.
+              type: list
+              elements: str
+              sample: ["172.25.37.79", "203.0.113.21"]
+        snmpv3_settings:
+          description: SNMPv3 trap settings.
+          type: list
+          elements: dict
+          contains:
+            user_name:
+              description: SNMPv3 username.
+              type: str
+              sample: "trapuser"
+            send_trap_to:
+              description: IP address to send traps to.
+              type: str
+              sample: "192.168.1.200"
+            authentication:
+              description: Authentication configuration.
+              type: dict
+              contains:
+                protocol:
+                  description: Authentication protocol.
+                  type: str
+                  sample: "SHA"
+                password:
+                  description: Authentication password.
+                  type: str
+                  sample: "CHANGE_ME_SET_YOUR_PASSWORD"
+                encryption:
+                  description: Encryption settings.
+                  type: dict
+                  contains:
+                    protocol:
+                      description: Encryption protocol.
+                      type: str
+                      sample: "AES"
+                    key:
+                      description: Encryption key.
+                      type: str
+                      sample: "trapEncKey321"
+    system_group_information:
+      description: System group information for SNMP.
+      type: dict
+      contains:
+        storage_system_name:
+          description: Name of the storage system.
+          type: str
+          sample: "VSP-Block-45-102"
+        contact:
+          description: Contact information for the system.
+          type: str
+          sample: "admin@hitachivantara.com"
+        location:
+          description: Physical location of the system.
+          type: str
+          sample: "SC Data Center 1"
 """
-
-
 from ansible.module_utils.basic import AnsibleModule
-
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
-    VSPSNMPArguments,
-    VSPParametersManager,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_initial_system_config_reconciler import (
-    InitialSystemConfigReconciler,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
-    validate_ansible_product_registration,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_initial_system_config_reconciler import (
+    InitialSystemConfigReconciler,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
+    VSPSNMPArguments,
+    VSPParametersManager,
 )
 
 

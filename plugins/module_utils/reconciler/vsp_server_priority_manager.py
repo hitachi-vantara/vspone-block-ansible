@@ -4,6 +4,7 @@ try:
         log_entry_exit,
         camel_to_snake_case,
         get_default_value,
+        volume_id_to_hex_format,
     )
     from ..common.hv_constants import StateValue
     from ..provisioner.vsp_spm_provisioner import (
@@ -22,6 +23,7 @@ except ImportError:
         log_entry_exit,
         camel_to_snake_case,
         get_default_value,
+        volume_id_to_hex_format,
     )
     from common.hv_constants import StateValue
     from provisioner.vsp_spm_provisioner import (
@@ -186,6 +188,7 @@ class ServerPriorityManagerInfoExtractor:
         self.common_properties = {
             "ioControlLdevWwnIscsiId": str,
             "ldevId": int,
+            "ldevIdHex": str,
             "hostWwn": str,
             "iscsiName": str,
             "priority": str,
@@ -217,5 +220,13 @@ class ServerPriorityManagerInfoExtractor:
                     # Handle missing keys by assigning default values
                     default_value = get_default_value(value_type)
                     new_dict[cased_key] = default_value
+            if new_dict.get("ldev_id_hex") == "":
+                if (
+                    new_dict.get("ldev_id") is not None
+                    and new_dict.get("ldev_id") != ""
+                ):
+                    new_dict["ldev_id_hex"] = volume_id_to_hex_format(
+                        new_dict.get("ldev_id")
+                    )
             new_items.append(new_dict)
         return new_items

@@ -16,7 +16,7 @@ class VSPVolumeMSG(Enum):
     VOLUME_CREATED_UPDATED_SUCCESS = "Volume created/updated successfully."
     POOL_ID_REQUIRED = "Pool ID is required to create a volume."
     CAPACITY_REQUIRED = "Capacity is required to create a volume."
-    SAVING_SETTING_REQUIRED = "Saving setting is required to create a volume."
+    SAVING_SETTING_REQUIRED = "Capacity saving is required to create a volume."
     NICKNAME_REQUIRED = "Nickname base name is required to create a volume."
     VOLUME_ID_REQUIRED_FOR_QOS = "Volume ID is required to update QoS settings."
     QOS_SETTINGS_REQUIRED = "QoS settings are required to update."
@@ -31,15 +31,22 @@ class VSPVolumeMSG(Enum):
     FAILED_TO_EXPAND_VOLUME_CAPACITY = "Failed to expand volume capacity: "
     VOLUME_CAPACITY_EXPANDED_SUCCESS = "Volume capacity expanded successfully."
     MISSING_VOLUME_ID_FOR_OPERATION = "Missing volume ID to perform the operation."
+    MISSING_SERVER_ISD_FOR_OPERATION = (
+        "server_ids is required to attach servers to volumes."
+    )
     VOLUME_NOT_FOUND = "Volume with ID {volume_id} not found."
-    ATTACHED_SERVER_SUCCESS = "Attached servers {} to volume successfully."
+    ATTACHED_SERVER_SUCCESS = "Attached servers to volume successfully."
     ATTACHED_SERVER_FAILED = "Failed to attach servers to volume: "
     SERVER_ATTACHED_SUCCESS = "Server(s) attached to volume successfully."
     DETACHED_SERVER_SUCCESS = "Detached servers {} to volume successfully."
     DETACHED_SERVER_FAILED = "Failed to detach server(s) from volume: "
     SERVER_DETACHED_SUCCESS = "Server(s) detached from volume successfully."
-    SERVER_ALREADY_ATTACHED = "One or more specified server IDs are already attached to the volume."
-    SERVER_ALREADY_DETACHED = "One or more specified server IDs are already detached from the volume."
+    SERVER_ALREADY_ATTACHED = (
+        "One or more specified server IDs are already attached to the volume."
+    )
+    SERVER_ALREADY_DETACHED = (
+        "One or more specified server IDs are already detached from the volume."
+    )
 
     # Example usage in the class (replace string literals with enum values):
     # spec.comments.append(VSPVolumeMSG.VOLUME_DELETED_SUCCESS.value)
@@ -124,6 +131,10 @@ class VSPVolValidationMsg(Enum):
         "ldev_id should be in the range of start_ldev_id and end_ldev_id."
     )
     CLPR_ID_REQUIRED = "clpr_id is required for assign_ state."
-    COUNT_END_LDEV_MUTUALLY_EXCLUSIVE = "count and end_ldev_id are mutually exclusive.Please provide only one of them."
+    COUNT_END_LDEV_MUTUALLY_EXCLUSIVE = (
+        "count and end_ldev_id are mutually exclusive.Please provide only one of them."
+    )
     END_LDEV_SHOULD_BE_GREATER = "end_ldev_id should be greater than start_ldev_id."
-    BOTH_LDEV_VLDEV_ID_REQD = "Both ldev_id and vldev_id are required for this operation."
+    BOTH_LDEV_VLDEV_ID_REQD = (
+        "Both ldev_id and vldev_id are required for this operation."
+    )

@@ -79,6 +79,7 @@ class SDSBStorageNodeReconciler:
                     raise ValueError(SDSBStorageNodeValidationMsg.WRONG_NODE_ID.value)
                 else:
                     raise Exception(e)
+
         if spec.id is None:
             raise ValueError(
                 SDSBStorageNodeValidationMsg.STORAGE_NODE_NOT_FOUND.value.format(
@@ -184,6 +185,7 @@ class SDSBStorageNodeExtractor:
             "physicalZone": str,
             "logicalZone": str,
             "is_capacity_balancing_enabled": bool,
+            "isStorageMasterNodePrimary": bool,
         }
         self.parameter_mapping = {
             "memory": "memory_mb",

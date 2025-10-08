@@ -26,9 +26,9 @@
         state: "present"
         spec:
           target_chap_user_name: "chapuser2"
-          target_chap_secret: "chapuser2_secret"
+          target_chap_secret: "CHANGE_ME_SET_YOUR_PASSWORD"
           initiator_chap_user_name: "chapuser1"
-          initiator_chap_secret: "chapuser1_secret"
+          initiator_chap_secret: "CHANGE_ME_SET_YOUR_PASSWORD"
       register: result
 
     - name: Debug the result variable
@@ -61,7 +61,7 @@
         spec:
           id: "464e1fd1-9892-4134-866c-6964ce786676"
           target_chap_user_name: "newchapuser2"
-          target_chap_secret: "chapuser2_new_secret"
+          target_chap_secret: "CHANGE_ME_SET_YOUR_PASSWORD"
       register: result
 
     - name: Debug the result variable

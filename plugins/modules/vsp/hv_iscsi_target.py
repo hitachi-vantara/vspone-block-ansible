@@ -153,7 +153,7 @@ options:
         description: LDEV ID in decimal or HEX of the LDEV that you want to present or unpresent.
         required: false
         type: list
-        elements: int
+        elements: str
       iqn_initiators:
         description: List of IQN initiators that you want to add or remove.
         required: false

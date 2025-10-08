@@ -51,7 +51,7 @@ options:
     suboptions:
       ldev_id:
         description: The id of the LDEV.
-        type: int
+        type: str
         required: true
       is_security_enabled:
         description: Specify whether to enable the security settings for the command device.
@@ -280,7 +280,7 @@ class VSPCmdDevManager:
     def __init__(self):
         self.logger = Log()
         self.argument_spec = VSPCmdDevArguments().cmd_dev()
-        self.logger.writeDebug(f"MOD:hv_cmd_dev:argument_spec= {self.argument_spec}")
+        # self.logger.writeDebug(f"MOD:hv_cmd_dev:argument_spec= {self.argument_spec}")
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=False,

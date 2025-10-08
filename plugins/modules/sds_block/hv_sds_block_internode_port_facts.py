@@ -185,7 +185,7 @@ class SDSBBlockInterNodePortFactsManager:
             self.logger.writeInfo("=== End of SDSB Inter Node Port Facts ===")
             self.module.fail_json(msg=str(e))
 
-        data = {"internode_port": control_port}
+        data = {"internode_ports": control_port}
         if registration_message:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo("=== End of SDSB Inter Node Port Facts ===")

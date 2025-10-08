@@ -246,7 +246,7 @@ class SDSBVpsManager:
 
         response = {
             "changed": self.connection_info.changed,
-            "data": vps,
+            "vps": vps,
         }
 
         if registration_message:

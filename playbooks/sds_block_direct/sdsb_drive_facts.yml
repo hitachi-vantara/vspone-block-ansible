@@ -30,6 +30,20 @@
         var: result
 
     ####################################################################
+    # Task Name : Get Drive by ID
+    ####################################################################
+    - name: Get Drive by ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_drives_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          id: "f41a9fa2-180e-4776-bbc4-9c536870c247"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
     # Task Name : Get Drives by specifying optional parameters
     ####################################################################
     - name: Get Drives by specifying optional parameters

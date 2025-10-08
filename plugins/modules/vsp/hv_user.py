@@ -85,7 +85,7 @@ EXAMPLES = """
     spec:
       name: "devUser"
       authentication: "local"
-      password: "devPassword"
+      password: "CHANGE_ME_SET_YOUR_PASSWORD"
       group_names: [
         "Audit Log Administrator (View Only) User Group",
         "Storage Administrator (View & Modify) User Group"]
@@ -98,7 +98,7 @@ EXAMPLES = """
       password: "secret"
     spec:
       name: "devUser"
-      password: "devPassword3"
+      password: "CHANGE_ME_SET_YOUR_PASSWORD"
 
 - name: Add Resource Groups to a User Group
   hitachivantara.vspone_block.vsp.hv_user_group:

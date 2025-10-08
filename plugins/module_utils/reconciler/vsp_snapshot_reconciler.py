@@ -239,9 +239,9 @@ class SnapshotCommonPropertiesExtractor:
         self.common_properties = {
             # "primaryOrSecondary":str,
             "primaryVolumeId": int,
-            "primaryHexVolumeId": str,
+            "primaryVolumeIdHex": str,
             "secondaryVolumeId": int,
-            "secondaryHexVolumeId": str,
+            "secondaryVolumeIdHex": str,
             # "svolAccessMode": str,
             "poolId": int,
             "mirrorUnitId": int,
@@ -282,8 +282,8 @@ class SnapshotCommonPropertiesExtractor:
             "retentionPeriodInHours": "retentionPeriod",
         }
         self.hex_values = {
-            "primaryHexVolumeId": "pvolLdevId",
-            "secondaryHexVolumeId": "svolLdevId",
+            "primaryVolumeIdHex": "pvolLdevId",
+            "secondaryVolumeIdHex": "svolLdevId",
         }
 
     def extract(self, responses, port_type_dict):

@@ -32,6 +32,9 @@ options:
     type: dict
     required: false
     suboptions:
+      id:
+        description: Unique identifier for the drive.
+        type: str
       status_summary:
         description: Filter drives by status summary
         choices: [ 'Normal', 'Warning', 'Error' ]

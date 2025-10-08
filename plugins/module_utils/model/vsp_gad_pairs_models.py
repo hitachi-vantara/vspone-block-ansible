@@ -3,18 +3,24 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass, base_dict_converter
-    from ..common.ansible_common import volume_id_to_hex_format
+    from ..common.ansible_common import (
+        volume_id_to_hex_format,
+        normalize_ldev_id,
+    )
     from ..model.common_base_models import ConnectionInfo
 
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass, base_dict_converter
-    from common.ansible_common import volume_id_to_hex_format
+    from common.ansible_common import (
+        volume_id_to_hex_format,
+        normalize_ldev_id,
+    )
     from model.common_base_models import ConnectionInfo
 
 
 @dataclass
 class GADPairFactSpec:
-    primary_volume_id: Optional[str] = None
+    primary_volume_id: Optional[int] = None
     secondary_volume_id: Optional[int] = None
     secondary_storage_serial_number: Optional[str] = None
     secondary_connection_info: Optional[ConnectionInfo] = None
@@ -28,6 +34,10 @@ class GADPairFactSpec:
             self.secondary_connection_info = ConnectionInfo(
                 **self.secondary_connection_info
             )
+        if self.primary_volume_id:
+            self.primary_volume_id = normalize_ldev_id(self.primary_volume_id)
+        if self.secondary_volume_id:
+            self.secondary_volume_id = normalize_ldev_id(self.secondary_volume_id)
 
 
 @dataclass
@@ -50,7 +60,7 @@ class NVMeSubsystemSpec:
 @dataclass
 class VspGadPairSpec:
     primary_storage_serial_number: Optional[str] = None
-    primary_volume_id: Optional[str] = None
+    primary_volume_id: Optional[int] = None
     consistency_group_id: Optional[str] = None
     allocate_new_consistency_group: Optional[bool] = None
     primary_hostgroups: Optional[List[HostgroupSpec]] = None
@@ -113,6 +123,20 @@ class VspGadPairSpec:
         if self.secondary_nvm_subsystem:
             self.secondary_nvm_subsystem = NVMeSubsystemSpec(
                 **self.secondary_nvm_subsystem
+            )
+        if self.primary_volume_id:
+            self.primary_volume_id = normalize_ldev_id(self.primary_volume_id)
+        if self.begin_secondary_volume_id:
+            self.begin_secondary_volume_id = normalize_ldev_id(
+                self.begin_secondary_volume_id
+            )
+        if self.end_secondary_volume_id:
+            self.end_secondary_volume_id = normalize_ldev_id(
+                self.end_secondary_volume_id
+            )
+        if self.provisioned_secondary_volume_id:
+            self.provisioned_secondary_volume_id = normalize_ldev_id(
+                self.provisioned_secondary_volume_id
             )
 
 

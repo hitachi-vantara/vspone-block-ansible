@@ -57,7 +57,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Sanity Tests
-        uses: ansible-community/ansible-test-gh-action@release/v1
+        uses: ansible-community/ansible-test-gh-action@d3a8ec7a59694e25e210fcd44738910149537f0e # release/v1
         with:
           ansible-core-version: ${{ matrix.ansible }}
           testing-type: sanity
@@ -69,6 +69,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ensure All Tests Passed
-        uses: re-actors/alls-green@release/v1
+        uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # release/v1
         with:
           jobs: ${{ toJSON(needs) }}

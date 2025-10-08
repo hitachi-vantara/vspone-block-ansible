@@ -76,10 +76,10 @@ class VSPJournalVolumeProvisioner:
             pool_exits = self.get_journal_pool_by_id(pool_spec.journal_id)
             if pool_exits:
                 return pool_exits.camel_to_snake_dict(), None
-        self.logger.writeDebug(f"PV:journal_volume: spec =  {pool_spec.startLdevId}")
+        # self.logger.writeDebug(f"PV:journal_volume: spec =  {pool_spec.start_ldev_id}")
         if (
-            # pool_spec.startLdevId is None
-            # and pool_spec.endLdevId is None
+            # pool_spec.start_ldev_id is None
+            # and pool_spec.end_ldev_id is None
             # and
             pool_spec.ldev_ids
             is None
@@ -87,7 +87,7 @@ class VSPJournalVolumeProvisioner:
             err_msg = VSPSJournalVolumeValidateMsg.JOURNAL_VOLUME_REQUIRED.value
             self.logger.writeError(err_msg)
             raise ValueError(err_msg)
-        elif pool_spec.startLdevId is not None and pool_spec.endLdevId is not None:
+        elif pool_spec.start_ldev_id is not None and pool_spec.end_ldev_id is not None:
             pass
         if pool_spec.journal_id is None or pool_spec.journal_id == "":
             free_journal_id = self.get_free_journal_pool_ids()
@@ -105,7 +105,7 @@ class VSPJournalVolumeProvisioner:
         if self.connection_info.connection_type == ConnectionTypes.DIRECT:
             pool = {}
             if (
-                pool_spec.data_overflow_watchIn_seconds is not None
+                pool_spec.data_overflow_watch_in_seconds is not None
                 or pool_spec.is_cache_mode_enabled is not None
                 or pool_spec.mp_blade_id is not None
                 or pool_spec.mirror_unit_number is not None
@@ -146,7 +146,7 @@ class VSPJournalVolumeProvisioner:
             )
         self.logger.writeDebug(f"PV:journal_volume: spec =  {spec}")
         if (
-            spec.data_overflow_watchIn_seconds != pool_exits.dataOverflowWatchSeconds
+            spec.data_overflow_watch_in_seconds != pool_exits.dataOverflowWatchSeconds
             or spec.is_cache_mode_enabled != pool_exits.isCacheModeEnabled
             or spec.mp_blade_id != pool_exits.mpBladeId
             or spec.copy_pace is not None

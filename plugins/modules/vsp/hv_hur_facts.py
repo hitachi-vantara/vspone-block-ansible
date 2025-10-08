@@ -66,11 +66,11 @@ options:
     suboptions:
       primary_volume_id:
         description: The primary volume identifier. If not provided, it will be omitted.
-        type: int
+        type: str
         required: false
       secondary_volume_id:
         description: The secondary volume identifier. If not provided, it will be omitted.
-        type: int
+        type: str
         required: false
       mirror_unit_id:
         description: The mirror unit identifier. If not provided, it will be omitted.

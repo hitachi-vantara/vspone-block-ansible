@@ -4,14 +4,70 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.3.0
+======
+
+Release Summary
+---------------
+
+This release introduces new modules for Hitachi SDS Block storage systems including compute port management, 
+remote iSCSI port operations, and software updates. It also adds new VSP One modules for port and server 
+management on VSP E series and VSP One B2X storages. Additionally, it includes support for the latest SDS 
+Block software version 1.18.1 and various enhancements to existing modules.
+
+Minor Changes
+-------------
+
+- Added a new "hv_sds_block_compute_port" module to change the settings and protocol of the compute port on Hitachi SDS Block storage systems.
+- Added a new "hv_sds_block_remote_iscsi_port" module to register a remote iSCSI port and delete information about registered remote iSCSI ports on Hitachi SDS Block storage systems.
+- Added a new "hv_sds_block_remote_iscsi_port_facts" module to retrieve remote iSCSI ports from Hitachi SDS Block storage systems.
+- Added a new "hv_sds_block_software_update_file_facts" module to retrieve information of the update file of the storage software which performed transfer (upload) in the Hitachi SDS Block storage systems.
+- Added a new "hv_sds_block_storage_node_bmc_connection" module allows to update the BMC connection settings of Hitachi SDS Block storage systems.
+- Added a new "hv_sds_block_storage_software_update" module allows software update and downgrade on Hitachi SDS Block storage systems.
+- Added a new "hv_vsp_one_port" module to manage port configuration on VSP E series and VSP One B2X storages.
+- Added a new "hv_vsp_one_port_facts" module to retrieve port information from VSP E series and VSP One B2X storages.
+- Added a new "hv_vsp_one_server" module enables register, modification, and deletion of servers, as well as various server operations on VSP E series and VSP One B2X storages.
+- Added a new "hv_vsp_one_server_facts" module to retrieve information about servers on VSP E series and VSP One B2X storages.
+- Added a new "hv_vsp_one_server_hba_facts" module to retrieve HBA (Host Bus Adapter) information about servers on VSP E series and VSP One B2X storages.
+- Added support for latest software version 1.18.1 for SDS block on AWS, GCP, Azure and Bare metal.
+- Added support for listing storage node primary role status in the output to hv_sds_block_storage_node_facts module.
+- Added support to "Add storage node to the SDS cluster on AWS cloud" to hv_sds_block_cluster module.
+- Added support to "Allow CHAP users to access the compute port" to hv_sds_block_compute_port_authentication module
+- Added support to "Attach multiple volumes to multiple servers in one operation" to hv_vsp_one_volume module.
+- Added support to "Cancel compute port access permission for CHAP users" to hv_sds_block_compute_port_authentication module
+- Added support to "Get Drive by ID" to hv_sds_block_drives_facts module
+- Added support to "Get Protection Domain Information by ID" to hv_sds_block_protection_domain_facts module
+- Added support to "Stop removing storage nodes" to hv_sds_block_cluster module.
+- Added support to take ldev input in HEX value in all hitachivantara.vspone_block.vsp modules.
+- Updated input parameter name from "saving_setting" to "capacity_saving" in hv_vsp_one_volume module.
+
+New Modules
+-----------
+
+Sds Block
+~~~~~~~~~
+
+- hitachivantara.vspone_block.sds_block.hv_sds_block_compute_port - Manages compute port on Hitachi SDS Block storage systems.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_software_update_file_facts - Get the information of the update file of the storage software which performed transfer (upload) in the storage cluster.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_node_bmc_connection - Manages BMC connection settings for a storage node on Hitachi SDS Block storage systems.
+- hitachivantara.vspone_block.sds_block.hv_sds_block_storage_software_update - Manages software update and downgrade on Hitachi SDS Block storage systems.
+
+Vsp
+~~~
+
+- hitachivantara.vspone_block.vsp.hv_vsp_one_port - Manages port configuration on Hitachi VSP One storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_port_facts - Retrieves port information from Hitachi VSP One storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_server - Manages servers on Hitachi VSP One storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_server_facts - Retrieves server information from Hitachi VSP One storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_server_hba_facts - Retrieves server HBA information from Hitachi VSP One storage systems.
+
 v4.2.0
 ======
 
 Release Summary
 ---------------
 
-This minor release of `hitachivantara.vspone_block` introduces new modules for enhanced storage management, adds Azure support, and delivers various improvements and bug fixes. 
- To create multiple volumes/LDEVs in a single task on VSP One Block or VSP E Series storage systems, use `hv_vsp_one_volume` module for faster execution. See `hv_vsp_one_volume` module documentation for more information. For other volume/LDEV configurations not available in  `hv_vsp_one_volume` module, use `hv_ldev` module.
+This minor release of `hitachivantara.vspone_block` introduces new modules for enhanced storage management, adds Azure support, and delivers various improvements and bug fixes.
 
 Minor Changes
 -------------

@@ -9,9 +9,9 @@ from .sdsb_compute_node_gateway import (
 from .sdsb_volume_gateway import SDSBVolumeDirectGateway
 from .sdsb_chap_user_gateway import SDSBChapUserDirectGateway
 from .sdsb_event_logs_gateway import SDSBEventLogsDirectGateway
-from .sdsb_block_drives_gateway import SDSBBlockDrivesDirectGateway
+from .sdsb_drives_gateway import SDSBBlockDrivesDirectGateway
 from .sdsb_fault_domain_gateway import SDSBBlockFaultDomainDirectGateway
-from .sdsb_block_control_port_gateway import SDSBBlockControlPortDirectGateway
+from .sdsb_control_port_gateway import SDSBBlockControlPortDirectGateway
 from .sdsb_storage_controller_gateway import SDSBStorageControllerDirectGateway
 from .sdsb_port_auth_gateway import SDSBPortAuthDirectGateway
 from .sdsb_port_gateway import SDSBPortDirectGateway
@@ -22,6 +22,7 @@ from .sdsb_cluster_gateway import SDSBClusterGateway
 from .sdsb_job_gateway import SDSBJobGateway
 from .sdsb_capacity_mgmt_settings_gateway import SDSBCapacityMgmtSettingGateway
 from .sdsb_estimated_capacity_gateway import SDSBEstimatedCapacityGateway
+from .sdsb_remote_iscsi_port_gateway import SDSBRemoteIscsiPortGateway
 
 from .vsp_snapshot_gateway import VSPHtiSnapshotDirectGateway
 from .vsp_volume import VSPVolumeDirectGateway
@@ -81,6 +82,7 @@ from .vsp_storage_system_monitor_gateway import VSPStorageSystemMonitorGateway
 from .sdsb_cluster_information_gateway import SDSBBlockClusterInformationDirectGateway
 from .sdsb_users_gateway import SDSBBlockUsersDirectGateway
 from .sdsb_bmc_access_setting_gw import SDSBBlockBmcAccessSettingGateway
+from .sdsb_software_update_gateway import SDSBSoftwareUpdateGateway
 
 GATEWAY_MAP = {
     ConnectionTypes.DIRECT: {
@@ -138,6 +140,8 @@ GATEWAY_MAP = {
         GatewayClassTypes.SDSB_BMC_ACCESS_SETTING: SDSBBlockBmcAccessSettingGateway,
         GatewayClassTypes.SDSB_CAPACITY_MGMT_SETTING: SDSBCapacityMgmtSettingGateway,
         GatewayClassTypes.SDSB_ESTIMATED_CAPACITY: SDSBEstimatedCapacityGateway,
+        GatewayClassTypes.SDSB_REMOTE_ISCSI_PORT: SDSBRemoteIscsiPortGateway,
+        GatewayClassTypes.SDSB_SOFTWARE_UPDATE: SDSBSoftwareUpdateGateway,
     },
 }
 

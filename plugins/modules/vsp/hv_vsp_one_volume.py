@@ -34,7 +34,7 @@ options:
     description: Defines the volume operation type. Available options include C(present), C(absent), C(attach_server), and C(detach_server).
     type: str
     required: false
-    choices: ['present', 'absent', 'attach_server', 'detach_server', 'change_qos_settings']
+    choices: ['present', 'absent', 'attach_server', 'detach_server', 'change_qos_settings', 'server_present']
     default: 'present'
   spec:
     description: Configuration parameters for the volume operation.
@@ -78,8 +78,13 @@ options:
         required: false
       volume_id:
         description: Volume identifier.
-        type: int
+        type: str
         required: false
+      volume_ids:
+        description: Collection of volume identifiers for batch operations to add servers.
+        type: list
+        required: false
+        elements: str
       qos_settings:
         description: Quality of service configuration for the volume.
         type: dict
@@ -164,11 +169,12 @@ options:
         type: list
         required: false
         elements: int
-      saving_setting:
+      capacity_saving:
         description: Data reduction function configuration.
         type: str
         required: false
-        choices: ["compression", "deduplication_and_compression", "disabled"]
+        aliases: ["saving_setting"]
+        choices: ["compression", "deduplication_and_compression", "disable"]
       compression_acceleration:
         description: Controls compression acceleration feature.
         type: bool
@@ -270,7 +276,7 @@ EXAMPLES = """
     spec:
       capacity: 120GB
       pool_id: 5
-      saving_setting: "deduplication_and_compression"
+      capacity_saving: "deduplication_and_compression"
 
 - name: Delete volume by volume_id
   hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
@@ -293,6 +299,9 @@ volume:
     id:
       description: ID of the volume.
       type: int
+    id_hex:
+      description: ID of the volume in hexadecimal.
+      type: str
     nickname:
       description: Nickname of the volume.
       type: str
@@ -323,8 +332,8 @@ volume:
     reserved_capacity:
       description: Reserved capacity of the volume.
       type: int
-    saving_setting:
-      description: Saving setting (e.g., COMPRESSION).
+    capacity_saving:
+      description: Capacity saving setting (e.g., COMPRESSION).
       type: str
     capacity_saving_status:
       description: Capacity saving status.
