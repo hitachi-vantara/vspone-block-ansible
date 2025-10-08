@@ -3,8 +3,10 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
+    from ..common.ansible_common import normalize_ldev_id
 except ImportError:
     from common_base_models import BaseDataClass, SingleBaseClass
+    from common.ansible_common import normalize_ldev_id
 
 
 @dataclass
@@ -63,6 +65,12 @@ class StoragePoolSpec:
             self.tier = (
                 Tier(**self.tier) if not isinstance(self.tier, Tier) else self.tier
             )
+        if self.start_ldev_id:
+            self.start_ldev_id = normalize_ldev_id(self.start_ldev_id)
+        if self.end_ldev_id:
+            self.end_ldev_id = normalize_ldev_id(self.end_ldev_id)
+        if self.ldev_ids:
+            self.ldev_ids = [normalize_ldev_id(ldev_id) for ldev_id in self.ldev_ids]
 
 
 @dataclass
@@ -360,15 +368,23 @@ class UAIGStoragePools(BaseDataClass):
 @dataclass
 class JournalVolumeSpec:
     journal_id: int = None
-    startLdevId: int = None
-    endLdevId: int = None
-    data_overflow_watchIn_seconds: int = None
+    start_ldev_id: int = None
+    end_ldev_id: int = None
+    data_overflow_watch_in_seconds: int = None
     mp_blade_id: int = None
     is_cache_mode_enabled: bool = None
     ldev_ids: List[int] = None
     mirror_unit_number: int = None
     copy_pace: str = None
     path_blockade_watch_in_minutes: int = None
+
+    def __post_init__(self):
+        if self.start_ldev_id:
+            self.start_ldev_id = normalize_ldev_id(self.start_ldev_id)
+        if self.end_ldev_id:
+            self.end_ldev_id = normalize_ldev_id(self.end_ldev_id)
+        if self.ldev_ids:
+            self.ldev_ids = [normalize_ldev_id(ldev_id) for ldev_id in self.ldev_ids]
 
 
 @dataclass

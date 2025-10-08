@@ -113,16 +113,16 @@ options:
         description: List of LDEVs to be added or removed from the resource group.
         type: list
         required: false
-        elements: int
+        elements: str
       start_ldev:
         description: First lDEV number. If you specify this attribute, you must also specify the end_ldev attribute.
           If you specify the ldevs attribute, you cannot specify this attribute.
-        type: int
+        type: str
         required: false
       end_ldev:
         description: Last lDEV number. If you specify this attribute, you must also specify the start_ldev attribute.
           If you specify the ldevs attribute, you cannot specify this attribute.
-        type: int
+        type: str
         required: false
       ports:
         description: List of ports to be added or removed from the resource group.

@@ -20,12 +20,13 @@ class SDSBClusterValidationMsg(Enum):
         "cluster's control network IPs = {}."
     )
     INTER_NODE_IP_ALREADY_IN_CLUSTER = (
-        "The internode_network_ip {} specified in the spec is already present in the cluster, cluster's inter node network IPs = {}."
+        "The internode_network_ip {} specified in the spec is already present in the cluster, "
+        "cluster's inter node network IPs = {}."
     )
     COMPUTE_IP_ALREADY_IN_CLUSTER = "The compute_network_ip {} specified in the spec is already present in the cluster, cluster's compute network IPs = {}."
     SPEC_NONE = "Spec can't be null for add_storage_node operation."
     MACHINE_IMAGE_ID_REQD = (
-        "For Azure, machine_image_id is a requird field for adding a node."
+        "For Azure, machine_image_id is a required field for adding a node."
     )
     SPEC_REQD_CONFIG_CLOUD = (
         "On cloud platform spec is required to create a configuration file."
@@ -38,3 +39,24 @@ class SDSBClusterValidationMsg(Enum):
     MACHINE_IMAGE_ID_REQD_CONFIG_CLOUD = "On the {} Cloud Platform, machine_image_id is required for the specified operation to create a configuration file."
     NO_OF_DRIVES_REQD_CONFIG_CLOUD = "On the {} Cloud Platform, no_of_drives is required for the specified operation to create a configuration file."
     OPERATION_NOT_SUPPORTED_YET = "On the {} Cloud Platform, the specified operation to create a configuration file is not supported yet."
+    MUST_SPECIFY_S3_URL = "For AWS, you must specify template_s3_url attribute."
+    S3_URL_MUST_BE_HTTPS = "template_s3_url must be a https url."
+    ADD_STORAGE_NODE_SUCCESS_MSG = (
+        "Successfully started add storage node to the cluster job. This is a long running operation, and might take an hour or so."
+        "You can check the status of the job started periodically using hv_sds_block_job_facts module."
+        "ID for this job = {}"
+    )
+    REMOVE_STORAGE_NODE_SUCCESS_MSG = (
+        "Successfully started remove storage node from the cluster job. This is a long running operation, and might take few hours."
+        "You can check the status of the job started periodically using hv_sds_block_job_facts module."
+        "ID for this job = {}"
+    )
+    STOP_REMOVING_STORAGE_NODE_SUCCESS_MSG = (
+        "Successfully stopped removing storage nodes. ID for this job = {}"
+    )
+    STOP_REMOVING_STORAGE_NODE_FAILURE_MSG = (
+        "The job could not be stopped. There is no Job to be stopped."
+    )
+    INVALID_PD_ID = (
+        "Invalid protection domain ID. Please provide the ID in UUID format."
+    )

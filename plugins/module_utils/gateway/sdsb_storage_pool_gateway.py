@@ -90,9 +90,7 @@ class SDSBStoragePoolDirectGateway:
 
         end_point = EDIT_STORAGE_POOL_SETTINGS.format(id)
         if rebuild_capacity_policy == "Variable":
-            payload = {
-                "rebuildCapacityPolicy": rebuild_capacity_policy
-            }
+            payload = {"rebuildCapacityPolicy": rebuild_capacity_policy}
         else:
             payload = {
                 "rebuildCapacityPolicy": rebuild_capacity_policy,

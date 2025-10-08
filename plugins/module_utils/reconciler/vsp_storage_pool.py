@@ -1,6 +1,7 @@
 try:
     from ..common.ansible_common import (
         log_entry_exit,
+        volume_id_to_hex_format,
     )
     from ..common.hv_log import Log
     from ..provisioner.vsp_storage_pool_provisioner import VSPStoragePoolProvisioner
@@ -12,6 +13,7 @@ try:
 except ImportError:
     from common.ansible_common import (
         log_entry_exit,
+        volume_id_to_hex_format,
     )
     from common.hv_log import Log
     from provisioner.vsp_storage_pool_provisioner import VSPStoragePoolProvisioner
@@ -52,7 +54,7 @@ class VSPStoragePoolReconciler:
             #         total_capacity_mb
             #     )
             msg = "Storage pool created/updated successfully."
-            return ret_value, msg
+            return self.inject_ldev_hex(ret_value), msg
             # return self.create_update_storage_pool(spec).to_dict()
         else:
             return self.provisioner.perform_storage_pool_action(state, spec)
@@ -91,8 +93,24 @@ class VSPStoragePoolReconciler:
             None
             if not pools
             else (
-                pools.data_to_snake_case_list()
+                self.inject_ldev_list_hex(pools.data_to_snake_case_list())
                 if isinstance(pools, BaseDataClass)
-                else pools.camel_to_snake_dict()
+                else self.inject_ldev_hex(pools.camel_to_snake_dict())
             )
         )
+
+    def inject_ldev_hex(self, sp_dict):
+        ldev_ids = sp_dict.get("duplication_ldev_ids", None)
+        if ldev_ids:
+            sp_dict["duplication_ldev_ids_hex"] = [
+                volume_id_to_hex_format(ldev_id) for ldev_id in ldev_ids
+            ]
+        else:
+            sp_dict["duplication_ldev_ids_hex"] = []
+        return sp_dict
+
+    def inject_ldev_list_hex(self, sp_list):
+        ldev_list = []
+        for sp in sp_list:
+            ldev_list.append(self.inject_ldev_hex(sp))
+        return ldev_list

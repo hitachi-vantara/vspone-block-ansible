@@ -59,15 +59,28 @@ class SDSBEstimatedCapacityGateway:
         number_of_drives=None,
         number_of_tolerable_drive_failures=None,
     ):
-        query = self.get_query_parameters(number_of_storage_nodes, number_of_drives, number_of_tolerable_drive_failures)
+        query = self.get_query_parameters(
+            number_of_storage_nodes,
+            number_of_drives,
+            number_of_tolerable_drive_failures,
+        )
         end_point = GET_ESTIMATED_CAPACITY_FOR_SPECIFIED_CONFIG.format(id, query)
-        logger.writeDebug("GW:get_estimated_capacity_for_specified_configuration:end_point={}", end_point)
+        logger.writeDebug(
+            "GW:get_estimated_capacity_for_specified_configuration:end_point={}",
+            end_point,
+        )
 
         response = self.connection_manager.get(end_point)
-        logger.writeDebug("GW:get_estimated_capacity_for_specified_configuration:response={}", response)
+        logger.writeDebug(
+            "GW:get_estimated_capacity_for_specified_configuration:response={}",
+            response,
+        )
 
         converted = convert_keys_to_snake_case(response)
-        logger.writeDebug("GW:get_estimated_capacity_for_specified_configuration:converted={}", converted)
+        logger.writeDebug(
+            "GW:get_estimated_capacity_for_specified_configuration:converted={}",
+            converted,
+        )
         return converted
 
     @log_entry_exit
@@ -78,13 +91,25 @@ class SDSBEstimatedCapacityGateway:
         number_of_drives=None,
         number_of_tolerable_drive_failures=None,
     ):
-        query = self.get_query_parameters(number_of_storage_nodes, number_of_drives, number_of_tolerable_drive_failures)
+        query = self.get_query_parameters(
+            number_of_storage_nodes,
+            number_of_drives,
+            number_of_tolerable_drive_failures,
+        )
         end_point = GET_ESTIMATED_CAPACITY_FOR_UPDATED_CONFIG.format(id, query)
-        logger.writeDebug("GW:get_estimated_capacity_for_updated_configuration:end_point={}", end_point)
+        logger.writeDebug(
+            "GW:get_estimated_capacity_for_updated_configuration:end_point={}",
+            end_point,
+        )
 
         response = self.connection_manager.get(end_point)
-        logger.writeDebug("GW:get_estimated_capacity_for_updated_configuration:response={}", response)
+        logger.writeDebug(
+            "GW:get_estimated_capacity_for_updated_configuration:response={}", response
+        )
 
         converted = convert_keys_to_snake_case(response)
-        logger.writeDebug("GW:get_estimated_capacity_for_updated_configuration:converted={}", converted)
+        logger.writeDebug(
+            "GW:get_estimated_capacity_for_updated_configuration:converted={}",
+            converted,
+        )
         return converted

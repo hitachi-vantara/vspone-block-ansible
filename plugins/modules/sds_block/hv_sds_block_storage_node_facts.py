@@ -163,7 +163,11 @@ ansible_facts:
               type: str
               sample: "192.168.101.141"
             is_capacity_balancing_enabled:
-              description: Capacity balancing settings of a storage node..
+              description: Capacity balancing settings of a storage node.
+              type: bool
+              sample: true
+            is_storage_master_node_primary:
+              description: Indicates whether the storage node is the cluster master node (primary).
               type: bool
               sample: true
             memory_mb:

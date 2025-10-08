@@ -86,6 +86,7 @@ class DirectCopyPairInfo(SingleBaseClass):
     pvolJournalId: int = ""
     svolJournalId: int = ""
     isAluaEnabled: Optional[bool] = None
+    copyProgressRate: Optional[int] = None
 
     def to_dict(self):
         return asdict(self)

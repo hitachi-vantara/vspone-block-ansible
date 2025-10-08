@@ -29,5 +29,7 @@ class SDSBClusterInformationReconciler:
         return self.provisioner.get_storage_network_settings()
 
     @log_entry_exit
-    def get_protection_domain_settings(self):
+    def get_protection_domain_settings(self, spec):
+        if spec and spec.id:
+            return self.provisioner.get_protection_domain_by_id(spec.id)
         return self.provisioner.get_protection_domain_settings()

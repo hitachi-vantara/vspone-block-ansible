@@ -76,7 +76,9 @@ class VSPVolumeSimpleApiProvisioner:
                     spec.comments.append(
                         VSPVolumeMSG.FAILED_TO_UPDATE_QOS.value.format(str(e))
                     )
-
+            if spec.server_ids and len(spec.server_ids) > 0:
+                spec.volume_ids = vol_ids
+                self.attach_servers_to_volumes(spec)
             volumes = [
                 self.gateway.salamander_get_volume_by_id_with_details(
                     vol_id
@@ -139,19 +141,22 @@ class VSPVolumeSimpleApiProvisioner:
         try:
             if spec.volume_name and spec.volume_name.base_name == vol_info.nickname:
                 spec.volume_name.base_name = None
-            if spec.saving_setting == vol_info.savingSetting.lower():
-                spec.saving_setting = None
+            if spec.capacity_saving == vol_info.savingSetting.lower():
+                spec.capacity_saving = None
             if spec.compression_acceleration == vol_info.compressionAcceleration:
                 spec.compression_acceleration = None
             if (
-                (spec.volume_name is not None and spec.volume_name.base_name is not None)
-                or spec.saving_setting is not None
+                (
+                    spec.volume_name is not None
+                    and spec.volume_name.base_name is not None
+                )
+                or spec.capacity_saving is not None
                 or spec.compression_acceleration is not None
             ):
                 self.gateway.salamander_update_volume(
                     spec.volume_id,
                     spec.volume_name.base_name if spec.volume_name else None,
-                    spec.saving_setting,
+                    spec.capacity_saving,
                     spec.compression_acceleration,
                 )
 
@@ -188,6 +193,30 @@ class VSPVolumeSimpleApiProvisioner:
         return self.gateway.salamander_update_qos_settings(volume_id, qos_settings)
 
     @log_entry_exit
+    def attach_servers_to_volumes(self, spec):
+
+        if not spec.volume_ids or len(spec.volume_ids) == 0:
+            raise Exception(VSPVolumeMSG.MISSING_VOLUME_ID_FOR_OPERATION.value)
+
+        if not spec.server_ids or len(spec.server_ids) == 0:
+            raise Exception(VSPVolumeMSG.MISSING_SERVER_ISD_FOR_OPERATION.value)
+        try:
+            affected_resource, failed_job = self.gateway.attach_servers_to_volumes(
+                spec.volume_ids, spec.server_ids
+            )
+            if affected_resource:
+                # msg = f"Attached servers {spec.server_ids} to volumes {spec.volume_ids}"
+                self.connection_info.changed = True
+                spec.comments.append(VSPVolumeMSG.ATTACHED_SERVER_SUCCESS.value)
+            if failed_job:
+                spec.comments.append(
+                    VSPVolumeMSG.ATTACHED_SERVER_FAILED.value + str(failed_job)
+                )
+        except Exception as e:
+            spec.comments.append(VSPVolumeMSG.ATTACHED_SERVER_FAILED.value + str(e))
+            return
+
+    @log_entry_exit
     def attach_server_to_volume(self, spec, server_ids):
 
         if not spec.volume_id:
@@ -199,9 +228,9 @@ class VSPVolumeSimpleApiProvisioner:
                 VSPVolumeMSG.VOLUME_NOT_FOUND.value.format(volume_id=spec.volume_id)
             )
         existing_server_ids = set(
-            lun.serverId for lun in getattr(volume, "luns", []) or [])
-        logger.writeDebug(
-            f"Existing server IDs attached: {existing_server_ids}")
+            lun.serverId for lun in getattr(volume, "luns", []) or []
+        )
+        logger.writeDebug(f"Existing server IDs attached: {existing_server_ids}")
         new_server_ids = list(set(server_ids) - existing_server_ids)
         logger.writeDebug(f"New server IDs to attach: {new_server_ids}")
 
@@ -210,14 +239,17 @@ class VSPVolumeSimpleApiProvisioner:
             return volume.camel_to_snake_dict()
         try:
             affected_resource, failed_job = self.gateway.attach_server_to_volume(
-                spec.volume_id, new_server_ids)
+                spec.volume_id, new_server_ids
+            )
             if affected_resource:
                 self.connection_info.changed = True
-                spec.comments.append(VSPVolumeMSG.ATTACHED_SERVER_SUCCESS.value.format(
-                    affected_resource))
+                spec.comments.append(
+                    VSPVolumeMSG.ATTACHED_SERVER_SUCCESS.value.format(affected_resource)
+                )
             if failed_job:
                 spec.comments.append(
-                    VSPVolumeMSG.ATTACHED_SERVER_FAILED.value + str(failed_job))
+                    VSPVolumeMSG.ATTACHED_SERVER_FAILED.value + str(failed_job)
+                )
 
         except Exception as e:
             spec.comments.append(VSPVolumeMSG.ATTACHED_SERVER_FAILED.value + str(e))
@@ -249,17 +281,20 @@ class VSPVolumeSimpleApiProvisioner:
         for server_id in server_ids_to_detach:
             try:
                 unused = self.gateway.detach_server_from_volume(
-                    spec.volume_id, server_id)
+                    spec.volume_id, server_id
+                )
                 passed_sever_ids.append(server_id)
             except Exception as e:
                 failed_server_ids.append(f"{server_id}: {str(e)}")
         if passed_sever_ids:
-            spec.comments.append(VSPVolumeMSG.DETACHED_SERVER_SUCCESS.value.format(
-                passed_sever_ids))
+            spec.comments.append(
+                VSPVolumeMSG.DETACHED_SERVER_SUCCESS.value.format(passed_sever_ids)
+            )
             self.connection_info.changed = True
         if failed_server_ids:
             spec.comments.append(
-                VSPVolumeMSG.DETACHED_SERVER_FAILED.value + str(failed_server_ids))
+                VSPVolumeMSG.DETACHED_SERVER_FAILED.value + str(failed_server_ids)
+            )
 
         return self.gateway.salamander_get_volume_by_id_with_details(
             spec.volume_id

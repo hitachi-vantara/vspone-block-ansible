@@ -324,10 +324,10 @@ class ShadowImagePairPropertyExtractor:
             "copy_pace_track_size": str,
             "copy_rate": int,
             "mirror_unit_id": int,
-            "primary_hex_volume_id": str,
+            "primary_volume_id_hex": str,
             "primary_volume_id": int,
             "storage_serial_number": str,
-            "secondary_hex_volume_id": str,
+            "secondary_volume_id_hex": str,
             "secondary_volume_id": int,
             "status": str,
             "copy_group_name": str,
@@ -380,12 +380,12 @@ class ShadowImagePairPropertyExtractor:
                     port_type_dict,
                 )
                 # del new_dict["svolHostGroups"]
-            if new_dict.get("primary_hex_volume_id") == "":
-                new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+            if new_dict.get("primary_volume_id_hex") == "":
+                new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
                     new_dict.get("primary_volume_id")
                 )
-            if new_dict.get("secondary_hex_volume_id") == "":
-                new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+            if new_dict.get("secondary_volume_id_hex") == "":
+                new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
                     new_dict.get("secondary_volume_id")
                 )
             new_items.append(new_dict)
@@ -441,12 +441,12 @@ class ShadowImagePairPropertyExtractor:
                 default_value = get_default_value(value_type)
                 new_dict[key] = default_value
 
-        if new_dict.get("primary_hex_volume_id") == "":
-            new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+        if new_dict.get("primary_volume_id_hex") == "":
+            new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
                 new_dict.get("primary_volume_id")
             )
-        if new_dict.get("secondary_hex_volume_id") == "":
-            new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+        if new_dict.get("secondary_volume_id_hex") == "":
+            new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
                 new_dict.get("secondary_volume_id")
             )
         return new_dict

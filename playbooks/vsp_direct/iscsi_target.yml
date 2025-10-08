@@ -36,7 +36,7 @@
           ldevs: [100, 200]
           chap_users:
             - chap_user_name: "user1"
-              chap_secret: "TopSecretForMyChap1"
+              chap_secret: "CHANGE_ME_SET_YOUR_PASSWORD"
       register: result
 
     - name: Debug the result variable
@@ -74,9 +74,9 @@
           port: "CL4-C"
           chap_users:
             - chap_user_name: "user1"
-              chap_secret: "TopSecretForMyChap1"
+              chap_secret: "CHANGE_ME_SET_YOUR_PASSWORD"
             - chap_user_name: "user2"
-              chap_secret: "TopSecretForMyChap2"
+              chap_secret: "CHANGE_ME_SET_YOUR_PASSWORD"
       register: result
 
     - name: Debug the result variable
@@ -96,7 +96,7 @@
           port: "CL4-C"
           chap_users:
             - chap_user_name: "user2"
-              chap_secret: "TopSecretForMyChap2"
+              chap_secret: "CHANGE_ME_SET_YOUR_PASSWORD"
       register: result
 
     - name: Debug the result variable

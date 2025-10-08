@@ -61,3 +61,11 @@ class SDSBPortProvisioner:
                     ret_val.append(x)
 
         return ret_val
+
+    @log_entry_exit
+    def change_compute_port_protocol(self, protocol):
+        return self.gateway.change_compute_port_protocol(protocol)
+
+    @log_entry_exit
+    def edit_compute_port_settings(self, id, nick_name, name):
+        return self.gateway.edit_compute_port_settings(id, nick_name, name)

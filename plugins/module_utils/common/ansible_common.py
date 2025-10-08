@@ -501,3 +501,121 @@ def unzip_targz(file_path, extract_path):
         raise Exception(f"Error reading tar.gz file: {e}")
     except Exception as e:
         raise Exception(f"An unexpected error occurred: {e}")
+
+
+# def to_integer(num):
+#     """
+#     Convert input to integer.
+#     Accepts:
+#       - int (e.g., 42)
+#       - hex string (e.g., '0x2A')
+#       - hex literal (e.g., 0x2A)
+
+#     :param num: int, str, or hex literal
+#     :return: integer value
+#     """
+#     if isinstance(num, str) and num.startswith(("0x", "0X")):
+#         return int(num, 16)
+#     elif isinstance(num, int):
+#         return num
+#     else:
+#         raise ValueError("Input must be an integer, hex string like '0x1A', or hex literal.")
+
+
+def to_integer(num):
+    """
+    Convert input to integer.
+    Accepts:
+      - int (e.g., 42)
+      - decimal string (e.g., '42')
+      - colon-separated hex string (e.g., '1A:2B:3C')
+
+    The colon-separated hex string is treated as a sequence of bytes,
+    concatenated into a single hex value.
+    Example: '01:02' -> 0x0102 -> 258
+    """
+    if isinstance(num, int):
+        return num
+    elif isinstance(num, str):
+        num = num.strip()
+        if ":" in num:  # hex in format xx:xx:xx
+            hex_str = num.replace(":", "")
+            return int(hex_str, 16)
+        else:  # plain decimal string
+            return int(num)
+    else:
+        raise ValueError(f"Unsupported type for to_integer: {type(num)}")
+
+
+def normalize_ldev_id(ldev_id):
+    """
+    Normalize ldev_id in spec to always be an integer.
+    Handles:
+      - int (42)
+      - decimal string ('42')
+      - colon-separated hex string ('1A:2B:3C')
+    """
+    # ldev_id = spec.get("ldev_id")
+
+    if isinstance(ldev_id, int):
+        return ldev_id
+
+    if isinstance(ldev_id, str):
+        ldev_id = ldev_id.strip()
+        try:
+            if ":" in ldev_id:  # hex in format xx:xx:xx
+                hex_str = ldev_id.replace(":", "")
+                return int(hex_str, 16)
+            else:  # decimal string
+                return int(ldev_id)
+        except ValueError:
+            raise ValueError(f"Invalid ldev_id format: {ldev_id}")
+
+    raise TypeError(f"Unsupported ldev_id type: {type(ldev_id)}")
+
+
+def mask_token(token: str, n: int = 12) -> str:
+    """
+    Mask a token string (UUID-like), showing only the last n hex digits (excluding dashes).
+    Dashes remain in their original positions.
+
+    Args:
+        token (str): The token string (with dashes).
+        n (int, optional): Number of hex digits to leave unmasked at the end. Default is 12.
+
+    Returns:
+        str: The masked token string.
+    """
+    if token is None:
+        return None
+
+    # Extract only hex characters (ignore dashes)
+    hex_chars = [c for c in token if c != "-"]
+
+    # Ensure n is not larger than total hex digits (32 for UUID-style tokens)
+    n = min(n, len(hex_chars))
+
+    # Mask all but last n hex digits
+    masked_hex = ["X"] * (len(hex_chars) - n) + hex_chars[-n:]
+
+    # Reinsert dashes in original positions
+    result = []
+    hex_index = 0
+    for c in token:
+        if c == "-":
+            result.append("-")
+        else:
+            result.append(masked_hex[hex_index])
+            hex_index += 1
+
+    return "".join(result)
+
+
+def match_value_with_case_insensitive(value: str, choices: list) -> bool:
+    """
+    Validate if a given string matches any enum member name (case-insensitive).
+    Returns:
+        bool: True if a match is found, False otherwise.
+    """
+    matched = any(value.lower() == choice.lower() for choice in choices)
+    return matched

@@ -55,11 +55,11 @@ options:
     suboptions:
       primary_volume_id:
         description: ID of the primary volume.
-        type: int
+        type: str
         required: true
       secondary_volume_id:
         description: Secondary volume id.
-        type: int
+        type: str
         required: false
       pool_id:
         description: ID of the pool where the snapshot will be allocated.

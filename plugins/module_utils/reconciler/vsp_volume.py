@@ -195,7 +195,9 @@ class VSPVolumeReconciler:
                 if spec and hasattr(spec, "comment") is not None:
                     spec.comment = "Volume created successfully."
             create_qos_settings = True if spec.qos_settings else False
-            return self.get_volume_detail_info(volume, create_qos_setting=create_qos_settings)
+            return self.get_volume_detail_info(
+                volume, create_qos_setting=create_qos_settings
+            )
 
         elif state == StateValue.ASSIGN_VIRTUAL_LDEV:
             if spec.ldev_id is None and spec.vldev_id is None:
@@ -884,7 +886,9 @@ class VSPVolumeReconciler:
         return volume
 
     @log_entry_exit
-    def get_volume_detail_info(self, volume, all_snapshots=None, single_vol=True, create_qos_setting=True):
+    def get_volume_detail_info(
+        self, volume, all_snapshots=None, single_vol=True, create_qos_setting=True
+    ):
         logger.writeDebug("RC:get_volume_detail_info:volume={}", volume)
         if all_snapshots:
             snapshots = self.get_snapshot_list_for_volume(volume, all_snapshots)
@@ -1255,6 +1259,7 @@ class VolumeCommonPropertiesExtractor:
         self.serial = serial
         self.common_properties = {
             "ldev_id": int,
+            "ldev_id_hex": str,
             "deduplication_compression_mode": str,
             "emulation_type": str,
             "name": str,
@@ -1266,7 +1271,7 @@ class VolumeCommonPropertiesExtractor:
             "used_capacity": str,
             "path_count": int,
             "provision_type": str,
-            "logical_unit_id_hex_format": str,
+            # "logical_unit_id_hex_format": str,
             "canonical_name": str,
             "dedup_compression_progress": int,
             "dedup_compression_status": str,
@@ -1292,6 +1297,7 @@ class VolumeCommonPropertiesExtractor:
             "tier_level": str,  # tier_level='all' if is_relocation_enabled: false
             "qos_settings": dict,
             "virtual_ldev_id": int,
+            "virtual_ldev_id_hex": str,
             "is_command_device": bool,
             "is_security_enabled": bool,
             "is_user_authentication_enabled": bool,
@@ -1460,7 +1466,23 @@ class VolumeCommonPropertiesExtractor:
                     del new_dict["tiering_policy"]["tier3_used_capacity_m_b"]
                 if key == "qos_settings":
                     new_dict[key] = camel_to_snake_case_dict(response_key)
-
+            if new_dict.get("ldev_id_hex") == "":
+                if (
+                    new_dict.get("ldev_id") is not None
+                    and new_dict.get("ldev_id") != ""
+                ):
+                    new_dict["ldev_id_hex"] = volume_id_to_hex_format(
+                        new_dict.get("ldev_id")
+                    )
+            if new_dict.get("vldev_id_hex") == "":
+                if (
+                    new_dict.get("vldev_id") is not None
+                    and new_dict.get("vldev_id") != ""
+                    and new_dict.get("vldev_id") != -1
+                ):
+                    new_dict["ldev_id_hex"] = volume_id_to_hex_format(
+                        new_dict.get("vldev_id")
+                    )
             if new_dict.get("storage_serial_number") is None:
                 new_dict["storage_serial_number"] = self.serial
 

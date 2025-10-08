@@ -1,6 +1,6 @@
 ---
 ####################################################################
-# Example : VSP Volume  Playbook
+# Example : VSP Volume Playbook
 ####################################################################
 - name: VSP Volume Module
   hosts: localhost
@@ -68,9 +68,10 @@
           volume_name:
             base_name: "DataVol"
           is_data_reduction_share_enabled: true
-          saving_setting: "deduplication_and_compression"
+          capacity_saving: "deduplication_and_compression"
           pool_id: 3
       register: result
+
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
@@ -198,6 +199,7 @@
         spec:
           capacity: 10GB
           volume_id: 5
+
       register: result
     - name: Debug the result variable
       ansible.builtin.debug:
@@ -215,17 +217,43 @@
           volume_name:
             base_name: "Updated_Volume_Name"
 
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
     ####################################################################
-    # Task Name : Update the Volume saving settings and compression_acceleration of an existing volume
+    # Task Name : Update the Volume capacity saving and compression_acceleration of an existing volume
     ####################################################################
-    - name: Update the Volume saving settings and compression_acceleration of an existing volume
+    - name: Update the Volume capacity saving and compression_acceleration of an existing volume
       hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
         state: present
         connection_info: "{{ connection_info }}"
         spec:
           volume_id: 5
-          saving_setting: "deduplication_and_compression"
+          capacity_saving: "deduplication_and_compression"
           compression_acceleration: true
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Attach multiple volumes to multiple servers in one operation
+    ####################################################################
+    - name: Attach multiple volumes to multiple servers in one operation
+      hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+        state: server_present
+        connection_info: "{{ connection_info }}"
+        spec:
+          volume_ids:
+            - 1234
+            - 5678
+          server_ids:
+            - 1
+            - 2
+            - 3
 
       register: result
     - name: Debug the result variable
@@ -242,6 +270,7 @@
         spec:
           volume_id: 1234
       register: result
+
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result

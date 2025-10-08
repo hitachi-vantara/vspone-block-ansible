@@ -3,8 +3,10 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
+    from ..common.ansible_common import normalize_ldev_id
 except ImportError:
     from common_base_models import BaseDataClass, SingleBaseClass
+    from common.ansible_common import normalize_ldev_id
 
 
 @dataclass
@@ -38,6 +40,8 @@ class VSPNvmeSubsystemSpec(SingleBaseClass):
             self.host_nqns = [VSPNvmHostNqnSpec(**x) for x in self.host_nqns]
         if self.namespaces:
             self.namespaces = [VSPNvmNamespaceSpec(**x) for x in self.namespaces]
+            for x in self.namespaces:
+                x.ldev_id = normalize_ldev_id(x.ldev_id)
 
 
 @dataclass

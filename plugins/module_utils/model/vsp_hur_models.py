@@ -3,11 +3,13 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
+    from ..common.ansible_common import normalize_ldev_id
     from .vsp_true_copy_models import DirectTrueCopyPairInfo, DirectTrueCopyPairInfoList
     from ..model.common_base_models import ConnectionInfo
 
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
+    from common.ansible_common import normalize_ldev_id
     from .vsp_true_copy_models import DirectTrueCopyPairInfo, DirectTrueCopyPairInfoList
     from model.common_base_models import ConnectionInfo
 
@@ -54,6 +56,10 @@ class HurFactSpec(SingleBaseClass):
             self.secondary_connection_info = ConnectionInfo(
                 **self.secondary_connection_info
             )
+        if self.primary_volume_id:
+            self.primary_volume_id = normalize_ldev_id(self.primary_volume_id)
+        if self.secondary_volume_id:
+            self.secondary_volume_id = normalize_ldev_id(self.secondary_volume_id)
 
 
 @dataclass
@@ -125,6 +131,23 @@ class HurSpec(SingleBaseClass):
         ):
             self.secondary_nvm_subsystem = NVMeSubsystemSpec(
                 **kwargs.get("secondary_nvm_subsystem")
+            )
+
+        if self.primary_volume_id:
+            self.primary_volume_id = normalize_ldev_id(self.primary_volume_id)
+        if self.secondary_volume_id:
+            self.secondary_volume_id = normalize_ldev_id(self.secondary_volume_id)
+        if self.begin_secondary_volume_id:
+            self.begin_secondary_volume_id = normalize_ldev_id(
+                self.begin_secondary_volume_id
+            )
+        if self.end_secondary_volume_id:
+            self.end_secondary_volume_id = normalize_ldev_id(
+                self.end_secondary_volume_id
+            )
+        if self.provisioned_secondary_volume_id:
+            self.provisioned_secondary_volume_id = normalize_ldev_id(
+                self.provisioned_secondary_volume_id
             )
 
 

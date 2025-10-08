@@ -14,6 +14,9 @@ except ImportError:
     from .gateway_manager import SDSBConnectionManager
     from common.hv_log import Log
 
+CHANGE_PORT_PROTOCOL = "v1/objects/ports/actions/switch-protocol/invoke"
+EDIT_PORT_SETTINGS = "v1/objects/ports/{}"
+
 logger = Log()
 
 
@@ -41,3 +44,25 @@ class SDSBPortDirectGateway:
         return SDSBComputePortsInfo(
             dicts_to_dataclass_list(compute_ports_data["data"], SDSBComputePortInfo)
         )
+
+    @log_entry_exit
+    def change_compute_port_protocol(self, protocol):
+        protocol_map = {"iscsi": "iSCSI", "nvme_tcp": "NVMe_TCP"}
+        payload = {"protocol": protocol_map.get(protocol)}
+        end_point = CHANGE_PORT_PROTOCOL
+        resp = self.connection_manager.post(end_point, data=payload)
+        logger.writeDebug("GW:change_compute_port_protocol:resp={}", resp)
+        return resp
+
+    @log_entry_exit
+    def edit_compute_port_settings(self, id, nick_name=None, name=None):
+        end_point = EDIT_PORT_SETTINGS.format(id)
+        payload = {}
+        if nick_name:
+            payload["nickname"] = nick_name
+        if name:
+            payload["name"] = name
+
+        resp = self.connection_manager.patch(end_point, data=payload)
+        logger.writeDebug("GW:edit_compute_port_settings:resp={}", resp)
+        return resp

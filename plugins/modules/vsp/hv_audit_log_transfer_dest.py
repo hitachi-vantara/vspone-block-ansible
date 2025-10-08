@@ -138,14 +138,14 @@ EXAMPLES = """
         ip_address: "203.0.113.1"
         port: 514
         client_cert_file_name: "client-cert.pem"
-        client_cert_file_password: "certpass"
+        client_cert_file_password: "CHANGE_ME_SET_YOUR_PASSWORD"
         root_cert_file_name: "root-cert.pem"
       secondary_syslog_server:
         is_enabled: false
         ip_address: "203.0.113.2"
         port: 514
         client_cert_file_name: "client-cert2.pem"
-        client_cert_file_password: "certpass2"
+        client_cert_file_password: "CHANGE_ME_SET_YOUR_PASSWORD"
         root_cert_file_name: "root-cert2.pem"
 """
 

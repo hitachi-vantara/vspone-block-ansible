@@ -41,7 +41,7 @@
         state: "update"
         spec:
           journal_id: 37
-          data_overflow_watchIn_seconds: 60
+          data_overflow_watch_in_seconds: 60
           is_cache_mode_enabled: true
           mp_blade_id: 0
           mirror_unit_number: 0

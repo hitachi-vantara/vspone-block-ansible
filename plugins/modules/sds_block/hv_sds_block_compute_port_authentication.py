@@ -347,7 +347,7 @@ class SDSBPortAuthManager:
 
         response = {
             "changed": self.connection_info.changed,
-            "data": port_auth_data_extracted,
+            "compute_port_authorizations": port_auth_data_extracted,
         }
         if registration_message:
             response["user_consent_required"] = registration_message

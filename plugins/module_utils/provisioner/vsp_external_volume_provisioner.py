@@ -8,6 +8,7 @@ try:
     from ..model.vsp_external_volume_models import ExternalVolumeSpec
     from ..common.ansible_common import (
         log_entry_exit,
+        volume_id_to_hex_format,
     )
     from ..message.vsp_external_volume_msgs import VSPSExternalVolumeValidateMsg
 
@@ -22,6 +23,7 @@ except ImportError:
     from model.vsp_volume_models import VSPVolumesInfo
     from common.ansible_common import (
         log_entry_exit,
+        volume_id_to_hex_format,
     )
 
 logger = Log()
@@ -253,6 +255,9 @@ class VSPExternalVolumeProvisioner:
                     )
 
                     item = extvol.camel_to_snake_dict()
+                    item["external_ldev_id_hex"] = volume_id_to_hex_format(
+                        item.get("external_ldev_id")
+                    )
                     allExtvols.append(item)
                     allExtvolsObj.append(extvol)
 
@@ -292,6 +297,9 @@ class VSPExternalVolumeProvisioner:
             external_ldev_id,
         )
         logger.writeDebug("20250228 notused obj={}", notused)
+        rsp_dict["external_ldev_id_hex"] = volume_id_to_hex_format(
+            rsp_dict.get("external_ldev_id")
+        )
         return rsp_dict
 
     @log_entry_exit

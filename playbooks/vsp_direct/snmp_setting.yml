@@ -59,7 +59,7 @@
               send_trap_to: "203.0.113.1"
               authentication:
                 protocol: "SHA"
-                password: "authpass"
+                password: "CHANGE_ME_SET_YOUR_PASSWORD"
                 encryption:
                   protocol: "AES"
                   key: "encpass"
@@ -67,7 +67,7 @@
             - user_name: "public"
               authentication:
                 protocol: "SHA"
-                password: "authpass"
+                password: "CHANGE_ME_SET_YOUR_PASSWORD"
                 encryption:
                   protocol: "AES"
                   key: "encpass"

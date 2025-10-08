@@ -81,7 +81,7 @@ options:
         required: false
       primary_volume_id:
         description: Primary Volume ID.
-        type: int
+        type: str
         required: false
       secondary_pool_id:
         description: Pool ID of the secondary storage system.
@@ -247,7 +247,7 @@ options:
         required: false
       provisioned_secondary_volume_id:
         description: ID of the provisioned secondary volume that you want to use for the GAD pair creation.
-        type: int
+        type: str
         required: false
       begin_secondary_volume_id:
         description: >
@@ -256,7 +256,7 @@ options:
           If this field is not specified, Ansible modules will try to create SVOL ID same as the PVOL ID if available,
           otherwise it will use the first available LDEV ID.
         required: false
-        type: int
+        type: str
       end_secondary_volume_id:
         description: >
           Specify end ldev id for LDEV range for svol. This is an optional field during create operation.
@@ -264,7 +264,7 @@ options:
           If this field is not specified, Ansible modules will try to create SVOL ID same as PVOL ID iff available,
           otherwise it will use the first available LDEV ID.
         required: false
-        type: int
+        type: str
       should_delete_svol:
         description: Specify true to delete the SVOL.
         type: bool

@@ -1,20 +1,41 @@
 import json
 import time
+import atexit
 import urllib.error as urllib_error
 from ansible.module_utils.urls import socket
+from ansible.module_utils.urls import open_url
 
 try:
+    from ..common.ansible_common import mask_token
     from ..common.hv_api_constants import API
     from ..common.hv_log import Log
     from ..common.vsp_constants import Endpoints
-    from .ansible_url import open_url
+
+    # from .ansible_url import open_url
 except ImportError:
+    from common.ansible_common import mask_token
     from common.hv_api_constants import API
     from common.hv_log import Log
     from common.vsp_constants import Endpoints
-    from .ansible_url import open_url
+
+    # from .ansible_url import open_url
 
 logger = Log()
+
+DELETE_SESSION = "v1/objects/sessions/{}"
+
+
+def mask_dict_tokens(data: dict) -> dict:
+    """
+    Mask all token values in a dictionary using mask_token (default n=12).
+
+    Args:
+        data (dict): Dictionary with values as tokens (UUID-like strings).
+
+    Returns:
+        dict: New dictionary with masked token values.
+    """
+    return {k: mask_token(v) for k, v in data.items()}
 
 
 class SingletonClass(object):
@@ -25,11 +46,26 @@ class SingletonClass(object):
 
 
 class SessionManager(SingletonClass):
+    token_to_session_id_map = {}
+    token_to_connection_info_map = {}
     current_sessions = {}
     retry_count = 0
 
+    def __init__(self):
+        # only register once
+        if not hasattr(self, "_cleanup_registered"):
+            atexit.register(self.cleanup)
+            self._cleanup_registered = True
+
+    def cleanup(self):
+        logger.writeDebug("SessionManager - cleanup via atexit.")
+        self.discard_sessions()
+
     def get_current_session(self, connection_info):
-        logger.writeDebug("generate_token current_sessions = {}", self.current_sessions)
+        logger.writeDebug(
+            "generate_token current_sessions = {}",
+            mask_dict_tokens(self.current_sessions),
+        )
         value = self.current_sessions.get(connection_info.address, None)
         if value is not None:
             return value
@@ -53,7 +89,6 @@ class SessionManager(SingletonClass):
                 end_point=end_point,
                 data=None,
             )
-            logger.writeDebug("generate_token response = {}", response)
         except Exception as e:
             logger.writeException(e)
             err_msg = (
@@ -65,11 +100,13 @@ class SessionManager(SingletonClass):
         session_id = response.get(API.SESSION_ID)
         token = response.get(API.TOKEN)
         logger.writeDebug(
-            "generate_token session id = {} token = {}", session_id, token
+            "generate_token session id = {} token = {}", session_id, mask_token(token)
         )
+        self.token_to_session_id_map[token] = session_id
+        self.token_to_connection_info_map[token] = connection_info
         return token
 
-    def _make_request(self, connection_info, method, end_point, data=None):
+    def _make_request(self, connection_info, method, end_point, token=None, data=None):
 
         url = f"https://{connection_info.address}/ConfigurationManager/" + end_point
         logger.writeDebug("url = {}", url)
@@ -78,12 +115,19 @@ class SessionManager(SingletonClass):
             "Accept": "application/json",
             "Content-Type": "application/json",
         }
+        username = None
+        password = None
+        if token:
+            headers["Authorization"] = f"Session {token}"
+        else:
+            username = connection_info.username
+            password = connection_info.password
 
         if data is not None:
             data = json.dumps(data)
 
         logger.writeDebug("method = {}", method)
-        logger.writeDebug("headers = {}", headers)
+        logger.writeDebug("URL = {}", url)
 
         MAX_TIME_OUT = 300
 
@@ -95,9 +139,9 @@ class SessionManager(SingletonClass):
                 data=data,
                 use_proxy=False,
                 timeout=MAX_TIME_OUT,
-                url_username=connection_info.username,
-                url_password=connection_info.password,
-                force_basic_auth=True,
+                url_username=username,
+                url_password=password,
+                force_basic_auth=True if username else False,
                 validate_certs=False,
             )
         except socket.timeout as t_err:
@@ -140,25 +184,53 @@ class SessionManager(SingletonClass):
             raise err
 
         if response.status not in (200, 201, 202):
-            error_msg = json.loads(response.read())
+            try:
+                error_msg = json.loads(response.read())
+            except Exception:
+                error_msg = response.read().decode()
             logger.writeError("error_msg = {}", error_msg)
             raise Exception(error_msg, response.status)
 
         return self._load_response(response)
 
     def _load_response(self, response):
-        """returns dict if json, native string otherwise"""
+        """
+        Returns a dict if JSON, raw bytes if binary, or string if plain text.
+        """
         try:
-            text = response.read().decode("utf-8")
-            if "token" not in text:
-                logger.writeDebug(f"{text[:5000]} ...")
-            msg = {}
-            raw_message = json.loads(text)
-            if not len(raw_message):
-                if raw_message.get("errorSource"):
-                    msg[API.CAUSE] = raw_message[API.CAUSE]
-                    msg[API.SOLUTION] = raw_message[API.SOLUTION]
-                    return msg
-            return raw_message
-        except ValueError:
-            return text
+            # Attempt to decode as UTF-8 text
+            content = response.read()
+            try:
+                text = content.decode("utf-8")
+            except UnicodeDecodeError:
+                # Binary data fallback
+                logger.writeDebug(f"Binary response received: {len(content)} bytes")
+                return content
+
+            # Attempt to parse as JSON
+            try:
+                return json.loads(text)
+            except json.JSONDecodeError:
+                # Not JSON, return text
+                return text
+
+        except Exception as e:
+            logger.writeDebug(f"Failed to read response: {e}")
+            return None
+
+    def delete_session(self, connection_info, session_id, token):
+        try:
+            end_point = Endpoints.DELETE_SESSION.format(session_id)
+            method = "DELETE"
+            self._make_request(connection_info, method, end_point, token, data=None)
+        except Exception as e:
+            logger.writeDebug(f"Issue in discarding session. session_id = {session_id}")
+
+    def discard_sessions(self):
+        logger.writeDebug("SessionManager - discard_sessions called.")
+        for k, v in self.token_to_session_id_map.items():
+            conn_info = self.token_to_connection_info_map.get(k)
+            self.delete_session(conn_info, v, k)
+            logger.writeDebug(
+                f"Successfully discarded session. session_id = {v} token = {mask_token(k)}"
+            )

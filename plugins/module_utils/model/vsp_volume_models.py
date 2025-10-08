@@ -4,18 +4,29 @@ from typing import Optional, List
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from ..common.hv_log import Log
-    from ..common.ansible_common import convert_mib_to_mb, convert_capacity_to_mib
+    from ..common.ansible_common import (
+        convert_mib_to_mb,
+        convert_capacity_to_mib,
+        normalize_ldev_id,
+        volume_id_to_hex_format,
+    )
 
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from common.hv_log import Log
+    from ..common.ansible_common import (
+        convert_mib_to_mb,
+        convert_capacity_to_mib,
+        normalize_ldev_id,
+        volume_id_to_hex_format,
+    )
 
 logger = Log()
 
 
 @dataclass
 class VolumeFactSpec:
-    ldev_id: Optional[str] = None
+    ldev_id: Optional[int] = None
     name: Optional[str] = None
     count: Optional[int] = None
     end_ldev_id: Optional[int] = None
@@ -26,6 +37,14 @@ class VolumeFactSpec:
     resource_group_id: Optional[int] = None
     journal_id: Optional[int] = None
     parity_group_id: Optional[str] = None
+
+    def __post_init__(self):
+        if self.ldev_id:
+            self.ldev_id = normalize_ldev_id(self.ldev_id)
+        if self.start_ldev_id:
+            self.start_ldev_id = normalize_ldev_id(self.start_ldev_id)
+        if self.end_ldev_id:
+            self.end_ldev_id = normalize_ldev_id(self.end_ldev_id)
 
 
 @dataclass
@@ -71,9 +90,8 @@ class CreateVolumeSpec:
     name: Optional[str] = None
     size: Optional[str] = None
     block_size: Optional[int] = None
-    ldev_id: Optional[str] = None
-    # sng20241205 vldev_id
-    vldev_id: Optional[str] = None
+    ldev_id: Optional[int] = None
+    vldev_id: Optional[int] = None
     pool_id: Optional[int] = None
     capacity_saving: Optional[str] = None
     parity_group: Optional[str] = None
@@ -110,6 +128,14 @@ class CreateVolumeSpec:
     def __post_init__(self):
         if self.qos_settings:
             self.qos_settings = VolumeQosParamsSpec(**self.qos_settings)
+        if self.ldev_id:
+            self.ldev_id = normalize_ldev_id(self.ldev_id)
+        if self.vldev_id:
+            self.vldev_id = normalize_ldev_id(self.vldev_id)
+        if self.start_ldev_id:
+            self.start_ldev_id = normalize_ldev_id(self.start_ldev_id)
+        if self.end_ldev_id:
+            self.end_ldev_id = normalize_ldev_id(self.end_ldev_id)
 
 
 @dataclass
@@ -454,6 +480,7 @@ class SalamanderSimpleVolumeInfo(SingleBaseClass):
     usedCapacityInMB: Optional[int] = None
     reservedCapacity: Optional[int] = None
     savingSetting: Optional[str] = None
+    capacitySaving: Optional[str] = None
     isDataReductionShareEnabled: Optional[bool] = None
     compressionAcceleration: Optional[bool] = None
     compressionAccelerationStatus: Optional[str] = None
@@ -480,6 +507,15 @@ class SalamanderSimpleVolumeInfo(SingleBaseClass):
             self.freeCapacityInMB = convert_mib_to_mb(self.freeCapacity)
         if self.luns is not None:
             self.luns = [SimpleAPILuns(**lun) for lun in self.luns]
+        if self.capacitySaving is None:
+            self.capacitySaving = self.savingSetting
+
+    def camel_to_snake_dict(self):
+        camel_dict = super().camel_to_snake_dict()
+        camel_dict.pop("saving_setting")
+        camel_dict["id_hex"] = volume_id_to_hex_format(self.id)
+        camel_dict["parent_volume_id_hex"] = volume_id_to_hex_format(self.parentVolumeId)
+        return camel_dict
 
 
 @dataclass
@@ -528,7 +564,8 @@ class SalamanderCreateVolumeRequestSpec(SingleBaseClass):
     capacity: Optional[int] = None  # in MiB
     number_of_volumes: Optional[int] = 1
     volume_name: Optional[SalamanderNicknameParam] = None
-    saving_setting: Optional[str] = None
+    # saving_setting: Optional[str] = None
+    capacity_saving: Optional[str] = None
     is_data_reduction_share_enabled: Optional[bool] = False
     pool_id: Optional[int] = None
     volume_id: Optional[int] = None
@@ -536,6 +573,7 @@ class SalamanderCreateVolumeRequestSpec(SingleBaseClass):
     server_ids: Optional[List[str]] = None
     comments: Optional[List[str]] = None
     compression_acceleration: Optional[bool] = None
+    volume_ids: Optional[List[int]] = None  # For multiple volume
 
     def __post_init__(self):
         # Convert dict to NicknameParam instance if needed
@@ -548,6 +586,10 @@ class SalamanderCreateVolumeRequestSpec(SingleBaseClass):
             self.comments = []
         if self.qos_settings and isinstance(self.qos_settings, dict):
             self.qos_settings = SimpleVolumeQosParamsSpec(**self.qos_settings)
+        if self.volume_id:
+            self.volume_id = normalize_ldev_id(self.volume_id)
+        if self.volume_ids:
+            self.volume_ids = [normalize_ldev_id(ldev_id) for ldev_id in self.volume_ids]
 
 
 @dataclass
@@ -600,11 +642,15 @@ class SimpleAPIVolumeFactsSpec(SingleBaseClass):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         for key, value in kwargs.items():
-            if isinstance(value, int) and value < 0 :
-                raise ValueError(f"Invalid value for '{key}': Negative value is not allowed")
+            if isinstance(value, int) and value < 0:
+                raise ValueError(
+                    f"Invalid value for '{key}': Negative value is not allowed"
+                )
         count = kwargs.get("count", None)
         if count is not None and count < 1:
-            raise ValueError("Invalid value for 'count': Must be greater than or equal to 1")
+            raise ValueError(
+                "Invalid value for 'count': Must be greater than or equal to 1"
+            )
 
         self.__post_init__()
 
@@ -617,3 +663,7 @@ class SimpleAPIVolumeFactsSpec(SingleBaseClass):
             self.min_used_capacity = convert_capacity_to_mib(self.min_used_capacity)
         if self.max_used_capacity is not None:
             self.max_used_capacity = convert_capacity_to_mib(self.max_used_capacity)
+        if self.start_volume_id:
+            self.start_volume_id = normalize_ldev_id(self.start_volume_id)
+        if self.volume_id:
+            self.volume_id = normalize_ldev_id(self.volume_id)

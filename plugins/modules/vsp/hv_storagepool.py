@@ -110,16 +110,16 @@ options:
         required: false
       start_ldev_id:
         description: The first LDEV number in the range of consecutive LDEV numbers, if such a range is specified.
-        type: int
+        type: str
         required: false
       end_ldev_id:
         description: The last LDEV number in the range of consecutive LDEV numbers, if such a range is specified.
-        type: int
+        type: str
         required: false
       ldev_ids:
         description: LDEV numbers.
         type: list
-        elements: int
+        elements: str
         required: false
       pool_volumes:
         description: Details about the volumes in the pool.

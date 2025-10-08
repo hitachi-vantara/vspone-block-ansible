@@ -84,7 +84,8 @@ class VSPJournalPool(SingleBaseClass):
     dataOverflowWatchSeconds: int = None
     isCacheModeEnabled: bool = None
     logicalUnitIds: list[int] = None
-    logicalUnitIdsHexFormat: list[str] = None
+    ldevIds: list[int] = None
+    ldevIdsHex: list[str] = None
     mpBladeId: int = None
     timerType: str = None
     totalCapacity: int = None
@@ -144,12 +145,15 @@ class VSPJournalPool(SingleBaseClass):
             )
 
     def camel_to_snake_dict(self):
-        if self.logicalUnitIdsHexFormat is None:
-            self.logicalUnitIdsHexFormat = [
+        if self.ldevIdsHex is None:
+            self.ldevIdsHex = [
                 volume_id_to_hex_format(lun_id) for lun_id in self.logicalUnitIds
             ]
+        if self.ldevIds is None:
+            self.ldevIds = self.logicalUnitIds
         data = super().camel_to_snake_dict()
         # data.pop("num_of_ldevs", None)
+        data.pop("logical_unit_ids", None)
         return data
 
 

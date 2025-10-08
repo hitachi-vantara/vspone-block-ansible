@@ -6,14 +6,17 @@ This collection includes modules for managing both Hitachi VSP One SDS Block and
 ## VSP One SDS Block Ansible Modules
 
 - **hv_sds_block_authentication_ticket:** Manages authentication tickets for SDS block storage systems.
+- **hv_sds_block_capacity_management_settings_facts:** Retrieves capacity management settings from SDS block cluster.
 - **hv_sds_block_chap_user:** Manages Hitachi SDS block storage system CHAP users.
 - **hv_sds_block_chap_user_facts:** Retrieves information about Hitachi SDS block storage system CHAP users.
 - **hv_sds_block_cluster:** Manages SDS block storage clusters.
 - **hv_sds_block_cluster_config_facts:** Retrieves cluster configuration information.
-- **hv_sds_block_compute_node:** Manages compute nodes.
+- **hv_sds_block_compute_node:** Manages compute nodes in SDS block storage systems.
 - **hv_sds_block_compute_node_facts:** Retrieves information about compute nodes.
+- **hv_sds_block_compute_port:** Manages compute ports in SDS block storage systems.
 - **hv_sds_block_compute_port_authentication:** Manages compute port authentication mode settings.
 - **hv_sds_block_control_port_facts:** Retrieves information about control ports.
+- **hv_sds_block_drive:** Turns ON and OFF the drive locator LED, removes a drive from SDS block cluster.
 - **hv_sds_block_drives_facts:** Retrieves information about storage drives.
 - **hv_sds_block_event_logs_facts:** Retrieves event log information.
 - **hv_sds_block_fault_domain_facts:** Retrieves information about fault domains.
@@ -21,105 +24,112 @@ This collection includes modules for managing both Hitachi VSP One SDS Block and
 - **hv_sds_block_job_facts:** Retrieves information about storage system jobs.
 - **hv_sds_block_port_facts:** Retrieves information about compute ports.
 - **hv_sds_block_protection_domain_facts:** Retrieves information about protection domains.
-- **hv_sds_block_snapshot:** Manages snapshots.
+- **hv_sds_block_remote_iscsi_port:** Manages remote iSCSI ports in SDS block storage systems.
+- **hv_sds_block_remote_iscsi_port_facts:** Retrieves information about remote iSCSI ports.
+- **hv_sds_block_snapshot:** Manages snapshots in SDS block storage systems.
 - **hv_sds_block_snapshot_facts:** Retrieves information about snapshots.
+- **hv_sds_block_software_update_file_facts:** Retrieves information about software update files.
+- **hv_sds_block_storage_controller:** Edits storage controller settings on SDS block cluster.
 - **hv_sds_block_storage_controller_facts:** Retrieves information about storage controllers.
 - **hv_sds_block_storage_network_setting_facts:** Retrieves storage network setting information.
 - **hv_sds_block_storage_node:** Manages storage nodes.
+- **hv_sds_block_storage_node_bmc_connection:** Manages BMC connections for storage nodes.
+- **hv_sds_block_storage_node_bmc_connection_facts:** Retrieves BMC connection details from SDS block cluster.
 - **hv_sds_block_storage_node_facts:** Retrieves information about storage nodes.
 - **hv_sds_block_storage_node_network_settings_facts:** Retrieves network settings for storage nodes.
 - **hv_sds_block_storage_pool:** Manages storage pools.
+- **hv_sds_block_storage_pool_estimated_capacity_facts:** Retrieves storage pool estimated capacity from SDS block cluster on AWS.
 - **hv_sds_block_storage_pool_facts:** Retrieves information about storage pools.
+- **hv_sds_block_storage_software_update:** Manages software updates for SDS block storage systems.
 - **hv_sds_block_storage_system_facts:** Retrieves information about a specific SDS block storage system.
 - **hv_sds_block_storage_time_facts:** Retrieves storage system time information.
-- **hv_sds_block_user:** Manages users.
+- **hv_sds_block_user:** Manages users in SDS block storage systems.
 - **hv_sds_block_user_facts:** Retrieves information about users.
-- **hv_sds_block_volume:** Manages volumes.
+- **hv_sds_block_volume:** Manages volumes in SDS block storage systems.
 - **hv_sds_block_volume_facts:** Retrieves information about storage system volumes.
 - **hv_sds_block_vps:** Manages VPS volume ADR settings.
 - **hv_sds_block_vps_facts:** Retrieves information about Virtual Private Storages (VPS).
-- **hv_sds_block_capacity_management_settings_facts:** Retrieves capacity management settings from SDS block cluster.
-- **hv_sds_block_drive:** Turns ON and OFF the drive locator LED, removes a drive from SDS block cluster.
-- **hv_sds_block_storage_controller:** Edits storage controller settings on SDS block cluster.
-- **hv_sds_block_storage_node_bmc_connection_facts:** Retrieves BMC connection details from SDS block cluster.
-- **hv_sds_block_storage_pool_estimated_capacity_facts:** Retrieves storage pool estimated capacity from SDS block cluster on AWS.
 
 ## VSP Ansible Modules
 
 - **hv_audit_log_transfer_dest:** Sets the transfer destinations of audit log files using UDP/TCP ports.
 - **hv_audit_log_transfer_dest_facts:** Retrieves information about the transfer destinations of audit log files.
-- **hv_clpr:** Creates, updates, and deletes CLPR information.
+- **hv_clpr:** Creates, updates, and deletes CLPR (Cache Logical Partition Resource) information.
 - **hv_clpr_facts:** Retrieves CLPR information.
-- **hv_cmd_dev:** Manages command devices.
-- **hv_ddp_pool:** Manages DDP pools.
+- **hv_cmd_dev:** Manages command devices for VSP storage systems.
+- **hv_ddp_pool:** Manages DDP (Dynamic Data Pool) pools.
 - **hv_ddp_pool_facts:** Retrieves information about DDP pools.
-- **hv_disk_drive:** Manages disk drives.
+- **hv_disk_drive:** Manages disk drives in VSP storage systems.
 - **hv_disk_drive_facts:** Retrieves information about disk drives.
 - **hv_external_paritygroup:** Assigns external volume groups to a CLPR or changes the MP blade assigned to an external volume group.
-- **hv_external_paritygroup_facts:** Retrieves information about External Parity Group.
-- **hv_external_path_group:** Manages External Path Groups.
-- **hv_external_path_group_facts:** Retrieves information about External Path Group.
-- **hv_external_volume:** Manages external volumes.
+- **hv_external_paritygroup_facts:** Retrieves information about External Parity Groups.
+- **hv_external_path_group:** Manages External Path Groups for remote storage connections.
+- **hv_external_path_group_facts:** Retrieves information about External Path Groups.
+- **hv_external_volume:** Manages external volumes from remote storage systems.
 - **hv_external_volume_facts:** Retrieves information about external volumes.
-- **hv_gad:** Manages GAD pairs.
+- **hv_gad:** Manages GAD (Global-Active Device) pairs for active-active replication.
 - **hv_gad_facts:** Retrieves information about GAD pairs.
-- **hv_hg:** Manages host groups.
+- **hv_hg:** Manages host groups for server access control.
 - **hv_hg_facts:** Retrieves information about host groups.
-- **hv_hur:** Manages HUR pairs.
+- **hv_hur:** Manages HUR (Hitachi Universal Replicator) pairs for asynchronous replication.
 - **hv_hur_facts:** Retrieves information about HUR pairs.
-- **hv_iscsi_remote_connection:** Manages iSCSI remote connections.
+- **hv_iscsi_remote_connection:** Manages iSCSI remote connections for replication.
 - **hv_iscsi_remote_connection_facts:** Retrieves information about iSCSI remote connections.
-- **hv_iscsi_target:** Manages iSCSI targets.
+- **hv_iscsi_target:** Manages iSCSI targets and settings.
 - **hv_iscsi_target_facts:** Retrieves information about iSCSI targets.
-- **hv_journal:** Manages journal configuration.
+- **hv_journal:** Manages journal configuration for consistency groups.
 - **hv_journal_facts:** Retrieves information about journal configuration.
-- **hv_journal_volume:** Manages journal volumes.
+- **hv_journal_volume:** Manages journal volumes for replication consistency.
 - **hv_journal_volume_facts:** Retrieves information about journal volumes.
-- **hv_ldev:** Manages logical devices.
+- **hv_ldev:** Manages logical devices (LDEVs) including creation, modification, and deletion.
 - **hv_ldev_facts:** Retrieves information about logical devices.
-- **hv_mp_facts:** Retrieves MP blades information.
-- **hv_nvm_subsystems:** Manages NVM subsystems.
+- **hv_mp_facts:** Retrieves MP (Micro Processor) blades information.
+- **hv_nvm_subsystems:** Manages NVM (Non-Volatile Memory) subsystems.
 - **hv_nvm_subsystems_facts:** Retrieves information about NVM subsystems.
-- **hv_paritygroup:** Manages parity groups.
+- **hv_paritygroup:** Manages parity groups for RAID configuration.
 - **hv_paritygroup_facts:** Retrieves information about parity groups.
-- **hv_quorum_disk:** Manages quorum disks.
+- **hv_quorum_disk:** Manages quorum disks for high availability configurations.
 - **hv_quorum_disk_facts:** Retrieves information about quorum disks.
-- **hv_remote_connection:** Manages remote connections.
+- **hv_remote_connection:** Manages remote connections between storage systems.
 - **hv_remote_connection_facts:** Retrieves information about remote connections.
-- **hv_remote_copy_group:** Manages remote copy groups.
+- **hv_remote_copy_group:** Manages remote copy groups for replication management.
 - **hv_remote_copy_group_facts:** Retrieves information about remote copy groups.
-- **hv_remote_storage_registration:** Manages remote storage registrations.
+- **hv_remote_storage_registration:** Manages remote storage system registrations.
 - **hv_remote_storage_registration_facts:** Retrieves information about remote storage registrations.
-- **hv_resource_group:** Manages resource groups.
+- **hv_resource_group:** Manages resource groups for access control and resource isolation.
 - **hv_resource_group_facts:** Retrieves information about resource groups.
-- **hv_resource_group_lock:** Manages resource group locks.
-- **hv_server_priority_manager:** Sets, changes, and deletes Server Priority Manager information.
+- **hv_resource_group_lock:** Manages resource group locks for exclusive access control.
+- **hv_server_priority_manager:** Sets, changes, and deletes Server Priority Manager information for QoS.
 - **hv_server_priority_manager_facts:** Retrieves Server Priority Manager information.
-- **hv_shadow_image_group:** Manages shadow image groups.
+- **hv_shadow_image_group:** Manages shadow image groups for snapshot management.
 - **hv_shadow_image_group_facts:** Retrieves information about shadow image groups.
-- **hv_shadow_image_pair:** Manages shadow image pairs.
+- **hv_shadow_image_pair:** Manages shadow image pairs for local replication.
 - **hv_shadow_image_pair_facts:** Retrieves information about shadow image pairs.
-- **hv_snapshot:** Manages snapshots.
+- **hv_snapshot:** Manages snapshots for point-in-time data protection.
 - **hv_snapshot_facts:** Retrieves information about snapshots.
-- **hv_snapshot_group:** Manages snapshot groups.
+- **hv_snapshot_group:** Manages snapshot groups for coordinated snapshot operations.
 - **hv_snapshot_group_facts:** Retrieves information about snapshot groups.
-- **hv_snmp_setting:** Manages SNMP settings.
+- **hv_snmp_settings:** Manages SNMP settings for monitoring and alerting.
 - **hv_snmp_settings_facts:** Retrieves SNMP settings for a storage system.
-- **hv_storage_port:** Manages storage port settings.
+- **hv_storage_port:** Manages storage port settings and configurations.
 - **hv_storage_port_facts:** Retrieves information about storage ports.
 - **hv_storage_system:** Sets the date and time in a storage system with NTP disabled/enabled.
 - **hv_storage_system_monitor_facts:** Retrieves alert, hardware installed, and channel board information.
-- **hv_storagepool:** Manages storage pools.
+- **hv_storagepool:** Manages storage pools for dynamic capacity allocation.
 - **hv_storagepool_facts:** Retrieves information about storage pools.
 - **hv_storagesystem_facts:** Retrieves information about storage systems.
-- **hv_truecopy:** Manages TrueCopy pairs.
+- **hv_truecopy:** Manages TrueCopy pairs for synchronous replication.
 - **hv_truecopy_facts:** Retrieves information about TrueCopy pairs.
-- **hv_troubleshooting_facts:** Collects log bundles from the Ansible modules host.
+- **hv_troubleshooting_facts:** Collects log bundles from the Ansible modules host for debugging.
 - **hv_upload_file:** Uploads a primary/secondary client certificate file to a storage system for audit log.
-- **hv_user:** Manages users.
+- **hv_user:** Manages users and user accounts in VSP storage systems.
 - **hv_user_facts:** Retrieves information about users.
-- **hv_user_group:** Manages user groups.
+- **hv_user_group:** Manages user groups for role-based access control.
 - **hv_user_group_facts:** Retrieves information about user groups.
-- **hv_vsp_one_volume:** Manages volumes including creation, modification, deletion, and server attachment/detachment on VSP E series and
-    VSP One B2X storages.
+- **hv_vsp_one_port:** Manages ports on VSP E series and VSP One B2X storage systems.
+- **hv_vsp_one_port_facts:** Retrieves port information from VSP E series and VSP One B2X storages.
+- **hv_vsp_one_server:** Manages servers including creation, modification, deletion, and configuration on VSP E series and VSP One B2X storages.
+- **hv_vsp_one_server_facts:** Retrieves server information from VSP E series and VSP One B2X storages.
+- **hv_vsp_one_server_hba_facts:** Retrieves HBA (Host Bus Adapter) information for servers on VSP E series and VSP One B2X storages.
+- **hv_vsp_one_volume:** Manages volumes including creation, modification, deletion, and server attachment/detachment on VSP E series and VSP One B2X storages.
 - **hv_vsp_one_volume_facts:** Retrieves volumes information from servers on VSP E series and VSP One B2X storages.

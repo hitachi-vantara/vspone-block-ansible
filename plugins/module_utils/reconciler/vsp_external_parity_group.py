@@ -136,7 +136,7 @@ class VSPExternalParityGroupReconciler:
             if self.connection_info.changed:
                 msg = "Assigned external parity group to a CLPR successfully."
             else:
-                msg = "External parity group is already assined to the same CLPR."
+                msg = "External parity group is already assigned to the same CLPR."
         elif state == StateValue.CHANGE_MP_BLADE:
             rsp = self.change_mp_blade(spec)
             logger.writeDebug(f"external_pg_reconcile:CHANGE_MP_BLADE={rsp}")

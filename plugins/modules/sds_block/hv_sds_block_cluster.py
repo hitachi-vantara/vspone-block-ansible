@@ -57,8 +57,20 @@ options:
         choices: ['Normal', 'AddStorageNodes', 'AddDrives']
         default: 'Normal'
       machine_image_id:
-        description: The ID of the machine image be used for storage node addition or storage node replacement. This is a
-          required field when the export_file_type is C(AddStorageNodes).
+        description: The ID of the machine image be used for storage node addition or storage node replacement.
+        type: str
+        required: false
+      template_s3_url:
+        description: URL (https) of Amazon S3 where the VM configuration file is to be stored at the time of each maintenance operation.
+          This option is a mandatory parameter for the cloud model for AWS when the state field is C(download_config_file) and refresh is true.
+          This parameter is ignored if it is specified for other platforms.
+        type: str
+        required: false
+      vm_configuration_file_s3_uri:
+        description: URI (starting with "s3") of Amazon S3 where the VMConfigurationFile.yml VM configuration file is stored.
+          If the bucket name contains a period (.), the URI cannot be specified.
+          This option is a mandatory parameter for the cloud model for AWS when the state field is C(add_storage_node).
+          This parameter is ignored if it is specified for other platforms.
         type: str
         required: false
       no_of_drives:
@@ -244,7 +256,7 @@ EXAMPLES = """
       state: "add_storage_node"
       spec:
         configuration_file: "/tmp/download2/SystemConfigurationFile.csv"
-        setup_user_password: "Hitachi1"
+        setup_user_password: "CHANGE_ME_SET_YOUR_PASSWORD"
 
 - name: Add storage node to the cluster using ansible variables
   hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
@@ -254,7 +266,7 @@ EXAMPLES = """
       password: "secret"
       state: "add_storage_node"
       spec:
-        setup_user_password: "Hitachi1"
+        setup_user_password: "CHANGE_ME_SET_YOUR_PASSWORD"
         storage_nodes:
           - host_name: "SDSB-NODE6"
             fault_domain_name: "SC01-PD01-FD01"

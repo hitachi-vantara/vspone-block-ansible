@@ -79,7 +79,7 @@ EXAMPLES = """
     state: present
     spec:
       user_id: "new_user"
-      password: "new_password"
+      password: "CHANGE_ME_SET_YOUR_PASSWORD"
       user_group_ids:
         - "admin_group"
       authentication: "local"
@@ -94,8 +94,8 @@ EXAMPLES = """
     state: update
     spec:
       user_id: "existing_user"
-      current_password: "current_password"
-      new_password: "updated_password"
+      current_password: "CHANGE_ME_SET_YOUR_PASSWORD"
+      new_password: "CHANGE_ME_SET_YOUR_PASSWORD"
 """
 
 RETURN = r"""

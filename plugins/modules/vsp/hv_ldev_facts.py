@@ -46,11 +46,11 @@ options:
     suboptions:
       ldev_id:
         description: ID of the specific LDEV to retrieve information for.
-        type: int
+        type: str
         required: false
       start_ldev_id:
         description: Starting LDEV ID for filtering LDEVs.
-        type: int
+        type: str
         required: false
       name:
         description: Name of the LDEV.
@@ -62,7 +62,7 @@ options:
         required: false
       end_ldev_id:
         description: Ending LDEV ID for filtering LDEVs.
-        type: int
+        type: str
         required: false
       is_detailed:
         description: Flag to retrieve all the additional properties that are not returned with regular LDEV facts output.

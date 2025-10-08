@@ -1,3 +1,6 @@
+import http.client
+import ssl
+
 try:
     from .gateway_manager import SDSBConnectionManager
     from ..common.hv_log import Log
@@ -85,6 +88,7 @@ class SDSBStorageNodeDirectGateway:
 
         storage_node_data = self.connection_manager.get(end_point)
         storage_node_data = self.fill_capacity_settings(storage_node_data)
+        storage_node_data = self.inject_cluster_master_primary(storage_node_data)
 
         return SDSBStorageNodeInfoList(
             dicts_to_dataclass_list(storage_node_data["data"], SDSBStorageNodeInfo)
@@ -106,6 +110,15 @@ class SDSBStorageNodeDirectGateway:
                 sn["is_capacity_balancing_enabled"] = value
 
         logger.writeDebug(f"GW:fill_capacity_settings:resp={storage_node_data}")
+        return storage_node_data
+
+    @log_entry_exit
+    def inject_cluster_master_primary(self, storage_node_data):
+        for sn in storage_node_data["data"]:
+            value = sn["controlPortIpv4Address"]
+            logger.writeDebug(f"GW:inject_cluster_master_primary:resp={value}")
+            master_flag = self.get_storage_master_flag(value)
+            sn["isStorageMasterNodePrimary"] = master_flag
         return storage_node_data
 
     @log_entry_exit
@@ -134,6 +147,9 @@ class SDSBStorageNodeDirectGateway:
         storage_node.is_capacity_balancing_enabled = capacity_saving[
             "capacityBalancingSetting"
         ]["isEnabled"]
+        storage_node.isStorageMasterNodePrimary = self.get_storage_master_flag(
+            storage_node.controlPortIpv4Address
+        )
         return storage_node
 
     @log_entry_exit
@@ -167,3 +183,40 @@ class SDSBStorageNodeDirectGateway:
             f"GW:edit_capacity_settings_of_a_storage_node:capacity_saving={resp}"
         )
         return resp
+
+    def get_storage_master_flag(self, host):
+        # Create SSL context that ignores certificate verification (-k option in curl)
+        context = ssl._create_unverified_context()
+
+        # Define host and endpoint
+        # host = "10.76.47.53"
+        end_point = "/ConfigurationManager/simple/configuration/storage-master-node-primary-flag"
+
+        try:
+            # Open HTTPS connection
+            conn = http.client.HTTPSConnection(host, context=context)
+
+            # Send GET request
+            conn.request("GET", end_point)
+
+            # Get response
+            response = conn.getresponse()
+
+            # # Print response status, headers, and body
+            # print("Status:", response.status, response.reason)
+            # print("Headers:")
+            # for header, value in response.getheaders():
+            #     print(f"{header}: {value}")
+
+            # body = response.read().decode("utf-8", errors="ignore")
+            # print("\nBody:")
+            # print(body)
+            if response.status == 200:
+                ret_value = True
+            else:
+                ret_value = False
+
+            conn.close()
+            return ret_value
+        except Exception as e:
+            logger.writeDebug(f"GW:get_storage_master_flag:Error={e}")

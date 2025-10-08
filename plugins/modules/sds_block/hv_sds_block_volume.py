@@ -445,7 +445,7 @@ class SDSBVolumeManager:
 
         response = {
             "changed": self.connection_info.changed,
-            "data": volumes_data_extracted,
+            "volumes": volumes_data_extracted,
         }
         if registration_message:
             response["user_consent_required"] = registration_message

@@ -17,18 +17,17 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    #########################################################################
-    # Task Name : Add storage node to the cluster with the configuration file
-    # Note: This task is supported for Bare Metal and Google Cloud.
-    #       This task is not supported for AWS and Microsoft Azure.
-    #########################################################################
+    #############################################################################
+    # Task Name : Add storage node to the SDS cluster with the configuration file
+    # Note: This task is for Bare Metal and Google Cloud.
+    #############################################################################
     - name: Add storage node to the cluster with the configuration file
       hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
         connection_info: "{{ connection_info }}"
         state: "add_storage_node"
         spec:
           configuration_file: "/tmp/download2/SystemConfigurationFile.csv"
-          setup_user_password: "Hitachi1"
+          setup_user_password: "CHANGE_ME_SET_YOUR_PASSWORD"
       register: result
 
     - name: Debug the result variable
@@ -36,7 +35,7 @@
         var: result
 
     #########################################################################
-    # Task Name : Add storage node to the storage cluster on Azure cloud
+    # Task Name : Add storage node to the SDS cluster on Azure cloud
     #########################################################################
     - name: Add storage node to the cluster on Azure Cloud
       hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
@@ -51,9 +50,25 @@
         var: result
 
     #########################################################################
-    # Task Name : Add storage node to the cluster using ansible variables
-    # Note: This task is supported for Bare Metal and Google Cloud.
-    #       This task is not supported for AWS and Microsoft Azure.
+    # Task Name : Add storage node to the SDS cluster on AWS cloud
+    #########################################################################
+    - name: Add storage node to the cluster on Azure Cloud
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "add_storage_node"
+        spec:
+          configuration_file: "/tmp/download2/SystemConfigurationFile.csv"
+          vm_configuration_file_s3_uri: "s3://radey-bucket/template/VMConfigurationFile.yml"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################
+    # Task Name : Add storage node to the SDS cluster using ansible variables
+    # Note: This task is supported for Bare Metal only.
+    #       This task is not supported for SDS cluster on cloud.
     #########################################################################
     - name: Add storage node to the cluster using ansible variables
       hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
@@ -87,9 +102,7 @@
 
     #################################################################################
     # Task Name : Remove storage node from the cluster by storage node ID
-    # Note: This task is supported for Bare Metal, Google Cloud, and Microsoft Azure.
-    #       This task is not supported for AWS.
-    #       For Google Cloud, it works only for storage nodes, that were
+    # Note: For SDS cluster on Cloud, it works only for storage nodes, that were
     #       unsuccessful in adding storage nodes operation.
     #################################################################################
     - name: Remove storage node from the cluster by storage node ID
@@ -106,9 +119,7 @@
 
     ####################################################################################
     # Task Name : Remove storage node from the cluster by storage node name
-    # Note: This task is supported for Bare Metal, Google Cloud, and Microsoft Azure.
-    #       This task is not supported for AWS.
-    #       For Google Cloud, it works only for storage nodes, that were
+    # Note: For SDS cluster on Cloud, it works only for storage nodes, that were
     #       unsuccessful in adding storage nodes operation.
     ####################################################################################
     - name: Remove storage node from the cluster by storage node name
@@ -181,9 +192,9 @@
 
     #########################################################################################
     # Task Name : Create the cluster configuration file for different export file types
-    #              Supported export file types are : Normal, AddStorageNodes, and AddDrives.
-    # Note: This task is supported for Bare Metal, Google Cloud, and Microsoft Azure.
-    #       This task is not supported for AWS.
+    #             Supported export file types are : Normal, AddStorageNodes, and AddDrives.
+    # Note: This task is for Bare Metal, Google Cloud, and Microsoft Azure.
+    #       For AWS, please see the next task.
     ########################################################################################
     - name: Create the cluster configuration file to add drives and then download it
       hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
@@ -200,7 +211,28 @@
       ansible.builtin.debug:
         var: result
 
-   ########################################################################
+    #########################################################################################
+    # Task Name : Create the cluster configuration file for different export file types
+    #              Supported export file types are : Normal, AddStorageNodes, and AddDrives.
+    # Note: This task is for AWS only. It requires additional parameter template_s3_url.
+    ########################################################################################
+    - name: Create the cluster configuration file to add storage nodes and then download it
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "download_config_file"
+        spec:
+          config_file_location: "/tmp/download2"
+          export_file_type: "AddStorageNodes"
+          machine_image_id: "ami-0aa69c732980e4cd2"
+          template_s3_url: "https://radey-bucket.s3.us-west-2.amazonaws.com/template/"
+          refresh: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ########################################################################
     # Task Name : Edit the capacity balancing settings of the cluster
     #######################################################################
     - name: Edit the capacity balancing settings of the cluster
@@ -214,7 +246,7 @@
       ansible.builtin.debug:
         var: result
 
-   ####################################################################################
+    ####################################################################################
     # Task Name : Edit the capacity balancing settings of a controller in  the cluster
     ##################################################################################
     - name: Edit the capacity balancing settings of a controller in  the cluster
@@ -223,6 +255,19 @@
         spec:
           controller_id: "46a42ce3-8445-4463-88aa-748f2c711fa1"
           is_capacity_balancing_enabled: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #######################################################################
+    # Task Name : Stop removing storage nodes
+    # #######################################################################
+    - name: Stop removing storage nodes
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "stop_removing_storage_node"
       register: result
 
     - name: Debug the result variable

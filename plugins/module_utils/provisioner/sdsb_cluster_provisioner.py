@@ -34,15 +34,26 @@ class SDSBClusterProvisioner:
 
     @log_entry_exit
     def add_storage_node(
-        self, setup_user_password, config_file=None, exported_config_file=None
+        self,
+        setup_user_password,
+        config_file=None,
+        exported_config_file=None,
+        vm_configuration_file_s3_uri=None,
     ):
         return self.gateway.add_storage_node(
-            setup_user_password, config_file, exported_config_file
+            setup_user_password,
+            config_file,
+            exported_config_file,
+            vm_configuration_file_s3_uri,
         )
 
     @log_entry_exit
     def remove_storage_node(self, id):
         return self.gateway.remove_storage_node(id)
+
+    @log_entry_exit
+    def stop_removing_storage_nodes(self):
+        return self.gateway.stop_removing_storage_nodes()
 
     @log_entry_exit
     def get_storage_time_settings(self):
@@ -54,8 +65,12 @@ class SDSBClusterProvisioner:
         return platform_gw.get_platform().strip()
 
     @log_entry_exit
-    def create_config_file_for_add_storage_node(self, machine_image_id):
-        return self.gateway.create_config_file_for_add_storage_node(machine_image_id)
+    def create_config_file_for_add_storage_node(
+        self, machine_image_id, template_s3_url=None
+    ):
+        return self.gateway.create_config_file_for_add_storage_node(
+            machine_image_id, template_s3_url
+        )
 
     @log_entry_exit
     def edit_capacity_management_settings(

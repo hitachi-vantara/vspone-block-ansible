@@ -3,11 +3,19 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from ..common.ansible_common import dicts_to_dataclass_list
+    from ..common.ansible_common import (
+        dicts_to_dataclass_list,
+        normalize_ldev_id,
+        volume_id_to_hex_format,
+    )
     from .vsp_host_group_models import LuHostReserve
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from common.ansible_common import dicts_to_dataclass_list
+    from common.ansible_common import (
+        dicts_to_dataclass_list,
+        normalize_ldev_id,
+        volume_id_to_hex_format,
+    )
     from vsp_host_group_models import LuHostReserve
 
 
@@ -57,6 +65,11 @@ class IscsiTargetSpec(SingleBaseClass):
             self.iqn_initiators = [
                 IscsiTarget(**target) for target in kwargs.get("iqn_initiators")
             ]
+        self.__post_init__()
+
+    def __post_init__(self):
+        if self.ldevs:
+            self.ldevs = [normalize_ldev_id(ldev) for ldev in self.ldevs]
 
 
 @dataclass
@@ -165,6 +178,8 @@ class VSPLogicalUnitInfo(SingleBaseClass):
 class VSPLogicalUnitInfoDetails(SingleBaseClass):
     hostLun: int = None
     logicalUnitId: int = None
+    ldevId: int = None
+    ldevIdHex: str = None
     portId: Optional[str] = None
     hostGroupNumber: Optional[int] = None
     hostMode: Optional[str] = None
@@ -180,6 +195,9 @@ class VSPLogicalUnitInfoDetails(SingleBaseClass):
             if kwargs.get("luHostReserve")
             else None
         )
+        if self.logicalUnitId:
+            self.ldevId = self.logicalUnitId
+            self.ldevIdHex = volume_id_to_hex_format(self.ldevId)
 
 
 @dataclass

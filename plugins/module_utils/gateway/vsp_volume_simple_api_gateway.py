@@ -162,19 +162,15 @@ class VspSimpleApiGateway:
         if spec.volume_name:
             nickname_payload = {"baseName": spec.volume_name.base_name}
             if spec.volume_name.start_number is not None:
-                nickname_payload["startNumber"] = (
-                    spec.volume_name.start_number
-                )
+                nickname_payload["startNumber"] = spec.volume_name.start_number
             if spec.volume_name.number_of_digits is not None:
-                nickname_payload["numberOfDigits"] = (
-                    spec.volume_name.number_of_digits
-                )
+                nickname_payload["numberOfDigits"] = spec.volume_name.number_of_digits
 
             payload[VolumePayloadConst.NICKNAME_PARAM] = nickname_payload
 
         # Capacity saving (e.g., COMPRESSION, DEDUPLICATION_AND_COMPRESSION)
-        if spec.saving_setting:
-            payload[VolumePayloadConst.SAVING_SETTING] = spec.saving_setting.upper()
+        if spec.capacity_saving:
+            payload[VolumePayloadConst.SAVING_SETTING] = spec.capacity_saving.upper()
 
         # Data reduction share flag
         if spec.is_data_reduction_share_enabled is not None:
@@ -373,7 +369,21 @@ class VspSimpleApiGateway:
         """
         end_point = self.end_points.ATTACH_SERVER_SIMPLE
         payload = {"volumeIds": [volume_id], "serverIds": server_ids}
-        affected_resource, failed_job = self.rest_api.pegasus_post_multi_jobs(end_point, payload)
+        affected_resource, failed_job = self.rest_api.pegasus_post_multi_jobs(
+            end_point, payload
+        )
+        return affected_resource, failed_job
+
+    @log_entry_exit
+    def attach_servers_to_volumes(self, volume_ids, server_ids):
+        """
+        Attach servers to volumes.
+        """
+        end_point = self.end_points.ATTACH_SERVER_SIMPLE
+        payload = {"volumeIds": volume_ids, "serverIds": server_ids}
+        affected_resource, failed_job = self.rest_api.pegasus_post_multi_jobs(
+            end_point, payload
+        )
         return affected_resource, failed_job
 
     @log_entry_exit

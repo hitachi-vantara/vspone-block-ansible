@@ -72,9 +72,9 @@ EXAMPLES = """
       password: "password"
     spec:
       target_chap_user_name: "chapuser2"
-      target_chap_user_secret: "chapuser2_secret"
+      target_chap_user_secret: "CHANGE_ME_SET_YOUR_PASSWORD"
       initiator_chap_user_name: "chapuser1"
-      initiator_chap_secret: "chapuser1_secret"
+      initiator_chap_secret: "CHANGE_ME_SET_YOUR_PASSWORD"
 
 - name: Delete a CHAP user
   hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user:
@@ -106,7 +106,7 @@ EXAMPLES = """
     spec:
       id: "464e1fd1-9892-4134-866c-6964ce786676"
       target_chap_user_name: "chapuser2"
-      target_chap_user_secret: "chapuser2_new_secret"
+      target_chap_user_secret: "CHANGE_ME_SET_YOUR_PASSWORD"
 """
 
 RETURN = r"""
@@ -162,9 +162,6 @@ class SDSBChapUserManager:
 
         self.logger = Log()
         self.argument_spec = SDSBChapUserArguments().chap_user()
-        self.logger.writeDebug(
-            f"MOD:hv_sds_block_chap_user:argument_spec= {self.argument_spec}"
-        )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=False,
@@ -204,7 +201,7 @@ class SDSBChapUserManager:
 
         response = {
             "changed": self.connection_info.changed,
-            "data": chap_user_data_extracted,
+            "chap_users": chap_user_data_extracted,
         }
         if registration_message:
             response["user_consent_required"] = registration_message

@@ -31,9 +31,9 @@
       ansible.builtin.debug:
         var: result
 
-  ###########################################################################
-  # Task Name : Edit storage controller settings by storage controller ID
-  ##########################################################################
+    ###########################################################################
+    # Task Name : Edit storage controller settings by storage controller ID
+    ##########################################################################
     - name: Edit storage controller settings by storage controller ID
       hitachivantara.vspone_block.sds_block.hv_sds_block_storage_controller:
         connection_info: "{{ connection_info }}"

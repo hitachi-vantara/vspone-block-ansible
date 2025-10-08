@@ -68,7 +68,7 @@ options:
     suboptions:
       ldev_id:
         description: Specify the LDEV number as a decimal (base 10) number.
-        type: int
+        type: str
         required: true
       host_wwn:
         description: WWN of the HBA. Specify a hexadecimal number consisting of 16 characters.

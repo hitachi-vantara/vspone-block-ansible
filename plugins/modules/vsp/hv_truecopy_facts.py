@@ -69,12 +69,12 @@ options:
       primary_volume_id:
         description:
           - ID of the primary volume to retrieve TrueCopy pair information for.
-        type: int
+        type: str
         required: false
       secondary_volume_id:
         description:
           - ID of the secondary volume to retrieve TrueCopy pair information for.
-        type: int
+        type: str
         required: false
       copy_group_name:
         description:

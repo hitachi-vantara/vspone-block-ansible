@@ -4,6 +4,7 @@ try:
     from ..common.ansible_common import (
         log_entry_exit,
         camel_to_snake_case,
+        volume_id_to_hex_format,
     )
     from ..common.hv_log import Log
     from ..common.hv_constants import StateValue
@@ -17,6 +18,7 @@ except ImportError:
     from common.ansible_common import (
         log_entry_exit,
         camel_to_snake_case,
+        volume_id_to_hex_format,
     )
     from common.hv_log import Log
     from common.hv_constants import StateValue
@@ -483,6 +485,7 @@ class ResourceGroupInfoExtractor:
             "lockSessionId": int,
             "virtualStorageId": int,
             "ldevs": list[int],
+            "ldevs_hex": list[str],
             "parityGroups": list[str],
             "externalParityGroups": list[str],
             "ports": list[str],
@@ -536,5 +539,11 @@ class ResourceGroupInfoExtractor:
                     # Handle missing keys by assigning default values
                     # default_value = get_default_value(value_type)
                     # new_dict[cased_key] = default_value
+            if new_dict.get("ldevs_hex") == "" or new_dict.get("ldevs_hex") is None:
+                if new_dict.get("ldevs") is not None and new_dict.get("ldevs") != []:
+                    ldev_ids = new_dict.get("ldevs", None)
+                    new_dict["ldevs_hex"] = [
+                        volume_id_to_hex_format(ldev_id) for ldev_id in ldev_ids
+                    ]
             new_items.append(new_dict)
         return new_items

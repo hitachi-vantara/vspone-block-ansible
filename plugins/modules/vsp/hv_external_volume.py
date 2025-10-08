@@ -51,7 +51,7 @@ options:
     suboptions:
       ldev_id:
         description: LDEV ID, it will be auto-selected if omitted.
-        type: int
+        type: str
         required: false
       external_storage_serial:
         description: The external storage serial number.
@@ -59,7 +59,7 @@ options:
         required: false
       external_ldev_id:
         description: The external LDEV ID.
-        type: int
+        type: str
         required: false
       external_parity_group:
         description: The external parity group ID.

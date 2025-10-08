@@ -72,7 +72,7 @@ jobs:
         run: |
           # Count the number of tar.gz files
           FILE_COUNT=$(ls *.tar.gz 2>/dev/null | wc -l)
-          
+
           if [[ $FILE_COUNT -eq 0 ]]; then
             echo "❌ No collection file found! Exiting."
             exit 1
@@ -82,7 +82,7 @@ jobs:
             echo "This should not happen after cleanup. Exiting."
             exit 1
           fi
-          
+
           COLLECTION_FILE=$(ls *.tar.gz)
           echo "✅ Found collection file: $COLLECTION_FILE"
           echo "COLLECTION_FILE=$COLLECTION_FILE" >> $GITHUB_ENV

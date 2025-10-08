@@ -86,118 +86,72 @@ options:
 """
 
 EXAMPLES = """
-- name: Resource management with Resource Group Lock where single storage system is involved
-  tasks:
-    - name: Lock resource groups
-      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
-        connection_info:
-          address: storage1.company.com
-          username: "admin"
-          password: "secret"
-        spec:
-          lock_timeout_sec: 300
-      register: response
+- name: Lock resource groups
+  hitachivantara.vspone_block.vsp.hv_resource_group_lock:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    spec:
+      lock_timeout_sec: 300
 
-    - name: Debug lock resource group result
-      ansible.builtin.debug:
-        var: response
-
-    - name: Create ldev
-      hitachivantara.vspone_block.vsp.hv_ldevs:
-        connection_info:
-          address: storage1.company.com
-          api_token: lock_token_value
-        spec:
-          pool_id: 0
-          size: 2GB
-          name: RD_LOCK_TEST_120424
-      register: create_ldev_result
-
-    - name: Debug lock resource group result
-      ansible.builtin.debug:
-        var: create_ldev_result
-
-    - name: Unlock the Resource Groups that were locked
-      hitachivantara.vspone_block.vsp.hv_resource_group_lock:
-        connection_info:
-          address: storage1.company.com
-          api_token: lock_token_value
-        state: absent
-      register: result
-
-    - name: Debug lock resource group result
-      ansible.builtin.debug:
-        var: result
+- name: Unlock the Resource Groups that were locked
+  hitachivantara.vspone_block.vsp.hv_resource_group_lock:
+    connection_info:
+      address: storage1.company.com
+      api_token: lock_token_value
+    state: absent
 """
 
 RETURN = """
 response:
-    description: >
-        First lock resource groups output, then ldev creation output and finally unlock resource group output.
-        Ansible sorts the output, so the outputs were jumbled with three tasks. Ignore the underscores (_) in the beginning of the variables,
-        they are added to keep the output in order with the tasks.
-        For first task three (___), for the second task two (__), and for the third task one (_) underscores are added in the beginning.
-    returned: always
-    type: list
-    elements: dict
-    sample:
-
-        # Result of the first task (lock resource groups)
-
-        ___lock_session_id: 26945
-        ___lock_token: "62316257-5362-458a-8a9a-8922beaf7460"
-        ___locked_resource_groups:
-              -   id: 0
-                  name: "meta_resource"
-              -   id: 1
-                  name: "test-rg-1"
-              -   id: 2
-                  name: "test-rg-2"
-              -   id: 3
-                  name: "test-rg-3"
-
-        # Result of the second task (create ldev)
-
-        __canonical_name: "naa.60060e80089c4e0000509c4e00000024"
-        __dedup_compression_progress: -1
-        __dedup_compression_status: "DISABLED"
-        __deduplication_compression_mode: "disabled"
-        __emulation_type: "OPEN-V-CVS"
-        __hostgroups: []
-        __is_alua: false
-        __is_command_device: false
-        __is_data_reduction_share_enabled: false
-        __is_device_group_definition_enabled: false
-        __is_encryption_enabled: false
-        __is_security_enabled: false
-        __is_user_authentication_enabled: false
-        __is_write_protected: false
-        __is_write_protected_by_key: false
-        __iscsi_targets: []
-        __ldev_id: 36
-        __logical_unit_id_hex_format: "00:00:24"
-        __name: "RD_LOCK_TEST_120424"
-        __num_of_ports: -1
-        __nvm_subsystems: []
-        __parity_group_id: ""
-        __path_count: -1
-        __pool_id: 0
-        __provision_type: "CVSHDP"
-        __qos_settings: {}
-        __resource_group_id: 0
-        __snapshots: []
-        __status: "NML"
-        __storage_serial_number: "40014"
-        __tiering_policy: {}
-        __total_capacity: "2.00GB"
-        __used_capacity: "0.00B"
-        __virtual_ldev_id: -1
-
-        # Result of the third task (unlock resource groups)
-
-        _comment: "Resource Groups unlocked successfully."
-        _changed: true
-        _failed: false
+  description: Information of the locked resource group. When secondary_connection_info is provided,
+    remote_lock_session_id, remote_lock_token, and remote_locked_resource_groups are populated in the output.
+  returned: always
+  type: dict
+  contains:
+    lock_session_id:
+      description: ID of the session that locked the local resources.
+      type: int
+      sample: 26945
+    lock_token:
+      description: Token that should be used to do operations on local resources.
+      type: str
+      sample: "62316257-5362-458a-8a9a-8922beaf7460"
+    locked_resource_groups:
+      description: List of local resource groups that are locked.
+      type: list
+      elements: dict
+      contains:
+        id:
+          description: The ID of the resource group.
+          type: int
+          sample: 1
+        name:
+          description: Name of the resource group.
+          type: str
+          sample: "test-rg-1"
+    remote_lock_session_id:
+      description: ID of the session that locked the remote resources.
+      type: int
+      sample: 16945
+    remote_lock_token:
+      description: Token that should be used to do operations on remote resources.
+      type: str
+      sample: "72316257-5362-458a-8a9a-8922beaf7460"
+    remote_locked_resource_groups:
+      description: List of remote resource groups that are locked.
+      type: list
+      elements: dict
+      contains:
+        id:
+          description: The ID of the resource group.
+          type: int
+          sample: 2
+        name:
+          description: Name of the resource group.
+          type: str
+          sample: "test-rg-2"
 """
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_rg_lock_reconciler import (

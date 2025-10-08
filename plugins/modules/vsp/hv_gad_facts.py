@@ -69,7 +69,7 @@ options:
     suboptions:
       primary_volume_id:
         description: Primary Volume Id.
-        type: int
+        type: str
         required: false
       copy_group_name:
           description: Copy Group Name.
@@ -81,7 +81,7 @@ options:
           required: False
       secondary_volume_id:
           description: Secondary Volume Id.
-          type: int
+          type: str
           required: False
       copy_pair_name:
           description: Copy Pair Name.

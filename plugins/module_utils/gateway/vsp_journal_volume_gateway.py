@@ -125,9 +125,9 @@ class VSPSJournalVolumeDirectGateway:
         endPoint = Endpoints.POST_JOURNAL_POOLS
         payload = {}
         payload[VSPJournalVolumeReq.journalid] = spec.journal_id
-        if spec.startLdevId and spec.endLdevId:
-            payload[VSPJournalVolumeReq.startLdevId] = spec.startLdevId
-            payload[VSPJournalVolumeReq.endLdevId] = spec.endLdevId
+        if spec.start_ldev_id and spec.end_ldev_id:
+            payload[VSPJournalVolumeReq.startLdevId] = spec.start_ldev_id
+            payload[VSPJournalVolumeReq.endLdevId] = spec.end_ldev_id
         else:
             payload[VSPJournalVolumeReq.LDEV_IDS] = spec.ldev_ids
 
@@ -140,9 +140,9 @@ class VSPSJournalVolumeDirectGateway:
         payload = {}
         url = None
         self.logger.writeDebug(f"GW:journal_volume: spec =  {spec}")
-        if spec.data_overflow_watchIn_seconds:
+        if spec.data_overflow_watch_in_seconds:
             payload[VSPJournalVolumeReq.dataOverflowWatchInSeconds] = (
-                spec.data_overflow_watchIn_seconds
+                spec.data_overflow_watch_in_seconds
             )
         if spec.is_cache_mode_enabled is not None:
             payload[VSPJournalVolumeReq.isCacheModeEnabled] = spec.is_cache_mode_enabled

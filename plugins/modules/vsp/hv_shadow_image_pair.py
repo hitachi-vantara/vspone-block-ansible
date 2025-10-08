@@ -55,11 +55,11 @@ options:
     suboptions:
       primary_volume_id:
         description: Primary volume id.
-        type: int
+        type: str
         required: false
       secondary_volume_id:
         description: Secondary volume id.
-        type: int
+        type: str
         required: false
       secondary_pool_id:
         description: Secondary storage pool id.
@@ -171,7 +171,7 @@ data:
       description: Mirror unit id.
       type: int
       sample: -1
-    primary_hex_volume_id:
+    primary_volume_id_hex:
       description: Primary hex volume id.
       type: str
       sample: "00:01:12"
@@ -183,7 +183,7 @@ data:
       description: Resource id.
       type: str
       sample: "localpair-2749fed78e8d23a61ed17a8af71c85f8"
-    secondary_hex_volume_id:
+    secondary_volume_id_hex:
       description: Secondary hex volume id.
       type: str
       sample: "00:01:17"

@@ -52,31 +52,42 @@ options:
         type: str
         required: false
   spec:
-    description: Specification for creating Journal Volume.
+    description: Specification for creating Journal.
     type: dict
     required: false
     suboptions:
       journal_id:
-        description: Journal ID of the Journal Volume.
+        description: Journal ID of the Journal.
         type: int
         required: false
+      start_ldev_id:
+        description: Start LDEV ID of the Journal.
+        type: str
+        required: false
+        aliases: ["startLdevId"]
+      end_ldev_id:
+        description: End LDEV ID of the Journal.
+        type: str
+        required: false
+        aliases: ["endLdevId"]
       is_cache_mode_enabled:
         description: Cache mode enabled or not.
         type: bool
         required: false
-      data_overflow_watchIn_seconds:
+      data_overflow_watch_in_seconds:
         description: Data overflow watch in seconds.
         type: int
         required: false
+        aliases: ["data_overflow_watchIn_seconds"]
       mp_blade_id:
-        description: MP Blade ID of the Journal Volume.
+        description: MP Blade ID of the Journal .
         type: int
         required: false
       ldev_ids:
         description: List of LDEVs.
         type: list
         required: false
-        elements: int
+        elements: str
       mirror_unit_number:
         description: Mirror unit number.
         type: int

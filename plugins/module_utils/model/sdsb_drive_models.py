@@ -6,6 +6,7 @@ from typing import Optional
 class SDSBDriveFactSpec:
     """Block Drives Facts Specification"""
 
+    id: Optional[str] = None
     status_summary: Optional[str] = None
     status: Optional[str] = None
     storage_node_id: Optional[str] = None

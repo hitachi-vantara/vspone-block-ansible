@@ -225,10 +225,10 @@ class VSPHurReconciler:
         #     new_key = key.replace("svol", "secondary_volume").replace("pvol", "primary_volume").replace("ldev_id", "id")
         #     updated_resp_data[new_key] = value
 
-        # updated_resp_data["primary_hex_volume_id"] = volume_id_to_hex_format(
+        # updated_resp_data["primary_volume_id_hex"] = volume_id_to_hex_format(
         #            updated_resp_data["primary_volume_id"]
         #         )
-        # updated_resp_data["secondary_hex_volume_id"] = volume_id_to_hex_format(
+        # updated_resp_data["secondary_volume_id_hex"] = volume_id_to_hex_format(
         #            updated_resp_data["secondary_volume_id"]
         #         )
         # self.logger.writeDebug("resp_data={}", updated_resp_data)
@@ -448,12 +448,12 @@ class HurInfoExtractor:
                     new_dict[cased_key] = default_value
 
             # new_dict["partner_id"] = "apiadmin"
-            if new_dict.get("primary_hex_volume_id") == "":
-                new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+            if new_dict.get("primary_volume_id_hex") == "":
+                new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
                     new_dict.get("primary_volume_id")
                 )
-            if new_dict.get("secondary_hex_volume_id") == "":
-                new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+            if new_dict.get("secondary_volume_id_hex") == "":
+                new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
                     new_dict.get("secondary_volume_id")
                 )
 
@@ -479,12 +479,12 @@ class HurInfoExtractor:
                 new_dict[cased_key] = default_value
 
         # new_dict["partner_id"] = "apiadmin"
-        if new_dict.get("primary_hex_volume_id") == "":
-            new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+        if new_dict.get("primary_volume_id_hex") == "":
+            new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
                 new_dict.get("primary_volume_id")
             )
-        if new_dict.get("secondary_hex_volume_id") == "":
-            new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+        if new_dict.get("secondary_volume_id_hex") == "":
+            new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
                 new_dict.get("secondary_volume_id")
             )
 
@@ -507,24 +507,17 @@ class DirectHurCopyPairInfoExtractor:
             "copyPairName": str,
             "pvolStorageDeviceId": str,
             "svolStorageDeviceId": str,
-            # "pvolVirtualLdevId":int,
-            # "svolVirtualLdevId":int,
             "muNumber": int,
-            # "entitlementStatus": str,
-            # "partnerId": str,
-            # "subscriberId": str,
+            "primaryVolumeIdHex": str,
+            "secondaryVolumeIdHex": str,
         }
 
         self.parameter_mapping = {
-            # "pvol_virtual_ldev_id": "primary_virtual_volume_id",
-            # "svol_virtual_ldev_id": "secondary_virtual_volume_id",
             "mu_number": "mirror_unit_id",
             "pvol_journal_id": "primary_journal_pool",
             "svol_journal_id": "secondary_journal_pool",
             "pvol_ldev_id": "primary_volume_id",
             "svol_ldev_id": "secondary_volume_id",
-            # "pvol_status": "status",
-            # "copy_pair_name": "pair_name",
         }
 
     # sng20241126 get_serial_number_from_device_id
@@ -585,14 +578,14 @@ class DirectHurCopyPairInfoExtractor:
                     # Handle missing keys by assigning default values
                     default_value = get_default_value(value_type)
                     new_dict[cased_key] = default_value
-            if new_dict.get("primary_hex_volume_id") == "":
-                new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(
+            if new_dict.get("primary_volume_id_hex") == "":
+                new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
                     new_dict.get("primary_volume_id")
                 )
                 # new_dict["primary_virtual_volume_id"] = ""
                 # new_dict["primary_virtual_hex_volume_id"] = ""
-            if new_dict.get("secondary_hex_volume_id") == "":
-                new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(
+            if new_dict.get("secondary_volume_id_hex") == "":
+                new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
                     new_dict.get("secondary_volume_id")
                 )
 
@@ -642,10 +635,10 @@ class DirectHurCopyPairInfoExtractor:
                 default_value = get_default_value(value_type)
                 new_dict[cased_key] = default_value
 
-        # if new_dict.get("primary_hex_volume_id") == "" :
-        #     new_dict["primary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("primary_volume_id"))
-        # if new_dict.get("secondary_hex_volume_id") == "" :
-        #     new_dict["secondary_hex_volume_id"] = volume_id_to_hex_format(new_dict.get("secondary_volume_id"))
+        # if new_dict.get("primary_volume_id_hex") == "" :
+        #     new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(new_dict.get("primary_volume_id"))
+        # if new_dict.get("secondary_volume_id_hex") == "" :
+        #     new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(new_dict.get("secondary_volume_id"))
 
         return new_dict
 
@@ -678,10 +671,10 @@ def update_response_data(self, resp_data):
         updated_resp_data[new_key] = value
 
     # Convert volume IDs to hex format
-    updated_resp_data["primary_hex_volume_id"] = volume_id_to_hex_format(
+    updated_resp_data["primary_volume_id_hex"] = volume_id_to_hex_format(
         updated_resp_data["primary_volume_id"]
     )
-    updated_resp_data["secondary_hex_volume_id"] = volume_id_to_hex_format(
+    updated_resp_data["secondary_volume_id_hex"] = volume_id_to_hex_format(
         updated_resp_data["secondary_volume_id"]
     )
 
