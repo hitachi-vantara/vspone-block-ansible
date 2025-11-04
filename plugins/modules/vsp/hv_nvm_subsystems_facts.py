@@ -45,10 +45,12 @@ options:
     suboptions:
       name:
         description: The name of the NVM subsystem to retrieve.
+          Required for the Get NVM Subsystems by name task.
         type: str
         required: false
       id:
         description: The ID of the NVM subsystem to retrieve.
+          Required for the Get NVM subsystems by ID task.
         type: int
         required: false
 """

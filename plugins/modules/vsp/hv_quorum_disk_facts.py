@@ -45,6 +45,7 @@ options:
     suboptions:
       id:
         description: Quorum Disk ID, it will be auto-selected if omitted.
+          Required for the Get a specific quorum disk task.
         type: int
         required: false
 

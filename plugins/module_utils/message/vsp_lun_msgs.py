@@ -35,7 +35,7 @@ class VSPVolumeMSG(Enum):
         "server_ids is required to attach servers to volumes."
     )
     VOLUME_NOT_FOUND = "Volume with ID {volume_id} not found."
-    ATTACHED_SERVER_SUCCESS = "Attached servers to volume successfully."
+    ATTACHED_SERVER_SUCCESS = "Attached volumes to servers successfully."
     ATTACHED_SERVER_FAILED = "Failed to attach servers to volume: "
     SERVER_ATTACHED_SUCCESS = "Server(s) attached to volume successfully."
     DETACHED_SERVER_SUCCESS = "Detached servers {} to volume successfully."
@@ -68,7 +68,7 @@ class VSPVolValidationMsg(Enum):
     VALID_SIZE = "size is less than actual volume size of the ldev, Please provide with more than the actual size."
     LDEV_ID_OUT_OF_RANGE = "ldev id is out of range to create, Please specify within the range of 0 to 65535."
     VLDEV_ID_OUT_OF_RANGE = (
-        "vldev id is out of range, Please specify within the range of 0 to 65279."
+        "vldev id is out of range, Please specify within the range of 0 to 65535."
     )
     MAX_LDEV_ID_OUT_OF_RANGE = (
         "ldev id is out of range, Please specify within the range of 0 to 65535."

@@ -66,10 +66,12 @@ options:
     suboptions:
       primary_volume_id:
         description: The primary volume identifier. If not provided, it will be omitted.
+          Required for the Get HUR pair using primary volume ID task.
         type: str
         required: false
       secondary_volume_id:
         description: The secondary volume identifier. If not provided, it will be omitted.
+          Optional for the Get HUR pair using secondary volume ID task.
         type: str
         required: false
       mirror_unit_id:
@@ -79,6 +81,8 @@ options:
         choices: [0, 1, 2, 3]
       copy_group_name:
         description: The copy group name. If not provided, it will be omitted.
+          Required for the Get HUR pair using copy group
+          /Get HUR pair using copy group and copy pair name tasks.
         type: str
         required: false
       secondary_storage_serial_number:
@@ -87,6 +91,7 @@ options:
         required: false
       copy_pair_name:
         description: The copy pair name. If not provided, it will be omitted.
+          Required for the Get HUR pair using copy group and copy pair name task.
         type: str
         required: false
       local_device_group_name:

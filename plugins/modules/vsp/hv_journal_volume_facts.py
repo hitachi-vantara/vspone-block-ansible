@@ -67,6 +67,8 @@ options:
         default: 1
       is_mirror_not_used:
         description: Whether to get mirror not used.
+          Required for the Get specific journal volumes primary storage
+          /Get specific journal volumes secondary storage tasks.
         type: bool
         required: false
         default: false

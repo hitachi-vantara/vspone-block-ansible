@@ -5,6 +5,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 
@@ -88,7 +89,7 @@ EXAMPLES = """
 
 - name: Update chap user name
   hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user:
-    state:
+    state: present
     connection_info:
       address: sdsb.company.com
       username: "admin"
@@ -99,7 +100,7 @@ EXAMPLES = """
 
 - name: Update chap user secret
   hitachivantara.vspone_block.sds_block.hv_sds_block_chap_user:
-    state:
+    state: present
     connection_info:
       username: "admin"
       password: "password"
@@ -135,7 +136,9 @@ chap_users:
           sample: "newchapuser2"
 """
 
+
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
     StateValue,
 )
@@ -209,7 +212,7 @@ class SDSBChapUserManager:
         self.module.exit_json(**response)
 
 
-def main(module=None):
+def main():
     obj_store = SDSBChapUserManager()
     obj_store.apply()
 

@@ -1,70 +1,69 @@
 
 # Available Modules
 
-This collection includes modules for managing both Hitachi VSP One SDS Block and Hitachi VSP storage systems.
+This collection includes modules for managing both VSP One SDS Block and Cloud systems and VSP block storage systems.
 
-## VSP One SDS Block Ansible Modules
+## VSP One SDS Block and Cloud Ansible Modules
 
-- **hv_sds_block_authentication_ticket:** Manages authentication tickets for SDS block storage systems.
-- **hv_sds_block_capacity_management_settings_facts:** Retrieves capacity management settings from SDS block cluster.
-- **hv_sds_block_chap_user:** Manages Hitachi SDS block storage system CHAP users.
-- **hv_sds_block_chap_user_facts:** Retrieves information about Hitachi SDS block storage system CHAP users.
-- **hv_sds_block_cluster:** Manages SDS block storage clusters.
+- **hv_sds_block_authentication_ticket:** Manages authentication tickets for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_capacity_management_settings_facts:** Retrieves capacity management settings from VSP One SDS Block and Cloud system cluster.
+- **hv_sds_block_chap_user:** Manages VSP One SDS Block and Cloud system CHAP users.
+- **hv_sds_block_chap_user_facts:** Retrieves information about VSP One SDS Block and Cloud system CHAP users.
+- **hv_sds_block_cluster:** Manages VSP One SDS Block and Cloud system clusters.
 - **hv_sds_block_cluster_config_facts:** Retrieves cluster configuration information.
-- **hv_sds_block_compute_node:** Manages compute nodes in SDS block storage systems.
+- **hv_sds_block_compute_node:** Manages compute nodes in VSP One SDS Block and Cloud systems.
 - **hv_sds_block_compute_node_facts:** Retrieves information about compute nodes.
-- **hv_sds_block_compute_port:** Manages compute ports in SDS block storage systems.
+- **hv_sds_block_compute_port:** Manages compute ports in VSP One SDS Block and Cloud systems.
 - **hv_sds_block_compute_port_authentication:** Manages compute port authentication mode settings.
 - **hv_sds_block_control_port_facts:** Retrieves information about control ports.
-- **hv_sds_block_drive:** Turns ON and OFF the drive locator LED, removes a drive from SDS block cluster.
+- **hv_sds_block_drive:** Turns ON and OFF the drive locator LED, removes a drive from VSP One SDS Block system cluster.
 - **hv_sds_block_drives_facts:** Retrieves information about storage drives.
 - **hv_sds_block_event_logs_facts:** Retrieves event log information.
 - **hv_sds_block_fault_domain_facts:** Retrieves information about fault domains.
-- **hv_sds_block_internode_port_facts:** Retrieves information about internode ports.
 - **hv_sds_block_job_facts:** Retrieves information about storage system jobs.
 - **hv_sds_block_port_facts:** Retrieves information about compute ports.
 - **hv_sds_block_protection_domain_facts:** Retrieves information about protection domains.
-- **hv_sds_block_remote_iscsi_port:** Manages remote iSCSI ports in SDS block storage systems.
+- **hv_sds_block_remote_iscsi_port:** Manages remote iSCSI ports in VSP One SDS Block and Cloud systems.
 - **hv_sds_block_remote_iscsi_port_facts:** Retrieves information about remote iSCSI ports.
-- **hv_sds_block_snapshot:** Manages snapshots in SDS block storage systems.
+- **hv_sds_block_snapshot:** Manages snapshots in VSP One SDS Block and Cloud systems.
 - **hv_sds_block_snapshot_facts:** Retrieves information about snapshots.
 - **hv_sds_block_software_update_file_facts:** Retrieves information about software update files.
-- **hv_sds_block_storage_controller:** Edits storage controller settings on SDS block cluster.
+- **hv_sds_block_storage_controller:** Edits storage controller settings on VSP One SDS Block and Cloud system cluster.
 - **hv_sds_block_storage_controller_facts:** Retrieves information about storage controllers.
 - **hv_sds_block_storage_network_setting_facts:** Retrieves storage network setting information.
 - **hv_sds_block_storage_node:** Manages storage nodes.
 - **hv_sds_block_storage_node_bmc_connection:** Manages BMC connections for storage nodes.
-- **hv_sds_block_storage_node_bmc_connection_facts:** Retrieves BMC connection details from SDS block cluster.
+- **hv_sds_block_storage_node_bmc_connection_facts:** Retrieves BMC connection details from VSP One SDS Block.
 - **hv_sds_block_storage_node_facts:** Retrieves information about storage nodes.
 - **hv_sds_block_storage_node_network_settings_facts:** Retrieves network settings for storage nodes.
 - **hv_sds_block_storage_pool:** Manages storage pools.
-- **hv_sds_block_storage_pool_estimated_capacity_facts:** Retrieves storage pool estimated capacity from SDS block cluster on AWS.
+- **hv_sds_block_storage_pool_estimated_capacity_facts:** Retrieves storage pool estimated capacity from VSP One SDS Block and Cloud system cluster on AWS.
 - **hv_sds_block_storage_pool_facts:** Retrieves information about storage pools.
-- **hv_sds_block_storage_software_update:** Manages software updates for SDS block storage systems.
-- **hv_sds_block_storage_system_facts:** Retrieves information about a specific SDS block storage system.
+- **hv_sds_block_storage_software_update:** Manages software updates for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_storage_system_facts:** Retrieves information about a specific VSP One SDS Block and Cloud system.
 - **hv_sds_block_storage_time_facts:** Retrieves storage system time information.
-- **hv_sds_block_user:** Manages users in SDS block storage systems.
+- **hv_sds_block_user:** Manages users in VSP One SDS Block and Cloud systems.
 - **hv_sds_block_user_facts:** Retrieves information about users.
-- **hv_sds_block_volume:** Manages volumes in SDS block storage systems.
+- **hv_sds_block_volume:** Manages volumes in VSP One SDS Block and Cloud systems.
 - **hv_sds_block_volume_facts:** Retrieves information about storage system volumes.
 - **hv_sds_block_vps:** Manages VPS volume ADR settings.
 - **hv_sds_block_vps_facts:** Retrieves information about Virtual Private Storages (VPS).
 
-## VSP Ansible Modules
+## VSP Block Ansible Modules
 
 - **hv_audit_log_transfer_dest:** Sets the transfer destinations of audit log files using UDP/TCP ports.
 - **hv_audit_log_transfer_dest_facts:** Retrieves information about the transfer destinations of audit log files.
 - **hv_clpr:** Creates, updates, and deletes CLPR (Cache Logical Partition Resource) information.
 - **hv_clpr_facts:** Retrieves CLPR information.
-- **hv_cmd_dev:** Manages command devices for VSP storage systems.
+- **hv_cmd_dev:** Manages command devices for VSP block storage systems.
 - **hv_ddp_pool:** Manages DDP (Dynamic Data Pool) pools.
 - **hv_ddp_pool_facts:** Retrieves information about DDP pools.
-- **hv_disk_drive:** Manages disk drives in VSP storage systems.
+- **hv_disk_drive:** Manages disk drives in VSP block storage systems.
 - **hv_disk_drive_facts:** Retrieves information about disk drives.
 - **hv_external_paritygroup:** Assigns external volume groups to a CLPR or changes the MP blade assigned to an external volume group.
-- **hv_external_paritygroup_facts:** Retrieves information about External Parity Groups.
+- **hv_external_paritygroup_facts:** Retrieves information about external parity groups.
 - **hv_external_path_group:** Manages External Path Groups for remote storage connections.
-- **hv_external_path_group_facts:** Retrieves information about External Path Groups.
+- **hv_external_path_group_facts:** Retrieves information about external path groups.
 - **hv_external_volume:** Manages external volumes from remote storage systems.
 - **hv_external_volume_facts:** Retrieves information about external volumes.
 - **hv_gad:** Manages GAD (Global-Active Device) pairs for active-active replication.
@@ -122,14 +121,18 @@ This collection includes modules for managing both Hitachi VSP One SDS Block and
 - **hv_truecopy_facts:** Retrieves information about TrueCopy pairs.
 - **hv_troubleshooting_facts:** Collects log bundles from the Ansible modules host for debugging.
 - **hv_upload_file:** Uploads a primary/secondary client certificate file to a storage system for audit log.
-- **hv_user:** Manages users and user accounts in VSP storage systems.
+- **hv_user:** Manages users and user accounts in VSP block storage systems.
 - **hv_user_facts:** Retrieves information about users.
 - **hv_user_group:** Manages user groups for role-based access control.
 - **hv_user_group_facts:** Retrieves information about user groups.
-- **hv_vsp_one_port:** Manages ports on VSP E series and VSP One B2X storage systems.
-- **hv_vsp_one_port_facts:** Retrieves port information from VSP E series and VSP One B2X storages.
-- **hv_vsp_one_server:** Manages servers including creation, modification, deletion, and configuration on VSP E series and VSP One B2X storages.
-- **hv_vsp_one_server_facts:** Retrieves server information from VSP E series and VSP One B2X storages.
-- **hv_vsp_one_server_hba_facts:** Retrieves HBA (Host Bus Adapter) information for servers on VSP E series and VSP One B2X storages.
-- **hv_vsp_one_volume:** Manages volumes including creation, modification, deletion, and server attachment/detachment on VSP E series and VSP One B2X storages.
-- **hv_vsp_one_volume_facts:** Retrieves volumes information from servers on VSP E series and VSP One B2X storages.
+- **hv_vsp_one_port:** Manages ports on VSP E series and VSP One Block 20 series storage systems.
+- **hv_vsp_one_port_facts:** Retrieves port information from VSP E series and VSP One Block 20 series storage systems.
+- **hv_vsp_one_server:** Manages servers including creation, modification, deletion, and configuration on VSP E series and VSP One Block 20 series storage systems.
+- **hv_vsp_one_server_facts:** Retrieves server information from VSP E series and VSP One Block 20 series storage systems.
+- **hv_vsp_one_server_hba_facts:** Retrieves HBA (Host Bus Adapter) information for servers on VSP E series and VSP One Block 20 series storage systems.
+- **hv_vsp_one_volume:** Manages volumes including creation, modification, deletion, and server attachment/detachment on VSP E series and VSP One Block 20 series storage systems.
+- **hv_vsp_one_volume_facts:** Retrieves volumes information from servers on VSP E series and VSP One Block 20 series storage systems.
+- **hv_vsp_one_snapshot:** Manages snapshots including creation, modification, deletion, and management operations on VSP E series and VSP One Block 20 series storage systems.
+- **hv_vsp_one_snapshot_facts:** Retrieves snapshot information from VSP E series and VSP One Block 20 series storage systems.
+- **hv_vsp_one_snapshot_group:** Manages snapshot groups including creation, modification, deletion, and coordinated operations on VSP E series and VSP One Block 20 series storage systems.
+- **hv_vsp_one_snapshot_group_facts:** Retrieves snapshot group information from VSP E series and VSP One Block 20 series storage systems.

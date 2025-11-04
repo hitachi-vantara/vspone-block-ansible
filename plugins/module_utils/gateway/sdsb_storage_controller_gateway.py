@@ -29,7 +29,6 @@ class SDSBStorageControllerDirectGateway:
     @log_entry_exit
     def get_storage_controllers(self, spec=None):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = GET_STORAGE_CONTROLLERS
 
         if spec is not None:

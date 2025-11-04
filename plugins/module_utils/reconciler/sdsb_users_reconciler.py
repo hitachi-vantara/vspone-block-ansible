@@ -41,6 +41,11 @@ class SDSBUsersReconciler:
                 return self.provisioner.update_user(spec)
             else:
                 logger.writeDebug("User not found, cannot update: {}", spec.user_id)
-                raise ValueError(
-                    f"User {spec.user_id} not found for updating password."
-                )
+                # After deploying the cluster first time, admin user is not returned
+                # by the get users, but update password rest api call works
+                if spec.user_id == "admin":
+                    return self.provisioner.update_user(spec)
+                else:
+                    raise ValueError(
+                        f"User {spec.user_id} not found for updating password."
+                    )

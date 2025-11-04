@@ -1,11 +1,10 @@
-# Hitachi Vantara VSP One Block Storage Modules for Red Hat® Ansible® 4.3.0
+# Hitachi Virtual Storage Platform One Block Storage Modules for Red Hat® Ansible® 4.4.0
 
-The Hitachi Vantara VSP One Block Storage Modules provide a comprehensive set of Ansible modules for managing Hitachi VSP One SDS Block and Hitachi VSP One series systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
+The Hitachi Virtual Storage Platform One Block Storage Modules provide a comprehensive set of Ansible modules for managing VSP block storage systems (VSP One Block, VSP 5000 series, VSP E series, VSP F series, and VSP G series) and VSP One SDS Block and Cloud systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
 ## Hardware requirements
 
-- VSP One SDS Block v1.17
-- VSP One Block 20
+- VSP One SDS Block and Cloud systems for AWS, Azure, and Google Cloud and VSP One SDS Block for Bare Metal v1.18
 - VSP One Block 24
 - VSP One Block 26
 - VSP One Block 28
@@ -69,10 +68,10 @@ To upgrade the collection to the latest available version, run the following com
 ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 ```
 
-If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.3.0:
+If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.4.0:
 
 ```bash
-ansible-galaxy collection install hitachivantara.vspone_block:==4.3.0
+ansible-galaxy collection install hitachivantara.vspone_block:==4.4.0
 ```
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
@@ -93,7 +92,7 @@ ansible-test sanity
 
 ## Use Cases
 
-Below is an example of how this collection can be used to manage Hitachi VSP One block storage:
+Below is an example of how this collection can be used to manage a VSP One Block storage system:
 
 ### Create an LDEV with a specific LDEV ID
 
@@ -134,9 +133,7 @@ For additional support, please use one of the following channels:
 
 ### Release Notes
 
-For User Guide and Release Notes, see [User Guide and Release Notes](https://docs.hitachivantara.com/search/all?query=ansible&value-filters=Option~%2522Red+Hat%2522*Product_custom~%2522Adapters+and+Drivers%2522&content-lang=en-US)
-
-Version **4.3.0** highlights:
+Version **4.4.0** highlights:
 
 - General performance enhancements and bug fixes
 

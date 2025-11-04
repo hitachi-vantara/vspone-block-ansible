@@ -50,18 +50,22 @@ options:
       primary_volume_id:
         type: str
         description: Primary volume id.
+          Required for the Get ShadowImage pairs by P-VOL task.
         required: false
       copy_group_name:
         type: str
         description: Name of the copy group.
+          Required for the Get ShadowImage pairs by copy_group_name and copy_pair_name task.
         required: false
       copy_pair_name:
         type: str
         description: Name of the copy pair.
+          Required for the Get ShadowImage pairs by copy_group_name and copy_pair_name task.
         required: false
       refresh:
         type: bool
         description: Whether refresh pairs
+          Required for the Get all ShadowImage pairs along with refresh task.
         required: false
 """
 

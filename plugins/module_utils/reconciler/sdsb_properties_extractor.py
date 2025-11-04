@@ -60,10 +60,10 @@ class SDSBBasePropertiesExtractor(ABC):
                 if value_type == dict:
                     response_key = self.change_keys(response_key)
                 # logger.writeDebug('RC:extract:self.size_properties = {}', self.size_properties)
-                logger.writeDebug(
-                    "RC:extract:key = {} response_key={}", key, response_key
-                )
-                logger.writeDebug("RC:extract:value_type={}", value_type)
+                # logger.writeDebug(
+                #     "RC:extract:key = {} response_key={}", key, response_key
+                # )
+                # logger.writeDebug("RC:extract:value_type={}", value_type)
                 # Assign the value based on the response key and its data type
                 key = camel_to_snake_case(key)
                 if response_key is not None:
@@ -72,10 +72,10 @@ class SDSBBasePropertiesExtractor(ABC):
                         new_dict[new_key] = value_type(response_key)
                     else:
                         new_dict[key] = value_type(response_key)
-                        logger.writeDebug(
-                            "RC:extract:value_type(response_key)={}",
-                            value_type(response_key),
-                        )
+                        # logger.writeDebug(
+                        #     "RC:extract:value_type(response_key)={}",
+                        #     value_type(response_key),
+                        # )
                 else:
                     # Handle missing keys by assigning default values
                     default_value = get_default_value(value_type)

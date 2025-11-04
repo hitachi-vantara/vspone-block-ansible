@@ -44,11 +44,11 @@ ansible_facts:
   returned: always
   type: dict
   contains:
-    systemTime:
+    system_time:
       description: Current system time in ISO 8601 format (UTC).
       type: str
       sample: "2021-07-30T07:56:23Z"
-    ntpServerNames:
+    ntp_server_names:
       description: List of configured NTP server IP addresses or hostnames.
       type: list
       elements: str

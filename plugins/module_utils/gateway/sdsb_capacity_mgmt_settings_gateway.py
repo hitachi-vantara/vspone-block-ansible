@@ -31,7 +31,6 @@ class SDSBCapacityMgmtSettingGateway:
     @log_entry_exit
     def get_capacity_management_settings(self, storage_controller_id=None):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = GET_CAPACITY_SETTINGS
 
         if storage_controller_id:

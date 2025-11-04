@@ -48,7 +48,6 @@ class VSPUserDirectGateway:
 
     @log_entry_exit
     def get_users(self, spec=None):
-        logger.writeDebug(f"GW:spec={spec}")
         if spec is None or spec.is_empty() is True:
             end_point = GET_USERS_DIRECT
             users_date = self.connection_manager.get(end_point)

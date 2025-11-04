@@ -102,7 +102,7 @@ storage_pools:
           description: World Wide Identifier of the drive.
           type: str
           sample: "naa.50000f0b00c060c0"
-        statusSummary:
+        status_summary:
           description: Summary of the drive's status.
           type: str
           sample: "Normal"
@@ -110,39 +110,39 @@ storage_pools:
           description: Current operational status of the drive.
           type: str
           sample: "Normal"
-        typeCode:
+        type_code:
           description: Manufacturer-specific type code.
           type: str
           sample: "VO001600JWZJQ"
-        serialNumber:
+        serial_number:
           description: Serial number of the drive.
           type: str
           sample: "S5KWNE0NC01548"
-        storageNodeId:
+        storage_node_id:
           description: UUID of the storage node associated with the drive.
           type: str
           sample: "9d36c162-e379-4c85-bcc2-ccf98fe774a6"
-        deviceFileName:
+        device_file_name:
           description: Device file name as recognized by the OS.
           type: str
           sample: "sdb"
-        vendorName:
+        vendor_name:
           description: Vendor or manufacturer name.
           type: str
           sample: "HP"
-        firmwareRevision:
+        firmware_revision:
           description: Firmware version of the drive.
           type: str
           sample: "HPD2"
-        locatorLedStatus:
+        locator_led_status:
           description: Current status of the locator LED on the drive.
           type: str
           sample: "Off"
-        driveType:
+        drive_type:
           description: Type of the drive (e.g., SSD, HDD).
           type: str
           sample: "SSD"
-        driveCapacity:
+        drive_capacity:
           description: Capacity of the drive in GB.
           type: int
           sample: 195

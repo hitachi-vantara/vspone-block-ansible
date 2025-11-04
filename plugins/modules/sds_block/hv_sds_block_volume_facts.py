@@ -54,6 +54,14 @@ options:
         description: Settings of the data reduction function for volumes.
         required: false
         choices: ['Disabled', 'Compression']
+      vps_id:
+        description: The ID of the VPS.
+        type: str
+        required: false
+      vps_name:
+        description: The name of the VPS.
+        type: str
+        required: false
 """
 
 EXAMPLES = """

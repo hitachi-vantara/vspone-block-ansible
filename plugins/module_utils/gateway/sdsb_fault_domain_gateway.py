@@ -25,7 +25,6 @@ class SDSBBlockFaultDomainDirectGateway:
     @log_entry_exit
     def get_fault_domains(self, spec=None):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = SDSBlockEndpoints.GET_FAULT_DOMAINS
 
         if spec is not None:

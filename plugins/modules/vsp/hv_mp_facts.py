@@ -36,6 +36,7 @@ options:
     suboptions:
       mp_id:
         description: The ID of the MP blade. This is an optional field.
+          Required for the Get MP blade Information using MP ID task.
         type: int
         required: false
 """
@@ -58,6 +59,39 @@ EXAMPLES = """
       mp_id: 1
 """
 
+RETURN = """
+ansible_facts:
+  description: Facts collected by the module.
+  returned: always
+  type: dict
+  contains:
+    mp_blades:
+      description: A list of MP (Microprocessor) blade information from the storage system.
+      returned: always
+      type: list
+      elements: dict
+      contains:
+        cbx:
+          description: Cluster box number associated with the MP blade.
+          type: int
+          sample: 0
+        ctl:
+          description: Identifier of the controller the MP blade belongs to.
+          type: str
+          sample: "ctl01"
+        mp_id:
+          description: Unique ID of the MP blade.
+          type: int
+          sample: 0
+        mp_location_id:
+          description: Location identifier of the MP blade in the system.
+          type: str
+          sample: "MP010-00"
+        mp_unit_id:
+          description: Unit ID associated with the MP blade.
+          type: str
+          sample: "MPU-010"
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_mp_blade_reconciler import (

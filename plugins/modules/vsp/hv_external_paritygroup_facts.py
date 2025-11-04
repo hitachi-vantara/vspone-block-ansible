@@ -62,7 +62,7 @@ options:
     required: false
     suboptions:
       external_parity_group:
-        description: The external parity group ID.
+        description: The external parity group ID. Required for the Get a specific external parity group task.
         type: str
         required: false
 """

@@ -28,12 +28,12 @@ extends_documentation_fragment:
   - hitachivantara.vspone_block.common.sdsb_connection_info
 options:
   spec:
-    description: Specification for the storage node to be added to or removed from the cluster.
+    description: Specification for retrieving user information.
     type: dict
     required: false
     suboptions:
       id:
-        description: Filter userss by ID (UUID format).
+        description: Filter users by ID (UUID format).
         type: str
 """
 
@@ -67,36 +67,36 @@ ansible_facts:
       type: list
       elements: dict
       contains:
-        userId:
+        user_id:
           description: Username of the account.
           type: str
           sample: "admin"
-        userObjectId:
+        user_object_id:
           description: Unique object identifier for the user.
           type: str
           sample: "admin"
-        passwordExpirationTime:
+        password_expiration_time:
           description: Timestamp indicating when the password will expire.
           type: str
           sample: "2022-11-30T07:21:21Z"
-        isEnabled:
+        is_enabled:
           description: Indicates if the user account is enabled.
           type: bool
           sample: true
-        userGroups:
+        user_groups:
           description: List of groups the user belongs to.
           type: list
           elements: dict
           contains:
-            userGroupId:
+            user_group_id:
               description: ID of the user group.
               type: str
               sample: "SystemAdministrators"
-            userGroupObjectId:
+            user_group_object_id:
               description: Object ID of the user group.
               type: str
               sample: "SystemAdministrators"
-        isBuiltIn:
+        is_built_in:
           description: Indicates if the user is a built-in system account.
           type: bool
           sample: true
@@ -104,16 +104,16 @@ ansible_facts:
           description: Authentication method used by the user (e.g., local or LDAP).
           type: str
           sample: "local"
-        roleNames:
+        role_names:
           description: List of roles assigned to the user.
           type: list
           elements: str
           sample: ["Security", "Storage", "Monitor", "Service", "Audit", "Resource"]
-        isEnabledConsoleLogin:
+        is_enabled_console_login:
           description: Indicates whether the user can log in to the console.
           type: bool
           sample: null
-        vpsId:
+        vps_id:
           description: VPS identifier associated with the user account.
           type: str
           sample: "(system)"
@@ -126,7 +126,7 @@ ansible_facts:
               description: Scope to which the privileges apply.
               type: str
               sample: "system"
-            roleNames:
+            role_names:
               description: Roles granted within the specified scope.
               type: list
               elements: str

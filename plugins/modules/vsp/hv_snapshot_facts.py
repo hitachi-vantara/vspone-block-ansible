@@ -46,10 +46,13 @@ options:
     suboptions:
       primary_volume_id:
         description: The primary volume identifier. If not provided, it will be omitted.
+          Required for the Get snapshot pairs with the same P-VOL
+          /Get one snapshot pair tasks.
         type: str
         required: false
       mirror_unit_id:
         description: The mirror unit identifier. If not provided, it will be omitted.
+          Required for the Get one snapshot pair task.
         type: int
         required: false
 """

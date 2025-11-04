@@ -165,9 +165,9 @@
         var: result
 
     ####################################################################
-    # Task Name : Create GAD-ISCSI pair
+    # Task Name : Create GAD-iSCSI pair
     ####################################################################
-    - name: Create GAD-ISCSI pair
+    - name: Create GAD-iSCSI pair
       hitachivantara.vspone_block.vsp.hv_gad:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"

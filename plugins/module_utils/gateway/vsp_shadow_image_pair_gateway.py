@@ -55,6 +55,49 @@ class VSPShadowImagePairDirectGateway:
         )
 
     @log_entry_exit
+    def get_specific_cg_pair_by_pvol_svol(
+        self,
+        pvol,
+        svol,
+        cg_name=None,
+        cp_name=None,
+        pm_device_grp_name=None,
+        sec_device_grp_name=None,
+    ):
+        funcName = "VSPShadowImagePairDirectGateway: get_specific_cg_pair_by_pvol_svol"
+        self.logger.writeEnterSDK(funcName)
+
+        copy_group_name = (
+            self.generate_copy_group_name(pvol, svol) if cg_name is None else cg_name
+        )
+        pvol_device_grp_name = (
+            copy_group_name + "P_" if pm_device_grp_name is None else pm_device_grp_name
+        )
+        svol_device_grp_name = (
+            copy_group_name + "S_"
+            if sec_device_grp_name is None
+            else sec_device_grp_name
+        )
+        copy_pair_name = (
+            self.generate_copy_pair_name(pvol, svol) if cp_name is None else cp_name
+        )
+        pair_id = f"{copy_group_name},{pvol_device_grp_name},{svol_device_grp_name},{copy_pair_name}"
+        end_point = Endpoints.DIRECT_GET_SHADOW_IMAGE_PAIR_BY_ID.format(pairId=pair_id)
+
+        try:
+            response = self.connectionManager.read(end_point)
+            shadow_image_pair = self.parse_shadow_image_data(
+                serial=None, response=response
+            )
+            self.logger.writeDebug("{} Response={}", funcName, shadow_image_pair)
+            self.logger.writeExitSDK(funcName)
+
+            return VSPShadowImagePairInfo(**shadow_image_pair)
+        except Exception as e:
+            self.logger.writeError(f"An error occurred: {str(e)}")
+            return None
+
+    @log_entry_exit
     def get_shadow_image_pair_by_pvol(self, serial, pvol):
         funcName = "VSPShadowImagePairDirectGateway: get_shadow_image_pair_by_pvol"
         self.logger.writeEnterSDK(funcName)
@@ -172,6 +215,7 @@ class VSPShadowImagePairDirectGateway:
         return response
 
     def generate_create_payload(self, serial, createShadowImagePairSpec):
+        pvol_mu_number = 0
         if (
             createShadowImagePairSpec.is_new_group_creation is None
             or createShadowImagePairSpec.is_new_group_creation is True
@@ -194,6 +238,9 @@ class VSPShadowImagePairDirectGateway:
         copy_pace = self.get_copy_pace_value(
             createShadowImagePairSpec.copy_pace_track_size
         )
+        createShadowImagePairSpec.is_new_group_creation = (
+            False if self.__check_group_exists(copy_group_name) else True
+        )
         payload = {
             "copyGroupName": copy_group_name,
             "copyPairName": copy_pair_name,
@@ -210,11 +257,7 @@ class VSPShadowImagePairDirectGateway:
                 if createShadowImagePairSpec.secondary_volume_device_group_name is None
                 else createShadowImagePairSpec.secondary_volume_device_group_name
             ),
-            "isNewGroupCreation": (
-                createShadowImagePairSpec.is_new_group_creation
-                if createShadowImagePairSpec.is_new_group_creation is not None
-                else True
-            ),
+            "isNewGroupCreation": createShadowImagePairSpec.is_new_group_creation,
             "copyPace": (
                 copy_pace
                 if createShadowImagePairSpec.create_for_migration is None
@@ -340,15 +383,20 @@ class VSPShadowImagePairDirectGateway:
     def get_pvol_mu_number(self, serial, pvol):
         pvol_mu_number = None
         shadow_image_pairs = self.get_shadow_image_pair_by_pvol(serial, pvol=pvol)
-        if len(shadow_image_pairs.data_to_list()) == 0:
+        shadow_image_pairs_data_list = shadow_image_pairs.data_to_list()
+        self.logger.writeDebug(
+            f"GW:get_pvol_mu_number: shadow_image_pairs_data_list = {shadow_image_pairs_data_list}"
+        )
+        if len(shadow_image_pairs_data_list) == 0:
             pvol_mu_number = 0
             return pvol_mu_number
-        if len(shadow_image_pairs.data_to_list()) == 3:
+        if len(shadow_image_pairs_data_list) == 3:
             raise SystemError(VSPShadowImagePairValidateMsg.MAX_3_PAIR_EXISTS.value)
         mu_numbers = [0, 1, 2]
-        for sip in shadow_image_pairs.data_to_list():
+        for sip in shadow_image_pairs_data_list:
             if sip.get("_VSPShadowImagePairInfo__pvolMuNumber") in mu_numbers:
                 mu_numbers.remove(sip.get("_VSPShadowImagePairInfo__pvolMuNumber"))
+        self.logger.writeDebug(f"GW:get_pvol_mu_number: mu_numbers = {mu_numbers}")
         pvol_mu_number = mu_numbers[0]
         return pvol_mu_number
 
@@ -441,3 +489,16 @@ class VSPShadowImagePairDirectGateway:
         self.logger.writeExitSDK(funcName)
         data = {"data": shadow_image_list}
         return data
+
+    def __check_group_exists(self, copy_group_name):
+        copy_groups = self.get_all_copy_groups()
+        for copy_group_item in copy_groups["data"]:
+            if copy_group_item["copyGroupName"] == copy_group_name:
+                return True
+        return False
+
+    @log_entry_exit
+    def get_all_copy_groups(self):
+        end_point = Endpoints.DIRECT_GET_ALL_COPY_PAIR_GROUP
+        response = self.connectionManager.read(end_point)
+        return response

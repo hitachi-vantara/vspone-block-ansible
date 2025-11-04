@@ -45,10 +45,12 @@ options:
     suboptions:
       name:
         description: The name of the specific resource group to retrieve.
+          Required for the Get Resource Group by name task.
         type: str
         required: false
       id:
         description: The id of the specific resource group to retrieve.
+          Required for the Get Resource Group by id task.
         type: int
         required: false
       is_locked:
@@ -56,6 +58,10 @@ options:
           If this field is not present, all resource groups will be retrieved.
           If this field is true, only the locked resource groups will be retrieved.
           If this field is false, only the unlocked resource groups will be retrieved.
+          Required for the Get all information about the Resource Groups that are locked
+          /Get all information about the Resource Groups that are unlocked tasks.
+          Optional for the Get information about the Resource Groups that are unlocked and
+          specified in the query task.
         type: bool
         required: false
       query:
@@ -64,6 +70,8 @@ options:
           Types of resources are: ldevs, parity_groups, ports, host_groups, iscsi_targets, nvm_subsystem_ids, and storage_pool_ids.
           If this field is not present, all resources information of the resource group will be retrieved except storage_pool_ids.
           When storage_pool_ids is present, all the ldevs that constitute the storage pool will be included in the response under the ldevs field.
+          Optional for the Get information about the Resource Groups that are specified in the query
+          /Get information about the Resource Groups that are unlocked and specified in the query tasks.
         type: list
         required: false
         elements: str

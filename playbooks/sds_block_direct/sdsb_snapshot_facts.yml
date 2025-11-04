@@ -76,3 +76,19 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    #########################################################################
+    # Task Name : Get Snapshots using master volume name in a VPS
+    #########################################################################
+    - name: Get Snapshots using master volume name in a VPS
+      hitachivantara.vspone_block.sds_block.hv_sds_block_snapshot_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          master_volume_name: "test-vps02-volume1"
+          vps_name: "RKD_VPS_02"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

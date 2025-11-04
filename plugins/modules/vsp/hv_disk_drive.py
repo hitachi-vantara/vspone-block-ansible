@@ -41,11 +41,11 @@ options:
     required: false
     suboptions:
       drive_location_id:
-        description: The drive location Id of the hard drive to retrieve.
+        description: The drive location Id of the hard drive to retrieve. Optional for the Change drive settings task.
         type: str
         required: false
       is_spared_drive:
-        description: Specify whether the disk drive is a spared drive.
+        description: Specify whether the disk drive is a spared drive. Required for the Change drive settings task.
         type: bool
         required: false
 """

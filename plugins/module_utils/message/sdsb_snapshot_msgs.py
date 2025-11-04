@@ -9,7 +9,7 @@ class SDSSnapShotsMsgs(Enum):
     SNAPSHOT_VOLUME_NAME_NOT_FOUND = "Snapshot volume with name {} not found."
     SNAPSHOT_NOT_FOUND = "Given Snapshot details not found."
     VPS_NAME_NOT_FOUND = "VPS with name {} not found."
-    SNAPSHOT_VOLUME_NOT_FOUND = "Snapshots volume with  {} not found."
+    SNAPSHOT_VOLUME_NOT_FOUND = "Snapshots volume with master_volume_id {} not found."
     MASTER_VOLUME_NAME_AND_ID = (
         "Either master_volume_name or master_volume_id must be provided."
     )

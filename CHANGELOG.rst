@@ -4,6 +4,60 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.4.0
+======
+
+Release Summary
+---------------
+
+This release introduces new snapshot management modules for VSP E series and VSP One Block 20 series storage systems,
+along with significant enhancements to VSP One SDS Block and Cloud systems modules for VPS operations, compute node management,
+cluster operations, and volume management. The release focuses on expanding multi-cloud support and
+improving operational flexibility across AWS, GCP, Azure, and Bare Metal environments.
+
+Minor Changes
+-------------
+
+- Added a new "hv_vsp_one_snapshot" module to create, modify and delete snapshots on VSP E series and VSP One Block 20 series storage systems.
+- Added a new "hv_vsp_one_snapshot_facts" module to retrieve snapshot information from VSP E series and VSP One Block 20 series storage systems.
+- Added a new "hv_vsp_one_snapshot_group" module to manage snapshot group operations on VSP E series and VSP One Block 20 series storage systems.
+- Added a new "hv_vsp_one_snapshot_group_facts" module to retrieve snapshot group information from VSP E series and VSP One Block 20 series storage systems.
+- Added support to "Create a VPS" to hv_sds_block_vps module.
+- Added support to "Create a compute node in a VPS by VPS ID" to hv_sds_block_compute_node module.
+- Added support to "Create a compute node in a VPS by VPS name" to hv_sds_block_compute_node module.
+- Added support to "Create a volume in a VPS by VPS ID" to hv_sds_block_volume module.
+- Added support to "Create a volume in a VPS by VPS name" to hv_sds_block_volume module.
+- Added support to "Create the cluster configuration file for replace_storage_node export file type for AWS" to hv_sds_block_cluster module.
+- Added support to "Create the cluster configuration file for replace_storage_node export file type for GCP" to hv_sds_block_cluster module.
+- Added support to "Delete a VPS by ID" to hv_sds_block_vps module.
+- Added support to "Delete a VPS by name" to hv_sds_block_vps module.
+- Added support to "Delete compute node by name in a VPS by VPS ID" to hv_sds_block_compute_node module.
+- Added support to "Delete compute node by name in a VPS by VPS name" to hv_sds_block_compute_node module.
+- Added support to "Delete volume by name in a VPS by VPS ID" to hv_sds_block_volume module.
+- Added support to "Delete volume by name in a VPS by VPS name" to hv_sds_block_volume module.
+- Added support to "Get Snapshots using master volume name in a VPS" to hv_sds_block_snapshot_facts module.
+- Added support to "Get compute nodes for a VPS by VPS ID" to hv_sds_block_compute_node_facts module.
+- Added support to "Get compute nodes for a VPS by VPS name" to hv_sds_block_compute_node_facts module.
+- Added support to "Get volumes for a VPS by VPS ID" to hv_sds_block_volume_facts module.
+- Added support to "Get volumes for a VPS by VPS name" to hv_sds_block_volume_facts module.
+- Added support to "Import system requirements file for performing replace storage node on Bare metal" to hv_sds_block_cluster module.
+- Added support to "Replace storage node in the cluster by storage node ID on AWS" to hv_sds_block_cluster module.
+- Added support to "Replace storage node in the cluster by storage node ID on Azure" to hv_sds_block_cluster module.
+- Added support to "Replace storage node in the cluster by storage node ID on Bare Metal" to hv_sds_block_cluster module.
+- Added support to "Replace storage node in the cluster by storage node ID on GCP" to hv_sds_block_cluster module.
+- Added support to "Update settings of a VPS" to hv_sds_block_vps module.
+
+New Modules
+-----------
+
+VSP
+~~~
+
+- hitachivantara.vspone_block.vsp.hv_vsp_one_snapshot - Manages snapshots on VSP One Block storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_snapshot_facts - Retrieves snapshot information from VSP One Block storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_snapshot_group - Manages snapshot group operations in VSP One Block storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_snapshot_group_facts - Retrieves snapshot group information from VSP One Block storage systems.
+
 v4.3.0
 ======
 
@@ -24,12 +78,12 @@ Minor Changes
 - Added a new "hv_sds_block_software_update_file_facts" module to retrieve information of the update file of the storage software which performed transfer (upload) in the Hitachi SDS Block storage systems.
 - Added a new "hv_sds_block_storage_node_bmc_connection" module allows to update the BMC connection settings of Hitachi SDS Block storage systems.
 - Added a new "hv_sds_block_storage_software_update" module allows software update and downgrade on Hitachi SDS Block storage systems.
-- Added a new "hv_vsp_one_port" module to manage port configuration on VSP E series and VSP One B2X storages.
+- Added a new "hv_vsp_one_port" module to retrieve volume's information from servers on VSP E series and VSP One B2X storages.
 - Added a new "hv_vsp_one_port_facts" module to retrieve port information from VSP E series and VSP One B2X storages.
 - Added a new "hv_vsp_one_server" module enables register, modification, and deletion of servers, as well as various server operations on VSP E series and VSP One B2X storages.
-- Added a new "hv_vsp_one_server_facts" module to retrieve information about servers on VSP E series and VSP One B2X storages.
-- Added a new "hv_vsp_one_server_hba_facts" module to retrieve HBA (Host Bus Adapter) information about servers on VSP E series and VSP One B2X storages.
-- Added support for latest software version 1.18.1 for SDS block on AWS, GCP, Azure and Bare metal.
+- Added a new "hv_vsp_one_server_facts" module to retrieve information about servers from servers on VSP E series and VSP One B2X storages.
+- Added a new "hv_vsp_one_server_hba_facts" module to retrieve HBA (Host Bus Adapter) information about servers from servers on VSP E series and VSP One B2X storages.
+- Added support for latest software version 1.18.1 for SDS block on AWS, GCP and Bare metal.
 - Added support for listing storage node primary role status in the output to hv_sds_block_storage_node_facts module.
 - Added support to "Add storage node to the SDS cluster on AWS cloud" to hv_sds_block_cluster module.
 - Added support to "Allow CHAP users to access the compute port" to hv_sds_block_compute_port_authentication module

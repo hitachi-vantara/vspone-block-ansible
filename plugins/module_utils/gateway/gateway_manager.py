@@ -104,6 +104,10 @@ class ConnectionManager(ABC):
             headers = {
                 "Content-Length": 0,
             }
+        elif headers_input and headers_input.get("Content-Length") == 0:
+            headers = {
+                "Content-Length": 0,
+            }
         else:
             headers = {
                 "Accept": "application/json",
@@ -113,14 +117,14 @@ class ConnectionManager(ABC):
             if headers_input is not None:
                 headers.update(headers_input)
 
-        if data is not None:
+        if data is not None and headers.get("Content-Type") == "application/json":
             data = json.dumps(data)
-            x = url.endswith("chap-users")
+            x = url.endswith("chap-users") or url.endswith("password")
             if not x:
                 logger.writeDebug("data = {}", data)
 
         logger.writeDebug("method = {} URL ={}", method, url)
-        # logger.writeDebug("headers = {}", headers)
+        logger.writeDebug("headers_input = {}", headers)
 
         MAX_TIME_OUT = 300
 
@@ -138,12 +142,10 @@ class ConnectionManager(ABC):
                 validate_certs=False,
             )
         except socket.timeout as t_err:
-            logger.writeError(
-                f"ConnectionManager._make_request - TimeoutError {t_err}")
+            logger.writeError(f"ConnectionManager._make_request - TimeoutError {t_err}")
             raise Exception(t_err)
         except urllib_error.HTTPError as err:
-            logger.writeError(
-                f"ConnectionManager._make_request - HTTPError {err}")
+            logger.writeError(f"ConnectionManager._make_request - HTTPError {err}")
 
             if err.code == 503:
                 # 503 Service Unavailable
@@ -167,12 +169,10 @@ class ConnectionManager(ABC):
                             else error_resp.get("errorMessage")
                         )
                         if error_resp.get("cause"):
-                            error_dtls = error_dtls + " " + \
-                                error_resp.get("cause")
+                            error_dtls = error_dtls + " " + error_resp.get("cause")
 
                         if error_resp.get("solution"):
-                            error_dtls = error_dtls + " " + \
-                                error_resp.get("solution")
+                            error_dtls = error_dtls + " " + error_resp.get("solution")
 
                         raise Exception(error_dtls)
             raise Exception(err)
@@ -280,8 +280,7 @@ class ConnectionManager(ABC):
             result_text += " " + "errorCode : " + str(error_value) + " "
         if API.DETAIL_CODE in keys:
             result_text += (
-                "detailCode : " +
-                job_response[API.ERROR][API.DETAIL_CODE] + " "
+                "detailCode : " + job_response[API.ERROR][API.DETAIL_CODE] + " "
             )
 
         return result_text
@@ -293,8 +292,7 @@ class ConnectionManager(ABC):
         return self._make_request("GET", endpoint)
 
     def update(self, endpoint, data):
-        put_response = self._make_request(
-            method="PUT", end_point=endpoint, data=data)
+        put_response = self._make_request(method="PUT", end_point=endpoint, data=data)
         job_id = put_response[API.JOB_ID]
         return self._process_job(job_id)
 
@@ -335,8 +333,7 @@ class SDSBConnectionManager(ConnectionManager):
                 return job_id
             elif job_status == API.COMPLETED and job_state == API.FAILED:
                 raise ValueError(
-                    self.job_exception_text(
-                        job_response) + f" job_id : {job_id}"
+                    self.job_exception_text(job_response) + f" job_id : {job_id}"
                 )
             else:
                 retry_count = retry_count + 1
@@ -344,7 +341,7 @@ class SDSBConnectionManager(ConnectionManager):
 
     def build_multipart_form_data(
         self,
-        setup_user_password,
+        setup_user_password=None,
         csv_path=None,
         exported_config_file=None,
         vm_configuration_file_s3_uri=None,
@@ -355,11 +352,9 @@ class SDSBConnectionManager(ConnectionManager):
         def add_field(name, value):
             body.extend(b"--" + boundary + b"\r\n")
             body.extend(
-                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode(
-                    "utf-8")
+                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode("utf-8")
             )
-            body.extend(value.encode("utf-8")
-                        if isinstance(value, str) else value)
+            body.extend(value.encode("utf-8") if isinstance(value, str) else value)
             body.extend(b"\r\n")
 
         def add_file_field(field_name, file_path, file_content):
@@ -373,13 +368,13 @@ class SDSBConnectionManager(ConnectionManager):
                     "utf-8"
                 )
             )
-            body.extend(
-                f"Content-Type: {content_type}\r\n\r\n".encode("utf-8"))
+            body.extend(f"Content-Type: {content_type}\r\n\r\n".encode("utf-8"))
             body.extend(file_content)
             body.extend(b"\r\n")
 
         # Add text field
-        add_field("setupUserPassword", setup_user_password)
+        if setup_user_password:
+            add_field("setupUserPassword", setup_user_password)
 
         if vm_configuration_file_s3_uri:
             add_field("vmConfigurationFileS3Uri", vm_configuration_file_s3_uri)
@@ -400,7 +395,23 @@ class SDSBConnectionManager(ConnectionManager):
 
         return bytes(body)
 
-    def upload_software_update_file(self, end_point, software_update_file):
+    def upload_file(
+        self, end_point, file_to_upload, file_parameter_name, monitor_job=False
+    ):
+        response = self.upload_software_update_file(
+            end_point, file_to_upload, file_parameter_name
+        )
+        if response:
+            decoded = response.decode("utf-8")
+            data = json.loads(decoded)
+            job_id = data.get("jobId")
+            if monitor_job:
+                self._process_job(job_id)
+            return job_id
+
+    def upload_software_update_file(
+        self, end_point, software_update_file, file_parameter_name=None
+    ):
         import os
         import mimetypes
         import http.client
@@ -418,11 +429,13 @@ class SDSBConnectionManager(ConnectionManager):
             content_type = (
                 mimetypes.guess_type(filename)[0] or "application/octet-stream"
             )
+            if file_parameter_name is None:
+                file_parameter_name = "softwareUpdateFile"
 
             # Build multipart preamble and closing
             preamble = (
                 f"--{boundary}\r\n"
-                f'Content-Disposition: form-data; name="softwareUpdateFile"; filename="{filename}"\r\n'
+                f'Content-Disposition: form-data; name="{file_parameter_name}"; filename="{filename}"\r\n'
                 f"Content-Type: {content_type}\r\n\r\n"
             ).encode("utf-8")
             closing = f"\r\n--{boundary}--\r\n".encode("utf-8")
@@ -455,8 +468,7 @@ class SDSBConnectionManager(ConnectionManager):
                 import base64
 
                 creds = f"{self.username}:{self.password}".encode("utf-8")
-                auth_header = "Basic " + \
-                    base64.b64encode(creds).decode("utf-8")
+                auth_header = "Basic " + base64.b64encode(creds).decode("utf-8")
                 conn.putheader("Authorization", auth_header)
             conn.endheaders()
 
@@ -499,7 +511,7 @@ class SDSBConnectionManager(ConnectionManager):
     def add_storage_node(
         self,
         end_point,
-        setup_user_password,
+        setup_user_password=None,
         config_file=None,
         exported_config_file=None,
         vm_configuration_file_s3_uri=None,
@@ -571,12 +583,10 @@ class SDSBConnectionManager(ConnectionManager):
                 validate_certs=False,
             )
         except socket.timeout as t_err:
-            logger.writeError(
-                f"ConnectionManager._make_request - TimeoutError {t_err}")
+            logger.writeError(f"ConnectionManager._make_request - TimeoutError {t_err}")
             raise Exception(t_err)
         except urllib_error.HTTPError as err:
-            logger.writeError(
-                f"ConnectionManager._make_request - HTTPError {err}")
+            logger.writeError(f"ConnectionManager._make_request - HTTPError {err}")
 
             if err.code == 503:
                 # 503 Service Unavailable
@@ -602,12 +612,10 @@ class SDSBConnectionManager(ConnectionManager):
                             else error_resp.get("errorMessage")
                         )
                         if error_resp.get("cause"):
-                            error_dtls = error_dtls + " " + \
-                                error_resp.get("cause")
+                            error_dtls = error_dtls + " " + error_resp.get("cause")
 
                         if error_resp.get("solution"):
-                            error_dtls = error_dtls + " " + \
-                                error_resp.get("solution")
+                            error_dtls = error_dtls + " " + error_resp.get("solution")
 
                         raise Exception(error_dtls)
             raise Exception(err)
@@ -638,8 +646,7 @@ class VSPConnectionManager(ConnectionManager):
             address=self.address, username=self.username, password=self.password
         )
         if not retry:
-            self.token = self.session_manager.get_current_session(
-                connection_info)
+            self.token = self.session_manager.get_current_session(connection_info)
         else:
             self.token = self.session_manager.renew_session(connection_info)
         headers = {"Authorization": "Session {0}".format(self.token)}
@@ -648,8 +655,7 @@ class VSPConnectionManager(ConnectionManager):
     def get_lock_session_token(self):
         end_point = Endpoints.SESSIONS
         try:
-            response = self._make_request(
-                method="POST", end_point=end_point, data=None)
+            response = self._make_request(method="POST", end_point=end_point, data=None)
 
         except Exception as e:
             # can be due to wrong address or kong is not ready
@@ -767,8 +773,7 @@ class VSPConnectionManager(ConnectionManager):
         return self._process_pegasus_job(job_id)
 
     def pegasus_post_header(self, endpoint, data, headers_input):
-        post_response = self._make_vsp_request(
-            "POST", endpoint, data, headers_input)
+        post_response = self._make_vsp_request("POST", endpoint, data, headers_input)
 
         job_id = post_response.get("statusResource").split("/")[-1]
         return self._process_pegasus_job(job_id)
@@ -793,8 +798,7 @@ class VSPConnectionManager(ConnectionManager):
                 time.sleep(10)
 
         if response is None:
-            raise Exception(
-                "Timeout Error! The tasks was not completed in 10 minutes")
+            raise Exception("Timeout Error! The tasks was not completed in 10 minutes")
 
         resourceId = response.split("/")[-1]
         logger.writeDebug("response = {}", response)
@@ -979,8 +983,7 @@ class VSPConnectionManager(ConnectionManager):
                         error_dtls = error_dtls + " " + error_resp.get("cause")
 
                     if error_resp.get("solution"):
-                        error_dtls = error_dtls + " " + \
-                            error_resp.get("solution")
+                        error_dtls = error_dtls + " " + error_resp.get("solution")
 
                     if (
                         error_dtls

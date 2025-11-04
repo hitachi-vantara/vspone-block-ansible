@@ -17,6 +17,7 @@ class ServerFactsSpec(SingleBaseClass):
     iscsi_name: Optional[int] = None
     server_id: Optional[int] = None
     nick_name: Optional[str] = None
+    include_details: Optional[bool] = None
 
 
 @dataclass

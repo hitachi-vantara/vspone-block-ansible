@@ -55,23 +55,67 @@ options:
     suboptions:
       primary_volume_id:
         description: ID of the primary volume.
+          Required for the Create a snapshot pair
+          /Create snapshot pair with a new consistency group
+          /Split a snapshot pair
+          /Resync a snapshot pair
+          /Create and auto-split a snapshot pair
+          /Restore a snapshot pair
+          /Create a snapshot pair using an existing consistency group
+          /Delete a snapshot pair
+          /Delete Thin Image pairs by snapshot tree
+          /Clone snapshot pair/Thin Image pair
+          /Create and clone snapshot pair
+          /Create and clone snapshot pair with copy speed and clones automation
+          /Create floating snapshot pair
+          /Assign floating snapshot pair
+          /Unassign floating snapshot pair
+          /Create Thin Image Advanced snapshot pair
+          /Set retention period of an existing snapshot pair
+          /Set retention period of snapshot pair after split
+          /Set retention period of snapshot pair with auto split
+          /Deleting garbage data of all Thin Image pairs in a snapshot tree tasks.
         type: str
         required: true
       secondary_volume_id:
         description: Secondary volume id.
+          Required for the Create floating snapshot pair
+          /Assign floating snapshot pair
+          /Unassign floating snapshot pair tasks.
+          Optional for the Create Thin Image Advanced snapshot pair task.
         type: str
         required: false
       pool_id:
         description: ID of the pool where the snapshot will be allocated.
+          Optional for the Create a snapshot pair
+          /Create snapshot pair with a new consistency group
+          /Create and auto-split a snapshot pair
+          /Create a snapshot pair using an existing consistency group
+          /Create and clone snapshot pair
+          /Create Thin Image Advanced snapshot pair
+          /Set retention period of snapshot pair with auto split tasks.
+          Required for the Create and clone snapshot pair with copy speed and clones automation
+          /Create floating snapshot pair tasks.
         type: int
         required: false
       snapshot_group_name:
         description: Name of the snapshot group.
+          Required for the Create a snapshot pair
+          /Create snapshot pair with a new consistency group
+          /Create and auto-split a snapshot pair
+          /Create a snapshot pair using an existing consistency group
+          /Create and clone snapshot pair
+          /Create and clone snapshot pair with copy speed and clones automation
+          /Create floating snapshot pair
+          /Create Thin Image Advanced snapshot pair
+          /Set retention period of snapshot pair with auto split tasks.
         type: str
         required: false
       is_data_reduction_force_copy:
         description: Specify whether to forcibly create a pair for a volume for which the capacity saving function is enabled.
           Default is True when capacity savings is not C(disabled).
+          Required for the Create a snapshot pair using an existing consistency group
+          /Create Thin Image Advanced snapshot pair tasks.
         required: false
         type: bool
       is_clone:
@@ -79,19 +123,33 @@ options:
           Specify whether to create a pair that has the clone attribute specified.
           If you specify true for this attribute, do not specify the auto_split attribute.
           When creating a Thin Image Advanced pair, you cannot specify true.
+          Required for the Create and clone snapshot pair
+          /Create and clone snapshot pair with copy speed and clones automation task.
         required: false
         type: bool
       can_cascade:
         description: Specify whether the pair can be cascaded.
           Default is True when capacity savings is not C(disabled), Lun may not required to add to any host group when is it true.
+          Required for the Create Thin Image Advanced snapshot pair task.
         required: false
         type: bool
       allocate_new_consistency_group:
         description: Specify whether to allocate a consistency group.
+          Required for the Create snapshot pair with a new consistency group task.
         required: false
         type: bool
       mirror_unit_id:
         description: ID of the mirror unit.
+          Required for the Split a snapshot pair
+          /Resync a snapshot pair
+          /Restore a snapshot pair
+          /Delete a snapshot pair
+          /Clone snapshot pair/Thin Image pair
+          /Unassign floating snapshot pair
+          /Set retention period of an existing snapshot pair
+          /Set retention period of snapshot pair after split tasks.
+          Optional for the Create floating snapshot pair
+          /Assign floating snapshot pair tasks.
         required: false
         type: int
       auto_split:
@@ -103,12 +161,16 @@ options:
           Specify the retention period for the snapshot in hours. This can be set when the snapshot status is PSUS.
           This attribute can be used when the storage system is VSP One B20.
           You can specify this attribute only if the auto_split attribute is set to true for new pair.
+          Required for the Set retention period of an existing snapshot pair
+          /Set retention period of snapshot pair after split
+          /Set retention period of snapshot pair with auto split tasks.
         required: false
         type: int
       copy_speed:
         description: >
           Specify the copy speed at which the created pair is to be cloned.
           You can specify this item when true is specified for both the is_clone attribute and the clones_automation attribute.
+          Required for the Create and clone snapshot pair with copy speed and clones automation task.
         required: false
         type: str
         choices: ["SLOW", "MEDIUM", "FAST"]
@@ -116,17 +178,20 @@ options:
         description: >
           Specify whether the pair is to be cloned after the pair is created.
           You can specify this item when true is specified for the is_clone attribute.
+          Required for the Create and clone snapshot pair with copy speed and clones automation task.
         required: false
         type: bool
       should_delete_tree:
         description: >
           Specify whether to delete garbage data of all Thin Image pairs in a snapshot tree.
+          Required for the Delete Thin Image pairs by snapshot tree task.
         required: false
         type: bool
       operation_type:
         description: >
           Specify the operation type for garbage data deletion.
           This can be set when the should_delete_tree attribute is set to true.
+          Required for the Deleting garbage data of all Thin Image pairs in a snapshot tree task.
         required: false
         type: str
         choices: ["start", "stop"]

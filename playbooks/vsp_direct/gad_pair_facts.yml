@@ -19,15 +19,45 @@
       username: "{{ vault_secondary_storage_username }}"
       password: "{{ vault_secondary_storage_secret }}"
   tasks:
-    ####################################################################
-    # Task Name : Get all GAD pairs by copy group name
-    ####################################################################
-    - name: Get all GAD pairs
+    ############################################################################
+    # Task Name : Get all GAD pairs for a copy group name
+    # Note: The following output properties are not included in this task output
+    #       because retrieving them requires additional REST API calls:
+    #       primary_virtual_serial_number, primary_virtual_volume_id,
+    #       primary_vsm_resource_group_name, secondary_virtual_serial_number,
+    #       secondary_virtual_volume_id, secondary_vsm_resource_group_name
+    #       To retrieve these properties, the user must specify both
+    #       copy_pair_name and copy_group_name.
+    ############################################################################
+    - name: Get all GAD pairs for a copy group name
       hitachivantara.vspone_block.vsp.hv_gad_facts:
         secondary_connection_info: "{{ secondary_connection_info }}"
         connection_info: "{{ connection_info }}"
         spec:
           copy_group_name: "copy_group_name_1"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ###########################################################################
+    # Task Name : Get GAD pair by copy group name and copy pair name
+    # Note: The following output properties are included in this task output
+    #       since one GAD pair is involved, although retrieving them requires
+    #       additional REST API calls:
+    #       primary_virtual_serial_number, primary_virtual_volume_id,
+    #       primary_vsm_resource_group_name, secondary_virtual_serial_number,
+    #       secondary_virtual_volume_id, secondary_vsm_resource_group_name
+    ############################################################################
+    - name: Get GAD pair by copy group name and copy pair name
+      hitachivantara.vspone_block.vsp.hv_gad_facts:
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        connection_info: "{{ connection_info }}"
+        spec:
+          copy_group_name: "copy_group_name_1"
+          copy_pair_name: "copy_pair_name_1"
 
       register: result
 

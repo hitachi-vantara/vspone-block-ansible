@@ -190,7 +190,6 @@ class VSPGadPairReconciler:
         spec.remote_connection_info = secondary_connection_info
         spec.secondary_storage_connection_info = secondary_connection_info
         spec.secondary_connection_info = secondary_connection_info
-        # logger.writeDebug("RC: 172:spec={}", spec)
 
         # sng20241114 - TODO
         spec.is_svol_readwriteable = False

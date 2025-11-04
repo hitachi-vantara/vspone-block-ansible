@@ -13,6 +13,8 @@ class VolumeFactSpec:
     names: Optional[List[str]] = None
     nicknames: Optional[List[str]] = None
     capacity_saving: Optional[str] = None
+    vps_id: Optional[str] = None
+    vps_name: Optional[str] = None
 
 
 @dataclass

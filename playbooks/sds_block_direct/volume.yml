@@ -189,3 +189,69 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ####################################################################
+    # Task Name : Create a volume in a VPS by VPS name
+    ####################################################################
+    - name: Create a volume in a VPS by VPS name
+      hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          name: "test-vps02-volume6"
+          capacity: "100MB"
+          vps_name: "RKD_VPS_02"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Create a volume in a VPS by VPS ID
+    ####################################################################
+    - name: Create a volume in a VPS by VPS ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          name: "test-vps02-volume6"
+          capacity: "100MB"
+          vps_id: "2a843522-a819-47ab-a208-69d190809604"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Delete volume by name in a VPS by VPS name
+    ####################################################################
+    - name: Delete volume by name in a VPS by VPS name
+      hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          name: "test-vps02-volume6"
+          vps_name: "RKD_VPS_02"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Delete volume by name in a VPS by VPS ID
+    ####################################################################
+    - name: Delete volume by name in a VPS by VPS ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_volume:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          name: "test-vps02-volume6"
+          vps_id: "2a843522-a819-47ab-a208-69d190809604"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

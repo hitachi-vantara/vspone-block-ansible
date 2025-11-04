@@ -205,6 +205,12 @@ class VSPResourceGroupReconciler:
                     iscsi_list.append(f"{hg['port']},{hg['id']}")
                 elif "name" in hg:
                     id = self.provisioner.get_iscsi_id(hg["port"], hg["name"])
+                    if id is None:
+                        logger.writeInfo(
+                            f"Could not find ID for iSCSI {hg['name']} on port {hg['port']}."
+                        )
+                        continue
+                    logger.writeDebug("RC:construct_simple_iscsi_list:id={}", id)
                     iscsi_list.append(f"{hg['port']},{id}")
         logger.writeDebug("RC:construct_simple_iscsi_list:iscsi_list={}", iscsi_list)
         return iscsi_list
@@ -282,7 +288,6 @@ class VSPResourceGroupReconciler:
                 )
                 spec.nvm_subsystem_ids = nvm_subsystems_to_add
         # Handle host groups and iscsi targets in the add resource case
-        logger.writeDebug("RC:update_add_resource:updated spec={}", spec)
         self.add_resource(rg, spec)
         return
 
@@ -315,10 +320,9 @@ class VSPResourceGroupReconciler:
 
         if spec.iscsi_targets:
             iscsi_list = self.construct_simple_iscsi_list(spec)
+            iscsi_targets_to_add = []
+
             if rg.hostGroupIds:
-                iscsi_targets_to_add = (
-                    []
-                )  # list(set(iscsi_list) - set(rg.hostGroupIds))
                 for iscsi in iscsi_list:
                     if str(iscsi) not in rg.hostGroupIds:
                         iscsi_targets_to_add.append(iscsi)
@@ -337,6 +341,9 @@ class VSPResourceGroupReconciler:
                     spec.host_groups_simple = new_host_groups_to_add
                 else:
                     spec.host_groups_simple = iscsi_targets_to_add
+            else:
+                spec.host_groups_simple = iscsi_list
+
         return
 
     @log_entry_exit
@@ -349,6 +356,7 @@ class VSPResourceGroupReconciler:
             if rg_host_list:
                 host_groups_to_remove = list(set(hg_list) & set(rg_host_list))
             spec.host_groups_simple = host_groups_to_remove
+
         if spec.iscsi_targets:
             iscsi_list = self.construct_simple_iscsi_list(spec)
             rg_host_list = rg.hostGroupIds
@@ -428,7 +436,6 @@ class VSPResourceGroupReconciler:
         self.fix_host_groups_for_remove(rg, spec)
         self.fix_ldevs_for_remove(rg, spec)
 
-        logger.writeDebug("RC:remove_resource:spec={}", spec)
         rg_id = self.provisioner.remove_resource(rg, spec)
         logger.writeDebug("RC:remove_resource:ret_data={}", rg_id)
 

@@ -42,142 +42,183 @@ options:
     suboptions:
       is_snmp_agent_enabled:
         description: Whether SNMP agent is enabled.
+          Required for the Specifying the SNMP error notification destinations with v2c version
+          /Specifying the SNMP error notification destinations with v3 version
+          /Disable the SNMP agent tasks.
         type: bool
         required: true
       snmp_version:
         description: SNMP version to use.
+          Required for the Specifying the SNMP error notification destinations with v2c version
+          /Specifying the SNMP error notification destinations with v3 version
+          /Disable the SNMP agent tasks.
         type: str
         required: true
         choices: ["v1", "v2c", "v3"]
 
       snmp_v1v2c_trap_destination_settings:
         description: SNMP v1/v2c trap destination settings.
+          Required for the Specifying the SNMP error notification destinations with v2c version task.
         type: list
         elements: dict
         required: false
         suboptions:
           community:
             description: SNMP community string.
+              Required for the Specifying the SNMP error notification destinations with v2c version task.
             type: str
             required: true
           send_trap_to:
             description: List of trap destination addresses.
+              Required for the Specifying the SNMP error notification destinations with v2c version task.
             type: list
             elements: str
             required: true
 
       snmp_v3_trap_destination_settings:
         description: SNMP v3 trap destination settings.
+          Required for the Specifying the SNMP error notification destinations with v3 version task.
         type: list
         elements: dict
         required: false
         suboptions:
           user_name:
             description: SNMP v3 user name.
+              Required for the Specifying the SNMP error notification destinations with v3 version task.
             type: str
             required: true
           send_trap_to:
             description: Trap destination address.
+              Required for the Specifying the SNMP error notification destinations with v3 version task.
             type: str
             required: true
           authentication:
             description: Authentication settings for SNMP v3.
+              Optional for the Specifying the SNMP error notification destinations with v3 version task.
             type: dict
             required: false
             suboptions:
               protocol:
                 description: Authentication protocol.
+                  Optional for the Specifying the SNMP error notification destinations with v3 version task.
                 type: str
                 required: false
                 choices: ["MD5", "SHA"]
               password:
                 description: Authentication password.
+                  Optional for the Specifying the SNMP error notification destinations with v3 version task.
                 type: str
                 required: false
               encryption:
                 description: Encryption settings.
+                  Optional for the Specifying the SNMP error notification destinations with v3 version task.
                 type: dict
                 required: false
                 suboptions:
                   protocol:
                     description: Encryption protocol.
+                      Optional for the Specifying the SNMP error notification destinations with v3 version task.
                     type: str
                     required: false
                     choices: ["AES", "DES"]
                   key:
                     description: Encryption key.
+                      Optional for the Specifying the SNMP error notification destinations with v3 version task.
                     type: str
                     required: false
 
       snmp_v1v2c_authentication_settings:
         description: SNMP v1/v2c authentication settings.
+          Required for the Specifying the SNMP error notification destinations with v2c version task.
         type: list
         elements: dict
         required: false
         suboptions:
           community:
             description: SNMP community string.
+              Required for the Specifying the SNMP error notification destinations with v2c version task.
             type: str
             required: true
           requests_permitted:
             description: List of permitted requests.
+              Required for the Specifying the SNMP error notification destinations with v2c version task.
             type: list
             elements: str
             required: true
 
       snmp_v3_authentication_settings:
         description: SNMP v3 authentication settings.
+          Required for the Specifying the SNMP error notification destinations with v3 version task.
         type: list
         elements: dict
         required: false
         suboptions:
           user_name:
             description: SNMP v3 user name.
+              Required for the Specifying the SNMP error notification destinations with v3 version task.
             type: str
             required: true
           authentication:
             description: Authentication settings for SNMP v3.
+              Optional for the Specifying the SNMP error notification destinations with v3 version task.
             type: dict
             required: false
             suboptions:
               protocol:
                 description: Authentication protocol.
+                  Optional for the Specifying the SNMP error notification destinations with v3 version task.
                 type: str
                 required: false
                 choices: ["MD5", "SHA"]
               password:
                 description: Authentication password.
+                  Optional for the Specifying the SNMP error notification destinations with v3 version task.
                 type: str
                 required: false
               encryption:
                 description: Encryption settings.
+                  Optional for the Specifying the SNMP error notification destinations with v3 version task.
                 type: dict
                 required: false
                 suboptions:
                   protocol:
                     description: Encryption protocol.
+                      Optional for the Specifying the SNMP error notification destinations with v3 version task.
                     type: str
                     required: false
                     choices: ["AES", "DES"]
                   key:
                     description: Encryption key.
+                      Optional for the Specifying the SNMP error notification destinations with v3 version task.
                     type: str
                     required: false
       system_group_information:
         description: System group information.
+          Required for the Specifying the SNMP error notification destinations with v2c version
+          /Specifying the SNMP error notification destinations with v3 version
+          /Disable the SNMP agent tasks.
         type: dict
         required: true
         suboptions:
           storage_system_name:
             description: Name of the storage system.
+              Required for the Specifying the SNMP error notification destinations with v2c version
+              /Specifying the SNMP error notification destinations with v3 version
+              /Disable the SNMP agent tasks.
             type: str
             required: true
           contact:
             description: Contact information.
+              Required for the Specifying the SNMP error notification destinations with v2c version
+              /Specifying the SNMP error notification destinations with v3 version
+              /Disable the SNMP agent tasks.
             type: str
             required: true
           location:
             description: Location information.
+              Required for the Specifying the SNMP error notification destinations with v2c version
+              /Specifying the SNMP error notification destinations with v3 version
+              /Disable the SNMP agent tasks.
             type: str
             required: true
 """

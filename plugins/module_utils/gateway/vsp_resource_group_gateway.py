@@ -337,6 +337,12 @@ class VSPResourceGroupDirectGateway:
             parameters["portIds"] = spec.ports
         if spec.host_groups:
             parameters["hostGroupIds"] = spec.host_groups_simple
+        if spec.iscsi_targets:
+            parameters["hostGroupIds"] = (
+                spec.iscsi_targets_simple
+                if spec.host_groups_simple is None
+                else spec.host_groups_simple + spec.iscsi_targets_simple
+            )
         if spec.nvm_subsystem_ids:
             parameters["nvmSubsystemIds"] = spec.nvm_subsystem_ids
 

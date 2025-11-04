@@ -16,7 +16,7 @@ description:
   - This module allows to update Virtual Private Storages volume ADR setting.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/update_vps_volume_adr_setting.yml)
-version_added: '3.1.0'
+version_added: '4.4.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
 requirements:
@@ -39,13 +39,150 @@ options:
     required: true
     type: dict
     suboptions:
-      vps_id:
+      id:
         description: ID of the VPS to retrieve information for.
         type: str
         required: false
-      vps_name:
-        description: VPS name to retrieve information for.
+      name:
+        description: VPS name to retrieve information for. Mandatory for creating a VPS.
         type: str
+        required: false
+      upper_limit_for_number_of_user_groups:
+        description: The maximum number of user groups that can belong to the VPS. Values between 0 and 256.
+          If this property is omitted, 256 is assumed to be specified.
+        type: int
+        required: false
+      upper_limit_for_number_of_users:
+        description: The maximum number of users that can belong to the VPS. Values between 0 and 256.
+          If this property is omitted, 256 is assumed to be specified.
+        type: int
+        required: false
+      upper_limit_for_number_of_sessions:
+        description: The maximum number of sessions that can be established for the VPS. Values between 0 and 436.
+          If this property is omitted, 436 is assumed to be specified.
+        type: int
+        required: false
+      upper_limit_for_number_of_servers:
+        description: The maximum allowable number of compute nodes on the VPS. Values between 0 and 1024.
+          Mandatory for creating a VPS.
+        type: int
+        required: false
+      volume_settings:
+        description: List of volume_setting objects. This field is valid and mandatory for creating a VPS.
+        type: list
+        elements: dict
+        required: false
+        suboptions:
+          pool_id:
+            description: The ID of the storage pool to be used on the virtual private storage (VPS).
+              Mandatory for creating a VPS.
+            type: str
+            required: true
+          upper_limit_for_number_of_volumes:
+            description: The upper limit of the number of volumes on the VPS. Mandatory for creating a VPS.
+              For details about the values to be specified for upper_limit_for_number_of_volumes, contact customer support.
+            type: int
+            required: true
+          upper_limit_for_capacity_of_volumes_mb:
+            description: The upper limit of the total volume capacity (in MiB) of the VPS. Values between 0 and 9223372036854775807.
+              Mandatory for creating a VPS.
+              For details about the values to be specified for upper_limit_for_capacity_of_volumes_mb, contact customer support.
+            type: int
+            required: true
+          upper_limit_for_capacity_of_single_volume_mb:
+            description: The upper limit of the capacity (in MiB) of a single volume of the VPS. Values between 0 and 6871947674.
+              To place no limit on the capacity of a single volume, specify -1.
+              For details about the values to be specified for upper_limit_for_capacity_of_single_volume_mb, contact customer support.
+            type: int
+            required: false
+          upper_limit_for_iops_of_volume:
+            description: The upper limit of volume performance (in IOPS) of the VPS.
+              This is used as the default value for the upper limit of performance (in IOPS) of volumes created on the VPS.
+              To set the upper limit of volume performance (in IOPS), specify a value in the range from 100 to 2147483647.
+              To set no upper limit, specify -1. If you specify values from 0 to 99, jobs will be unsuccessful.
+              The VPS administrator who creates volumes can set a value that is no more than this value as the upper limit of performance
+              (in IOPS) for each volume. If you make both of the upper_limit_for_iops_of_volume and upper_limit_for_transfer_rate_of_volume_mbps
+              settings unavailable, the setting of upper_alert_allowable_time_of_volume is also made unavailable.
+              If this property is omitted, -1 is assumed to be specified.
+            type: int
+            required: false
+          upper_limit_for_transfer_rate_of_volume_mbps:
+            description: The upper limit of volume performance (in MiB/s) for the VPS.
+              This is used as the default value for the upper limit of performance (in MiB/s) of volumes created on the VPS.
+              To set the upper limit of volume performance (in MiB/s), specify a value in the range from 1 to 2097151. To set no
+              upper limit, specify -1. If you specify 0, jobs will be unsuccessful.
+              The VPS administrator who creates volumes can set a value that is no more than this value as the upper limit of performance
+              (in MiB/s) for each volume. If you make both of the upper_limit_for_iops_of_volume and upper_limit_for_transfer_rate_of_volume_mbps
+              settings unavailable, the setting of upperAlertAllowableTimeOfVolume is also made unavailable.
+              If this property is omitted, -1 is assumed to be specified.
+            type: int
+            required: false
+          upper_alert_allowable_time_of_volume:
+            description: The alert threshold value (in seconds) for the upper limit of volume performance for the VPS.
+              This is used as the default value for the alert threshold for the upper limit of performance of volumes created on the VPS.
+              To set the alert threshold, specify a value in the range from 1 to 600. To set no alert threshold, specify -1.
+              If you specify 0, jobs will be unsuccessful.
+              A message is output to the event log when restriction of the upper limit of performance specified by upper_limit_for_iops_of_volume or
+              upper_limit_for_transfer_rate_of_volume_mbps continues for the specified length of time. This property can be specified if either
+              upper_limit_for_iops_of_volume or upper_limit_for_transfer_rate_of_volume_mbps, or both, is set.
+              If this property is omitted, -1 is assumed to be specified.
+            type: int
+            required: false
+          capacity_saving:
+            description: Capacity saving for the VPS volumes.
+            type: str
+            required: false
+            choices: ['Disabled', 'Compression']
+            default: 'Disabled'
+      upper_limit_for_number_of_volumes:
+        description: The upper limit of the number of volumes on the VPS. Valid for update VPS settings.
+          For details about the values to be specified for upper_limit_for_number_of_volumes, contact customer support.
+        type: int
+        required: false
+      upper_limit_for_capacity_of_volumes_mb:
+        description: The upper limit of the total volume capacity (in MiB) of the VPS. Values between 0 and 9223372036854775807.
+          This field is valid for update VPS settings.
+          For details about the values to be specified for upper_limit_for_capacity_of_volumes_mb, contact customer support.
+        type: int
+        required: false
+      upper_limit_for_capacity_of_single_volume_mb:
+        description: The upper limit of the capacity (in MiB) of a single volume of the VPS. Values between 0 and 6871947674.
+          This field is valid for update VPS settings. To place no limit on the capacity of a single volume, specify -1.
+          For details about the values to be specified for upper_limit_for_capacity_of_single_volume_mb, contact customer support.
+        type: int
+        required: false
+      upper_limit_for_iops_of_volume:
+        description: The upper limit of volume performance (in IOPS) of the VPS. This field is valid for update VPS settings.
+          This is used as the default value for the upper limit of performance (in IOPS) of volumes created on the VPS.
+          To set the upper limit of volume performance (in IOPS), specify a value in the range from 100 to 2147483647.
+          To set no upper limit, specify -1. If you specify values from 0 to 99, jobs will be unsuccessful.
+          The VPS administrator who creates volumes can set a value that is no more than this value as the upper limit of performance
+          (in IOPS) for each volume. If you make both of the upper_limit_for_iops_of_volume and upper_limit_for_transfer_rate_of_volume_mbps
+          settings unavailable, the setting of upper_alert_allowable_time_of_volume is also made unavailable.
+          If this property is omitted, -1 is assumed to be specified.
+        type: int
+        required: false
+      upper_limit_for_transfer_rate_of_volume_mbps:
+        description: The upper limit of volume performance (in MiB/s) for the VPS. This field is valid for update VPS settings.
+          This is used as the default value for the upper limit of performance (in MiB/s) of volumes created on the VPS.
+          To set the upper limit of volume performance (in MiB/s), specify a value in the range from 1 to 2097151. To set no
+          upper limit, specify -1. If you specify 0, jobs will be unsuccessful.
+          The VPS administrator who creates volumes can set a value that is no more than this value as the upper limit of performance
+          (in MiB/s) for each volume. If you make both of the upper_limit_for_iops_of_volume and upper_limit_for_transfer_rate_of_volume_mbps
+          settings unavailable, the setting of upperAlertAllowableTimeOfVolume is also made unavailable.
+          If this property is omitted, -1 is assumed to be specified.
+        type: int
+        required: false
+      upper_alert_allowable_time_of_volume:
+        description: The alert threshold value (in seconds) for the upper limit of volume performance for the VPS. This field is valid for update VPS settings.
+          This is used as the default value for the alert threshold for the upper limit of performance of volumes created on the VPS.
+          To set the alert threshold, specify a value in the range from 1 to 600. To set no alert threshold, specify -1.
+          If you specify 0, jobs will be unsuccessful.
+          A message is output to the event log when restriction of the upper limit of performance specified by upper_limit_for_iops_of_volume or
+          upper_limit_for_transfer_rate_of_volume_mbps continues for the specified length of time. This property can be specified if either
+          upper_limit_for_iops_of_volume or upper_limit_for_transfer_rate_of_volume_mbps, or both, is set.
+          If this property is omitted, -1 is assumed to be specified.
+        type: int
         required: false
       capacity_saving:
         description: Capacity saving for the VPS volumes.
@@ -56,27 +193,57 @@ options:
 """
 
 EXAMPLES = """
-- name: Update VPS Volume ADR setting by VPS Id
+- name: Create a VPS
   hitachivantara.vspone_block.sds_block.hv_sds_block_vps:
     connection_info:
       address: sdsb.company.com
       username: "admin"
       password: "password"
-
     spec:
-      vps_id: "464e1fd1-9892-4134-866c-6964ce786676"
+      name: "RKD_VPS_02"
+      upper_limit_for_number_of_user_groups: 10
+      upper_limit_for_number_of_users: 5
+      upper_limit_for_number_of_sessions: 20
+      upper_limit_for_number_of_servers: 200
+      volume_settings:
+        - pool_id: "b78fe7d7-22f3-4d43-a9cf-81af3b4d7bf6"
+          upper_limit_for_number_of_volumes: 20
+          upper_limit_for_capacity_of_volumes_mb: 300000
+          upper_limit_for_capacity_of_single_volume_mb: -1
+          upper_limit_for_iops_of_volume: -1
+          upper_limit_for_transfer_rate_of_volume_mbps: -1
+          upper_alert_allowable_time_of_volume: -1
+          capacity_saving: "Disabled"
+
+- name: Update settings of a VPS
+  hitachivantara.vspone_block.sds_block.hv_sds_block_vps:
+    connection_info:
+      address: sdsb.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      id: "ae0f247c-dc56-491c-9cb9-4b2b6d33b345"
+      name: "RKD_VPS_03"
+      upper_limit_for_number_of_user_groups: 15
+      upper_limit_for_number_of_users: 10
+      upper_limit_for_number_of_servers: 300
+      upper_limit_for_number_of_sessions: 25
+      upper_limit_for_number_of_volumes: 22
+      upper_limit_for_capacity_of_volumes_mb: 330000
+      upper_limit_for_capacity_of_single_volume_mb: 30000
       capacity_saving: "Disabled"
+      upper_limit_for_iops_of_volume: 21474836
+      upper_limit_for_transfer_rate_of_volume_mbps: 50
+      upper_alert_allowable_time_of_volume: 40
 
-- name: Update VPS Volume ADR setting by VPS name
+- name: Delete a VPS by ID
   hitachivantara.vspone_block.sds_block.hv_sds_block_vps:
     connection_info:
       address: sdsb.company.com
       username: "admin"
       password: "password"
-
-    spec:
-      vps_name: "VPS_01"
-      capacity_saving: "Compression"
+      spec:
+        id: "ae0f247c-dc56-491c-9cb9-4b2b6d33b345"
 """
 
 RETURN = """
@@ -209,6 +376,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
 )
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
 
 logger = Log()
 
@@ -216,6 +386,7 @@ logger = Log()
 class SDSBVpsManager:
     def __init__(self):
 
+        self.logger = Log()
         self.argument_spec = SDSBVpsArguments().vps()
         logger.writeDebug(f"MOD:hv_sds_block_vps:argument_spec= {self.argument_spec}")
         self.module = AnsibleModule(

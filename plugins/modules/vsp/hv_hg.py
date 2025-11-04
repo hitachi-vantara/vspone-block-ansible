@@ -72,33 +72,43 @@ options:
       name:
         description: Name of the host group. If not given,
           it will create the name with prefix "smrha-" and add 10 digit random number at the end, for example "smrha-0806262996".
+          Optional for the Create a host group task. Required for the Update host mode and host mode options/Add WWNs to a host group
+          /Remove WWNs from a host group/Present LDEVS/Unpresent LDEVS/Delete/Change or unset nick name of a WWN tasks.
         type: str
         required: false
       port:
-        description: FC Port.
+        description: FC Port. Required for the Create a host group/Update host mode and host mode options/Add WWNs to a host group
+          /Remove WWNs from a host group/Present LDEVS/Unpresent LDEVS/Delete/Change or unset nick name of a WWN
+          /Asymmetric access priority level for ALUA host group/Release the host reservation status by specifying a host group
+          /Release the host reservation status by specifying the LU path tasks.
         type: str
         required: true
       wwns:
-        description: List of host WWN to add or remove.
+        description: List of host WWN to add or remove. Required for the Create a host group/Add WWNs to a host group
+          /Remove WWNs from a host group tasks.
         type: list
         elements: dict
         suboptions:
           wwn:
-            description: WWN of the host.
+            description: WWN of the host. Required for the Create a host group/Add WWNs to a host group
+              /Remove WWNs from a host group/Change or unset nick name of a WWN tasks.
             type: str
             required: true
           nick_name:
-            description: Nickname of the host.
+            description: Nickname of the host. Optional for the Create a host group/Add WWNs to a host group
+              /Remove WWNs from a host group tasks. Required for the Change or unset nick name of a WWN task.
             type: str
             required: false
         required: false
       ldevs:
         description: LDEVs to be mapped/unmapped with the host group. Supported format can be decimal or HEX.
+           Optional for the Create a host group task. Required for the Present LDEVS/Unpresent LDEVS tasks.
         type: list
         elements: str
         required: false
       host_mode:
-        description: Host mode of host group.
+        description: Host mode of host group. Optional for the Create a host group task.
+          Required for the Update host mode and host mode options task.
         type: str
         required: false
         choices: ['LINUX', 'VMWARE', 'HP', 'OPEN_VMS', 'TRU64', 'SOLARIS',
@@ -106,7 +116,8 @@ options:
           'WINDOWS_EXTENSION', 'UVM', 'HP_XP', 'DYNIX']
       host_mode_options:
         description:
-          - List of host group host mode option numbers.
+          - List of host group host mode option numbers. Optional for the Create a host group task.
+            Required for the Update host mode and host mode options task.
           - '0 # RESERVED'
           - '2 # VERITAS_DB_EDITION_ADV_CLUSTER'
           - '6 # TPRLO'
@@ -163,19 +174,25 @@ options:
         required: false
         type: bool
       host_group_number:
-        description: The host group number.
+        description: The host group number. Required for the Asymmetric access priority level for ALUA host group
+          /Release the host reservation status by specifying a host group
+          /Release the host reservation status by specifying the LU path tasks.
         type: int
         required: false
       should_release_host_reserve:
         description: If the value is true, release the host reserve.
+          Required for the Release the host reservation status by specifying a host group
+          /Release the host reservation status by specifying the LU path tasks.
         type: bool
         required: false
       lun:
         description: LUN ID to be releases the host reservation status of the LU mapped to a specified LU path.
+          Required for the Release the host reservation status by specifying the LU path task.
         type: int
         required: false
       asymmetric_access_priority:
         description: Asymmetric access priority level for ALUA host group.
+          Required for the Asymmetric access priority level for ALUA host group task.
         type: str
         required: false
         choices: ['low', 'high']

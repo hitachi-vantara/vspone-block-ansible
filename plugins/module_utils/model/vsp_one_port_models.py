@@ -3,6 +3,7 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
+    from ..common.ansible_common import match_value_with_case_insensitive
 except ImportError:
     from common_base_models import BaseDataClass, SingleBaseClass
 
@@ -15,6 +16,57 @@ PROTOCOL_MAP = {
     "nvme": "NVME_TCP",
 }
 
+MTU_SIZE = ["number_1500", "number_4500", "number_9000"]
+WINDOW_SIZE = [
+    "number_64k",
+    "number_128k",
+    "number_256k",
+    "number_512k",
+    "number_1024k",
+]
+FC_CONNECTION_TYPE = ["point_to_point", "fc_al"]
+
+IP_MODE = ["ipv4", "ipv4v6"]
+
+# Mapping dictionaries for conversion
+MTU_SIZE_MAP = {
+    "number_1500": "NUMBER_1500",
+    "number_4500": "NUMBER_4500",
+    "number_9000": "NUMBER_9000",
+}
+
+WINDOW_SIZE_MAP = {
+    "number_64k": "NUMBER_64K",
+    "number_128k": "NUMBER_128K",
+    "number_256k": "NUMBER_256K",
+    "number_512k": "NUMBER_512K",
+    "number_1024k": "NUMBER_1024K",
+}
+
+FC_CONNECTION_TYPE_MAP = {"point_to_point": "Point_To_Point", "fc_al": "FC_AL"}
+
+IP_MODE_MAP = {"ipv4": "ipv4", "ipv4v6": "ipv4v6"}
+
+
+WINDOW_SIZE_ISCSI = [
+    "number_16k",
+    "number_32k",
+    "number_64k",
+    "number_128k",
+    "number_256k",
+    "number_512k",
+    "number_1024k",
+]
+
+WINDOW_SIZE_ISCSI_MAP = {
+    "number_16k": "NUMBER_16K",
+    "number_32k": "NUMBER_32K",
+    "number_64k": "NUMBER_64K",
+    "number_128k": "NUMBER_128K",
+    "number_256k": "NUMBER_256K",
+    "number_512k": "NUMBER_512K",
+    "number_1024k": "NUMBER_1024K",
+}
 # VSP one Port Response Models
 
 
@@ -195,6 +247,16 @@ class FcSettings(SingleBaseClass):
     should_enable_fabric_switch_setting: Optional[bool] = None
     connection_type: Optional[str] = None
 
+    def __post_init__(self):
+        if self.connection_type is not None:
+            if not match_value_with_case_insensitive(
+                self.connection_type, FC_CONNECTION_TYPE
+            ):
+                raise ValueError(
+                    f"Invalid connection_type '{self.connection_type}'. Valid options are: {FC_CONNECTION_TYPE} and case insensitive."
+                )
+            self.connection_type = FC_CONNECTION_TYPE_MAP[self.connection_type.lower()]
+
 
 @dataclass
 class IscsiSettings(SingleBaseClass):
@@ -225,6 +287,28 @@ class IscsiSettings(SingleBaseClass):
         ):
             self.ipv6_configuration = Ipv6Settings(**self.ipv6_configuration)
 
+        if self.mtu_size is not None:
+            if not match_value_with_case_insensitive(self.mtu_size, MTU_SIZE):
+                raise ValueError(
+                    f"Invalid mtu_size '{self.mtu_size}'. Valid options are: {MTU_SIZE} and case insensitive."
+                )
+            self.mtu_size = MTU_SIZE_MAP[self.mtu_size.lower()]
+
+        if self.window_size is not None:
+            if not match_value_with_case_insensitive(
+                self.window_size, WINDOW_SIZE_ISCSI
+            ):
+                raise ValueError(
+                    f"Invalid window_size '{self.window_size}'. Valid options are: {WINDOW_SIZE_ISCSI} and case insensitive."
+                )
+            self.window_size = WINDOW_SIZE_ISCSI_MAP[self.window_size.lower()]
+        if self.ip_mode is not None:
+            if not match_value_with_case_insensitive(self.ip_mode, IP_MODE):
+                raise ValueError(
+                    f"Invalid ip_mode '{self.ip_mode}'. Valid options are: {IP_MODE} and case insensitive."
+                )
+            self.ip_mode = IP_MODE_MAP[self.ip_mode.lower()]
+
 
 @dataclass
 class NvmeTcpSettings(SingleBaseClass):
@@ -250,6 +334,26 @@ class NvmeTcpSettings(SingleBaseClass):
             self.ipv6_configuration, Ipv6Settings
         ):
             self.ipv6_configuration = Ipv6Settings(**self.ipv6_configuration)
+
+        if self.mtu_size is not None:
+            if not match_value_with_case_insensitive(self.mtu_size, MTU_SIZE):
+                raise ValueError(
+                    f"Invalid mtu_size '{self.mtu_size}'. Valid options are: {MTU_SIZE} and case insensitive."
+                )
+            self.mtu_size = MTU_SIZE_MAP[self.mtu_size.lower()]
+
+        if self.window_size is not None:
+            if not match_value_with_case_insensitive(self.window_size, WINDOW_SIZE):
+                raise ValueError(
+                    f"Invalid window_size '{self.window_size}'. Valid options are: {WINDOW_SIZE} and case insensitive."
+                )
+            self.window_size = WINDOW_SIZE_MAP[self.window_size.lower()]
+        if self.ip_mode is not None:
+            if not match_value_with_case_insensitive(self.ip_mode, IP_MODE):
+                raise ValueError(
+                    f"Invalid ip_mode '{self.ip_mode}'. Valid options are: {IP_MODE} and case insensitive."
+                )
+            self.ip_mode = IP_MODE_MAP[self.ip_mode.lower()]
 
 
 @dataclass
@@ -469,7 +573,6 @@ def vsp_one_port_args():
                 },
                 "connection_type": {
                     "type": "str",
-                    "choices": ["Point_To_Point", "FC_AL"],
                     "required": False,
                 },
             },
@@ -483,7 +586,6 @@ def vsp_one_port_args():
                 "delete_vlan_id": {"type": "int", "required": False},
                 "ip_mode": {
                     "type": "str",
-                    "choices": ["ipv4", "ipv4v6"],
                     "required": False,
                 },
                 "ipv4_configuration": {
@@ -509,20 +611,10 @@ def vsp_one_port_args():
                 "enable_delayed_ack": {"type": "bool", "required": False},
                 "window_size": {
                     "type": "str",
-                    "choices": [
-                        "NUMBER_16K",
-                        "NUMBER_32K",
-                        "NUMBER_64K",
-                        "NUMBER_128K",
-                        "NUMBER_256K",
-                        "NUMBER_512K",
-                        "NUMBER_1024K",
-                    ],
                     "required": False,
                 },
                 "mtu_size": {
                     "type": "str",
-                    "choices": ["NUMBER_1500", "NUMBER_4500", "NUMBER_9000"],
                     "required": False,
                 },
                 "keep_alive_timer": {"type": "int", "required": False},
@@ -541,7 +633,6 @@ def vsp_one_port_args():
                 "delete_vlan_id": {"type": "int", "required": False},
                 "ip_mode": {
                     "type": "str",
-                    "choices": ["ipv4", "ipv4v6"],
                     "required": False,
                 },
                 "ipv4_configuration": {
@@ -568,18 +659,10 @@ def vsp_one_port_args():
                 "enable_delayed_ack": {"type": "bool", "required": False},
                 "window_size": {
                     "type": "str",
-                    "choices": [
-                        "NUMBER_64K",
-                        "NUMBER_128K",
-                        "NUMBER_256K",
-                        "NUMBER_512K",
-                        "NUMBER_1024K",
-                    ],
                     "required": False,
                 },
                 "mtu_size": {
                     "type": "str",
-                    "choices": ["NUMBER_1500", "NUMBER_4500", "NUMBER_9000"],
                     "required": False,
                 },
             },

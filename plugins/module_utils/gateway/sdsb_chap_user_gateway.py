@@ -35,7 +35,6 @@ class SDSBChapUserDirectGateway:
     @log_entry_exit
     def get_chap_users(self, spec=None):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = SDSBlockEndpoints.GET_CHAP_USERS
 
         if spec is not None and spec.target_chap_user_name is not None:

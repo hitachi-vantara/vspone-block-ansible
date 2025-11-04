@@ -100,25 +100,43 @@ class VSPShadowImagePairReconciler:
         shadow_image_response = None
         copy_group_name = None
         shadow_image_data = None
-        try:
-            if self.shadowImagePairSpec.pvol and self.shadowImagePairSpec.svol:
-                shadow_image_data = self.shadow_image_pair_get_by_pvol_and_svol(
-                    self.shadowImagePairSpec.pvol, self.shadowImagePairSpec.svol
-                )
-            elif (
-                self.shadowImagePairSpec.copy_pair_name
-                and self.shadowImagePairSpec.copy_group_name
-            ):
-                shadow_image_data = self.get_shadow_image_pair_by_copy_pair_name(
-                    self.shadowImagePairSpec.copy_pair_name,
-                    self.shadowImagePairSpec.copy_group_name,
-                )
-            else:
-                raise ValueError(
-                    "Either pvol and svol or copy_pair_name and copy_group_name must be provided."
-                )
-        except Exception as e:
-            logger.writeError(f"An error occurred: {str(e)}")
+        # if self.shadowImagePairSpec.pvol and self.shadowImagePairSpec.svol:
+        #     shadow_image_data = self.shadow_image_pair_get_by_pvol_and_svol(
+        #         self.shadowImagePairSpec.pvol, self.shadowImagePairSpec.svol
+        #     )
+        # elif (
+        #     self.shadowImagePairSpec.copy_pair_name
+        #     and self.shadowImagePairSpec.copy_group_name
+        # ):
+        #     shadow_image_data = self.get_shadow_image_pair_by_copy_pair_name(
+        #         self.shadowImagePairSpec.copy_pair_name,
+        #         self.shadowImagePairSpec.copy_group_name,
+        #     )
+        # else:
+        #     raise ValueError(
+        #         "Either pvol and svol or copy_pair_name and copy_group_name must be provided."
+        #     )
+        if (
+            self.shadowImagePairSpec.pvol is None
+            or self.shadowImagePairSpec.svol is None
+        ) and (
+            self.shadowImagePairSpec.copy_pair_name is None
+            or self.shadowImagePairSpec.copy_group_name is None
+        ):
+
+            raise ValueError(
+                "Either pvol and svol or copy_pair_name and copy_group_name must be provided."
+            )
+        shadow_image_data = self.provisioner.get_specific_cg_pair_by_pvol_svol(
+            self.shadowImagePairSpec.pvol,
+            self.shadowImagePairSpec.svol,
+            self.shadowImagePairSpec.copy_group_name,
+            self.shadowImagePairSpec.copy_pair_name,
+            self.shadowImagePairSpec.primary_volume_device_group_name,
+            self.shadowImagePairSpec.secondary_volume_device_group_name,
+        )
+        shadow_image_data = shadow_image_data.to_dict() if shadow_image_data else None
+
         pairId = None
         if shadow_image_data is not None:
             pairId = shadow_image_data.get("resourceId")
@@ -154,10 +172,24 @@ class VSPShadowImagePairReconciler:
                                 ]
                         else:
                             self.shadowImagePairSpec.is_new_group_creation = True
-                    shadow_image_response = self.shadow_image_pair_create(
-                        self.shadowImagePairSpec
-                    )
-                    self.connectionInfo.changed = True
+                    try:
+                        shadow_image_response = self.shadow_image_pair_create(
+                            self.shadowImagePairSpec
+                        )
+                        self.connectionInfo.changed = True
+                    except Exception as e:
+                        logger.writeError(f"Error creating shadow image pair: {e}")
+                        if (
+                            "Another copy pair might already be using the specified LDEV"
+                            in str(e)
+                        ):
+                            raise Exception(
+                                f"Another copy pair might already be using the specified primary volume {self.shadowImagePairSpec.primary_volume_id}. "
+                                f"and secondary volume {self.shadowImagePairSpec.secondary_volume_id}. "
+                                "Please verify and try again with correct copy group name and copy pair name."
+                            )
+                        else:
+                            raise e
             elif state == StateValue.SPLIT:
                 if pairId is not None:
                     if (

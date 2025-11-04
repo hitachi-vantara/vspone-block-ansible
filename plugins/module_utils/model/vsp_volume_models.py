@@ -5,7 +5,6 @@ try:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from ..common.hv_log import Log
     from ..common.ansible_common import (
-        convert_mib_to_mb,
         convert_capacity_to_mib,
         normalize_ldev_id,
         volume_id_to_hex_format,
@@ -15,7 +14,6 @@ except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from common.hv_log import Log
     from ..common.ansible_common import (
-        convert_mib_to_mb,
         convert_capacity_to_mib,
         normalize_ldev_id,
         volume_id_to_hex_format,
@@ -498,13 +496,13 @@ class SalamanderSimpleVolumeInfo(SingleBaseClass):
         #     self.qosSettings = SimpleVolumeQosConfig(**self.qosSettings)
         if self.totalCapacity is not None:
             # Convert totalCapacity from bytes to MiB
-            self.totalCapacityInMB = convert_mib_to_mb(self.totalCapacity)
+            self.totalCapacityInMB = self.totalCapacity
         if self.usedCapacity is not None:
             # Convert usedCapacity from bytes to MiB
-            self.usedCapacityInMB = convert_mib_to_mb(self.usedCapacity)
+            self.usedCapacityInMB = self.usedCapacity
         if self.freeCapacity is not None:
             # Convert freeCapacity from bytes to MiB
-            self.freeCapacityInMB = convert_mib_to_mb(self.freeCapacity)
+            self.freeCapacityInMB = self.freeCapacity
         if self.luns is not None:
             self.luns = [SimpleAPILuns(**lun) for lun in self.luns]
         if self.capacitySaving is None:
@@ -514,7 +512,9 @@ class SalamanderSimpleVolumeInfo(SingleBaseClass):
         camel_dict = super().camel_to_snake_dict()
         camel_dict.pop("saving_setting")
         camel_dict["id_hex"] = volume_id_to_hex_format(self.id)
-        camel_dict["parent_volume_id_hex"] = volume_id_to_hex_format(self.parentVolumeId)
+        camel_dict["parent_volume_id_hex"] = volume_id_to_hex_format(
+            self.parentVolumeId
+        )
         return camel_dict
 
 
@@ -589,7 +589,9 @@ class SalamanderCreateVolumeRequestSpec(SingleBaseClass):
         if self.volume_id:
             self.volume_id = normalize_ldev_id(self.volume_id)
         if self.volume_ids:
-            self.volume_ids = [normalize_ldev_id(ldev_id) for ldev_id in self.volume_ids]
+            self.volume_ids = [
+                normalize_ldev_id(ldev_id) for ldev_id in self.volume_ids
+            ]
 
 
 @dataclass

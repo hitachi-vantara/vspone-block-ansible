@@ -16,7 +16,13 @@ STOP_REMOVING_STORAGE_NODE = (
     "v1/objects/storage/actions/stop-removing-storage-nodes/invoke"
 )
 EDIT_CAPACITY_SETTING = "v1/objects/capacity-settings"
-
+REPLACE_STORAGE_NODE_WITH_CONFIG_FILE = (
+    "v1/objects/storage-nodes/{}/actions/replace-with-configuration-file/invoke"
+)
+REPLACE_STORAGE_NODE = "v1/objects/storage-nodes/{}/actions/replace/invoke"
+IMPORT_SYSTEM_REQUIREMENTS_FILE = (
+    "v1/objects/system-requirements-file/actions/import/invoke"
+)
 logger = Log()
 
 export_file_type_map = {
@@ -34,6 +40,15 @@ class SDSBClusterGateway:
         self.connection_manager = SDSBConnectionManager(
             connection_info.address, connection_info.username, connection_info.password
         )
+
+    @log_entry_exit
+    def import_system_requirement_file(self, system_requirement_file):
+        end_point = IMPORT_SYSTEM_REQUIREMENTS_FILE
+        resp = self.connection_manager.upload_file(
+            end_point, system_requirement_file, "systemRequirementsFile", True
+        )
+        logger.writeDebug(f"GW:import_system_requirement_file:resp={resp}")
+        return resp
 
     def create_config_file(self, export_file_type):
         end_point = CREATE_CONFIG_FILE
@@ -54,6 +69,28 @@ class SDSBClusterGateway:
             payload["templateS3Url"] = template_s3_url
         resp = self.connection_manager.post(end_point, data=payload)
         logger.writeDebug(f"GW:create_config_file_for_add_storage_node:resp={resp}")
+        return
+
+    def create_config_file_to_replace_storage_node(
+        self,
+        machine_image_id,
+        template_s3_url=None,
+        node_id=None,
+        should_recover_single_node=False,
+    ):
+        end_point = CREATE_CONFIG_FILE
+        payload = {
+            "exportFileType": "ReplaceStorageNode",
+            "machineImageId": machine_image_id,
+        }
+        if template_s3_url:
+            payload["templateS3Url"] = template_s3_url
+        if node_id:
+            payload["nodeId"] = node_id
+        if should_recover_single_node:
+            payload["recoverSingleNode"] = should_recover_single_node
+        resp = self.connection_manager.post(end_point, data=payload)
+        logger.writeDebug(f"GW:create_config_file_to_replace_storage_node:resp={resp}")
         return
 
     def create_config_file_for_add_drives(self, no_of_drives):
@@ -83,9 +120,9 @@ class SDSBClusterGateway:
         exported_config_file=None,
         vm_configuration_file_s3_uri=None,
     ):
-        logger.writeDebug(
-            f"GW:add_storage_node:config_file={config_file}, setup_user_password={setup_user_password}, exported_config_file={exported_config_file}"
-        )
+        # logger.writeDebug(
+        #     f"GW:add_storage_node:config_file={config_file}, setup_user_password={setup_user_password}, exported_config_file={exported_config_file}"
+        # )
         end_point = ADD_STORAGE_NODE
         resp = self.connection_manager.add_storage_node(
             end_point,
@@ -128,4 +165,48 @@ class SDSBClusterGateway:
         end_point = STOP_REMOVING_STORAGE_NODE
         resp = self.connection_manager.post(end_point, data=None)
         logger.writeDebug(f"GW:stop_removing_storage_nodes:resp={resp}")
+        return resp
+
+    @log_entry_exit
+    def replace_storage_node_with_config_file_gcp(self, spec):
+        end_point = REPLACE_STORAGE_NODE_WITH_CONFIG_FILE.format(spec.node_id)
+        header = {"Content-Length": 0}
+        resp = self.connection_manager.post(
+            end_point, data=None, headers_input=header, long_running=True
+        )
+        logger.writeDebug(f"GW:replace_storage_node:resp={resp}")
+        return resp
+
+    @log_entry_exit
+    def replace_storage_node_with_config_file_azure(self, spec):
+        end_point = REPLACE_STORAGE_NODE_WITH_CONFIG_FILE.format(spec.node_id)
+
+        resp = self.connection_manager.add_storage_node(
+            end_point,
+            exported_config_file=spec.exported_config_file,
+        )
+
+        return resp
+
+    @log_entry_exit
+    def replace_storage_node_with_config_file_aws(self, spec):
+        end_point = REPLACE_STORAGE_NODE_WITH_CONFIG_FILE.format(spec.node_id)
+
+        resp = self.connection_manager.add_storage_node(
+            end_point,
+            vm_configuration_file_s3_uri=spec.vm_configuration_file_s3_uri,
+            config_file=spec.configuration_file,
+        )
+
+        return resp
+
+    @log_entry_exit
+    def replace_storage_node_with_config_file_bare_metal(self, spec):
+        end_point = REPLACE_STORAGE_NODE.format(spec.node_id)
+
+        payload = {
+            "setupUserPassword": spec.setup_user_password,
+        }
+        resp = self.connection_manager.post(end_point, data=payload, long_running=True)
+        logger.writeDebug(f"GW:replace_storage_node:resp={resp}")
         return resp

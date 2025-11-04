@@ -71,12 +71,15 @@ class SDSBVolumeProvisioner:
 
     @log_entry_exit
     def get_volumes(self, spec=None):
-        volumes = self.gateway.get_volumes()
+        volumes = self.gateway.get_volumes(spec)
         if spec is None:
             return volumes
         else:
-            ret_vol = self.apply_filters(volumes.data, spec)
-            return SDSBVolumesInfo(ret_vol)
+            if spec.nicknames:
+                ret_vol = self.apply_filters(volumes.data, spec)
+                return SDSBVolumesInfo(ret_vol)
+            else:
+                return volumes
 
     @log_entry_exit
     def get_all_volume_names(self):
@@ -113,14 +116,14 @@ class SDSBVolumeProvisioner:
     @log_entry_exit
     def apply_filters(self, volumes, spec):
         result = volumes
-        if spec.capacity_saving:
-            result = self.apply_filter_ss(result, spec.capacity_saving)
-        if spec.names:
-            result = self.apply_filter_names(result, spec.names)
+        # if spec.capacity_saving:
+        #     result = self.apply_filter_ss(result, spec.capacity_saving)
+        # if spec.names:
+        #     result = self.apply_filter_names(result, spec.names)
         if spec.nicknames:
             result = self.apply_filter_nicknames(result, spec.nicknames)
-        if spec.count:
-            result = self.apply_filter_count(result, spec.count)
+        # if spec.count:
+        #     result = self.apply_filter_count(result, spec.count)
 
         return result
 

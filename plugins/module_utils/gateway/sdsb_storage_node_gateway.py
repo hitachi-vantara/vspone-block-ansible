@@ -186,7 +186,7 @@ class SDSBStorageNodeDirectGateway:
 
     def get_storage_master_flag(self, host):
         # Create SSL context that ignores certificate verification (-k option in curl)
-        context = ssl._create_unverified_context()
+        context = ssl._create_unverified_context()  # nosec
 
         # Define host and endpoint
         # host = "10.76.47.53"

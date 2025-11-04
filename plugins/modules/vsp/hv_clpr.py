@@ -39,16 +39,16 @@ options:
     required: true
     suboptions:
       clpr_id:
-        description: ID of the CLPR.
+        description: ID of the CLPR. Required for Update and Delete tasks.
         type: int
         required: false
       clpr_name:
-        description: Name of the CLPR.
+        description: Name of the CLPR. Required for Create and Update tasks.
         type: str
         required: false
       cache_memory_capacity_mb:
         description:
-          - Cache memory capacity in MB.
+          - Cache memory capacity in MB. Required for Create and Update tasks.
           - For VSP 5000 series storage systems, specify a multiple of 4096.
           - For other storage systems, specify a multiple of 2048.
         type: int

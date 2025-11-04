@@ -3,7 +3,6 @@ import re
 try:
     from ..provisioner.sdsb_volume_provisioner import SDSBVolumeProvisioner
     from ..provisioner.sdsb_storage_pool_provisioner import SDSBStoragePoolProvisioner
-    from ..provisioner.sdsb_vps_provisioner import SDSBVpsProvisioner
     from ..provisioner.sdsb_compute_node_provisioner import SDSBComputeNodeProvisioner
     from ..model.sdsb_volume_models import ComputeNodeSummaryInfo
     from ..common.hv_constants import StateValue
@@ -11,6 +10,7 @@ try:
     from ..common.ansible_common import log_entry_exit
     from ..message.sdsb_volume_msgs import SDSBVolValidationMsg
     from ..message.sdsb_vps_msgs import SDSBVpsValidationMsg
+    from .sdsb_vps_helper import SDSBVpsHelper
 except ImportError:
     from provisioner.sdsb_volume_provisioner import SDSBVolumeProvisioner
     from provisioner.sdsb_storage_pool_provisioner import SDSBStoragePoolProvisioner
@@ -20,12 +20,11 @@ except ImportError:
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from message.sdsb_volume_msgs import SDSBVolValidationMsg
-    from provisioner.sdsb_vps_provisioner import SDSBVpsProvisioner
     from message.sdsb_vps_msgs import SDSBVpsValidationMsg
+    from sdsb_vps_helper import SDSBVpsHelper
 
 
 logger = Log()
-moduleName = "SDS Block Volume"
 
 
 class SDSBVolumeSubstates:
@@ -42,6 +41,7 @@ class SDSBVolumeReconciler:
     def __init__(self, connection_info):
         self.connection_info = connection_info
         self.provisioner = SDSBVolumeProvisioner(self.connection_info)
+        self.vps_helper = SDSBVpsHelper(self.connection_info)
 
     @log_entry_exit
     def reconcile_volume(self, state, spec):
@@ -89,12 +89,8 @@ class SDSBVolumeReconciler:
             logger.writeDebug("RC:state = {}", state)
             logger.writeDebug("RC:spec = {}", spec)
             if spec.id is not None:
-                # user provided an id of the volume, so this must be a delete
-                # compue_node_id = self.delete_compute_node_by_id(spec.id)
-                # return compue_node_id
                 volume_id = spec.id
             elif spec.name is not None:
-                # user provided an compute node name, so this must be a delete
                 volume = self.get_volume_by_name(spec.name)
                 logger.writeDebug("RC:volume={}", volume)
                 if volume is None:
@@ -102,8 +98,6 @@ class SDSBVolumeReconciler:
                         SDSBVolValidationMsg.VOLUME_NOT_FOUND.value.format(spec.name)
                     )
                 volume_id = volume.id
-                # compue_node_id = self.delete_compute_node_by_id(compute_node.id)
-                # return compute_node.nickname
             else:
                 raise ValueError(SDSBVolValidationMsg.NO_NAME_ID.value)
 
@@ -124,15 +118,6 @@ class SDSBVolumeReconciler:
             return None
 
     @log_entry_exit
-    def get_vps_id(self, vps_name):
-        vps_details = SDSBVpsProvisioner(self.connection_info).get_vps_by_name(vps_name)
-
-        if vps_details and "system" not in vps_details.id.lower():
-            return vps_details.id
-        else:
-            return None
-
-    @log_entry_exit
     def get_compute_nodes_summary(self, vol_id):
         server_ids = self.get_volume_compute_node_ids(vol_id)
         cn_prov = SDSBComputeNodeProvisioner(self.connection_info)
@@ -146,6 +131,21 @@ class SDSBVolumeReconciler:
 
     @log_entry_exit
     def get_volumes(self, volume_spec=None):
+        if volume_spec.vps_id is None and volume_spec.vps_name:
+            volume_spec.vps_id = self.vps_helper.get_vps_id_by_vps_name(
+                volume_spec.vps_name
+            )
+            if not volume_spec.vps_id:
+                raise ValueError(
+                    SDSBVpsValidationMsg.VPS_NAME_ABSENT.value.format(
+                        volume_spec.vps_name
+                    )
+                )
+        elif volume_spec.vps_id:
+            if not self.vps_helper.is_vps_exist(volume_spec.vps_id):
+                raise ValueError(
+                    SDSBVpsValidationMsg.VPS_ID_ABSENT.value.format(volume_spec.vps_id)
+                )
         volumes = self.provisioner.get_volumes(volume_spec)
 
         for vol in volumes.data:
@@ -197,13 +197,11 @@ class SDSBVolumeReconciler:
     @log_entry_exit
     def create_sdsb_volume(self, spec):
         pool_id = None
-        if spec.pool_name and spec.vps_name:
+        if spec.pool_name and (spec.vps_name or spec.vps_id):
             raise ValueError(SDSBVolValidationMsg.POOL_VPS_BOTH.value)
 
-        if spec.pool_name is None and spec.vps_name is None:
+        if spec.pool_name is None and spec.vps_name is None and spec.vps_id is None:
             raise ValueError(SDSBVolValidationMsg.POOL_OR_VPS_ID.value)
-
-        logger.writeDebug("RC:create_sdsb_volume:spec={}", spec)
 
         if spec.pool_name:
             pool_id = self.get_pool_id(spec.pool_name)
@@ -214,11 +212,17 @@ class SDSBVolumeReconciler:
                     )
                 )
         else:
-            spec.vps_id = self.get_vps_id(spec.vps_name)
-            if not spec.vps_id:
-                raise ValueError(
-                    SDSBVpsValidationMsg.VPS_NAME_ABSENT.value.format(spec.vps_name)
-                )
+            if spec.vps_id is None and spec.vps_name:
+                spec.vps_id = self.vps_helper.get_vps_id_by_vps_name(spec.vps_name)
+                if not spec.vps_id:
+                    raise ValueError(
+                        SDSBVpsValidationMsg.VPS_NAME_ABSENT.value.format(spec.vps_name)
+                    )
+            elif spec.vps_id:
+                if not self.vps_helper.is_vps_exist(spec.vps_id):
+                    raise ValueError(
+                        SDSBVpsValidationMsg.VPS_ID_ABSENT.value.format(spec.vps_id)
+                    )
 
         if spec.capacity is None:
             raise ValueError(SDSBVolValidationMsg.CAPACITY.value)

@@ -12,6 +12,7 @@ class ComputeNodeFactSpec:
     names: Optional[List[str]] = None
     hba_name: Optional[str] = None
     vps_name: Optional[str] = None
+    vps_id: Optional[str] = None
 
 
 # @dataclass
@@ -24,6 +25,8 @@ class ComputeNodeFactSpec:
 class ComputeNodeSpec:
     id: Optional[str] = None
     name: Optional[str] = None
+    vps_id: Optional[str] = None
+    vps_name: Optional[str] = None
     os_type: Optional[str] = None
     state: Optional[str] = None
     iscsi_initiators: Optional[List[str]] = None

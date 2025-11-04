@@ -33,6 +33,19 @@ except ImportError:
 logger = Log()
 
 
+CLOUD_PLATFORMS = ["Google, Inc.", "Msft", "Amazon.com, Inc"]
+AWS = "Amazon.com, Inc"
+AZURE = "Msft"
+GCP = "Google, Inc."
+STORAGE_NODE_STATUS = [
+    "maintenanceblockage",
+    "persistentblockage",
+    "removalfailedandtemporaryblockage",
+    "removalfailedandmaintenanceblockage",
+    "removalfailedandpersistentblockage",
+]
+
+
 def get_json_for_config_file(file_path):
     result = {}
     current_section = None
@@ -72,6 +85,7 @@ class SDSBClusterReconciler:
     def __init__(self, connection_info, state=None):
         self.connection_info = connection_info
         self.provisioner = SDSBClusterProvisioner(self.connection_info)
+        self.storage_node_prov = SDSBStorageNodeProvisioner(connection_info)
         self.state = state
 
     @log_entry_exit
@@ -103,8 +117,43 @@ class SDSBClusterReconciler:
             resp_data = self.download_config_file(spec=spec)
         elif state == StateValue.STOP_REMOVING_STORAGE_NODE:
             resp_data = self.stop_removing_storage_nodes()
+        elif state == StateValue.REPLACE_STORAGE_NODE:
+            resp_data = self.replace_storage_node(spec=spec)
+        elif state == StateValue.SYSTEM_REQUIREMENT_FILE_PRESENT:
+            resp_data = self.import_system_requirement_file(spec=spec)
         if resp_data:
             return resp_data
+
+    @log_entry_exit
+    def import_system_requirement_file(self, spec=None):
+        if spec.system_requirement_file is None:
+            raise ValueError(
+                SDSBClusterValidationMsg.SYSTEM_REQUIREMENT_FILE_REQD.value
+            )
+        else:
+            if not spec.system_requirement_file.endswith("SystemRequirementsFile.yml"):
+                raise ValueError(
+                    SDSBClusterValidationMsg.BAD_SYSTEM_REQUIREMENT_FILE_NAME.value
+                )
+            if not os.path.exists(spec.system_requirement_file):
+                raise ValueError(
+                    SDSBClusterValidationMsg.SYSTEM_REQUIREMENT_FILE_DOES_NOT_EXIST.value.format(
+                        spec.system_requirement_file
+                    )
+                )
+        try:
+            resp = self.provisioner.import_system_requirement_file(spec)
+            msg = SDSBClusterValidationMsg.IMPORT_SYSTEM_REQUIREMET_FILE_SUCCESS_MSG.value.format(
+                resp
+            )
+            self.connection_info.changed = True
+            return msg
+        except Exception as e:
+            logger.writeException(e)
+            msg = (
+                SDSBClusterValidationMsg.IMPORT_SYSTEM_REQUIREMET_FILE_FAILURE_MSG.value
+            )
+            return msg
 
     @log_entry_exit
     def stop_removing_storage_nodes(self):
@@ -117,7 +166,9 @@ class SDSBClusterReconciler:
             return msg
         except Exception as e:
             logger.writeException(e)
-            msg = SDSBClusterValidationMsg.STOP_REMOVING_STORAGE_NODE_FAILURE_MSG.value
+            msg = SDSBClusterValidationMsg.STOP_REMOVING_STORAGE_NODE_FAILURE_MSG.value.format(
+                str(e)
+            )
             return msg
 
     @log_entry_exit
@@ -376,7 +427,6 @@ class SDSBClusterReconciler:
     def add_storage_node_azure(self, spec=None):
         self.create_config_file_for_add_storage_node(spec)
         exported_config_file = self.download_config_file_azure()
-        logger.writeDebug(f"PROV:add_storage_node_azure:spec={spec}")
         resp = self.provisioner.add_storage_node(
             spec.setup_user_password, exported_config_file=exported_config_file
         )
@@ -386,7 +436,6 @@ class SDSBClusterReconciler:
     def add_storage_node_aws(self, spec=None):
         if spec.configuration_file is None or spec.vm_configuration_file_s3_uri is None:
             raise ValueError(SDSBClusterValidationMsg.AWS_ADD_STORAGE_NODE_REQD.value)
-        logger.writeDebug(f"PROV:add_storage_node_aws:spec={spec}")
         resp = self.provisioner.add_storage_node(
             spec.setup_user_password,
             config_file=spec.configuration_file,
@@ -396,7 +445,6 @@ class SDSBClusterReconciler:
 
     @log_entry_exit
     def add_storage_node_gcp(self, spec=None):
-        logger.writeDebug(f"PROV:add_storage_node_gcp:spec={spec}")
         resp = self.provisioner.add_storage_node(
             spec.setup_user_password, config_file=spec.configuration_file
         )
@@ -434,7 +482,9 @@ class SDSBClusterReconciler:
         platform = self.provisioner.get_platform()
         logger.writeDebug(f"add_storage_node:spec = {spec}  platform = {platform}")
         if platform in cloud_platforms and spec.setup_user_password is None:
-            spec.setup_user_password = "CHANGE_ME_SET_YOUR_PASSWORD"  # set dummpy password for clouds
+            spec.setup_user_password = (
+                "CHANGE_ME_SET_YOUR_PASSWORD"  # set dummy password for clouds
+            )
 
         if spec.setup_user_password is None:
             raise ValueError(
@@ -466,7 +516,6 @@ class SDSBClusterReconciler:
 
     @log_entry_exit
     def create_config_file_for_add_storage_node(self, spec=None):
-        logger.writeDebug(f"PROV:create_config_file:spec={spec}")
         if spec is None:
             raise ValueError(SDSBClusterValidationMsg.SPEC_NONE.value)
 
@@ -523,7 +572,6 @@ class SDSBClusterReconciler:
 
     @log_entry_exit
     def create_config_file(self, spec=None):
-        logger.writeDebug(f"PROV:create_config_file:spec={spec}")
         platform = self.provisioner.get_platform()
         logger.writeDebug(f"PROV:create_config_file:platform={platform}")
 
@@ -580,10 +628,8 @@ class SDSBClusterReconciler:
                         spec.machine_image_id
                     )
                 if exf_type == "ReplaceStorageNode":
-                    raise ValueError(
-                        SDSBClusterValidationMsg.OPERATION_NOT_SUPPORTED_YET.value.format(
-                            platform
-                        )
+                    return self.provisioner.create_config_file_to_replace_storage_node(
+                        spec
                     )
             elif exf_type == "AddDrives":
                 if spec.no_of_drives is None:
@@ -637,10 +683,14 @@ class SDSBClusterReconciler:
                         spec.machine_image_id
                     )
                 if exf_type == "ReplaceStorageNode":
-                    raise ValueError(
-                        SDSBClusterValidationMsg.OPERATION_NOT_SUPPORTED_YET.value.format(
-                            platform
+                    if spec.node_id is None:
+                        raise ValueError(
+                            SDSBClusterValidationMsg.NODE_ID_IS_REQD.value.format(
+                                platform
+                            )
                         )
+                    return self.provisioner.create_config_file_to_replace_storage_node(
+                        spec
                     )
             elif exf_type == "AddDrives":
                 if spec.no_of_drives is None:
@@ -705,10 +755,8 @@ class SDSBClusterReconciler:
                         spec.machine_image_id, spec.template_s3_url
                     )
                 if exf_type == "ReplaceStorageNode":
-                    raise ValueError(
-                        SDSBClusterValidationMsg.OPERATION_NOT_SUPPORTED_YET.value.format(
-                            platform
-                        )
+                    return self.provisioner.create_config_file_to_replace_storage_node(
+                        spec
                     )
             elif exf_type == "AddDrives":
                 if spec.no_of_drives is None:
@@ -779,6 +827,120 @@ class SDSBClusterReconciler:
         except Exception as e:
             logger.writeException(e)
             raise Exception(e)
+
+    @log_entry_exit
+    def replace_storage_node(self, spec):
+
+        if (spec.node_id is None and spec.node_name is None) or (
+            spec.node_id is not None and spec.node_name is not None
+        ):
+            raise ValueError(SDSBClusterValidationMsg.NODE_ID_REQUIRED.value)
+        storage_node_prov = SDSBStorageNodeProvisioner(self.connection_info)
+
+        storage_node = None
+        if spec.node_id is None and spec.node_name is not None:
+            storage_node = storage_node_prov.get_storage_node_by_name(spec.node_name)
+            spec.node_id = storage_node.id if storage_node is not None else None
+        else:
+            storage_node = storage_node_prov.get_storage_node_by_id(spec.node_id)
+
+        if storage_node is None:
+            raise ValueError(
+                SDSBClusterValidationMsg.NOT_FOUND_WITH_STORAGE_NODE_ID.value.format(
+                    spec.node_id if spec.node_id is not None else spec.node_name
+                )
+            )
+
+        if storage_node.status.lower() not in STORAGE_NODE_STATUS:
+            raise ValueError(
+                SDSBClusterValidationMsg.STORAGE_NODE_INVALID_STATE.value.format(
+                    spec.node_id, storage_node.status, STORAGE_NODE_STATUS
+                )
+            )
+
+        platform = self.provisioner.get_platform()
+
+        if GCP in platform:
+            try:
+                logger.writeInfo("Replacing storage node on GCP")
+                job_id = (
+                    self.provisioner.gateway.replace_storage_node_with_config_file_gcp(
+                        spec
+                    )
+                )
+                self.connection_info.changed = True
+                return SDSBClusterValidationMsg.REPLACE_STORAGE_NODE_SUCCESS_MSG.value.format(
+                    job_id
+                )
+            except Exception as e:
+                logger.writeError(f"Error replacing storage node on GCP: {e}")
+                return (
+                    SDSBClusterValidationMsg.FAILED_REPLACE_STORAGE_NODE.value.format(e)
+                )
+        elif AZURE in platform:
+            try:
+                # first create config file
+                logger.writeInfo("Creating config file to replace storage node")
+                self.provisioner.create_config_file_to_replace_storage_node(spec)
+                # download the config file
+                logger.writeInfo("Downloading config file to replace storage node")
+                file_name = self.download_config_file_azure()
+                spec.exported_config_file = file_name
+                logger.writeDebug(f"exported_config_file = {spec.exported_config_file}")
+                # replace the storage node
+                logger.writeInfo("Replacing storage node on Azure")
+                job_id = self.provisioner.gateway.replace_storage_node_with_config_file_azure(
+                    spec
+                )
+                self.connection_info.changed = True
+                return SDSBClusterValidationMsg.REPLACE_STORAGE_NODE_SUCCESS_MSG.value.format(
+                    job_id
+                )
+            except Exception as e:
+                logger.writeError(f"Error replacing storage node on Azure: {e}")
+                return (
+                    SDSBClusterValidationMsg.FAILED_REPLACE_STORAGE_NODE.value.format(e)
+                )
+        elif AWS in platform:
+            try:
+                if spec.vm_configuration_file_s3_uri is None:
+                    raise ValueError(SDSBClusterValidationMsg.MUST_SPECIFY_S3_URL.value)
+
+                if spec.configuration_file is None:
+                    raise ValueError(SDSBClusterValidationMsg.CONFIG_FILE_REQD.value)
+
+                job_id = (
+                    self.provisioner.gateway.replace_storage_node_with_config_file_aws(
+                        spec
+                    )
+                )
+                self.connection_info.changed = True
+                return SDSBClusterValidationMsg.REPLACE_STORAGE_NODE_SUCCESS_MSG.value.format(
+                    job_id
+                )
+            except Exception as e:
+                logger.writeError(f"Error replacing storage node on AWS: {e}")
+                return (
+                    SDSBClusterValidationMsg.FAILED_REPLACE_STORAGE_NODE.value.format(e)
+                )
+        else:
+            try:
+                if spec.setup_user_password is None:
+                    raise ValueError(
+                        SDSBClusterValidationMsg.STORAGE_NODE_SETUP_PASSWD_REQD.value
+                    )
+                job_id = self.provisioner.gateway.replace_storage_node_with_config_file_bare_metal(
+                    spec
+                )
+                self.connection_info.changed = True
+                return SDSBClusterValidationMsg.REPLACE_STORAGE_NODE_SUCCESS_MSG.value.format(
+                    job_id
+                )
+            except Exception as e:
+                logger.writeError(f"Error replacing storage node on BareMetal: {e}")
+                return (
+                    SDSBClusterValidationMsg.FAILED_REPLACE_STORAGE_NODE.value.format(e)
+                )
 
     @log_entry_exit
     def get_storage_time_settings(self):

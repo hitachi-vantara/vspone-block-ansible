@@ -42,31 +42,43 @@ options:
     suboptions:
       parity_group_id:
         description: The parity group number of the parity group to retrieve.
+          Required for the Create parity group
+          /Delete parity group
+          /Update parity group
+          /Assign CLPR ID to Parity Group tasks.
         type: str
         required: false
       drive_location_ids:
         description: Specify the locations of the drives to be used to create to the parity group.
+          Required for the Create parity group task.
         type: list
         elements: str
         required: false
       raid_type:
         description: RAID type.
+          Required for the Create parity group task.
         type: str
         required: false
       is_encryption_enabled:
         description: Specify whether to enable the encryption function for the parity group.
+          Optional for the Create parity group task.
         type: bool
         required: false
       is_copy_back_mode_enabled:
         description: Specify whether to enable the encryption function for the parity group.
+          Optional for the Create parity group task.
         type: bool
         required: false
       is_accelerated_compression_enabled:
         description: Specify whether to enable accelerated compression for the parity group.
+          Optional for the Create parity group
+          /Update parity group tasks.
         type: bool
         required: false
       clpr_id:
         description: Specify a CLPR number in the range from 0 to 31.
+          Required for the Create parity group
+          /Assign CLPR ID to Parity Group tasks.
         type: int
         required: false
 """

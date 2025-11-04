@@ -45,6 +45,7 @@ options:
     suboptions:
       snapshot_group_name:
         description: The name of the snapshot group.
+          Required for the Get all snapshot pairs for a snapshot group task.
         type: str
         required: true
 """

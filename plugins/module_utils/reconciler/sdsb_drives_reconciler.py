@@ -28,7 +28,6 @@ class SDSBBlockDrivesReconciler:
 
     @log_entry_exit
     def reconcile_drive(self, spec=None, state=None):
-        logger.writeDebug("RC:reconcile_drive:spec={}", spec)
         msg = ""
         try:
             if state == StateValue.PRESENT:

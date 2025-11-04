@@ -32,9 +32,7 @@ class SnapshotsGateway:
 
     @log_entry_exit
     def get_master_volume(self, volume_id):
-        """
-        Discard all tickets.
-        """
+
         url = SDSBlockEndpoints.GET_MASTER_VOLUME.format(volume_id)
         try:
             response = self.connection_manager.get(url)
@@ -44,11 +42,13 @@ class SnapshotsGateway:
             return
 
     @log_entry_exit
-    def get_snapshot_volumes(self, volume_id):
+    def get_snapshot_volumes(self, volume_id, vps_id=None):
         """
         Get all snapshots.
         """
         url = SDSBlockEndpoints.GET_SNAPSHOTS_VOLUMES.format(volume_id)
+        if vps_id:
+            url = url + f"?vpsId={vps_id}"
         response = self.connection_manager.get(url)
         return SnapShotsResponseModel().dump_to_object(response)
 

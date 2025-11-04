@@ -43,6 +43,14 @@ options:
         description: A WWN or an iSCSI name.
         type: str
         required: false
+      vps_name:
+        description: VPS name.
+        type: str
+        required: false
+      vps_id:
+        description: VPS ID.
+        type: str
+        required: false
 """
 
 EXAMPLES = """

@@ -42,22 +42,30 @@ options:
     suboptions:
       remote_storage_serial_number:
         description: Serial number of the remote storage system.
+            Required for the Create a new remote connection using iSCSI ports
+            /Delete an iSCSI-based remote connection tasks.
         type: str
         required: true
       local_port:
           description: Port number of the local storage system
+            Required for the Create a new remote connection using iSCSI ports
+            /Delete an iSCSI-based remote connection tasks.
           type: str
           required: true
       remote_port:
           description: Port number of the remote storage system
+            Required for the Create a new remote connection using iSCSI ports
+            /Delete an iSCSI-based remote connection tasks.
           type: str
           required: true
       remote_storage_ip_address:
         description: IP address of the remote storage system.
+            Required for the Create a new remote connection using iSCSI ports task.
         type: str
         required: false
       remote_tcp_port:
         description: TCP port of the remote storage system.
+            Optional for the Create a new remote connection using iSCSI ports task.
         type: int
         required: false
 """

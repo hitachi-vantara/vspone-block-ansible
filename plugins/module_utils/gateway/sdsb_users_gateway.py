@@ -31,7 +31,6 @@ class SDSBBlockUsersDirectGateway:
     @log_entry_exit
     def get_users(self, spec=None):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = SDSBlockEndpoints.GET_USERS
 
         if spec is not None:
@@ -55,7 +54,6 @@ class SDSBBlockUsersDirectGateway:
     @log_entry_exit
     def create_user(self, spec=None):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = SDSBlockEndpoints.GET_USERS
         payload = {}
 
@@ -85,7 +83,6 @@ class SDSBBlockUsersDirectGateway:
     @log_entry_exit
     def update_user(self, spec=None):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = SDSBlockEndpoints.GET_USERS_BY_ID.format(spec.user_id) + "/password"
         payload = {}
         payload["currentPassword"] = spec.current_password

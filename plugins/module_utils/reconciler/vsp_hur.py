@@ -91,7 +91,6 @@ class VSPHurReconciler:
 
     @log_entry_exit
     def create_hur(self, spec):
-        logger.writeDebug("RC:create_hur:spec={} ", spec)
         self.validate_create_spec(spec)
 
         pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
