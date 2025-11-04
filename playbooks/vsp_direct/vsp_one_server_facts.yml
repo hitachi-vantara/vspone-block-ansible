@@ -84,3 +84,17 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ####################################################################
+    # Task Name : Get server details with complete information
+    ####################################################################
+    - name: Get server details with complete information
+      hitachivantara.vspone_block.vsp.hv_vsp_one_server_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          include_details: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

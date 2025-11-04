@@ -44,7 +44,7 @@ options:
     required: false
     suboptions:
       drive_location_id:
-        description: The drive location Id of the hard drive to retrieve.
+        description: The drive location Id of the hard drive to retrieve. Optional for the Get one disk drive task.
         type: str
         required: false
 """

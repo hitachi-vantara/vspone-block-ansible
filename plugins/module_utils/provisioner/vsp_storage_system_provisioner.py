@@ -394,9 +394,7 @@ class VSPStorageSystemProvisioner:
                     API_MSG = (
                         "The API is not supported for the specified storage system"
                     )
-                    if (
-                        isinstance(err.args[0], str) and API_MSG in err.args[0]
-                    ) or err.args[0].get("code") == 404:
+                    if isinstance(err.args[0], str) and API_MSG in err.args[0]:
                         tmp_storage_info["total_capacity"] = ""
                         tmp_storage_info["free_capacity"] = ""
                         tmp_storage_info["total_capacity_in_mb"] = -1

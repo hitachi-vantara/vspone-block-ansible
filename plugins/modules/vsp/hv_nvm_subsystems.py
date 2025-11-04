@@ -50,52 +50,132 @@ options:
     suboptions:
       name:
         description: The name of the NVM subsystem.If not given, it assigns the name of the NVM subsystem to "smrha-<10 digit random number>".
+          Optional for the Create an NVM Subsystem with a specific ID
+          /Create an NVM Subsystem with a free ID tasks.
+          Required for the Add host NQNs to an NVM Subsystem with a specific Name
+          /Add namespaces and namespace paths to an NVM Subsystem with a specific name
+          /Add ports to an NVM Subsystem with a specific Name
+          /Remove ports from an NVM Subsystem with a specific Name or ID
+          /Remove namespace from an NVM Subsystem with specific Id or Name
+          /Remove namespace from an NVM Subsystem with specific Id or Name using force
+          /Remove host NQNs from an NVM Subsystem with a specific Id or Name
+          /Remove host NQNs from an NVM Subsystem with a specific Id or Name using force
+          /Update host NQNs nickname of an NVM Subsystem with a specific Id or Name
+          /Update namespace nicknames of an NVM Subsystem with a specific Id or Name
+          /Delete an NVM Subsystem with a specific name
+          /Delete an NVM Subsystem with a specific name forcefully tasks.
         type: str
         required: false
       id:
         description: The ID of the NVM subsystem.
+          Required for the Create an NVM Subsystem with a specific ID
+          /Add host NQNs to an NVM Subsystem with a specific ID
+          /Add namespaces and namespace paths to an NVM Subsystem with a specific ID
+          /Add ports to an NVM Subsystem with a specific ID
+          /Remove ports from an NVM Subsystem with a specific Name or ID
+          /Remove namespace paths from an NVM Subsystem with specific Id or Name
+          /Remove namespace from an NVM Subsystem with specific Id or Name
+          /Remove namespace from an NVM Subsystem with specific Id or Name using force
+          /Remove host NQNs from an NVM Subsystem with a specific Id or Name
+          /Remove host NQNs from an NVM Subsystem with a specific Id or Name using force
+          /Update host NQNs nickname of an NVM Subsystem with a specific Id or Name
+          /Update namespace nicknames of an NVM Subsystem with a specific Id or Name
+          /Delete an NVM Subsystem with a specific Id
+          /Delete an NVM Subsystem with a specific Id forcefully tasks.
         type: int
         required: false
       host_mode:
         description: The host mode of the NVM subsystem.
+          Required for the Create an NVM Subsystem with a specific ID
+          /Create an NVM Subsystem with a free ID tasks.
         type: str
         required: false
       enable_namespace_security:
         description: Namespace security settings.
+          Required for the Create an NVM Subsystem with a specific ID task.
+          Optional for the Create an NVM Subsystem with a free ID task.
         type: bool
         required: false
         default: true
       ports:
         description: The ports of the NVM subsystem.
+          Required for the Create an NVM Subsystem with a specific ID
+          /Create an NVM Subsystem with a free ID
+          /Add ports to an NVM Subsystem with a specific ID
+          /Add ports to an NVM Subsystem with a specific Name
+          /Remove ports from an NVM Subsystem with a specific Name or ID tasks.
         type: list
         elements: str
         required: false
       host_nqns:
         description: The host NQNs of the NVM subsystem.
+          Required for the Create an NVM Subsystem with a specific ID
+          /Add host NQNs to an NVM Subsystem with a specific ID
+          /Add host NQNs to an NVM Subsystem with a specific Name
+          /Remove host NQNs from an NVM Subsystem with a specific Id or Name
+          /Remove host NQNs from an NVM Subsystem with a specific Id or Name using force
+          /Update host NQNs nickname of an NVM Subsystem with a specific Id or Name tasks.
+          Optional for the Create an NVM Subsystem with a free ID task.
         type: list
         elements: dict
         required: false
       namespaces:
         description: The namespaces of the NVM subsystem.
+          Required for the Create an NVM Subsystem with a specific ID
+          /Add namespaces and namespace paths to an NVM Subsystem with a specific ID
+          /Add namespaces and namespace paths to an NVM Subsystem with a specific name
+          /Remove namespace paths from an NVM Subsystem with specific Id or Name
+          /Remove namespace from an NVM Subsystem with specific Id or Name
+          /Remove namespace from an NVM Subsystem with specific Id or Name using force
+          /Update namespace nicknames of an NVM Subsystem with a specific Id or Name tasks.
+          Optional for the Create an NVM Subsystem with a free ID task.
         type: list
         elements: dict
         required: false
         suboptions:
           ldev_id:
             description: The LDEV ID of the namespace.
+              Required for the Create an NVM Subsystem with a specific ID
+              /Create an NVM Subsystem with a free ID
+              /Add namespaces and namespace paths to an NVM Subsystem with a specific ID
+              /Add namespaces and namespace paths to an NVM Subsystem with a specific name
+              /Remove namespace paths from an NVM Subsystem with specific Id or Name
+              /Remove namespace from an NVM Subsystem with specific Id or Name
+              /Remove namespace from an NVM Subsystem with specific Id or Name using force
+              /Update namespace nicknames of an NVM Subsystem with a specific Id or Name tasks.
             type: str
             required: true
           nickname:
             description: The nickname of the namespace.
+              Required for the Create an NVM Subsystem with a specific ID
+              /Create an NVM Subsystem with a free ID
+              /Add namespaces and namespace paths to an NVM Subsystem with a specific ID
+              /Add namespaces and namespace paths to an NVM Subsystem with a specific name
+              /Remove namespace paths from an NVM Subsystem with specific Id or Name
+              /Remove namespace from an NVM Subsystem with specific Id or Name
+              /Remove namespace from an NVM Subsystem with specific Id or Name using force
+              /Update namespace nicknames of an NVM Subsystem with a specific Id or Name tasks.
             type: str
             required: false
           paths:
             description: The paths of the namespace.
+              Required for the Create an NVM Subsystem with a specific ID
+              /Create an NVM Subsystem with a free ID
+              /Add namespaces and namespace paths to an NVM Subsystem with a specific ID
+              /Add namespaces and namespace paths to an NVM Subsystem with a specific name
+              /Remove namespace paths from an NVM Subsystem with specific Id or Name
+              /Remove namespace from an NVM Subsystem with specific Id or Name
+              /Remove namespace from an NVM Subsystem with specific Id or Name using force
+              /Update namespace nicknames of an NVM Subsystem with a specific Id or Name tasks.
             type: list
             elements: str
             required: false
       force:
         description: This flag is used to force the operation.
+          Required for the Remove namespace from an NVM Subsystem with specific Id or Name using force
+          /Remove host NQNs from an NVM Subsystem with a specific Id or Name using force
+          /Delete an NVM Subsystem with a specific Id forcefully
+          /Delete an NVM Subsystem with a specific name forcefully tasks.
         type: bool
         required: false
         default: false

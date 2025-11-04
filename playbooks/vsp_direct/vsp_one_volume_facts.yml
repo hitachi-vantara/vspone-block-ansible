@@ -17,6 +17,22 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
+    #######################################################################################
+    # Task Name : Get all volumes
+    # Note: With this task, you can obtain information for a maximum of 500 volumes.
+    #       To obtain information for more than 500 volumes, execute the task several
+    #       times by using a combination of the count and start_volume_id parameters.
+    #       By specifying the count parameter, you can also filter the volume information.
+    # ######################################################################################
+    - name: Get all volumes
+      hitachivantara.vspone_block.vsp.hv_vsp_one_volume_facts:
+        connection_info: "{{ connection_info }}"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
     ####################################################################
     # Task Name : Get facts for volumes in a specific pool by pool_id
     ####################################################################

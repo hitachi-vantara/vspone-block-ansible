@@ -45,6 +45,7 @@ options:
     suboptions:
       parity_group_id:
         description: The parity group number of the parity group to retrieve.
+          Required for the Get one parity group task.
         type: str
         required: false
 """

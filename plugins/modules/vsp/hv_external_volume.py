@@ -50,19 +50,19 @@ options:
     required: false
     suboptions:
       ldev_id:
-        description: LDEV ID, it will be auto-selected if omitted.
+        description: LDEV ID, it will be auto-selected if omitted. Required for the Create/Delete tasks.
         type: str
         required: false
       external_storage_serial:
-        description: The external storage serial number.
+        description: The external storage serial number. Required for the Create/Delete tasks.
         type: str
         required: false
       external_ldev_id:
-        description: The external LDEV ID.
+        description: The external LDEV ID. Required for the Create/Delete tasks.
         type: str
         required: false
       external_parity_group:
-        description: The external parity group ID.
+        description: The external parity group ID. Required for the Disconnect from a volume tasks.
         type: str
         required: false
 """

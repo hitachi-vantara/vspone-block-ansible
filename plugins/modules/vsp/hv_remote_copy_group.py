@@ -75,27 +75,66 @@ options:
     suboptions:
       copy_group_name:
         description: Copy group name, required for all operations.
+          Required for the Split remote copy group for HUR
+          /Split remote copy group for TC
+          /Split Remote Copy Group for GAD
+          /Resync Remote Copy Group for HUR
+          /Resync Remote Copy Group for TC
+          /Resync Remote Copy Group for GAD
+          /Swap-Split Remote Copy Group for all replication types [HUR, TC, GAD]
+          /Swap-Resync Remote Copy Group for HUR
+          /Swap-Resync Remote Copy Group for TC
+          /Swap-Resync Remote Copy Group for GAD
+          /Delete remote copy group
+          /Takeover Remote Copy Group for HUR replication type tasks.
         type: str
         required: true
       replication_type:
         description: Replication type, either C(UR), C(TC) or C(GAD).
+          Optional for the Split remote copy group for HUR
+          /Split remote copy group for TC
+          /Resync Remote Copy Group for HUR
+          /Resync Remote Copy Group for TC
+          /Swap-Split Remote Copy Group for all replication types [HUR, TC, GAD]
+          /Swap-Resync Remote Copy Group for HUR
+          /Swap-Resync Remote Copy Group for TC
+          /Takeover Remote Copy Group for HUR replication type tasks.
+          Required for the Split Remote Copy Group for GAD
+          /Resync Remote Copy Group for GAD
+          /Swap-Resync Remote Copy Group for GAD tasks.
         type: str
         required: false
         choices: ['TC', 'UR', 'GAD', 'HUR']
       is_svol_writable:
         description: Whether svol is writable or not.
+          Optional for the Split remote copy group for HUR
+          /Split remote copy group for TC tasks.
         type: bool
         required: false
       do_pvol_write_protect:
         description: For TC, specify whether to forcibly disable write operations for the P-VOL.
+          Optional for the Split remote copy group for HUR
+          /Split remote copy group for TC tasks.
         type: bool
         required: false
       do_data_suspend:
         description: For UR, specify whether to forcibly stop operations on a journal when the amount of access to the journal increases.
+          Optional for the Split remote copy group for HUR task.
         type: bool
         required: false
       local_device_group_name:
         description: Device group name in the local storage system.
+          Optional for the Split remote copy group for HUR
+          /Split Remote Copy Group for GAD
+          /Resync Remote Copy Group for HUR
+          /Resync Remote Copy Group for TC
+          /Resync Remote Copy Group for GAD
+          /Swap-Split Remote Copy Group for all replication types [HUR, TC, GAD]
+          /Swap-Resync Remote Copy Group for HUR
+          /Swap-Resync Remote Copy Group for TC
+          /Swap-Resync Remote Copy Group for GAD
+          /Delete remote copy group tasks.
+          Required for the Split remote copy group for TC task.
         type: str
         required: false
       svol_operation_mode:
@@ -105,6 +144,18 @@ options:
         required: false
       remote_device_group_name:
         description: Device group name in the remote storage system.
+          Optional for the Split remote copy group for HUR
+          /Split remote copy group for TC
+          /Split Remote Copy Group for GAD
+          /Resync Remote Copy Group for HUR
+          /Resync Remote Copy Group for TC
+          /Resync Remote Copy Group for GAD
+          /Swap-Split Remote Copy Group for all replication types [HUR, TC, GAD]
+          /Swap-Resync Remote Copy Group for HUR
+          /Swap-Resync Remote Copy Group for TC
+          /Swap-Resync Remote Copy Group for GAD
+          /Delete remote copy group tasks.
+          Required for the Takeover Remote Copy Group for HUR replication type task.
         type: str
         required: false
       is_consistency_group:
@@ -116,21 +167,32 @@ options:
           - If the pair is registered in a consistency group
           - true - Leaves the pair registered in a consistency group.
           - false - Cancels the registration of the pair in a consistency group, and places it in an unregistered state.
+          - Optional for the Resync Remote Copy Group for TC
+          - /Resync Remote Copy Group for GAD
+          - /Swap-Resync Remote Copy Group for TC
+          - /Swap-Resync Remote Copy Group for GAD tasks.
         type: bool
         required: false
       consistency_group_id:
         description: For TC, specify the consistency group ID by using a decimal number in the range from 0 to 255.
+          Optional for the Resync Remote Copy Group for TC
+          /Resync Remote Copy Group for GAD
+          /Swap-Resync Remote Copy Group for TC
+          /Swap-Resync Remote Copy Group for GAD tasks.
         type: int
         required: false
       fence_level:
         description: Specifies the primary volume fence level setting and determines if the host is denied access or continues to access
             the primary volume when the pair is suspended because of an error.
+            Optional for the Resync Remote Copy Group for TC task.
         type: str
         required: false
         choices: ['NEVER', 'DATA', 'STATUS']
       copy_pace:
         description: For TC, specify a decimal number in the range from 1 to 15 for the size of tracks to be copied.
           The larger the value you specify, the faster the copy speed.
+          Optional for the Resync Remote Copy Group for TC
+          /Swap-Resync Remote Copy Group for TC tasks.
         type: int
         required: false
       do_failback:

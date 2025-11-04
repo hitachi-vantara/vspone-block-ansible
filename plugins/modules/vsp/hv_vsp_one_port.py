@@ -61,9 +61,8 @@ options:
             type: bool
             required: false
           connection_type:
-            description: FC connection type.
+            description: FC connection type choices are C(Point_To_Point) and C(FC_AL) and case insensitive.
             type: str
-            choices: ["Point_To_Point", "FC_AL"]
             required: false
       iscsi_settings:
         description: iSCSI specific settings.
@@ -83,9 +82,8 @@ options:
             type: int
             required: false
           ip_mode:
-            description: IP mode configuration.
+            description: IP mode configuration. Choices are C(ipv4) and C(ipv4v6) and case insensitive.
             type: str
-            choices: ["ipv4", "ipv4v6"]
             required: false
           ipv4_configuration:
             description: IPv4 configuration settings.
@@ -134,14 +132,13 @@ options:
             type: bool
             required: false
           window_size:
-            description: TCP window size.
+            description: TCP window size. Choices are C(NUMBER_16K), C(NUMBER_32K), C(NUMBER_64K), C(NUMBER_128K), C(NUMBER_256K), C(NUMBER_512K),
+                        C(NUMBER_1024K) and case insensitive.
             type: str
-            choices: ["NUMBER_16K", "NUMBER_32K", "NUMBER_64K", "NUMBER_128K", "NUMBER_256K", "NUMBER_512K", "NUMBER_1024K"]
             required: false
           mtu_size:
-            description: MTU size.
+            description: MTU size. Choices are C(NUMBER_1500), C(NUMBER_4500), C(NUMBER_9000) and case insensitive.
             type: str
-            choices: ["NUMBER_1500", "NUMBER_4500", "NUMBER_9000"]
             required: false
           keep_alive_timer:
             description: Keep alive timer value.
@@ -181,9 +178,8 @@ options:
             type: int
             required: false
           ip_mode:
-            description: IP mode configuration.
+            description: IP mode configuration. Choices are C(ipv4) and C(ipv4v6) and case insensitive.
             type: str
-            choices: ["ipv4", "ipv4v6"]
             required: false
           ipv4_configuration:
             description: IPv4 settings.
@@ -236,20 +232,18 @@ options:
             type: bool
             required: false
           window_size:
-            description: TCP window size.
+            description: TCP window size. Choices are C(NUMBER_64K), C(NUMBER_128K), C(NUMBER_256K), C(NUMBER_512K), C(NUMBER_1024K) and case insensitive.
             type: str
-            choices: ["NUMBER_64K", "NUMBER_128K", "NUMBER_256K", "NUMBER_512K", "NUMBER_1024K"]
             required: false
           mtu_size:
-            description: MTU size.
+            description: MTU size. Choices are C(NUMBER_1500), C(NUMBER_4500), C(NUMBER_9000) and case insensitive.
             type: str
-            choices: ["NUMBER_1500", "NUMBER_4500", "NUMBER_9000"]
             required: false
 """
 
 EXAMPLES = """
 - name: Configure basic port settings (port security and speed)
-  hitachivantara.vspone_block.hv_vsp_one_port:
+  hitachivantara.vspone_block.vsp.hv_vsp_one_port:
     connection_info:
       address: vsp.company.com
       username: "admin"
@@ -260,7 +254,7 @@ EXAMPLES = """
       enable_port_security: true
 
 - name: Configure FC port with all settings
-  hitachivantara.vspone_block.hv_vsp_one_port:
+  hitachivantara.vspone_block.vsp.hv_vsp_one_port:
     connection_info:
       address: vsp.company.com
       username: "admin"
@@ -275,7 +269,7 @@ EXAMPLES = """
         connection_type: "Point_To_Point"
 
 - name: Configure iSCSI port with comprehensive settings
-  hitachivantara.vspone_block.hv_vsp_one_port:
+  hitachivantara.vspone_block.vsp.hv_vsp_one_port:
     connection_info:
       address: vsp.company.com
       username: "admin"
@@ -308,7 +302,7 @@ EXAMPLES = """
         enable_virtual_port: false
 
 - name: Configure NVMe over TCP port with all parameters
-  hitachivantara.vspone_block.hv_vsp_one_port:
+  hitachivantara.vspone_block.vsp.hv_vsp_one_port:
     connection_info:
       address: vsp.company.com
       username: "admin"
@@ -337,7 +331,7 @@ EXAMPLES = """
         mtu_size: "NUMBER_4500"
 
 - name: Remove VLAN from iSCSI port
-  hitachivantara.vspone_block.hv_vsp_one_port:
+  hitachivantara.vspone_block.vsp.hv_vsp_one_port:
     connection_info:
       address: vsp.company.com
       username: "admin"
@@ -348,7 +342,7 @@ EXAMPLES = """
         delete_vlan_id: 100
 
 - name: Configure port with minimal settings
-  hitachivantara.vspone_block.hv_vsp_one_port:
+  hitachivantara.vspone_block.vsp.hv_vsp_one_port:
     connection_info:
       address: vsp.company.com
       username: "admin"

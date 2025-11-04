@@ -6,8 +6,7 @@ try:
         get_size_from_byte_format_capacity,
         dicts_to_dataclass_list,
     )
-    from ..gateway.gateway_factory import GatewayFactory
-    from ..common.hv_constants import GatewayClassTypes, ConnectionTypes
+    from ..common.hv_constants import ConnectionTypes
     from ..common.hv_log import Log
     from ..common.vsp_constants import DEFAULT_NAME_PREFIX
     from ..model.vsp_shadow_image_pair_models import (
@@ -22,6 +21,7 @@ try:
     from ..model.vsp_volume_models import CreateVolumeSpec, VSPVolumeInfo
     from ..model.vsp_host_group_models import VSPHostGroupInfo
     from ..message.vsp_lun_msgs import VSPVolValidationMsg
+    from ..gateway.vsp_shadow_image_pair_gateway import VSPShadowImagePairDirectGateway
 
 except ImportError:
     from common.ansible_common import (
@@ -29,10 +29,9 @@ except ImportError:
         get_size_from_byte_format_capacity,
         dicts_to_dataclass_list,
     )
-    from common.hv_constants import GatewayClassTypes, ConnectionTypes
+    from common.hv_constants import ConnectionTypes
     from common.hv_log import Log
     from common.vsp_constants import DEFAULT_NAME_PREFIX
-    from gateway.gateway_factory import GatewayFactory
     from model.vsp_shadow_image_pair_models import (
         VSPShadowImagePairsInfo,
         VSPShadowImagePairInfo,
@@ -52,9 +51,8 @@ logger = Log()
 class VSPShadowImagePairProvisioner:
 
     def __init__(self, connection_info):
-        self.gateway = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.VSP_SHADOW_IMAGE_PAIR
-        )
+
+        self.gateway = VSPShadowImagePairDirectGateway(connection_info)
         self.connection_info = connection_info
         self.vol_provisioner = VSPVolumeProvisioner(connection_info)
         self.hg_prov = VSPHostGroupProvisioner(self.connection_info)
@@ -355,6 +353,21 @@ class VSPShadowImagePairProvisioner:
             dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo)
         )
         return data.data_to_list()
+
+    @log_entry_exit
+    def get_specific_cg_pair_by_pvol_svol(
+        self,
+        pvol,
+        svol=None,
+        cg_name=None,
+        cp_name=None,
+        pm_device_grp_name=None,
+        sec_device_grp_name=None,
+    ):
+
+        return self.gateway.get_specific_cg_pair_by_pvol_svol(
+            pvol, svol, cg_name, cp_name, pm_device_grp_name, sec_device_grp_name
+        )
 
     @log_entry_exit
     def split_shadow_image_pair(self, serial, updateShadowImagePairSpec):

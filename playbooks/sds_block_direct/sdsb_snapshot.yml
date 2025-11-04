@@ -69,9 +69,9 @@
         var: result
 
     #########################################################################
-    # Task Name : Create a snapshot of the specified volume in a vps
+    # Task Name : Create a snapshot of the specified volume in a VPS
     #########################################################################
-    - name: Create a snapshot of the specified volume in a vps
+    - name: Create a snapshot of the specified volume in a VPS
       hitachivantara.vspone_block.sds_block.hv_sds_block_snapshot:
         connection_info: "{{ connection_info }}"
         state: "present"

@@ -35,7 +35,7 @@
         var: result
 
     #########################################################################
-    # Task Name : Add storage node to the SDS cluster on Azure cloud
+    # Task Name : Add storage node to the SDS cluster on Azure Cloud
     #########################################################################
     - name: Add storage node to the cluster on Azure Cloud
       hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
@@ -50,9 +50,9 @@
         var: result
 
     #########################################################################
-    # Task Name : Add storage node to the SDS cluster on AWS cloud
+    # Task Name : Add storage node to the SDS cluster on AWS Cloud
     #########################################################################
-    - name: Add storage node to the cluster on Azure Cloud
+    - name: Add storage node to the cluster on AWS Cloud
       hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
         connection_info: "{{ connection_info }}"
         state: "add_storage_node"
@@ -171,7 +171,8 @@
 
     #########################################################################################
     # Task Name : Create the cluster configuration file for different export file types
-    #              Supported export file types are : Normal, AddStorageNodes, and AddDrives.
+    #              Supported export file types are : normal, add_storage_nodes, replace_storage_node,
+    #              and add_drives.
     # Note: This task is supported for Bare Metal, Google Cloud, and Microsoft Azure.
     #       This task is not supported for AWS.
     ########################################################################################
@@ -181,7 +182,7 @@
         state: "download_config_file"
         spec:
           config_file_location: "/tmp/download2"
-          export_file_type: "AddStorageNodes"
+          export_file_type: "add_storage_nodes"
           machine_image_id: "hv-gpse-sophia-lab-dev/hsds-installed-sdsc-01180060-0764"
           refresh: true
       register: result
@@ -192,7 +193,31 @@
 
     #########################################################################################
     # Task Name : Create the cluster configuration file for different export file types
-    #             Supported export file types are : Normal, AddStorageNodes, and AddDrives.
+    #              Supported export file types are : normal, add_storage_nodes, replace_storage_node,
+    #              and add_drives.
+    # Note: Replace storage node with configuration file for GCP,
+    #       This task is not supported for AWS.
+    ########################################################################################
+    - name: Create the cluster configuration file to add storage nodes and then download it
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "download_config_file"
+        spec:
+          config_file_location: "/tmp/download2"
+          export_file_type: "replace_storage_node"
+          machine_image_id: "hv-gpse-sophia-lab-dev/hsds-installed-sdsc-01180060-0764"
+          should_recover_single_node: true
+          node_id: "your-storage-node-id"
+          refresh: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################
+    # Task Name : Create the cluster configuration file for different export file types
+    #             Supported export file types are : normal, add_storage_nodes, and add_drives.
     # Note: This task is for Bare Metal, Google Cloud, and Microsoft Azure.
     #       For AWS, please see the next task.
     ########################################################################################
@@ -202,7 +227,7 @@
         state: "download_config_file"
         spec:
           config_file_location: "/tmp/download2"
-          export_file_type: "AddDrives"
+          export_file_type: "add_drives"
           no_of_drives: 2
           refresh: true
       register: result
@@ -213,7 +238,7 @@
 
     #########################################################################################
     # Task Name : Create the cluster configuration file for different export file types
-    #              Supported export file types are : Normal, AddStorageNodes, and AddDrives.
+    #              Supported export file types are : normal, add_storage_nodes, and add_drives.
     # Note: This task is for AWS only. It requires additional parameter template_s3_url.
     ########################################################################################
     - name: Create the cluster configuration file to add storage nodes and then download it
@@ -222,7 +247,29 @@
         state: "download_config_file"
         spec:
           config_file_location: "/tmp/download2"
-          export_file_type: "AddStorageNodes"
+          export_file_type: "add_storage_nodes"
+          machine_image_id: "ami-0aa69c732980e4cd2"
+          template_s3_url: "https://radey-bucket.s3.us-west-2.amazonaws.com/template/"
+          refresh: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################
+    # Task Name : Create the cluster configuration file for different export file types
+    #              Supported export file types are : normal, add_storage_nodes, replace_storage_nodes,
+    #              and add_drives.
+    # Note: This task is for AWS only. It requires additional parameter template_s3_url.
+    ########################################################################################
+    - name: Create the cluster configuration file to add storage nodes and then download it
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "download_config_file"
+        spec:
+          config_file_location: "/tmp/download2"
+          export_file_type: "replace_storage_node"
           machine_image_id: "ami-0aa69c732980e4cd2"
           template_s3_url: "https://radey-bucket.s3.us-west-2.amazonaws.com/template/"
           refresh: true
@@ -268,6 +315,85 @@
       hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
         connection_info: "{{ connection_info }}"
         state: "stop_removing_storage_node"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #############################################################################
+    # Task Name : Replace storage node in the cluster by storage node ID on GCP
+    # ###########################################################################
+    - name: Replace storage node in the cluster by storage node ID on GCP
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "replace_storage_node"
+        spec:
+          node_id: "your-storage-node-id"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #############################################################################
+    # Task Name : Replace storage node in the cluster by storage node ID on Azure
+    # ###########################################################################
+    - name: Replace storage node in the cluster by storage node ID on Azure
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "replace_storage_node"
+        spec:
+          node_id: "your-storage-node-id"
+          machine_image_id: "hitachivantara:vsp_one_sds_block_image:01_18_00_50_byol:573.0.0"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #############################################################################
+    # Task Name : Replace storage node in the cluster by storage node ID on AWS
+    # ###########################################################################
+    - name: Replace storage node in the cluster by storage node ID on AWS
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "replace_storage_node"
+        spec:
+          node_id: "your-storage-node-id"
+          vm_configuration_file_s3_uri: "s3://your-bucket/template/VMConfigurationFile.yml"
+          configuration_file: "/tmp/download2/SystemConfigurationFile.csv"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ##################################################################################
+    # Task Name : Replace storage node in the cluster by storage node ID on Bare Metal
+    # ################################################################################
+    - name: Replace storage node in the cluster by storage node ID on Bare Metal
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "replace_storage_node"
+        spec:
+          node_id: "your-storage-node-id"
+          setup_user_password: "NEW_PASSWORD"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ###############################################################################################
+    # Task Name : Import system requirements file for performing replace storage node on Bare metal
+    # ##############################################################################################
+    - name: Import system requirements file for performing replace storage node on Bare metal
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "system_requirement_file_present"
+        spec:
+          system_requirement_file: "/users/radey/SystemRequirementsFile.yml"
       register: result
 
     - name: Debug the result variable

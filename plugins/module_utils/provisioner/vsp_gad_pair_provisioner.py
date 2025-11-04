@@ -736,7 +736,6 @@ class GADPairProvisioner:
     def apply_filters(self, tc_pairs, spec):
         pairs = self.get_gad_copypairs(tc_pairs)
 
-        logger.writeDebug("sng20241115 spec={}", spec)
         result = pairs
         if not spec.primary_volume_id and not spec.secondary_volume_id:
             return result
@@ -1472,7 +1471,7 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
 
             if iscsi_targets is not None and len(iscsi_targets) > 0:
                 lun_ids = self.find_lun_ids_from_spec(
-                    iscsi_targets, spec.secondary_iscsi_targets
+                    iscsi_targets, spec.secondary_iscsi_targets, is_iscsi=True
                 )
                 self.add_luns_to_iscsi_targets(sec_vol_id, iscsi_targets, lun_ids)
 

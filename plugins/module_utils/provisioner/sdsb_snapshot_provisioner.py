@@ -104,6 +104,7 @@ class SDSBSnapshotProvisioner:
             spec.name,
             spec.master_volume_id if spec.master_volume_id else None,
             (spec.snapshot_volume_id if spec.snapshot_volume_id else None),
+            (spec.vps_id if spec.vps_id else None),
         )
         if snapshot:
             spec.snapshot_volume_id = snapshot.snapshotVolumeId
@@ -126,6 +127,7 @@ class SDSBSnapshotProvisioner:
             snapshot_name=spec.name,
             volume_id=spec.master_volume_id if spec.master_volume_id else None,
             snapshot_id=spec.snapshot_volume_id if spec.snapshot_volume_id else None,
+            vps_id=spec.vps_id if spec.vps_id else None,
         )
         self.connection_info.changed = True
         return snapshot, SDSSnapShotsMsgs.SNAPSHOT_CREATED.value
@@ -140,6 +142,7 @@ class SDSBSnapshotProvisioner:
             snapshot_name=spec.name,
             volume_id=spec.master_volume_id,
             snapshot_id=spec.snapshot_volume_id,
+            vps_id=spec.vps_id if spec.vps_id else None,
         )
         self.connection_info.changed = True
         return snapshot, SDSSnapShotsMsgs.RESTORE_MSG.value
@@ -155,7 +158,9 @@ class SDSBSnapshotProvisioner:
         return None, SDSSnapShotsMsgs.DELETE_MSG.value
 
     @log_entry_exit
-    def query_snapshot(self, snapshot_name: str, volume_id, snapshot_id=None):
+    def query_snapshot(
+        self, snapshot_name: str, volume_id, snapshot_id=None, vps_id=None
+    ):
         """
         Get a snapshot by its name.
         """
@@ -163,8 +168,14 @@ class SDSBSnapshotProvisioner:
             master_vol = self.gateway.get_master_volume(snapshot_id)
             if master_vol:
                 volume_id = master_vol.masterVolumeId
-
-        snapshots = self.gateway.get_snapshot_volumes(volume_id)
+        try:
+            snapshots = self.gateway.get_snapshot_volumes(volume_id, vps_id)
+        except Exception as e:
+            logger.writeDebug(f"Error: {e}")
+            raise ValueError(
+                SDSSnapShotsMsgs.SNAPSHOT_VOLUME_NOT_FOUND.value.format(volume_id)
+            )
+        # snapshots = self.gateway.get_snapshot_volumes(volume_id, vps_id)
 
         if snapshot_name is None and snapshot_id is None:
             return snapshots.data[0] if snapshots.data else None
@@ -217,8 +228,17 @@ class SDSBSnapshotProvisioner:
                 spec.master_volume_id = master_volume.masterVolumeId
             else:
                 return SDSSnapShotsMsgs.SNAPSHOT_NOT_FOUND.value
-        snapshots = self.gateway.get_snapshot_volumes(spec.master_volume_id)
-
+        try:
+            snapshots = self.gateway.get_snapshot_volumes(
+                spec.master_volume_id, spec.vps_id
+            )
+        except Exception as e:
+            logger.writeDebug(f"Error: {e}")
+            raise ValueError(
+                SDSSnapShotsMsgs.SNAPSHOT_VOLUME_NOT_FOUND.value.format(
+                    spec.master_volume_id
+                )
+            )
         if snapshots is None:
             return SDSSnapShotsMsgs.SNAPSHOT_VOLUME_NOT_FOUND.value.format(
                 spec.master_volume_id

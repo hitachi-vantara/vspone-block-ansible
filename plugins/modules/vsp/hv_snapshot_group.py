@@ -51,18 +51,28 @@ options:
     suboptions:
       snapshot_group_name:
         description: The name of the snapshot group.
+          Required for the Split the snapshot pairs using group name
+          /Restore the snapshot pairs using group name
+          /Restore the snapshot pairs using group name and auto split
+          /Resync the snapshot pairs using group name
+          /Delete the snapshot pairs using group name
+          /Set retention period of snapshots using group name
+          /Clone the snapshot pairs using group name tasks.
         type: str
         required: true
       auto_split:
         description: Automatically split the snapshot group.
+          Required for the Restore the snapshot pairs using group name and auto split task.
         type: bool
         required: false
       retention_period:
         description: Specify the retention period for the snapshot in hours.This can be set when the snapshot status is PSUS.
+          Required for the Set retention period of snapshots using group name task.
         type: int
         required: false
       copy_speed:
         description: The speed of the copy operation.
+          Optional for the Clone the snapshot pairs using group name task.
         type: str
         required: false
         choices: ['SLOW', 'MEDIUM', 'FAST']

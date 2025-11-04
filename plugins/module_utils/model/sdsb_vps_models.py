@@ -41,6 +41,26 @@ class VolumeSettings(SingleBaseClass):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.__post_init__()
+
+    def __post_init__(self):
+        if self.qosParam:
+            self.qosParam = QosParam(**self.qosParam)
+
+    def to_dict(self):
+        return asdict(self)
+
+
+@dataclass
+class VpsVolumeSettingsSpec:
+    pool_id: Optional[str] = None  # required
+    upper_limit_for_number_of_volumes: Optional[int] = None  # required
+    upper_limit_for_capacity_of_volumes_mb: Optional[int] = None  # required
+    upper_limit_for_capacity_of_single_volume_mb: Optional[int] = None
+    upper_limit_for_iops_of_volume: Optional[int] = None
+    upper_limit_for_transfer_rate_of_volume_mbps: Optional[int] = None
+    upper_alert_allowable_time_of_volume: Optional[int] = None
+    capacity_saving: Optional[str] = None  # Disabled, Compression
 
     def to_dict(self):
         return asdict(self)
@@ -50,14 +70,31 @@ class VolumeSettings(SingleBaseClass):
 class VpsSpec:
     id: Optional[str] = None
     name: Optional[str] = None  # required for rest API create call
-    upper_limit_for_number_of_user_groups: Optional[int] = -1
-    upper_limit_for_number_of_users: Optional[int] = -1
-    upper_limit_for_number_of_sessions: Optional[int] = -1
+    upper_limit_for_number_of_user_groups: Optional[int] = None
+    upper_limit_for_number_of_users: Optional[int] = None
+    upper_limit_for_number_of_sessions: Optional[int] = None
     upper_limit_for_number_of_servers: Optional[int] = (
-        -1
-    )  # required for rest API create call
-    volume_settings: Optional[List[VpsDefaultVolumeSettings]] = None  # required
+        None  # required for rest API create call
+    )
+    volume_settings: Optional[List[VpsVolumeSettingsSpec]] = None  # required
+    upper_limit_for_number_of_volumes: Optional[int] = None  # required
+    upper_limit_for_capacity_of_volumes_mb: Optional[int] = None  # required
+    upper_limit_for_capacity_of_single_volume_mb: Optional[int] = None
+    upper_limit_for_iops_of_volume: Optional[int] = None
+    upper_limit_for_transfer_rate_of_volume_mbps: Optional[int] = None
+    upper_alert_allowable_time_of_volume: Optional[int] = None
     capacity_saving: Optional[str] = None
+
+    def __init__(self, **kwargs):
+        for field in self.__dataclass_fields__.keys():
+            setattr(self, field, kwargs.get(field, None))
+        self.__post_init__()
+
+    def __post_init__(self):
+        if self.volume_settings:
+            self.volume_settings = [
+                VpsVolumeSettingsSpec(**vs) for vs in self.volume_settings
+            ]
 
 
 @dataclass
@@ -86,6 +123,11 @@ class SDSBVpsInfo(SingleBaseClass):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.__post_init__()
+
+    def __post_init__(self):
+        if self.volumeSettings:
+            self.volumeSettings = VolumeSettings(**self.volumeSettings)
 
     def to_dict(self):
         return asdict(self)

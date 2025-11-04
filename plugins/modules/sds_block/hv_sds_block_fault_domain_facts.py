@@ -87,7 +87,7 @@ ansible_facts:
           description: Name of the fault domain.
           type: str
           sample: "SC01-PD01-FD01"
-        statusSummary:
+        status_summary:
           description: Summary of the fault domain's status.
           type: str
           sample: "Normal"
@@ -95,43 +95,43 @@ ansible_facts:
           description: Current operational status of the fault domain.
           type: str
           sample: "Normal"
-        numberOfStorageNodes:
+        number_of_storage_nodes:
           description: Number of storage nodes in the fault domain.
           type: int
           sample: 3
-        availabilityZoneId:
+        availability_zone_id:
           description: UUID of the availability zone associated with the fault domain, if any.
           type: str
           sample: null
-        totalCapacity:
+        total_capacity:
           description: Total physical capacity of the fault domain in GB.
           type: int
           sample: 0
-        usedCapacity:
+        used_capacity:
           description: Used physical capacity of the fault domain in GB.
           type: int
           sample: 0
-        freeCapacity:
+        free_capacity:
           description: Free physical capacity of the fault domain in GB.
           type: int
           sample: 0
-        usedCapacityRate:
+        used_capacity_rate:
           description: Percentage of used capacity in the fault domain.
           type: int
           sample: 0
-        totalVolumeCapacity:
+        total_volume_capacity:
           description: Total logical volume capacity in the fault domain.
           type: int
           sample: 0
-        provisionedVolumeCapacity:
+        provisioned_volume_capacity:
           description: Total provisioned volume capacity.
           type: int
           sample: 0
-        otherVolumeCapacity:
+        other_volume_capacity:
           description: Capacity used by volumes not categorized elsewhere.
           type: int
           sample: 0
-        temporaryVolumeCapacity:
+        temporary_volume_capacity:
           description: Capacity used by temporary volumes.
           type: int
           sample: 0

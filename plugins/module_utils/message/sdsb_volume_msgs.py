@@ -23,10 +23,8 @@ class SDSBVolValidationMsg(Enum):
     )
     INVALID_CAPACITY = "Volume capacity specified is less than the actual volume capacity. Provide a capacity greater than the actual capacity."
     CONTRADICT_INFO = "Contradicting information provided in the spec. Volume name does not exist in the system, and spec.state is set to remove_compute_node."
-    POOL_VPS_BOTH = "Both pool_name and vps_name cannot be specified concurrently. ,Specify the parameter correctly."
-    POOL_OR_VPS_ID = (
-        "Either pool_name or vps_name is required ,Specify the parameter correctly."
-    )
+    POOL_VPS_BOTH = "pool_name cannot be specified together with vps_name or vps_id. Please provide the correct parameter."
+    POOL_OR_VPS_ID = "Either pool_name, vps_name, or vps_id must be specified. Please provide the correct parameter."
     QOS_UPPER_LIMIT_IOPS_OUT_OF_RANGE = (
         "upper_limit_for_iops must be -1 or 100 to 2147483647."
     )

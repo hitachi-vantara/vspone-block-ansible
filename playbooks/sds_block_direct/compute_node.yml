@@ -190,3 +190,67 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ####################################################################
+    # Task Name : Create a compute node in a VPS by VPS name
+    ####################################################################
+    - name: Create a compute node in a VPS by VPS name
+      hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node:
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: computenode2
+          os_type: Linux
+          vps_name: "RKD_VPS_02"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Create a compute node in a VPS by VPS ID
+    ####################################################################
+    - name: Create a compute node in a VPS by VPS ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node:
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: computenode2
+          os_type: Linux
+          vps_id: "2a843522-a819-47ab-a208-69d190809604"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################
+    # Task Name : Delete compute node by name in a VPS by VPS ID
+    #########################################################################
+    - name: Delete compute node by name in a VPS by VPS ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          name: computenode2
+          vps_id: "2a843522-a819-47ab-a208-69d190809604"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################
+    # Task Name : Delete compute node by name in a VPS by VPS name
+    #########################################################################
+    - name: Delete compute node by name in a VPS by VPS name
+      hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          name: computenode2
+          vps_name: "RKD_VPS_02"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

@@ -46,43 +46,59 @@ options:
     suboptions:
       ldev_id:
         description: ID of the specific LDEV to retrieve information for.
+            Required for the Get one LDEV
+            /Get one LDEV with detailed info
+            /Get one ldev with detailed info by specifying one or more query parameters tasks.
         type: str
         required: false
       start_ldev_id:
         description: Starting LDEV ID for filtering LDEVs.
+            Required for the Get LDEVs within range
+            /Get LDEVs from start ID up to max count tasks.
+            Optional for the Get Free LDEV IDs task.
         type: str
         required: false
       name:
         description: Name of the LDEV.
+            Required for the Get LDEVs with the same name task.
         type: str
         required: false
       count:
         description: Number of LDEVs to retrieve.
+            Required for the Get LDEVs from start ID up to max count task.
+            Optional for the Get Free LDEV IDs task.
         type: int
         required: false
       end_ldev_id:
         description: Ending LDEV ID for filtering LDEVs.
+            Required for the Get LDEVs within range task.
+            Optional for the Get Free LDEV IDs task.
         type: str
         required: false
       is_detailed:
         description: Flag to retrieve all the additional properties that are not returned with regular LDEV facts output.
+            Required for the Get one LDEV with detailed info task.
         type: bool
         required: false
         default: false
       pool_id:
         description: ID of the pool to filter LDEVs.
+            Required for the Get LDEV details using pool ID task.
         type: int
         required: false
       resource_group_id:
         description: ID of the resource group to filter LDEVs.
+            Required for the Get LDEV details using resource group ID task.
         type: int
         required: false
       journal_id:
         description: ID of the journal to filter LDEVs.
+            Required for the Get LDEV details using journal ID task.
         type: int
         required: false
       parity_group_id:
         description: ID of the parity group to filter LDEVs.
+            Required for the Get LDEV details using parity group ID task.
         type: str
         required: false
       query:
@@ -93,6 +109,8 @@ options:
           If is_detailed is set to true, this field will be ignored and all additional properties will be retrieved.
           The supported additional properties are: "cmd_device_settings", "encryption_settings", "nvm_subsystem_info", "qos_settings",
           "free_ldev_id" and "snapshots_info".
+          Required for the Get one ldev with detailed info by specifying one or more query parameters
+          /Get Free LDEV IDs tasks.
         type: list
         required: false
         elements: str

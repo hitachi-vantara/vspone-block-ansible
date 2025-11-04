@@ -49,10 +49,12 @@ options:
     suboptions:
       pool_id:
         description: The pool number of the specific pool to retrieve.
+          Required for the Get one storage pool task.
         type: int
         required: false
       pool_name:
         description: The name of the specific pool to retrieve.
+          Required for the Get one storage pool using pool name task.
         type: str
         required: false
 """

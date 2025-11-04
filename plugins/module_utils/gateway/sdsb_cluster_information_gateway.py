@@ -26,7 +26,6 @@ class SDSBBlockClusterInformationDirectGateway:
     @log_entry_exit
     def get_storage_time_settings(self):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = SDSBlockEndpoints.GET_STORAGE_TIME_SETTINGS
 
         time = self.connection_manager.get(end_point)
@@ -38,7 +37,6 @@ class SDSBBlockClusterInformationDirectGateway:
     @log_entry_exit
     def get_storage_network_settings(self):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = SDSBlockEndpoints.GET_STORAGE_NETWORK_SETTING
 
         settings = self.connection_manager.get(end_point)
@@ -50,7 +48,6 @@ class SDSBBlockClusterInformationDirectGateway:
     @log_entry_exit
     def get_protection_domain_settings(self):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = SDSBlockEndpoints.GET_PROCTECTION_DOMAINS
 
         settings = self.connection_manager.get(end_point)

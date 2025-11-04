@@ -46,20 +46,24 @@ options:
     suboptions:
       journal_id:
         description: Journal ID of the Journal Volume.
+          Required for the Get specific Journal task.
         type: int
         required: false
       is_free_journal_pool_id:
         description: Whether to get free journal id.
+          Required for the Get Free Journal IDs task.
         type: bool
         required: false
         default: false
       free_journal_pool_id_count:
         description: Number of free journal id to get.
+          Required for the Get Free Journal IDs task.
         type: int
         required: false
         default: 1
       is_mirror_not_used:
         description: Whether to get mirror not used.
+          Required for the Get Journal data with mirror not used task.
         type: bool
         required: false
         default: false

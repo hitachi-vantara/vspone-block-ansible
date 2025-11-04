@@ -4,7 +4,6 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 
@@ -27,12 +26,39 @@ attributes:
     support: none
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.sdsb_connection_info
+notes:
+  - Replace node operation steps for GCP platform
+    1) The node should be on block state before replacement.
+    2) Create configuration file using hv_sds_block_cluster module with state as download_config_file and
+      export_file_type as replace_storage_node and id of the existing node.
+    3) Run the terraform file generated using the above step to replace the node (it will remove the existing node from GCP).
+    4) Create configuration file using hv_sds_block_cluster module with state as download_config_file and
+      export_file_type as replace_storage_node with recover_single_node as true.
+    5) Run the terraform file generated using the above step to add the new node to GCP (it will add the new node to GCP).
+    6) Add the new node to the cluster using hv_sds_block_cluster module with state as replace_storage_node and
+      node_id as the id of the existing node.
+  - Replace node operation steps for AWS platform
+    1) The node should be on block state before replacement.
+    2) Create configuration file using hv_sds_block_cluster module with state as download_config_file and
+      export_file_type as replace_storage_node and id of the existing node.
+    3) Transfer the configuration file to the S3 location specified in vm_configuration_file_s3_uri.
+    4) Add the new node to the cluster using hv_sds_block_cluster module with state as replace_storage_node,
+      node_id as the id of the existing node and machine_image_id as the AMI id
+  - Replace node operation steps for Azure platform
+    1) The node should be on block state before replacement.
+    2) Add the new node to the cluster using hv_sds_block_cluster module with state as replace_storage_node,
+      node_id as the id of the existing node and machine_image_id as the VM image id.
+  - Replace node operation steps for on-premise platform
+    1) The node should be on block state before replacement.
+    2) add the new node to the cluster using hv_sds_block_cluster module with state as replace_storage_node,
+      node_id as the id of the existing node.
 options:
   state:
     description: The desired state of the storage cluster.
     type: str
     required: false
-    choices: ["present", "add_storage_node", "remove_storage_node", "download_config_file", 'stop_removing_storage_node', 'replace_storage_node']
+    choices: ['present', 'add_storage_node', 'remove_storage_node', 'download_config_file',
+              'stop_removing_storage_node', 'replace_storage_node', 'system_requirement_file_present']
     default: "present"
   spec:
     description: Specification for the storage node to be added to or removed from the cluster.
@@ -54,16 +80,26 @@ options:
           when the state field is C(download_config_file).
         type: str
         required: false
-        choices: ['Normal', 'AddStorageNodes', 'AddDrives']
-        default: 'Normal'
+        choices: ['normal', 'add_storage_nodes', 'add_drives', 'replace_storage_node']
+        default: 'normal'
+      should_recover_single_node:
+        description: Whether to recover a single node. This is a valid field when the state field is C(download_config_file)
+          and export_file_type is C(replace_storage_node) for GCP platform.
+        type: bool
+        required: false
       machine_image_id:
         description: The ID of the machine image be used for storage node addition or storage node replacement.
         type: str
         required: false
+      system_requirement_file:
+        description: The path of system requirements file, that describes system requirements to be updated. This field is
+          valid and mandatory when the state field is C(system_requirement_file_present).
+        type: str
+        required: false
       template_s3_url:
-        description: URL (https) of Amazon S3 where the VM configuration file is to be stored at the time of each maintenance operation.
-          This option is a mandatory parameter for the cloud model for AWS when the state field is C(download_config_file) and refresh is true.
-          This parameter is ignored if it is specified for other platforms.
+        description: URL (https) of Amazon S3 where the VM configuration file is to be stored at the time of each
+          maintenance operation. This option is a mandatory parameter for the cloud model for AWS when the state field is
+          C(download_config_file) and refresh is true. This parameter is ignored if it is specified for other platforms.
         type: str
         required: false
       vm_configuration_file_s3_uri:
@@ -75,7 +111,7 @@ options:
         required: false
       no_of_drives:
         description: The number of drives to be installed per storage node after adding the drives. The specified number
-          of drives applies to all storage nodes. This is a required field when the export_file_type is C(AddDrives).
+          of drives applies to all storage nodes. This is a required field when the export_file_type is C(add_drives).
         type: int
         required: false
       refresh:
@@ -96,8 +132,8 @@ options:
         type: bool
         required: false
       node_id:
-        description: The ID of the storage node that will be removed. This field is valid
-          when the state field is C(remove_storage_node).
+        description: The ID of the storage node that will be removed or replaced. This field is valid
+          when the state field is C(remove_storage_node) and C(replace_storage_node).
         type: str
         required: false
       node_name:

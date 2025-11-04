@@ -68,22 +68,52 @@ options:
     suboptions:
       ldev_id:
         description: Specify the LDEV number as a decimal (base 10) number.
+          Required for the Set Server Priority Manager information by specifying a volume and the
+          WWN of the HBA
+          /Set Server Priority Manager information by specifying a volume and the iSCSI name
+          of the HBA
+          /Change the upper limit on IOPS for hosts for which the LDEV number of a volume and
+          the WWN of the HBA are already specified in Server Priority Manager
+          /Change the upper limit on the transfer rate for hosts for which the LDEV number of a
+          volume and iSCSI name of the HBA are already specified in Server Priority Manager
+          /Delete Server Priority Manager information by specifying a volume and the WWN of the HBA
+          /Delete Server Priority Manager information by specifying a volume and the iSCSI name
+          of the HBA tasks.
         type: str
         required: true
       host_wwn:
         description: WWN of the HBA. Specify a hexadecimal number consisting of 16 characters.
+          Required for the Set Server Priority Manager information by specifying a volume and the
+          WWN of the HBA
+          /Change the upper limit on IOPS for hosts for which the LDEV number of a volume and
+          the WWN of the HBA are already specified in Server Priority Manager
+          /Delete Server Priority Manager information by specifying a volume and the WWN of the HBA tasks.
         type: str
         required: false
       iscsi_name:
         description: iSCSI name of the HBA (iSCSI initiator). Specify the name in iqn format or eui format.
+          Required for the Set Server Priority Manager information by specifying a volume and the
+          iSCSI name of the HBA
+          /Change the upper limit on the transfer rate for hosts for which the LDEV number of a
+          volume and iSCSI name of the HBA are already specified in Server Priority Manager
+          /Delete Server Priority Manager information by specifying a volume and the iSCSI name
+          of the HBA tasks.
         type: str
         required: false
       upper_limit_for_iops:
         description: Upper limit on IOPS. Specify a value in the range from 1 to 65535.
+          Required for the Set Server Priority Manager information by specifying a volume and the
+          WWN of the HBA
+          /Change the upper limit on IOPS for hosts for which the LDEV number of a volume and
+          the WWN of the HBA are already specified in Server Priority Manager tasks.
         type: int
         required: false
       upper_limit_for_transfer_rate_in_MBps:
         description: Upper limit on the transfer rate (MBps). Specify a value in the range from 1 to 31.
+          Required for the Set Server Priority Manager information by specifying a volume and the
+          iSCSI name of the HBA
+          /Change the upper limit on the transfer rate for hosts for which the LDEV number of a
+          volume and iSCSI name of the HBA are already specified in Server Priority Manager tasks.
         type: int
         required: false
 """

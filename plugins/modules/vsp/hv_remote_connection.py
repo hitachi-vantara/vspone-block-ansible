@@ -42,36 +42,56 @@ options:
     suboptions:
       path_group_id:
         description: Path group ID.
+          Required for the Create a new remote connection
+          /Update the remote path of an existing remote connection
+          /Update remote connection settings
+          /Delete a remote connection tasks.
         type: int
         required: true
       remote_storage_serial_number:
         description: Serial number of the remote storage system.
+          Required for the Create a new remote connection
+          /Update the remote path of an existing remote connection
+          /Update remote connection settings
+          /Delete a remote connection tasks.
         type: str
         required: true
       remote_paths:
         description: List of remote paths, For new remote connection, at least one remote path is required.
+          Required for the Create a new remote connection
+          /Update the remote path of an existing remote connection tasks.
         type: list
         required: false
         elements: dict
         suboptions:
             local_port:
                 description: Port number of the local storage system
+                  Required for the Create a new remote connection
+                  /Update the remote path of an existing remote connection tasks.
                 type: str
                 required: true
             remote_port:
                 description: Port number of the remote storage system
+                  Required for the Create a new remote connection
+                  /Update the remote path of an existing remote connection tasks.
                 type: str
                 required: true
       min_remote_paths:
         description: Minimum number of remote paths, Specify a value that is no more than the number of remote paths registered in the remote connection.
+          Optional for the Create a new remote connection
+          /Update remote connection settings tasks.
         type: int
         required: false
       remote_io_timeout_in_sec:
         description: Remote IO timeout in seconds.
+          Optional for the Create a new remote connection
+          /Update remote connection settings tasks.
         type: int
         required: false
       round_trip_in_msec:
         description: Round trip time in milliseconds.
+          Optional for the Create a new remote connection
+          /Update remote connection settings tasks.
         type: int
         required: false
 """

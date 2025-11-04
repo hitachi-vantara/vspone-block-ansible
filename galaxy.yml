@@ -1,12 +1,13 @@
 ---
 namespace: hitachivantara
 name: vspone_block
-version: 4.3.0
+version: 4.4.0
 readme: README.md
 authors:
   - Hitachi Vantara Ansible Team
 description: >
-  Ansible modules to manage Hitachi Storage systems using the Hitachi VSP One platform.
+  Ansible modules to manage VSP block storage systems (VSP One Block, VSP 5000 series, VSP E series,  VSP F series, and VSP G series) and VSP One SDS Block and Cloud
+  systems.
   These modules provide a simplified and automated way to configure and manage Hitachi storage systems,
   enabling seamless integration with Ansible playbooks and workflows.
 license:
@@ -44,3 +45,5 @@ build_ignore:
   - sanity_test_report.txt
   - file_name_wo_ext_cwd.sh
   - test_ansible_doc.sh
+  - internal
+  - test_modules_individually.sh

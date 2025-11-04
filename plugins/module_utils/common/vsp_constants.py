@@ -1,7 +1,7 @@
 import logging
 
 
-PEGASUS_MODELS = ["B28", "B26", "VSP E"]
+PEGASUS_MODELS = ["VSP One B", "VSP E"]
 
 BASIC_STORAGE_DETAILS = None
 
@@ -465,6 +465,7 @@ class AutomationConstants(object):
     POOL_ID_MAX = 256
     LDEV_ID_MIN = 0
     LDEV_ID_MAX = 65279
+    LDEV_ID_MAX_FULL = 65535
     LDEV_MAX_NUMBER = 16384
     LDEV_MAX_MU_NUMBER = 1023
     ISCSI_NAME_LEN_MIN = 1

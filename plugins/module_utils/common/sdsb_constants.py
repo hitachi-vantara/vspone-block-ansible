@@ -96,6 +96,28 @@ class SDSBlockEndpoints(object):
     RESTORE_SNAPSHOT = "v1/objects/volumes/actions/restore-snapshot/invoke"
     GET_MASTER_VOLUME = "v1/objects/volumes/{}/master-volume"
 
+    # Storage controller settings
+    SNMP_SETTINGS = "v1/objects/snmp-setting"
+    PROTECTION_DOMAIN_SETTINGS = "v1/objects/protection-domains/"
+    PROTECTION_DOMAIN_SETTINGS_BY_ID = "v1/objects/protection-domains/{}"
+    RESUME_DRIVE = (
+        "v1/objects/protection-domains/{}/actions/resume-drive-data-relocation/invoke"
+    )
+    SUSPEND_DRIVE = (
+        "v1/objects/protection-domains/{}/actions/suspend-drive-data-relocation/invoke"
+    )
+    DELETE_ROOT_CERTIFICATE = "v1/objects/bmc-root-certificate/actions/delete/invoke"
+    IMPORT_ROOT_CERTIFICATE = "v1/objects/bmc-root-certificate/actions/import/invoke"
+    GET_BMC_ROOT_CERTIFICATE = "v1/objects/bmc-root-certificate/download"
+    SPARE_NODES = "v1/objects/spare-nodes"
+    SPARE_NODES_SINGLE = "v1/objects/spare-nodes/{}"
+    CACHE_PROTECTION = (
+        "v1/objects/storage/actions/set-write-back-mode-with-cache-protection/invoke"
+    )
+
+    IMPORT_SERVER_CERTIFICATE = "v1/objects/server-certificate/actions/import/invoke"
+    WEB_SERVER_ACCESS_SETTING = "v1/objects/web-server-access-setting"
+
 
 class Http(object):
     GET = "GET"

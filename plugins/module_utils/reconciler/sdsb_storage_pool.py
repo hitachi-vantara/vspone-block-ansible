@@ -30,7 +30,6 @@ class SDSBStoragePoolReconciler:
 
     @log_entry_exit
     def get_storage_pools(self, spec=None):
-        logger.writeDebug("RC:get_storage_pools:spec={}", spec)
         try:
             extracted_data = None
             if spec is None:
@@ -85,7 +84,6 @@ class SDSBStoragePoolReconciler:
 
     @log_entry_exit
     def edit_storage_pool_settings(self, spec):
-        logger.writeDebug("RC:edit_storage_pool_settings:spec={} ", spec)
 
         if spec.id is None:
             pool = self.provisioner.get_pool_by_pool_name(spec.name)
@@ -130,7 +128,6 @@ class SDSBStoragePoolReconciler:
 
     @log_entry_exit
     def expand_storage_pool(self, spec):
-        logger.writeDebug("RC:expand_storage_pool:spec={} ", spec)
         self.validate_expand_spec(spec)
         if spec.id is None:
             spec.id = self.provisioner.get_pool_id_by_pool_name(spec.name)

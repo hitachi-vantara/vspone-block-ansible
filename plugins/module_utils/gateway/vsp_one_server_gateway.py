@@ -46,7 +46,7 @@ class VspServerSimpleApiGateway:
 
     @log_entry_exit
     def get_all_servers_with_filter(
-        self, nick_name=None, hba_wwn=None, iscsi_name=None
+        self, nick_name=None, hba_wwn=None, iscsi_name=None, include_details=False
     ) -> VspOneServerList:
         """
         Get all servers
@@ -67,7 +67,13 @@ class VspServerSimpleApiGateway:
             logger.writeDebug(f"Querying servers with: {end_point}")
         response = self.rest_api.pegasus_get(end_point)
 
-        return VspOneServerList().dump_to_object(response)
+        server_objects = VspOneServerList().dump_to_object(response)
+
+        if include_details:
+            for index, server in enumerate(server_objects.data):
+                server_object = self.get_server_by_id_with_details(server.id)
+                server_objects.data[index] = server_object
+        return server_objects
 
     @log_entry_exit
     def get_server_by_id(self, server_id) -> VspOneServerResponse:

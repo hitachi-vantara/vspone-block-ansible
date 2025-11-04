@@ -72,39 +72,39 @@ ansible_facts:
           description: Unique identifier for the control port.
           type: str
           sample: "1d7fa4ae-9bc6-446c-8cf1-09de0ea01dcd"
-        storageNodeId:
+        storage_node_id:
           description: UUID of the storage node associated with this control port.
           type: str
           sample: "ad36eab7-20c3-41cd-acac-d334ff5347d7"
-        macAddress:
+        mac_address:
           description: MAC address of the network interface.
           type: str
           sample: "80:30:e0:39:b7:a5"
-        mtuSize:
+        mtu_size:
           description: Maximum Transmission Unit size.
           type: int
           sample: 1500
-        interfaceName:
+        interface_name:
           description: Interface name of the network device.
           type: str
           sample: "eth0"
-        deviceName:
+        device_name:
           description: Name of the physical device.
           type: str
           sample: "NetXtreme BCM5719 Gigabit Ethernet PCIe (Ethernet 1Gb 4-port 331i Adapter)"
-        configuredPortSpeed:
+        configured_port_speed:
           description: Configured speed setting of the port.
           type: str
           sample: "Auto"
-        portSpeedDuplex:
+        port_speed_duplex:
           description: Actual speed and duplex setting of the port.
           type: str
           sample: "1Gbps Full"
-        isTeamingEnabled:
+        is_teaming_enabled:
           description: Whether NIC teaming is enabled.
           type: str
           sample: "false"
-        ipv4Information:
+        ipv4_information:
           description: IPv4 network configuration.
           type: dict
           contains:
@@ -112,7 +112,7 @@ ansible_facts:
               description: IPv4 address.
               type: str
               sample: "192.168.24.242"
-            subnetMask:
+            subnet_mask:
               description: Subnet mask.
               type: str
               sample: "255.255.192.0"
@@ -128,7 +128,7 @@ ansible_facts:
           description: Current operational status of the control port.
           type: str
           sample: "Normal"
-        statusSummary:
+        status_summary:
           description: Summary of the control port's status.
           type: str
           sample: "Normal"

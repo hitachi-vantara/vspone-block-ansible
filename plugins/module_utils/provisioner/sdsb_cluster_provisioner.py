@@ -1,14 +1,10 @@
 try:
-    from ..gateway.gateway_factory import GatewayFactory
     from ..gateway.sdsb_platform_info_gateway import SDSBPlatformInfoGateway
-    from ..common.hv_constants import GatewayClassTypes
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
-
+    from ..gateway.sdsb_cluster_gateway import SDSBClusterGateway
 except ImportError:
-    from gateway.gateway_factory import GatewayFactory
     from gateway.sdsb_platform_info_gateway import SDSBPlatformInfoGateway
-    from common.hv_constants import GatewayClassTypes
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
 
@@ -19,9 +15,7 @@ class SDSBClusterProvisioner:
 
     def __init__(self, connection_info):
 
-        self.gateway = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.SDSB_CLUSTER
-        )
+        self.gateway = SDSBClusterGateway(connection_info)
         self.connection_info = connection_info
 
     @log_entry_exit
@@ -73,6 +67,15 @@ class SDSBClusterProvisioner:
         )
 
     @log_entry_exit
+    def create_config_file_to_replace_storage_node(self, spec):
+        return self.gateway.create_config_file_to_replace_storage_node(
+            spec.machine_image_id,
+            spec.template_s3_url,
+            spec.node_id,
+            spec.should_recover_single_node,
+        )
+
+    @log_entry_exit
     def edit_capacity_management_settings(
         self, is_capacity_balancing_enabled, controller_id=None
     ):
@@ -83,3 +86,7 @@ class SDSBClusterProvisioner:
     @log_entry_exit
     def create_config_file_for_add_drives(self, no_of_drives):
         return self.gateway.create_config_file_for_add_drives(no_of_drives)
+
+    @log_entry_exit
+    def import_system_requirement_file(self, spec):
+        return self.gateway.import_system_requirement_file(spec.system_requirement_file)

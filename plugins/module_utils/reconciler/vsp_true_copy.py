@@ -112,7 +112,6 @@ class VSPTrueCopyReconciler:
 
     @log_entry_exit
     def create_true_copy(self, spec):
-        logger.writeDebug("RC:create_true_copy:spec={} ", spec)
         self.validate_create_spec(spec)
 
         return self.provisioner.create_true_copy(spec=spec)

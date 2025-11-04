@@ -105,3 +105,5 @@ class SDSBSnapshotFactsSpec(SingleBaseClass):
     master_volume_id: Optional[str] = None
     snapshot_volume_name: Optional[str] = None
     snapshot_volume_id: Optional[str] = None
+    vps_id: Optional[str] = None
+    vps_name: Optional[str] = None

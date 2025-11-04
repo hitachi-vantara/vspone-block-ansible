@@ -23,7 +23,6 @@ class SDSBJobProvisioner:
 
     @log_entry_exit
     def get_jobs(self, spec=None):
-        logger.writeDebug(f"spec={spec}")
         if spec and spec.count:
             return self.gateway.get_jobs(spec.count)
         return self.gateway.get_jobs()

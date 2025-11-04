@@ -64,14 +64,39 @@ options:
     suboptions:
       id:
         description: Pool ID.
+          Required for the Create a storage pool with a specific pool ID and LDEV numbers
+          /Create a storage pool with a specific pool ID and start and end LDEV numbers
+          /Expand pool by pool ID
+          /Delete pool by pool ID
+          /Performing performance monitoring of a pool
+          /Performing tier relocation of a pool
+          /Restoring a pool
+          /Initializing the capacity saving function for a pool
+          /Change Pool settings by pool ID with new parameters tasks.
         type: int
         required: false
       name:
         description: Name of the pool.
+          Required for the Create a storage pool using required details
+          /Create a storage pool using more details
+          /Create a storage pool with a specific pool ID and LDEV numbers
+          /Create a storage pool with a specific pool ID and start and end LDEV numbers
+          /Create a Thin Image pool
+          /Expand pool by pool name
+          /Delete pool by pool name
+          /Delete a pool including pool volumes
+          /Change Pool settings by pool Name with new parameters tasks.
+          Optional for the Change Pool settings by pool ID with new parameters task.
         type: str
         required: false
       type:
         description: Type of the pool. Supported types are C(HDT), C(HDP), C(HRT), C(HTI).
+          Required for the Create a storage pool using required details
+          /Create a storage pool using more details
+          /Create a storage pool with a specific pool ID and LDEV numbers
+          /Create a storage pool with a specific pool ID and start and end LDEV numbers
+          /Create a Thin Image pool tasks.
+          Optional for the Change Pool settings by pool ID with new parameters task.
         type: str
         required: false
         choices: ["HDT", "HDP", "HRT", "HTI"]
@@ -94,89 +119,137 @@ options:
           - VSP N400
           - VSP N600
           - VSP N800
+          - Optional for the Create a storage pool using more details/Create a Thin Image pool tasks.
         type: bool
         required: false
       depletion_threshold_rate:
         description: Depletion threshold rate for the pool (not applicable for Thin Image pool).
+          Required for the Create a storage pool using more details
+          /Change Pool settings by pool Name with new parameters tasks.
+          Optional for the Create a Thin Image pool
+          /Change Pool settings by pool ID with new parameters tasks.
         type: int
         required: false
       warning_threshold_rate:
         description: Warning threshold rate for the pool.
+          Required for the Create a storage pool using more details
+          /Create a Thin Image pool
+          /Change Pool settings by pool Name with new parameters tasks.
+          Optional for the Change Pool settings by pool ID with new parameters task.
         type: int
         required: false
       resource_group_id:
         description: ID of the resource group the pool belongs to.
+          Optional for the Create a storage pool using more details
+          /Create a Thin Image pool tasks.
         type: int
         required: false
       start_ldev_id:
         description: The first LDEV number in the range of consecutive LDEV numbers, if such a range is specified.
+          Required for the Create a storage pool with a specific pool ID and start and end LDEV numbers task.
         type: str
         required: false
       end_ldev_id:
         description: The last LDEV number in the range of consecutive LDEV numbers, if such a range is specified.
+          Required for the Create a storage pool with a specific pool ID and start and end LDEV numbers task.
         type: str
         required: false
       ldev_ids:
         description: LDEV numbers.
+          Required for the Create a storage pool with a specific pool ID and LDEV numbers task.
         type: list
         elements: str
         required: false
       pool_volumes:
         description: Details about the volumes in the pool.
+          Required for the Create a storage pool using required details
+          /Create a storage pool using more details
+          /Create a Thin Image pool
+          /Expand pool by pool name
+          /Expand pool by pool ID tasks.
         type: list
         required: false
         elements: dict
         suboptions:
           capacity:
             description: Capacity of the pool volume.
+              Required for the Create a storage pool using required details
+              /Create a storage pool using more details
+              /Create a Thin Image pool
+              /Expand pool by pool name
+              /Expand pool by pool ID tasks.
             type: str
             required: true
           parity_group_id:
             description: ID of the parity group the volume belongs to.
+              Required for the Create a storage pool using required details
+              /Create a storage pool using more details
+              /Create a Thin Image pool
+              /Expand pool by pool name
+              /Expand pool by pool ID tasks.
             type: str
             required: true
       operation_type:
         description: Specify the operation of tier relocation and performance monitoring.
+          Required for the Performing performance monitoring of a pool
+          /Performing tier relocation of a pool tasks.
         type: str
         required: false
         choices: ["start", "stop"]
       suspend_snapshot:
         description: Whether to suspend Thin Image pairs when the depletion threshold is exceeded.
+          Required for the Change Pool settings by pool Name with new parameters task.
+          Optional for the Change Pool settings by pool ID with new parameters task.
         type: bool
         required: false
       virtual_volume_capacity_rate:
         description: The subscription limit of a virtual volume to pool capacity (%).
+          Required for the Change Pool settings by pool Name with new parameters task.
+          Optional for the Change Pool settings by pool ID with new parameters task.
         type: int # Percentage value
         required: false
       monitoring_mode:
         description: Execution mode for performance monitoring (monitor mode) for HDT type.
+          Required for the Change Pool settings by pool Name with new parameters task.
+          Optional for the Change Pool settings by pool ID with new parameters task.
         type: str
         required: false
         choices: ["PM", "CM"]
       blocking_mode:
         description: Setting the protection function for a virtual volume.
+          Required for the Change Pool settings by pool Name with new parameters task.
+          Optional for the Change Pool settings by pool ID with new parameters task.
         type: str
         required: false
         choices: ["PF", "PB", "FB", "NB"]
       tier:
         description: HDT pool tier attribute.
+          Required for the Change Pool settings by pool Name with new parameters task.
+          Optional for the Change Pool settings by pool ID with new parameters task.
         type: dict
         required: false
         suboptions:
           tier_number:
             description: Tier number for the pool.
+              Required for the Change Pool settings by pool Name with new parameters
+              /Change Pool settings by pool ID with new parameters tasks.
             type: int
             required: false
           table_space_rate:
             description: Ratio of free space for new tiering (in percentage)
+              Required for the Change Pool settings by pool Name with new parameters
+              /Change Pool settings by pool ID with new parameters tasks.
             type: int
             required: false
           buffer_rate:
             description: Ratio of buffer areas for reallocation (in percentage)
+              Required for the Change Pool settings by pool Name with new parameters
+              /Change Pool settings by pool ID with new parameters tasks.
             type: int
             required: false
       should_delete_pool_volumes:
         description: Whether to delete pool volumes when the pool is deleted.
+          Required for the Delete a pool including pool volumes task.
         type: bool
         required: false
 """

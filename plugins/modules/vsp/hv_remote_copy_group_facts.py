@@ -56,10 +56,13 @@ options:
     suboptions:
       name:
         description: The remote copy group name. If not provided, list of all copy groups will be returned.
+          Required for the Get one remote copy group using copy group name
+          /Get one remote copy group details using copy group name tasks.
         type: str
         required: false
       should_include_remote_replication_pairs:
         description: Whether we want to get all replication pairs from a specific copy group. Should be specified along with the 'name' parameter in spec.
+          Required for the Get one remote copy group details using copy group name task.
         type: bool
         required: false
 """

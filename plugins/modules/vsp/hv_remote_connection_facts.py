@@ -35,6 +35,7 @@ options:
     suboptions:
       path_group_id:
         description: Path group ID.
+            Required for the Get remote connection information using path group id task.
         type: int
         required: false
 """

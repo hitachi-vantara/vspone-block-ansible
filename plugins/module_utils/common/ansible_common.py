@@ -405,20 +405,22 @@ def convert_to_mb(value):
 
 def convert_capacity_to_mib(size: str) -> int:
     """
-    Convert size string (e.g., '1TB', '500GB', '120MB') to MiB.
+    Convert size string (e.g., '1TB', '500GB', '120MB', '10GiB') to MiB.
+
+    Supports both decimal (MB, GB, TB) and binary (MiB, GiB, TiB) units.
 
     Args:
-        size (str): Size string with unit (MB, GB, TB).
+        size (str): Size string with unit.
 
     Returns:
         int: Equivalent size in MiB (rounded).
     """
     size = size.strip().upper()
 
-    # Extract numeric part and unit
+    # Extract numeric part
     num = ""
     for ch in size:
-        if ch.isdigit():
+        if ch.isdigit() or ch == ".":  # allow decimals too
             num += ch
         else:
             break
@@ -426,21 +428,29 @@ def convert_capacity_to_mib(size: str) -> int:
     if not num:
         raise ValueError("No numeric value found in input")
 
-    value = int(num)
+    value = float(num)
     unit = size[len(num) :].strip()
     if not unit:
         unit = "MB"
 
-    multipliers = {"MB": 1_000_000, "GB": 1_000_000_000, "TB": 1_000_000_000_000}
+    # Multipliers in bytes
+    multipliers = {
+        "MB": 1024**2,
+        "GB": 1024**3,
+        "TB": 1024**4,
+        "MIB": 1024**2,
+        "GIB": 1024**3,
+        "TIB": 1024**4,
+    }
 
     if unit not in multipliers:
-        raise ValueError("Unit must be one of: MB, GB, TB")
+        raise ValueError(f"Unit must be one of: {', '.join(multipliers.keys())}")
 
     # Convert to bytes
     bytes_value = value * multipliers[unit]
 
-    # Convert to MiB (rounded to nearest int)
-    return round(bytes_value / (1024 * 1024))
+    # Convert to MiB
+    return round(bytes_value / (1024**2))
 
 
 def convert_mib_to_mb(mib: int) -> str:
@@ -452,9 +462,9 @@ def convert_mib_to_mb(mib: int) -> str:
     bytes_value = mib * 1024 * 1024
 
     # Convert bytes → MB (1 MB = 1,000,000 bytes)
-    value = round(bytes_value / 1_000_000)
+    # value = round(bytes_value / 1_000_000)
 
-    return f"{value}MB"
+    return bytes_value  # f"{value}MB"
 
 
 def check_range(arr, lower_bound, upper_bound):
@@ -619,3 +629,15 @@ def match_value_with_case_insensitive(value: str, choices: list) -> bool:
     """
     matched = any(value.lower() == choice.lower() for choice in choices)
     return matched
+
+
+def convert_keys_to_snake_case(obj):
+    if isinstance(obj, dict):
+        return {
+            camel_to_snake_case(k): convert_keys_to_snake_case(v)
+            for k, v in obj.items()
+        }
+    elif isinstance(obj, list):
+        return [convert_keys_to_snake_case(item) for item in obj]
+    else:
+        return obj

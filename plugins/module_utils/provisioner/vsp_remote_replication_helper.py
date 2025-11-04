@@ -232,7 +232,7 @@ class RemoteReplicationHelperForSVol:
             if host_groups is not None and len(host_groups) > 0:
                 if is_iscsi:
                     lun_ids = self.find_lun_ids_from_spec(
-                        host_groups, spec.secondary_iscsi_targets
+                        host_groups, spec.secondary_iscsi_targets, is_iscsi
                     )
                     self.add_luns_to_iscsi_targets(sec_vol_id, host_groups, lun_ids)
                 else:
@@ -283,7 +283,7 @@ class RemoteReplicationHelperForSVol:
                 iscsi_target,
                 [sec_vol_id],
                 None,
-                lun_ids.get(iscsi_target.hostGroupName, None),
+                lun_ids.get(iscsi_target.iscsiName, None),
             )
 
     @log_entry_exit
@@ -303,7 +303,7 @@ class RemoteReplicationHelperForSVol:
     def dettach_iscsi_targets(self, iscsi_targets, lun_ids):
         for host_group in iscsi_targets:
             try:
-                lun_id = lun_ids.get(host_group.hostGroupName, None)
+                lun_id = lun_ids.get(host_group.iscsiName, None)
                 if lun_id is not None and lun_id != -1:
                     self.iscsi_gateway.delete_one_lun_from_iscsi_target(
                         host_group,
@@ -346,11 +346,6 @@ class RemoteReplicationHelperForSVol:
 
     def validate_secondary_hostgroups(self, secondary_hgs, is_iscsi=False):
         logger.writeDebug("PROV:validate_secondary_hostgroups:hgs = {}", secondary_hgs)
-        logger.writeDebug(
-            "PROV:validate_secondary_hostgroups:connection_info = {}",
-            self.connection_info,
-        )
-
         hostgroup_list = []
         if secondary_hgs is None:
             return hostgroup_list
@@ -612,22 +607,8 @@ class RemoteReplicationHelperForSVol:
                 )
                 port_details.hostGroupName = hg_name
                 if port_type == "ISCSI":
-                    # iscsi_targets.append(
-                    #     VSPVolumePortInfo(
-                    #         port["portId"],
-                    #         port["hostGroupNumber"],
-                    #         hg_name,
-                    #     )
-                    # )
                     iscsi_targets.append(port_details)
                 elif port_type == "FIBRE":
-                    # hostgroups.append(
-                    #     VSPVolumePortInfo(
-                    #         port["portId"],
-                    #         port["hostGroupNumber"],
-                    #         hg_name,
-                    #     )
-                    # )
                     hostgroups.append(port_details)
                 else:
                     pass
@@ -663,7 +644,7 @@ class RemoteReplicationHelperForSVol:
         return hgs_to_attach
 
     @log_entry_exit
-    def find_lun_ids_from_spec(self, hostgroups, spec_sec_hgs):
+    def find_lun_ids_from_spec(self, hostgroups, spec_sec_hgs, is_iscsi=False):
 
         logger.writeDebug(f"hostgroups={hostgroups}")
         logger.writeDebug(f"spec_sec_hgs={spec_sec_hgs}")
@@ -674,10 +655,15 @@ class RemoteReplicationHelperForSVol:
         logger.writeDebug(f"hg_map={hg_map}")
         lun_ids = {}
         for hg in hostgroups:
-            spec_hg = hg_map.get(hg.hostGroupName, None)
+            hg_name = None
+            if is_iscsi:
+                hg_name = hg.iscsiName
+            else:
+                hg_name = hg.hostGroupName
+            spec_hg = hg_map.get(hg_name, None)
             if spec_hg is None:
                 raise ValueError(
-                    f"Something went wrong, could not find the hostgroup in the spec with name = {hg.hostGroupName}"
+                    f"Something went wrong, could not find the hostgroup or iscsi with name {hg_name} specified in the spec."
                 )
 
             lun_ids[spec_hg.name] = spec_hg.lun_id

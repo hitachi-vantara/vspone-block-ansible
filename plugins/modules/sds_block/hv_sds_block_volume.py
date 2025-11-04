@@ -61,7 +61,15 @@ options:
         type: str
         required: false
       pool_name:
-        description: The name of the storage pool where the volume is created.
+        description: The name of the storage pool where the volume will be created.
+        type: str
+        required: false
+      vps_id:
+        description: The ID of the VPS where the volume will be created/deleted. vps_id and pool_name are mutually exclusive.
+        type: str
+        required: false
+      vps_name:
+        description: The name of the VPS where the volume will be created/deleted. vps_name and pool_name are mutually exclusive.
         type: str
         required: false
       state:

@@ -80,8 +80,29 @@ class SDSBVolumeDirectGateway:
         return self.connection_manager.post(end_point, payload)
 
     @log_entry_exit
-    def get_volumes(self):
+    def get_query_parameters(self, spec):
+        params = {}
+        if spec.count is not None:
+            params["count"] = spec.count
+        if spec.names is not None:
+            params["names"] = ",".join(spec.names)
+        if spec.capacity_saving is not None:
+            params["savingSetting"] = spec.capacity_saving
+        if spec.vps_id is not None:
+            params["vpsId"] = spec.vps_id
+
+        query = ""
+        if params:
+            query_parts = ["{}={}".format(k, v) for k, v in params.items()]
+            query = "?" + "&".join(query_parts)
+
+        return query
+
+    @log_entry_exit
+    def get_volumes(self, spec=None):
         end_point = SDSBlockEndpoints.GET_VOLUMES
+        if spec:
+            end_point += self.get_query_parameters(spec)
         logger.writeDebug("GW:get_volumes:end_point={}", end_point)
         volume_data = self.connection_manager.get(end_point)
         logger.writeDebug("GW:get_volumes:data={}", volume_data)

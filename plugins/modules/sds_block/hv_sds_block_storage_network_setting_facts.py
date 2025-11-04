@@ -44,15 +44,15 @@ ansible_facts:
   returned: always
   type: dict
   contains:
-    primaryDnsServerIpAddress:
+    primary_dns_server_ip_address:
       description: IP address of the primary DNS server. Empty if not configured.
       type: str
       sample: ""
-    secondaryDnsServerIpAddress:
+    secondary_dns_server_ip_address:
       description: IP address of the secondary DNS server. Empty if not configured.
       type: str
       sample: ""
-    virtualIpv4Address:
+    virtual_ipv4_address:
       description: Virtual IPv4 address assigned to the system.
       type: str
       sample: "192.168.1.100"

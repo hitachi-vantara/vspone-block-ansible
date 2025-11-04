@@ -50,7 +50,7 @@ options:
     required: false
     suboptions:
       ldev_id:
-        description: The id of the LDEV.
+        description: The id of the LDEV. Required for Enable/Update/Disable tasks.
         type: str
         required: true
       is_security_enabled:

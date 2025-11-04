@@ -48,7 +48,6 @@ class VSPStorageSystemMonitorProvisioner:
 
     @log_entry_exit
     def get_alerts(self, spec):
-        logger.writeDebug(f"Prov:get_alerts:spec={spec}")
         resp = self.gateway.get_alerts(
             spec.alert_type, spec.alert_start_number, spec.alert_count
         )
@@ -56,6 +55,5 @@ class VSPStorageSystemMonitorProvisioner:
 
     @log_entry_exit
     def get_hw_installed(self, spec):
-        logger.writeDebug(f"Prov:get_alerts:spec={spec}")
         resp = self.gateway.get_hw_installed(spec.include_component_option)
         return resp

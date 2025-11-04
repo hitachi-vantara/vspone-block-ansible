@@ -84,8 +84,15 @@ class StateValue:
     REMOVE_HBA = "remove_hba"
     ADD_PATH = "add_path"
     REMOVE_PATH = "remove_path"
+    MAP = "map"
     CHANGE_ISCSI_TARGET_SETTINGS = "change_iscsi_target_settings"
     SOFTWARE_UPDATE_FILE_PRESENT = "software_update_file_present"
+    RESUME_DRIVE_DATA_RELOCATION = "resume_drive_data_relocation"
+    SUSPEND_DRIVE_DATA_RELOCATION = "suspend_drive_data_relocation"
+    DELETE_ROOT_CERTIFICATE = "delete_root_certificate"
+    IMPORT_ROOT_CERTIFICATE = "import_root_certificate"
+    DOWNLOAD_ROOT_CERTIFICATE = "download_root_certificate"
+    SYSTEM_REQUIREMENT_FILE_PRESENT = "system_requirement_file_present"
 
 
 class CommonConstants:

@@ -82,10 +82,12 @@ class SDSBVpsReconciler:
         logger.writeDebug(
             "RC:update_sdsb_vps:spec.capacity_saving = {}", spec.capacity_saving
         )
-        if spec.capacity_saving:
-            if vps.volumeSettings["savingSettingOfVolume"] == spec.capacity_saving:
-                return VpsPropertiesExtractor().extract_dict(vps.to_dict())
-                # raise ValueError(SDSBVpsValidationMsg.SAME_SAVING_SETTING.value)
+        logger.writeDebug("RC:update_sdsb_vps:svps = {}", vps)
+        if not self.is_updated_required(vps, spec):
+            return VpsPropertiesExtractor().extract_dict(vps.to_dict())
+        # if spec.capacity_saving:
+        #     if vps.volumeSettings.savingSettingOfVolume == spec.capacity_saving:
+        #         return VpsPropertiesExtractor().extract_dict(vps.to_dict())
 
         vps_id = self.update_vps(vps.id, spec)
         if not vps_id:
@@ -99,6 +101,83 @@ class SDSBVpsReconciler:
     def update_vps(self, id, spec):
         self.connection_info.changed = True
         return self.provisioner.update_vps(id, spec)
+
+    @log_entry_exit
+    def is_updated_required(self, vps, spec):
+        changed = False
+        if spec.name and vps.name != spec.name:
+            changed = True
+        if (
+            spec.upper_limit_for_number_of_user_groups
+            and vps.upperLimitForNumberOfUserGroups
+            != spec.upper_limit_for_number_of_user_groups
+        ):
+            changed = True
+        if (
+            spec.upper_limit_for_number_of_users
+            and vps.upperLimitForNumberOfUsers != spec.upper_limit_for_number_of_users
+        ):
+            changed = True
+        if (
+            spec.upper_limit_for_number_of_sessions
+            and vps.upperLimitForNumberOfSessions
+            != spec.upper_limit_for_number_of_sessions
+        ):
+            changed = True
+        if (
+            spec.upper_limit_for_number_of_servers
+            and vps.upperLimitForNumberOfServers
+            != spec.upper_limit_for_number_of_servers
+        ):
+            changed = True
+        if (
+            spec.upper_limit_for_number_of_volumes
+            and vps.volumeSettings.upperLimitForNumberOfVolumes
+            != spec.upper_limit_for_number_of_volumes
+        ):
+            changed = True
+        if (
+            spec.upper_limit_for_number_of_volumes
+            and vps.volumeSettings.upperLimitForNumberOfVolumes
+            != spec.upper_limit_for_number_of_volumes
+        ):
+            changed = True
+        if (
+            spec.upper_limit_for_capacity_of_volumes_mb
+            and vps.volumeSettings.upperLimitForCapacityOfVolumes
+            != spec.upper_limit_for_capacity_of_volumes_mb
+        ):
+            changed = True
+        if (
+            spec.upper_limit_for_capacity_of_single_volume_mb
+            and vps.volumeSettings.upperLimitForCapacityOfSingleVolume
+            != spec.upper_limit_for_capacity_of_single_volume_mb
+        ):
+            changed = True
+        if (
+            spec.upper_limit_for_iops_of_volume
+            and vps.volumeSettings.qosParam.upperLimitForIopsOfVolume
+            != spec.upper_limit_for_iops_of_volume
+        ):
+            changed = True
+        if (
+            spec.upper_limit_for_transfer_rate_of_volume_mbps
+            and vps.volumeSettings.qosParam.upperLimitForTransferRateOfVolume
+            != spec.upper_limit_for_transfer_rate_of_volume_mbps
+        ):
+            changed = True
+        if (
+            spec.upper_alert_allowable_time_of_volume
+            and vps.volumeSettings.qosParam.upperAlertAllowableTimeOfVolume
+            != spec.upper_alert_allowable_time_of_volume
+        ):
+            changed = True
+        if (
+            spec.capacity_saving
+            and vps.volumeSettings.savingSettingOfVolume != spec.capacity_saving
+        ):
+            changed = True
+        return changed
 
     @log_entry_exit
     def reconcile_vps(self, state, spec):
@@ -129,48 +208,39 @@ class SDSBVpsReconciler:
                         return self.update_sdsb_vps(vps, spec)
                     else:
                         # this is a create
-                        raise ValueError(
-                            SDSBVpsValidationMsg.FEATURE_NOT_SUPPORTED.value.format(
-                                "Create VPS"
-                            )
-                        )
-                        # return self.create_sdsb_vps(spec)
+                        return self.create_sdsb_vps(spec)
                 else:
                     raise ValueError(SDSBVpsValidationMsg.NO_NAME_ID.value)
 
         if state.lower() == StateValue.ABSENT:
-            raise ValueError(
-                SDSBVpsValidationMsg.FEATURE_NOT_SUPPORTED.value.format("Delete VPS")
-            )
-        # comment out the following code block
-        # logger.writeDebug("RC:=== Delete VPS ===")
-        # logger.writeDebug("RC:state = {}", state)
-        # logger.writeDebug("RC:spec = {}", spec)
-        # if spec.id is not None:
-        #     # user provided an id of the VPS, so this must be a delete
-        #     vps = self.get_vps_by_id(spec.id)
-        #     if vps is None:
-        #         raise ValueError(SDSBVpsValidationMsg.INVALID_VPS_ID.value)
-        #     vps_id = spec.id
-        # elif spec.name is not None:
-        #     # user provided an VPS name, so this must be a delete
-        #     vps = self.get_vps_by_name(spec.name)
-        #     if vps is None:
-        #         self.connection_info.changed = False
-        #         raise ValueError(
-        #             SDSBVpsValidationMsg.VPS_NAME_ABSENT.value.format(spec.name)
-        #         )
-        #     logger.writeDebug("RC:VPS 2={}", vps)
-        #     vps_id = vps.id
-        # else:
-        #     raise ValueError(SDSBVpsValidationMsg.NO_NAME_ID.value)
+            logger.writeDebug("RC:=== Delete VPS ===")
+            logger.writeDebug("RC:state = {}", state)
+            logger.writeDebug("RC:spec = {}", spec)
+            if spec.id is not None:
+                # user provided an id of the VPS, so this must be a delete
+                vps = self.get_vps_by_id(spec.id)
+                if vps is None:
+                    raise ValueError(SDSBVpsValidationMsg.INVALID_VPS_ID.value)
+                vps_id = spec.id
+            elif spec.name is not None:
+                # user provided an VPS name, so this must be a delete
+                vps = self.get_vps_by_name(spec.name)
+                if vps is None:
+                    self.connection_info.changed = False
+                    raise ValueError(
+                        SDSBVpsValidationMsg.VPS_NAME_ABSENT.value.format(spec.name)
+                    )
+                logger.writeDebug("RC:VPS 2={}", vps)
+                vps_id = vps.id
+            else:
+                raise ValueError(SDSBVpsValidationMsg.NO_NAME_ID.value)
 
-        # vps_id = self.delete_vps_by_id(vps_id)
-        # if vps_id is not None:
-        #     return "VPS has been deleted successfully."
-        # else:
-        #     self.connection_info.changed = False
-        #     return "Could not delete VPS, ensure VPS ID is valid. "
+            vps_id = self.delete_vps_by_id(vps_id)
+            if vps_id is not None:
+                return f"VPS with id {vps_id} is deleted successfully."
+            else:
+                self.connection_info.changed = False
+                return f"Could not delete VPS, ensure VPS ID {vps_id} is valid. "
 
 
 class VpsPropertiesExtractor:

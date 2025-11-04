@@ -34,12 +34,12 @@ options:
     choices: ['present', 'update']
     default: 'present'
   spec:
-    description: Specification for the user to be added to or updated in storage.
+    description: Specification for the user task.
     type: dict
     required: false
     suboptions:
       user_id:
-        description: User ID (username) to be created or updated.
+        description: The user ID (username) whose information is to be retrieved.
         type: str
         required: false
       password:
@@ -99,81 +99,75 @@ EXAMPLES = """
 """
 
 RETURN = r"""
-ansible_facts:
-  description: >
-    Dictionary containing user account information discovered from the system.
-  returned: always
+users:
+  description: Details of the user retrieved or managed by the module.
   type: dict
+  returned: always
   contains:
-    data:
-      description: List of user account entries.
+    authentication:
+      description: Type of authentication for the user.
+      type: str
+      sample: "local"
+    is_built_in:
+      description: Indicates if the user is a built-in system user.
+      type: bool
+      sample: false
+    is_enabled:
+      description: Indicates if the user account is enabled.
+      type: bool
+      sample: true
+    is_enabled_console_login:
+      description: Indicates if console login is allowed for the user.
+      type: bool
+      sample: true
+    password_expiration_time:
+      description: Expiration time of the user's password in ISO 8601 format.
+      type: str
+      sample: "2025-10-17T17:49:42Z"
+    privileges:
+      description: List of privileges assigned to the user.
       type: list
       elements: dict
       contains:
-        userId:
-          description: Username of the account.
-          type: str
-          sample: "admin"
-        userObjectId:
-          description: Unique object identifier for the user.
-          type: str
-          sample: "admin"
-        passwordExpirationTime:
-          description: Timestamp indicating when the password will expire.
-          type: str
-          sample: "2022-11-30T07:21:21Z"
-        isEnabled:
-          description: Indicates if the user account is enabled.
-          type: bool
-          sample: true
-        userGroups:
-          description: List of groups the user belongs to.
-          type: list
-          elements: dict
-          contains:
-            userGroupId:
-              description: ID of the user group.
-              type: str
-              sample: "SystemAdministrators"
-            userGroupObjectId:
-              description: Object ID of the user group.
-              type: str
-              sample: "SystemAdministrators"
-        isBuiltIn:
-          description: Indicates if the user is a built-in system account.
-          type: bool
-          sample: true
-        authentication:
-          description: Authentication method used by the user (e.g., local or LDAP).
-          type: str
-          sample: "local"
-        roleNames:
-          description: List of roles assigned to the user.
+        role_names:
+          description: List of role names assigned in this privilege.
           type: list
           elements: str
-          sample: ["Security", "Storage", "Monitor", "Service", "Audit", "Resource"]
-        isEnabledConsoleLogin:
-          description: Indicates whether the user can log in to the console.
-          type: bool
-          sample: null
-        vpsId:
-          description: VPS identifier associated with the user account.
+          sample: ["Security", "Monitor"]
+        scope:
+          description: Scope of the privilege.
           type: str
-          sample: "(system)"
-        privileges:
-          description: List of privileges assigned to the user.
-          type: list
-          elements: dict
-          contains:
-            scope:
-              description: Scope to which the privileges apply.
-              type: str
-              sample: "system"
-            roleNames:
-              description: Roles granted within the specified scope.
-              type: list
-              elements: str
-              sample: ["Audit", "Security", "Storage", "Monitor", "Service", "Resource"]
+          sample: "system"
+    role_names:
+      description: Roles assigned to the user.
+      type: list
+      elements: str
+      sample: ["Security", "Monitor"]
+    user_groups:
+      description: User groups the user belongs to.
+      type: list
+      elements: dict
+      contains:
+        user_group_id:
+          description: Identifier of the user group.
+          type: str
+          sample: "SecurityAdministrators"
+        user_group_object_id:
+          description: Object ID of the user group.
+          type: str
+          sample: "SecurityAdministrators"
+    user_id:
+      description: Unique ID of the user.
+      type: str
+      sample: "radey1"
+    user_object_id:
+      description: Object ID of the user.
+      type: str
+      sample: "radey1"
+    vps_id:
+      description: ID of the VPS or system the user belongs to.
+      type: str
+      sample: "(system)"
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -208,7 +202,6 @@ class SDSBBlockFaultDomainFactsManager:
         self.connection_info = parameter_manager.get_connection_info()
         self.spec = parameter_manager.get_users_spec()
         self.state = parameter_manager.get_state()
-        self.logger.writeDebug(f"MOD:hv_sds_user:spec= {self.spec}")
 
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB User Operation ===")
@@ -236,7 +229,7 @@ class SDSBBlockFaultDomainFactsManager:
         if registration_message:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo("=== End of SDSB User Operation ===")
-        self.module.exit_json(changed=False, ansible_facts=data)
+        self.module.exit_json(**data)
 
 
 def main():

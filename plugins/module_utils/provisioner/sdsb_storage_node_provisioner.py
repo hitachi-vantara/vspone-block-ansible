@@ -23,7 +23,6 @@ class SDSBStorageNodeProvisioner:
 
     @log_entry_exit
     def get_storage_nodes(self, spec=None):
-        logger.writeDebug("PV:get_storage_nodes:spec={}", spec)
         if spec is None:
             return self.gateway.get_storage_nodes()
         else:
@@ -39,7 +38,11 @@ class SDSBStorageNodeProvisioner:
 
     @log_entry_exit
     def get_storage_node_by_id(self, id):
-        return self.gateway.get_storage_node_by_id(id)
+        try:
+            return self.gateway.get_storage_node_by_id(id)
+        except Exception as ex:
+            logger.writeError("PV:get_storage_node_by_id:Exception={}", ex)
+            return None
 
     @log_entry_exit
     def get_node_id_by_node_name(self, name):

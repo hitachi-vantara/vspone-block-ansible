@@ -35,11 +35,11 @@ options:
     required: false
     suboptions:
       pool_id:
-        description: ID of the DDP Pool.
+        description: ID of the DDP Pool. Required for the Get DDP pool information using pool_id task.
         type: int
         required: false
       pool_name:
-        description: Name of the DDP Pool.
+        description: Name of the DDP Pool. Required for the Get DDP pool information using pool_name task.
         type: str
         required: false
 """

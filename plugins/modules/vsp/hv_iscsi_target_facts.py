@@ -48,15 +48,19 @@ options:
     suboptions:
       ports:
         description: List of ports of the iscsi target.
+          Required for the Get iSCSI targets by ports
+          /Get iSCSI targets by ports and name tasks.
         required: false
         type: list
         elements: str
       name:
         description: Name of the iscsi target.
+          Required for the Get iSCSI targets by ports and name task.
         required: false
         type: str
       iscsi_id:
         description: ID of the iscsi target.
+          Required for the Get iSCSI targets by iSCSI ID task.
         required: false
         type: int
 """

@@ -44,7 +44,7 @@ options:
     required: false
     suboptions:
       external_path_group_id:
-        description: The external path group ID.
+        description: The external path group ID. Required for the Get a specific external path group task.
         type: int
         required: false
 

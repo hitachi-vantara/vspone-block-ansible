@@ -49,7 +49,7 @@ options:
     suboptions:
       clpr_id:
         type: int
-        description: CLPR id.
+        description: CLPR id. Required for Get one CLPR using clpr_id.
         required: false
 """
 

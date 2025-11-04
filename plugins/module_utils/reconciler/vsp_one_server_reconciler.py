@@ -54,7 +54,7 @@ class VSPServerSimpleAPIReconciler:
             return server.camel_to_snake_dict() if server else "Server not found."
         else:
             return self.provisioner.gateway.get_all_servers_with_filter(
-                spec.nick_name, spec.hba_wwn, spec.iscsi_name
+                spec.nick_name, spec.hba_wwn, spec.iscsi_name, spec.include_details
             ).data_to_snake_case_list()
 
     @log_entry_exit

@@ -74,110 +74,261 @@ options:
     required: true
     suboptions:
       primary_volume_id:
-        description: Primary volume id.
+        description: Primary volume id. Required for the Create HUR pair in new copy group
+          /Create HUR pair with existing copy group
+          /Create a HUR pair using a range for secondary volume ID
+          /Create HUR-NVMe pair
+          /Create HUR-ISCSI pair
+          /Create HUR pair with provisioned_secondary_volume_id
+          /Create HUR pair with provisioned_secondary_volume_id and hostgroups
+          /Create HUR pair and debug result
+          /Create HUR-iSCSI pair and debug result
+          /Create HUR-NVMe pair and debug result tasks.
         type: str
         required: false
       primary_volume_journal_id:
-        description: Primary volume journal id, required for create.
+        description: Primary volume journal id. Required for the Create HUR pair in new copy group
+          /Create a HUR pair using a range for secondary volume ID
+          /Create HUR-ISCSI pair
+          /Create HUR pair with provisioned_secondary_volume_id
+          /Create HUR pair with provisioned_secondary_volume_id and hostgroups
+          /Create HUR pair and debug result
+          /Create HUR-iSCSI pair and debug result
+          /Create HUR-NVMe pair and debug result tasks.
+          Optional for the Create HUR-NVMe pair task.
         type: int
         required: false
       secondary_volume_journal_id:
-        description: Secondary volume journal id, required for create.
+        description: Secondary volume journal id. Required for the Create HUR pair in new copy group
+          /Create a HUR pair using a range for secondary volume ID
+          /Create HUR-ISCSI pair
+          /Create HUR pair with provisioned_secondary_volume_id
+          /Create HUR pair with provisioned_secondary_volume_id and hostgroups
+          /Create HUR pair and debug result
+          /Create HUR-iSCSI pair and debug result
+          /Create HUR-NVMe pair and debug result tasks.
+          Optional for the Create HUR-NVMe pair task.
         type: int
         required: false
       copy_group_name:
-        description: Name of the copy group. This is a required for create operation.
+        description: Name of the copy group. Required for the Create HUR pair in new copy group
+          /Create HUR pair with existing copy group
+          /Create a HUR pair using a range for secondary volume ID
+          /Create HUR-NVMe pair
+          /Create HUR-ISCSI pair
+          /Create HUR pair with provisioned_secondary_volume_id
+          /Create HUR pair with provisioned_secondary_volume_id and hostgroups
+          /Split HUR pair
+          /Resync HUR pair
+          /Swap-Split HUR pair
+          /Swap-Resync HUR pair
+          /Delete HUR pair
+          /Expand HUR pair
+          /Secondary volume takeover HUR pair
+          /Create HUR pair and debug result
+          /Create HUR-iSCSI pair and debug result
+          /Create HUR-NVMe pair and debug result tasks.
         type: str
         required: false
       copy_pair_name:
-        description: Name of the copy pair. This is a required for create operation.
+        description: Name of the copy pair. Required for the Create HUR pair in new copy group
+          /Create HUR pair with existing copy group
+          /Create a HUR pair using a range for secondary volume ID
+          /Create HUR-NVMe pair
+          /Create HUR-ISCSI pair
+          /Create HUR pair with provisioned_secondary_volume_id
+          /Create HUR pair with provisioned_secondary_volume_id and hostgroups
+          /Split HUR pair
+          /Resync HUR pair
+          /Swap-Split HUR pair
+          /Swap-Resync HUR pair
+          /Delete HUR pair
+          /Expand HUR pair
+          /Secondary volume takeover HUR pair
+          /Create HUR pair and debug result
+          /Create HUR-iSCSI pair and debug result
+          /Create HUR-NVMe pair and debug result tasks.
         type: str
         required: false
       consistency_group_id:
-        description: Consistency group ID, optional.
+        description: Consistency group ID. Optional for the Create HUR pair in new copy group
+          /Create a HUR pair using a range for secondary volume ID
+          /Create HUR-NVMe pair
+          /Create HUR-ISCSI pair
+          /Create HUR pair and debug result
+          /Create HUR-iSCSI pair and debug result
+          /Create HUR-NVMe pair and debug result tasks.
         type: int
         required: false
       local_device_group_name:
-        description: Name of the local device group name. This is an optional field.
+        description: Name of the local device group name.
+          Optional for the Create HUR pair in new copy group
+          /Create a HUR pair using a range for secondary volume ID
+          /Create HUR-NVMe pair
+          /Create HUR-ISCSI pair
+          /Split HUR pair
+          /Resync HUR pair
+          /Swap-Split HUR pair
+          /Swap-Resync HUR pair
+          /Delete HUR pair
+          /Create HUR pair and debug result
+          /Create HUR-iSCSI pair and debug result
+          /Create HUR-NVMe pair and debug result tasks.
         type: str
         required: false
       remote_device_group_name:
-        description: Name of the remote device group name. This is an optional field..
+        description: Name of the remote device group name.
+          Optional for the Create HUR pair in new copy group
+          /Create a HUR pair using a range for secondary volume ID
+          /Create HUR-NVMe pair
+          /Create HUR-ISCSI pair
+          /Split HUR pair
+          /Resync HUR pair
+          /Swap-Split HUR pair
+          /Swap-Resync HUR pair
+          /Delete HUR pair
+          /Create HUR pair and debug result
+          /Create HUR-iSCSI pair and debug result
+          /Create HUR-NVMe pair and debug result tasks.
+          Required for the Secondary volume takeover HUR pair task.
         type: str
         required: false
       mirror_unit_id:
-        description: Mirror Unit Id, required for create operations in new copy group. Not required for pair creation in existing copy group.
+        description: Mirror Unit Id.
+          Optional for the Create HUR pair in new copy group
+          /Create a HUR pair using a range for secondary volume ID
+          /Create HUR-NVMe pair
+          /Create HUR-ISCSI pair
+          /Create HUR pair with provisioned_secondary_volume_id
+          /Create HUR pair with provisioned_secondary_volume_id and hostgroups
+          /Create HUR-iSCSI pair and debug result
+          /Create HUR-NVMe pair and debug result tasks.
         type: int
         choices: [0, 1, 2, 3]
         required: false
       secondary_pool_id:
         description: Id of dynamic pool on the secondary storage where the secondary volume will be created.
+          Required for the Create HUR pair in new copy group
+          /Create HUR pair with existing copy group
+          /Create a HUR pair using a range for secondary volume ID
+          /Create HUR-NVMe pair
+          /Create HUR-ISCSI pair
+          /Create HUR pair and debug result
+          /Create HUR-iSCSI pair and debug result
+          /Create HUR-NVMe pair and debug result tasks.
         type: int
         required: false
       secondary_hostgroup:
         description: Host group details of secondary volume.
+          Required for the Create HUR pair in new copy group
+          /Create HUR pair with existing copy group
+          /Create a HUR pair using a range for secondary volume ID
+          /Create HUR pair with provisioned_secondary_volume_id and hostgroups tasks.
+          Optional for the Create HUR pair and debug result task.
         type: dict
         required: false
         suboptions:
           name:
             description: Name of the host group on the secondary storage system.
+              Required for the Create HUR pair in new copy group
+              /Create HUR pair with existing copy group
+              /Create a HUR pair using a range for secondary volume ID
+              /Create HUR pair with provisioned_secondary_volume_id and hostgroups
+              /Create HUR pair and debug result tasks.
             type: str
             required: true
           port:
             description: Port of the host group on the secondary storage system.
+              Required for the Create HUR pair in new copy group
+              /Create HUR pair with existing copy group
+              /Create a HUR pair using a range for secondary volume ID
+              /Create HUR pair with provisioned_secondary_volume_id and hostgroups
+              /Create HUR pair and debug result tasks.
             type: str
             required: true
           lun_id:
             description: LUN ID can be provided along with host group on the secondary storage system.
+              Optional for the Create HUR pair in new copy group
+              /Create HUR pair with existing copy group tasks.
+              Required for the Create HUR pair with provisioned_secondary_volume_id and hostgroups task.
             type: int
             required: false
       secondary_hostgroups:
         description: List of hostgroup objects for the secondary volume.
+          Required for the Create HUR pair in new copy group
+          /Create HUR pair with existing copy group
+          /Create a HUR pair using a range for secondary volume ID
+          /Create HUR pair with provisioned_secondary_volume_id and hostgroups tasks.
+          Optional for the Create HUR pair and debug result task.
         type: list
         elements: dict
         required: false
         suboptions:
           name:
-            description: Name of the host group on the secondary storage system. This is required for create operation.
+            description: Name of the host group on the secondary storage system.
+              Required for the Create HUR pair in new copy group
+              /Create HUR pair with existing copy group
+              /Create a HUR pair using a range for secondary volume ID
+              /Create HUR pair with provisioned_secondary_volume_id and hostgroups
+              /Create HUR pair and debug result tasks.
             type: str
             required: true
           port:
-            description: Port of the host group on the secondary storage system. This is required for create operation.
+            description: Port of the host group on the secondary storage system.
+              Required for the Create HUR pair in new copy group
+              /Create HUR pair with existing copy group
+              /Create a HUR pair using a range for secondary volume ID
+              /Create HUR pair with provisioned_secondary_volume_id and hostgroups
+              /Create HUR pair and debug result tasks.
             type: str
             required: true
           lun_id:
-            description: LUN ID of the host group on the secondary storage system. This is not required for create operation.
+            description: LUN ID of the host group on the secondary storage system.
+              Optional for the Create HUR pair in new copy group
+              /Create HUR pair with existing copy group tasks.
+              Required for the Create HUR pair with provisioned_secondary_volume_id and hostgroups task.
             type: int
             required: false
       secondary_iscsi_targets:
         description: The list of iscsi targets on the secondary storage device.
+          Required for the Create HUR-ISCSI pair task.
+          Optional for the Create HUR-iSCSI pair and debug result task.
         type: list
         elements: dict
         required: false
         suboptions:
           name:
-            description: ISCSI target name.
+            description: ISCSI target name. Required for the Create HUR-ISCSI pair
+              /Create HUR-iSCSI pair and debug result tasks.
             type: str
             required: true
           port:
-            description: Port name.
+            description: Port name. Required for the Create HUR-ISCSI pair
+              /Create HUR-iSCSI pair and debug result tasks.
             type: str
             required: true
           lun_id:
-            description: LUN ID.
+            description: LUN ID. Required for the Create HUR-ISCSI pair
+              /Create HUR-iSCSI pair and debug result tasks.
             type: int
             required: false
       secondary_nvm_subsystem:
         description: NVM subsystem details of the secondary volume.
+          Required for the Create HUR-NVMe pair task.
+          Optional for the Create HUR-NVMe pair and debug result task.
         type: dict
         required: false
         suboptions:
           name:
             description: Name of the NVM subsystem on the secondary storage system.
+              Required for the Create HUR-NVMe pai
+              /Create HUR-NVMe pair and debug result tasks.
             type: str
             required: true
           paths:
             description: Host NQN paths information on the secondary storage system.
+              Required for the Create HUR-NVMe pair
+              /Create HUR-NVMe pair and debug result tasks.
             type: list
             elements: str
             required: false
@@ -213,6 +364,7 @@ options:
         required: false
       is_svol_readwriteable:
         description: Specify whether to enable secondary volume read writeable.
+          Optional for Split HUR pair task.
         type: bool
         required: false
       secondary_storage_serial_number:
@@ -221,22 +373,27 @@ options:
         required: false
       path_group_id:
         description: >
-          This is an optional field during create operation.
+          Optional for the Create HUR pair in new copy group
+          /Create HUR-NVMe pair
+          /Create HUR-ISCSI pair tasks.
           Specify the path group ID in the range from 0 to 255. If you are unsure don't use this parameter.
           If you omit this value or specify 0, the lowest path group ID in the specified path group is used.
         type: int
         required: false
       new_volume_size:
-        description: New volume size.
+        description: New volume size. Required for the Expand HUR pair task.
         type: str
         required: false
       provisioned_secondary_volume_id:
         description: ID of the provisioned secondary volume that you want to use for the HUR pair creation.
+          Required for the Create HUR pair with provisioned_secondary_volume_id
+          /Create HUR pair with provisioned_secondary_volume_id and hostgroups tasks.
         type: str
         required: false
       begin_secondary_volume_id:
         description: >
-          Specify beginning ldev id for LDEV range for svol. This is an optional field during create operation.
+          Specify beginning ldev id for LDEV range for svol.
+          Required for the Create a HUR pair using a range for secondary volume ID task.
           If this field is specified, end_secondary_volume_id must also be specified.
           If this field is not specified, Ansible modules will try to create SVOL ID same as the PVOL ID if available,
           otherwise it will use the first available LDEV ID.
@@ -244,7 +401,8 @@ options:
         type: str
       end_secondary_volume_id:
         description: >
-          Specify end ldev id for LDEV range for svol. This is an optional field during create operation.
+          Specify end ldev id for LDEV range for svol.
+          Required for the Create a HUR pair using a range for secondary volume ID task.
           If this field is specified, begin_secondary_volume_id must also be specified.
           If this field is not specified, Ansible modules will try to create SVOL ID same as PVOL ID iff available,
           otherwise it will use the first available LDEV ID.
@@ -256,12 +414,15 @@ options:
         required: false
         default: true
       is_data_reduction_force_copy:
-        description: Force copy for data reduction. This is an optional field during create operation.
+        description: Force copy for data reduction.
+          Optional for the Create HUR pair in new copy group
+          /Create HUR-NVMe pair
+          /Create HUR-ISCSI pair tasks.
         type: bool
         required: false
         default: false
       should_delete_svol:
-        description: Specify true to delete the SVOL.
+        description: Specify true to delete the SVOL. Optional for the Delete HUR pair task.
         type: bool
         required: false
         default: false

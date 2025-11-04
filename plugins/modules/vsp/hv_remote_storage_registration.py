@@ -62,15 +62,18 @@ options:
     suboptions:
       is_mutual_discovery:
         description: Specify whether to perform a mutual registration operation. true means perform a mutual registration operation.
+          Required for the Register Remote Storage task.
         type: bool
         required: false
       is_mutual_deletion:
         description: Specify whether to perform a mutual deletion operation during unregistration. true means perform a mutual deletion operation.
+          Required for the Unregister Remote Storage task.
         type: bool
         required: false
       rest_server_ip:
         description: IP address of the rest server of the remote storage system.
             If not provided, secondary_connection_info.address will be used for rest_server_ip.
+              Required for the Register Remote Storage task.
         type: str
         required: false
       rest_server_port:

@@ -82,5 +82,4 @@ class SDSBVpsProvisioner:
 
     @log_entry_exit
     def update_vps(self, id, spec):
-        capacity_saving = spec.capacity_saving
-        return self.gateway.update_vps_volume_adr_setting(id, capacity_saving)
+        return self.gateway.update_vps(id, spec)

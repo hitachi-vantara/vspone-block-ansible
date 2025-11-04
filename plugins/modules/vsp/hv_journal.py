@@ -51,6 +51,11 @@ options:
     suboptions:
       journal_id:
         description: Journal ID of the Journal.
+          Required for the Create a Journal using required details
+          /Update a Journal using more details
+          /Expand journal
+          /Shrink journal
+          /Delete Journal by ID tasks.
         type: int
         required: false
       start_ldev_id:
@@ -65,33 +70,42 @@ options:
         aliases: ["endLdevId"]
       is_cache_mode_enabled:
         description: Cache mode enabled or not.
+          Required for the Update a Journal using more details task.
         type: bool
         required: false
       data_overflow_watch_in_seconds:
         description: Data overflow watch in seconds.
+          Required for the Update a Journal using more details task.
         type: int
         required: false
         aliases: ["data_overflow_watchIn_seconds"]
       mp_blade_id:
-        description: MP Blade ID of the Journal .
+        description: MP Blade ID of the Journal.
+          Required for the Update a Journal using more details task.
         type: int
         required: false
       ldev_ids:
         description: List of LDEVs.
+          Required for the Create a Journal using required details
+          /Expand journal
+          /Shrink journal task.
         type: list
         required: false
         elements: str
       mirror_unit_number:
         description: Mirror unit number.
+          Required for the Update a Journal using more details task.
         type: int
         required: false
       copy_pace:
         description: Copy pace.
+          Required for the Update a Journal using more details task.
         type: str
         required: false
         choices: ['SLOW', 'MEDIUM', 'FAST']
       path_blockade_watch_in_minutes:
         description: Path blockade watch in minutes.
+          Required for the Update a Journal using more details task.
         type: int
         required: false
 """

@@ -42,11 +42,11 @@ options:
     required: true
     suboptions:
       pool_id:
-        description: ID of the DDP Pool.
+        description: ID of the DDP Pool. Required for Update/Expand/Delete tasks.
         type: int
         required: false
       pool_name:
-        description: Name of the DDP Pool.
+        description: Name of the DDP Pool. Required for Create/Update tasks.
         type: str
         required: false
       is_encryption_enabled:

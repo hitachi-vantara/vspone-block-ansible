@@ -468,7 +468,7 @@ def get_consent_flag():
         os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)  # nosec
     ):
         with open(
-            os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME), "r"
+            os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME), "r"  # nosec
         ) as file:  # nosec
             consent_data = json.load(file)
             if consent_data.get("user_consent_accepted", False):

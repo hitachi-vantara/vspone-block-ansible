@@ -63,14 +63,22 @@ options:
     suboptions:
       ldev_id:
         description: LDEV number.
+          Required for the Get Server Priority Manager information by specifying a volume and the
+          WWN of the HBA
+          /Get Server Priority Manager information by specifying a volume and the iSCSI
+          name of the HBA tasks.
         type: str
         required: false
       host_wwn:
         description: WWN of the HBA.
+          Required for the Get Server Priority Manager information by specifying a volume and the
+          WWN of the HBA task.
         type: str
         required: false
       iscsi_name:
         description: iSCSI name of the HBA (iSCSI initiator).
+          Required for the Get Server Priority Manager information by specifying a volume and the
+          iSCSI name of the HBA task.
         type: str
         required: false
 """

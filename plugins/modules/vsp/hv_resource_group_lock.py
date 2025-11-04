@@ -81,6 +81,7 @@ options:
       lock_timeout_sec:
         description: The time that elapses before a lock timeout (in seconds). Specify a value from 0 to 7200.
           Default is 0.
+          Required for the Lock Resource Groups task.
         type: int
         required: false
 """

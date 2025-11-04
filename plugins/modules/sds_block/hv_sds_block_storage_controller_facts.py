@@ -80,27 +80,27 @@ ansible_facts:
           description: Unique identifier for the storage controller.
           type: str
           sample: "25244614-4af4-4922-839a-8528c9e4fd7f"
-        allocatableCapacity:
+        allocatable_capacity:
           description: Total allocatable capacity in GB.
           type: int
           sample: 0
-        currentlyAllocatableCapacity:
+        currently_allocatable_capacity:
           description: Currently allocatable capacity in GB.
           type: int
           sample: 0
-        usedCapacity:
+        used_capacity:
           description: Used capacity in GB.
           type: int
           sample: 0
-        logicalLimit:
+        logical_limit:
           description: Logical limit of capacity usage.
           type: int
           sample: 0
-        volumeMaximumCapacity:
+        volume_maximum_capacity:
           description: Maximum volume capacity.
           type: int
           sample: 0
-        freeCapacity:
+        free_capacity:
           description: Free capacity available in GB.
           type: int
           sample: 0
@@ -108,95 +108,95 @@ ansible_facts:
           description: Operational status of the storage controller.
           type: str
           sample: "Normal"
-        metaDataRedundancyOfCacheProtection:
+        meta_data_redundancy_of_cache_protection:
           description: Redundancy level for cache protection.
           type: int
           sample: 1
-        activeStorageNodeId:
+        active_storage_node_id:
           description: UUID of the active storage node.
           type: str
           sample: "7eb3f987-804f-4bc5-9d40-aff9392d507d"
-        standbyStorageNodeId:
+        standby_storage_node_id:
           description: UUID of the standby storage node.
           type: str
           sample: "a8056f21-e4ee-4e3a-a139-bee4de98d8c7"
-        secondaryStandbyStorageNodeId:
+        secondary_standby_storage_node_id:
           description: UUID of the secondary standby node, if any.
           type: str
           sample: null
-        isDetailedLoggingMode:
+        is_detailed_logging_mode:
           description: Indicates if detailed logging mode is enabled.
           type: bool
           sample: false
-        allocatableCapacityUsageRate:
+        allocatable_capacity_usage_rate:
           description: Percentage of allocatable capacity used.
           type: int
           sample: 0
-        currentlyAllocatableCapacityUsageRate:
+        currently_allocatable_capacity_usage_rate:
           description: Percentage of currently allocatable capacity used.
           type: int
           sample: 0
-        capacityStatus:
+        capacity_status:
           description: Status of capacity health.
           type: str
           sample: "Normal"
-        dataRebalanceStatus:
+        data_rebalance_status:
           description: Current status of data rebalance operation.
           type: str
           sample: "Stopped"
-        dataRebalanceProgressRate:
+        data_rebalance_progress_rate:
           description: Progress rate of data rebalance in percentage.
           type: int
           sample: null
-        totalVolumeCapacity:
+        total_volume_capacity:
           description: Total volume capacity.
           type: int
           sample: 0
-        provisionedVolumeCapacity:
+        provisioned_volume_capacity:
           description: Provisioned volume capacity.
           type: int
           sample: 0
-        otherVolumeCapacity:
+        other_volume_capacity:
           description: Capacity used by other volume types.
           type: int
           sample: 0
-        temporaryVolumeCapacity:
+        temporary_volume_capacity:
           description: Capacity used by temporary volumes.
           type: int
           sample: 0
-        capacitiesExcludingSystemData:
+        capacities_excluding_system_data:
           description: Capacity details excluding system data.
           type: dict
           contains:
-            usedVolumeCapacity:
+            used_volume_capacity:
               description: Used volume capacity excluding system data.
               type: int
               sample: 0
-            compressedCapacity:
+            compressed_capacity:
               description: Compressed capacity excluding system data.
               type: int
               sample: 0
-            reclaimedCapacity:
+            reclaimed_capacity:
               description: Reclaimed capacity excluding system data.
               type: int
               sample: 0
-            systemDataCapacity:
+            system_data_capacity:
               description: Capacity used by system data.
               type: int
               sample: 0
-            preUsedCapacity:
+            pre_used_capacity:
               description: Pre-used capacity before compression.
               type: int
               sample: 0
-            preCompressedCapacity:
+            pre_compressed_capacity:
               description: Pre-compressed capacity before optimization.
               type: int
               sample: 0
-        pinInformation:
+        pin_information:
           description: Additional pin-related configuration or state.
           type: raw
           sample: null
-        primaryFaultDomainId:
+        primary_fault_domain_id:
           description: UUID of the primary fault domain.
           type: str
           sample: "355d32ce-c97f-4adf-9057-49d2e287974b"

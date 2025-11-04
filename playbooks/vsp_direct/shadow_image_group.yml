@@ -27,7 +27,7 @@
         spec:
           copy_group_name: "copy_group_name1"
           quick_mode: true
-          copy_pace: 100
+          copy_pace: 10
           force_suspend: true
       register: result
 
@@ -45,7 +45,7 @@
         spec:
           copy_group_name: "copy_group_name1"
           quick_mode: true
-          copy_pace: 100
+          copy_pace: 10
       register: result
 
     - name: Debug the result variable
@@ -62,7 +62,7 @@
         spec:
           copy_group_name: "copy_group_name1"
           quick_mode: true
-          copy_pace: 100
+          copy_pace: 10
       register: result
 
     - name: Debug the result variable

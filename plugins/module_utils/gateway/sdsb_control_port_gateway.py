@@ -25,7 +25,6 @@ class SDSBBlockControlPortDirectGateway:
     @log_entry_exit
     def get_control_ports(self, spec=None):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = SDSBlockEndpoints.GET_CONTROL_PORTS
 
         if spec is not None:
@@ -42,7 +41,6 @@ class SDSBBlockControlPortDirectGateway:
     @log_entry_exit
     def get_internode_ports(self, spec=None):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = SDSBlockEndpoints.GET_INTERNODE_PORTS
 
         if spec is not None:
@@ -59,7 +57,6 @@ class SDSBBlockControlPortDirectGateway:
     @log_entry_exit
     def get_storage_node_network_settings(self, spec=None):
 
-        # logger.writeDebug("GW:get_chap_users:spec={}", spec)
         end_point = SDSBlockEndpoints.GET_STORAGE_NODE_NETWORK_SETTINGS
 
         if spec is not None:

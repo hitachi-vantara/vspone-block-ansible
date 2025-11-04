@@ -58,3 +58,31 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ####################################################################
+    # Task Name : Get compute nodes for a VPS by VPS name
+    ####################################################################
+    - name: Get compute nodes for a VPS by VPS name
+      hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          vps_name: "RKD_VPS_02"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get compute nodes for a VPS by VPS ID
+    ####################################################################
+    - name: Get compute nodes for a VPS by VPS ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_compute_node_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          vps_id: "2a843522-a819-47ab-a208-69d190809604"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

@@ -123,6 +123,11 @@ try:
         vsp_one_port_args,
         VspOnePortFactsSpec,
     )
+    from ..model.vsp_one_snapshot_models import (
+        VspOneSnapshotFactSpec,
+        VspOneSnapshotSpec,
+        VspOneSnapshotGroupFactSpec,
+    )
     from ..message.vsp_lun_msgs import VSPVolValidationMsg
     from ..message.vsp_snapshot_msgs import VSPSnapShotValidateMsg
     from ..message.vsp_parity_group_msgs import VSPParityGroupValidateMsg
@@ -251,6 +256,10 @@ except ImportError:
         SNMPRequestSpec,
     )
     from model.vsp_server_priority_manager_models import SpmFactSpec, SpmSpec
+    from model.vsp_one_snapshot_models import (
+        VspOneSnapshotFactSpec,
+        VspOneSnapshotSpec,
+    )
     from common.hv_constants import ConnectionTypes, StateValue
     from common.vsp_constants import AutomationConstants
     from common.ansible_common import camel_to_snake_case, convert_to_bytes, check_range
@@ -862,6 +871,29 @@ class VSPParametersManager:
         :return: VSP One port spec
         """
         return VspOnePortFactsSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def get_vsp_one_snapshot_facts_spec(self):
+
+        return VspOneSnapshotFactSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def get_vsp_one_snapshot_spec(self):
+        """
+        This method is used to get the VSP One snapshot spec.
+        :return: VSP One server spec
+        """
+        return VspOneSnapshotSpec(**self.params["spec"])
+
+    def get_vsp_one_snapshot_group_facts_spec(self):
+        return VspOneSnapshotGroupFactSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def get_vsp_one_snapshot_group_spec(self):
+        return VspOneSnapshotGroupFactSpec(
             **self.params["spec"] if self.params.get("spec") else {}
         )
 
@@ -5565,6 +5597,152 @@ class VSPVolumeSimpleAPIArguments:
         return args
 
 
+class VSPOneSnapshotArguments:
+    common_arguments = {
+        "connection_info": VSPCommonParameters.connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "absent",
+                "map",
+                "restore",
+            ],
+            "default": "present",
+        },
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+    common_arguments["connection_info"]["options"].pop("connection_type")
+
+    @classmethod
+    def get_vsp_one_snapshot_facts_args(cls):
+        spec_options = {
+            "master_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+            "snapshot_date_from": {
+                "required": False,
+                "type": "str",
+            },
+            "snapshot_date_to": {
+                "required": False,
+                "type": "str",
+            },
+            "snapshot_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "start_id": {
+                "required": False,
+                "type": "str",
+            },
+            "count": {
+                "required": False,
+                "type": "int",
+            },
+            "snapshot_id": {
+                "required": False,
+                "type": "int",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        return args
+
+    @classmethod
+    def get_vsp_one_snapshot_args(cls):
+        new_snapshot_arg = {
+            "master_volume_id": {
+                "required": True,
+                "type": "str",
+            },
+            "pool_id": {
+                "required": True,
+                "type": "int",
+            },
+            "snapshot_group_name": {
+                "required": True,
+                "type": "str",
+            },
+            "type": {
+                "required": True,
+                "type": "str",
+            },
+        }
+        spec_options = {
+            "new_snapshots": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": new_snapshot_arg,
+            },
+            "master_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+            "snapshot_id": {
+                "required": False,
+                "type": "int",
+            },
+            "pool_id": {
+                "required": False,
+                "type": "int",
+            },
+            "should_delete_svol": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        return args
+
+    @classmethod
+    def get_vsp_one_snapshot_group_args(cls):
+        spec_options = {
+            "snapshot_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "include_snapshots": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        return args
+
+    @classmethod
+    def get_vsp_one_snapshot_group(cls):
+        spec_options = {
+            "snapshot_group_name": {
+                "required": True,
+                "type": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        state = args.get("state", {})
+        choices = state.get("choices", [])
+        for item in ["map", "restore"]:
+            if item in choices:
+                choices.remove(item)
+        return args
+
+
 class VSPOneServerArguments:
     common_arguments = {
         "connection_info": VSPCommonParameters.connection_info(),
@@ -5743,6 +5921,11 @@ class VSPOneServerArguments:
                 "required": False,
                 "type": "str",
             },
+            "include_details": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
         }
         args = copy.deepcopy(cls.common_arguments)
         args["spec"]["options"] = spec_options
@@ -5912,7 +6095,7 @@ class VSPSpecValidators:
             raise ValueError(VSPVolValidationMsg.LDEV_ID_OUT_OF_RANGE.value)
         if isinstance(input_spec.vldev_id, int) and (
             input_spec.vldev_id < -1
-            or input_spec.vldev_id > AutomationConstants.LDEV_ID_MAX
+            or input_spec.vldev_id > AutomationConstants.LDEV_ID_MAX_FULL
         ):
             raise ValueError(VSPVolValidationMsg.VLDEV_ID_OUT_OF_RANGE.value)
         if state == StateValue.ABSENT:
@@ -6828,7 +7011,6 @@ class VSPSpecValidators:
     @staticmethod
     def validate_hur_module(input_spec, state):
         logger = Log()
-        logger.writeDebug("input_spec={}", input_spec)
         logger.writeDebug("state={}", state)
         state = state.lower()
 

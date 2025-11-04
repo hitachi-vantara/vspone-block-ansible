@@ -59,22 +59,60 @@ options:
     suboptions:
       pool_id:
         description: ID of the pool where the LDEV will be created. Options pool_id and parity_group_id are mutually exclusive.
+          Required for the Create LDEV with a specific LDEV ID
+          /Create ldev with free ID and present to NVM System
+          /Create LDEV within a range of LDEV IDs using parallel execution
+          /Create LDEV with capacity saving and data_reduction_share
+          /Configuring QoS settings for a new volume
+          /Create new volume with tiering policy
+          /Create new volume with virtual ldev tasks.
         type: int
         required: false
       parity_group:
         description: ID of the parity_group where the LDEV will be created. Options pool_id and parity_group_id are mutually exclusive.
+          Required for the Create LDEV using a parity group and auto-free LDEV ID selection task.
         type: str
         required: false
       size:
         description: Size of the LDEV. Can be specified in units such as GB, TB, or MB (e.g., '10GB', '5TB', '100MB', 200).
+          Required for the Create LDEV with a specific LDEV ID
+          /Create ldev with free ID and present to NVM System
+          /Create LDEV within a range of LDEV IDs using parallel execution
+          /Expand the size of LDEV
+          /Create LDEV using a parity group and auto-free LDEV ID selection
+          /Create LDEV using external parity group and auto free LDEV ID selection
+          /Create LDEV with capacity saving and data_reduction_share
+          /Configuring QoS settings for a new volume
+          /Create new volume with tiering policy
+          /Create new volume with virtual ldev tasks.
         type: str
         required: false
       ldev_id:
         description: ID of the LDEV (required for delete and update operations), for new it will assigned to this ldev if it's free.
+          Required for the Create LDEV with a specific LDEV ID
+          /Present existing volume to NVM System
+          /Expand the size of LDEV
+          /Remove host NQNs from existing volume of NVM System
+          /Delete LDEV
+          /Force delete LDEV removes the LDEV from hostgroups, iSCSI targets or NVM subsystem namespace
+          /Shredding an existing volume
+          /Shredding an existing volume before deleting
+          /Configuring QoS settings for an existing volume
+          /Assign virtual LDEV Id for a volume
+          /Unassign virtual LDEV Id for a volume
+          /Set MP blade ID of a volume
+          /Set CLPR id of a volume
+          /Reclaiming zero pages of a DP volume
+          /Format a volume
+          /Change volume settings tasks.
         type: str
         required: false
       name:
         description: Name of the LDEV (optional). If not given, it assigns the name of the LDEV to "smrha-<ldev_id>".
+          Optional for the Create ldev with free ID and present to NVM System
+          /Create LDEV within a range of LDEV IDs using parallel execution
+          /Create LDEV using a parity group and auto-free LDEV ID selection
+          /Create LDEV using external parity group and auto free LDEV ID selection tasks.
         type: str
         required: false
       capacity_saving:
@@ -84,15 +122,23 @@ options:
           - 2. compression_deduplication - Enable the capacity saving function (compression and deduplication).
           - 3 disabled - Disable the capacity saving function (compression and deduplication)
           Default value is disabled.
+          Optional for the Create ldev with free ID and present to NVM System
+          /Create LDEV within a range of LDEV IDs using parallel execution tasks.
+          Required for the Create LDEV with capacity saving and data_reduction_share task.
         type: str
         required: false
       data_reduction_share:
         description: Specify whether to create a data reduction shared volume.
           This value is set to true for Thin Image Advance.
+          Optional for the Create ldev with free ID and present to NVM System task.
+          Required for the Create LDEV with capacity saving and data_reduction_share task.
         type: bool
         required: false
       nvm_subsystem_name:
         description: Specify whether the LDEV created will be part of an NVM subsystem.
+          Required for the Create ldev with free ID and present to NVM System
+          /Present existing volume to NVM System
+          /Remove host NQNs from existing volume of NVM System tasks.
         type: str
         required: false
       state:
@@ -100,99 +146,139 @@ options:
           - State of the NVM subsystems task. This is valid only when nvm_subsystem_name is specified.
           - C(add_host_nqn) - Add the host NQNs to the LDEV.
           - C(remove_host_nqn) - Remove the host NQNs from the LDEV.
+          - Optional for the Create ldev with free ID and present to NVM System task.
         type: str
         required: false
         choices: ['add_host_nqn', 'remove_host_nqn']
         default: 'add_host_nqn'
       host_nqns:
         description: List of host nqns to add to or remove from the LDEV depending on the state value.
+          Required for the Create ldev with free ID and present to NVM System
+          /Remove host NQNs from existing volume of NVM System tasks.
+          Optional for the Present existing volume to NVM System task.
         type: list
         required: false
         elements: str
       is_relocation_enabled:
         description: Specify whether to enable the tier relocation setting for the HDT volume.
+          Required for the Create new volume with tiering policy task.
+          Optional for the Change volume settings task.
         type: bool
         required: false
       tier_level_for_new_page_allocation:
         description: Specify which tier of the HDT pool will be prioritized when a new page is allocated.
+          Required for the Create new volume with tiering policy task.
         type: str
         required: false
       tiering_policy:
         description: Tiering policy for the LDEV.
+          Required for the Create new volume with tiering policy task.
         type: dict
         required: false
         suboptions:
           tier_level:
             description: Tier level, a value from 0 to 31.
+              Optional for the Create new volume with tiering policy task.
             type: int
             required: false
           tier1_allocation_rate_min:
             description: Tier1 min, a value from 1 to 100.
+              Optional for the Create new volume with tiering policy task.
             type: int
             required: false
           tier1_allocation_rate_max:
             description: Tier1 max, a value from 1 to 100.
+              Optional for the Create new volume with tiering policy task.
             type: int
             required: false
           tier3_allocation_rate_min:
             description: Tier3 min, a value from 1 to 100.
+              Optional for the Create new volume with tiering policy task.
             type: int
             required: false
           tier3_allocation_rate_max:
             description: Tier3 max, a value from 1 to 100.
+              Optional for the Create new volume with tiering policy task.
             type: int
             required: false
       vldev_id:
         description: Specify the virtual LDEV id. Specify -1 if you want to unassign the vldev_id.
+          Required for the Create new volume with virtual ldev
+          /Assign virtual LDEV Id for a volume
+          /Unassign virtual LDEV Id for a volume tasks.
         type: str
         required: false
       force:
         description: Force delete. Delete the LDEV and removes the LDEV from hostgroups, iscsi targets or NVM subsystem namespace.
+          Required for the Force delete LDEV removes the LDEV from hostgroups,
+          iSCSI targets or NVM subsystem namespace task.
         type: bool
         required: false
       should_shred_volume_enable:
         description: It shreds an LDEV (basic volume) or DP volume. Overwrites the volume three times with dummy data.
+          Required for the Shredding an existing volume
+          /Shredding an existing volume before deleting task.
         type: bool
         required: false
       qos_settings:
         description: QoS settings for the LDEV.
+          Required for the Configuring QoS settings for an existing volume
+          /Configuring QoS settings for a new volume tasks.
         type: dict
         required: false
         suboptions:
           upper_iops:
             description: Upper IOPS limit.
+              Optional for the Configuring QoS settings for an existing volume
+              /Configuring QoS settings for a new volume tasks.
             type: int
             required: false
           lower_iops:
             description: Lower IOPS limit.
+              Optional for the Configuring QoS settings for an existing volume
+              /Configuring QoS settings for a new volume tasks.
             type: int
             required: false
           upper_transfer_rate:
             description: Upper transfer rate limit.
+              Optional for the Configuring QoS settings for an existing volume
+              /Configuring QoS settings for a new volume tasks.
             type: int
             required: false
           lower_transfer_rate:
             description: Lower transfer rate limit.
+              Optional for the Configuring QoS settings for an existing volume
+              /Configuring QoS settings for a new volume tasks.
             type: int
             required: false
           upper_alert_allowable_time:
             description: Upper alert allowable time.
+              Optional for the Configuring QoS settings for an existing volume
+              /Configuring QoS settings for a new volume tasks.
             type: int
             required: false
           lower_alert_allowable_time:
             description: Lower alert allowable time.
+              Optional for the Configuring QoS settings for an existing volume
+              /Configuring QoS settings for a new volume tasks.
             type: int
             required: false
           response_priority:
             description: Response priority.
+              Optional for the Configuring QoS settings for an existing volume
+              /Configuring QoS settings for a new volume tasks.
             type: int
             required: false
           response_alert_allowable_time:
             description: Response alert allowable time.
+              Optional for the Configuring QoS settings for an existing volume
+              /Configuring QoS settings for a new volume tassk.
             type: int
             required: false
       is_compression_acceleration_enabled:
         description: Whether the compression accelerator of the capacity saving function is enabled.
+          Optional for the Create LDEV within a range of LDEV IDs using parallel execution
+          /Change volume settings tasks.
         type: bool
         required: false
       data_reduction_process_mode:
@@ -201,18 +287,22 @@ options:
           Valid values are:
           - "post_process" -  Post-process mode.
           - "inline" - Inline mode.
+          Optional for the Change volume settings task.
         choices: ["post_process", "inline"]
         type: str
       is_alua_enabled:
         description: Whether the ALUA (Asymmetric Logical Unit Access) is enabled for the LDEV.
+          Optional for the Change volume settings task.
         type: bool
         required: false
       is_full_allocation_enabled:
         description: Whether the LDEV is a full allocation volume.
+          Optional for the Change volume settings task.
         type: bool
         required: false
       should_format_volume:
         description: Whether to format the volume after creation or existing volume.
+          Required for the Format a volume task.
         type: bool
         required: false
       format_type:
@@ -220,6 +310,7 @@ options:
           The format type of the volume. Valid values are:
           - "quick" - Quick formatting.
           - "normal" - Normal formatting, It may take time to finish the formatting process.
+          Optional for the Format a volume task.
         type: str
         required: false
         choices: ["quick", "normal"]
@@ -228,42 +319,49 @@ options:
         description: >
           The starting LDEV ID for the range of LDEVs to be created. This is used when creating multiple LDEVs.
           If not specified, a free LDEV ID will be assigned.
+          Required for the Create LDEV within a range of LDEV IDs using parallel execution task.
         type: str
         required: false
       end_ldev_id:
         description: >
           The ending LDEV ID for the range of LDEVs to be created. This is used when creating multiple LDEVs.
           If not specified, only one LDEV will be created.
+          Required for the Create LDEV within a range of LDEV IDs using parallel execution task.
         type: str
         required: false
       mp_blade_id:
         description: >
           The MP blade ID to which the LDEV will be assigned. This is used for specifying the MP blade for the LDEV.
           If not specified, the LDEV will be assigned to the default MP blade.
+          Optional for the Set MP blade ID of a volume task.
         type: int
         required: false
       clpr_id:
         description: >
           The CLPR (Control Logical Partition) ID to which the LDEV will be assigned. This is used for specifying the CLPR for the LDEV.
           If not specified, the LDEV will be assigned to the default CLPR.
+          Required for the Set CLPR id of a volume task.
         type: int
         required: false
       should_reclaim_zero_pages:
         description: >
           Whether to reclaim zero pages of a DP volume. This is used to reclaim space in a DP volume.
           If set to true, it will reclaim the zero pages of the DP volume.
+          Required for the Reclaiming zero pages of a DP volume task.
         type: bool
         required: false
       external_parity_group:
         description: >
           The external parity group ID to which the LDEV will be assigned. This is used for specifying the external parity group for the LDEV.
           If not specified, the LDEV will be assigned to the default parity group.
+          Optional for the Create LDEV using external parity group and auto free LDEV ID selection task.
         type: str
         required: false
       is_parallel_execution_enabled:
         description: >
           Whether to enable parallel execution for the LDEV operations. This is used to speed up the LDEV operations.
           If set to true, it will enable parallel execution for the LDEV operations.
+          Required for the Create LDEV within a range of LDEV IDs using parallel execution task.
         type: bool
 """
 

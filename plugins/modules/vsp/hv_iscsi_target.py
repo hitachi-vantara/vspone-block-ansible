@@ -81,15 +81,40 @@ options:
         type: str
       port:
         description: Port of the iscsi target.
+          Required for the Create an iSCSI target
+          /Update iSCSI target host mode and host mode options
+          /Add CHAP users to an iSCSI target
+          /Remove a CHAP user from an iSCSI target
+          /Add IQN initiators to an iSCSI target
+          /Remove IQN initiators from an iSCSI target
+          /Attach LDEVs to an iSCSI target
+          /Detach LDEVs from an iSCSI target
+          /Delete an iSCSI target
+          /Rename or unset nickname of an IQN initiator (existing IQN initiator)
+          /Release host reserve status of the LU mapped to all LU mapped paths
+          /Release host reserve status of the LU mapped to a specified LU mapped path tasks.
         required: true
         type: str
       name:
         description: Name of the iscsi target.If not given,
           It will create the name will contain with prefix value "smrha-<10 digit random number>".
+          Optional for the Create an iSCSI target task.
+          Required for the Update iSCSI target host mode and host mode options
+          /Add CHAP users to an iSCSI target
+          /Remove a CHAP user from an iSCSI target
+          /Add IQN initiators to an iSCSI target
+          /Remove IQN initiators from an iSCSI target
+          /Attach LDEVs to an iSCSI target
+          /Detach LDEVs from an iSCSI target
+          /Delete an iSCSI target
+          /Rename or unset nickname of an IQN initiator (existing IQN initiator)
+          /Release host reserve status of the LU mapped to all LU mapped paths
+          /Release host reserve status of the LU mapped to a specified LU mapped path tasks.
         required: false
         type: str
       host_mode:
         description: Host mode of host group.
+          Required for the Update iSCSI target host mode and host mode options task.
         type: str
         required: false
         choices: ['LINUX', 'VMWARE', 'HP', 'OPEN_VMS', 'TRU64', 'SOLARIS',
@@ -98,6 +123,7 @@ options:
       host_mode_options:
         description:
           - List of host group host mode option numbers.
+          - Required for the Update iSCSI target host mode and host mode options task.
           - '0 # RESERVED'
           - '2 # VERITAS_DB_EDITION_ADV_CLUSTER'
           - '6 # TPRLO'
@@ -151,25 +177,42 @@ options:
         required: false
       ldevs:
         description: LDEV ID in decimal or HEX of the LDEV that you want to present or unpresent.
+          Optional for the Create an iSCSI target task.
+          Required for the Attach LDEVs to an iSCSI target
+          /Detach LDEVs from an iSCSI target tasks.
         required: false
         type: list
         elements: str
       iqn_initiators:
         description: List of IQN initiators that you want to add or remove.
+          Optional for the Create an iSCSI target
+          /Rename or unset nickname of an IQN initiator (existing IQN initiator) tasks.
+          Required for the Add IQN initiators to an iSCSI target
+          /Remove IQN initiators from an iSCSI target tasks.
         required: false
         type: list
         elements: dict
         suboptions:
           iqn:
             description: IQN of the initiator.
+              Required for the Create an iSCSI target
+              /Add IQN initiators to an iSCSI target
+              /Remove IQN initiators from an iSCSI target
+              /Rename or unset nickname of an IQN initiator (existing IQN initiator) tasks.
             required: true
             type: str
           nick_name:
             description: Nickname of the initiator.
+              Required for the Create an iSCSI target
+              /Add IQN initiators to an iSCSI target
+              /Rename or unset nickname of an IQN initiator (existing IQN initiator) tasks.
             required: false
             type: str
       chap_users:
         description: List of CHAP users that you want to add or remove.
+          Optional for the Create an iSCSI target task.
+          Required for the Add CHAP users to an iSCSI target
+          /Remove a CHAP user from an iSCSI target tasks.
         required: false
         type: list
         elements: dict
@@ -179,10 +222,13 @@ options:
         type: bool
       should_release_host_reserve:
         description: If the value is true, release the host reserve.
+          Required for the Release host reserve status of the LU mapped to all LU mapped paths
+          /Release host reserve status of the LU mapped to a specified LU mapped path tasks.
         required: false
         type: bool
       lun:
         description: LUN ID to releasing host reservation status.
+          Required for the Release host reserve status of the LU mapped to a specified LU mapped path task.
         required: false
         type: int
       iscsi_id:

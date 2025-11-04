@@ -42,6 +42,12 @@ options:
     suboptions:
       copy_group_name:
         description: Copy group name, required for all operations.
+          Required for the Split ShadowImage Group
+          /Resync ShadowImage Group
+          /Restore ShadowImage Group
+          /Delete ShadowImage Group
+          /Migrate ShadowImage Group
+          /Cancel Migration of ShadowImage Group tasks.
         type: str
         required: true
       primary_volume_device_group_name:
@@ -54,22 +60,31 @@ options:
         required: false
       copy_pace:
         description: Specify the copy pace.
+          Optional for the Split ShadowImage Group
+          /Resync ShadowImage Group
+          /Restore ShadowImage Group tasks.
         type: int
         required: false
       quick_mode:
         description: Specify whether quick mode.
+          Optional for the Split ShadowImage Group
+          /Resync ShadowImage Group
+          /Restore ShadowImage Group tasks.
         type: bool
         required: false
       force_suspend:
         description: Specify whether force suspend.
+          Optional for the Split ShadowImage Group task.
         type: bool
         required: false
       force_delete:
         description: Specify whether force delete.
+          Required for the Delete ShadowImage Group task.
         type: bool
         required: false
       should_force_split:
         description: Specify whether to force split.
+          Optional for the Cancel Migration of ShadowImage Group task.
         type: bool
         required: false
 """

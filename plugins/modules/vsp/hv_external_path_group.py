@@ -50,39 +50,39 @@ options:
     required: false
     suboptions:
       external_path_group_id:
-        description: External path group number.
+        description: External path group number. Required for the Add/Remove tasks.
         type: int
         required: true
       external_fc_paths:
-        description: List of external FC path objects.
+        description: List of external FC path objects. Required for the Add/Remove tasks.
         type: list
         elements: dict
         required: false
         suboptions:
           port:
-            description: Number of the port on the local storage system.
+            description: Number of the port on the local storage system. Required for the Add/Remove tasks.
             type: str
             required: true
           external_wwn:
-            description: WWN of the external storage system.
+            description: WWN of the external storage system. Required for the Add/Remove tasks.
             type: str
             required: true
       external_iscsi_target_paths:
-        description: List of external iSCSI target path objects.
+        description: List of external iSCSI target path objects. Required for the Add/Remove tasks.
         type: list
         elements: dict
         required: false
         suboptions:
           port:
-            description: Number of the port on the local storage system.
+            description: Number of the port on the local storage system. Required for the Add/Remove tasks.
             type: str
             required: true
           external_iscsi_ip_address:
-            description: IP address of the iSCSI target on the external storage system.
+            description: IP address of the iSCSI target on the external storage system. Required for the Add/Remove tasks.
             type: str
             required: true
           external_iscsi_name:
-            description: iSCSI name of the iSCSI target on the external storage system.
+            description: iSCSI name of the iSCSI target on the external storage system. Required for the Add/Remove tasks.
             type: str
             required: true
 """

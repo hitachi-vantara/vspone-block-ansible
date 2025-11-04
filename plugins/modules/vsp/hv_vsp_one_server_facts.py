@@ -51,6 +51,11 @@ options:
         description: iSCSI name to filter servers containing this iSCSI initiator.
         type: str
         required: false
+      include_details:
+        description: Whether to include detailed server information.
+        type: bool
+        required: false
+        default: false
 """
 
 EXAMPLES = """
@@ -60,6 +65,15 @@ EXAMPLES = """
       address: vsp.company.com
       username: "admin"
       password: "password"
+
+- name: Get all servers with details
+  hitachivantara.vspone_block.vsp.hv_vsp_one_server_facts:
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      include_details: true
 
 - name: Get server by server ID
   hitachivantara.vspone_block.vsp.hv_vsp_one_server_facts:

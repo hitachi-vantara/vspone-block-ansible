@@ -45,6 +45,7 @@ class HostGroupInfo(SingleBaseClass):
 
 @dataclass
 class VSPShadowImagePairInfo(SingleBaseClass):
+    localCloneCopypairId: Optional[str] = None
     copyGroupName: Optional[str] = None
     copyPairName: Optional[str] = None
     resourceId: Optional[str] = None
@@ -78,6 +79,17 @@ class VSPShadowImagePairInfo(SingleBaseClass):
                     setattr(self, field, shadow_image_info.get(field, None))
 
             self.type = shadow_image_info.get("type", None)
+        self.__post_init__()
+
+    def __post_init__(self):
+        if self.pvolHostGroups:
+            self.pvolHostGroups = [
+                HostGroupInfo(**group) for group in self.pvolHostGroups
+            ]
+        if self.svolHostGroups:
+            self.svolHostGroups = [
+                HostGroupInfo(**group) for group in self.svolHostGroups
+            ]
 
     def to_dict(self):
         return asdict(self)

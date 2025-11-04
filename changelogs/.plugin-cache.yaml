@@ -461,7 +461,7 @@ plugins:
       description: Manages Hitachi SDS block storage system Virtual Private Storages (VPS) volume ADR setting.
       name: hv_sds_block_vps
       namespace: sds_block
-      version_added: 3.1.0
+      version_added: 4.4.0
     hv_sds_block_vps_facts:
       description: Retrieves information about Virtual Private Storages (VPS) of Hitachi SDS block storage system.
       name: hv_sds_block_vps_facts
@@ -627,6 +627,26 @@ plugins:
       name: hv_vsp_one_server_hba_facts
       namespace: vsp
       version_added: 4.3.0
+    hv_vsp_one_snapshot:
+      description: Manages snapshots on Hitachi VSP One storage systems.
+      name: hv_vsp_one_snapshot
+      namespace: vsp
+      version_added: 4.4.0
+    hv_vsp_one_snapshot_facts:
+      description: Retrieves snapshot information from Hitachi VSP One storage systems.
+      name: hv_vsp_one_snapshot_facts
+      namespace: vsp
+      version_added: 4.4.0
+    hv_vsp_one_snapshot_group:
+      description: Manages snapshot group operations in Hitachi VSP One storage systems.
+      name: hv_vsp_one_snapshot_group
+      namespace: vsp
+      version_added: 4.4.0
+    hv_vsp_one_snapshot_group_facts:
+      description: Retrieves snapshot group information from Hitachi VSP One storage systems.
+      name: hv_vsp_one_snapshot_group_facts
+      namespace: vsp
+      version_added: 4.4.0
     hv_vsp_one_volume:
       description: Manages volumes on Hitachi VSP One storage systems.
       name: hv_vsp_one_volume
@@ -642,4 +662,4 @@ plugins:
   strategy: {}
   test: {}
   vars: {}
-version: 4.3.0
+version: 4.4.0

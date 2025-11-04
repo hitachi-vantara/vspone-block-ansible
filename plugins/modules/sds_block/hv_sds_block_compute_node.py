@@ -78,6 +78,14 @@ options:
         description: Will delete the volumes that are not attached to any compute node.
         type: bool
         required: false
+      vps_id:
+        description: The ID of the VPS where the compute node will be created.
+        type: str
+        required: false
+      vps_name:
+        description: The name of the VPS where the compute node will be created.
+        type: str
+        required: false
 """
 
 EXAMPLES = """
