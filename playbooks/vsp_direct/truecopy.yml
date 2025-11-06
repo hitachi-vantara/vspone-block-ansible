@@ -145,7 +145,7 @@
 
     - name: Debug result
       ansible.builtin.debug:
-        var: resultult
+        var: result
 
     #################################################################################
     # Task Name : Create a TrueCopy-NVMe pair by specifying only the required fields

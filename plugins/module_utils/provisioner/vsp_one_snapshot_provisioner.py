@@ -82,6 +82,7 @@ class VspOneSnapshotProvisioner:
                 f"Error deleting snapshot group {spec.snapshot_group_name}: {str(e)}"
             )
             return False
+        self.connection_info.changed = True
         spec.comments = f"Snapshot group {spec.snapshot_group_name} deleted."
         return
 

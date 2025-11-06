@@ -146,7 +146,8 @@ class VSPOneSnapshotGroupModule:
 
         response = {
             "snapshots": snapshots if snapshots else [],
-            "comment": self.spec.comment if self.spec.comment else "",
+            "comment": self.spec.comments if self.spec.comments else "",
+            "changed": self.connection_info.changed,
         }
         if registration_message:
             response["user_consent_required"] = registration_message
