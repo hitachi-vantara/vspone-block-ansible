@@ -394,8 +394,12 @@ class VSPStorageSystemProvisioner:
                     API_MSG = (
                         "The API is not supported for the specified storage system"
                     )
-                    API_MSG2 = "The microcode version of the storage system might be incorrect"
-                    if isinstance(err.args[0], str) and (API_MSG in err.args[0] or API_MSG2 in err.args[0]):
+                    API_MSG2 = (
+                        "The microcode version of the storage system might be incorrect"
+                    )
+                    if isinstance(err.args[0], str) and (
+                        API_MSG in err.args[0] or API_MSG2 in err.args[0]
+                    ):
                         tmp_storage_info["total_capacity"] = ""
                         tmp_storage_info["free_capacity"] = ""
                         tmp_storage_info["total_capacity_in_mb"] = -1
