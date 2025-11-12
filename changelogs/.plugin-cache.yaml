@@ -1,4 +1,3 @@
----
 objects:
   role: {}
 plugins:
@@ -13,12 +12,14 @@ plugins:
   lookup: {}
   module:
     hv_audit_log_transfer_dest:
-      description: This module specifies settings related to the transfer of audit log files from a storage system to the syslog servers.
+      description: This module specifies settings related to the transfer of audit
+        log files from a storage system to the syslog servers.
       name: hv_audit_log_transfer_dest
       namespace: vsp
       version_added: 4.0.0
     hv_audit_log_transfer_dest_facts:
-      description: Retrieves about the settings related to the transfer of audit log files to the syslog servers.
+      description: Retrieves about the settings related to the transfer of audit log
+        files to the syslog servers.
       name: hv_audit_log_transfer_dest_facts
       namespace: vsp
       version_added: 4.0.0
@@ -53,17 +54,20 @@ plugins:
       namespace: vsp
       version_added: 3.2.0
     hv_disk_drive_facts:
-      description: Retrieves information about hard drives from Hitachi VSP storage systems.
+      description: Retrieves information about hard drives from Hitachi VSP storage
+        systems.
       name: hv_disk_drive_facts
       namespace: vsp
       version_added: 3.2.0
     hv_external_paritygroup:
-      description: Manages assignment of MP blade and CLPR to an External Parity Group from Hitachi VSP storage systems.
+      description: Manages assignment of MP blade and CLPR to an External Parity Group
+        from Hitachi VSP storage systems.
       name: hv_external_paritygroup
       namespace: vsp
       version_added: 4.0.0
     hv_external_paritygroup_facts:
-      description: Retrieves information about External Parity Group from Hitachi VSP storage systems.
+      description: Retrieves information about External Parity Group from Hitachi
+        VSP storage systems.
       name: hv_external_paritygroup_facts
       namespace: vsp
       version_added: 3.5.0
@@ -73,7 +77,8 @@ plugins:
       namespace: vsp
       version_added: 3.5.0
     hv_external_path_group_facts:
-      description: Retrieves information about External Path Group from Hitachi VSP storage systems.
+      description: Retrieves information about External Path Group from Hitachi VSP
+        storage systems.
       name: hv_external_path_group_facts
       namespace: vsp
       version_added: 3.5.0
@@ -83,7 +88,8 @@ plugins:
       namespace: vsp
       version_added: 3.3.0
     hv_external_volume_facts:
-      description: Retrieves information about External Volume from Hitachi VSP storage systems.
+      description: Retrieves information about External Volume from Hitachi VSP storage
+        systems.
       name: hv_external_volume_facts
       namespace: vsp
       version_added: 3.3.0
@@ -103,7 +109,8 @@ plugins:
       namespace: vsp
       version_added: 3.0.0
     hv_hg_facts:
-      description: Retrieves host group information from a specified Hitachi VSP storage system.
+      description: Retrieves host group information from a specified Hitachi VSP storage
+        system.
       name: hv_hg_facts
       namespace: vsp
       version_added: 3.0.0
@@ -118,7 +125,8 @@ plugins:
       namespace: vsp
       version_added: 3.1.0
     hv_iscsi_remote_connection:
-      description: Manages Remote connections through iSCSI ports on Hitachi VSP storage systems.
+      description: Manages Remote connections through iSCSI ports on Hitachi VSP storage
+        systems.
       name: hv_iscsi_remote_connection
       namespace: vsp
       version_added: 3.3.0
@@ -133,27 +141,32 @@ plugins:
       namespace: vsp
       version_added: 3.0.0
     hv_iscsi_target_facts:
-      description: Retrieves information about iscsi targets from Hitachi VSP storage systems.
+      description: Retrieves information about iscsi targets from Hitachi VSP storage
+        systems.
       name: hv_iscsi_target_facts
       namespace: vsp
       version_added: 3.0.0
     hv_journal:
-      description: Create, update, expand, shrink, delete journal from Hitachi VSP storage systems.
+      description: Create, update, expand, shrink, delete journal from Hitachi VSP
+        storage systems.
       name: hv_journal
       namespace: vsp
       version_added: 3.2.0
     hv_journal_facts:
-      description: Retrieves information about Journal Volumes from Hitachi VSP storage systems.
+      description: Retrieves information about Journal Volumes from Hitachi VSP storage
+        systems.
       name: hv_journal_facts
       namespace: vsp
       version_added: 3.2.0
     hv_journal_volume:
-      description: Create, update, expand, shrink, delete journal volume from Hitachi VSP storage systems.
+      description: Create, update, expand, shrink, delete journal volume from Hitachi
+        VSP storage systems.
       name: hv_journal_volume
       namespace: vsp
       version_added: 3.2.0
     hv_journal_volume_facts:
-      description: Retrieves information about Journal Volumes from Hitachi VSP storage systems.
+      description: Retrieves information about Journal Volumes from Hitachi VSP storage
+        systems.
       name: hv_journal_volume_facts
       namespace: vsp
       version_added: 3.2.0
@@ -163,7 +176,8 @@ plugins:
       namespace: vsp
       version_added: 3.0.0
     hv_ldev_facts:
-      description: Retrieves information about logical devices (LDEVs) from Hitachi VSP storage systems.
+      description: Retrieves information about logical devices (LDEVs) from Hitachi
+        VSP storage systems.
       name: hv_ldev_facts
       namespace: vsp
       version_added: 3.0.0
@@ -178,7 +192,8 @@ plugins:
       namespace: vsp
       version_added: 3.2.0
     hv_nvm_subsystems_facts:
-      description: Retrieves information about NVM subsystems from Hitachi VSP storage systems.
+      description: Retrieves information about NVM subsystems from Hitachi VSP storage
+        systems.
       name: hv_nvm_subsystems_facts
       namespace: vsp
       version_added: 3.1.0
@@ -188,7 +203,8 @@ plugins:
       namespace: vsp
       version_added: 3.2.0
     hv_paritygroup_facts:
-      description: retrieves information about parity groups from Hitachi VSP storage systems.
+      description: retrieves information about parity groups from Hitachi VSP storage
+        systems.
       name: hv_paritygroup_facts
       namespace: vsp
       version_added: 3.0.0
@@ -198,7 +214,8 @@ plugins:
       namespace: vsp
       version_added: 3.3.0
     hv_quorum_disk_facts:
-      description: Retrieves information about Quorum Disks from Hitachi VSP storage systems.
+      description: Retrieves information about Quorum Disks from Hitachi VSP storage
+        systems.
       name: hv_quorum_disk_facts
       namespace: vsp
       version_added: 3.3.0
@@ -218,17 +235,20 @@ plugins:
       namespace: vsp
       version_added: 3.2.0
     hv_remote_copy_group_facts:
-      description: Retrieves Remote Copy Groups information from Hitachi VSP storage systems.
+      description: Retrieves Remote Copy Groups information from Hitachi VSP storage
+        systems.
       name: hv_remote_copy_group_facts
       namespace: vsp
       version_added: 3.2.0
     hv_remote_storage_registration:
-      description: Manages remote storage registration and unregistration on Hitachi VSP storage systems.
+      description: Manages remote storage registration and unregistration on Hitachi
+        VSP storage systems.
       name: hv_remote_storage_registration
       namespace: vsp
       version_added: 3.2.0
     hv_remote_storage_registration_facts:
-      description: Retrieves remote storage registration information from Hitachi VSP storage systems.
+      description: Retrieves remote storage registration information from Hitachi
+        VSP storage systems.
       name: hv_remote_storage_registration_facts
       namespace: vsp
       version_added: 3.2.0
@@ -243,7 +263,8 @@ plugins:
       namespace: vsp
       version_added: 3.2.0
     hv_resource_group_lock:
-      description: Allows the locking and unlocking of resource groups on Hitachi VSP storage systems.
+      description: Allows the locking and unlocking of resource groups on Hitachi
+        VSP storage systems.
       name: hv_resource_group_lock
       namespace: vsp
       version_added: 3.2.0
@@ -263,7 +284,8 @@ plugins:
       namespace: sds_block
       version_added: 3.0.0
     hv_sds_block_chap_user_facts:
-      description: Retrieves information about Hitachi SDS block storage system CHAP users.
+      description: Retrieves information about Hitachi SDS block storage system CHAP
+        users.
       name: hv_sds_block_chap_user_facts
       namespace: sds_block
       version_added: 3.0.0
@@ -273,7 +295,8 @@ plugins:
       namespace: sds_block
       version_added: 4.1.0
     hv_sds_block_cluster_config_facts:
-      description: Retrieves information about configuration of SDS block clusters from Hitachi SDS block storage systems.
+      description: Retrieves information about configuration of SDS block clusters
+        from Hitachi SDS block storage systems.
       name: hv_sds_block_cluster_config_facts
       namespace: sds_block
       version_added: 4.1.0
@@ -283,7 +306,8 @@ plugins:
       namespace: sds_block
       version_added: 3.0.0
     hv_sds_block_compute_node_facts:
-      description: Retrieves information about Hitachi SDS block storage system compute nodes.
+      description: Retrieves information about Hitachi SDS block storage system compute
+        nodes.
       name: hv_sds_block_compute_node_facts
       namespace: sds_block
       version_added: 3.0.0
@@ -293,7 +317,8 @@ plugins:
       namespace: sds_block
       version_added: 4.3.0
     hv_sds_block_compute_port_authentication:
-      description: Manages Hitachi SDS block storage system compute port authentication mode settings.
+      description: Manages Hitachi SDS block storage system compute port authentication
+        mode settings.
       name: hv_sds_block_compute_port_authentication
       namespace: sds_block
       version_added: 3.0.0
@@ -328,12 +353,14 @@ plugins:
       namespace: sds_block
       version_added: 4.1.0
     hv_sds_block_job_facts:
-      description: Retrieves information about Hitachi SDS block storage system storage nodes.
+      description: Retrieves information about Hitachi SDS block storage system storage
+        nodes.
       name: hv_sds_block_job_facts
       namespace: sds_block
       version_added: 4.1.0
     hv_sds_block_port_facts:
-      description: Retrieves information about Hitachi SDS block storage system compute ports.
+      description: Retrieves information about Hitachi SDS block storage system compute
+        ports.
       name: hv_sds_block_port_facts
       namespace: sds_block
       version_added: 3.0.0
@@ -363,12 +390,14 @@ plugins:
       namespace: sds_block
       version_added: 4.1.0
     hv_sds_block_software_update_file_facts:
-      description: Get the information of the update file of the storage software which performed transfer (upload) in the storage cluster.
+      description: Get the information of the update file of the storage software
+        which performed transfer (upload) in the storage cluster.
       name: hv_sds_block_software_update_file_facts
       namespace: sds_block
       version_added: 4.3.0
     hv_sds_block_storage_controller:
-      description: Edits the settings for the storage controller on Hitachi SDS Block storage systems.
+      description: Edits the settings for the storage controller on Hitachi SDS Block
+        storage systems.
       name: hv_sds_block_storage_controller
       namespace: sds_block
       version_added: 4.2.0
@@ -388,7 +417,8 @@ plugins:
       namespace: sds_block
       version_added: 4.1.0
     hv_sds_block_storage_node_bmc_connection:
-      description: Manages BMC connection settings for a storage node on Hitachi SDS Block storage systems.
+      description: Manages BMC connection settings for a storage node on Hitachi SDS
+        Block storage systems.
       name: hv_sds_block_storage_node_bmc_connection
       namespace: sds_block
       version_added: 4.3.0
@@ -398,7 +428,8 @@ plugins:
       namespace: sds_block
       version_added: 4.2.0
     hv_sds_block_storage_node_facts:
-      description: Retrieves information about Hitachi SDS block storage system storage nodes.
+      description: Retrieves information about Hitachi SDS block storage system storage
+        nodes.
       name: hv_sds_block_storage_node_facts
       namespace: sds_block
       version_added: 4.1.0
@@ -413,22 +444,26 @@ plugins:
       namespace: sds_block
       version_added: 4.1.0
     hv_sds_block_storage_pool_estimated_capacity_facts:
-      description: Obtains the preliminary calculation results of the storage pool logical capacity (unit TiB).
+      description: Obtains the preliminary calculation results of the storage pool
+        logical capacity (unit TiB).
       name: hv_sds_block_storage_pool_estimated_capacity_facts
       namespace: sds_block
       version_added: 4.2.0
     hv_sds_block_storage_pool_facts:
-      description: Retrieves information about Hitachi SDS block storage system storage pools.
+      description: Retrieves information about Hitachi SDS block storage system storage
+        pools.
       name: hv_sds_block_storage_pool_facts
       namespace: sds_block
       version_added: 4.1.0
     hv_sds_block_storage_software_update:
-      description: Manages software update and downgrade on Hitachi SDS Block storage systems.
+      description: Manages software update and downgrade on Hitachi SDS Block storage
+        systems.
       name: hv_sds_block_storage_software_update
       namespace: sds_block
       version_added: 4.3.0
     hv_sds_block_storage_system_facts:
-      description: Retrieves information about a specific Hitachi SDS block storage system.
+      description: Retrieves information about a specific Hitachi SDS block storage
+        system.
       name: hv_sds_block_storage_system_facts
       namespace: sds_block
       version_added: 3.0.0
@@ -458,22 +493,26 @@ plugins:
       namespace: sds_block
       version_added: 3.0.0
     hv_sds_block_vps:
-      description: Manages Hitachi SDS block storage system Virtual Private Storages (VPS) volume ADR setting.
+      description: Manages Hitachi SDS block storage system Virtual Private Storages
+        (VPS) volume ADR setting.
       name: hv_sds_block_vps
       namespace: sds_block
       version_added: 4.4.0
     hv_sds_block_vps_facts:
-      description: Retrieves information about Virtual Private Storages (VPS) of Hitachi SDS block storage system.
+      description: Retrieves information about Virtual Private Storages (VPS) of Hitachi
+        SDS block storage system.
       name: hv_sds_block_vps_facts
       namespace: sds_block
       version_added: 3.1.0
     hv_server_priority_manager:
-      description: Manage Server Priority Manager information on Hitachi VSP storage systems.
+      description: Manage Server Priority Manager information on Hitachi VSP storage
+        systems.
       name: hv_server_priority_manager
       namespace: vsp
       version_added: 4.0.0
     hv_server_priority_manager_facts:
-      description: Retrieves Server Priority Manager information from Hitachi VSP storage systems.
+      description: Retrieves Server Priority Manager information from Hitachi VSP
+        storage systems.
       name: hv_server_priority_manager_facts
       namespace: vsp
       version_added: 4.0.0
@@ -483,7 +522,8 @@ plugins:
       namespace: vsp
       version_added: 3.2.0
     hv_shadow_image_group_facts:
-      description: Retrieves Local Copy Groups information from Hitachi VSP storage systems.
+      description: Retrieves Local Copy Groups information from Hitachi VSP storage
+        systems.
       name: hv_shadow_image_group_facts
       namespace: vsp
       version_added: 3.2.0
@@ -493,7 +533,8 @@ plugins:
       namespace: vsp
       version_added: 3.0.0
     hv_shadow_image_pair_facts:
-      description: Retrieves information about shadow image pairs from Hitachi VSP storage systems.
+      description: Retrieves information about shadow image pairs from Hitachi VSP
+        storage systems.
       name: hv_shadow_image_pair_facts
       namespace: vsp
       version_added: 3.0.0
@@ -508,12 +549,14 @@ plugins:
       namespace: vsp
       version_added: 3.0.0
     hv_snapshot_group:
-      description: Manages snapshots in units of snapshot groups on Hitachi VSP storage systems.
+      description: Manages snapshots in units of snapshot groups on Hitachi VSP storage
+        systems.
       name: hv_snapshot_group
       namespace: vsp
       version_added: 3.2.0
     hv_snapshot_group_facts:
-      description: Retrieves snapshot information in units of snapshot groups from Hitachi VSP storage systems.
+      description: Retrieves snapshot information in units of snapshot groups from
+        Hitachi VSP storage systems.
       name: hv_snapshot_group_facts
       namespace: vsp
       version_added: 3.2.0
@@ -538,12 +581,14 @@ plugins:
       namespace: vsp
       version_added: 3.0.0
     hv_storage_system:
-      description: This module specifies storage systems settings like updating the date and time.
+      description: This module specifies storage systems settings like updating the
+        date and time.
       name: hv_storage_system
       namespace: vsp
       version_added: 4.0.0
     hv_storage_system_monitor_facts:
-      description: Retrieves alerts, hardware installed, and channel boards information from Hitachi VSP storage systems.
+      description: Retrieves alerts, hardware installed, and channel boards information
+        from Hitachi VSP storage systems.
       name: hv_storage_system_monitor_facts
       namespace: vsp
       version_added: 4.0.0
@@ -578,7 +623,8 @@ plugins:
       namespace: vsp
       version_added: 3.1.0
     hv_upload_file:
-      description: This uploads the files required to set the transfer destination of audit log files
+      description: This uploads the files required to set the transfer destination
+        of audit log files
       name: hv_upload_file
       namespace: vsp
       version_added: 4.0.0
@@ -643,7 +689,8 @@ plugins:
       namespace: vsp
       version_added: 4.4.0
     hv_vsp_one_snapshot_group_facts:
-      description: Retrieves snapshot group information from Hitachi VSP One storage systems.
+      description: Retrieves snapshot group information from Hitachi VSP One storage
+        systems.
       name: hv_vsp_one_snapshot_group_facts
       namespace: vsp
       version_added: 4.4.0
@@ -662,4 +709,4 @@ plugins:
   strategy: {}
   test: {}
   vars: {}
-version: 4.4.0
+version: 4.4.1

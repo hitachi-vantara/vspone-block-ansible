@@ -2477,7 +2477,7 @@ class VSPQuorumDiskArguments:
             "remote_storage_type": {
                 "required": False,
                 "type": "str",
-                "choices": ["M8", "R8", "R9"],
+                "choices": ["M8", "R8", "R9", "RH20ETP"],
             },
             "ldev_id": {
                 "required": False,

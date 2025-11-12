@@ -642,6 +642,8 @@ class VSPConnectionManager(ConnectionManager):
 
     def getAuthToken(self, retry=False):
         logger.writeDebug("Entering VSPConnectionManager.getAuthToken")
+        if self.token is not None and (self.username is None or self.password is None):
+            return {"Authorization": f"Session {self.token}"}
         connection_info = ConnectionInfo(
             address=self.address, username=self.username, password=self.password
         )
