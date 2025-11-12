@@ -71,7 +71,7 @@ options:
           Optional for the Register Quorum Disk task.
           Required for the Register ldev-less Quorum Disk and auto select free id task.
         type: str
-        choices: ['M8', 'R8', 'R9']
+        choices: ['M8', 'R8', 'R9', 'RH20ETP']
         required: false
       ldev_id:
         description: Local LDEV ID for the external volume.

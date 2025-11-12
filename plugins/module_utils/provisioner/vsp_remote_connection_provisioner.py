@@ -19,8 +19,10 @@ except ImportError:
 
 
 R9_MODEL_NAME = "VSP 5"
+B85 = "B85"
 R9 = "R9"
 M8 = "M8"
+RH20ETP = "RH20ETP"
 
 logger = Log()
 
@@ -194,9 +196,12 @@ class VSPRemoteConnectionProvisioner:
         for storage in basic_info.data:
             if storage.serialNumber == int(self.remote_serial):
                 self.remote_storage_device_id = storage.storageDeviceId
-                self.remote_storage_type_id = (
-                    R9 if R9_MODEL_NAME in storage.model else M8
-                )
+                if B85 in storage.model.strip().upper():
+                    self.remote_storage_type_id = RH20ETP
+                else:
+                    self.remote_storage_type_id = (
+                        R9 if R9_MODEL_NAME in storage.model else M8
+                    )
                 return basic_info
         raise ValueError(
             VSPRemoteConnectionMSG.REMOTE_STORAGE_IS_NOT_REGISTERED.value.format(

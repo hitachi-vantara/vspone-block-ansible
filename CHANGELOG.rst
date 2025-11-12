@@ -4,24 +4,41 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.4.1
+======
+
+Release Summary
+---------------
+
+This minor release of `hitachivantara.vspone_block` bugfixes and improves existing functionality related to VSP One B85 storage systems.
+
+Bugfixes
+--------
+
+- Resolved issue during GAD pair creation when resource lock is enabled.
+- Resolved issue with quorum disk creation on VSP One B85 storage systems.
+- Resolved issue with remote connection creation on VSP One B85 storage systems.
+- Resolved issue with storage system facts retrieval module for VSP One B85 storage systems.
+- Various additional bug fixes and enhancements for VSP One B85 storage systems.
+
 v4.4.0
 ======
 
 Release Summary
 ---------------
 
-This release introduces new snapshot management modules for VSP E series and VSP One Block 20 series storage systems,
-along with significant enhancements to VSP One SDS Block and Cloud systems modules for VPS operations, compute node management,
+This release introduces new snapshot management modules for VSP E series and VSP One B2X storages,
+along with significant enhancements to SDS Block modules for VPS operations, compute node management,
 cluster operations, and volume management. The release focuses on expanding multi-cloud support and
 improving operational flexibility across AWS, GCP, Azure, and Bare Metal environments.
 
 Minor Changes
 -------------
 
-- Added a new "hv_vsp_one_snapshot" module to create, modify and delete snapshots on VSP E series and VSP One Block 20 series storage systems.
-- Added a new "hv_vsp_one_snapshot_facts" module to retrieve snapshot information from VSP E series and VSP One Block 20 series storage systems.
-- Added a new "hv_vsp_one_snapshot_group" module to manage snapshot group operations on VSP E series and VSP One Block 20 series storage systems.
-- Added a new "hv_vsp_one_snapshot_group_facts" module to retrieve snapshot group information from VSP E series and VSP One Block 20 series storage systems.
+- Added a new "hv_vsp_one_snapshot" module to create, modify and delete snapshots on VSP E series and VSP One B2X storages.
+- Added a new "hv_vsp_one_snapshot_facts" module to retrieve snapshot information from VSP E series and VSP One B2X storages.
+- Added a new "hv_vsp_one_snapshot_group" module to manage snapshot group operations on VSP E series and VSP One B2X storages.
+- Added a new "hv_vsp_one_snapshot_group_facts" module to retrieve snapshot group information from VSP E series and VSP One B2X storages.
 - Added support to "Create a VPS" to hv_sds_block_vps module.
 - Added support to "Create a compute node in a VPS by VPS ID" to hv_sds_block_compute_node module.
 - Added support to "Create a compute node in a VPS by VPS name" to hv_sds_block_compute_node module.
@@ -50,13 +67,13 @@ Minor Changes
 New Modules
 -----------
 
-VSP
+Vsp
 ~~~
 
-- hitachivantara.vspone_block.vsp.hv_vsp_one_snapshot - Manages snapshots on VSP One Block storage systems.
-- hitachivantara.vspone_block.vsp.hv_vsp_one_snapshot_facts - Retrieves snapshot information from VSP One Block storage systems.
-- hitachivantara.vspone_block.vsp.hv_vsp_one_snapshot_group - Manages snapshot group operations in VSP One Block storage systems.
-- hitachivantara.vspone_block.vsp.hv_vsp_one_snapshot_group_facts - Retrieves snapshot group information from VSP One Block storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_snapshot - Manages snapshots on Hitachi VSP One storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_snapshot_facts - Retrieves snapshot information from Hitachi VSP One storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_snapshot_group - Manages snapshot group operations in Hitachi VSP One storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_snapshot_group_facts - Retrieves snapshot group information from Hitachi VSP One storage systems.
 
 v4.3.0
 ======

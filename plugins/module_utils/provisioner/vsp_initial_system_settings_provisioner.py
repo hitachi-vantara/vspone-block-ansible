@@ -90,7 +90,7 @@ class InitialSystemSettingsProvisioner:
         self.gateway.connection_info.changed = True
         return None, VspInitialMsg.SNMP_TEST_MSG.value
 
-    def validate_snmp_spec(self, spec: SNMPRequestSpec):
+    def __validate_snmp_spec(self, spec: SNMPRequestSpec):
         """
         Validate the SNMP specification.
         """

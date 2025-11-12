@@ -302,7 +302,7 @@ class VSPGadPairReconciler:
             self.validate_create_spec(spec)
 
             pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
-            if not pvol:
+            if pvol.emulationType.upper() == "NOT DEFINED":
                 raise ValueError(
                     VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
                         spec.primary_volume_id
