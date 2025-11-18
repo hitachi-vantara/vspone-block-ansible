@@ -69,10 +69,10 @@ To upgrade the collection to the latest available version, run the following com
 ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 ```
 
-If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.4.1:
+If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.4.2:
 
 ```bash
-ansible-galaxy collection install hitachivantara.vspone_block:==4.4.1
+ansible-galaxy collection install hitachivantara.vspone_block:==4.4.2
 ```
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
@@ -134,9 +134,9 @@ For additional support, please use one of the following channels:
 
 ### Release Notes
 
-Version **4.4.1** highlights:
+Version **4.4.2** highlights:
 
-- General performance enhancements and bug fixes
+- Introduces limited support for VSP One Block 85 storage system only over Fibre Channel (FC).
 
 ### Roadmap
 
