@@ -1069,3 +1069,17 @@ releases:
     fragments:
     - release-4.4.1.yml
     release_date: '2025-11-17'
+  4.4.2:
+    changes:
+      bugfixes:
+      - Resolved issue with quorum disk creation on VSP One Block 85 storage systems.
+      - Resolved issue with remote connection creation on VSP One Block 85 storage systems.
+      - Resolved issue with storage system facts retrieval module for VSP One Block 85 
+        storage systems.
+      - Various additional bug fixes and enhancements for VSP One Block 85 storage systems.
+      release_summary: This minor release of hitachivantara.vspone_block focuses 
+        on improving error handling and introduces limited support for VSP One Block 85 
+        storage systems only over Fibre Channel (FC).
+    fragments:
+    - release-4.4.2.yml
+    release_date: '2025-11-18'
