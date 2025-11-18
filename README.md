@@ -1,4 +1,4 @@
-# Hitachi Virtual Storage Platform One Block Storage Modules for Red Hat® Ansible® 4.4.1
+# Hitachi Virtual Storage Platform One Block Storage Modules for Red Hat® Ansible® 4.4.2
 
 The Hitachi Virtual Storage Platform One Block Storage Modules provide a comprehensive set of Ansible modules for managing VSP block storage systems (VSP One Block, VSP 5000 series, VSP E series, VSP F series, and VSP G series) and VSP One SDS Block and Cloud systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
