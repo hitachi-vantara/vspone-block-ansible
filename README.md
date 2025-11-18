@@ -8,6 +8,7 @@ The Hitachi Virtual Storage Platform One Block Storage Modules provide a compreh
 - VSP One Block 24
 - VSP One Block 26
 - VSP One Block 28
+- VSP One Block 85 (Limited support, FC)
 - VSP 5100, 5500, 5100H, 5500H, 5200, 5600, 5200H, 5600H (SAS)
 - VSP 5100, 5500, 5100H, 5500H, 5200, 5600, 5200H, 5600H (NVMe)
 - VSP E590, E790, E990, E1090
