@@ -4,21 +4,6 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
-v4.4.2
-======
-
-Release Summary
----------------
-
-This minor release of `hitachivantara.vspone_block` focuses on improving error handling and introduces limited support for VSP One Block 85 only over Fibre Channel (FC).
-
-Bugfixes
---------
-
-- Resolved issue with quorum disk creation on VSP One Block 85 storage systems.
-- Resolved issue with remote connection creation on VSP One Block 85 storage systems.
-- Resolved issue with storage system facts retrieval module for VSP One Block 85 storage systems.
-- Various additional bug fixes and enhancements for VSP One Block 85 storage systems.
 
 v4.4.1
 ======
