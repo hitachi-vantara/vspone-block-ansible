@@ -1,0 +1,164 @@
+name: Publish Ansible Collection from Branch (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to publish from (e.g. release/4.2.x or main)'
+        required: true
+        type: string
+      version:
+        description: '(Optional) Force version in galaxy.yml to this value (e.g. 4.2.2). Leave empty to use value in file.'
+        required: false
+        type: string
+      run_tests_check:
+        description: 'If true, verify last "ansible-test" workflow run succeeded before publishing'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  publish:
+    name: Publish collection from branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check inputs
+        run: |
+          echo "Branch: ${{ github.event.inputs.branch }}"
+          echo "Version override: '${{ github.event.inputs.version }}'"
+          echo "Run tests check: ${{ github.event.inputs.run_tests_check }}"
+
+      - name: Checkout specified branch
+        uses: actions/checkout@v4
+        with:
+          ref: refs/heads/${{ github.event.inputs.branch }}
+          fetch-depth: 0
+
+      - name: (Optional) Verify latest CI tests succeeded
+        if: ${{ github.event.inputs.run_tests_check == 'true' }}
+        id: verify_tests
+        run: |
+          echo "Checking latest ansible-test workflow runs on branch ${{ github.event.inputs.branch }}..."
+          response=$(curl -s -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ansible-test.yml/runs?branch=${{ github.event.inputs.branch }}&status=completed&per_page=1")
+          latest_status=$(echo "$response" | jq -r '.workflow_runs[0].conclusion // empty')
+          if [[ -z "$latest_status" ]]; then
+            echo "No previous test run found. Failing."
+            exit 1
+          fi
+          echo "Latest ansible-test conclusion: $latest_status"
+          if [[ "$latest_status" != "success" ]]; then
+            echo "Tests did not succeed. Failing to avoid publishing bad code."
+            exit 1
+          fi
+
+      - name: Determine galaxy file and current version
+        id: version_info
+        run: |
+          if [[ -f galaxy.yml ]]; then GF="galaxy.yml"
+          elif [[ -f galaxy.yaml ]]; then GF="galaxy.yaml"
+          else
+            echo "❌ galaxy.yml or galaxy.yaml not found. Exiting."
+            exit 1
+          fi
+          echo "Using file: $GF"
+          CUR_VER=$(python - <<PY
+            import sys,yaml
+            f="$GF"
+            with open(f) as fh:
+                data=yaml.safe_load(fh)
+            v=data.get("version")
+            print(v if v is not None else "")
+            PY
+            )
+          echo "CurrentVersion=$CUR_VER" >> $GITHUB_ENV
+          echo "GF=$GF" >> $GITHUB_ENV
+          echo "CurrentVersion=$CUR_VER"
+          echo "::set-output name=file::$GF"
+          echo "::set-output name=current::$CUR_VER"
+
+      - name: (Optional) Force version to input value
+        if: ${{ github.event.inputs.version != '' }}
+        run: |
+          set -euo pipefail
+          GF="${{ env.GF }}"
+          NEW_VER="${{ github.event.inputs.version }}"
+          echo "Setting version in $GF -> \"$NEW_VER\""
+          python - <<PY
+            import re,sys
+            f="$GF"
+            text=open(f).read()
+            # replace line that starts with version:
+            if re.search(r'(?m)^\s*version:\s*["\']?.*["\']?\s*$', text):
+                text=re.sub(r'(?m)^\s*version:\s*["\']?.*["\']?\s*$', f'version: "{NEW_VER}"', text)
+            else:
+                text = f'version: "{NEW_VER}"\n' + text
+            open(f,"w").write(text)
+            print(open(f).read())
+            PY
+
+      - name: Show final galaxy file (top 60 lines)
+        run: |
+          GF="${{ env.GF }}"
+          echo "----- $GF ----"
+          sed -n '1,60p' "$GF" || true
+          echo "----------------"
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Ansible Core
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-core --disable-pip-version-check
+
+      - name: Clean previous build artifacts
+        run: rm -f *.tar.gz || true
+
+      - name: Build collection
+        run: |
+          ansible-galaxy collection build --force
+          ls -la *.tar.gz
+
+      - name: Find collection artifact
+        id: find
+        run: |
+          set -e
+          FILE_COUNT=$(ls *.tar.gz 2>/dev/null | wc -l)
+          if [[ $FILE_COUNT -eq 0 ]]; then
+            echo "❌ No collection artifact found."
+            exit 1
+          elif [[ $FILE_COUNT -gt 1 ]]; then
+            echo "❌ Multiple artifacts found:"
+            ls -la *.tar.gz
+            exit 1
+          fi
+          COLLECTIVE=$(ls *.tar.gz)
+          echo "Collection file: $COLLECTIVE"
+          echo "artifact=$COLLECTIVE" >> $GITHUB_OUTPUT
+
+      - name: Publish to Ansible Galaxy
+        env:
+          ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_COLLECTIONS_TOKEN }}
+        run: |
+          set -e
+          ART="${{ steps.find.outputs.artifact }}"
+          if [[ -z "$ANSIBLE_GALAXY_TOKEN" ]]; then
+            echo "❌ ANSIBLE_COLLECTIONS_TOKEN secret not set. Please add it to repo/org secrets."
+            exit 1
+          fi
+          echo "Publishing $ART to Galaxy..."
+          ansible-galaxy collection publish "$ART" --token "$ANSIBLE_GALAXY_TOKEN"
+          echo "✅ Published successfully."
+
+      - name: Final message
+        run: |
+          echo "Publish job completed. Check Actions logs and Ansible Galaxy collection page to verify."
+
