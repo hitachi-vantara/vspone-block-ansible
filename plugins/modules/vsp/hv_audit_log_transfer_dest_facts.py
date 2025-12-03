@@ -37,6 +37,7 @@ EXAMPLES = """
       username: admin
       password: secret
 """
+
 RETURN = """
 ansible_facts:
   description: Audit Logs and related information retrieved from the storage system.
@@ -72,13 +73,13 @@ ansible_facts:
               type: int
               returned: always
         retries:
-          description: Number of retries for syslog transfer.
-          type: int
-          returned: when supported
+          description: Whether retries for syslog transfer are enabled.
+          type: bool
+          returned: always
         retry_interval:
-          description: Interval between retries.
+          description: Interval between retries (seconds).
           type: int
-          returned: when supported
+          returned: always
         secondary_syslog_server:
           description: Secondary syslog server configuration.
           type: dict

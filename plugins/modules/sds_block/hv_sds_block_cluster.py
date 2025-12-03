@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_cluster
-short_description: Manages storage cluster on Hitachi SDS block storage systems.
+short_description: Manages VSP One SDS Block and Cloud system clusters.
 description:
   - This module allows adding storage node to the cluster, and removing storage node from the cluster.
   - For examples, go to URL
@@ -58,7 +58,8 @@ options:
     type: str
     required: false
     choices: ['present', 'add_storage_node', 'remove_storage_node', 'download_config_file',
-              'stop_removing_storage_node', 'replace_storage_node', 'system_requirement_file_present']
+              'stop_removing_storage_node', 'replace_storage_node', 'system_requirement_file_present',
+              'stop_storage_cluster']
     default: "present"
   spec:
     description: Specification for the storage node to be added to or removed from the cluster.
@@ -145,6 +146,28 @@ options:
         description: Setup user password.
         type: str
         required: false
+      force:
+        description: This is a valid field when the state field is C(stop_storage_cluster). Specifies whether to perform the operation forcibly.
+          When true is specified, the operation is performed forcibly.
+          Specify `true` for this parameter only when instructed to do so in a document or by customer support.
+          When true is specified for reboot or config_parameter_setting_mode, true cannot be specified here.
+        type: bool
+        required: false
+        default: false
+      reboot:
+        description: This is a valid field when the state field is C(stop_storage_cluster). Specifies whether to restart the storage cluster.
+          Specify false to stop it, or true to restart it. When true is specified for force, true cannot be specified.
+        type: bool
+        required: false
+        default: false
+      config_parameter_setting_mode:
+        description: This is a valid field when the state field is C(stop_storage_cluster). Specifies whether to start the storage cluster in
+          the configuration parameter setting mode after shutdown. If true is specified, the storage node cluster will start in the configuration
+          parameter setting mode. When true is specified for force, true cannot be specified.
+          Specify `true` for this parameter only when instructed to do so in a document or by customer support.
+        type: bool
+        required: false
+        default: false
       storage_nodes:
         description: List of storage node objects.
         type: list

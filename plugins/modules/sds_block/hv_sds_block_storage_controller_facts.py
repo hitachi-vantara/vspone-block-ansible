@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_storage_controller_facts
-short_description: Get storage_controllers from storage system
+short_description: Get storage_controllers from VSP One SDS Block and Cloud systems.
 description:
-  - Get storage_controllers from storage system.
+  - Get storage_controllers from the storage system.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/sdsb_storage_controller_facts.yml)
 version_added: "4.1.0"
@@ -71,7 +71,7 @@ ansible_facts:
   returned: always
   type: dict
   contains:
-    data:
+    storage_controllers:
       description: List of storage controller entries.
       type: list
       elements: dict
@@ -200,6 +200,10 @@ ansible_facts:
           description: UUID of the primary fault domain.
           type: str
           sample: "355d32ce-c97f-4adf-9057-49d2e287974b"
+        udp_port:
+          description: UDP port used by the storage controller management (if provided).
+          type: int
+          sample: 52004
 """
 
 

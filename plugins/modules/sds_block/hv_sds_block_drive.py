@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_drive
-short_description: Manages drive on Hitachi SDS Block storage systems.
+short_description: Turns ON and OFF the drive locator LED, removes a drive from VSP One SDS Block system cluster.
 description:
   - This module allows to control on and off of the locator LED of a drive, and remove a drive on Hitachi SDS Block storage systems.
   - For examples, go to URL
@@ -84,69 +84,65 @@ EXAMPLES = """
 """
 
 RETURN = """
-storage_pools:
-  description: A list of storage pools.
+drive:
+  description: Details of the drive.
   returned: always
   type: dict
   contains:
-    data:
-      description: List of drive entries.
-      type: list
-      elements: dict
-      contains:
-        id:
-          description: Unique identifier for the drive.
-          type: str
-          sample: "126f360e-c79e-4e75-8f7c-7d91bfd2f0b8"
-        wwid:
-          description: World Wide Identifier of the drive.
-          type: str
-          sample: "naa.50000f0b00c060c0"
-        status_summary:
-          description: Summary of the drive's status.
-          type: str
-          sample: "Normal"
-        status:
-          description: Current operational status of the drive.
-          type: str
-          sample: "Normal"
-        type_code:
-          description: Manufacturer-specific type code.
-          type: str
-          sample: "VO001600JWZJQ"
-        serial_number:
-          description: Serial number of the drive.
-          type: str
-          sample: "S5KWNE0NC01548"
-        storage_node_id:
-          description: UUID of the storage node associated with the drive.
-          type: str
-          sample: "9d36c162-e379-4c85-bcc2-ccf98fe774a6"
-        device_file_name:
-          description: Device file name as recognized by the OS.
-          type: str
-          sample: "sdb"
-        vendor_name:
-          description: Vendor or manufacturer name.
-          type: str
-          sample: "HP"
-        firmware_revision:
-          description: Firmware version of the drive.
-          type: str
-          sample: "HPD2"
-        locator_led_status:
-          description: Current status of the locator LED on the drive.
-          type: str
-          sample: "Off"
-        drive_type:
-          description: Type of the drive (e.g., SSD, HDD).
-          type: str
-          sample: "SSD"
-        drive_capacity:
-          description: Capacity of the drive in GB.
-          type: int
-          sample: 195
+    id:
+      description: Unique identifier for the drive.
+      type: str
+      sample: "f17d6b10-d0e4-4604-a0af-f9b3f0d32664"
+    wwid:
+      description: World Wide Identifier of the drive.
+      type: str
+      sample: "naa.5000cca0a602f64c"
+    status_summary:
+      description: Summary of the drive's status.
+      type: str
+      sample: "Normal"
+    status:
+      description: Current operational status of the drive.
+      type: str
+      sample: "Normal"
+    type_code:
+      description: Manufacturer-specific type code.
+      type: str
+      sample: "MO000800JWUFU"
+    serial_number:
+      description: Serial number of the drive.
+      type: str
+      sample: "V6V1MHJA"
+    storage_node_id:
+      description: UUID of the storage node associated with the drive.
+      type: str
+      sample: "db77407c-237d-4ae2-9efe-13332c2a71e8"
+    device_file_name:
+      description: Device file name as recognized by the OS.
+      type: str
+      sample: "sda"
+    vendor_name:
+      description: Vendor or manufacturer name.
+      type: str
+      sample: "HP"
+    firmware_revision:
+      description: Firmware version of the drive.
+      type: str
+      sample: "HPD3"
+    locator_led_status:
+      description: Current status of the locator LED on the drive.
+      type: str
+      sample: "Off"
+    drive_type:
+      description: Type of the drive (e.g., SSD, HDD).
+      type: str
+      sample: "SSD"
+    drive_capacity:
+      description: Capacity of the drive in GB.
+      type: int
+      sample: 800
 """
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_drives_reconciler import (
     SDSBBlockDrivesReconciler,

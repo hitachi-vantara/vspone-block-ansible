@@ -7,7 +7,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-
 DOCUMENTATION = """
 ---
 module: hv_resource_group
@@ -414,6 +413,11 @@ resource_groups:
             type: list
             elements: int
             sample: [1, 2, 3]
+        ldevs_hex:
+            description: List of LDEVs in hexadecimal format in the resource group.
+            type: list
+            elements: str
+            sample: ["0x1", "0x2", "0x3"]
         parity_groups:
             description: List of parity groups in the resource group.
             type: list
@@ -424,6 +428,14 @@ resource_groups:
             type: list
             elements: str
             sample: ["CL1-A", "CL1-C"]
+        virtual_storage_id:
+            description: The virtual storage ID associated with the resource group.
+            type: int
+            sample: 200
+        virtual_storage_serial:
+            description: The virtual storage serial number associated with the resource group.
+            type: str
+            sample: "69200"
 """
 
 from ansible.module_utils.basic import AnsibleModule

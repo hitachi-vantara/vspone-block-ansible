@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_remote_iscsi_port_facts
-short_description: Get information about remote iSCSI ports from storage system.
+short_description: Retrieves information about remote iSCSI ports.
 description:
   - Get information about remote iSCSI ports from storage system.
   - For examples, go to URL
@@ -79,44 +79,49 @@ EXAMPLES = """
 RETURN = r"""
 ansible_facts:
   description: >
-    Dictionary containing the discovered properties of the capacity management settings.
+    Dictionary containing the discovered properties of the remote iSCSI ports.
   returned: always
   type: dict
   contains:
     remote_iscsi_ports:
-      description: A list of remote iSCSI ports.
+      description: Container for remote iSCSI ports data.
       returned: always
-      type: list
-      elements: dict
+      type: dict
       contains:
-        id:
-          description: The ID of a remote iSCSI port.
-          type: str
-          sample: "da87655a-3958-4921-b4c0-437986397d11"
-        local_port_number:
-          description: Port number of the local storage system in CLx-y format.
-          type: str
-          sample: "CL1-C"
-        remote_serial_number:
-          description: Serial number of the remote storage system.
-          type: str
-          sample: "810045"
-        remote_storage_type_id:
-          description: ID indicating the remote storage system model.
-          type: str
-          sample: "M8"
-        remote_port_number:
-          description: Port number of the remote storage system in CLx-y format.
-          type: str
-          sample: "CL1-C"
-        remote_ip_address:
-          description: iSCSI port IP address (IPv4/IPv6) for the remote storage system.
-          type: str
-          sample: "172.25.59.213"
-        remote_tcp_port:
-          description: TCP port number of the iSCSI target for the remote storage system.
-          type: int
-          sample: 3260
+        data:
+          description: A list of remote iSCSI ports.
+          returned: always
+          type: list
+          elements: dict
+          contains:
+            id:
+              description: The ID of a remote iSCSI port.
+              type: str
+              sample: "da87655a-3958-4921-b4c0-437986397d11"
+            local_port_number:
+              description: Port number of the local storage system in CLx-y format.
+              type: str
+              sample: "CL1-C"
+            remote_serial_number:
+              description: Serial number of the remote storage system.
+              type: str
+              sample: "810045"
+            remote_storage_type_id:
+              description: ID indicating the remote storage system model.
+              type: str
+              sample: "M8"
+            remote_port_number:
+              description: Port number of the remote storage system in CLx-y format.
+              type: str
+              sample: "CL1-C"
+            remote_ip_address:
+              description: iSCSI port IP address (IPv4/IPv6) for the remote storage system.
+              type: str
+              sample: "172.25.59.213"
+            remote_tcp_port:
+              description: TCP port number of the iSCSI target for the remote storage system.
+              type: int
+              sample: 3260
 """
 
 
@@ -138,7 +143,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockRemoteIscsiPortFactsManager:
+class SDSBRemoteIscsiPortFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -182,7 +187,7 @@ class SDSBBlockRemoteIscsiPortFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockRemoteIscsiPortFactsManager()
+    obj_store = SDSBRemoteIscsiPortFactsManager()
     obj_store.apply()
 
 

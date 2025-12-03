@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_protection_domain_facts
-short_description: Get protection domains  from storage system
+short_description: Retrieves information about protection domains.
 description:
   - Get protection domains from storage system.
   - For examples, go to URL
@@ -58,68 +58,73 @@ EXAMPLES = """
 
 RETURN = r"""
 ansible_facts:
-  description: >
-    Dictionary containing the discovered properties of the protection domains.
+  description: Dictionary of facts returned by the module.
   returned: always
   type: dict
   contains:
-    data:
-      description: List of protection domain entries.
-      type: list
-      elements: dict
+    protection_domains:
+      description: Protection domain retrieval result.
+      returned: always
+      type: dict
       contains:
-        id:
-          description: Unique identifier for the protection domain.
-          type: str
-          sample: "0778a123-42e5-43ff-8fbc-c8580b79f2cf"
-        name:
-          description: Name of the protection domain.
-          type: str
-          sample: "SC01-PD01"
-        redundant_policy:
-          description: Redundancy policy used by the protection domain.
-          type: str
-          sample: "HitachiPolyphaseErasureCoding"
-        redundant_type:
-          description: Redundancy type used in the protection domain (e.g., 4D+1P).
-          type: str
-          sample: "4D+1P"
-        drive_data_relocation_status:
-          description: Current status of drive data relocation.
-          type: str
-          sample: "Stopped"
-        drive_data_relocation_progress_rate:
-          description: Progress percentage of data relocation. Null if not active.
-          type: int
-          sample: null
-        rebuild_status:
-          description: Current rebuild status.
-          type: str
-          sample: "Stopped"
-        rebuild_progress_rate:
-          description: Rebuild progress rate as a percentage. Null if not rebuilding.
-          type: int
-          sample: null
-        memory_mode:
-          description: Memory mode used in the protection domain.
-          type: str
-          sample: "VolatileMemory"
-        async_processing_resource_usage_rate:
-          description: Usage level of asynchronous processing resources.
-          type: str
-          sample: "High"
-        number_of_fault_domains:
-          description: The total number of fault domains in the protection domain.
-          type: int
-          sample: 1
-        storage_controller_clustering_policy:
-          description: Clustering policy of the storage controllers.
-          type: str
-          sample: "OneRedundantStorageNode"
-        minimum_memory_size:
-          description: Minimum memory size in MB.
-          type: int
-          sample: 131072
+        data:
+          description: List of protection domain entries.
+          returned: always
+          type: list
+          elements: dict
+          contains:
+            id:
+              description: Unique identifier for the protection domain.
+              type: str
+              sample: "0778a123-42e5-43ff-8fbc-c8580b79f2cf"
+            name:
+              description: Name of the protection domain.
+              type: str
+              sample: "SC01-PD01"
+            redundant_policy:
+              description: Redundancy policy used by the protection domain.
+              type: str
+              sample: "HitachiPolyphaseErasureCoding"
+            redundant_type:
+              description: Redundancy type used in the protection domain (e.g., 4D+1P).
+              type: str
+              sample: "4D+1P"
+            drive_data_relocation_status:
+              description: Current status of drive data relocation.
+              type: str
+              sample: "Stopped"
+            drive_data_relocation_progress_rate:
+              description: Progress percentage of data relocation. Null if not active.
+              type: int
+              sample: null
+            rebuild_status:
+              description: Current rebuild status.
+              type: str
+              sample: "Stopped"
+            rebuild_progress_rate:
+              description: Rebuild progress rate as a percentage. Null if not rebuilding.
+              type: int
+              sample: null
+            memory_mode:
+              description: Memory mode used in the protection domain.
+              type: str
+              sample: "VolatileMemory"
+            async_processing_resource_usage_rate:
+              description: Usage level of asynchronous processing resources.
+              type: str
+              sample: "High"
+            number_of_fault_domains:
+              description: The total number of fault domains in the protection domain.
+              type: int
+              sample: 1
+            storage_controller_clustering_policy:
+              description: Clustering policy of the storage controllers.
+              type: str
+              sample: "OneRedundantStorageNode"
+            minimum_memory_size:
+              description: Minimum memory size in MB.
+              type: int
+              sample: 131072
 """
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (

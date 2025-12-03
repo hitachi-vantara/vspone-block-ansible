@@ -43,6 +43,9 @@ class SDSBStorageSystemProvisioner:
         storage_system["clusterId"] = storage_cluster.id
         storage_system["clusterName"] = storage_cluster.nickname
         storage_system["healthStatuses"] = health_status_list
+        storage_system["writeBackModeWithCacheProtection"] = (
+            storage_cluster.writeBackModeWithCacheProtection
+        )
         storage_system["numberOfTotalVolumes"] = (
             storage_cluster.numberOfTotalVolumes
             if storage_cluster.numberOfTotalVolumes is not None

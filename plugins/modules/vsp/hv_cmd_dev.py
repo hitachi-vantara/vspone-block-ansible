@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_cmd_dev
-short_description: Manages command devices on Hitachi VSP storage systems.
+short_description: Manages command devices for VSP block storage systems.
 description:
-    - This module allows to enable and to disable a command device on Hitachi VSP storage systems.
+    - This module allows to enable and to disable a command device on VSP block storage systems.
     - It also allows to modify the settings of the command device.
     - For examples go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/cmd_dev.yml)
@@ -110,13 +110,24 @@ RETURN = """
 command_device:
     description: The command device information.
     returned: always except when state is absent
-    type: list
-    elements: dict
+    type: dict
     contains:
         canonical_name:
             description: Unique identifier for the command device.
             type: str
-            sample: "naa.60060e80089c4f0000509c4f00000062"
+            sample: "naa.60060e80282742005080274200000078"
+        clpr_id:
+            description: CLPR identifier.
+            type: int
+            sample: 0
+        compression_acceleration_status:
+            description: Compression acceleration status.
+            type: str
+            sample: ""
+        data_reduction_process_mode:
+            description: Data reduction process mode.
+            type: str
+            sample: ""
         dedup_compression_progress:
             description: Progress percentage of deduplication and compression.
             type: int
@@ -145,6 +156,10 @@ command_device:
             description: Indicates if it is a command device.
             type: bool
             sample: true
+        is_compression_acceleration_enabled:
+            description: Indicates if compression acceleration is enabled.
+            type: bool
+            sample: null
         is_data_reduction_share_enabled:
             description: Indicates if data reduction share is enabled.
             type: bool
@@ -152,27 +167,35 @@ command_device:
         is_device_group_definition_enabled:
             description: Indicates if device group definition is enabled.
             type: bool
-            sample: true
+            sample: null
         is_encryption_enabled:
             description: Indicates if encryption is enabled.
             type: bool
             sample: false
+        is_full_allocation_enabled:
+            description: Indicates if full allocation is enabled.
+            type: bool
+            sample: false
+        is_relocation_enabled:
+            description: Indicates if relocation is enabled.
+            type: bool
+            sample: null
         is_security_enabled:
             description: Indicates if security is enabled.
             type: bool
-            sample: true
+            sample: null
         is_user_authentication_enabled:
             description: Indicates if user authentication is enabled.
             type: bool
-            sample: true
+            sample: null
         is_write_protected:
             description: Indicates if the command device is write-protected.
             type: bool
-            sample: false
+            sample: null
         is_write_protected_by_key:
             description: Indicates if the command device is write-protected by key.
             type: bool
-            sample: false
+            sample: null
         iscsi_targets:
             description: List of iSCSI targets associated with the command device.
             type: list
@@ -180,37 +203,27 @@ command_device:
         ldev_id:
             description: The ID of the LDEV.
             type: int
-            sample: 98
-        logical_unit_id_hex_format:
+            sample: 120
+        ldev_id_hex:
             description: Logical unit ID in hexadecimal format.
             type: str
-            sample: "00:00:62"
+            sample: "00:00:78"
+        mp_blade_id:
+            description: Management processor blade id.
+            type: int
+            sample: 1
         name:
             description: Name of the command device.
             type: str
-            sample: ""
+            sample: "smrha-120"
         num_of_ports:
             description: Number of ports associated with the command device.
             type: int
-            sample: 0
+            sample: -1
         nvm_subsystems:
             description: List of NVM subsystems associated with the command device.
             type: list
             elements: dict
-            contains:
-                id:
-                    description: ID of the NVM subsystem.
-                    type: int
-                    sample: 0
-                name:
-                    description: Name of the NVM subsystem.
-                    type: str
-                    sample: "NVM-1"
-                ports:
-                    description: List of ports associated with the NVM subsystem.
-                    type: list
-                    elements: str
-                    sample: ["CL2-H"]
         parity_group_id:
             description: ID of the parity group.
             type: str
@@ -218,11 +231,11 @@ command_device:
         path_count:
             description: Number of paths associated with the command device.
             type: int
-            sample: 0
+            sample: -1
         pool_id:
             description: ID of the pool.
             type: int
-            sample: 0
+            sample: 10
         provision_type:
             description: Provision type of the command device.
             type: str
@@ -230,6 +243,7 @@ command_device:
         qos_settings:
             description: Quality of Service settings for the command device.
             type: dict
+            sample: null
         resource_group_id:
             description: ID of the resource group.
             type: int
@@ -245,19 +259,35 @@ command_device:
         storage_serial_number:
             description: Serial number of the storage system.
             type: str
-            sample: "40015"
+            sample: "810050"
+        tiering_policy:
+            description: Tiering policy details.
+            type: dict
+            sample: {}
         total_capacity:
             description: Total capacity of the command device.
             type: str
             sample: "1.00GB"
+        total_capacity_in_mb:
+            description: Total capacity in megabytes.
+            type: float
+            sample: 1024.0
         used_capacity:
             description: Used capacity of the command device.
             type: str
             sample: "0.00B"
+        used_capacity_in_mb:
+            description: Used capacity in megabytes.
+            type: float
+            sample: 0.0
         virtual_ldev_id:
             description: ID of the virtual LDEV.
             type: int
             sample: -1
+        virtual_ldev_id_hex:
+            description: Virtual LDEV ID in hex format.
+            type: str
+            sample: ""
 """
 
 from ansible.module_utils.basic import AnsibleModule

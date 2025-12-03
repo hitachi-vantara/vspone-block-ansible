@@ -420,7 +420,7 @@ EXAMPLES = """
 """
 
 RETURN = """
-data:
+remote_copy_group_info:
   description: Newly created remote copy group object.
   returned: success
   type: dict
@@ -534,6 +534,10 @@ data:
       description: Remote storage device ID.
       type: str
       sample: "900000040015"
+    mu_number:
+      description: MU number.
+      type: int
+      sample: 1
 """
 
 from ansible.module_utils.basic import AnsibleModule

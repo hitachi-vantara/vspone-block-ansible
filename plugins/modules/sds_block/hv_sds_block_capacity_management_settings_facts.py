@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_capacity_management_settings_facts
-short_description: Get capacity management settings from storage system.
+short_description: Retrieves capacity management settings from VSP One SDS Block and Cloud system cluster.
 description:
   - Get capacity management settings from storage system.
   - For examples, go to URL

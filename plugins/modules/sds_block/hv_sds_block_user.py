@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_user
-short_description: Create and update users from storage system
+short_description: Create and update users on the storage system
 description:
-  - Create and update users from storage system.
+  - Create and update users on the storage system.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/sdsb_users.yml)
 version_added: "4.1.0"
@@ -31,15 +31,16 @@ options:
     description: The level of the user task.
     type: str
     required: false
-    choices: ['present', 'update']
+    choices: ['present', 'update', 'absent', 'add_user_group', 'remove_user_group']
     default: 'present'
   spec:
     description: Specification for the user task.
     type: dict
     required: false
     suboptions:
-      user_id:
-        description: The user ID (username) whose information is to be retrieved.
+      id:
+        description: The user ID. This is an alias of user_id.
+        aliases: ['user_id']
         type: str
         required: false
       password:
@@ -65,6 +66,10 @@ options:
         elements: str
       is_enabled_console_login:
         description: Whether the user can log in to the console.
+        type: bool
+        default: true
+      is_enabled:
+        description: Enables or disables the user.
         type: bool
         default: true
 """
@@ -95,7 +100,51 @@ EXAMPLES = """
     spec:
       user_id: "existing_user"
       current_password: "CHANGE_ME_SET_YOUR_PASSWORD"
-      new_password: "CHANGE_ME_SET_YOUR_PASSWORD"
+      new_password: "CHANGE_ME_SET_YOUR_NEW_PASSWORD"
+
+- name: Update user settings
+  hitachivantara.vspone_block.sds_block.hv_sds_block_user:
+    connection_info:
+      address: sdsb.company.com
+      username: "admin"
+      password: "CHANGE_ME_SET_YOUR_PASSWORD"
+    state: present
+    spec:
+      id: "radey-vps02-admin-5"
+      password: "CHANGE_ME_SET_YOUR_NEW_PASSWORD"
+      is_enabled: false
+
+- name: Delete a user
+  hitachivantara.vspone_block.sds_block.hv_sds_block_user:
+    connection_info:
+      address: sdsb.company.com
+      username: "admin"
+      password: "CHANGE_ME_SET_YOUR_PASSWORD"
+    state: absent
+    spec:
+      id: "radey-vps02-admin-4"
+
+- name: Add user to user groups
+  hitachivantara.vspone_block.sds_block.hv_sds_block_user:
+    connection_info:
+      address: sdsb.company.com
+      username: "admin"
+      password: "CHANGE_ME_SET_YOUR_PASSWORD"
+    state: add_user_group
+    spec:
+      id: "radey-admin"
+      user_group_ids: ["admin_4", "admin_1"]
+
+- name: Remove user to user groups
+  hitachivantara.vspone_block.sds_block.hv_sds_block_user:
+    connection_info:
+      address: sdsb.company.com
+      username: "admin"
+      password: "CHANGE_ME_SET_YOUR_PASSWORD"
+    state: remove_user_group
+    spec:
+      id: "radey-admin"
+      user_group_ids: ["admin_4", "admin_1"]
 """
 
 RETURN = r"""
@@ -123,7 +172,7 @@ users:
     password_expiration_time:
       description: Expiration time of the user's password in ISO 8601 format.
       type: str
-      sample: "2025-10-17T17:49:42Z"
+      sample: "2025-11-27T10:35:36Z"
     privileges:
       description: List of privileges assigned to the user.
       type: list
@@ -159,11 +208,11 @@ users:
     user_id:
       description: Unique ID of the user.
       type: str
-      sample: "radey1"
+      sample: "testqw"
     user_object_id:
       description: Object ID of the user.
       type: str
-      sample: "radey1"
+      sample: "testqw"
     vps_id:
       description: ID of the VPS or system the user belongs to.
       type: str
@@ -173,14 +222,14 @@ users:
 from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
-    SDSBUsersArguments,
+    SDSBUserArguments,
     SDSBParametersManager,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
 
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_users_reconciler import (
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_user import (
     SDSBUsersReconciler,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
@@ -188,20 +237,25 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockFaultDomainFactsManager:
+class SDSBBlockUserManager:
     def __init__(self):
 
         self.logger = Log()
-        self.argument_spec = SDSBUsersArguments().users()
+        self.argument_spec = SDSBUserArguments().users()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
         )
-
-        parameter_manager = SDSBParametersManager(self.module.params)
-        self.connection_info = parameter_manager.get_connection_info()
-        self.spec = parameter_manager.get_users_spec()
-        self.state = parameter_manager.get_state()
+        try:
+            parameter_manager = SDSBParametersManager(self.module.params)
+            self.connection_info = parameter_manager.get_connection_info()
+            self.spec = parameter_manager.get_users_spec()
+            self.state = parameter_manager.get_state()
+            # self.logger.writeDebug(f"MOD:hv_sds_user:spec= {self.spec}")
+        except Exception as e:
+            self.logger.writeException(e)
+            self.logger.writeInfo("=== End of SDSB User Operation ===")
+            self.module.fail_json(msg=str(e))
 
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB User Operation ===")
@@ -219,13 +273,17 @@ class SDSBBlockFaultDomainFactsManager:
             self.logger.writeInfo("=== End of SDSB User Operation ===")
             self.module.fail_json(msg=str(e))
 
-        msg = None
-        data = {"users": users}
-        if self.state == "present":
-            msg = "User created successfully."
-        elif self.state == "update":
-            msg = "User password updated successfully."
-        data["msg"] = msg
+        msg = self.spec.comments
+        data = {
+            "changed": self.connection_info.changed,
+            "users": users if users else [],
+            "comments": msg if msg else "",
+        }
+        # if self.state == "present":
+        #     msg = "User created successfully."
+        # elif self.state == "update":
+        #     msg = "User password updated successfully."
+        # data["msg"] = msg
         if registration_message:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo("=== End of SDSB User Operation ===")
@@ -233,7 +291,7 @@ class SDSBBlockFaultDomainFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockFaultDomainFactsManager()
+    obj_store = SDSBBlockUserManager()
     obj_store.apply()
 
 

@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_storage_node_network_settings_facts
-short_description: Get storage node network settings from storage system
+short_description: Get storage node network settings from VSP One SDS Block and Cloud systems.
 description:
-  - Get storage node network settings from storage system.
+  - Get storage node network settings from the storage system.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/storage_node_facts.yml)
 version_added: '4.1.0'
@@ -62,36 +62,40 @@ EXAMPLES = """
 RETURN = r"""
 ansible_facts:
   description: >
-    Dictionary containing the discovered properties of the internode_port.
+    Dictionary containing the discovered storage_node_network_settings.
   returned: always
   type: dict
   contains:
-    data:
-      description: List of internode port entries.
-      type: list
-      elements: dict
+    storage_node_network_settings:
+      description: Storage node network settings facts.
+      type: dict
       contains:
-        id:
-          description: Unique identifier for the internode port.
-          type: str
-          sample: "44f1d113-405e-448f-ad77-fd5554971c36"
-        ipv4Route:
-          description: List of IPv4 route entries configured on the internode port.
+        data:
+          description: List of storage node network setting entries.
           type: list
           elements: dict
           contains:
-            destination:
-              description: Destination network for the route.
+            id:
+              description: Unique identifier for the storage node network setting.
               type: str
-              sample: "default"
-            gateway:
-              description: Gateway IP address used for the route.
-              type: str
-              sample: "192.168.1.14"
-            interface:
-              description: Network interface name used for the route.
-              type: str
-              sample: "eth0"
+              sample: "1a21c76d-614a-45e1-bd02-6bd2c18dddd7"
+            ipv4_route:
+              description: List of IPv4 route entries configured on the storage node.
+              type: list
+              elements: dict
+              contains:
+                destination:
+                  description: Destination network for the route.
+                  type: str
+                  sample: "default"
+                gateway:
+                  description: Gateway IP address used for the route.
+                  type: str
+                  sample: "10.76.34.1"
+                interface:
+                  description: Network interface name used for the route.
+                  type: str
+                  sample: "eth0"
 """
 
 

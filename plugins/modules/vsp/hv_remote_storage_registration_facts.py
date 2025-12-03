@@ -71,52 +71,103 @@ ansible_facts:
   returned: always
   type: dict
   contains:
-    remote_storage:
+    remote_storages:
       description: A list of information about the storage systems registered on the REST API server.
       type: list
       elements: dict
       contains:
-        communication_modes:
-          description: List of communication modes for the storage system.
+        storages_registered_in_local:
+          description: List of storage systems registered in the local storage system.
           type: list
           elements: dict
           contains:
-            communicationMode:
-              description: Mode of communication.
+            communication_modes:
+              description: List of communication modes for the storage system.
+              type: list
+              elements: dict
+              contains:
+                communicationMode:
+                  description: Mode of communication.
+                  type: str
+                  sample: "lanConnectionMode"
+            ctl1_ip:
+              description: IP address of controller 1, or false if not available.
               type: str
-              sample: "lanConnectionMode"
-        ctl1_ip:
-          description: IP address of controller 1.
-          type: str
-          sample: "172.0.0.127"
-        ctl2_ip:
-          description: IP address of controller 2.
-          type: str
-          sample: "172.0.0.128"
-        dkc_type:
-          description: Type of the storage system.
-          type: str
-          sample: "Local"
-        model:
-          description: Model of the storage system.
-          type: str
-          sample: "VSP E1090H"
-        rest_server_ip:
-          description: IP address of the REST API server.
-          type: str
-          sample: "172.0.0.2"
-        rest_server_port:
-          description: Port of the REST API server.
-          type: int
-          sample: 443
-        serial_number:
-          description: Serial number of the storage system.
-          type: str
-          sample: "710036"
-        storage_device_id:
-          description: Unique identifier for the storage device.
-          type: str
-          sample: "938000710036"
+              sample: "172.25.44.104"
+            ctl2_ip:
+              description: IP address of controller 2, or false if not available.
+              type: str
+              sample: "172.25.44.105"
+            dkc_type:
+              description: Type of the storage system.
+              type: str
+              sample: "Remote"
+            model:
+              description: Model of the storage system.
+              type: str
+              sample: "VSP E590"
+            rest_server_ip:
+              description: IP address of the REST API server.
+              type: str
+              sample: "172.25.44.104"
+            rest_server_port:
+              description: Port of the REST API server.
+              type: int
+              sample: 443
+            serial_number:
+              description: Serial number of the storage system.
+              type: int
+              sample: 611032
+            storage_device_id:
+              description: Unique identifier for the storage device.
+              type: str
+              sample: "934000611032"
+        storages_registered_in_remote:
+          description: List of storage systems registered in the remote storage system.
+          type: list
+          elements: dict
+          contains:
+            communication_modes:
+              description: List of communication modes for the storage system.
+              type: list
+              elements: dict
+              contains:
+                communicationMode:
+                  description: Mode of communication.
+                  type: str
+                  sample: "lanConnectionMode"
+            ctl1_ip:
+              description: IP address of controller 1, or false if not available.
+              type: str
+              sample: "172.25.44.21"
+            ctl2_ip:
+              description: IP address of controller 2, or false if not available.
+              type: str
+              sample: "172.25.44.22"
+            dkc_type:
+              description: Type of the storage system.
+              type: str
+              sample: "Remote"
+            model:
+              description: Model of the storage system.
+              type: str
+              sample: "VSP E990"
+            rest_server_ip:
+              description: IP address of the REST API server.
+              type: str
+              sample: "172.25.44.21"
+            rest_server_port:
+              description: Port of the REST API server.
+              type: int
+              sample: 443
+            serial_number:
+              description: Serial number of the storage system.
+              type: int
+              sample: 446039
+            storage_device_id:
+              description: Unique identifier for the storage device.
+              type: str
+              sample: "936000446039"
 """
 
 
@@ -181,7 +232,7 @@ class VSPRemoteStorageRegistrationFactsManager:
             self.module.fail_json(msg=str(e))
 
         data = {
-            "remote_storage_registration_facts": remote_storages,
+            "remote_storages": remote_storages,
         }
         if registration_message:
             data["user_consent_required"] = registration_message

@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_volume_facts
-short_description: Retrieves facts about Hitachi VSP One storage system volumes.
+short_description: Retrieves facts about VSP E series and VSP One Block 20 series storage systems.
 description:
-  - This module gathers information about volumes in Hitachi VSP One storage systems.
+  - This module gathers information about volumes in VSP E series and VSP One Block 20 series storage systems.
   - It supports filtering by pool, server, volume nickname, capacity, and volume ID.
   - For usage examples, see
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_volume_facts.yml)
@@ -197,25 +197,28 @@ ansible_facts:
           type: int
         total_capacity_in_mb:
           description: Total capacity in MB.
-          type: str
+          type: int
         used_capacity:
           description: Used capacity of the volume.
           type: int
         used_capacity_in_mb:
           description: Used capacity in MB.
-          type: str
+          type: int
         free_capacity:
           description: Free capacity of the volume.
           type: int
         free_capacity_in_mb:
           description: Free capacity in MB.
-          type: str
+          type: int
         reserved_capacity:
           description: Reserved capacity of the volume.
           type: int
         capacity_saving:
-          description: Capacity saving setting (e.g., COMPRESSION).
+          description: Capacity saving setting (e.g., DEDUPLICATION_AND_COMPRESSION).
           type: str
+        capacity_saving_progress:
+          description: Capacity saving progress.
+          type: int
         capacity_saving_status:
           description: Capacity saving status.
           type: str
@@ -238,6 +241,12 @@ ansible_facts:
         number_of_snapshots:
           description: Number of snapshots for the volume.
           type: int
+        parent_volume_id:
+          description: ID of the parent volume.
+          type: int
+        parent_volume_id_hex:
+          description: ID of the parent volume in hexadecimal.
+          type: str
         qos_settings:
           description: QoS settings for the volume.
           type: dict

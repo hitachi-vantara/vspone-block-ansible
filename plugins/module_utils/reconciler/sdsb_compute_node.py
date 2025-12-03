@@ -147,13 +147,15 @@ class SDSBComputeNodeReconciler:
         return self.provisioner.add_iqn_to_compute_node(compute_node_id, iqn, vps_id)
 
     @log_entry_exit
-    def add_nqn_to_compute_node(self, compute_node_id, nqn):
-        response = self.provisioner.add_nqn_to_compute_node(compute_node_id, nqn)
+    def add_nqn_to_compute_node(self, compute_node_id, nqn, vps_id=None):
+        response = self.provisioner.add_nqn_to_compute_node(
+            compute_node_id, nqn, vps_id
+        )
         return response
 
     @log_entry_exit
-    def get_iqn_ids_to_add(self, compute_node_id, iqns):
-        iqn_pairs = self.get_compute_node_iscsi_pairs(compute_node_id)
+    def get_iqn_ids_to_add(self, compute_node_id, iqns, vps_id=None):
+        iqn_pairs = self.get_compute_node_iscsi_pairs(compute_node_id, vps_id)
         iqn_ids_to_add = []
         for iqn in iqns:
             if iqn_pairs[iqn]:

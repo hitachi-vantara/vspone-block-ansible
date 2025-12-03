@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_compute_port_authentication
-short_description: Manages Hitachi SDS block storage system compute port authentication mode settings.
+short_description: Manages compute port authentication mode settings.
 description:
   - This module manages compute port authentication mode settings.
   - For examples go to URL
@@ -79,7 +79,7 @@ EXAMPLES = """
 """
 
 RETURN = """
-data:
+compute_port_authorizations:
   description: The compute port information.
   returned: always
   type: dict

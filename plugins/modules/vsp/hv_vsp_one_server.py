@@ -12,11 +12,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_server
-short_description: Manages servers on Hitachi VSP One storage systems.
+short_description: Manages servers on  VSP E series and VSP One Block 20 series storage systems.
 description:
   - This module enables register, modification, and deletion of servers, as well as various server operations.
   - Supports various server operations depending on the specified state parameter.
-  - Utilizes the Hitachi Vantara VSP One Simple API for server management across VSP one B2x and VSP E series models.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for server management across VSP one B20 series and VSP E series models.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_server.yml)
 version_added: '4.3.0'

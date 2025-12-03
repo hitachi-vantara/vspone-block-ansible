@@ -76,8 +76,8 @@ class SDSBlockEndpoints(object):
     GET_STORAGE_TIME_SETTINGS = "v1/objects/storage-time-setting"
     GET_STORAGE_NETWORK_SETTING = "v1/objects/storage-network-setting"
     GET_PROCTECTION_DOMAINS = "v1/objects/protection-domains"
-    GET_USERS = "v1/objects/users"
-    GET_USERS_BY_ID = "v1/objects/users/{}"
+    # GET_USERS = "v1/objects/users"
+    # GET_USERS_BY_ID = "v1/objects/users/{}"
 
     GET_VPS = "v1/objects/virtual-private-storages"
     GET_VPS_BY_ID = "v1/objects/virtual-private-storages/{}"
@@ -117,6 +117,14 @@ class SDSBlockEndpoints(object):
 
     IMPORT_SERVER_CERTIFICATE = "v1/objects/server-certificate/actions/import/invoke"
     WEB_SERVER_ACCESS_SETTING = "v1/objects/web-server-access-setting"
+    # journals Endpoints
+    GET_JOURNAL = "v1/objects/journals"
+    GET_JOURNAL_BY_ID = "v1/objects/journals/{}"
+    SHRINK_JOURNAL = "v1/objects/journals/{}/actions/shrink/invoke"
+    EXPAND_JOURNAL = "v1/objects/journals/{}/actions/expand/invoke"
+
+    # Login Message Endpoints
+    GET_LOGIN_MESSAGE = "configuration/login-message"
 
 
 class Http(object):
@@ -194,6 +202,25 @@ class AutomationConstants(object):
     QOS_UPPER_ALERT_ALLOWABLE_TIME_OUT_MAX = 600
     JOB_COUNT_MIN = 1
     JOB_COUNT_MAX = 100
+
+
+class EncryptionConstants(object):
+    # Response field names
+    ENCRYPTION_KEY_COUNTS = "encryption_key_counts"
+    DEK = "dek"
+    FREE = "free"
+    ENCRYPTION_SETTINGS = "encryption_settings"
+    IS_ENABLED = "is_enabled"
+    KMS = "kms"
+    WARNING_THRESHOLD_OF_FREE_KEYS = "warning_threshold_of_free_keys"
+
+    # Transformed field names
+    TOTAL_ALLOCATED_ENCRYPTION_TARGETS = "total_allocated_encryption_targets"
+    TOTAL_UNALLOCATED_ENCRYPTION_TARGETS = "total_unallocated_encryption_targets"
+    IS_ENCRYPTION_KEY_MANAGEMENT_SERVER_IN_USE = (
+        "is_encryption_key_management_server_in_use"
+    )
+    FREE_KEYS_WARNING_THRESHOLD = "free_keys_warning_threshold"
 
 
 class ErrorMessages(object):

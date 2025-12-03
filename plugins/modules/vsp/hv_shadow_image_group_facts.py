@@ -103,20 +103,25 @@ ansible_facts:
         copy_group_name:
           description: The name of the local copy group.
           type: str
-          sample: "CG_366_444"
+          sample: "SI_768"
         pvol_device_group_name:
           description: The name of the primary volume device group.
           type: str
-          sample: "CG_366_444P_"
+          sample: "PSI768_"
         svol_device_group_name:
           description: The name of the secondary volume device group.
           type: str
-          sample: "CG_366_444S_"
+          sample: "SSI768_"
         local_clone_copygroup_id:
           description: The ID of the local clone copy group.
           type: str
-          sample: "CG_366_444,CG_366_444P_,CG_366_444S_,CP_366_444"
+          sample: "SI_768,PSI768_,SSI768_"
+        storage_serial_number:
+          description: The serial number of the storage system.
+          type: str
+          sample: "810045"
 """
+
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_local_copy_group import (
     VSPLocalCopyGroupReconciler,

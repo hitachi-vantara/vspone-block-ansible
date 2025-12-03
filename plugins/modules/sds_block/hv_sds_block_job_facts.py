@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_job_facts
-short_description: Retrieves information about Hitachi SDS block storage system storage nodes.
+short_description: Retrieves information about storage system jobs.
 description:
   - This module retrieves information about jobs.
   - It provides details about a job such as ID, state, status and other details.
@@ -102,7 +102,7 @@ ansible_facts:
             state:
               description: The job status.
               type: str
-              sample:  "Succeeded"
+              sample: "Succeeded"
             status:
               description: The progress of the job.
               type: str
@@ -111,6 +111,39 @@ ansible_facts:
               description: The time when the job state was updated.
               type: str
               sample: "2025-07-14T12:46:39Z"
+            affected_resources:
+              description: List of resources affected by the job.
+              type: list
+              elements: dict
+              sample: []
+            error:
+              description: Error details if the job failed. Empty dict if no error.
+              type: dict
+              sample: {}
+            request:
+              description: The HTTP request information that initiated the job.
+              type: dict
+              contains:
+                request_body:
+                  description: Body of the request that started the job.
+                  type: str
+                  sample: ""
+                request_method:
+                  description: HTTP method used for the request.
+                  type: str
+                  sample: "POST"
+                request_url:
+                  description: Request URL path on the appliance.
+                  type: str
+                  sample: "/ConfigurationManager/simple/v1/objects/server-certificate/actions/import/invoke"
+            self:
+              description: API path to the job resource.
+              type: str
+              sample: "/ConfigurationManager/simple/v1/objects/jobs/0e9944e4-9a98-4533-ae5c-32ddd7e4ddd2"
+            user_id:
+              description: Identifier of the user who initiated the job.
+              type: str
+              sample: "testUser"
 """
 
 from ansible.module_utils.basic import AnsibleModule

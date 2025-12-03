@@ -102,7 +102,7 @@ ansible_facts:
   returned: always
   type: dict
   contains:
-    copygroups:
+    remote_copy_groups:
       description: A list of copy groups gathered from the storage system.
       type: list
       elements: dict

@@ -191,9 +191,9 @@ EXAMPLES = """
 """
 
 RETURN = """
-ansible_facts:
+external_parity_groups:
   description: >
-    Dictionary containing the discovered properties of the external parity groups.
+    List of discovered external parity groups.
   returned: always
   type: list
   elements: dict
@@ -201,34 +201,53 @@ ansible_facts:
     external_parity_group_id:
       description: External parity group ID.
       type: str
-      sample: "1-1"
+      sample: "1-17"
     available_volume_capacity:
       description: Available capacity (GB).
       type: int
-      sample: 12
+      sample: 20
+    available_volume_capacity_in_kb:
+      description: Available capacity (KB).
+      type: int
+      sample: 20971520
     used_capacity_rate:
       description: Usage rate of the external parity group.
       type: int
-      sample: 12
+      sample: 0
+    clpr_id:
+      description: CLPR number assigned to the external parity group.
+      type: int
+      sample: 0
+    emulation_type:
+      description: Emulation type.
+      type: str
+      sample: "OPEN-V"
+    external_product_id:
+      description: External product identifier.
+      type: str
+      sample: "OPEN-V"
+    num_of_ldevs:
+      description: Number of LDEVs in the external parity group.
+      type: int
+      sample: 0
     storage_serial_number:
       description: Storage serial number.
       type: str
-      sample: "810050"
+      sample: "810045"
     spaces:
-      description: For the free space and the LDEV defined in the specified external parity group.
+      description: Free space and LDEV information for the external parity group.
       type: list
       elements: dict
       contains:
         lba_size:
-          description: ize of the partition in the external parity group (in a multiple of 512 bytes).
+          description: Size of the partition in the external parity group (hex string, multiple of 512 bytes).
           type: str
-          sample: "0x000000200000"
+          sample: "0x000002800000"
         ldev_id:
-          description: LDEV number.
-          type: int
+          description: LDEV number or false if not defined.
+          type: raw
           sample: 1351
 """
-
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_external_parity_group import (

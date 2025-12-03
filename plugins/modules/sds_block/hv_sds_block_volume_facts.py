@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_volume_facts
-short_description: Retrieves information about Hitachi SDS block storage system volumes.
+short_description: Retrieves information about VSP One SDS Block and Cloud systems volumes.
 description:
   - This module retrieves information about storage volumes.
   - It provides details about a storage volume such as name, type and other details.
@@ -116,7 +116,11 @@ ansible_facts:
       type: list
       elements: dict
       contains:
-        compute_node_info:
+        capacity_saving:
+          description: Capacity saving status.
+          type: str
+          sample: "Disabled"
+        compute_nodes_info:
           description: Information about the compute nodes connected to the volume.
           type: list
           elements: dict
@@ -129,146 +133,138 @@ ansible_facts:
               description: Name of the compute node.
               type: str
               sample: "hitachitest"
-        volume_info:
-          description: Detailed information about the volume.
+        data_reduction_effects:
+          description: Effects of data reduction on the volume.
           type: dict
           contains:
-            data_reduction_effects:
-              description: Effects of data reduction on the volume.
-              type: dict
-              contains:
-                post_capacity_data_reduction:
-                  description: Capacity after data reduction.
-                  type: int
-                  sample: 0
-                pre_capacity_data_reduction_without_system_data:
-                  description: Capacity before data reduction without system data.
-                  type: int
-                  sample: 0
-                system_data_capacity:
-                  description: Capacity of system data.
-                  type: int
-                  sample: 0
-            data_reduction_progress_rate:
-              description: Progress rate of data reduction.
-              type: bool
-              sample: false
-            data_reduction_status:
-              description: Status of data reduction.
-              type: str
-              sample: "Disabled"
-            full_allocated:
-              description: Whether the volume is fully allocated.
-              type: bool
-              sample: false
-            id:
-              description: Unique identifier for the volume.
-              type: str
-              sample: "ef69d5c6-ed7c-4302-959f-b8b8a7382f3b"
-            naa_id:
-              description: NAA identifier for the volume.
-              type: str
-              sample: "60060e810a85a000600a85a000000017"
-            name:
-              description: Name of the volume.
-              type: str
-              sample: "vol010"
-            nickname:
-              description: Nickname of the volume.
-              type: str
-              sample: "vol010"
-            number_of_connecting_servers:
-              description: Number of servers connected to the volume.
-              type: int
-              sample: 1
-            number_of_snapshots:
-              description: Number of snapshots of the volume.
+            post_capacity_data_reduction:
+              description: Capacity after data reduction.
               type: int
               sample: 0
-            pool_id:
-              description: Identifier of the pool to which the volume belongs.
-              type: str
-              sample: "cb9f7ecf-ceba-4d8e-808b-9c7bc3e59c03"
-            pool_name:
-              description: Name of the pool to which the volume belongs.
-              type: str
-              sample: "SP01"
-            protection_domain_id:
-              description: Identifier of the protection domain.
-              type: str
-              sample: "645c36b6-da9e-44bb-b711-430e06c7ad2b"
-            qos_param:
-              description: Quality of Service parameters for the volume.
-              type: dict
-              contains:
-                upper_alert_allowable_time:
-                  description: Upper alert allowable time.
-                  type: int
-                  sample: -1
-                upper_alert_time:
-                  description: Upper alert time.
-                  type: bool
-                  sample: false
-                upper_limit_for_iops:
-                  description: Upper limit for IOPS.
-                  type: int
-                  sample: -1
-                upper_limit_for_transfer_rate:
-                  description: Upper limit for transfer rate.
-                  type: int
-                  sample: -1
-            saving_mode:
-              description: Whether saving mode is enabled.
-              type: bool
-              sample: false
-            capacity_saving:
-              description: Capacity saving status.
-              type: str
-              sample: "Disabled"
-            snapshot_attribute:
-              description: Snapshot attribute.
-              type: str
-              sample: "-"
-            snapshot_status:
-              description: Snapshot status.
-              type: bool
-              sample: false
-            status:
-              description: Status of the volume.
-              type: str
-              sample: "Normal"
-            status_summary:
-              description: Summary of the volume status.
-              type: str
-              sample: "Normal"
-            storage_controller_id:
-              description: Identifier of the storage controller.
-              type: str
-              sample: "fc22f6d3-2bd3-4df5-b5db-8a728e301af9"
-            total_capacity_mb:
-              description: Total capacity of the volume in MB.
-              type: int
-              sample: 120
-            used_capacity_mb:
-              description: Used capacity of the volume in MB.
+            pre_capacity_data_reduction_without_system_data:
+              description: Capacity before data reduction without system data.
               type: int
               sample: 0
-            volume_number:
-              description: Volume number.
+            system_data_capacity:
+              description: Capacity of system data.
               type: int
-              sample: 23
-            volume_type:
-              description: Type of the volume.
-              type: str
-              sample: "Normal"
-            vps_id:
-              description: Identifier of the VPS.
-              type: str
-              sample: "(system)"
-            vps_name:
-              description: Name of the VPS.
-              type: str
-              sample: "(system)"
+              sample: 0
+        data_reduction_progress_rate:
+          description: Progress rate of data reduction.
+          type: str
+          sample: ""
+        data_reduction_status:
+          description: Status of data reduction.
+          type: str
+          sample: "Disabled"
+        full_allocated:
+          description: Whether the volume is fully allocated.
+          type: bool
+          sample: false
+        id:
+          description: Unique identifier for the volume.
+          type: str
+          sample: "ef69d5c6-ed7c-4302-959f-b8b8a7382f3b"
+        naa_id:
+          description: NAA identifier for the volume.
+          type: str
+          sample: "60060e810a85a000600a85a000000017"
+        name:
+          description: Name of the volume.
+          type: str
+          sample: "vol010"
+        nickname:
+          description: Nickname of the volume.
+          type: str
+          sample: "vol010"
+        number_of_connecting_servers:
+          description: Number of servers connected to the volume.
+          type: int
+          sample: 1
+        number_of_snapshots:
+          description: Number of snapshots of the volume.
+          type: int
+          sample: 0
+        pool_id:
+          description: Identifier of the pool to which the volume belongs.
+          type: str
+          sample: "cb9f7ecf-ceba-4d8e-808b-9c7bc3e59c03"
+        pool_name:
+          description: Name of the pool to which the volume belongs.
+          type: str
+          sample: "SP01"
+        protection_domain_id:
+          description: Identifier of the protection domain.
+          type: str
+          sample: "645c36b6-da9e-44bb-b711-430e06c7ad2b"
+        qos_param:
+          description: Quality of Service parameters for the volume.
+          type: dict
+          contains:
+            upper_alert_allowable_time_in_sec:
+              description: Upper alert allowable time in seconds.
+              type: int
+              sample: 100
+            upper_alert_time:
+              description: Upper alert time flag.
+              type: bool
+              sample: false
+            upper_limit_for_iops:
+              description: Upper limit for IOPS.
+              type: int
+              sample: 100
+            upper_limit_for_transfer_rate_mb_per_sec:
+              description: Upper limit for transfer rate in MB/s.
+              type: int
+              sample: 100
+        saving_mode:
+          description: Saving mode setting.
+          type: str
+          sample: ""
+        snapshot_attribute:
+          description: Snapshot attribute.
+          type: str
+          sample: "-"
+        snapshot_status:
+          description: Snapshot status.
+          type: str
+          sample: ""
+        status:
+          description: Status of the volume.
+          type: str
+          sample: "Normal"
+        status_summary:
+          description: Summary of the volume status.
+          type: str
+          sample: "Normal"
+        storage_controller_id:
+          description: Identifier of the storage controller.
+          type: str
+          sample: "fc22f6d3-2bd3-4df5-b5db-8a728e301af9"
+        total_capacity_mb:
+          description: Total capacity of the volume in MB.
+          type: int
+          sample: 120
+        used_capacity_mb:
+          description: Used capacity of the volume in MB.
+          type: int
+          sample: 0
+        volume_number:
+          description: Volume number.
+          type: int
+          sample: 23
+        volume_type:
+          description: Type of the volume.
+          type: str
+          sample: "Normal"
+        vps_id:
+          description: Identifier of the VPS.
+          type: str
+          sample: "(system)"
+        vps_name:
+          description: Name of the VPS.
+          type: str
+          sample: "(system)"
 """
 
 from ansible.module_utils.basic import AnsibleModule

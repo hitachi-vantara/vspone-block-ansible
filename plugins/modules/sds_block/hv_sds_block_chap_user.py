@@ -12,12 +12,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_chap_user
-short_description: Manages Hitachi SDS block storage system CHAP users.
+short_description: Manages VSP One SDS Block and Cloud system CHAP users.
 description:
   - This module allows for the creation, deletion and updating of CHAP users.
   - It supports various CHAP user operations based on the specified task level.
-  - For examples go to URL
-    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/chap_user.yml)
+  - For examples go to URL U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/chap_user.yml)
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -112,28 +111,23 @@ EXAMPLES = """
 
 RETURN = r"""
 chap_users:
-  description: >
-    Dictionary containing the discovered properties of the CHAP users.
+  description: List of CHAP users with their attributes.
   returned: always
-  type: dict
+  type: list
+  elements: dict
   contains:
-    chap_users:
-      description: List of CHAP users with their attributes.
-      type: list
-      elements: dict
-      contains:
-        id:
-          description: Unique identifier for the CHAP user.
-          type: str
-          sample: "464e1fd1-9892-4134-866c-6964ce786676"
-        initiator_chap_user_name:
-          description: Initiator CHAP user name.
-          type: str
-          sample: "chapuser1"
-        target_chap_user_name:
-          description: Target CHAP user name.
-          type: str
-          sample: "newchapuser2"
+    id:
+      description: Unique identifier for the CHAP user.
+      type: str
+      sample: "464e1fd1-9892-4134-866c-6964ce786676"
+    initiator_chap_user_name:
+      description: Initiator CHAP user name.
+      type: str
+      sample: "example_initiator_user"
+    target_chap_user_name:
+      description: Target CHAP user name.
+      type: str
+      sample: "example_target_user"
 """
 
 

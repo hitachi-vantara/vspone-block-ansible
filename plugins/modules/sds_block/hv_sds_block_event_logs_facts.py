@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_event_logs_facts
-short_description: Get event logs from storage system
+short_description: Get event logs from VSP One SDS Block and Cloud systems.
 description:
   - Get event logs from storage system with various filtering options
   - For examples, go to URL
@@ -86,59 +86,63 @@ ansible_facts:
   returned: always
   type: dict
   contains:
-    data:
-      description: List of event log entries.
-      type: list
-      elements: dict
+    event_logs:
+      description: Wrapper for event logs results.
+      type: dict
       contains:
-        id:
-          description: Unique identifier for the event log entry.
-          type: str
-          sample: "de90dc2f-dd0a-4edf-8562-41504571b8ba"
-        time:
-          description: Time when the event occurred (ISO 8601 format).
-          type: str
-          sample: "2023-03-20T06:51:22Z"
-        time_in_microseconds:
-          description: Timestamp in microseconds.
-          type: int
-          sample: 1679295082702433
-        category:
-          description: Category of the event.
-          type: str
-          sample: "Service"
-        event_name:
-          description: Name or short description of the event.
-          type: str
-          sample: "Successful completion of job"
-        message_id:
-          description: Message identifier code.
-          type: str
-          sample: "KARS13010-I"
-        severity:
-          description: Severity level as a string.
-          type: str
-          sample: "Info"
-        message:
-          description: Detailed message about the event.
-          type: str
-          sample: "The job has completed successfully. (Operation = STORAGE_NODE_DELETE, Job ID = b5911f59-c35a-4db9-82d9-09d6f67594e3)"
-        solution:
-          description: Suggested solution or resolution for the event, if any.
-          type: str
-          sample: ""
-        node_location:
-          description: Unique identifier of the node location associated with the event.
-          type: str
-          sample: "086e0c50-4b8d-430e-be47-bd65da4ca229"
-        event_type:
-          description: Type of the event (if available).
-          type: str
-          sample: null
-        severity_level:
-          description: Numerical or categorized severity level (if available).
-          type: str
-          sample: Warning
+        data:
+          description: List of event log entries.
+          type: list
+          elements: dict
+          contains:
+            id:
+              description: Unique identifier for the event log entry.
+              type: str
+              sample: "ec99bd4b-68f0-4b3b-899c-a70744f16e5e"
+            time:
+              description: Time when the event occurred (ISO 8601 format).
+              type: str
+              sample: "2025-11-26T10:41:47Z"
+            time_in_microseconds:
+              description: Timestamp in microseconds.
+              type: int
+              sample: 1764153707900467
+            category:
+              description: Category of the event.
+              type: str
+              sample: "Service"
+            event_name:
+              description: Name or short description of the event.
+              type: str
+              sample: "Successful completion of job"
+            message_id:
+              description: Message identifier code.
+              type: str
+              sample: "KARS13010-I"
+            severity:
+              description: Severity level as a string.
+              type: str
+              sample: "Info"
+            message:
+              description: Detailed message about the event.
+              type: str
+              sample: "The job has completed successfully. (Operation = CHAP_USER_DELETE, Job ID = 286bf06d-811c-4359-8cc7-c66417884866)"
+            solution:
+              description: Suggested solution or resolution for the event, if any.
+              type: str
+              sample: ""
+            node_location:
+              description: Unique identifier of the node location associated with the event.
+              type: str
+              sample: "152d2d10-4e18-44aa-86a4-fbd4f7e4cb08"
+            event_type:
+              description: Type of the event (if available).
+              type: str
+              sample: ""
+            severity_level:
+              description: Numerical or categorized severity level (if available).
+              type: str
+              sample: ""
 """
 
 from ansible.module_utils.basic import AnsibleModule

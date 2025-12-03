@@ -23,6 +23,7 @@ REPLACE_STORAGE_NODE = "v1/objects/storage-nodes/{}/actions/replace/invoke"
 IMPORT_SYSTEM_REQUIREMENTS_FILE = (
     "v1/objects/system-requirements-file/actions/import/invoke"
 )
+STOP_STORAGE_CLUSTER = "v1/objects/storage/actions/shutdown/invoke"
 logger = Log()
 
 export_file_type_map = {
@@ -48,6 +49,20 @@ class SDSBClusterGateway:
             end_point, system_requirement_file, "systemRequirementsFile", True
         )
         logger.writeDebug(f"GW:import_system_requirement_file:resp={resp}")
+        return resp
+
+    @log_entry_exit
+    def stop_storage_cluster(
+        self, force=False, reboot=False, config_parameter_setting_mode=False
+    ):
+        end_point = STOP_STORAGE_CLUSTER
+        payload = {
+            "force": force,
+            "reboot": reboot,
+            "configParameterSettingMode": config_parameter_setting_mode,
+        }
+        resp = self.connection_manager.post(end_point, payload, long_running=True)
+        logger.writeDebug(f"GW:stop_storage_cluster:resp={resp}")
         return resp
 
     def create_config_file(self, export_file_type):

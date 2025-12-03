@@ -69,91 +69,65 @@ EXAMPLES = """
 RETURN = """
 ansible_facts:
   description: >
-    Dictionary containing the discovered properties of the external path groups.
+    Dictionary containing the discovered properties of the external volumes.
   returned: always
-  type: list
-  elements: dict
+  type: dict
   contains:
-    external_path_groups:
-      description: The list of external path groups.
+    external_volume:
+      description: The list of external volumes.
       type: list
       elements: dict
       contains:
-        external_path_group_id:
-          description: External path group number.
+        external_ldev_id:
+          description: External LDEV ID.
           type: int
-          sample: 1
+          sample: 1323
+        external_ldev_id_hex:
+          description: External LDEV ID in hexadecimal format.
+          type: str
+          sample: "00:05:2B"
+        external_lun:
+          description: External LUN number.
+          type: int
+          sample: 0
+        external_path_group_id:
+          description: External path group ID.
+          type: int
+          sample: 0
+        external_product_id:
+          description: Product ID of the external storage system.
+          type: str
+          sample: "VSP Gx00"
         external_serial_number:
           description: Serial number of the external storage system.
           type: str
           sample: "410109"
-        storage_serial_number:
-          description: Serial number of the storage system.
+        external_volume_capacity:
+          description: External volume capacity in blocks.
+          type: int
+          sample: 41943040
+        external_volume_capacity_in_mb:
+          description: External volume capacity in MB.
+          type: float
+          sample: 20480.0
+        external_volume_info:
+          description: External volume information string.
           type: str
-          sample: "410109"
-        external_parity_groups:
-          description: The list of external parity groups.
+          sample: "OPEN-V HITACHI 5040277D052B"
+        external_wwn:
+          description: WWN of the external storage system.
+          type: str
+          sample: "50060e8012277d71"
+        ldev_ids:
+          description: List of LDEV IDs associated with the external volume.
           type: list
-          elements: dict
-          contains:
-            cache_mode:
-              description: Cache mode.
-              type: str
-              sample: "E"
-            external_parity_group_id:
-              description: External parity group ID.
-              type: str
-              sample: "1-3"
-            external_parity_group_status:
-              description: Status of the external parity group.
-              type: str
-              sample: "NML"
-            is_data_direct_mapping:
-              description: Whether the data direct mapping attribute is enabled.
-              type: bool
-              sample: false
-            is_inflow_control_enabled:
-              description: Inflow cache control.
-              type: bool
-              sample: false
-            load_balance_mode:
-              description: The load balancing method for I/O operations for the external storage system.
-              type: str
-              sample: "N"
-            mp_blade_id:
-              description: Inflow cache control.
-              type: int
-              sample: 0
-            path_mode:
-              description: Path mode of the external storage system.
-              type: str
-              sample: "M"
-            external_luns:
-              description: List of LUNs of the external storage system.
-              type: list
-              elements: dict
-              contains:
-                external_lun:
-                  description: LUN within the ports of the external storage system.
-                  type: int
-                  sample: 2
-                external_wwn:
-                  description: WWN of the external storage system.
-                  type: str
-                  sample: "50060e8012277d71"
-                path_status:
-                  description: Status of the external path.
-                  type: str
-                  sample: "NML"
-                port_id:
-                  description: Port number.
-                  type: str
-                  sample: "CL6-B"
-                priority:
-                  description: Priority within the external path group.
-                  type: int
-                  sample: 1
- """
+          elements: int
+          sample: [1351, 1465, 1670, 1510, 1511, 1512, 1513]
+        port_id:
+          description: Port ID of the external storage system.
+          type: str
+          sample: "CL6-B"
+"""
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_external_volume_reconciler import (

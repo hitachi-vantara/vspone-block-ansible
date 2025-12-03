@@ -377,10 +377,11 @@ EXAMPLES = """
 """
 
 RETURN = r"""
-data:
-  description: Newly created TrueCopy pair object for direct connection.
+truecopy_info:
+  description: List of TrueCopy pair objects returned by the module.
   returned: success
-  type: dict
+  type: list
+  elements: dict
   contains:
     consistency_group_id:
       description: Consistency Group ID.
@@ -389,11 +390,11 @@ data:
     copy_group_name:
       description: Name of the copy group.
       type: str
-      sample: "TC_TEST_1107"
+      sample: "ESD_TC_CG"
     copy_pair_name:
       description: Name of the copy pair.
       type: str
-      sample: "rd_copy_pair_202"
+      sample: "ESD_TC_CP"
     copy_progress_rate:
       description: Copy progress rate.
       type: int
@@ -402,14 +403,14 @@ data:
       description: Fence level.
       type: str
       sample: "NEVER"
-    primary_hex_volume_id:
-      description: Primary hex volume ID.
-      type: str
-      sample: "00:02:77"
     primary_volume_id:
       description: Primary volume ID.
       type: int
-      sample: 631
+      sample: 11
+    primary_volume_id_hex:
+      description: Primary volume ID in hex format.
+      type: str
+      sample: "00:00:0B"
     pvol_status:
       description: PVOL status.
       type: str
@@ -417,23 +418,23 @@ data:
     pvol_storage_device_id:
       description: PVOL storage device ID.
       type: str
-      sample: "A34000810045"
+      sample: "A00000970041"
     remote_mirror_copy_pair_id:
       description: Remote mirror copy pair ID.
       type: str
-      sample: "A34000810045,TC_TEST_1107,TC_TEST_1107P_,TC_TEST_1107S_,rd_copy_pair_202"
-    secondary_hex_volume_id:
-      description: Secondary hex volume ID.
-      type: str
-      sample: "00:00:ca"
+      sample: "A00000970045,ESD_TC_CG,ESD_TC_CGP_,ESD_TC_CGS_,ESD_TC_CP"
     secondary_volume_id:
       description: Secondary volume ID.
       type: int
-      sample: 202
+      sample: 11
+    secondary_volume_id_hex:
+      description: Secondary volume ID in hex format.
+      type: str
+      sample: "00:00:0B"
     storage_serial_number:
       description: Storage serial number.
       type: str
-      sample: "810050"
+      sample: "70041"
     svol_status:
       description: SVOL status.
       type: str
@@ -441,7 +442,7 @@ data:
     svol_storage_device_id:
       description: SVOL storage device ID.
       type: str
-      sample: "A34000810050"
+      sample: "A00000970045"
 """
 
 from ansible.module_utils.basic import AnsibleModule

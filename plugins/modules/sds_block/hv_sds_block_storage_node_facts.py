@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_storage_node_facts
-short_description: Retrieves information about Hitachi SDS block storage system storage nodes.
+short_description: Retrieves information about VSP One SDS Block and Cloud systems storage nodes.
 description:
   - This module retrieves information about storage nodes.
   - It provides details about a storage node such as ID, name and other details.
@@ -119,99 +119,99 @@ ansible_facts:
           type: dict
           contains:
             bios_uuid:
-              description: The storage node UUID, which is registered in the SMBIOS.
+              description: The storage node UUID registered in SMBIOS.
               type: str
-              sample: "422c2bdc-fdcf-8d33-63b9-377776cee60d"
+              sample: "37383638-3430-4d32-3239-343030355153"
             cluster_role:
               description: The role of the storage node in the storage cluster.
               type: str
-              sample: "Master"
+              sample: "Worker"
             control_port_ipv4_address:
-              description: The IP address (IPv4) of the control port.
+              description: The IPv4 address of the control port.
               type: str
-              sample: "172.25.58.141"
+              sample: "10.76.34.105"
             drive_data_relocation_status:
               description: Status of drive data relocation.
               type: str
               sample: "Stopped"
             fault_domain_id:
-              description: The ID of a fault domain to which the volume belongs.
+              description: The ID of the fault domain.
               type: str
-              sample: "c0b833cd-1fee-417d-bbf2-d25aac767ad4"
+              sample: "05c3b302-9d43-448d-b0fa-3bbc64d0666d"
             fault_domain_name:
-              description: Name of a fault domain to which the volume belongs.
+              description: Name of the fault domain.
               type: str
-              sample: "SC14-PD01-FD01"
+              sample: "SC01-PD01-FD01"
             id:
               description: Storage node ID.
               type: str
-              sample: "f3dbcbcc-9cfd-426d-8696-4d23fc9a5dee"
+              sample: "e6f3c56b-dcac-4cd5-8524-112ff1273c89"
             insufficient_resources_for_rebuild_capacity:
               description: Insufficient resources for rebuild capacity.
               type: dict
               contains:
                 capacity_of_drive:
-                  description: Lacking drive capacity of rebuild capacity.
+                  description: Lacking drive capacity for rebuild.
                   type: int
                   sample: 0
                 number_of_drives:
-                  description: The number of lacking drives of rebuild capacity.
+                  description: Number of lacking drives for rebuild.
                   type: int
                   sample: 0
             internode_port_ipv4_address:
-              description: The IP address (IPv4) of the internode port.
+              description: The IPv4 address of the internode port.
               type: str
-              sample: "192.168.101.141"
+              sample: "192.168.210.105"
             is_capacity_balancing_enabled:
-              description: Capacity balancing settings of a storage node.
+              description: Whether capacity balancing is enabled.
               type: bool
               sample: true
             is_storage_master_node_primary:
-              description: Indicates whether the storage node is the cluster master node (primary).
+              description: Whether the storage master node is primary.
               type: bool
-              sample: true
+              sample: false
             memory_mb:
-              description: The IP address (IPv4) of the internode port.
+              description: Memory size in MB.
               type: int
-              sample: 118784
+              sample: 196608
             model_name:
-              description: Model name of the server on which the storage node is running.
+              description: Model name of the server running the storage node.
               type: str
-              sample: "Advanced System HA810"
+              sample: "Hitachi Advanced Server HA820"
             name:
               description: Storage node name.
               type: str
-              sample: "vssbesxi1"
+              sample: "SDS-NODE5"
             protection_domain_id:
-              description: The ID of the protection domain to which the volume is belonging.
+              description: The ID of the protection domain.
               type: str
-              sample: "4090c412-edf2-4368-8175-1f60507afbb8"
+              sample: "66449f50-caa4-4070-ade1-e81f29614741"
             rebuildable_resources:
-              description: Resource for which Rebuild is possible.
+              description: Resources for which rebuild is possible.
               type: dict
               contains:
                 number_of_drives:
-                  description: The number of drive failures that can be tolerated.
+                  description: Number of drive failures that can be tolerated.
                   type: int
                   sample: 1
             serial_number:
-              description: Serial number of the server on which the storage node is running.
+              description: Serial number of the server running the storage node.
               type: str
-              sample: "MXQ941046B"
+              sample: "2M294005QS"
             software_version:
-              description: The version of storage software.
+              description: Storage software version.
               type: str
-              sample: "01.14.00.00"
+              sample: "01.18.02.40"
             status:
               description: The status of the storage node.
               type: str
               sample: "Ready"
             status_summary:
-              description: The summary of the storage node status.
+              description: Summary of the storage node status.
               type: str
               sample: "Normal"
             storage_node_attributes:
-              description: Storage node attribute. An empty array ([]) means a storage node which has no attribute.
+              description: Storage node attributes (empty list if none).
               type: list
               elements: str
               sample: []

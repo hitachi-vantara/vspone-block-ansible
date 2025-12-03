@@ -109,6 +109,10 @@ class ClusterSpec(SingleBaseClass):
     should_recover_single_node: Optional[bool] = False
     system_requirement_file: Optional[str] = None
 
+    force: Optional[bool] = False
+    reboot: Optional[bool] = False
+    config_parameter_setting_mode: Optional[bool] = False
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if "storage_nodes" in kwargs and kwargs.get("storage_nodes") is not None:

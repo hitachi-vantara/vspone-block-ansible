@@ -20,6 +20,7 @@ class StoragePoolSpec:
     drive_ids: Optional[List[str]] = None
     rebuild_capacity_policy: Optional[str] = None
     number_of_tolerable_drive_failures: Optional[int] = None
+    is_encryption_enabled: Optional[bool] = None
 
 
 @dataclass

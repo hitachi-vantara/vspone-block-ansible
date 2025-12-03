@@ -32,7 +32,13 @@ class SDSBVpsDirectGateway:
         vps_data = self.connection_manager.get(end_point)
         return SDSBVpsListInfo(
             dicts_to_dataclass_list(vps_data["data"], SDSBVpsInfo),
-            SummaryInformation(**vps_data["summaryInformation"]),
+            SummaryInformation(
+                **(
+                    vps_data["summaryInformation"]
+                    if vps_data.get("summaryInformation", None)
+                    else {}
+                )
+            ),
         )
 
     @log_entry_exit

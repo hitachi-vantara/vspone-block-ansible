@@ -11,10 +11,10 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_snapshot_facts
-short_description: Retrieves snapshot information from Hitachi VSP One storage systems.
+short_description: Retrieves snapshot information from VSP E series and VSP One Block 20 series storage systems.
 description:
-  - This module retrieves snapshot information from Hitachi VSP One storage systems.
-  - Utilizes the Hitachi Vantara VSP One Simple API for snapshot facts retrieval across VSP one B2x and VSP E series models.
+  - This module retrieves snapshot information from VSP E series and VSP One Block 20 series storage systems.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for snapshot facts retrieval across VSP one B20 series and VSP E series models.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_snapshot_facts.yml)
 version_added: '4.4.0'
@@ -98,21 +98,22 @@ EXAMPLES = """
 
 RETURN = """
 ansible_facts:
-  description: Facts about ports retrieved from the storage system.
+  description: Facts about snapshots retrieved from the storage system.
   returned: always
   type: dict
   contains:
-    snapshot:
-      description: Snapshot information retrieved from the storage system.
+    snapshots:
+      description: List of snapshot information retrieved from the storage system.
       returned: always
-      type: dict
+      type: list
+      elements: dict
       contains:
         id:
           description: Master volume ID of the snapshot and the snapshot ID, linked by a comma.
           type: str
           sample: "1445,4"
         is_volume_capacity_expanding:
-          description: Master volume ID of the snapshot and the snapshot ID, linked by a comma.
+          description: Indicates if the master volume capacity is expanding.
           type: bool
           sample: false
         mapped_volume_id:

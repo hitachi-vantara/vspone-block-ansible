@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_disk_drive
-short_description: Changes disk drive settings from Hitachi VSP storage systems.
+short_description: Changes disk drive settings from VSP block storage systems.
 description:
-    - This module changes disk drive settings from Hitachi VSP storage systems.
+    - This module changes disk drive settings from VSP block storage systems.
     - For examples go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/disk_drive.yml)
 version_added: '3.2.0'
@@ -67,58 +67,40 @@ RETURN = r"""
 disk_drive:
   description: Disk drive managed by the module.
   returned: success
-  type: list
-  elements: dict
+  type: dict
   contains:
-    copyback_mode:
-      description: Indicates if copy back mode is enabled.
-      type: bool
-      sample: true
+    drive_location_id:
+      description: The drive location identifier.
+      type: str
+      sample: "0-22"
     drive_type:
-      description: Type of the drive.
+      description: Model identifier of the drive.
+      type: str
+      sample: "SNM5C-R1R9NC"
+    drive_type_name:
+      description: Human readable drive type name.
       type: str
       sample: "SSD"
-    free_capacity:
-      description: Free capacity of the drive.
+    serial_number:
+      description: Serial number of the drive.
       type: str
-      sample: "5.16TB"
-    is_accelerated_compression:
-      description: Indicates if accelerated compression is enabled.
-      type: bool
-      sample: false
-    is_encryption_enabled:
-      description: Indicates if encryption is enabled.
-      type: bool
-      sample: true
-    is_pool_array_group:
-      description: Indicates if the drive is part of a pool array group.
-      type: bool
-      sample: false
-    ldev_ids:
-      description: List of LDEV IDs associated with the drive.
-      type: list
-      elements: int
-      sample: []
-    parity_group_id:
-      description: ID of the parity group.
-      type: str
-      sample: "1-10"
-    raid_level:
-      description: RAID level of the drive.
-      type: str
-      sample: "RAID5"
-    resource_group_id:
-      description: ID of the resource group.
-      type: int
-      sample: -1
+      sample: "C2YII03F"
     status:
       description: Status of the drive.
       type: str
-      sample: ""
+      sample: "NML"
     total_capacity:
-      description: Total capacity of the drive.
+      description: Total capacity of the drive expressed as a string with units.
       type: str
-      sample: "5.16TB"
+      sample: "1900 GB"
+    total_capacity_mb:
+      description: Total capacity of the drive in megabytes.
+      type: int
+      sample: 1945600.0
+    usage_type:
+      description: Current usage type of the drive.
+      type: str
+      sample: "FREE"
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -190,7 +172,7 @@ class VSPDiskDriveManager:
             )
             response_dict = {
                 "changed": self.connection_info.changed,
-                "data": result,
+                "disk_drive": result,
                 "msg": msg,
             }
             if registration_message:

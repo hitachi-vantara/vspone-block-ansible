@@ -67,7 +67,7 @@ class VspOneSnapshotProvisioner:
         return snapshots
 
     @log_entry_exit
-    def delete_snapshot_group(self, spec: str):
+    def delete_snapshot_group(self, spec):
         group_exists = self.gateway.get_snapshot_group_by_name(spec.snapshot_group_name)
 
         if not group_exists:

@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_fault_domain_facts
-short_description: Get fault domains from storage system
+short_description: Retrieves information about fault domains.
 description:
   - Get fault domains from storage system.
   - For examples, go to URL
@@ -70,71 +70,84 @@ EXAMPLES = """
 RETURN = r"""
 ansible_facts:
   description: >
-    Dictionary containing the discovered properties of the fault_domain.
+    Dictionary containing discovered facts. The module sets a top-level key
+    'fault_domain' which contains the retrieved fault domain information.
   returned: always
   type: dict
   contains:
-    data:
-      description: List of fault domain entries.
-      type: list
-      elements: dict
+    fault_domain:
+      description: Fault domain information container.
+      type: dict
       contains:
-        id:
-          description: Unique identifier for the fault domain.
-          type: str
-          sample: "355d32ce-c97f-4adf-9057-49d2e287974b"
-        name:
-          description: Name of the fault domain.
-          type: str
-          sample: "SC01-PD01-FD01"
-        status_summary:
-          description: Summary of the fault domain's status.
-          type: str
-          sample: "Normal"
-        status:
-          description: Current operational status of the fault domain.
-          type: str
-          sample: "Normal"
-        number_of_storage_nodes:
-          description: Number of storage nodes in the fault domain.
-          type: int
-          sample: 3
-        availability_zone_id:
-          description: UUID of the availability zone associated with the fault domain, if any.
-          type: str
-          sample: null
-        total_capacity:
-          description: Total physical capacity of the fault domain in GB.
-          type: int
-          sample: 0
-        used_capacity:
-          description: Used physical capacity of the fault domain in GB.
-          type: int
-          sample: 0
-        free_capacity:
-          description: Free physical capacity of the fault domain in GB.
-          type: int
-          sample: 0
-        used_capacity_rate:
-          description: Percentage of used capacity in the fault domain.
-          type: int
-          sample: 0
-        total_volume_capacity:
-          description: Total logical volume capacity in the fault domain.
-          type: int
-          sample: 0
-        provisioned_volume_capacity:
-          description: Total provisioned volume capacity.
-          type: int
-          sample: 0
-        other_volume_capacity:
-          description: Capacity used by volumes not categorized elsewhere.
-          type: int
-          sample: 0
-        temporary_volume_capacity:
-          description: Capacity used by temporary volumes.
-          type: int
-          sample: 0
+        data:
+          description: List of fault domain entries.
+          type: list
+          elements: dict
+          contains:
+            id:
+              description: Unique identifier for the fault domain.
+              type: str
+              sample: "b152a02e-47e7-4d93-a010-d90b3bfc9aa4"
+            name:
+              description: Name of the fault domain.
+              type: str
+              sample: "SC01-PD01-FD01"
+            status_summary:
+              description: Summary of the fault domain's status.
+              type: str
+              sample: "Normal"
+            status:
+              description: Current operational status of the fault domain.
+              type: str
+              sample: "Normal"
+            number_of_storage_nodes:
+              description: Number of storage nodes in the fault domain.
+              type: int
+              sample: 3
+            availability_zone_id:
+              description: UUID of the availability zone associated with the fault domain, if any.
+              type: str
+              sample: null
+            physical_zone:
+              description: Physical zone associated with the fault domain, if any.
+              type: str
+              sample: null
+            logical_zone:
+              description: Logical zone associated with the fault domain, if any.
+              type: str
+              sample: null
+            total_capacity:
+              description: Total physical capacity of the fault domain in GB.
+              type: int
+              sample: 9519048
+            free_capacity:
+              description: Free physical capacity of the fault domain in GB.
+              type: int
+              sample: 9518712
+            used_capacity:
+              description: Used physical capacity of the fault domain in GB.
+              type: int
+              sample: 336
+            used_capacity_rate:
+              description: Percentage of used capacity in the fault domain.
+              type: int
+              sample: 0
+            total_volume_capacity:
+              description: Total logical volume capacity in the fault domain.
+              type: int
+              sample: 18698
+            provisioned_volume_capacity:
+              description: Total provisioned volume capacity.
+              type: int
+              sample: 18398
+            other_volume_capacity:
+              description: Capacity used by volumes not categorized elsewhere.
+              type: int
+              sample: 300
+            temporary_volume_capacity:
+              description: Capacity used by temporary volumes.
+              type: int
+              sample: 0
 """
 
 from ansible.module_utils.basic import AnsibleModule

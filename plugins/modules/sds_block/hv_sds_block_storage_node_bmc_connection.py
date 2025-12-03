@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_storage_node_bmc_connection
-short_description: Manages BMC connection settings for a storage node on Hitachi SDS Block storage systems.
+short_description: Manages BMC connection settings for a storage node on VSP One SDS Block and Cloud systems.
 description:
   - This module allows to update the BMC connection settings of a storage node.
   - For examples, go to URL
@@ -88,28 +88,23 @@ EXAMPLES = """
 """
 
 RETURN = """
-storage_nodes:
-  description: A list of storage nodes.
+storage_node_bmc_connection_information:
+  description: BMC connection information of the storage node.
+  type: dict
   returned: always
-  type: list
-  elements: dict
   contains:
-    storage_node_bmc_connection_information:
-      description: BMC connection information of the storage node.
-      type: dict
-      contains:
-        id:
-          description: Storage node ID.
-          type: str
-          sample: "44f1d113-405e-448f-ad77-fd5554971c36"
-        bmc_name:
-          description: The host name or IP address (IPv4) of the BMC. An empty string "" is output if nothing is set.
-          type: str
-          sample: "10.164.118.96"
-        bmc_user:
-          description: The username for BMC connection. An empty string "" is output if nothing is set.
-          type: str
-          sample: "administrator@local,10.164.118.96-ptfm-endo_SN01"
+    id:
+      description: Storage node ID.
+      type: str
+      sample: "44f1d113-405e-448f-ad77-fd5554971c36"
+    bmc_name:
+      description: The host name or IP address (IPv4) of the BMC. An empty string "" is output if nothing is set.
+      type: str
+      sample: "10.164.118.96"
+    bmc_user:
+      description: The username for BMC connection. An empty string "" is output if nothing is set.
+      type: str
+      sample: "administrator@local,10.164.118.96-ptfm-endo_SN01"
 """
 
 from ansible.module_utils.basic import AnsibleModule

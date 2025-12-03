@@ -297,8 +297,13 @@ class VSPExternalVolumeProvisioner:
             external_ldev_id,
         )
         logger.writeDebug("20250228 notused obj={}", notused)
-        rsp_dict["external_ldev_id_hex"] = volume_id_to_hex_format(
-            rsp_dict.get("external_ldev_id")
+        if rsp_dict is None:
+            return None
+
+        rsp_dict["external_ldev_id_hex"] = (
+            volume_id_to_hex_format(rsp_dict.get("external_ldev_id"))
+            if rsp_dict
+            else ""
         )
         return rsp_dict
 

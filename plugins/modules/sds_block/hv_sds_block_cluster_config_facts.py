@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_cluster_config_facts
-short_description: Retrieves information about configuration of SDS block clusters from Hitachi SDS block storage systems.
+short_description: Retrieves cluster configuration information.
 description:
   - This module retrieves information about SDS Block cluster configuration.
   - It provides details about a cluster configuration such as storage nodes, fault domains and other details.

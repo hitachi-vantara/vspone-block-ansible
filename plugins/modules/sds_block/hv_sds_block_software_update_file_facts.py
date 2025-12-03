@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_software_update_file_facts
-short_description: Get the information of the update file of the storage software which performed transfer (upload) in the storage cluster.
+short_description: Get information about the update file of the storage software that performed transfer (upload) in the storage cluster.
 description:
   - Get the information of the update file of the storage software which performed transfer (upload) in the storage cluster.
   - For examples, go to URL

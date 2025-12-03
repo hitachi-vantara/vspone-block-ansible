@@ -62,3 +62,13 @@ class SDSBStoragePoolProvisioner:
         if storage_pool is None or len(storage_pool.data) == 0:
             return None
         return storage_pool.data[0]
+
+    @log_entry_exit
+    def update_storage_pool_encryption(self, id, is_encryption_enabled):
+        response = self.gateway.update_storage_pool_encryption(
+            id, is_encryption_enabled
+        )
+        # Handle dataclass object conversion if needed
+        if hasattr(response, "camel_to_snake_dict"):
+            return response.camel_to_snake_dict()
+        return response

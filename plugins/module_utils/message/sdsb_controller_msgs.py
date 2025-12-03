@@ -21,3 +21,11 @@ class SDSBControllerValidationMsg(Enum):
     )
     REQUIRED_SPARE_NODE_ID = "id is required to unregister a spare node."
     INVALID_FAULT_DOMAIN_ID = "Fault domain with ID '{}' does not exist."
+    REQUIRED_SERVER_CERTIFICATE_FILE_PATH = (
+        "server_certificate_file_path and "
+        "server_certificate_secret_key_file_path are required for importing server certificate."
+    )
+    REQUIRED_CLIENT_ADDRESS_ALLOWLIST = (
+        "client_address_allowlist (list of IP addresses) "
+        "is required when enable_client_address_allowlist is set to true."
+    )

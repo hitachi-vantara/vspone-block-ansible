@@ -28,6 +28,8 @@
           pool_id: 15
           size: "1GB"
           name: "database_volume1"
+          capacity_saving: "compression_deduplication"
+          data_reduction_share: true
       register: result_create_ldev
 
     - name: Debug result_create_ldev

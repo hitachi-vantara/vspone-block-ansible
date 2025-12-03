@@ -7056,7 +7056,7 @@ class VSPSpecValidators:
     @staticmethod
     def validate_gad_pair_spec(input_spec: VspGadPairSpec, state: str):
 
-        if input_spec.consistency_group_id:
+        if input_spec.consistency_group_id is not None:
             cg_id = input_spec.consistency_group_id
             if cg_id < str(AutomationConstants.CONSISTENCY_GROUP_ID_MIN) or cg_id > str(
                 AutomationConstants.CONSISTENCY_GROUP_ID_MAX
@@ -7097,8 +7097,9 @@ class VSPSpecValidators:
 
         if input_spec.path_group_id:
             cg_id = input_spec.path_group_id
-            if cg_id < str(AutomationConstants.PATH_GROUP_ID_MIN) or cg_id > str(
-                AutomationConstants.PATH_GROUP_ID_MAX
+            if (
+                cg_id < AutomationConstants.PATH_GROUP_ID_MIN
+                or cg_id > AutomationConstants.PATH_GROUP_ID_MAX
             ):
                 raise ValueError(VSPTrueCopyValidateMsg.INVALID_PG_ID.value)
 

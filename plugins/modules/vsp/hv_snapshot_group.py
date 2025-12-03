@@ -143,7 +143,7 @@ EXAMPLES = """
 """
 
 RETURN = """
-snapshots:
+snapshot_data:
   description: >
     A list of snapshots gathered from the storage system.
   returned: always

@@ -11,11 +11,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_server_facts
-short_description: Retrieves server information from Hitachi VSP One storage systems.
+short_description: Retrieves server information from VSP E series and VSP One Block 20 series storage systems.
 description:
-  - This module retrieves information about servers from Hitachi VSP One storage systems.
+  - This module retrieves information about servers from VSP E series and VSP One Block 20 series storage systems.
   - Supports filtering servers by various criteria such as server ID, nickname, HBA WWN, or iSCSI name.
-  - Utilizes the Hitachi Vantara VSP One Simple API for server facts retrieval across VSP one B2x and VSP E series models.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for server facts retrieval across VSP one B20 series and VSP E series models.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_server_facts.yml)
 version_added: '4.3.0'
@@ -121,7 +121,8 @@ ansible_facts:
     servers:
       description: Server information retrieved from the storage system.
       returned: always
-      type: dict
+      type: list
+      elements: dict
       contains:
         compatibility:
           description: Server compatibility information.
@@ -130,19 +131,19 @@ ansible_facts:
         has_non_fullmesh_lu_paths:
           description: Whether the server has non-fullmesh LU paths.
           type: bool
-          sample: true
+          sample: null
         has_unaligned_os_type_options:
           description: Whether the server has unaligned OS type options.
           type: bool
-          sample: true
+          sample: null
         has_unaligned_os_types:
           description: Whether the server has unaligned OS types.
           type: bool
-          sample: true
+          sample: false
         id:
           description: Server identifier.
           type: int
-          sample: 13
+          sample: 17
         is_inconsistent:
           description: Whether the server configuration is inconsistent.
           type: bool
@@ -151,6 +152,11 @@ ansible_facts:
           description: Whether the server is reserved.
           type: bool
           sample: false
+        iscsi_targets:
+          description: List of iSCSI targets for the server.
+          type: list
+          elements: dict
+          sample: []
         modification_in_progress:
           description: Whether modification is in progress.
           type: bool
@@ -162,11 +168,11 @@ ansible_facts:
         number_of_paths:
           description: Number of paths configured for the server.
           type: int
-          sample: 2
+          sample: 1
         number_of_volumes:
           description: Number of volumes attached to the server.
           type: int
-          sample: 1
+          sample: -1
         os_type:
           description: Operating system type.
           type: str
@@ -175,7 +181,7 @@ ansible_facts:
           description: List of OS type option identifiers.
           type: list
           elements: int
-          sample: [68]
+          sample: []
         paths:
           description: List of server paths with HBA and port information.
           type: list
@@ -194,18 +200,7 @@ ansible_facts:
               type: list
               elements: str
               sample: ["CL1-A"]
-          sample: [
-            {
-              "hba_wwn": "210003e08b0256f9",
-              "iscsi_name": "",
-              "port_ids": ["CL1-A"]
-            },
-            {
-              "hba_wwn": "1000b47af169078e",
-              "iscsi_name": "",
-              "port_ids": ["CL3-A"]
-            }
-          ]
+          sample: []
         protocol:
           description: Server protocol type.
           type: str
@@ -213,7 +208,7 @@ ansible_facts:
         total_capacity:
           description: Total capacity allocated to the server.
           type: int
-          sample: 50
+          sample: 0
         used_capacity:
           description: Used capacity by the server.
           type: int

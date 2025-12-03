@@ -92,6 +92,31 @@ ansible_facts:
       description: Storage serial number.
       type: str
       sample: "810050"
+    external_paths:
+      description: The list of external paths.
+      type: list
+      elements: dict
+      contains:
+        port_id:
+          description: Port ID.
+          type: str
+          sample: "CL6-B"
+        external_wwn:
+          description: External WWN.
+          type: str
+          sample: "50060e8012277d61"
+        q_depth:
+          description: Queue depth.
+          type: str
+          sample: "32"
+        io_time_out:
+          description: IO timeout.
+          type: int
+          sample: 30
+        blocked_path_monitoring:
+          description: Blocked path monitoring.
+          type: int
+          sample: 0
     external_parity_groups:
       description: The list of external parity groups.
       type: list

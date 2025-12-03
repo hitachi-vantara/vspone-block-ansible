@@ -4,3 +4,5 @@ modules:
   # These settings do not apply to other content in the collection.
 
   python_requires: controller
+ignore:
+  - internal

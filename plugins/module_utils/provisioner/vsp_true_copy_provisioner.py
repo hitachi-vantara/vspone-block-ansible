@@ -104,6 +104,9 @@ class VSPTrueCopyProvisioner:
             logger.writeDebug(
                 f"PROV:get_all_tc_pairs_direct:ret_list= {ret_list} serial = {serial}"
             )
+            ret_list = [
+                tc for tc in ret_list.data if tc.replicationType.upper() == "TC"
+            ]
             return ret_list
 
         spec.secondary_storage_serial_number = self.gateway.get_secondary_serial(spec)

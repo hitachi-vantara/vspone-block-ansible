@@ -93,6 +93,12 @@ class StateValue:
     IMPORT_ROOT_CERTIFICATE = "import_root_certificate"
     DOWNLOAD_ROOT_CERTIFICATE = "download_root_certificate"
     SYSTEM_REQUIREMENT_FILE_PRESENT = "system_requirement_file_present"
+    STOP_STORAGE_CLUSTER = "stop_storage_cluster"
+    ADD_REMOTE_PATH = "add_remote_path"
+    REMOVE_REMOTE_PATH = "remove_remote_path"
+    IMPORT_CERTIFICATE = "import_certificate"
+    ADD_USER_GROUP = "add_user_group"
+    REMOVE_USER_GROUP = "remove_user_group"
 
 
 class CommonConstants:
@@ -166,6 +172,8 @@ class GatewayClassTypes:
     SDSB_ESTIMATED_CAPACITY = "sdsb_estimated_capacity"
     SDSB_REMOTE_ISCSI_PORT = "sdsb_remote_iscsi_port"
     SDSB_SOFTWARE_UPDATE = "sdsb_software_update"
+    SDSB_JOURNAL = "sdsb_journal"
+    SDSB_LOGIN_MESSAGE = "sdsb_login_message"
 
     UAIG_SUBSCRIBER = "uaig_subscriber"
     UAIG_PASSWORD = "uaig_password"

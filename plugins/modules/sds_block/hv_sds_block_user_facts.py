@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_user_facts
-short_description: Get users from storage system
+short_description: Get users from the storage system
 description:
-  - Get users from storage system.
+  - Get users from the storage system.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/sdsb_user_facts.yml)
 version_added: "4.1.0"
@@ -35,6 +35,15 @@ options:
       id:
         description: Filter users by ID (UUID format).
         type: str
+        required: false
+      vps_id:
+        description: Filter users by VPS ID (UUID format).
+        type: str
+        required: false
+      vps_name:
+        description: Filter users by VPS name.
+        type: str
+        required: false
 """
 
 EXAMPLES = """
@@ -62,10 +71,9 @@ ansible_facts:
   returned: always
   type: dict
   contains:
-    data:
-      description: List of user account entries.
-      type: list
-      elements: dict
+    users:
+      description: Dictionary describing a single user account entry.
+      type: dict
       contains:
         user_id:
           description: Username of the account.
@@ -78,11 +86,32 @@ ansible_facts:
         password_expiration_time:
           description: Timestamp indicating when the password will expire.
           type: str
-          sample: "2022-11-30T07:21:21Z"
+          sample: "2026-01-05T21:59:04Z"
         is_enabled:
           description: Indicates if the user account is enabled.
           type: bool
           sample: true
+        is_built_in:
+          description: Indicates if the user is a built-in system account.
+          type: bool
+          sample: true
+        is_enabled_console_login:
+          description: Indicates whether the user can log in to the console.
+          type: bool
+          sample: true
+        authentication:
+          description: Authentication method used by the user (e.g., local or LDAP).
+          type: str
+          sample: "local"
+        vps_id:
+          description: VPS identifier associated with the user account.
+          type: str
+          sample: "(system)"
+        role_names:
+          description: List of roles assigned to the user.
+          type: list
+          elements: str
+          sample: ["Security", "Storage", "Monitor", "Service", "Audit", "Resource", "RemoteCopy"]
         user_groups:
           description: List of groups the user belongs to.
           type: list
@@ -96,27 +125,6 @@ ansible_facts:
               description: Object ID of the user group.
               type: str
               sample: "SystemAdministrators"
-        is_built_in:
-          description: Indicates if the user is a built-in system account.
-          type: bool
-          sample: true
-        authentication:
-          description: Authentication method used by the user (e.g., local or LDAP).
-          type: str
-          sample: "local"
-        role_names:
-          description: List of roles assigned to the user.
-          type: list
-          elements: str
-          sample: ["Security", "Storage", "Monitor", "Service", "Audit", "Resource"]
-        is_enabled_console_login:
-          description: Indicates whether the user can log in to the console.
-          type: bool
-          sample: null
-        vps_id:
-          description: VPS identifier associated with the user account.
-          type: str
-          sample: "(system)"
         privileges:
           description: List of privileges assigned to the user.
           type: list
@@ -130,20 +138,20 @@ ansible_facts:
               description: Roles granted within the specified scope.
               type: list
               elements: str
-              sample: ["Audit", "Security", "Storage", "Monitor", "Service", "Resource"]
+              sample: ["Audit", "Security", "Storage", "Monitor", "Service", "Resource", "RemoteCopy"]
 """
 
 from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
-    SDSBUsersArguments,
+    SDSBUserArguments,
     SDSBParametersManager,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
 
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_users_reconciler import (
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_user import (
     SDSBUsersReconciler,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
@@ -155,7 +163,7 @@ class SDSBBlockFaultDomainFactsManager:
     def __init__(self):
 
         self.logger = Log()
-        self.argument_spec = SDSBUsersArguments().user_facts()
+        self.argument_spec = SDSBUserArguments().user_facts()
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
@@ -163,7 +171,7 @@ class SDSBBlockFaultDomainFactsManager:
 
         parameter_manager = SDSBParametersManager(self.module.params)
         self.connection_info = parameter_manager.get_connection_info()
-        self.spec = parameter_manager.get_users_spec()
+        self.spec = parameter_manager.get_user_facts_spec()
         self.logger.writeDebug(f"MOD:hv_sds_users_facts:spec= {self.spec}")
 
     def apply(self):

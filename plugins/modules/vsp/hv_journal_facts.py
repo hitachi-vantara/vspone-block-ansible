@@ -94,13 +94,12 @@ EXAMPLES = """
 
 RETURN = r"""
 ansible_facts:
-  description: >
-    Dictionary containing the discovered properties of the Journal Volumes.
+  description: Dictionary containing the discovered properties of the Journal Volumes.
   returned: always
   type: dict
   contains:
-    journal_volumes:
-      description: List of Journal Volumes managed by the module.
+    journal_volume:
+      description: List of Journal Volume facts.
       returned: success
       type: list
       elements: dict
@@ -109,31 +108,41 @@ ansible_facts:
           description: Data overflow watch in seconds.
           type: int
           sample: 60
-        first_ldev_id:
-          description: First LDEV ID of the Journal Volume.
-          type: int
-          sample: 1992
         is_cache_mode_enabled:
           description: Indicates if cache mode is enabled.
           type: bool
           sample: true
-        is_inflow_control_enabled:
-          description: Indicates if inflow control is enabled.
-          type: bool
-          sample: false
-        journal_id:
-          description: Journal ID of the Journal Volume.
+        journal_pool_id:
+          description: Journal pool ID.
           type: int
-          sample: 37
+          sample: 0
         journal_status:
           description: Status of the Journal Volume.
           type: str
-          sample: "PJNN"
-        mirror_unit_ids:
-          description: List of mirror unit IDs.
+          sample: "SMPL"
+        ldev_ids:
+          description: LDEV IDs in the Journal Volume.
+          type: list
+          elements: int
+          sample: [639]
+        ldev_ids_hex:
+          description: LDEV IDs in hex format.
+          type: list
+          elements: str
+          sample: ["00:02:7F"]
+        mirrors:
+          description: Mirror information.
           type: list
           elements: dict
           contains:
+            active_path_count:
+              description: Number of active paths.
+              type: int
+              sample: -1
+            active_path_watch_seconds:
+              description: Active path watch threshold in seconds.
+              type: int
+              sample: -1
             consistency_group_id:
               description: Consistency group ID.
               type: int
@@ -141,55 +150,51 @@ ansible_facts:
             copy_pace:
               description: Copy pace.
               type: str
-              sample: "L"
-            copy_speed:
-              description: Copy speed.
-              type: int
-              sample: 256
-            is_data_copying:
-              description: Indicates if data copying is in progress.
+              sample: "LOW"
+            is_delta_resync_failure_full_copy:
+              description: Indicates if delta resync failure triggers full copy.
               type: bool
-              sample: true
-            journal_status:
-              description: Status of the journal.
-              type: str
-              sample: "SMPL"
-            mu_number:
-              description: Mirror unit number.
+              sample: null
+            mirror_unit_id:
+              description: Mirror unit ID.
               type: int
               sample: 0
-            path_blockade_watch_in_minutes:
-              description: Path blockade watch in minutes.
+            path_blockade_watch_seconds:
+              description: Path blockade watch in seconds.
               type: int
-              sample: 5
+              sample: 300
+            q_count:
+              description: Queue count.
+              type: int
+              sample: -1
+            q_marker:
+              description: Queue marker.
+              type: int
+              sample: -1
+            status:
+              description: Mirror status.
+              type: str
+              sample: "SMPL"
+            transfer_speed_mbps:
+              description: Transfer speed in Mbps.
+              type: int
+              sample: 256
         mp_blade_id:
-          description: MP Blade ID of the Journal Volume.
-          type: int
-          sample: 1
-        num_of_active_paths:
-          description: Number of active paths.
-          type: int
-          sample: 2
-        num_of_ldevs:
-          description: Number of LDEVs.
-          type: int
-          sample: 1
-        q_count:
-          description: Queue count.
+          description: MP Blade ID.
           type: int
           sample: 0
-        q_marker:
-          description: Queue marker.
+        timer_type:
+          description: Timer type.
           type: str
-          sample: "00000002"
-        total_capacity_mb:
-          description: Total capacity in MB.
-          type: int
-          sample: 19
-        usage_rate:
-          description: Usage rate.
-          type: int
-          sample: 0
+          sample: ""
+        total_capacity:
+          description: Total capacity with unit.
+          type: str
+          sample: "9.63 GB"
+        type:
+          description: Journal type.
+          type: str
+          sample: ""
 """
 
 from ansible.module_utils.basic import AnsibleModule

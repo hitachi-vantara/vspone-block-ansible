@@ -46,20 +46,20 @@ class SDSBClusterValidationMsg(Enum):
     ADD_STORAGE_NODE_SUCCESS_MSG = (
         "Successfully started add storage node to the cluster job. This is a long running operation, and might take an hour or so."
         "You can check the status of the job started periodically using hv_sds_block_job_facts module."
-        "ID for this job = {}"
+        "Job ID = {}"
     )
     REPLACE_STORAGE_NODE_SUCCESS_MSG = (
         "Successfully started replace storage node to the cluster job. This is a long running operation, and might take an hour or so."
         "You can check the status of the job started periodically using hv_sds_block_job_facts module."
-        "ID for this job = {}"
+        "Job ID = {}"
     )
     REMOVE_STORAGE_NODE_SUCCESS_MSG = (
         "Successfully started remove storage node from the cluster job. This is a long running operation, and might take few hours."
         "You can check the status of the job started periodically using hv_sds_block_job_facts module."
-        "ID for this job = {}"
+        "Job ID = {}"
     )
     STOP_REMOVING_STORAGE_NODE_SUCCESS_MSG = (
-        "Successfully stopped removing storage nodes. ID for this job = {}"
+        "Successfully stopped removing storage nodes. Job ID = {}"
     )
     STOP_REMOVING_STORAGE_NODE_FAILURE_MSG = (
         "The job could not be stopped. There is no Job to be stopped."
@@ -87,8 +87,13 @@ class SDSBClusterValidationMsg(Enum):
         "File path ({}) provided for the syssystem_requirement_file does not exist."
     )
     IMPORT_SYSTEM_REQUIREMET_FILE_SUCCESS_MSG = (
-        "Successfully imported SystemRequirementsFile.yml. ID for this job = {}"
+        "Successfully imported SystemRequirementsFile.yml. Job ID = {}"
     )
     IMPORT_SYSTEM_REQUIREMET_FILE_FAILURE_MSG = (
         "Failed to import SystemRequirementsFile.yml. Cause = {}"
     )
+    BAD_PARAMETERS_FOR_STOP_CLUSTER = "When true is specified for reboot or config_parameter_setting_mode, true cannot be specified for force."
+    STOP_CLUSTER_SUCCESS_MSG = (
+        "Successfully initiated the task to stop the storage cluster. Job ID = {}"
+    )
+    STOP_CLUSTER_FAILURE_MSG = "Failed to stop storage cluster. Cause = {}"

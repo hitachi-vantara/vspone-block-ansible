@@ -488,14 +488,26 @@ EXAMPLES = """
 
 RETURN = r"""
 volume:
-  description: Storage volumes with their attributes.
+  description: Storage volume with its attributes.
   returned: success
   type: dict
   contains:
     canonical_name:
       description: Unique identifier for the volume.
       type: str
-      sample: "naa.60060e8028274200508027420000000a"
+      sample: "naa.60060e8028273d005080273d00000102"
+    clpr_id:
+      description: CLPR (Control Logical Partition) ID.
+      type: int
+      sample: 0
+    compression_acceleration_status:
+      description: Status of compression accelerator.
+      type: str
+      sample: "ENABLED"
+    data_reduction_process_mode:
+      description: Data reduction process mode.
+      type: str
+      sample: "inline"
     dedup_compression_progress:
       description: Progress percentage of deduplication and compression.
       type: int
@@ -503,19 +515,19 @@ volume:
     dedup_compression_status:
       description: Status of deduplication and compression.
       type: str
-      sample: "DISABLED"
+      sample: "ENABLED"
     deduplication_compression_mode:
       description: Mode of deduplication and compression.
       type: str
-      sample: "disabled"
+      sample: "compression_deduplication"
     emulation_type:
       description: Emulation type of the volume.
       type: str
-      sample: "OPEN-V-CVS-CM"
+      sample: "OPEN-V-CVS"
     hostgroups:
       description: List of host groups associated with the volume.
       type: list
-      elements: str
+      elements: dict
       sample: []
     is_alua:
       description: Indicates if ALUA is enabled.
@@ -524,81 +536,97 @@ volume:
     is_command_device:
       description: Indicates if the volume is a command device.
       type: bool
-      sample: false
+      sample: null
+    is_compression_acceleration_enabled:
+      description: Whether compression accelerator is enabled.
+      type: bool
+      sample: true
     is_data_reduction_share_enabled:
       description: Indicates if data reduction share is enabled.
       type: bool
-      sample: false
+      sample: true
     is_device_group_definition_enabled:
       description: Indicates if device group definition is enabled.
       type: bool
-      sample: false
+      sample: null
     is_encryption_enabled:
       description: Indicates if encryption is enabled.
       type: bool
       sample: false
+    is_full_allocation_enabled:
+      description: Indicates if full allocation is enabled.
+      type: bool
+      sample: false
+    is_relocation_enabled:
+      description: Indicates if tier relocation is enabled.
+      type: bool
+      sample: null
     is_security_enabled:
       description: Indicates if security is enabled.
       type: bool
-      sample: false
+      sample: null
     is_user_authentication_enabled:
       description: Indicates if user authentication is enabled.
       type: bool
-      sample: false
+      sample: null
     is_write_protected:
-      description: Indicates if the volume is write-protected.
+      description: Indicates if write protection is enabled.
       type: bool
-      sample: false
+      sample: null
     is_write_protected_by_key:
-      description: Indicates if the volume is write-protected by key.
+      description: Indicates if write protection by key is enabled.
       type: bool
-      sample: false
+      sample: null
     iscsi_targets:
-      description: List of associated iSCSI targets.
+      description: List of iSCSI targets associated with the volume.
       type: list
-      elements: str
+      elements: dict
       sample: []
     ldev_id:
       description: Logical Device ID.
       type: int
-      sample: 10
-    logical_unit_id_hex_format:
-      description: Logical Unit ID in hexadecimal format.
+      sample: 258
+    ldev_id_hex:
+      description: Logical Device ID in hexadecimal.
       type: str
-      sample: "00:00:0A"
+      sample: "00:01:02"
+    mp_blade_id:
+      description: MP blade ID.
+      type: int
+      sample: 0
     name:
       description: Name of the volume.
       type: str
-      sample: "snewar-cmd"
+      sample: "smrha-258"
     num_of_ports:
       description: Number of ports associated with the volume.
       type: int
-      sample: 1
+      sample: -1
     nvm_subsystems:
-      description: List of associated NVM subsystems.
+      description: List of NVMe subsystems associated with the volume.
       type: list
-      elements: str
+      elements: dict
       sample: []
     parity_group_id:
-      description: Parity group ID of the volume.
+      description: Parity group ID.
       type: str
       sample: ""
     path_count:
-      description: Number of paths to the volume.
+      description: Path count to the volume.
       type: int
-      sample: 1
+      sample: -1
     pool_id:
       description: Pool ID where the volume resides.
       type: int
-      sample: 0
+      sample: 13
     provision_type:
       description: Provisioning type of the volume.
       type: str
-      sample: "CMD,CVS,HDP"
+      sample: "CVS,HDP,DRS"
     qos_settings:
-      description: Quality of Service settings for the volume.
+      description: QoS settings for the volume.
       type: dict
-      sample: {}
+      sample: null
     resource_group_id:
       description: Resource group ID of the volume.
       type: int
@@ -606,7 +634,7 @@ volume:
     snapshots:
       description: List of snapshots associated with the volume.
       type: list
-      elements: str
+      elements: dict
       sample: []
     status:
       description: Current status of the volume.
@@ -615,31 +643,35 @@ volume:
     storage_serial_number:
       description: Serial number of the storage system.
       type: str
-      sample: "810050"
+      sample: "810045"
     tiering_policy:
-      description: Tiering policy applied to the volume.
+      description: Tiering policy details.
       type: dict
       sample: {}
     total_capacity:
       description: Total capacity of the volume.
       type: str
-      sample: "50.00MB"
+      sample: "1.00GB"
     total_capacity_in_mb:
       description: Total capacity of the volume in megabytes.
-      type: str
-      sample: "50.0 MB"
+      type: float
+      sample: 1024.0
     used_capacity:
       description: Used capacity of the volume.
       type: str
       sample: "0.00B"
     used_capacity_in_mb:
       description: Used capacity of the volume in megabytes.
-      type: str
-      sample: "0.0 MB"
+      type: float
+      sample: 0
     virtual_ldev_id:
       description: Virtual Logical Device ID.
       type: int
       sample: -1
+    virtual_ldev_id_hex:
+      description: Virtual Logical Device ID in hexadecimal.
+      type: str
+      sample: ""
 """
 
 from ansible.module_utils.basic import AnsibleModule

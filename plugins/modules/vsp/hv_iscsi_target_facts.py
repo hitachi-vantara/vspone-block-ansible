@@ -120,11 +120,11 @@ ansible_facts:
             authentication_mode:
               description: Mode of authentication.
               type: str
-              sample: "BOTH"
+              sample: "NONE"
             is_chap_enabled:
               description: Indicates if CHAP is enabled.
               type: bool
-              sample: true
+              sample: false
             is_chap_required:
               description: Indicates if CHAP is required.
               type: bool
@@ -137,7 +137,7 @@ ansible_facts:
           description: List of CHAP users.
           type: list
           elements: str
-          sample: ["chapuser1"]
+          sample: []
         host_mode:
           description: Host mode settings.
           type: dict
@@ -145,7 +145,7 @@ ansible_facts:
             host_mode:
               description: Host mode.
               type: str
-              sample: "VMWARE"
+              sample: "WINDOWS_EXTENSION"
             host_mode_options:
               description: List of host mode options.
               type: list
@@ -154,28 +154,33 @@ ansible_facts:
                 raid_option:
                   description: RAID option.
                   type: str
-                  sample: "EXTENDED_COPY"
+                  sample: "EXPANDED_PERSISTENT_RESERVE_KEY"
                 raid_option_number:
                   description: RAID option number.
                   type: int
-                  sample: 54
+                  sample: 61
+              sample:
+                - raid_option: "EXPANDED_PERSISTENT_RESERVE_KEY"
+                  raid_option_number: 61
+                - raid_option: "WS2012"
+                  raid_option_number: 73
         iqn:
           description: IQN of the iSCSI target.
           type: str
-          sample: "iqn.rest.example.of.iqn.host"
+          sample: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10045.1c008"
         iqn_initiators:
           description: List of IQN initiators.
           type: list
           elements: str
-          sample: ["iqn.2014-04.jp.co.hitachi:xxx.h70.i.62510.1a.ff"]
+          sample: []
         iscsi_id:
           description: ID of the iSCSI target.
           type: int
-          sample: 1
+          sample: 8
         iscsi_name:
           description: Name of the iSCSI target.
           type: str
-          sample: "iscsi-name"
+          sample: "test-vinod-20-5"
         logical_units:
           description: List of logical units.
           type: list
@@ -189,14 +194,15 @@ ansible_facts:
               description: Logical unit ID.
               type: int
               sample: 1
+          sample: []
         port_id:
           description: Port ID.
           type: str
-          sample: "CL4-C"
+          sample: "CL1-C"
         resource_group_id:
           description: Resource group ID.
           type: int
-          sample: 0"
+          sample: 0
 """
 
 

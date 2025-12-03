@@ -11,10 +11,10 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_server_hba_facts
-short_description: Retrieves server HBA information from Hitachi VSP One storage systems.
+short_description: Retrieves server HBA information from VSP E series and VSP One Block 20 series storage systems.
 description:
-    - This module retrieves HBA (Host Bus Adapter) information about servers from Hitachi VSP One storage systems.
-    - Utilizes the Hitachi Vantara VSP One Simple API for server HBA facts retrieval across VSP one B2x and VSP E series models.
+    - This module retrieves HBA (Host Bus Adapter) information about servers from  VSP E series and VSP One Block 20 series storage systems.
+    - Utilizes the Hitachi Virtual Storage Platform One Simple API for server HBA facts retrieval across VSP one B20 series and VSP E series models.
     - For usage examples, visit
         U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_server_hba_facts.yml)
 version_added: '4.3.0'
@@ -163,7 +163,7 @@ class VSPOneHBAFacts:
             self.module.fail_json(msg=str(e))
 
         response = {
-            "hba": hbas,
+            "hbas": hbas,
         }
         if registration_message:
             response["user_consent_required"] = registration_message

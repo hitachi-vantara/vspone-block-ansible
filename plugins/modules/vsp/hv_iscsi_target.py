@@ -344,108 +344,87 @@ EXAMPLES = """
 """
 
 RETURN = r"""
-iscsi_target_info:
-  description: >
-    Dictionary containing the discovered properties of the iSCSI targets.
+iscsi_target:
+  description: Details of the iSCSI target.
   returned: always
   type: dict
   contains:
-    changed:
-      description: Indicates if any changes were made.
-      type: bool
-      sample: true
-    failed:
-      description: Indicates if the operation failed.
-      type: bool
-      sample: false
-    iscsi_target:
-      description: Details of the iSCSI target.
+    auth_param:
+      description: Authentication parameters.
       type: dict
       contains:
-        auth_param:
-          description: Authentication parameters.
-          type: dict
-          contains:
-            authentication_mode:
-              description: Mode of authentication.
-              type: str
-              sample: "BOTH"
-            is_chap_enabled:
-              description: Indicates if CHAP is enabled.
-              type: bool
-              sample: true
-            is_chap_required:
-              description: Indicates if CHAP is required.
-              type: bool
-              sample: false
-            is_mutual_auth:
-              description: Indicates if mutual authentication is enabled.
-              type: bool
-              sample: false
-        chap_users:
-          description: List of CHAP users.
-          type: list
-          elements: str
-          sample: ["chapuser1"]
+        authentication_mode:
+          description: Mode of authentication.
+          type: str
+          sample: "BOTH"
+        is_chap_enabled:
+          description: Indicates if CHAP is enabled.
+          type: bool
+          sample: true
+        is_chap_required:
+          description: Indicates if CHAP is required.
+          type: bool
+          sample: false
+        is_mutual_auth:
+          description: Indicates if mutual authentication is enabled.
+          type: bool
+          sample: false
+    chap_users:
+      description: List of CHAP users.
+      type: list
+      elements: str
+      sample: []
+    host_mode:
+      description: Host mode details.
+      type: dict
+      contains:
         host_mode:
-          description: Host mode details.
-          type: dict
-          contains:
-            host_mode:
-              description: Host mode.
-              type: str
-              sample: "VMWARE"
-            host_mode_options:
-              description: List of host mode options.
-              type: list
-              elements: dict
-              contains:
-                raid_option:
-                  description: RAID option.
-                  type: str
-                  sample: "EXTENDED_COPY"
-                raid_option_number:
-                  description: RAID option number.
-                  type: int
-                  sample: 54
-        iqn:
-          description: IQN of the iSCSI target.
+          description: Host mode.
           type: str
-          sample: "iqn.rest.example.of.iqn.host"
-        iqn_initiators:
-          description: List of IQN initiators.
-          type: list
-          elements: str
-          sample: ["iqn.2014-04.jp.co.hitachi:xxx.h70.i.62510.1a.ff"]
-        iscsi_id:
-          description: ID of the iSCSI target.
-          type: int
-          sample: 1
-        iscsi_name:
-          description: Name of the iSCSI target.
-          type: str
-          sample: "iscsi-name"
-        logical_units:
-          description: List of logical units.
+          sample: "LINUX"
+        host_mode_options:
+          description: List of host mode options.
           type: list
           elements: dict
-          contains:
-            host_lun_id:
-              description: Host LUN ID.
-              type: int
-              sample: 0
-            logical_unit_id:
-              description: Logical unit ID.
-              type: int
-              sample: 1
-        port_id:
-          description: Port ID.
+          sample: []
+    iqn:
+      description: IQN of the iSCSI target.
+      type: str
+      sample: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10050.4c0ee"
+    iqn_initiators:
+      description: List of IQN initiators.
+      type: list
+      elements: dict
+      contains:
+        iqn:
+          description: IQN of the initiator.
           type: str
-          sample: "CL4-C"
-        resource_group_id:
-          description: Resource group ID.
-          type: int
-          sample: 0
+          sample: "iqn.1993-08.org.debian.iscsi:01:107dc7e4254a"
+        nick_name:
+          description: Nickname of the initiator.
+          type: str
+          sample: "iscsi-target-1"
+    iscsi_id:
+      description: ID of the iSCSI target.
+      type: int
+      sample: 238
+    iscsi_name:
+      description: Name of the iSCSI target.
+      type: str
+      sample: "isserver21"
+    logical_units:
+      description: List of logical units.
+      type: list
+      elements: dict
+      sample: []
+    port_id:
+      description: Port ID.
+      type: str
+      sample: "CL4-C"
+    resource_group_id:
+      description: Resource group ID.
+      type: int
+      sample: 0
 """
 
 from dataclasses import asdict

@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_storage_time_facts
-short_description: Get storage time from storage system
+short_description: Get storage time from the storage system
 description:
-  - Get storage time from storage system.
+  - Get storage time from the storage system.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/sdsb_storage_time_facts.yml)
 version_added: "4.1.0"
@@ -44,19 +44,23 @@ ansible_facts:
   returned: always
   type: dict
   contains:
-    system_time:
-      description: Current system time in ISO 8601 format (UTC).
-      type: str
-      sample: "2021-07-30T07:56:23Z"
-    ntp_server_names:
-      description: List of configured NTP server IP addresses or hostnames.
-      type: list
-      elements: str
-      sample: ["192.168.1.14"]
-    timezone:
-      description: Configured system timezone.
-      type: str
-      sample: "Asia/Tokyo"
+    time_settings:
+      description: Dictionary with storage system time settings.
+      type: dict
+      contains:
+        system_time:
+          description: Current system time in ISO 8601 format (UTC).
+          type: str
+          sample: "2025-11-27T10:59:20Z"
+        ntp_server_names:
+          description: List of configured NTP server IP addresses or hostnames.
+          type: list
+          elements: str
+          sample: ["10.76.34.1"]
+        timezone:
+          description: Configured system timezone.
+          type: str
+          sample: "UTC"
 """
 
 

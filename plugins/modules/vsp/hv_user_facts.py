@@ -77,7 +77,7 @@ ansible_facts:
                 description: Authentication type - local or external.
                 type: str
                 sample: "local"
-            group_names:
+            user_group_names:
                 description: User group names.
                 type: list
                 elements: str

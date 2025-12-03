@@ -171,7 +171,7 @@ class SNMPModelSpec(SingleBaseClass):
     def create_snmp_spec(self):
         spec = {}
         if self.is_snmp_agent_enabled is not None:
-            spec["isSnmpAgentEnabled"] = self.is_snmp_agent_enabled
+            spec["isSNMPAgentEnabled"] = self.is_snmp_agent_enabled
         if self.snmp_version is not None:
             spec["snmpVersion"] = self.snmp_version
         if self.sending_trap_setting is not None:
@@ -233,7 +233,7 @@ class SDSBStorageSpareNodeModel(SingleBaseClass):
 
 @dataclass
 class SDSBStorageSpareNodeModels(BaseDataClass):
-    data: Optional[list[SDSBStorageSpareNodeModel]] = None
+    data: list[SDSBStorageSpareNodeModel] = None
 
 
 @dataclass
@@ -289,7 +289,7 @@ class ProtectionDomainSettings(SingleBaseClass):
 
 @dataclass
 class ProtectionDomainSettingsList(BaseDataClass):
-    data: Optional[list[ProtectionDomainSettings]] = None
+    data: list[ProtectionDomainSettings] = None
 
 
 def get_snmp_settings_args() -> dict:
@@ -395,9 +395,9 @@ class ProtectionDomainSpec(SingleBaseClass):
                 raise ValueError(
                     f"Invalid async_processing_resource_usage_rate valid values are {valid_values} and this is case insensitive"
                 )
-        self.async_processing_resource_usage_rate = mapped_values.get(
-            self.async_processing_resource_usage_rate, None
-        )
+            self.async_processing_resource_usage_rate = mapped_values.get(
+                self.async_processing_resource_usage_rate.lower()
+            )
 
     def create_protection_domain_spec(self):
         spec = {}
@@ -444,10 +444,15 @@ class SDSBPStorageClusterInfo(SingleBaseClass):
     numberOfReadyStorageNodes: Optional[int] = None
     numberOfFaultDomains: Optional[int] = None
     totalPoolRawCapacity: Optional[int] = None
+    totalPoolRawCapacityInMb: Optional[int] = None
     totalPoolPhysicalCapacity: Optional[int] = None
+    totalPoolPhysicalCapacityInMb: Optional[int] = None
     totalPoolCapacity: Optional[int] = None
+    totalPoolCapacityInMb: Optional[int] = None
     usedPoolCapacity: Optional[int] = None
+    usedPoolCapacityInMb: Optional[int] = None
     freePoolCapacity: Optional[int] = None
+    freePoolCapacityInMb: Optional[int] = None
     savingEffects: Optional[SDSBPfrestSavingEffectOfStorage] = None
     softwareVersion: Optional[str] = None
     statusSummary: Optional[str] = None
@@ -465,6 +470,17 @@ class SDSBPStorageClusterInfo(SingleBaseClass):
         if self.savingEffects is not None:
             self.savingEffects = SDSBPfrestSavingEffectOfStorage(**self.savingEffects)
 
+        if self.freePoolCapacity is not None:
+            self.freePoolCapacityInMb = int(self.freePoolCapacity)
+        if self.totalPoolCapacity is not None:
+            self.totalPoolCapacityInMb = int(self.totalPoolCapacity)
+        if self.usedPoolCapacity is not None:
+            self.usedPoolCapacityInMb = int(self.usedPoolCapacity)
+        if self.totalPoolPhysicalCapacity is not None:
+            self.totalPoolPhysicalCapacityInMb = int(self.totalPoolPhysicalCapacity)
+        if self.totalPoolRawCapacity is not None:
+            self.totalPoolRawCapacityInMb = int(self.totalPoolRawCapacity)
+
 
 @dataclass
 class ServerAllowSettingsSpec(SingleBaseClass):
@@ -474,22 +490,18 @@ class ServerAllowSettingsSpec(SingleBaseClass):
 
 @dataclass
 class WebServerAccessSettingSpec(SingleBaseClass):
-
-    allowlist_setting: Optional[ServerAllowSettingsSpec] = None
-    whitelist_setting: Optional[ServerAllowSettingsSpec] = None
-
-    def __post_init__(self):
-        if self.allowlist_setting is not None:
-            self.allowlist_setting = ServerAllowSettings(**self.allowlist_setting)
-        if self.whitelist_setting is not None:
-            self.whitelist_setting = ServerAllowSettings(**self.whitelist_setting)
+    enable_client_address_allowlist: Optional[bool] = None
+    client_address_allowlist: Optional[list[str]] = None
+    server_certificate_file_path: Optional[str] = None
+    server_certificate_secret_key_file_path: Optional[str] = None
+    comment: Optional[str] = None
 
     def create_server_allow_settings_spec(self):
         spec = {}
-        if self.allowlist_setting.is_enabled is not None:
-            spec["isEnabled"] = self.allowlist_setting.is_enabled
-        if self.allowlist_setting.client_names is not None:
-            spec["clientNames"] = self.allowlist_setting.client_names
+        if self.enable_client_address_allowlist is not None:
+            spec["isEnabled"] = self.enable_client_address_allowlist
+        if self.client_address_allowlist is not None:
+            spec["clientNames"] = self.client_address_allowlist
         return spec
 
     def create_whitelist_settings_spec(self):
@@ -509,9 +521,11 @@ class ServerAllowSettings(SingleBaseClass):
 
 @dataclass
 class WebServerAccessSettingResponse(SingleBaseClass):
-    isWebServerAccessEnabled: Optional[bool] = None
     allowlistSetting: Optional[dict] = None
+    whitelistSetting: Optional[dict] = None
 
     def __post_init__(self):
         if self.allowlistSetting is not None:
             self.allowlistSetting = ServerAllowSettings(**self.allowlistSetting)
+        if self.whitelistSetting is not None:
+            self.whitelistSetting = ServerAllowSettings(**self.whitelistSetting)
