@@ -408,92 +408,96 @@ data:
   contains:
     consistency_group_id:
       description: Consistency Group ID.
-      type: int
-      sample: 1
-    copy_pace_track_size:
-      description: Copy pace track size.
+      type: str
+      sample: ""
+    copy_group_name:
+      description: Copy group name.
+      type: str
+      sample: "GAD_Test_perform"
+    copy_pair_name:
+      description: Copy pair name.
+      type: str
+      sample: "GAD_Pair_20250930032554_1"
+    copy_progress_rate:
+      description: Copy progress rate.
       type: int
       sample: -1
-    copy_rate:
-      description: Copy rate.
-      type: int
-      sample: 0
-    mirror_unit_id:
-      description: Mirror unit ID.
-      type: int
-      sample: 1
-    pair_name:
-      description: Pair name.
+    fence_level:
+      description: Fence level.
+      type: str
+      sample: "NEVER"
+    is_alua_enabled:
+      description: Whether ALUA is enabled.
+      type: bool
+      sample: null
+    pvol_difference_data_management:
+      description: Primary volume difference data management.
+      type: str
+      sample: "D"
+    pvol_io_mode:
+      description: Primary volume I/O mode.
+      type: str
+      sample: "L/M"
+    pvol_journal_id:
+      description: Primary volume journal ID.
       type: str
       sample: ""
-    primary_hex_volume_id:
-      description: Primary hex volume ID.
-      type: str
-      sample: "00:00:01"
-    primary_v_s_m_resource_group_name:
-      description: Primary VSM resource group name.
-      type: str
-      sample: ""
-    primary_virtual_hex_volume_id:
-      description: Primary virtual hex volume ID.
-      type: str
-      sample: "00:00:01"
-    primary_virtual_storage_id:
-      description: Primary virtual storage ID.
-      type: str
-      sample: ""
-    primary_virtual_volume_id:
-      description: Primary virtual volume ID.
+    pvol_ldev_id:
+      description: Primary volume LDEV ID.
       type: int
-      sample: -1
-    primary_volume_id:
-      description: Primary volume ID.
-      type: int
-      sample: 1
-    primary_volume_storage_id:
-      description: Primary volume storage ID.
-      type: int
-      sample: 811111
-    secondary_hex_volume_id:
-      description: Secondary hex volume ID.
+      sample: 3364
+    pvol_processing_status:
+      description: Primary volume processing status.
       type: str
-      sample: "00:00:02"
-    secondary_v_s_m_resource_group_name:
-      description: Secondary VSM resource group name.
-      type: str
-      sample: ""
-    secondary_virtual_hex_volume_id:
-      description: Secondary virtual hex volume ID.
-      type: int
-      sample: -1
-    secondary_virtual_storage_id:
-      description: Secondary virtual storage ID.
-      type: str
-      sample: ""
-    secondary_virtual_volume_id:
-      description: Secondary virtual volume ID.
-      type: int
-      sample: -1
-    secondary_volume_id:
-      description: Secondary volume ID.
-      type: int
-      sample: 2
-    secondary_volume_storage_id:
-      description: Secondary volume storage ID.
-      type: int
-      sample: 811112
-    status:
-      description: Status of the GAD pair.
+      sample: "N"
+    pvol_status:
+      description: Primary volume status.
       type: str
       sample: "PAIR"
-    storage_serial_number:
-      description: Storage serial number.
+    pvol_storage_device_id:
+      description: Primary volume storage device ID.
       type: str
-      sample: "811111"
-    type:
-      description: Type of the GAD pair.
+      sample: "900000040014"
+    quorum_disk_id:
+      description: Quorum disk ID.
+      type: int
+      sample: 10
+    remote_mirror_copy_pair_id:
+      description: Remote mirror copy pair ID.
+      type: str
+      sample: "900000040015,GAD_Test_perform,GAD_Test_performP_,GAD_Test_performS_,GAD_Pair_20250930032554_1"
+    replication_type:
+      description: Replication type.
       type: str
       sample: "GAD"
+    svol_difference_data_management:
+      description: Secondary volume difference data management.
+      type: str
+      sample: "D"
+    svol_io_mode:
+      description: Secondary volume I/O mode.
+      type: str
+      sample: "L/M"
+    svol_journal_id:
+      description: Secondary volume journal ID.
+      type: str
+      sample: ""
+    svol_ldev_id:
+      description: Secondary volume LDEV ID.
+      type: int
+      sample: 6285
+    svol_processing_status:
+      description: Secondary volume processing status.
+      type: str
+      sample: "N"
+    svol_status:
+      description: Secondary volume status.
+      type: str
+      sample: "PAIR"
+    svol_storage_device_id:
+      description: Secondary volume storage device ID.
+      type: str
+      sample: "900000040015"
 """
 
 

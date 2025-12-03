@@ -78,7 +78,7 @@ ansible_facts:
   returned: always
   type: dict
   contains:
-    storage_system_info:
+    storage_system:
       description: The storage system information.
       returned: always
       type: dict
@@ -98,15 +98,15 @@ ansible_facts:
                 is_valid:
                   description: Indicates if the range is valid.
                   type: bool
-                  sample: true
+                  sample: false
                 max_value:
                   description: Maximum value of the range.
                   type: int
-                  sample: 255
+                  sample: -1
                 min_value:
                   description: Minimum value of the range.
                   type: int
-                  sample: 1
+                  sample: -1
             external_group_sub_number_range:
               description: Range for external group sub-numbers.
               type: dict
@@ -114,15 +114,15 @@ ansible_facts:
                 is_valid:
                   description: Indicates if the range is valid.
                   type: bool
-                  sample: true
+                  sample: false
                 max_value:
                   description: Maximum value of the range.
                   type: int
-                  sample: 255
+                  sample: -1
                 min_value:
                   description: Minimum value of the range.
                   type: int
-                  sample: 1
+                  sample: -1
             parity_group_number_range:
               description: Range for parity group numbers.
               type: dict
@@ -130,15 +130,15 @@ ansible_facts:
                 is_valid:
                   description: Indicates if the range is valid.
                   type: bool
-                  sample: true
+                  sample: false
                 max_value:
                   description: Maximum value of the range.
                   type: int
-                  sample: 1
+                  sample: -1
                 min_value:
                   description: Minimum value of the range.
                   type: int
-                  sample: 1
+                  sample: -1
             parity_group_sub_number_range:
               description: Range for parity group sub-numbers.
               type: dict
@@ -146,23 +146,23 @@ ansible_facts:
                 is_valid:
                   description: Indicates if the range is valid.
                   type: bool
-                  sample: true
+                  sample: false
                 max_value:
                   description: Maximum value of the range.
                   type: int
-                  sample: 32
+                  sample: -1
                 min_value:
                   description: Minimum value of the range.
                   type: int
-                  sample: 1
+                  sample: -1
         free_capacity:
           description: Free capacity of the storage system.
           type: str
-          sample: "15.92 TB"
+          sample: "1.38TB"
         free_capacity_in_mb:
           description: Free capacity in megabytes.
           type: int
-          sample: 16696806
+          sample: 1445087
         free_gad_consistency_group_id:
           description: Free GAD consistency group ID.
           type: int
@@ -170,11 +170,11 @@ ansible_facts:
         free_local_clone_consistency_group_id:
           description: Free local clone consistency group ID.
           type: int
-          sample: 2
+          sample: -1
         free_remote_clone_consistency_group_id:
           description: Free remote clone consistency group ID.
           type: int
-          sample: 3
+          sample: -1
         health_description:
           description: Description of the health status.
           type: str
@@ -182,31 +182,31 @@ ansible_facts:
         health_status:
           description: Health status of the storage system.
           type: str
-          sample: "Normal"
+          sample: ""
         management_address:
           description: Management IP address of the storage system.
           type: str
-          sample: "192.168.1.100"
+          sample: ""
         microcode_version:
           description: Microcode version of the storage system.
           type: str
-          sample: "83-05-02/00"
+          sample: "A3-04-21-40/00"
         model:
           description: Model of the storage system.
           type: str
-          sample: "VSP_5100H"
+          sample: "VSP One B26"
         operational_status:
           description: Operational status of the storage system.
           type: str
-          sample: "Normal"
+          sample: ""
         resource_state:
           description: Resource state of the storage system.
           type: str
-          sample: "Healthy"
+          sample: ""
         serial_number:
           description: Serial number of the storage system.
           type: str
-          sample: "811150"
+          sample: "810045"
         syslog_config:
           description: Syslog configuration of the storage system.
           type: dict
@@ -219,27 +219,19 @@ ansible_facts:
                 id:
                   description: ID of the syslog server.
                   type: int
-                  sample: 1
+                  sample: 0
                 syslog_server_address:
                   description: Address of the syslog server.
                   type: str
-                  sample: "192.168.0.187"
+                  sample: "203.0.113.2"
                 syslog_server_port:
                   description: Port of the syslog server.
-                  type: int
-                  sample: 514
+                  type: str
+                  sample: "514"
             detailed:
               description: Indicates if detailed logging is enabled.
               type: bool
               sample: true
-        total_capacity:
-          description: Total capacity of the storage system.
-          type: str
-          sample: "27.62 TB"
-        total_capacity_in_mb:
-          description: Total capacity in megabytes.
-          type: int
-          sample: 28958728
         system_date_time:
           description: System date and time configuration.
           returned: always
@@ -248,7 +240,7 @@ ansible_facts:
             adjusts_daylight_saving_time:
               description: Indicates if daylight saving time is adjusted.
               type: bool
-              sample: false
+              sample: null
             is_ntp_enabled:
               description: Indicates if NTP is enabled.
               type: bool
@@ -265,11 +257,91 @@ ansible_facts:
             system_time:
               description: Current system time in ISO 8601 format.
               type: str
-              sample: "2025-06-13T15:30:54Z"
+              sample: "2025-11-24T04:24:59Z"
             time_zone_id:
               description: Time zone identifier.
               type: str
               sample: "Etc/GMT"
+        time_zones_info:
+          description: Time zones information flag.
+          type: bool
+          sample: false
+        total_capacity:
+          description: Total capacity of the storage system.
+          type: str
+          sample: "32.84TB"
+        total_capacity_in_mb:
+          description: Total capacity in megabytes.
+          type: int
+          sample: 34440151
+        total_efficiency:
+          description: Total efficiency information of the storage system.
+          type: dict
+          contains:
+            accelerated_compression:
+              description: Accelerated compression statistics.
+              type: dict
+              contains:
+                compression_ratio:
+                  description: Compression ratio for accelerated compression.
+                  type: str
+                  sample: "1.00"
+                reclaim_ratio:
+                  description: Reclaim ratio for accelerated compression.
+                  type: str
+                  sample: "1.00"
+                total_ratio:
+                  description: Total ratio for accelerated compression.
+                  type: str
+                  sample: "1.00"
+            calculation_end_time:
+              description: End time of efficiency calculation in ISO 8601 format.
+              type: str
+              sample: "2025-11-24T04:22:46Z"
+            calculation_start_time:
+              description: Start time of efficiency calculation in ISO 8601 format.
+              type: str
+              sample: "2025-11-24T04:20:06Z"
+            compression_ratio:
+              description: Overall compression ratio.
+              type: str
+              sample: "1.35"
+            dedupe_and_compression:
+              description: Deduplication and compression statistics.
+              type: dict
+              contains:
+                compression_ratio:
+                  description: Compression ratio for dedupe and compression.
+                  type: str
+                  sample: "1.08"
+                dedupe_ratio:
+                  description: Deduplication ratio.
+                  type: str
+                  sample: "1.02"
+                reclaim_ratio:
+                  description: Reclaim ratio for dedupe and compression.
+                  type: str
+                  sample: "2.15"
+                total_ratio:
+                  description: Total ratio for dedupe and compression.
+                  type: str
+                  sample: "2.38"
+            is_calculated:
+              description: Indicates if efficiency has been calculated.
+              type: bool
+              sample: true
+            provisioning_rate:
+              description: Provisioning rate percentage.
+              type: str
+              sample: "99"
+            snapshot_ratio:
+              description: Snapshot ratio.
+              type: str
+              sample: "1067.48"
+            total_ratio:
+              description: Overall total efficiency ratio.
+              type: str
+              sample: "651.49"
 """
 
 from dataclasses import asdict

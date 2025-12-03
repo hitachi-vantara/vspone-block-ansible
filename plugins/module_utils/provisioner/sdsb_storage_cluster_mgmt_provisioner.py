@@ -1,3 +1,4 @@
+import os
 from ..gateway.sdsb_storage_cluster_mgmt_gateway import (
     SDSBStorageClusterManagementGateway,
 )
@@ -8,6 +9,7 @@ from ..model.sdsb_storage_controller_model import (
     SNMPResponseModel,
     SDSBSpareNodeSpec,
     StorageSystemSpec,
+    WebServerAccessSettingSpec,
 )
 from ..message.sdsb_controller_msgs import SDSBControllerValidationMsg
 from ..common.ansible_common import is_valid_ip
@@ -33,8 +35,10 @@ class SDSBStorageClusterMgmtProvisioner:
         self.__validate_input_data(spec)
         try:
             unused = self.gateway.edit_snmp_settings(spec)
+            self.connection_info.changed = True
+
         except Exception as e:
-            raise Exception(SDSBControllerValidationMsg.SNMP_UPDATE_ERR.value + str(e))
+            raise Exception(str(e))
 
         return self.get_snmp_settings().camel_to_snake_dict()
 
@@ -46,9 +50,6 @@ class SDSBStorageClusterMgmtProvisioner:
         :param spec: SNMPModelSpec object containing the SNMP settings to be validated.
         :raises Exception: If validation fails.
         """
-
-        # if spec.system_group_information is None:
-        #     raise Exception(SDSBControllerValidationMsg.REQUIRED_SYSTEM_GROUP_INFO.value)
 
         ip_addresses = []
         if (
@@ -67,14 +68,10 @@ class SDSBStorageClusterMgmtProvisioner:
                 if setting.send_trap_to is not None:
                     ip_addresses.extend(setting.send_trap_to)
 
-        # if ip_addresses:
-        #     # Perform additional validation or processing with ip_addresses
-        #     not_valid = any(not is_valid_ip(ip) for ip in ip_addresses)
-        #     if not_valid:
-        #         raise Exception(
-        #             SDSBControllerValidationMsg.INVALID_IP_ADDRESS_IN_SNMP.value.format(
-        #                 ip_addresses)
-        #         )
+        if not spec.system_group_information:
+            raise Exception(
+                SDSBControllerValidationMsg.REQUIRED_SYSTEM_GROUP_INFO.value
+            )
 
     @log_entry_exit
     def get_snmp_settings(self) -> SNMPResponseModel:
@@ -84,7 +81,6 @@ class SDSBStorageClusterMgmtProvisioner:
         :return: SNMPResponseModel object containing the current SNMP settings.
         """
         response = self.gateway.get_snmp_settings()
-        self.connection_info.changed = True
         return response
 
     @log_entry_exit
@@ -185,7 +181,8 @@ class SDSBStorageClusterMgmtProvisioner:
             )
 
         if spec.id is not None:
-            self.__is_exists_spare_node(spec.id)
+            if not self.__is_exists_spare_node(spec):
+                return
             self.gateway.edit_spare_node(spec.id, spec)
             self.connection_info.changed = True
             return self.gateway.get_spare_node_by_id(spec.id)
@@ -215,7 +212,8 @@ class SDSBStorageClusterMgmtProvisioner:
         :param spec: Specification for the spare node.
         :return: None
         """
-        self.__is_exists_spare_node(spec.id)
+        if not self.__is_exists_spare_node(spec):
+            return
 
         self.gateway.delete_spare_node(spec.id)
         self.connection_info.changed = True
@@ -259,7 +257,7 @@ class SDSBStorageClusterMgmtProvisioner:
                 spec.root_certificate_file_path
             )
             self.connection_info.changed = True
-            spec.comment = "Import root certificate successfully"
+            spec.comment = "Root certificate imported successfully"
             return response
 
         except Exception as e:
@@ -277,7 +275,7 @@ class SDSBStorageClusterMgmtProvisioner:
         try:
             response = self.gateway.delete_root_certificate_of_bmc()
             self.connection_info.changed = True
-            spec.comment = "Delete root certificate successfully"
+            spec.comment = "Root certificate deleted successfully"
             return response
         except Exception as e:
             logger.writeError("GW:delete_root_certificate:error={}", e)
@@ -294,22 +292,98 @@ class SDSBStorageClusterMgmtProvisioner:
         """
         try:
             response = self.gateway.get_root_certificate_of_bmc(spec.download_path)
-            self.connection_info.changed = True
-            spec.comment = (
-                f"Download root certificate successfully to {spec.download_path}"
-            )
+            spec.comment = response
             return response
         except Exception as e:
             logger.writeError("GW:download_root_certificate:error={}", e)
-            spec.comment = f"Download root certificate failed : {e}"
+            spec.comment = (
+                f"Root certificate file not found to download or failed : {e}"
+            )
             return None
 
-    def __is_exists_spare_node(self, id=None):
-        if id is None:
-            raise Exception(SDSBControllerValidationMsg.REQUIRED_SPARE_NODE_ID.value)
-        spare_node = self.gateway.get_spare_node_by_id(id)
-        if spare_node is None:
+    @log_entry_exit
+    def update_web_server_access_settings(self, spec: WebServerAccessSettingSpec):
+        """
+        Update web server access settings.
+
+        :param spec: Specification containing the web access server settings.
+        :return: Response from the API call.
+        """
+        if (
+            spec.enable_client_address_allowlist
+            and spec.client_address_allowlist is None
+        ):
             raise Exception(
-                SDSBControllerValidationMsg.INVALID_SPARE_NODE_ID.value.format(id)
+                SDSBControllerValidationMsg.REQUIRED_CLIENT_ADDRESS_ALLOWLIST.value
             )
+
+        response = self.gateway.edit_web_server_access_setting(spec)
+        self.connection_info.changed = True
+        spec.comment = "Updated web server access settings successfully"
+        return response
+
+    @log_entry_exit
+    def get_web_server_access_settings(self):
+        """
+        Retrieve web server access settings.
+
+        :return: Web server access settings.
+        """
+        response = self.gateway.get_web_server_access_setting()
+        return response
+
+    @log_entry_exit
+    def import_server_certificate(self, spec):
+        """
+        Import server certificate to the storage controller.
+
+        :param spec: Specification containing the server certificate file path.
+        :return: Response from the API call.
+        """
+        if (
+            spec.server_certificate_file_path is None
+            and spec.server_certificate_secret_key_file_path is None
+        ):
+            raise Exception(
+                SDSBControllerValidationMsg.REQUIRED_SERVER_CERTIFICATE_FILE_PATH.value
+            )
+
+        if os.path.isfile(spec.server_certificate_file_path) is False:
+            raise Exception(
+                f"Server certificate file '{spec.server_certificate_file_path}' does not exist."
+            )
+
+        if os.path.isfile(spec.server_certificate_secret_key_file_path) is False:
+            raise Exception(
+                f"Secret key file '{spec.server_certificate_secret_key_file_path}' does not exist."
+            )
+
+        try:
+            response = self.gateway.import_server_certificate(
+                spec.server_certificate_file_path,
+                spec.server_certificate_secret_key_file_path,
+            )
+            self.connection_info.changed = True
+            spec.comment = "Import server certificate successfully"
+            return response
+
+        except Exception as e:
+            logger.writeError("GW:import_server_certificate:error={}", e)
+            spec.comment = f"Import server certificate failed : {e}"
+            return None
+
+    def __is_exists_spare_node(self, spec):
+        if spec.id is None:
+            raise Exception(SDSBControllerValidationMsg.REQUIRED_SPARE_NODE_ID.value)
+        try:
+            spare_node = self.gateway.get_spare_node_by_id(spec.id)
+            if spare_node is None:
+                raise Exception(
+                    SDSBControllerValidationMsg.INVALID_SPARE_NODE_ID.value.format(
+                        spec.id
+                    )
+                )
+        except Exception as e:
+            spec.comment = "Given spare node id does not exist or deleted."
+            return
         return spare_node

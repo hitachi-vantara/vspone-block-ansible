@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_chap_user_facts
-short_description: Retrieves information about Hitachi SDS block storage system CHAP users.
+short_description: Retrieves information about VSP One SDS Block and Cloud system CHAP users.
 description:
   - This module retrieves information about CHAP users.
   - It provides details about a CHAP user such as initiator CHAP user name, target CHAP user name and ID.

@@ -106,13 +106,25 @@ class SDSBStoragePoolReconciler:
             )
         if not self.is_edit_pool_needed(pool, spec):
             return pool.id
-        resp = self.provisioner.edit_storage_pool_settings(
-            spec.id,
-            spec.rebuild_capacity_policy,
-            spec.number_of_tolerable_drive_failures,
-        )
-        self.connection_info.changed = True
-        return resp
+
+        # Handle encryption settings separately if specified
+        if spec.is_encryption_enabled is not None:
+            self.provisioner.update_storage_pool_encryption(
+                spec.id, spec.is_encryption_enabled
+            )
+            self.connection_info.changed = True
+
+        if (
+            spec.rebuild_capacity_policy is not None
+            or spec.number_of_tolerable_drive_failures is not None
+        ):
+            unused = self.provisioner.edit_storage_pool_settings(
+                spec.id,
+                spec.rebuild_capacity_policy,
+                spec.number_of_tolerable_drive_failures,
+            )
+            self.connection_info.changed = True
+        return spec.id
 
     @log_entry_exit
     def is_edit_pool_needed(self, pool, spec):

@@ -90,3 +90,9 @@ class SDSBClusterProvisioner:
     @log_entry_exit
     def import_system_requirement_file(self, spec):
         return self.gateway.import_system_requirement_file(spec.system_requirement_file)
+
+    @log_entry_exit
+    def stop_storage_cluster(self, spec):
+        return self.gateway.stop_storage_cluster(
+            spec.force, spec.reboot, spec.config_parameter_setting_mode
+        )

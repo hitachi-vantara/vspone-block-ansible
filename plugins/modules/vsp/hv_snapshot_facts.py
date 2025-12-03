@@ -178,7 +178,7 @@ ansible_facts:
           description: Retention period for the snapshot in hours.
           type: int
           sample: -1
-        secondary_hex_volume_id:
+        secondary_volume_id_hex:
           description: Hexadecimal identifier of the secondary volume.
           type: str
           sample: "00:00:CD"

@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_vps
-short_description: Manages Hitachi SDS block storage system Virtual Private Storages (VPS) volume ADR setting.
+short_description: Manages VSP One SDS Block and Cloud systems Virtual Private Storages (VPS) volume ADR setting.
 description:
-  - This module allows to update Virtual Private Storages volume ADR setting.
+  - This module allows to update the Virtual Private Storages volume ADR setting.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/update_vps_volume_adr_setting.yml)
 version_added: '4.4.0'
@@ -255,11 +255,11 @@ vps:
     id:
       description: ID of the VPS.
       type: str
-      sample: "d2c1fa60-5c41-486a-9551-ec41c74d9f01"
+      sample: "969963dd-6f5c-418d-abd0-2341e767d898"
     name:
       description: Name of the VPS.
       type: str
-      sample: "VPS_01"
+      sample: "testvps"
     number_of_hbas_created:
       description: Number of HBAs created.
       type: int
@@ -287,39 +287,39 @@ vps:
     upper_limit_for_number_of_hbas:
       description: Upper limit for the number of HBAs.
       type: int
-      sample: 400
+      sample: 800
     upper_limit_for_number_of_servers:
       description: Upper limit for the number of servers.
       type: int
-      sample: 100
+      sample: 200
     upper_limit_for_number_of_sessions:
       description: Upper limit for the number of sessions.
       type: int
-      sample: 436
+      sample: 20
     upper_limit_for_number_of_user_groups:
       description: Upper limit for the number of user groups.
       type: int
-      sample: 256
+      sample: 10
     upper_limit_for_number_of_users:
       description: Upper limit for the number of users.
       type: int
-      sample: 256
+      sample: 5
     upper_limit_for_number_of_volume_server_connections:
       description: Upper limit for the number of volume server connections.
       type: int
-      sample: 100
+      sample: 40
     volume_settings:
       description: Settings for the volumes.
       type: dict
       contains:
         capacity_of_volumes_created:
-          description: Capacity of volumes created.
+          description: Capacity of volumes created (MiB).
           type: int
           sample: 0
         capacity_saving_of_volume:
           description: Capacity saving mode of the volume.
           type: str
-          sample: "Compression"
+          sample: "Disabled"
         number_of_volumes_created:
           description: Number of volumes created.
           type: int
@@ -327,7 +327,7 @@ vps:
         pool_id:
           description: Pool ID associated with the volume.
           type: str
-          sample: "f5ef8935-ed38-4894-a90b-f821ab6d3d89"
+          sample: "80d306ea-d224-4fb1-a746-5ed41994e708"
         qos_param:
           description: Quality of Service parameters for the volume.
           type: dict
@@ -345,21 +345,21 @@ vps:
               type: int
               sample: -1
         saving_mode_of_volume:
-          description: Saving mode of the volume.
-          type: str
-          sample: "Inline"
+          description: Saving mode of the volume (boolean flag).
+          type: bool
+          sample: false
         upper_limit_for_capacity_of_single_volume:
-          description: Upper limit for the capacity of a single volume.
+          description: Upper limit for the capacity of a single volume (MiB).
           type: int
           sample: -1
         upper_limit_for_capacity_of_volumes:
-          description: Upper limit for the capacity of volumes.
+          description: Upper limit for the capacity of volumes (MiB).
           type: int
-          sample: 100
+          sample: 300000
         upper_limit_for_number_of_volumes:
           description: Upper limit for the number of volumes.
           type: int
-          sample: 50
+          sample: 20
 """
 
 from ansible.module_utils.basic import AnsibleModule

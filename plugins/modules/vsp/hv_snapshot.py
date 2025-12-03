@@ -384,7 +384,7 @@ EXAMPLES = """
 """
 
 RETURN = """
-snapshot:
+snapshot_data:
   description: A list of snapshots gathered from the storage system.
   returned: always
   type: list
@@ -607,7 +607,7 @@ class VSPHtiSnapshotManager:
         return result
 
 
-def main(module=None):
+def main():
     obj_store = VSPHtiSnapshotManager()
     obj_store.apply()
 

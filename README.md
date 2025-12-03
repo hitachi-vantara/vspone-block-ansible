@@ -1,23 +1,38 @@
-# Hitachi Virtual Storage Platform One Block Storage Modules for Red Hat® Ansible® 4.4.2
+# Hitachi Virtual Storage Platform One Block Storage Modules for Red Hat® Ansible® 4.5.0
 
 The Hitachi Virtual Storage Platform One Block Storage Modules provide a comprehensive set of Ansible modules for managing VSP block storage systems (VSP One Block, VSP 5000 series, VSP E series, VSP F series, and VSP G series) and VSP One SDS Block and Cloud systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
 ## Hardware requirements
 
-- VSP One SDS Block and Cloud systems for AWS, Azure, and Google Cloud and VSP One SDS Block for Bare Metal v1.18
-- VSP One Block 24
-- VSP One Block 26
-- VSP One Block 28
-- VSP One Block 85 (Limited support, FC)
-- VSP 5100, 5500, 5100H, 5500H, 5200, 5600, 5200H, 5600H (SAS)
-- VSP 5100, 5500, 5100H, 5500H, 5200, 5600, 5200H, 5600H (NVMe)
-- VSP E590, E790, E990, E1090
-- VSP F350, F370, F700, F800, F900, F1000, F1500
-- VSP G350, G370, G700, G900, G1000, G1500
+| VSP block storage systems | Microcode/Firmware |
+|---------------------------|--------------------|
+| VSP One Block 24 | A3-04-21-40/00 SVOS 10.4.1 |
+| VSP One Block 26 | A3-04-21-40/00 SVOS 10.4.1 |
+| VSP One Block 28 | A3-04-21-40/00 SVOS 10.4.1 |
+| VSP One Block 85 | A0-05-20-00/05 SVOS 10.5.1 |
+| VSP 5100, 5500, 5100H, 5500H (SAS) | 90-09-26-00/00 |
+| VSP 5200, 5600, 5200H, 5600H (SAS) | 90-09-26-00/00 |
+| VSP 5100, 5500, 5100H, 5500H (NVMe) | 90-09-26-00/00 |
+| VSP 5200, 5600, 5200H, 5600H (NVMe) | 90-09-26-00/00 |
+| VSP E590, VSP E790 | 93-07-25-40/00 SVOS 9.8.7 |
+| VSP E990 | 93-07-25-60/00 SVOS 9.8.7 |
+| VSP E1090 | 93-07-25-80/00 SVOS 9.8.7 |
+| VSP F350, VSP F370, VSP F700, VSP F900 | 88-08-14-x0/00 SVOS 9.6.0 |
+| VSP G370, VSP G700, VSP G900 | 88-08-14-x0/00 SVOS 9.6.0 |
+| VSP G350 | 88-08-15-20/01 |
+
+The listed microcode versions are the minimum versions.
+
+| VSP One SDS Block and Cloud systems for AWS, Azure, and Google Cloud and VSP One SDS Block for Bare Metal | Storage software version |
+|-----------------------------------------------------------------------------------------------------------|--------------------------|
+| VSP One SDS Block and Cloud for AWS | 01.18.02.30 |
+| VSP One SDS Block for Bare Metal | 01.18.02.40 |
+| VSP One SDS Block and Cloud for Microsoft Azure | 01.18.02.50 |
+| VSP One SDS Block and Cloud for Google Cloud | 01.18.02.60 | 
 
 ## Software requirements
 
-- Red Hat Ansible Core - 2.16, 2.17, 2.18
+- Red Hat Ansible Core - 2.16, 2.17, 2.18, 2.19
 - Python - 3.9 or higher
 
 ## Supported operating systems
@@ -69,10 +84,10 @@ To upgrade the collection to the latest available version, run the following com
 ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 ```
 
-If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.4.2:
+If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.5.0:
 
 ```bash
-ansible-galaxy collection install hitachivantara.vspone_block:==4.4.2
+ansible-galaxy collection install hitachivantara.vspone_block:==4.5.0
 ```
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
@@ -134,9 +149,9 @@ For additional support, please use one of the following channels:
 
 ### Release Notes
 
-Version **4.4.2** highlights:
+Version **4.5.0** highlights:
 
-- Introduces limited support for VSP One Block 85 storage system only over Fibre Channel (FC).
+- General performance enhancements and bug fixes
 
 ### Roadmap
 

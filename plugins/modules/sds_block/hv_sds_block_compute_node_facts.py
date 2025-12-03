@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_compute_node_facts
-short_description: Retrieves information about Hitachi SDS block storage system compute nodes.
+short_description: Retrieves information about compute nodes.
 description:
   - This module retrieves information about compute nodes.
   - It provides details about a compute node such as ID, volume and other details.

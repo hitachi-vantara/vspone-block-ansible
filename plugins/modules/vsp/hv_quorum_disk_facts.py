@@ -73,7 +73,7 @@ ansible_facts:
       type: list
       elements: dict
       contains:
-        id:
+        quorum_disk_id:
           description: Quorum Disk ID.
           type: int
           sample: 1
@@ -158,10 +158,10 @@ class VSPQuorumDiskFactManager:
             data["user_consent_required"] = registration_message
         # self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of Quorum Disk Facts ===")
-        self.module.exit_json(**data)
+        self.module.exit_json(changed=False, ansible_facts=data)
 
 
-def main(module=None):
+def main():
     obj_store = VSPQuorumDiskFactManager()
     obj_store.apply()
 

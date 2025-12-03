@@ -90,38 +90,66 @@ ansible_facts:
   description: >
     Dictionary containing the discovered properties of the external parity groups.
   returned: always
-  type: list
-  elements: dict
+  type: dict
   contains:
-    external_parity_group_id:
-      description: External parity group ID.
-      type: str
-      sample: "1-1"
-    available_volume_capacity:
-      description: Available capacity (GB).
-      type: int
-      sample: 12
-    used_capacity_rate:
-      description: Usage rate of the external parity group.
-      type: int
-      sample: 12
-    storage_serial_number:
-      description: Storage serial number.
-      type: str
-      sample: "810050"
-    spaces:
-      description: For the free space and the LDEV defined in the specified external parity group.
+    external_parity_groups:
+      description: List of external parity group detail dicts.
       type: list
       elements: dict
       contains:
-        lba_size:
-          description: ize of the partition in the external parity group (in a multiple of 512 bytes).
+        external_parity_group_id:
+          description: External parity group ID.
           type: str
-          sample: "0x000000200000"
-        ldev_id:
-          description: LDEV number.
+          sample: "1-1"
+        storage_serial_number:
+          description: Storage serial number.
+          type: str
+          sample: "810045"
+        available_volume_capacity_gb:
+          description: Available capacity in GB.
           type: int
-          sample: 1351
+          sample: 13
+        available_volume_capacity_mb:
+          description: Available capacity in MB.
+          type: int
+          sample: 13312
+        used_capacity_rate:
+          description: Usage rate of the external parity group (percentage).
+          type: int
+          sample: 35
+        num_of_ldevs:
+          description: Number of LDEVs in the external parity group.
+          type: int
+          sample: 7
+        clpr_id:
+          description: CLPR identifier.
+          type: int
+          sample: 0
+        emulation_type:
+          description: Emulation type of the external storage.
+          type: str
+          sample: "OPEN-V"
+        external_product_id:
+          description: Product identifier of the external storage.
+          type: str
+          sample: "OPEN-V"
+        external_serial_number:
+          description: Serial number of the external storage (may be empty).
+          type: str
+          sample: ""
+        external_storage_product_id:
+          description: External storage product id (if any).
+          type: str
+          sample: ""
+        external_path_group_id:
+          description: Associated external path group id.
+          type: int
+          sample: -1
+        spaces:
+          description: Free space and LDEVs defined in the external parity group.
+          type: list
+          elements: dict
+          sample: []
 """
 
 

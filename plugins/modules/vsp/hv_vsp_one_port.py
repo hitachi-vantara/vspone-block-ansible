@@ -11,10 +11,10 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_port
-short_description: Manages port configuration on Hitachi VSP One storage systems.
+short_description: Manages ports on VSP E series and VSP One Block 20 series storage systems.
 description:
-  - This module manages port configuration on Hitachi VSP One storage systems.
-  - Utilizes the Hitachi Vantara VSP One Simple API for port management across VSP one B2x and VSP E series models.
+  - This module manages port configuration on VSP E series and VSP One Block 20 series storage systems.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for port management across VSP one B20 series and VSP E series models.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_port.yml)
 version_added: '4.3.0'

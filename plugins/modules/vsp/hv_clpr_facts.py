@@ -76,12 +76,12 @@ EXAMPLES = """
 
 RETURN = """
 ansible_facts:
-  description: List of clprs.
+  description: CLPR facts collected from the storage system.
   returned: success
   type: dict
   contains:
-    data:
-      description: List of clprs.
+    clprs:
+      description: List of CLPR objects.
       returned: success
       type: list
       elements: dict
@@ -94,42 +94,50 @@ ansible_facts:
           description: Name of the CLPR.
           type: str
           sample: "CLPR0"
-        cache_memory_capacity:
-          description: Cache memory capacity.
+        cache_memory_capacity_in_gb:
+          description: Cache memory capacity in gigabytes.
+          type: float
+          sample: 498.0
+        cache_memory_capacity_in_mb:
+          description: Cache memory capacity in megabytes.
           type: int
-          sample: 171776
-        cache_memory_used_capacity:
-          description: Used cache memory capacity.
+          sample: 509952
+        cache_memory_used_capacity_in_gb:
+          description: Used cache memory capacity in gigabytes.
+          type: float
+          sample: 9.6162109375
+        cache_memory_used_capacity_in_mb:
+          description: Used cache memory capacity in megabytes.
           type: int
-          sample: 41055
-        write_pending_data_capacity:
-          description: Write pending data capacity.
+          sample: 9847
+        cache_usage_rate:
+          description: Cache usage rate as percentage.
           type: int
-          sample: 56
-        side_files_capacity:
-          description: Side files capacity.
+          sample: 2
+        side_files_capacity_in_gb:
+          description: Side files capacity in gigabytes.
+          type: float
+          sample: 0.0
+        side_files_capacity_in_mb:
+          description: Side files capacity in megabytes.
           type: int
           sample: 0
-        cache_usage_rate:
-          description: Cache usage rate.
+        side_files_usage_rate:
+          description: Side files usage rate as percentage.
           type: int
-          sample: 24
+          sample: 0
+        write_pending_data_capacity_in_gb:
+          description: Write pending data capacity in gigabytes.
+          type: float
+          sample: 0.0595703125
+        write_pending_data_capacity_in_mb:
+          description: Write pending data capacity in megabytes.
+          type: int
+          sample: 61
         write_pending_data_rate:
-          description: Write pending data rate.
+          description: Write pending data rate as percentage.
           type: int
           sample: 1
-        side_files_usage_rate:
-          description: Side files usage rate.
-          type: int
-          sample: 0
-        status:
-          description: Status of the shadow image pair.
-          type: str
-          sample: "PAIR"
-        storage_serial_number:
-          description: Storage serial number.
-          type: str
-          sample: "811150"
 """
 
 

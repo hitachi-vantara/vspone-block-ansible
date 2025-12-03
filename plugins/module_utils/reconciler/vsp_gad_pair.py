@@ -961,14 +961,12 @@ class DirectGADInfoExtractor:
                     # Handle missing keys by assigning default values
                     default_value = get_default_value(value_type)
                     new_dict[cased_key] = default_value
-            if new_dict.get("primary_volume_id_hex") == "":
-                new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
-                    new_dict.get("primary_volume_id")
-                )
-            if new_dict.get("secondary_volume_id_hex") == "":
-                new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
-                    new_dict.get("secondary_volume_id")
-                )
+            new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
+                new_dict.get("primary_volume_id")
+            )
+            new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
+                new_dict.get("secondary_volume_id")
+            )
             new_items.append(new_dict)
 
         return new_items
@@ -992,14 +990,12 @@ class DirectGADInfoExtractor:
                 default_value = get_default_value(value_type)
                 new_dict[cased_key] = default_value
 
-        if new_dict.get("primary_volume_id_hex") == "":
-            new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
-                new_dict.get("primary_volume_id")
-            )
-        if new_dict.get("secondary_volume_id_hex") == "":
-            new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
-                new_dict.get("secondary_volume_id")
-            )
+        new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
+            new_dict.get("primary_volume_id")
+        )
+        new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
+            new_dict.get("secondary_volume_id")
+        )
 
         return new_dict
 
@@ -1112,16 +1108,14 @@ class DirectGADCopyPairInfoExtractor:
                     # Handle missing keys by assigning default values
                     default_value = get_default_value(value_type)
                     new_dict[cased_key] = default_value
-            if new_dict.get("primary_volume_id_hex") == "":
-                new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
-                    new_dict.get("primary_volume_id")
-                )
-            if new_dict.get("secondary_volume_id_hex") == "":
-                new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
-                    new_dict.get("secondary_volume_id")
-                )
-                # new_dict["secondary_virtual_hex_volume_id"] = ""
-                # new_dict["secondary_virtual_volume_id"] = ""
+            new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
+                new_dict.get("primary_volume_id")
+            )
+            new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
+                new_dict.get("secondary_volume_id")
+            )
+            # new_dict["secondary_virtual_hex_volume_id"] = ""
+            # new_dict["secondary_virtual_volume_id"] = ""
             if new_dict.get("mu_number"):
                 new_dict.pop("mu_number")
             if new_dict.get("pvol_virtual_ldev_id"):
@@ -1152,14 +1146,12 @@ class DirectGADCopyPairInfoExtractor:
                 default_value = get_default_value(value_type)
                 new_dict[cased_key] = default_value
 
-        if new_dict.get("primary_volume_id_hex") == "":
-            new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
-                new_dict.get("primary_volume_id")
-            )
-        if new_dict.get("secondary_volume_id_hex") == "":
-            new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
-                new_dict.get("secondary_volume_id")
-            )
+        new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
+            new_dict.get("primary_volume_id")
+        )
+        new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
+            new_dict.get("secondary_volume_id")
+        )
         if new_dict.get("copy_rate"):
             new_dict.pop("copy_rate")
 

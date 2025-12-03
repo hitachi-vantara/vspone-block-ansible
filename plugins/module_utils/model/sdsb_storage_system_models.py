@@ -171,3 +171,4 @@ class SDSBStorageSystemInfo(SingleBaseClass):
     productName: str = None
     clusterId: str = None
     clusterName: str = None
+    writeBackModeWithCacheProtection: str = None

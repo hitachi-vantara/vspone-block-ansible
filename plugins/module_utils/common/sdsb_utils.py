@@ -2,6 +2,7 @@ import copy
 import re
 
 try:
+    from ..common.hv_constants import StateValue
     from ..common.hv_constants import ConnectionTypes
     from ..common.sdsb_constants import AutomationConstants
     from ..message.sdsb_connection_msgs import SDSBConnectionValidationMsg
@@ -15,6 +16,7 @@ try:
     from ..model.common_base_models import ConnectionInfo
     from ..model.sdsb_volume_models import VolumeFactSpec, VolumeSpec
     from ..model.sdsb_job_models import JobFactSpec
+    from ..model.sdsb_journal_model import SDSBJournalSpec
     from ..model.sdsb_compute_node_models import ComputeNodeFactSpec, ComputeNodeSpec
     from ..model.sdsb_storage_node_models import (
         StorageNodeFactSpec,
@@ -29,7 +31,12 @@ try:
     from ..model.sdsb_drive_models import SDSBDriveFactSpec, SDSBDriveSpec
     from ..model.sdsb_control_port_model import SDSBControlPortSpec
     from ..model.sdsb_fault_domain_model import SDSBFaultDomainSpec
-    from ..model.sdsb_users_model import SDSBUsersSpec
+    from ..model.sdsb_user_models import SDSBUserFactSpec, SDSBUserSpec
+    from ..model.sdsb_user_group_models import (
+        SDSBUserGroupFactSpec,
+        SDSBUserGroupSpec,
+    )
+    from ..model.sdsb_journal_model import JournalFactSpec
     from ..model.sdsb_storage_controller_model import (
         SDSBStorageControllerFactSpec,
         SDSBStorageControllerSpec,
@@ -47,6 +54,16 @@ try:
         SDSBRemoteIscsciPortSpec,
     )
     from ..model.sdsb_software_update_models import SDSBSoftwareUpdateSpec
+    from ..model.sdsb_encryption_key_models import (
+        EncryptionKeyInfoSpec,
+        EncryptionKeySpec,
+        EncryptionEnvironmentSettingsSpec,
+        StoragePoolEncryptionSettingsSpec,
+    )
+    from ..message.sdsb_encryption_key_msgs import SDSBEncryptionKeyValidationMsg
+    from ..model.sdsb_license_management_models import (
+        LicenseManagementSpec,
+    )
     from ..model.sdsb_protection_domain_model import SDSBProtectionDomainFactSpec
     from ..model.sdsb_storage_controller_model import (
         get_snmp_settings_args,
@@ -55,8 +72,20 @@ try:
         StorageSystemSpec,
         SDSBSpareNodeSpec,
         SpareNodeFactsSpec,
+        WebServerAccessSettingSpec,
     )
+    from ..model.sdsb_session_models import (
+        SDSBSessionFactsSpec,
+        SDSBSessionSpec,
+    )
+    from ..model.sdsb_remote_path_group_models import (
+        SDSBRemotePathGroupFactSpec,
+        SDSBRemotePathGroupSpec,
+    )
+    from ..model.sdsb_login_message_model import LoginMessageFactSpec
+
 except ImportError:
+    from common.hv_constants import StateValue
     from common.hv_constants import ConnectionTypes
     from common.sdsb_constants import AutomationConstants
     from message.sdsb_connection_msgs import SDSBConnectionValidationMsg
@@ -70,6 +99,8 @@ except ImportError:
     from model.common_base_models import ConnectionInfo
     from model.sdsb_volume_models import VolumeFactSpec, VolumeSpec
     from model.sdsb_job_models import JobFactSpec
+    from model.sdsb_journal_model import SDSBJournalSpec
+    from model.sdsb_login_message_model import LoginMessageFactSpec
     from model.sdsb_compute_node_models import ComputeNodeFactSpec, ComputeNodeSpec
     from model.sdsb_storage_node_models import (
         StorageNodeFactSpec,
@@ -84,7 +115,11 @@ except ImportError:
     from model.sdsb_drive_models import SDSBDriveFactSpec, SDSBDriveSpec
     from model.sdsb_control_port_model import SDSBControlPortSpec
     from model.sdsb_fault_domain_model import SDSBFaultDomainSpec
-    from model.sdsb_users_model import SDSBUsersSpec
+    from ..model.sdsb_user_models import SDSBUserFactSpec, SDSBUserSpec
+    from ..model.sdsb_user_group_models import (
+        SDSBUserGroupFactSpec,
+        SDSBUserGroupSpec,
+    )
     from model.sdsb_storage_controller_model import (
         SDSBStorageControllerFactSpec,
         SDSBStorageControllerSpec,
@@ -102,7 +137,24 @@ except ImportError:
         SDSBRemoteIscsciPortSpec,
     )
     from model.sdsb_software_update_models import SDSBSoftwareUpdateSpec
+    from model.sdsb_encryption_key_models import (
+        EncryptionKeySpec,
+        EncryptionEnvironmentSettingsSpec,
+        StoragePoolEncryptionSettingsSpec,
+    )
+    from message.sdsb_encryption_key_msgs import SDSBEncryptionKeyValidationMsg
+    from model.sdsb_license_management_models import (
+        LicenseManagementSpec,
+    )
     from model.sdsb_protection_domain_model import SDSBProtectionDomainFactSpec
+    from model.sdsb_session_models import (
+        SDSBSessionFactsSpec,
+        SDSBSessionSpec,
+    )
+    from model.sdsb_remote_path_group_models import (
+        SDSBRemotePathGroupFactSpec,
+        SDSBRemotePathGroupSpec,
+    )
 
 
 # SDSB Parameter manager
@@ -120,6 +172,30 @@ class SDSBParametersManager:
 
     def get_connection_info(self):
         return self.connection_info
+
+    def get_journal_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = JournalFactSpec(**self.params["spec"])
+            # SDSBSpecValidators.validate_journal_spec_facts(input_spec)
+        else:
+            input_spec = JournalFactSpec()
+        return input_spec
+
+    def get_journals_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = SDSBJournalSpec(**self.params["spec"])
+            # SDSBSpecValidators.validate_journal_spec(input_spec)
+        else:
+            input_spec = SDSBJournalSpec()
+        return input_spec
+
+    def get_login(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = LoginMessageFactSpec(**self.params["spec"])
+            # SDSBSpecValidators.validate_journal_spec(input_spec)
+        else:
+            input_spec = LoginMessageFactSpec()
+        return input_spec
 
     def get_volume_fact_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
@@ -282,11 +358,32 @@ class SDSBParametersManager:
             input_spec = None
         return input_spec
 
+    def get_user_group_facts_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = SDSBUserGroupFactSpec(**self.params["spec"])
+        else:
+            input_spec = None
+        return input_spec
+
+    def get_user_group_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = SDSBUserGroupSpec(**self.params["spec"])
+        else:
+            input_spec = None
+        return input_spec
+
+    def get_user_facts_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = SDSBUserFactSpec(**self.params["spec"])
+        else:
+            input_spec = None
+        return input_spec
+
     def get_users_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
-            input_spec = SDSBUsersSpec(**self.params["spec"])
+            input_spec = SDSBUserSpec(**self.params["spec"])
         else:
-            input_spec = SDSBUsersSpec()
+            input_spec = SDSBUserSpec()
         return input_spec
 
     def get_storage_controller_spec(self):
@@ -383,6 +480,47 @@ class SDSBParametersManager:
 
         return input_spec
 
+    def get_encryption_key_fact_spec(self):
+        return EncryptionKeyInfoSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def get_encryption_key_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = EncryptionKeySpec(**self.params["spec"])
+            SDSBSpecValidators.validate_encryption_key_spec(
+                self.get_state(), input_spec
+            )
+            return input_spec
+        else:
+            return None
+
+    def get_encryption_environment_settings_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = EncryptionEnvironmentSettingsSpec(**self.params["spec"])
+            return input_spec
+        else:
+            return None
+
+    def get_storage_pool_encryption_settings_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            input_spec = StoragePoolEncryptionSettingsSpec(**self.params["spec"])
+            return input_spec
+        else:
+            return None
+
+    def get_license_management_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            spec_dict = self.params["spec"]
+            # Handle nested warning_threshold_setting
+            # if "warning_threshold_setting" in spec_dict and spec_dict["warning_threshold_setting"]:
+            #     wts = WarningThresholdSettingSpec(**spec_dict["warning_threshold_setting"])
+            #     spec_dict["warning_threshold_setting"] = wts
+            input_spec = LicenseManagementSpec(**spec_dict)
+            return input_spec
+        else:
+            return None
+
     def get_snmp_settings_spec(self):
 
         input_spec = SNMPModelSpec(**self.params["spec"])
@@ -397,7 +535,6 @@ class SDSBParametersManager:
         return SDSBSpareNodeSpec(**self.params["spec"])
 
     def spare_node_fact_spec(self):
-
         return SpareNodeFactsSpec(
             **self.params["spec"] if self.params.get("spec") else {}
         )
@@ -405,6 +542,29 @@ class SDSBParametersManager:
     def storage_system_spec(self):
 
         return StorageSystemSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def get_session_fact_spec(self):
+        return SDSBSessionFactsSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def get_session_spec(self):
+        return SDSBSessionSpec(**self.params["spec"] if self.params.get("spec") else {})
+
+    def get_remote_path_group_fact_spec(self):
+        return SDSBRemotePathGroupFactSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def get_remote_path_group_spec(self):
+        return SDSBRemotePathGroupSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def web_server_settings_spec(self):
+        return WebServerAccessSettingSpec(
             **self.params["spec"] if self.params.get("spec") else {}
         )
 
@@ -569,6 +729,7 @@ class SDSBClusterArguments:
                 "stop_removing_storage_node",
                 "replace_storage_node",
                 "system_requirement_file_present",
+                "stop_storage_cluster",
             ],
             "default": "present",
         },
@@ -794,6 +955,21 @@ class SDSBClusterArguments:
                 "required": False,
                 "type": "str",
             },
+            "force": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "reboot": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "config_parameter_setting_mode": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
         }
         cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
@@ -941,6 +1117,10 @@ class SDSBStoragePoolArguments:
             "number_of_tolerable_drive_failures": {
                 "required": False,
                 "type": "int",
+            },
+            "is_encryption_enabled": {
+                "required": False,
+                "type": "bool",
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
@@ -1661,14 +1841,20 @@ class SDSBFaultDomainArguments:
         return cls.common_arguments
 
 
-class SDSBUsersArguments:
+class SDSBUserArguments:
 
     common_arguments = {
         "connection_info": SDSBCommonParameters.get_connection_info(),
         "state": {
             "required": False,
             "type": "str",
-            "choices": ["present", "update"],
+            "choices": [
+                "present",
+                "update",
+                "absent",
+                "add_user_group",
+                "remove_user_group",
+            ],
             "default": "present",
         },
         "spec": {
@@ -1681,14 +1867,11 @@ class SDSBUsersArguments:
     @classmethod
     def users(cls):
         spec_options = {
-            # "id": {
+            "id": {"required": False, "type": "str", "aliases": ["user_id"]},
+            # "user_id": {
             #     "required": False,
             #     "type": "str",
             # },
-            "user_id": {
-                "required": False,
-                "type": "str",
-            },
             "password": {
                 "required": False,
                 "type": "str",
@@ -1706,6 +1889,11 @@ class SDSBUsersArguments:
                 "default": "local",
             },
             "is_enabled_console_login": {
+                "required": False,
+                "type": "bool",
+                "default": True,
+            },
+            "is_enabled": {
                 "required": False,
                 "type": "bool",
                 "default": True,
@@ -1734,6 +1922,14 @@ class SDSBUsersArguments:
                 "required": False,
                 "type": "str",
             },
+            "vps_id": {
+                "required": False,
+                "type": "str",
+            },
+            "vps_name": {
+                "required": False,
+                "type": "str",
+            },
             # "name": {
             #     "required": False,
             #     "type": "str",
@@ -1742,6 +1938,243 @@ class SDSBUsersArguments:
         cls.common_arguments["spec"]["options"] = spec_options
         cls.common_arguments["spec"]["required"] = False
         cls.common_arguments.pop("state")
+
+        return cls.common_arguments
+
+
+class SDSBUserGroupsArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "absent"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def user_groups(cls):
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            # "user_id": {
+            #     "required": False,
+            #     "type": "str",
+            # },
+            "role_names": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+            "external_group_name": {
+                "required": False,
+                "type": "str",
+                "no_log": True,
+            },
+            "scope": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+            "vps_id": {
+                "required": False,
+                "type": "str",
+            },
+            "vps_name": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = False
+        # cls.common_arguments.pop("state")
+
+        return cls.common_arguments
+
+    @classmethod
+    def user_group_facts(cls):
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            "vps_id": {
+                "required": False,
+                "type": "str",
+            },
+            "vps_name": {
+                "required": False,
+                "type": "str",
+            },
+            # "name": {
+            #     "required": False,
+            #     "type": "str",
+            # },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = False
+        cls.common_arguments.pop("state")
+
+        return cls.common_arguments
+
+
+class SDSBJournalArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "update",
+                "absent",
+                "shrink_journal",
+                "expand_journal",
+            ],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def journals(cls):
+        spec_options = {
+            "number": {
+                "required": False,
+                "type": "int",
+            },
+            "data_overflow_watch_in_sec": {
+                "required": False,
+                "type": "int",
+                # "default": 60,
+            },
+            "volume_ids": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+            "enable_inflow_control": {
+                "required": False,
+                "type": "bool",
+                # "default": False,
+            },
+            "enable_cache_mode": {
+                "required": False,
+                "type": "bool",
+                # "default": False,
+            },
+            "vps_id": {
+                "required": False,
+                "type": "str",
+            },
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            "vps_name": {
+                "required": False,
+                "type": "str",
+            },
+            "mirror_unit": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "number": {
+                        "required": True,
+                        "type": "int",
+                    },
+                    "copy_pace": {
+                        "required": False,
+                        "type": "str",
+                        "choices": ["L", "M", "H"],
+                    },
+                    "data_transfer_speed_bps": {
+                        "required": False,
+                        "type": "str",
+                        "choices": ["3M", "10M", "100M", "256M"],
+                    },
+                },
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = False
+        # cls.common_arguments.pop("state")
+
+        return cls.common_arguments
+
+    @classmethod
+    def get_journal_facts_args(cls):
+        spec_options = {
+            "vps_id": {
+                "required": False,
+                "type": "str",
+            },
+            "vps_name": {
+                "required": False,
+                "type": "str",
+            },
+            "number": {
+                "required": False,
+                "type": "int",
+            },
+            "storage_controller_id": {
+                "required": False,
+                "type": "str",
+            },
+        }
+
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = False
+        cls.common_arguments.pop("state")
+
+        return cls.common_arguments
+
+
+class SDSBLoginMessageArguments:
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def login_message_facts(cls):
+        return cls.common_arguments
+
+    @classmethod
+    def login_message(cls):
+        spec_options = {
+            "message": {
+                "required": True,
+                "type": "str",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = False
+        # cls.common_arguments.pop("state")
 
         return cls.common_arguments
 
@@ -1921,6 +2354,90 @@ class SDSBRemoteIscsiPortArguments:
         return cls.common_arguments
 
 
+class SDSBRemotePathGroupArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "absent", "add_remote_path", "remove_remote_path"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def remote_path_group(cls):
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            "local_port": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_serial": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_storage_system_type": {
+                "required": False,
+                "type": "str",
+                "choices": ["R9", "M8"],
+            },
+            "remote_port": {
+                "required": False,
+                "type": "str",
+            },
+            "path_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "remote_io_timeout_in_sec": {
+                "required": False,
+                "type": "int",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+    @classmethod
+    def remote_path_group_facts(cls):
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            "local_storage_controller_id": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_serial": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_storage_system_type": {
+                "required": False,
+                "type": "str",
+                "choices": ["R9", "M8"],
+            },
+            "path_group_id": {
+                "required": False,
+                "type": "int",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments.pop("state")
+
+        return cls.common_arguments
+
+
 class SDSBStorageControllerArguments:
 
     common_arguments = {
@@ -2078,6 +2595,59 @@ class SDSBStorageSystemArguments:
         args = copy.deepcopy(cls.common_arguments)
         args["spec"]["options"] = spec_options
         return args
+
+
+class SDSBSessionArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "absent"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def session_facts(cls):
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            "vps_id": {
+                "required": False,
+                "type": "str",
+            },
+            "user_id": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments.pop("state")
+        return cls.common_arguments
+
+    @classmethod
+    def session(cls):
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            "alive_time": {
+                "required": False,
+                "type": "int",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
 
 
 class SDSBVpsArguments:
@@ -2365,6 +2935,205 @@ class SpareNodeArgs:
         return args
 
 
+class SDSBEncryptionKeyArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def encryption_key_facts(cls):
+        spec_options = {
+            "key_id": {
+                "required": False,
+                "type": "str",
+            },
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            "count": {
+                "required": False,
+                "type": "int",
+            },
+            "key_type": {
+                "required": False,
+                "type": "str",
+            },
+            "target_resource_id": {
+                "required": False,
+                "type": "str",
+            },
+            "target_resource_name": {
+                "required": False,
+                "type": "str",
+            },
+            "start_creation_time": {
+                "required": False,
+                "type": "str",
+            },
+            "end_creation_time": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        return args
+
+    @classmethod
+    def encryption_key_count_facts(cls):
+        args = copy.deepcopy(cls.common_arguments)
+        args.pop("spec")
+        return args
+
+    @classmethod
+    def encryption_environment_setting_facts(cls):
+        args = copy.deepcopy(cls.common_arguments)
+        args.pop("spec")
+        return args
+
+    @classmethod
+    def encryption_key_info(cls):
+        spec_options = {
+            "key_id": {
+                "required": True,
+                "type": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = True
+        return args
+
+    @classmethod
+    def encryption_key(cls):
+        spec_options = {
+            "number_of_keys": {
+                "required": False,
+                "type": "int",
+                "no_log": True,
+            },
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["state"] = {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "absent"],
+            "default": "present",
+        }
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = True
+        return args
+
+    @classmethod
+    def encryption_environment_settings(cls):
+        spec_options = {
+            "is_encryption_enabled": {
+                "required": True,
+                "type": "bool",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["state"] = {
+            "required": False,
+            "type": "str",
+            "choices": ["present"],
+            "default": "present",
+        }
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = True
+        args.pop("state")
+        return args
+
+    @classmethod
+    def storage_pool_encryption_settings(cls):
+        spec_options = {
+            "pool_id": {
+                "required": True,
+                "type": "str",
+            },
+            "encryption_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "encryption_key_id": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["state"] = {
+            "required": False,
+            "type": "str",
+            "choices": ["present"],
+            "default": "present",
+        }
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = True
+        return args
+
+
+class WebServerAccessSettingsArgs:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "import_certificate"],
+            "default": "present",
+        },
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def web_server_access_settings(cls):
+        spec_options = {
+            "enable_client_address_allowlist": {
+                "required": False,
+                "type": "bool",
+            },
+            "client_address_allowlist": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+            "server_certificate_file_path": {
+                "required": False,
+                "type": "str",
+            },
+            "server_certificate_secret_key_file_path": {
+                "required": False,
+                "type": "str",
+                "no_log": True,
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+    @classmethod
+    def web_server_access_settings_facts(cls):
+        args = copy.deepcopy(cls.common_arguments)
+        args.pop("state")
+        args.pop("spec")
+        return args
+
+
 # Validator functions
 
 
@@ -2497,6 +3266,32 @@ class SDSBSpecValidators:
     def validate_pd_fact_spec(spec):
         if spec.id is not None and not is_valid_uuid(spec.id):
             raise ValueError(SDSBClusterValidationMsg.INVALID_PD_ID.value)
+
+    @staticmethod
+    def validate_encryption_key_spec(state, spec):
+        if state == StateValue.PRESENT and spec.number_of_keys:
+            if spec.number_of_keys < 1 or spec.number_of_keys > 4096:
+                raise ValueError(
+                    SDSBEncryptionKeyValidationMsg.INVALID_NUMBER_OF_KEYS.value
+                )
+        elif state == StateValue.ABSENT and not spec.id:
+            raise ValueError(SDSBEncryptionKeyValidationMsg.INVALID_KEY_ID.value)
+
+    @staticmethod
+    def validate_license_management_spec(spec):
+        if spec.warning_threshold_setting:
+            wts = spec.warning_threshold_setting
+            if wts.remaining_days is not None:
+                if wts.remaining_days < -1 or wts.remaining_days > 60:
+                    raise ValueError("remaining_days must be between -1 and 60")
+            if wts.total_pool_capacity_rate is not None:
+                if (
+                    wts.total_pool_capacity_rate < -1
+                    or wts.total_pool_capacity_rate > 100
+                ):
+                    raise ValueError(
+                        "total_pool_capacity_rate must be between -1 and 100"
+                    )
 
 
 def camel_to_snake(name):

@@ -114,15 +114,15 @@ ansible_facts:
         host_group_id:
           description: ID of the host group.
           type: int
-          sample: 93
+          sample: 33
         host_group_name:
           description: Name of the host group.
           type: str
-          sample: "ansible-test-hg"
+          sample: "AutoAnsibleHurPri01"
         host_mode:
           description: Host mode of the host group.
           type: str
-          sample: "STANDARD"
+          sample: "LINUX"
         host_mode_options:
           description: List of host mode options.
           type: list
@@ -141,26 +141,82 @@ ansible_facts:
           type: list
           elements: dict
           contains:
-            ldevId:
+            asymmetric_access_state:
+              description: Asymmetric access state.
+              type: str
+              sample: "Active/Optimized"
+            host_group_number:
+              description: Host group number.
+              type: int
+              sample: 33
+            host_mode:
+              description: Host mode for the LUN path.
+              type: str
+              sample: "LINUX/IRIX"
+            host_mode_options:
+              description: List of host mode options for the LUN path.
+              type: list
+              elements: dict
+            is_alua_enabled:
+              description: Whether ALUA is enabled.
+              type: bool
+              sample: false
+            is_command_device:
+              description: Whether this is a command device.
+              type: bool
+              sample: false
+            ldev_id:
               description: LDEV ID.
               type: int
-              sample: 166
-            lunId:
-              description: LUN ID.
+              sample: 3694
+            ldev_id_hex:
+              description: LDEV ID in hexadecimal format.
+              type: str
+              sample: "00:0E:6E"
+            lu_host_reserve:
+              description: LU host reserve information.
+              type: dict
+              contains:
+                aca_reserve:
+                  description: ACA reserve status.
+                  type: bool
+                  sample: false
+                mainframe:
+                  description: Mainframe reserve status.
+                  type: bool
+                  sample: false
+                open_system:
+                  description: Open system reserve status.
+                  type: bool
+                  sample: false
+                persistent:
+                  description: Persistent reserve status.
+                  type: bool
+                  sample: false
+                pgr_key:
+                  description: PGR key status.
+                  type: bool
+                  sample: false
+            lun:
+              description: LUN number.
               type: int
-              sample: 0
-        port:
+              sample: 17
+            lun_id:
+              description: LUN ID.
+              type: str
+              sample: "CL4-B,33,17"
+            port_id:
+              description: Port ID for the LUN path.
+              type: str
+              sample: "CL4-B"
+        port_id:
           description: Port associated with the host group.
           type: str
-          sample: "CL1-A"
+          sample: "CL4-B"
         resource_group_id:
           description: Resource group ID.
           type: int
           sample: 0
-        storage_id:
-          description: Storage ID.
-          type: str
-          sample: "storage-39f4eef0175c754bb90417358b0133c3"
         wwns:
           description: List of WWNs.
           type: list

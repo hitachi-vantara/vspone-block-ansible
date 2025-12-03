@@ -103,7 +103,9 @@ class SDSBPortReconciler:
             name = spec.name
         if changed:
             self.connection_info.changed = True
-            resp = self.provisioner.edit_compute_port_settings(spec.id, nick_name, name)
-        port = self.provisioner.get_port_by_id(resp)
+            unused = self.provisioner.edit_compute_port_settings(
+                spec.id, nick_name, name
+            )
+        port = self.provisioner.get_port_by_id(spec.id)
         converted = convert_keys_to_snake_case(port.to_dict())
         return replace_nulls(converted)

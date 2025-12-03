@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_storage_controller
-short_description: Edits the settings for the storage controller on Hitachi SDS Block storage systems.
+short_description: Edits the settings for the storage controller on VSP One SDS Block and Cloud systems.
 description:
-  - This module edits the settings for the storage controller on Hitachi SDS Block storage systems.
+  - This module edits the settings for the storage controller on VSP One SDS Block and Cloud systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/sdsb_storage_controller.yml)
 version_added: "4.2.0"
@@ -71,12 +71,12 @@ EXAMPLES = """
 """
 
 RETURN = """
-storage_pools:
-  description: A list of storage pools.
+storage_controllers:
+  description: A list of storage controllers.
   returned: always
   type: dict
   contains:
-    storage_controllers:
+    data:
       description: List of storage controller entries.
       type: list
       elements: dict
@@ -84,47 +84,15 @@ storage_pools:
         id:
           description: Unique identifier for the storage controller.
           type: str
-          sample: "25244614-4af4-4922-839a-8528c9e4fd7f"
-        allocatable_capacity:
-          description: Total allocatable capacity in GB.
-          type: int
-          sample: 0
-        currently_allocatable_capacity:
-          description: Currently allocatable capacity in GB.
-          type: int
-          sample: 0
-        used_capacity:
-          description: Used capacity in GB.
-          type: int
-          sample: 0
-        logical_limit:
-          description: Logical limit of capacity usage.
-          type: int
-          sample: 0
-        volume_maximum_capacity:
-          description: Maximum volume capacity.
-          type: int
-          sample: 0
-        free_capacity:
-          description: Free capacity available in GB.
-          type: int
-          sample: 0
-        status:
-          description: Operational status of the storage controller.
-          type: str
-          sample: "Normal"
-        meta_data_redundancy_of_cache_protection:
-          description: Redundancy level for cache protection.
-          type: int
-          sample: 1
+          sample: "5f35a02e-a334-4489-8bbd-615fc130645d"
         active_storage_node_id:
           description: UUID of the active storage node.
           type: str
-          sample: "7eb3f987-804f-4bc5-9d40-aff9392d507d"
+          sample: "1a21c76d-614a-45e1-bd02-6bd2c18dddd7"
         standby_storage_node_id:
           description: UUID of the standby storage node.
           type: str
-          sample: "a8056f21-e4ee-4e3a-a139-bee4de98d8c7"
+          sample: "c29454ed-8de1-4736-b234-73cc9143f78b"
         secondary_standby_storage_node_id:
           description: UUID of the secondary standby node, if any.
           type: str
@@ -132,7 +100,47 @@ storage_pools:
         is_detailed_logging_mode:
           description: Indicates if detailed logging mode is enabled.
           type: bool
-          sample: false
+          sample: true
+        allocatable_capacity:
+          description: Total allocatable capacity in GB.
+          type: int
+          sample: 4960200
+        currently_allocatable_capacity:
+          description: Currently allocatable capacity in GB.
+          type: int
+          sample: 4960200
+        free_capacity:
+          description: Free capacity available in GB.
+          type: int
+          sample: 4960200
+        used_capacity:
+          description: Used capacity in GB.
+          type: int
+          sample: 0
+        provisioned_volume_capacity:
+          description: Provisioned volume capacity.
+          type: int
+          sample: 11264
+        total_volume_capacity:
+          description: Total volume capacity.
+          type: int
+          sample: 11264
+        volume_maximum_capacity:
+          description: Maximum volume capacity.
+          type: int
+          sample: 100760142
+        other_volume_capacity:
+          description: Capacity used by other volume types.
+          type: int
+          sample: 0
+        temporary_volume_capacity:
+          description: Capacity used by temporary volumes.
+          type: int
+          sample: 0
+        logical_limit:
+          description: Logical limit of capacity usage.
+          type: int
+          sample: 100765686
         allocatable_capacity_usage_rate:
           description: Percentage of allocatable capacity used.
           type: int
@@ -153,22 +161,26 @@ storage_pools:
           description: Progress rate of data rebalance in percentage.
           type: int
           sample: null
-        total_volume_capacity:
-          description: Total volume capacity.
+        meta_data_redundancy_of_cache_protection:
+          description: Redundancy level for cache protection.
           type: int
-          sample: 0
-        provisioned_volume_capacity:
-          description: Provisioned volume capacity.
+          sample: 1
+        pin_information:
+          description: Additional pin-related configuration or state.
+          type: raw
+          sample: null
+        primary_fault_domain_id:
+          description: UUID of the primary fault domain.
+          type: str
+          sample: "05c3b302-9d43-448d-b0fa-3bbc64d0666d"
+        udp_port:
+          description: UDP port used by the storage controller.
           type: int
-          sample: 0
-        other_volume_capacity:
-          description: Capacity used by other volume types.
-          type: int
-          sample: 0
-        temporary_volume_capacity:
-          description: Capacity used by temporary volumes.
-          type: int
-          sample: 0
+          sample: 52001
+        status:
+          description: Operational status of the storage controller.
+          type: str
+          sample: "Normal"
         capacities_excluding_system_data:
           description: Capacity details excluding system data.
           type: dict
@@ -197,14 +209,6 @@ storage_pools:
               description: Pre-compressed capacity before optimization.
               type: int
               sample: 0
-        pin_information:
-          description: Additional pin-related configuration or state.
-          type: raw
-          sample: null
-        primary_fault_domain_id:
-          description: UUID of the primary fault domain.
-          type: str
-          sample: "355d32ce-c97f-4adf-9057-49d2e287974b"
 """
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_storage_controllers_reconciler import (

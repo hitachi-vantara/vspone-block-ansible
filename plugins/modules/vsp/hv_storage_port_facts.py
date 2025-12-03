@@ -100,7 +100,7 @@ ansible_facts:
     returned: always
     type: dict
     contains:
-        storageport:
+        port_data:
             description: The storage port information.
             type: list
             elements: dict

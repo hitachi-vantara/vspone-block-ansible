@@ -157,36 +157,46 @@ class ConnectionManager(ABC):
                     time.sleep(300)
                     self.retryCount += 1
                     return self._make_request(method, end_point, data)
-                else:
-                    if hasattr(err, "read"):
-                        error_resp = json.loads(err.read().decode())
-                        logger.writeDebug(
-                            f"ConnectionManager.error_resp - error_resp {error_resp}"
-                        )
-                        error_dtls = (
-                            error_resp.get("message")
-                            if error_resp.get("message")
-                            else error_resp.get("errorMessage")
-                        )
-                        if error_resp.get("cause"):
-                            error_dtls = error_dtls + " " + error_resp.get("cause")
 
-                        if error_resp.get("solution"):
-                            error_dtls = error_dtls + " " + error_resp.get("solution")
+            if hasattr(err, "read"):
+                error_resp = json.loads(err.read().decode())
+                logger.writeDebug(
+                    f"ConnectionManager.error_resp - error_resp {error_resp}"
+                )
+                error_dtls = (
+                    error_resp.get("message")
+                    if error_resp.get("message")
+                    else error_resp.get("errorMessage")
+                )
+                if error_resp.get("cause"):
+                    error_dtls = error_dtls + " " + error_resp.get("cause")
 
-                        raise Exception(error_dtls)
-            raise Exception(err)
+                if error_resp.get("solution"):
+                    error_dtls = error_dtls + " " + error_resp.get("solution")
+
+                raise Exception(error_dtls)
+            # if err.code == 400:
+            #     error_resp = json.loads(err.read().decode())
+            #     logger.writeDebug(
+            #         f"ConnectionManager.error_resp - error_resp {error_resp}"
+            #     )
+            #     raise Exception(error_resp)
+            else:
+                raise Exception(err)
         except Exception as err:
             logger.writeException(err)
+            logger.writeDebug("Failed err: {}", err)
             raise err
 
-        if response.status not in (200, 201, 202):
+        if response.status not in (200, 201, 202, 204):
             error_msg = json.loads(response.read())
             logger.writeError("error_msg = {}", error_msg)
             # raise Exception(error_msg, response.status)
             raise Exception(error_msg)
 
         # logger.writeDebug(f"response = {response}")
+        if response.status == 204:
+            return response.read()
         return self._load_response(response, download)
 
     def create(self, endpoint, data):
@@ -300,6 +310,9 @@ class ConnectionManager(ABC):
         delete_response = self._make_request(
             method="DELETE", end_point=endpoint, data=data
         )
+        logger.writeDebug(f"delete_response = {delete_response}")
+        if delete_response == b"":
+            return True
         job_id = delete_response[API.JOB_ID]
         return self._process_job(job_id)
 
@@ -508,6 +521,14 @@ class SDSBConnectionManager(ConnectionManager):
             except Exception:
                 pass
 
+    def put(self, endpoint, data):
+        put_response = self._make_request(method="PUT", end_point=endpoint, data=data)
+        logger.writeDebug("put_response = {}", put_response)
+        if API.JOB_ID not in put_response:
+            return put_response
+        job_id = put_response[API.JOB_ID]
+        return self._process_job(job_id)
+
     def add_storage_node(
         self,
         end_point,
@@ -623,7 +644,7 @@ class SDSBConnectionManager(ConnectionManager):
             logger.writeException(err)
             raise err
 
-        if response.status not in (200, 201, 202):
+        if response.status not in (200, 201, 202, 204):
             error_msg = json.loads(response.read())
             logger.writeError("error_msg = {}", error_msg)
             # raise Exception(error_msg, response.status)
@@ -1016,7 +1037,7 @@ class VSPConnectionManager(ConnectionManager):
             logger.writeException(err)
             raise err
 
-        if response.status not in (200, 201, 202):
+        if response.status not in (200, 201, 202, 204):
             raise Exception(
                 f"Failed to make {method} request to {url}: {response.read()}"
             )

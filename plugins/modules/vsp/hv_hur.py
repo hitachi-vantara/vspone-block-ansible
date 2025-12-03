@@ -530,7 +530,7 @@ EXAMPLES = """
 """
 
 RETURN = r"""
-data:
+hur_info:
   description: Newly created HUR pair object.
   returned: success
   type: dict
@@ -538,87 +538,95 @@ data:
     consistency_group_id:
       description: Consistency group ID.
       type: int
-      sample: 9
+      sample: 51
     copy_group_name:
       description: Name of the copy group.
       type: str
-      sample: "HUR_TEST_GROUP_ZM_1"
+      sample: "snewar_hur_copy_group_12"
     copy_pair_name:
       description: Name of the copy pair.
       type: str
-      sample: "HUR_TEST_PAIR_ZM_3"
+      sample: "snewar_hur_copy_pair_12"
     fence_level:
       description: Fence level setting.
       type: str
       sample: "ASYNC"
-    mirror_unit_number:
+    mirror_unit_id:
       description: Mirror unit number.
       type: int
-      sample: 2
-    pvol_difference_data_management:
-      description: Difference data management for primary volume.
-      type: str
-      sample: "S"
-    pvol_journal_id:
+      sample: 1
+    primary_journal_pool_id:
       description: Journal ID for primary volume.
       type: int
-      sample: 12
-    pvol_ldev_id:
+      sample: 3
+    primary_storage_serial:
+      description: Storage serial number for primary volume.
+      type: str
+      sample: "810050"
+    primary_volume_difference_data_management:
+      description: Difference data management for primary volume.
+      type: str
+      sample: "D"
+    primary_volume_id:
       description: LDEV ID for primary volume.
       type: int
-      sample: 1848
-    pvol_processing_status:
+      sample: 6622
+    primary_volume_id_hex:
+      description: Hexadecimal ID for primary volume.
+      type: str
+      sample: "00:19:DE"
+    primary_volume_processing_status:
       description: Processing status for primary volume.
       type: str
       sample: "N"
-    pvol_status:
+    primary_volume_status:
       description: Status of primary volume.
       type: str
       sample: "PAIR"
-    pvol_storage_device_id:
+    primary_volume_storage_device_id:
       description: Storage device ID for primary volume.
       type: str
-      sample: "900000040014"
-    pvol_storage_serial_number:
-      description: Storage serial number for primary volume.
-      type: str
-      sample: "40014"
+      sample: "A34000810050"
     remote_mirror_copy_pair_id:
       description: Remote mirror copy pair ID.
       type: str
-      sample: "900000040015,HUR_TEST_GROUP_ZM_1,HUR_TEST_GROUP_ZM_1P_,HUR_TEST_GROUP_ZM_1S_,HUR_TEST_PAIR_ZM_3"
+      sample: "A34000810045,snewar_hur_copy_group_12,snewar_hur_copy_group_12P_,snewar_hur_copy_group_12S_,snewar_hur_copy_pair_12"
     replication_type:
       description: Replication type.
       type: str
       sample: "UR"
-    svol_difference_data_management:
-      description: Difference data management for secondary volume.
-      type: str
-      sample: "S"
-    svol_journal_id:
+    secondary_journal_pool_id:
       description: Journal ID for secondary volume.
       type: int
-      sample: 32
-    svol_ldev_id:
+      sample: 1
+    secondary_storage_serial:
+      description: Storage serial number for secondary volume.
+      type: int
+      sample: 810045
+    secondary_volume_difference_data_management:
+      description: Difference data management for secondary volume.
+      type: str
+      sample: "D"
+    secondary_volume_id:
       description: LDEV ID for secondary volume.
       type: int
-      sample: 1978
-    svol_processing_status:
+      sample: 6623
+    secondary_volume_id_hex:
+      description: Hexadecimal ID for secondary volume.
+      type: str
+      sample: "00:19:DF"
+    secondary_volume_processing_status:
       description: Processing status for secondary volume.
       type: str
       sample: "N"
-    svol_status:
+    secondary_volume_status:
       description: Status of secondary volume.
       type: str
       sample: "PAIR"
-    svol_storage_device_id:
+    secondary_volume_storage_device_id:
       description: Storage device ID for secondary volume.
       type: str
-      sample: "900000040015"
-    svol_storage_serial_number:
-      description: Storage serial number for secondary volume.
-      type: str
-      sample: "40015"
+      sample: "A34000810045"
 """
 
 

@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_port_facts
-short_description: Retrieves information about Hitachi SDS block storage system compute ports.
+short_description: Retrieves information about compute ports.
 description:
   - This module retrieves information about compute ports.
   - It provides details about a compute port such as ID, lun and other details.
@@ -77,197 +77,202 @@ EXAMPLES = """
 
 RETURN = """
 ansible_facts:
-  description: A list of compute ports.
+  description: Dictionary of returned facts.
   returned: always
-  type: list
-  elements: dict
+  type: dict
   contains:
-    chap_users_info:
-      description: List of CHAP users information.
+    ports:
+      description: A list of compute ports.
+      returned: always
       type: list
       elements: dict
       contains:
-        id:
-          description: Unique identifier for the CHAP user.
-          type: str
-          sample: "464e1fd1-9892-4134-866c-6964ce786676"
-        initiator_chap_user_name:
-          description: Initiator CHAP user name.
-          type: str
-          sample: ""
-        target_chap_user_name:
-          description: Target CHAP user name.
-          type: str
-          sample: "test"
-    port_auth_info:
-      description: Port authentication information.
-      type: dict
-      contains:
-        auth_mode:
-          description: Authentication mode.
-          type: str
-          sample: "CHAP"
-        id:
-          description: Unique identifier for the port authentication info.
-          type: str
-          sample: "932962b5-ab61-429f-ba06-cd976e1a8f97"
-        is_discovery_chap_auth:
-          description: Indicates if discovery CHAP authentication is enabled.
-          type: bool
-          sample: false
-        is_mutual_chap_auth:
-          description: Indicates if mutual CHAP authentication is enabled.
-          type: bool
-          sample: true
-    port_info:
-      description: Detailed information about the port.
-      type: dict
-      contains:
-        configured_port_speed:
-          description: Configured port speed.
-          type: str
-          sample: "Auto"
-        fc_information:
-          description: Fibre Channel information.
-          type: dict
-          sample: null
-        id:
-          description: Unique identifier for the port.
-          type: str
-          sample: "932962b5-ab61-429f-ba06-cd976e1a8f97"
-        interface_name:
-          description: Name of the interface.
-          type: str
-          sample: "eth2"
-        iscsi_information:
-          description: iSCSI information.
+        chap_users_info:
+          description: List of CHAP users information.
+          type: list
+          elements: dict
+          contains:
+            id:
+              description: Unique identifier for the CHAP user.
+              type: str
+              sample: "464e1fd1-9892-4134-866c-6964ce786676"
+            initiator_chap_user_name:
+              description: Initiator CHAP user name.
+              type: str
+              sample: ""
+            target_chap_user_name:
+              description: Target CHAP user name.
+              type: str
+              sample: "test"
+        port_auth_info:
+          description: Port authentication information.
           type: dict
           contains:
-            delayed_ack:
-              description: Indicates if delayed ACK is enabled.
-              type: bool
-              sample: true
-            ip_mode:
-              description: IP mode.
+            auth_mode:
+              description: Authentication mode.
               type: str
-              sample: "ipv4"
-            ipv4_information:
-              description: IPv4 information.
-              type: dict
-              contains:
-                address:
-                  description: IPv4 address.
-                  type: str
-                  sample: "10.76.34.51"
-                default_gateway:
-                  description: Default gateway.
-                  type: str
-                  sample: "10.76.34.1"
-                subnet_mask:
-                  description: Subnet mask.
-                  type: str
-                  sample: "255.255.255.0"
-            ipv6_information:
-              description: IPv6 information.
-              type: dict
-              contains:
-                default_gateway:
-                  description: Default gateway.
-                  type: str
-                  sample: ""
-                global_address1:
-                  description: Global address 1.
-                  type: str
-                  sample: ""
-                global_address_mode:
-                  description: Global address mode.
-                  type: str
-                  sample: "Manual"
-                linklocal_address:
-                  description: Link-local address.
-                  type: str
-                  sample: ""
-                linklocal_address_mode:
-                  description: Link-local address mode.
-                  type: str
-                  sample: "Auto"
-                subnet_prefix_length1:
-                  description: Subnet prefix length 1.
-                  type: int
-                  sample: 0
-            is_isns_client_enabled:
-              description: Indicates if iSNS client is enabled.
+              sample: "CHAP"
+            id:
+              description: Unique identifier for the port authentication info.
+              type: str
+              sample: "932962b5-ab61-429f-ba06-cd976e1a8f97"
+            is_discovery_chap_auth:
+              description: Indicates if discovery CHAP authentication is enabled.
               type: bool
               sample: false
-            isns_servers:
-              description: List of iSNS servers.
-              type: list
-              elements: dict
-              contains:
-                index:
-                  description: Index of the iSNS server.
-                  type: int
-                  sample: 1
-                port:
-                  description: Port of the iSNS server.
-                  type: int
-                  sample: 3205
-                server_name:
-                  description: Name of the iSNS server.
-                  type: str
-                  sample: ""
-            mac_address:
-              description: MAC address.
-              type: str
-              sample: "b4:96:91:c8:75:bc"
-            mtu_size:
-              description: MTU size.
-              type: int
-              sample: 9000
-        name:
-          description: Name of the port.
-          type: str
-          sample: "iqn.1994-04.jp.co.hitachi:rsd.sph.t.0a85a.000"
-        nickname:
-          description: Nickname of the port.
-          type: str
-          sample: "000-iSCSI-000"
-        nvme_tcp_information:
-          description: NVMe over TCP information.
+            is_mutual_chap_auth:
+              description: Indicates if mutual CHAP authentication is enabled.
+              type: bool
+              sample: true
+        port_info:
+          description: Detailed information about the port.
           type: dict
-          sample: null
-        port_speed:
-          description: Port speed.
-          type: str
-          sample: "25G"
-        port_speed_duplex:
-          description: Port speed duplex.
-          type: str
-          sample: "25Gbps Full"
-        protection_domain_id:
-          description: Protection domain ID.
-          type: str
-          sample: "645c36b6-da9e-44bb-b711-430e06c7ad2b"
-        protocol:
-          description: Protocol used by the port.
-          type: str
-          sample: "iSCSI"
-        status:
-          description: Status of the port.
-          type: str
-          sample: "Normal"
-        status_summary:
-          description: Summary of the port status.
-          type: str
-          sample: "Normal"
-        storage_node_id:
-          description: Storage node ID.
-          type: str
-          sample: "01f598b8-dc1c-45fc-b821-5ea108d42593"
-        type:
-          description: Type of the port.
-          type: str
-          sample: "Universal"
+          contains:
+            configured_port_speed:
+              description: Configured port speed.
+              type: str
+              sample: "Auto"
+            fc_information:
+              description: Fibre Channel information.
+              type: dict
+              sample: null
+            id:
+              description: Unique identifier for the port.
+              type: str
+              sample: "932962b5-ab61-429f-ba06-cd976e1a8f97"
+            interface_name:
+              description: Name of the interface.
+              type: str
+              sample: "eth2"
+            iscsi_information:
+              description: iSCSI information.
+              type: dict
+              contains:
+                delayed_ack:
+                  description: Indicates if delayed ACK is enabled.
+                  type: bool
+                  sample: true
+                ip_mode:
+                  description: IP mode.
+                  type: str
+                  sample: "ipv4"
+                ipv4_information:
+                  description: IPv4 information.
+                  type: dict
+                  contains:
+                    address:
+                      description: IPv4 address.
+                      type: str
+                      sample: "10.76.34.51"
+                    default_gateway:
+                      description: Default gateway.
+                      type: str
+                      sample: "10.76.34.1"
+                    subnet_mask:
+                      description: Subnet mask.
+                      type: str
+                      sample: "255.255.255.0"
+                ipv6_information:
+                  description: IPv6 information.
+                  type: dict
+                  contains:
+                    default_gateway:
+                      description: Default gateway.
+                      type: str
+                      sample: ""
+                    global_address1:
+                      description: Global address 1.
+                      type: str
+                      sample: ""
+                    global_address_mode:
+                      description: Global address mode.
+                      type: str
+                      sample: "Manual"
+                    linklocal_address:
+                      description: Link-local address.
+                      type: str
+                      sample: ""
+                    linklocal_address_mode:
+                      description: Link-local address mode.
+                      type: str
+                      sample: "Auto"
+                    subnet_prefix_length1:
+                      description: Subnet prefix length 1.
+                      type: int
+                      sample: 0
+                is_isns_client_enabled:
+                  description: Indicates if iSNS client is enabled.
+                  type: bool
+                  sample: false
+                isns_servers:
+                  description: List of iSNS servers.
+                  type: list
+                  elements: dict
+                  contains:
+                    index:
+                      description: Index of the iSNS server.
+                      type: int
+                      sample: 1
+                    port:
+                      description: Port of the iSNS server.
+                      type: int
+                      sample: 3205
+                    server_name:
+                      description: Name of the iSNS server.
+                      type: str
+                      sample: ""
+                mac_address:
+                  description: MAC address.
+                  type: str
+                  sample: "b4:96:91:c8:75:bc"
+                mtu_size:
+                  description: MTU size.
+                  type: int
+                  sample: 9000
+            name:
+              description: Name of the port.
+              type: str
+              sample: "iqn.1994-04.jp.co.hitachi:rsd.sph.t.0a85a.000"
+            nickname:
+              description: Nickname of the port.
+              type: str
+              sample: "000-iSCSI-000"
+            nvme_tcp_information:
+              description: NVMe over TCP information.
+              type: dict
+              sample: null
+            port_speed:
+              description: Port speed.
+              type: str
+              sample: "25G"
+            port_speed_duplex:
+              description: Port speed duplex.
+              type: str
+              sample: "25Gbps Full"
+            protection_domain_id:
+              description: Protection domain ID.
+              type: str
+              sample: "645c36b6-da9e-44bb-b711-430e06c7ad2b"
+            protocol:
+              description: Protocol used by the port.
+              type: str
+              sample: "iSCSI"
+            status:
+              description: Status of the port.
+              type: str
+              sample: "Normal"
+            status_summary:
+              description: Summary of the port status.
+              type: str
+              sample: "Normal"
+            storage_node_id:
+              description: Storage node ID.
+              type: str
+              sample: "01f598b8-dc1c-45fc-b821-5ea108d42593"
+            type:
+              description: Type of the port.
+              type: str
+              sample: "Universal"
 """
 
 from ansible.module_utils.basic import AnsibleModule

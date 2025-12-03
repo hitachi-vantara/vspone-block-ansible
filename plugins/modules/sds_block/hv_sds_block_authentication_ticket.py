@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_authentication_ticket
-short_description: Manages Hitachi SDS block storage system authentication tickets.
+short_description: Manages authentication tickets for VSP One SDS Block and Cloud systems.
 description:
   - This module allows for the creation, deletion and updating of authentication tickets.
   - It supports various authentication ticket operations based on the specified task level.

@@ -169,27 +169,27 @@ EXAMPLES = """
 """
 
 RETURN = """
-data:
-  description: Newly created remote copy group object.
+local_copy_group_info:
+  description: Details of the Shadow Image Group.
   returned: success
   type: dict
   contains:
     copy_group_name:
       description: Copy group name.
       type: str
-      sample: "copygroupname001"
-    primary_volume_device_group_name:
-      description: P-VOL device group name.
-      type: str
-      sample: "copygroupname001"
-    secondary_volume_device_group_name:
-      description: S-VOL device group name.
-      type: str
-      sample: "copygroupname001"
-    local_clone_copy_group_id:
+      sample: "SI172"
+    local_clone_copygroup_id:
       description: Local clone copy group ID.
       type: str
-      sample: "copygroupname001"
+      sample: "SI172,SI172P_,SI172S_"
+    pvol_device_group_name:
+      description: PVOL device group name.
+      type: str
+      sample: "SI172P_"
+    svol_device_group_name:
+      description: SVOL device group name.
+      type: str
+      sample: "SI172S_"
     copy_pairs:
       description: List of copy pairs in the copy group.
       type: list
@@ -197,68 +197,68 @@ data:
       contains:
         consistency_group_id:
           description: Consistency group ID.
-          type: int
-          sample: 51
+          type: str
+          sample: ""
         copy_group_name:
           description: Copy group name.
           type: str
-          sample: "copygroupname001"
-        copy_pair_name:
-          description: Copy pair name.
-          type: str
-          sample: "copypairname00190"
-        pvol_ldev_id:
-          description: PVOL LDEV ID.
-          type: int
-          sample: 1872
-        svol_ldev_id:
-          description: SVOL LDEV ID.
-          type: int
-          sample: 2180
-        pvol_mu_number:
-          description: PVOL MU number.
-          type: int
-          sample: 0
-        pvol_status:
-          description: PVOL status.
-          type: str
-          sample: "PSUS"
-        svol_status:
-          description: SVOL status.
-          type: str
-          sample: "SSUS"
-        local_clone_copypair_id:
-          description: Local clone copy pair ID.
-          type: str
-          sample: ""
-        replication_type:
-          description: Replication type.
-          type: str
-          sample: "UR"
+          sample: "SI172"
         copy_mode:
           description: Copy mode.
           type: str
-          sample: ""
+          sample: "NotSnapshot"
+        copy_pair_name:
+          description: Copy pair name.
+          type: str
+          sample: "CPTest"
         copy_progress_rate:
           description: Copy progress rate.
           type: int
-          sample: 0
+          sample: 100
+        local_clone_copypair_id:
+          description: Local clone copy pair ID.
+          type: str
+          sample: "SI172,SI172P_,SI172S_,CPTest"
         pvol_difference_data_management:
           description: PVOL difference data management.
           type: str
           sample: "S"
-        svol_difference_data_management:
-          description: SVOL difference data management.
-          type: str
-          sample: "S"
+        pvol_ldev_id:
+          description: PVOL LDEV ID.
+          type: int
+          sample: 172
+        pvol_mu_number:
+          description: PVOL MU number.
+          type: int
+          sample: 0
         pvol_processing_status:
           description: PVOL processing status.
           type: str
           sample: "N"
+        pvol_status:
+          description: PVOL status.
+          type: str
+          sample: "PSUS"
+        replication_type:
+          description: Replication type.
+          type: str
+          sample: "SI"
+        svol_difference_data_management:
+          description: SVOL difference data management.
+          type: str
+          sample: "S"
+        svol_ldev_id:
+          description: SVOL LDEV ID.
+          type: int
+          sample: 173
         svol_processing_status:
           description: SVOL processing status.
           type: str
           sample: "N"
+        svol_status:
+          description: SVOL status.
+          type: str
+          sample: "SSUS"
 """
 
 from ansible.module_utils.basic import AnsibleModule

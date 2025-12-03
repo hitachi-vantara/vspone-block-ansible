@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_internode_port_facts
-short_description: Get internode port from storage system
+short_description: Get internode port from VSP One SDS Block and Cloud systems.
 description:
   - Get internode port from storage system.
   - For examples, go to URL
@@ -57,12 +57,11 @@ EXAMPLES = """
 
 RETURN = r"""
 ansible_facts:
-  description: >
-    Dictionary containing the discovered properties of the internode_port.
+  description: Dictionary containing discovered internode port information.
   returned: always
   type: dict
   contains:
-    data:
+    internode_ports:
       description: List of internode port entries.
       type: list
       elements: dict
@@ -70,27 +69,27 @@ ansible_facts:
         id:
           description: Unique identifier for the internode port.
           type: str
-          sample: "1d7fa4ae-9bc6-446c-8cf1-09de0ea01dcd"
+          sample: "8caf0b3a-043d-4833-ab7c-3f3d1d6d30db"
         storage_node_id:
           description: UUID of the storage node associated with this internode port.
           type: str
-          sample: "ad36eab7-20c3-41cd-acac-d334ff5347d7"
+          sample: "72ecacd0-1d4c-431c-80e8-80924a1b8f28"
         mac_address:
           description: MAC address of the network interface.
           type: str
-          sample: "80:30:e0:39:b7:a5"
+          sample: "b4:96:91:c9:ef:ea"
         mtu_size:
           description: Maximum Transmission Unit size.
           type: int
-          sample: 1500
+          sample: 9000
         interface_name:
           description: Interface name of the network device.
           type: str
-          sample: "eth0"
+          sample: "eth1"
         device_name:
           description: Name of the physical device.
           type: str
-          sample: "NetXtreme BCM5719 Gigabit Ethernet PCIe (Ethernet 1Gb 4-port 331i Adapter)"
+          sample: "Ethernet Controller E810-XXV for SFP (Ethernet Network Adapter E810-XXV-2)"
         configured_port_speed:
           description: Configured speed setting of the port.
           type: str
@@ -98,11 +97,11 @@ ansible_facts:
         port_speed_duplex:
           description: Actual speed and duplex setting of the port.
           type: str
-          sample: "1Gbps Full"
+          sample: "25Gbps Full"
         is_teaming_enabled:
           description: Whether NIC teaming is enabled.
-          type: str
-          sample: "false"
+          type: bool
+          sample: true
         ipv4_information:
           description: IPv4 network configuration.
           type: dict
@@ -110,25 +109,77 @@ ansible_facts:
             address:
               description: IPv4 address.
               type: str
-              sample: "192.168.24.242"
+              sample: "192.168.110.51"
             subnet_mask:
               description: Subnet mask.
               type: str
-              sample: "255.255.192.0"
+              sample: "255.255.255.0"
         teaming:
-          description: Teaming configuration or group info, if any.
-          type: raw
-          sample: null
+          description: Teaming configuration details, if present.
+          type: dict
+          contains:
+            active_port:
+              description: Which port is active in the team.
+              type: str
+              sample: "primary"
+            auto_fail_back_enabled:
+              description: Whether automatic fail-back is enabled.
+              type: bool
+              sample: true
+            mode:
+              description: Teaming mode.
+              type: str
+              sample: "active-standby"
+            primary_configured_port_speed:
+              description: Configured speed of the primary port in the team.
+              type: str
+              sample: "Auto"
+            primary_device_name:
+              description: Device name of the primary port in the team.
+              type: str
+              sample: "Ethernet Controller E810-XXV for SFP (Ethernet Network Adapter E810-XXV-2)"
+            primary_interface_name:
+              description: Interface name of the primary port in the team.
+              type: str
+              sample: "port2"
+            primary_mac_address:
+              description: MAC address of the primary port in the team.
+              type: str
+              sample: "b4:96:91:c9:ef:ea"
+            primary_port_speed_duplex:
+              description: Actual speed and duplex setting of the primary port.
+              type: str
+              sample: "25Gbps Full"
+            secondary_configured_port_speed:
+              description: Configured speed of the secondary port in the team.
+              type: str
+              sample: "Auto"
+            secondary_device_name:
+              description: Device name of the secondary port in the team.
+              type: str
+              sample: "Ethernet Controller E810-XXV for SFP (Ethernet Network Adapter E810-XXV-2)"
+            secondary_interface_name:
+              description: Interface name of the secondary port in the team.
+              type: str
+              sample: "port3"
+            secondary_mac_address:
+              description: MAC address of the secondary port in the team.
+              type: str
+              sample: "b4:96:91:c9:ef:eb"
+            secondary_port_speed_duplex:
+              description: Actual speed and duplex setting of the secondary port.
+              type: str
+              sample: "25Gbps Full"
         redundancy:
           description: Redundancy level for the port (e.g., 0 for none).
           type: int
-          sample: 0
+          sample: 1
         status:
           description: Current operational status of the internode port.
           type: str
           sample: "Normal"
         status_summary:
-          description: Summary of the control port's status.
+          description: Summary of the port's status.
           type: str
           sample: "Normal"
 """

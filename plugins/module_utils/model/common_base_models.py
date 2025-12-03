@@ -86,7 +86,9 @@ class BaseDataClass:
         """
         bulk_data = bulk_data["data"]
         self.data = [
-            self.__dataclass_fields__["data"].type.__args__[0](**item)
+            self.__dataclass_fields__["data"].type.__args__[0](
+                **item
+            )  # pylint: disable=no-member
             for item in bulk_data
         ]
         return self
@@ -96,7 +98,7 @@ class SingleBaseClass:
 
     def __init__(self, **kwargs):
 
-        for ds_field in self.__dataclass_fields__.keys():
+        for ds_field in self.__dataclass_fields__.keys():  # pylint: disable=no-member
             setattr(self, ds_field, kwargs.get(ds_field, None))
 
         for key, value in kwargs.items():
@@ -119,7 +121,10 @@ class SingleBaseClass:
         new_dict = {}
         type_hints = get_type_hints(type(self))
 
-        for key, unused in self.__dataclass_fields__.items():
+        for (
+            key,
+            unused,
+        ) in self.__dataclass_fields__.items():  # pylint: disable=no-member
             value = getattr(self, key)
             cased_key = camel_to_snake(key)
 

@@ -70,64 +70,56 @@ EXAMPLES = """
 RETURN = r"""
 ansible_facts:
   description: >
-    Dictionary containing the discovered properties of the disk drives.
+    Dictionary containing the discovered properties of the disk drives and
+    additional module response fields.
   returned: always
   type: dict
   contains:
     disk_drives:
-      description: List of disk drives with their attributes.
-      type: list
-      elements: dict
+      description: Container for disk drive results.
+      type: dict
       contains:
-        copyback_mode:
-          description: Indicates if copy-back mode is enabled.
-          type: bool
-          sample: true
-        drive_type:
-          description: Type of the drive.
-          type: str
-          sample: "SSD"
-        free_capacity:
-          description: Free capacity of the drive.
-          type: str
-          sample: "5.16TB"
-        is_accelerated_compression:
-          description: Indicates if accelerated compression is enabled.
-          type: bool
-          sample: false
-        is_encryption_enabled:
-          description: Indicates if encryption is enabled.
-          type: bool
-          sample: true
-        is_pool_array_group:
-          description: Indicates if the drive is part of a pool array group.
-          type: bool
-          sample: false
-        ldev_ids:
-          description: List of LDEV IDs associated with the drive.
+        data:
+          description: List of disk drives with their attributes.
           type: list
-          elements: int
-          sample: []
-        parity_group_id:
-          description: ID of the parity group.
-          type: str
-          sample: "1-10"
-        raid_level:
-          description: RAID level of the drive.
-          type: str
-          sample: "RAID5"
-        resource_group_id:
-          description: ID of the resource group.
-          type: int
-          sample: -1
-        status:
-          description: Status of the drive.
-          type: str
-          sample: ""
-        total_capacity:
-          description: Total capacity of the drive.
-          type: str
-          sample: "5.16TB"
+          elements: dict
+          contains:
+            drive_location_id:
+              description: Drive location identifier.
+              type: str
+              sample: "0-0"
+            drive_type:
+              description: Drive model identifier.
+              type: str
+              sample: "SNB5B-R1R9NC"
+            drive_type_name:
+              description: Human friendly drive type.
+              type: str
+              sample: "SSD"
+            parity_group_id:
+              description: ID of the parity group.
+              type: str
+              sample: "1-1"
+            serial_number:
+              description: Drive serial number.
+              type: str
+              sample: "DKN02C7E"
+            status:
+              description: Status code of the drive.
+              type: str
+              sample: "NML"
+            total_capacity:
+              description: Total capacity expressed as a human readable string.
+              type: str
+              sample: "1900 GB"
+            total_capacity_mb:
+              description: Total capacity in megabytes.
+              type: float
+              sample: 1945600.0
+            usage_type:
+              description: Usage type for the drive (e.g. DATA, CACHE).
+              type: str
+              sample: "DATA"
 """
 
 

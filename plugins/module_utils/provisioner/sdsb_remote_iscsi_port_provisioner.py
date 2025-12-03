@@ -32,11 +32,11 @@ class SDSBRemoteIscsiPortProvisioner:
             if spec.local_port:
                 local_port = spec.local_port
             if spec.remote_serial:
-                local_port = spec.remote_serial
+                remote_serial = spec.remote_serial
             if spec.remote_storage_system_type:
-                local_port = spec.remote_storage_system_type
+                remote_storage_system_type = spec.remote_storage_system_type
             if spec.remote_port:
-                local_port = spec.remote_port
+                remote_port = spec.remote_port
 
         response = self.gateway.get_remote_iscsi_ports(
             local_port, remote_serial, remote_storage_system_type, remote_port

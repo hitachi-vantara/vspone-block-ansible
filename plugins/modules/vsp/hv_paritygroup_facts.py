@@ -80,10 +80,14 @@ ansible_facts:
       type: list
       elements: dict
       contains:
+        clpr_id:
+          description: CLPR (Cache Logical Partition) ID.
+          type: int
+          sample: 0
         copyback_mode:
-          description: Indicates if copyback mode is enabled.
+          description: Indicates if copy back mode is enabled.
           type: bool
-          sample: false
+          sample: null
         drive_type:
           description: Type of drive.
           type: str
@@ -91,7 +95,11 @@ ansible_facts:
         free_capacity:
           description: Free capacity of the parity group.
           type: str
-          sample: "357.00GB"
+          sample: "0"
+        free_capacity_mb:
+          description: Free capacity in megabytes.
+          type: bool
+          sample: false
         is_accelerated_compression:
           description: Indicates if accelerated compression is enabled.
           type: bool
@@ -99,20 +107,20 @@ ansible_facts:
         is_encryption_enabled:
           description: Indicates if encryption is enabled.
           type: bool
-          sample: false
+          sample: null
         is_pool_array_group:
           description: Indicates if it is a pool array group.
           type: bool
-          sample: false
+          sample: null
         ldev_ids:
           description: List of LDEV IDs.
           type: list
           elements: int
-          sample: [6, 7]
+          sample: [32732, 32733, 32734, 32743, 32752, 32753, 32754, 32755, 32756, 32757, 32758, 32759]
         parity_group_id:
           description: The parity group ID.
           type: str
-          sample: "1-1"
+          sample: "1-2"
         raid_level:
           description: RAID level of the parity group.
           type: str
@@ -121,18 +129,14 @@ ansible_facts:
           description: Resource group ID.
           type: int
           sample: -1
-        resource_id:
-          description: Resource ID.
-          type: str
-          sample: ""
-        status:
-          description: Status of the parity group.
-          type: str
-          sample: "NORMAL"
         total_capacity:
           description: Total capacity of the parity group.
           type: str
-          sample: "5.16TB"
+          sample: "15.46TB"
+        total_capacity_mb:
+          description: Total capacity in megabytes.
+          type: float
+          sample: 16210984.96
 """
 
 
@@ -188,7 +192,7 @@ class VspParityGroupFactManager:
                 snake_case_parity_group_data = camel_dict_to_snake_case(
                     parity_group_data_extracted
                 )
-                data = {"parity_group": snake_case_parity_group_data}
+                data = {"parity_groups": snake_case_parity_group_data}
                 if registration_message:
                     data["user_consent_required"] = registration_message
 

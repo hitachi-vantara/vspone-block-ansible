@@ -64,93 +64,93 @@ ansible_facts:
     returned: success
     type: dict
     contains:
-        remote_connections:
-            description: Newly created remote connection object.
-            returned: success
-            type: list
-            elements: dict
-            contains:
-                cu_status:
-                    description: CU status.
-                    type: str
-                    sample: "NML"
-                cu_type:
-                    description: CU type.
-                    type: str
-                    sample: "REMOTE"
-                min_num_of_paths:
-                    description: Minimum number of paths.
-                    type: int
-                    sample: 1
-                num_of_paths:
-                    description: Number of paths.
-                    type: int
-                    sample: 1
-                path_group_id:
-                    description: Path group ID.
-                    type: int
-                    sample: 101
-                port_type:
-                    description: Port type.
-                    type: str
-                    sample: "FIBRE"
-                remote_paths:
-                    description: List of remote paths.
-                    type: list
-                    elements: dict
-                    contains:
-                        cu_type:
-                            description: CU type.
-                            type: str
-                            sample: "REMOTE"
-                        local_port_id:
-                            description: Local port ID.
-                            type: str
-                            sample: "CL7-C"
-                        path_number:
-                            description: Path number.
-                            type: int
-                            sample: 0
-                        path_status:
-                            description: Path status.
-                            type: str
-                            sample: "NML_01"
-                        port_type:
-                            description: Port type.
-                            type: str
-                            sample: "FIBRE"
-                        remote_port_id:
-                            description: Remote port ID.
-                            type: str
-                            sample: "CL7-C"
-                remote_serial_number:
-                    description: Remote serial number.
-                    type: str
-                    sample: "40014"
-                remote_storage_device_id:
-                    description: Remote storage device ID.
-                    type: str
-                    sample: "900000040014"
-                remote_storage_model:
-                    description: Remote storage model.
-                    type: str
-                    sample: "VSP 5600H"
-                remote_storage_type_id:
-                    description: Remote storage type ID.
-                    type: str
-                    sample: "R9"
-                remotepath_group_id:
-                    description: Remote path group ID.
-                    type: str
-                    sample: "40014,R9,101"
-                round_trip_time_in_milli_seconds:
-                    description: Round trip time in milliseconds.
-                    type: int
-                    sample: 1
-                timeout_value_for_remote_io_in_seconds:
-                    description: Timeout value for remote IO in seconds.
-                    type: int
-                    sample: 15
+      remote_connections:
+        description: Newly created remote connection object.
+        returned: success
+        type: list
+        elements: dict
+        contains:
+            cu_status:
+                description: CU status.
+                type: str
+                sample: "NML"
+            cu_type:
+                description: CU type.
+                type: str
+                sample: "REMOTE"
+            min_num_of_paths:
+                description: Minimum number of paths.
+                type: int
+                sample: 1
+            num_of_paths:
+                description: Number of paths.
+                type: int
+                sample: 1
+            path_group_id:
+                description: Path group ID.
+                type: int
+                sample: 101
+            port_type:
+                description: Port type.
+                type: str
+                sample: "FIBRE"
+            remote_paths:
+                description: List of remote paths.
+                type: list
+                elements: dict
+                contains:
+                    cu_type:
+                        description: CU type.
+                        type: str
+                        sample: "REMOTE"
+                    local_port_id:
+                        description: Local port ID.
+                        type: str
+                        sample: "CL7-C"
+                    path_number:
+                        description: Path number.
+                        type: int
+                        sample: 0
+                    path_status:
+                        description: Path status.
+                        type: str
+                        sample: "NML_01"
+                    port_type:
+                        description: Port type.
+                        type: str
+                        sample: "FIBRE"
+                    remote_port_id:
+                        description: Remote port ID.
+                        type: str
+                        sample: "CL7-C"
+            remote_serial_number:
+                description: Remote serial number.
+                type: str
+                sample: "40014"
+            remote_storage_device_id:
+                description: Remote storage device ID.
+                type: str
+                sample: "900000040014"
+            remote_storage_model:
+                description: Remote storage model.
+                type: str
+                sample: "VSP 5600H"
+            remote_storage_type_id:
+                description: Remote storage type ID.
+                type: str
+                sample: "R9"
+            remotepath_group_id:
+                description: Remote path group ID.
+                type: str
+                sample: "40014,R9,101"
+            round_trip_time_in_milli_seconds:
+                description: Round trip time in milliseconds.
+                type: int
+                sample: 1
+            timeout_value_for_remote_io_in_seconds:
+                description: Timeout value for remote IO in seconds.
+                type: int
+                sample: 15
 """
 
 from ansible.module_utils.basic import AnsibleModule

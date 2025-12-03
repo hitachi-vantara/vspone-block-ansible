@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_storage_network_setting_facts
-short_description: Get storage network settings from storage system
+short_description: Get storage network settings from VSP One SDS Block and Cloud systems.
 description:
-  - Get storage network settings from storage system.
+  - Get storage network settings from the storage system.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/sdsb_storage_node_network_setting_facts.yml)
 version_added: "4.1.0"
@@ -40,22 +40,28 @@ EXAMPLES = """
 RETURN = r"""
 ansible_facts:
   description: >
-    Dictionary containing the discovered DNS and virtual IP configuration.
+    Dictionary containing the discovered storage network settings and optional
+    registration/user-consent message.
   returned: always
   type: dict
   contains:
-    primary_dns_server_ip_address:
-      description: IP address of the primary DNS server. Empty if not configured.
-      type: str
-      sample: ""
-    secondary_dns_server_ip_address:
-      description: IP address of the secondary DNS server. Empty if not configured.
-      type: str
-      sample: ""
-    virtual_ipv4_address:
-      description: Virtual IPv4 address assigned to the system.
-      type: str
-      sample: "192.168.1.100"
+    network_settings:
+      description: Storage network settings.
+      type: dict
+      returned: always
+      contains:
+        primary_dns_server_ip_address:
+          description: IP address of the primary DNS server. Empty if not configured.
+          type: str
+          sample: "10.76.46.10"
+        secondary_dns_server_ip_address:
+          description: IP address of the secondary DNS server. Empty if not configured.
+          type: str
+          sample: ""
+        virtual_ipv4_address:
+          description: Virtual IPv4 address assigned to the system.
+          type: str
+          sample: "10.76.34.110"
 """
 
 

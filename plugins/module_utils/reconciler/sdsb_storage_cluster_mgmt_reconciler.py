@@ -21,7 +21,7 @@ class SDSBStorageControllerReconciler:
     @log_entry_exit
     def snmp_reconcile(self, spec: SNMPModelSpec) -> Any:
 
-        self.provisioner.edit_snmp_settings(spec)
+        return self.provisioner.edit_snmp_settings(spec)
 
     @log_entry_exit
     def snmp_facts_reconcile(self) -> Any:
@@ -45,9 +45,8 @@ class SDSBStorageControllerReconciler:
     @log_entry_exit
     def spare_node_reconcile(self, state: StateValue, spec) -> Any:
         if state == StateValue.PRESENT:
-            return self.provisioner.register_update_spare_node(
-                spec
-            ).camel_to_snake_dict()
+            spare_node = self.provisioner.register_update_spare_node(spec)
+            return spare_node.camel_to_snake_dict() if spare_node else None
         elif state == StateValue.ABSENT:
             self.provisioner.unregister_spare_node(spec)
             return
@@ -67,7 +66,7 @@ class SDSBStorageControllerReconciler:
         elif state == StateValue.IMPORT_ROOT_CERTIFICATE:
             self.provisioner.import_root_certificate(spec)
         elif state == StateValue.DELETE_ROOT_CERTIFICATE:
-            self.provisioner.delete_root_certificate()
+            self.provisioner.delete_root_certificate(spec)
         elif state == StateValue.DOWNLOAD_ROOT_CERTIFICATE:
             self.provisioner.download_root_certificate(spec)
 

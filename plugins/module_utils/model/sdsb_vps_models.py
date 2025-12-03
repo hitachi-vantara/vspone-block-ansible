@@ -154,8 +154,8 @@ class SummaryInformation(SingleBaseClass):
 
 @dataclass
 class SDSBVpsListInfo:
-    data: List[SDSBVpsInfo]
-    summaryInformation: SummaryInformation
+    data: List[SDSBVpsInfo] = None
+    summaryInformation: SummaryInformation = None
 
     def __init__(self, data=None, summaryInformation=None):
         self.data = data if data is not None else []

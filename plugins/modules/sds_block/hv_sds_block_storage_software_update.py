@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_storage_software_update
-short_description: Manages software update and downgrade on Hitachi SDS Block storage systems.
+short_description: Manages software update and downgrade on VSP One SDS Block and Cloud systems.
 description:
-  - This module allows software update and downgrade on Hitachi SDS Block storage systems.
+  - This module allows software update and downgrade on VSP One SDS Block and Cloud systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/software_update.yml)
 version_added: "4.3.0"
@@ -94,13 +94,9 @@ EXAMPLES = """
 RETURN = """
 message:
   description: Success or failure message for the storage software update.
-  returned: always
   type: dict
-  contains:
-    message:
-      description: Success or failure message for the storage software update.
-      type: dict
-      sample: "Successfully downgraded software. ID for this job = 822bd1fa-c5ee-4bea-a47d-f178146248cb."
+  returned: always
+  sample: "Successfully downgraded software. ID for this job = 822bd1fa-c5ee-4bea-a47d-f178146248cb."
 """
 
 from ansible.module_utils.basic import AnsibleModule

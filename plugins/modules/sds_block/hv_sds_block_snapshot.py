@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_snapshot
-short_description: Manages snapshots on Hitachi SDS Block storage systems.
+short_description: Manages snapshots on VSP One SDS Block and Cloud systems.
 description:
   - This module allows you to create, prepare, and finalize snapshots on Hitachi SDS Block storage systems.
   - For examples, go to URL
@@ -182,15 +182,15 @@ snapshot_info:
     snapshot_volume_id:
       description: Unique identifier of the snapshot volume.
       type: str
-      sample: "c3a9d23a-7e03-44a0-b8a3-d39359321947"
+      sample: "1ec0d4ea-2c47-47b2-b76b-22fa7714de43"
     snapshot_volume_name:
       description: Name of the snapshot volume.
       type: str
-      sample: "rd_test_snapshot"
+      sample: "testsnapshot12"
     snapshot_volume_nickname:
       description: Nickname of the snapshot volume.
       type: str
-      sample: "test-volume1"
+      sample: "SDSBolume12"
     status:
       description: Overall snapshot status.
       type: str

@@ -11,11 +11,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_volume
-short_description: Manages volumes on Hitachi VSP One storage systems.
+short_description: Manages volumes on VSP E series and VSP One Block 20 series storage systems.
 description:
   - This module enables creation, modification, and deletion of volumes, as well as attaching and detaching to servers.
   - Supports various volume operations depending on the specified state parameter.
-  - Utilizes the Hitachi Vantara VSP One Simple API for volume management across VSP one B2x and VSP E series models.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for volume management across VSP one B20 series and VSP E series models.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_volume.yml)
 version_added: '4.2.0'

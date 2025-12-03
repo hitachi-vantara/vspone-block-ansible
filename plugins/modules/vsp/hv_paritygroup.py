@@ -145,17 +145,21 @@ parity_group:
       type: int
       sample: 0
     copyback_mode:
-      description: Indicates if copyback mode is enabled.
+      description: Indicates if copy back mode is enabled.
       type: bool
-      sample: false
+      sample: true
     drive_type:
       description: Type of drive.
       type: str
       sample: "SSD"
     free_capacity:
-      description: Free capacity of the parity group.
+      description: Free capacity of the parity group (human readable).
       type: str
-      sample: "5.16TB"
+      sample: "0"
+    free_capacity_mb:
+      description: Free capacity of the parity group in MB.
+      type: float
+      sample: 0.0
     is_accelerated_compression:
       description: Indicates if accelerated compression is enabled.
       type: bool
@@ -163,7 +167,7 @@ parity_group:
     is_encryption_enabled:
       description: Indicates if encryption is enabled.
       type: bool
-      sample: true
+      sample: false
     is_pool_array_group:
       description: Indicates if it is a pool array group.
       type: bool
@@ -172,11 +176,12 @@ parity_group:
       description: List of LDEV IDs.
       type: list
       elements: int
-      sample: []
+      sample:
+        - 32732
     parity_group_id:
       description: Parity group ID.
       type: str
-      sample: "1-10"
+      sample: "1-2"
     raid_level:
       description: RAID level.
       type: str
@@ -184,7 +189,7 @@ parity_group:
     resource_group_id:
       description: Resource group ID.
       type: int
-      sample: null
+      sample: -1
     resource_id:
       description: Resource ID.
       type: int
@@ -194,9 +199,13 @@ parity_group:
       type: str
       sample: null
     total_capacity:
-      description: Total capacity of the parity group.
+      description: Total capacity of the parity group (human readable).
       type: str
-      sample: "5.16TB"
+      sample: "15.46TB"
+    total_capacity_mb:
+      description: Total capacity of the parity group in MB.
+      type: float
+      sample: 16210984.96
 """
 
 from ansible.module_utils.basic import AnsibleModule

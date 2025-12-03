@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_storage_system_facts
-short_description: Retrieves information about a specific Hitachi SDS block storage system.
+short_description: Retrieves information about a specific VSP One SDS Block and Cloud system.
 description:
   - This module gathers facts about a specific storage system.
   - For examples go to URL
@@ -46,22 +46,30 @@ ansible_facts:
   returned: always
   type: dict
   contains:
-    storagesystem:
+    storage_system:
       description: The storage system information.
       type: dict
       contains:
         api_version:
           description: API version.
           type: str
-          sample: "01.17.00.40"
+          sample: "01.18.02.40"
+        cluster_id:
+          description: Cluster UUID.
+          type: str
+          sample: "2f8576d7-2d24-4e73-9550-696434fcfe81"
+        cluster_name:
+          description: Cluster name.
+          type: str
+          sample: "SC01"
         efficiency_data_reduction:
           description: Efficiency data reduction percentage.
           type: int
-          sample: 100
+          sample: -1
         free_pool_capacity_in_mb:
           description: Free pool capacity in megabytes.
           type: int
-          sample: 9518292
+          sample: 24801000
         health_statuses:
           description: List of health statuses.
           type: list
@@ -82,11 +90,11 @@ ansible_facts:
         number_of_compute_ports:
           description: Number of compute ports.
           type: int
-          sample: 3
+          sample: 5
         number_of_drives:
           description: Number of drives.
           type: int
-          sample: 36
+          sample: 60
         number_of_fault_domains:
           description: Number of fault domains.
           type: int
@@ -98,15 +106,15 @@ ansible_facts:
         number_of_total_servers:
           description: Number of total servers.
           type: int
-          sample: 16
+          sample: 8
         number_of_total_storage_nodes:
           description: Number of total storage nodes.
           type: int
-          sample: 0
+          sample: 5
         number_of_total_volumes:
           description: Number of total volumes.
           type: int
-          sample: 14
+          sample: 10
         product_name:
           description: API name.
           type: str
@@ -114,15 +122,19 @@ ansible_facts:
         total_efficiency:
           description: Total efficiency percentage.
           type: int
-          sample: 210
+          sample: -1
         total_pool_capacity_in_mb:
           description: Total pool capacity in megabytes.
           type: int
-          sample: 9519048
+          sample: 24801000
         used_pool_capacity_in_mb:
           description: Used pool capacity in megabytes.
           type: int
-          sample: 756
+          sample: 0
+        write_back_mode_with_cache_protection:
+          description: Write-back mode with cache protection status.
+          type: str
+          sample: "Enabled"
 """
 
 

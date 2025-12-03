@@ -116,10 +116,18 @@ ansible_facts:
           description: Consistency group ID.
           type: int
           sample: -1
+        copy_group_name:
+          description: Copy group name.
+          type: str
+          sample: "SI_768"
         copy_pace_track_size:
           description: Copy pace track size.
           type: str
           sample: "MEDIUM"
+        copy_pair_name:
+          description: Copy pair name.
+          type: str
+          sample: "SI_768"
         copy_rate:
           description: Copy rate.
           type: int
@@ -127,15 +135,42 @@ ansible_facts:
         mirror_unit_id:
           description: Mirror unit ID.
           type: int
-          sample: -1
+          sample: 0
         primary_volume_id_hex:
           description: Primary hex volume ID in hexadecimal.
           type: str
-          sample: "00:01:12"
+          sample: "00:03:00"
         primary_volume_id:
           description: Primary volume ID.
           type: int
-          sample: 274
+          sample: 768
+        pvol_host_groups:
+          description: Primary volume host groups.
+          type: list
+          elements: dict
+          sample: []
+        pvol_iscsi_targets:
+          description: Primary volume iSCSI targets.
+          type: list
+          elements: dict
+          sample: [{"host_group_name": "iscsi176", "host_group_number": 2, "lun": 0, "port_id": "CL2-C"}]
+          contains:
+            host_group_name:
+              description: Host group name.
+              type: str
+            host_group_number:
+              description: Host group number.
+              type: int
+            lun:
+              description: LUN number.
+              type: int
+            port_id:
+              description: Port ID.
+              type: str
+        pvol_nvm_subsystem_name:
+          description: Primary volume NVM subsystem name.
+          type: str
+          sample: ""
         resource_id:
           description: Resource ID.
           type: str
@@ -143,11 +178,11 @@ ansible_facts:
         secondary_volume_id_hex:
           description: Secondary hex volume ID in hexadecimal.
           type: str
-          sample: "00:01:17"
+          sample: "00:03:03"
         secondary_volume_id:
           description: Secondary volume ID.
           type: int
-          sample: 279
+          sample: 771
         status:
           description: Status of the shadow image pair.
           type: str
@@ -155,9 +190,35 @@ ansible_facts:
         storage_serial_number:
           description: Storage serial number.
           type: str
-          sample: "811150"
+          sample: "810045"
+        svol_host_groups:
+          description: Secondary volume host groups.
+          type: list
+          elements: dict
+          sample: []
+        svol_iscsi_targets:
+          description: Secondary volume iSCSI targets.
+          type: list
+          elements: dict
+          sample: [{"host_group_name": "iscsi176", "host_group_number": 2, "lun": 3, "port_id": "CL2-C"}]
+          contains:
+            host_group_name:
+              description: Host group name.
+              type: str
+            host_group_number:
+              description: Host group number.
+              type: int
+            lun:
+              description: LUN number.
+              type: int
+            port_id:
+              description: Port ID.
+              type: str
+        svol_nvm_subsystem_name:
+          description: Secondary volume NVM subsystem name.
+          type: str
+          sample: ""
 """
-
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (

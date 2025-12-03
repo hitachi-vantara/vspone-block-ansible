@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_compute_port
-short_description: Manages compute port on Hitachi SDS Block storage systems.
+short_description: Manages compute ports in VSP One SDS Block and Cloud systems.
 description:
   - This module allows to change the settings and protocol of the compute port on Hitachi SDS Block storage systems.
   - For examples, go to URL

@@ -232,10 +232,18 @@ data:
       description: Consistency group id.
       type: int
       sample: -1
+    copy_group_name:
+      description: Copy group name.
+      type: str
+      sample: "SI172"
     copy_pace_track_size:
       description: Copy pace track size.
       type: str
-      sample: "MEDIUM"
+      sample: ""
+    copy_pair_name:
+      description: Copy pair name.
+      type: str
+      sample: "CPTest"
     copy_rate:
       description: Copy rate.
       type: int
@@ -243,27 +251,41 @@ data:
     mirror_unit_id:
       description: Mirror unit id.
       type: int
-      sample: -1
-    primary_volume_id_hex:
-      description: Primary hex volume id.
-      type: str
-      sample: "00:01:12"
+      sample: 0
     primary_volume_id:
       description: Primary volume id.
       type: int
-      sample: 274
-    resource_id:
-      description: Resource id.
+      sample: 172
+    primary_volume_id_hex:
+      description: Primary hex volume id.
       type: str
-      sample: "localpair-2749fed78e8d23a61ed17a8af71c85f8"
-    secondary_volume_id_hex:
-      description: Secondary hex volume id.
+      sample: "00:00:AC"
+    pvol_host_groups:
+      description: Primary volume host groups.
+      type: list
+      elements: dict
+      sample:
+        - host_group_name: "hostserver1153"
+          host_group_number: 189
+          lun: 0
+          port_id: "CL2-B"
+    pvol_iscsi_targets:
+      description: Primary volume iSCSI targets.
+      type: list
+      elements: dict
+      sample: []
+    pvol_nvm_subsystem_name:
+      description: Primary volume's nvm subsystem name.
       type: str
-      sample: "00:01:17"
+      sample: ""
     secondary_volume_id:
       description: Secondary volume id.
       type: int
-      sample: 279
+      sample: 173
+    secondary_volume_id_hex:
+      description: Secondary hex volume id.
+      type: str
+      sample: "00:00:AD"
     status:
       description: Status.
       type: str
@@ -271,15 +293,25 @@ data:
     storage_serial_number:
       description: Storage serial number.
       type: str
-      sample: "811150"
-    pvol_nvm_subsystem_name:
-      description: Primary volume's nvm subsystem name.
-      type: str
-      sample: "smrha-3950276934"
+      sample: "810050"
+    svol_host_groups:
+      description: Secondary volume host groups.
+      type: list
+      elements: dict
+      sample:
+        - host_group_name: "hostserver1153"
+          host_group_number: 189
+          lun: 1
+          port_id: "CL2-B"
+    svol_iscsi_targets:
+      description: Secondary volume iSCSI targets.
+      type: list
+      elements: dict
+      sample: []
     svol_nvm_subsystem_name:
       description: Secondary volume's nvm subsystem name.
       type: str
-      sample: "smrha-3950276934"
+      sample: ""
 """
 
 from ansible.module_utils.basic import AnsibleModule

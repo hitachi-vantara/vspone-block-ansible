@@ -174,20 +174,24 @@ class SDSBStorageClusterManagementGateway:
 
         try:
             # Download the certificate content as binary data
-            response = self.connection_manager.get(endpoint)
+            response = self.connection_manager.download_file(endpoint)
 
             # Ensure the download directory exists
             os.makedirs(os.path.dirname(download_path), exist_ok=True)
-
+            file_name = "bmc_root_certificate.cer"
+            logger.writeInfo(f"Response from BMC: {response}")
             # Save the binary content to the specified download path
-            with open(download_path, "wb") as cert_file:
-                cert_file.write(response)
-
-            logger.writeDebug(
-                "GW:get_root_certificate:certificate downloaded and saved to={}",
-                download_path,
-            )
-            return True
+            with open(os.path.join(download_path, file_name), "wb") as cert_file:
+                if isinstance(response, bytes):
+                    cert_file.write(response)
+                elif isinstance(response, str):
+                    cert_file.write(response.encode("utf-8"))
+                else:
+                    # Handle other response types by converting to bytes
+                    cert_file.write(str(response).encode("utf-8"))
+            msg = f"Certificate downloaded and saved to {os.path.join(download_path, file_name)}"
+            logger.writeInfo(msg)
+            return msg
 
         except Exception as e:
             logger.writeError("Error downloading and saving certificate: {}", e)
@@ -350,14 +354,8 @@ class SDSBStorageClusterManagementGateway:
 
         payload = {}
 
-        if spec.allowlist_setting is not None:
-            payload["allowlistSetting"] = (
-                spec.allowlist_setting.create_server_allow_settings_spec()
-            )
-        if spec.whitelist_setting is not None:
-            payload["whitelistSetting"] = (
-                spec.whitelist_setting.create_server_allow_settings_spec()
-            )
+        if spec.enable_client_address_allowlist is not None:
+            payload["allowlistSetting"] = spec.create_server_allow_settings_spec()
 
         response = self.connection_manager.patch(endpoint, payload)
         logger.writeDebug("GW:edit_web_server_access_settings:response={}", response)

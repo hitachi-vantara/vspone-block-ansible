@@ -101,15 +101,86 @@ EXAMPLES = """
 """
 
 RETURN = """
-data:
-  description: The External Volume managed by the module.
-  returned: success
-  type: list
-  elements: dict
-  sample: {
-    "ldev_id": 151
-  }
+external_volume:
+  description: Detailed information about the external volume on the storage system.
+  returned: when state is present
+  type: dict
+  contains:
+    canonical_name:
+      description: Canonical name of the external volume.
+      type: str
+      sample: ""
+    emulation_type:
+      description: Emulation type of the external volume.
+      type: str
+      sample: "OPEN-V"
+    externalPorts:
+      description: List of external ports associated with the volume.
+      type: list
+      elements: dict
+      contains:
+        host_group_number:
+          description: Host group number for the external port.
+          type: int
+          sample: 0
+        lun:
+          description: Logical unit number.
+          type: int
+          sample: 17
+        port_id:
+          description: Port identifier.
+          type: str
+          sample: "CL6-A"
+        wwn:
+          description: World Wide Name of the port.
+          type: str
+          sample: "50060e8012277d61"
+    externalVolumeId:
+      description: External volume identifier.
+      type: str
+      sample: "484954414348492035303430323737443035353400000000000000000000000000000000"
+    ldev_id:
+      description: Logical device ID.
+      type: int
+      sample: 1579
+    logical_unit_id_hex_format:
+      description: Logical unit ID in hexadecimal format.
+      type: str
+      sample: "00:06:2B"
+    name:
+      description: Name of the external volume.
+      type: str
+      sample: "quorum-1364"
+    provision_type:
+      description: Provisioning type of the volume.
+      type: str
+      sample: "ELUN,QRD"
+    resource_group_id:
+      description: Resource group ID.
+      type: int
+      sample: 0
+    status:
+      description: Status of the external volume.
+      type: str
+      sample: "BLK"
+    total_capacity:
+      description: Total capacity in human readable format.
+      type: str
+      sample: "20.00GB"
+    total_capacity_in_mb:
+      description: Total capacity in megabytes.
+      type: float
+      sample: 20480.0
+    virtual_ldev_id:
+      description: Virtual logical device ID.
+      type: int
+      sample: -1
+external_parity_group:
+  description: Information about the external parity group.
+  returned: when state is disconnect
+  type: dict
 """
+
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_external_volume_reconciler import (

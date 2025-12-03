@@ -73,33 +73,29 @@ EXAMPLES = """
 
 RETURN = """
 ansible_facts:
-  description: >
-    Dictionary containing the discovered properties of the DDP pools.
+  description: Dictionary containing the discovered properties of the DDP pools.
   returned: always
   type: dict
   contains:
     DDP_Pools:
-      description: A list of DDP pools information.
+      description: A list of DDP pool information.
       returned: success
-      type: dict
+      type: list
+      elements: dict
       contains:
         capacity_manage:
           description: Capacity management details.
-          type: list
-          elements: dict
+          type: dict
           contains:
             threshold_depletion:
               description: Threshold for capacity depletion.
               type: int
-              sample: 80
             threshold_warning:
               description: Threshold for capacity warning.
               type: int
-              sample: 70
             used_capacity_rate:
               description: Used capacity rate.
               type: int
-              sample: 0
         config_status:
           description: Configuration status of the pool.
           type: list
@@ -107,7 +103,6 @@ ansible_facts:
         contains_capacity_saving_volume:
           description: Indicates if the pool contains capacity-saving volumes.
           type: bool
-          sample: false
         drives:
           description: Details of the drives in the pool.
           type: list
@@ -116,76 +111,58 @@ ansible_facts:
             display_drive_capacity:
               description: Display capacity of the drive.
               type: str
-              sample: "1.9 TB"
             drive_capacity_gb:
               description: Capacity of the drive in GB.
               type: int
-              sample: 1900
             drive_interface:
               description: Interface type of the drive.
               type: str
-              sample: "NVMe"
             drive_rpm:
               description: Drive RPM.
               type: str
-              sample: "NUMBER_0"
             drive_type:
               description: Type of the drive.
               type: str
-              sample: "SSD"
             locations:
               description: Locations of the drives.
               type: list
               elements: str
-              sample: ["0-0", "0-1", "0-2", "0-3"]
             number_of_drives:
               description: Number of drives.
               type: int
-              sample: 4
             parity_group_type:
               description: Parity group type.
               type: str
-              sample: "DEFAULT"
             raid_level:
               description: RAID level.
               type: str
-              sample: "RAID5"
-            total_capacity:
-              description: Total capacity of the drives in GB.
+            total_capacity_mb:
+              description: Total capacity of the drives in MiB.
               type: int
-              sample: 7600
-        effective_capacity:
-          description: Effective capacity of the pool in GB.
+        effective_capacity_mb:
+          description: Effective capacity of the pool in MiB.
           type: int
-          sample: 3990
         encryption:
           description: Encryption status of the pool.
           type: str
-          sample: "DISABLED"
         free_capacity_mb:
-          description: Free capacity of the pool in MB.
+          description: Free capacity of the pool in MiB.
           type: int
-          sample: 3990
         id:
           description: ID of the DDP Pool.
           type: int
-          sample: 15
         name:
           description: Name of the DDP Pool.
           type: str
-          sample: "GK-21268"
         number_of_drive_types:
           description: Number of drive types in the pool.
           type: int
-          sample: 1
         number_of_tiers:
           description: Number of tiers in the pool.
           type: int
-          sample: 0
         number_of_volumes:
           description: Number of volumes in the pool.
           type: int
-          sample: 13
         saving_effects:
           description: Details of saving effects in the pool.
           type: dict
@@ -193,59 +170,45 @@ ansible_facts:
             calculation_end_time:
               description: End time of the calculation.
               type: str
-              sample: "2025-04-03T22:23:00Z"
             calculation_start_time:
               description: Start time of the calculation.
               type: str
-              sample: "2025-04-03T22:21:19Z"
             data_reduction_without_system_data:
               description: Data reduction without system data.
               type: int
-              sample: -1
             data_reduction_without_system_data_status:
               description: Status of data reduction without system data.
               type: str
-              sample: "NoTargetData"
             efficiency_data_reduction:
               description: Efficiency of data reduction.
               type: int
-              sample: -1
             efficiency_fmd_saving:
               description: Efficiency of FMD saving.
               type: int
-              sample: -1
             is_total_efficiency_support:
               description: Indicates if total efficiency is supported.
               type: bool
-              sample: true
             post_capacity_fmd_saving:
               description: Post-capacity FMD saving.
               type: int
-              sample: 0
             pre_capacity_fmd_saving:
               description: Pre-capacity FMD saving.
               type: int
-              sample: 0
             software_saving_without_system_data:
               description: Software saving without system data.
               type: int
-              sample: -1
             software_saving_without_system_data_status:
               description: Status of software saving without system data.
               type: str
-              sample: "NoTargetData"
             total_efficiency:
               description: Total efficiency of the pool.
               type: int
-              sample: 9223372036854775807
             total_efficiency_status:
               description: Status of total efficiency.
               type: str
-              sample: "Valid"
         status:
           description: Status of the pool.
           type: str
-          sample: "Normal"
         subscription_limit:
           description: Subscription limit details.
           type: dict
@@ -253,11 +216,9 @@ ansible_facts:
             current_rate:
               description: Current subscription rate.
               type: int
-              sample: 396
             is_enabled:
               description: Indicates if subscription limit is enabled.
               type: bool
-              sample: false
         tiers:
           description: Details of the tiers in the pool.
           type: list
@@ -265,11 +226,9 @@ ansible_facts:
         total_capacity_mb:
           description: Total capacity of the pool in MiB.
           type: int
-          sample: 3990
         used_capacity_mb:
-          description: Used capacity of the pool in MB.
+          description: Used capacity of the pool in MiB.
           type: int
-          sample: 0
 """
 
 from ansible.module_utils.basic import AnsibleModule

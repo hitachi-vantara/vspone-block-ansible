@@ -117,7 +117,7 @@ ansible_facts:
   returned: success
   type: dict
   contains:
-    gad_pairs:
+    gad_pair:
       description: List of GAD pairs with their attributes.
       type: list
       elements: dict
@@ -125,23 +125,23 @@ ansible_facts:
         consistency_group_id:
           description: Consistency group ID.
           type: int
-          sample: 1
+          sample: -1
         copy_group_name:
           description: Copy group name.
           type: str
-          sample: "GAD_pair1"
+          sample: "cp_group_840"
         copy_pace_track_size:
           description: Copy pace track size.
-          type: int
-          sample: -1
+          type: str
+          sample: ""
         copy_pair_name:
           description: Pair name.
           type: str
-          sample: "GAD_Pair_2025"
+          sample: "gad_pair_840"
         copy_rate:
           description: Copy rate.
-          type: int
-          sample: 0
+          type: str
+          sample: ""
         is_alua_enabled:
           description: Whether ALUA is enabled or not.
           type: bool
@@ -149,11 +149,11 @@ ansible_facts:
         local_device_group_name:
           description: Local device group name.
           type: str
-          sample: "GAD_pair1P_"
+          sample: "cp_group_840S_"
         mirror_unit_id:
           description: Mirror unit ID.
           type: int
-          sample: 1
+          sample: 0
         primary_virtual_serial_number:
           description: Primary virtual serial number.
           type: int
@@ -165,15 +165,19 @@ ansible_facts:
         primary_volume_id:
           description: Primary volume ID.
           type: int
-          sample: 3010
+          sample: 840
+        primary_volume_id_hex:
+          description: Primary volume ID in hexadecimal format.
+          type: str
+          sample: "00:03:48"
         primary_volume_status:
           description: Status of the GAD pair.
           type: str
-          sample: "PAIR"
+          sample: "PSUE"
         primary_volume_storage_id:
           description: Primary volume storage ID.
           type: str
-          sample: "811110"
+          sample: "810050"
         primary_vsm_resource_group_name:
           description: Primary VSM resource group name.
           type: str
@@ -181,19 +185,19 @@ ansible_facts:
         quorum_disk_id:
           description: Quorum disk ID.
           type: int
-          sample: 3010
+          sample: 21
         remote_device_group_name:
           description: Remote device group name.
           type: str
-          sample: "GAD_pair1P_"
+          sample: "cp_group_840P_"
         remote_mirror_copy_pair_id:
           description: Remote mirror copy pair ID.
           type: str
-          sample: "GAD_pair1P_"
+          sample: "A34000810050,cp_group_840,cp_group_840S_,cp_group_840P_,gad_pair_840"
         secondary_virtual_serial_number:
           description: Secondary virtual storage ID.
-          type: str
-          sample: ""
+          type: int
+          sample: -1
         secondary_virtual_volume_id:
           description: Secondary virtual volume ID.
           type: int
@@ -201,32 +205,23 @@ ansible_facts:
         secondary_volume_id:
           description: Secondary volume ID.
           type: int
-          sample: 3010
+          sample: 831
+        secondary_volume_id_hex:
+          description: Secondary volume ID in hexadecimal format.
+          type: str
+          sample: "00:03:3F"
         secondary_volume_status:
           description: Status of the GAD pair.
           type: str
-          sample: "PAIR"
+          sample: "PSUE"
         secondary_volume_storage_id:
           description: Secondary volume storage ID.
           type: str
-          sample: "811111"
+          sample: "810045"
         secondary_vsm_resource_group_name:
           description: Secondary VSM resource group name.
           type: str
           sample: ""
-
-        # primary_virtual_hex_volume_id:
-        #   description: Primary virtual hex volume ID.
-        #   type: str
-        #   sample: "00:00:01"
-        # secondary_virtual_hex_volume_id:
-        #   description: Secondary virtual hex volume ID.
-        #   type: int
-        #   sample: -1
-        # storage_serial_number:
-        #   description: Storage serial number.
-        #   type: str
-        #   sample: "811111"
 """
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (

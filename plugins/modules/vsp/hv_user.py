@@ -143,7 +143,7 @@ users:
       description: The authentication method.
       type: str
       sample: "local"
-    group_names:
+    user_group_names:
       description: The user group names.
       type: list
       elements: str

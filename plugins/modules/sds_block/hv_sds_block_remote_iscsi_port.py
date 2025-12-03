@@ -11,10 +11,10 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_remote_iscsi_port
-short_description: Manages remote iSCSI port on Hitachi SDS Block storage systems.
+short_description: Manages remote iSCSI ports in VSP One SDS Block and Cloud systems.
 description:
   - This module allows registers a remote iSCSI port,
-    and deletes information about registered remote iSCSI ports on Hitachi SDS Block storage systems.
+    and deletes information about registered remote iSCSI ports on VSP One SDS Block and Cloud systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/remote_iscsi_port.yml)
 version_added: "4.2.0"

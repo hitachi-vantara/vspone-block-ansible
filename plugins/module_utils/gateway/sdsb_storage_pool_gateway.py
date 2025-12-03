@@ -21,6 +21,7 @@ GET_STORAGE_POOLS_QUERY = "v1/objects/pools{}"
 GET_STORAGE_POOLBY_NAME = "v1/objects/pools?name={}"
 GET_STORAGE_POOL_BY_ID = "v1/objects/pools/{}"
 EDIT_STORAGE_POOL_SETTINGS = "v1/objects/pools/{}"
+UPDATE_STORAGE_POOL_ENCRYPTION = "v1/objects/encryption-units/pools/{}"
 
 logger = Log()
 
@@ -98,5 +99,17 @@ class SDSBStoragePoolDirectGateway:
                     "numberOfTolerableDriveFailures": number_of_tolerable_drive_failures
                 },
             }
+        storage_pool = self.connection_manager.patch(end_point, payload)
+        return storage_pool
+
+    @log_entry_exit
+    def update_storage_pool_encryption(self, id, is_encryption_enabled):
+        end_point = UPDATE_STORAGE_POOL_ENCRYPTION.format(id)
+        payload = {"isEncryptionEnabled": is_encryption_enabled}
+        logger.writeDebug(
+            "GW:update_storage_pool_encryption:endpoint={}, payload={}",
+            end_point,
+            payload,
+        )
         storage_pool = self.connection_manager.patch(end_point, payload)
         return storage_pool

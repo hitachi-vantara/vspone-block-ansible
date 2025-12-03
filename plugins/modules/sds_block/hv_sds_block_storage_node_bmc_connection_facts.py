@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_sds_block_storage_node_bmc_connection_facts
-short_description: Get storage node BMC access settings from storage system
+short_description: Get storage node BMC access settings from the storage system.
 description:
-  - Get storage node BMC access settings from storage system.
+  - Get storage node BMC access settings from the storage system.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/sds_block_direct/storage_node_bmc_access_setting_facts.yml)
 version_added: '4.2.0'

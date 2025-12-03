@@ -327,74 +327,124 @@ EXAMPLES = """
 """
 
 RETURN = """
-hostGroups:
-  description: Information of host group.
+host_group:
+  description: Detailed information about the host group on the storage system.
   returned: always
   type: dict
   contains:
     host_group_id:
-      description: ID of the host group.
+      description: ID of the host group (internal identifier used by the storage system).
       type: int
-      sample: 93
+      sample: 33
     host_group_name:
-      description: Name of the host group.
+      description: Human readable name of the host group.
       type: str
-      sample: "ansible-test-hg"
+      sample: "AutoAnsibleHurPri01"
     host_mode:
-      description: Host mode of the host group.
+      description: Configured host mode for the host group (OS type or special mode).
       type: str
-      sample: "STANDARD"
+      sample: "LINUX"
     host_mode_options:
-      description: List of host mode options for the host group.
+      description: List of host mode option identifiers currently set for the host group.
       type: list
-      elements: dict
-      contains:
-        host_mode_option:
-          description: Name of the host mode option.
-          type: str
-          sample: "EXTENDED_COPY"
-        host_mode_option_number:
-          description: Number of the host mode option.
-          type: int
-          sample: 54
+      elements: int
+      sample: []
     lun_paths:
-      description: List of LUN paths for the host group.
+      description: List of LUN path entries associated with this host group. Each entry describes an LDEV mapping and path metadata.
       type: list
       elements: dict
       contains:
-        ldevId:
-          description: ID of the logical device.
+        asymmetric_access_state:
+          description: Asymmetric access state for the path (for ALUA-capable devices).
+          type: str
+          sample: "Active/Optimized"
+        host_group_number:
+          description: Numeric host group identifier as exposed via the path.
           type: int
-          sample: 166
-        lunId:
-          description: ID of the LUN.
+          sample: 33
+        host_mode:
+          description: Host mode string reported for the path (may include extra qualifiers).
+          type: str
+          sample: "LINUX/IRIX"
+        host_mode_options:
+          description: Host mode option identifiers reported for the path.
+          type: list
+          elements: int
+          sample: []
+        is_alua_enabled:
+          description: Whether ALUA is enabled for the path.
+          type: bool
+          sample: false
+        is_command_device:
+          description: Whether the LDEV is marked as a command device.
+          type: bool
+          sample: false
+        ldev_id:
+          description: Logical device ID (decimal).
           type: int
-          sample: 0
-    port:
-      description: Port associated with the host group.
+          sample: 3694
+        ldev_id_hex:
+          description: Logical device ID formatted in hex (colon separated).
+          type: str
+          sample: "00:0E:6E"
+        lu_host_reserve:
+          description: Host reservation information for the LU path, presented as booleans for reservation types and keys.
+          type: dict
+          contains:
+            aca_reserve:
+              description: Whether ACA (Auto Contingent Allegiance) reserve is set.
+              type: bool
+              sample: false
+            mainframe:
+              description: Whether mainframe-style reserve is set.
+              type: bool
+              sample: false
+            open_system:
+              description: Whether open system (standard SCSI-based) reserve is set.
+              type: bool
+              sample: false
+            persistent:
+              description: Whether persistent reservation is active.
+              type: bool
+              sample: false
+            pgr_key:
+              description: Presence of a persistent group reservation key.
+              type: bool
+              sample: false
+        lun:
+          description: LUN number assigned to this path.
+          type: int
+          sample: 17
+        lun_id:
+          description: Identifier string for the LU path, typically combining port, hostgroup number and LUN.
+          type: str
+          sample: "CL4-B,33,17"
+        port_id:
+          description: Port identifier associated with this path entry.
+          type: str
+          sample: "CL4-B"
+    port_id:
+      description: Default or requested port associated with the host group operations (e.g., CLx-A).
       type: str
-      sample: "CL1-A"
+      sample: "CL4-B"
     resource_group_id:
-      description: Resource group ID associated with the host group.
+      description: Resource group ID associated with the host group (if applicable).
       type: int
       sample: 0
-    storage_id:
-      description: Storage ID associated with the host group.
-      type: str
-      sample: "storage-39f4eef0175c754bb90417358b0133c3"
     wwns:
-      description: List of WWNs associated with the host group.
+      description: List of WWN entries (host HBA identifiers) that belong to the host group.
       type: list
       elements: dict
       contains:
-        id:
-          description: ID of the WWN.
+        wwn:
+          description: World Wide Name string for the host HBA.
           type: str
-          sample: "1212121212121212"
-        name:
-          description: Name of the WWN.
+          sample: "100000109B583B2D"
+        nick_name:
+          description: Optional human readable nickname assigned to the WWN.
           type: str
-          sample: ""
+          sample: "app-server-1"
+      sample: []
 """
 
 from ansible.module_utils.basic import AnsibleModule

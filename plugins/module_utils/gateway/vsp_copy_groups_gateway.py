@@ -243,6 +243,7 @@ class VSPCopyGroupsDirectGateway:
             remote_connection_info.password,
             remote_connection_info.api_token,
         )
+
         return self.remote_connection_manager.getAuthToken()
 
     @log_entry_exit

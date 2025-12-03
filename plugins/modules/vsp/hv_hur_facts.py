@@ -172,15 +172,15 @@ ansible_facts:
         consistency_group_id:
           description: Consistency Group ID.
           type: int
-          sample: -1
+          sample: 39
         copy_group_name:
           description: Name of the copy group.
           type: str
-          sample: "HUR_TEST_1107"
+          sample: "spcA34000810045A34000810050"
         copy_pair_name:
           description: Name of the copy pair.
           type: str
-          sample: "rd_copy_pair_202"
+          sample: "spc-7331-6442"
         copy_rate:
           description: Copy rate.
           type: int
@@ -188,43 +188,59 @@ ansible_facts:
         mirror_unit_id:
           description: Mirror unit ID.
           type: int
-          sample: 0
+          sample: 1
         primary_journal_pool:
           description: Primary journal pool.
           type: int
-          sample: 59
+          sample: 25
         primary_volume_id:
           description: Primary volume ID.
           type: int
-          sample: 631
+          sample: 6442
+        primary_volume_id_hex:
+          description: Hexadecimal representation of the primary volume ID.
+          type: str
+          sample: "00:19:2A"
         primary_volume_storage_id:
           description: Primary volume storage ID.
           type: str
-          sample: "40014"
+          sample: "810050"
         pvol_status:
           description: PVOL status.
           type: str
           sample: "PAIR"
+        pvol_storage_device_id:
+          description: PVOL storage device ID.
+          type: str
+          sample: "A34000810050"
         remote_mirror_copy_pair_id:
           description: Remote mirror copy pair ID.
           type: str
-          sample: "A34000810045,TC_TEST_1107,TC_TEST_1107P_,TC_TEST_1107S_,rd_copy_pair_202"
+          sample: "A34000810050,spcA34000810045A34000810050,spcA34000810045A34000810050,spcA34000810050A34000810045,spc-7331-6442"
         secondary_journal_pool:
           description: Secondary journal pool.
           type: int
-          sample: 59
+          sample: 25
         secondary_volume_id:
           description: Secondary volume ID.
           type: int
-          sample: 202
-        secondary_volume_storage_id:
-          description: Primary volume storage ID.
+          sample: 7331
+        secondary_volume_id_hex:
+          description: Hexadecimal representation of the secondary volume ID.
           type: str
-          sample: "40014"
+          sample: "00:1C:A3"
+        secondary_volume_storage_id:
+          description: Secondary volume storage ID.
+          type: str
+          sample: "810045"
         svol_status:
           description: SVOL status.
           type: str
           sample: "PAIR"
+        svol_storage_device_id:
+          description: SVOL storage device ID.
+          type: str
+          sample: "A34000810045"
 """
 
 from ansible.module_utils.basic import AnsibleModule

@@ -121,8 +121,26 @@ class SDSBClusterReconciler:
             resp_data = self.replace_storage_node(spec=spec)
         elif state == StateValue.SYSTEM_REQUIREMENT_FILE_PRESENT:
             resp_data = self.import_system_requirement_file(spec=spec)
+        elif state == StateValue.STOP_STORAGE_CLUSTER:
+            resp_data = self.stop_storage_cluster(spec=spec)
         if resp_data:
             return resp_data
+
+    @log_entry_exit
+    def stop_storage_cluster(self, spec=None):
+        if spec and spec.force and (spec.reboot or spec.config_parameter_setting_mode):
+            raise ValueError(
+                SDSBClusterValidationMsg.BAD_PARAMETERS_FOR_STOP_CLUSTER.value
+            )
+        try:
+            resp = self.provisioner.stop_storage_cluster(spec)
+            msg = SDSBClusterValidationMsg.STOP_CLUSTER_SUCCESS_MSG.value.format(resp)
+            self.connection_info.changed = True
+            return msg
+        except Exception as e:
+            logger.writeException(e)
+            msg = SDSBClusterValidationMsg.STOP_CLUSTER_FAILURE_MSG.value
+            return msg
 
     @log_entry_exit
     def import_system_requirement_file(self, spec=None):
