@@ -4,6 +4,20 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.5.1
+======
+
+Release Summary
+---------------
+
+This minor release of `hitachivantara.vspone_block` includes bug fixes for resource group creation with VSP 5XXX series storage systems and various playbook improvements.
+
+Bugfixes
+--------
+
+- Resolved resource group creation with VSP 5XXX series storage systems.
+- Various playbook fixes and improvements.
+
 v4.5.0
 ======
 

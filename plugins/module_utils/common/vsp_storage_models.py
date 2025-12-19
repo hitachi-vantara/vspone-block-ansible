@@ -2,14 +2,14 @@ class VSPStorageModelsManager:
 
     direct_storage_models_mapping = {
         # The following models are present in GW
-        "VSP_5100H": "VSP 5000 series hybrid",
-        "VSP_5200H": "VSP 5000 series hybrid",
-        "VSP_5500H": "VSP 5000 series hybrid",
-        "VSP_5600H": "VSP 5000 series hybrid",
-        "VSP_5100": "VSP 5000 series AFA",
-        "VSP_5200": "VSP 5000 series AFA",
-        "VSP_5500": "VSP 5000 series AFA",
-        "VSP_5600": "VSP 5000 series AFA",
+        "VSP_5100H": "VSP 5100H, 5500H",
+        "VSP_5200H": "VSP 5200H, 5600H",
+        "VSP_5500H": "VSP 5100H, 5500H",
+        "VSP_5600H": "VSP 5200H, 5600H",
+        "VSP_5100": "VSP 5100, 5500",
+        "VSP_5200": "VSP 5200, 5600",
+        "VSP_5500": "VSP 5100, 5500",
+        "VSP_5600": "VSP 5200, 5600",
         "VSP_E1090": "VSP E1090",
         "VSP_E590": "VSP E590",
         "VSP_E790": "VSP E790",

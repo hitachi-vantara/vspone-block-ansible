@@ -18,9 +18,10 @@
 
   tasks:
     ######################################################################################
-    # Task Name : Create a new remote connection using iSCSI ports
+    # Task Name : Register iSCSI ports
+    # Perform this operation before creating/adding a iSCSI remote path to a remote connection.
     ######################################################################################
-    - name: Create a new remote connection using iSCSI ports
+    - name: Register iSCSI ports
       hitachivantara.vspone_block.vsp.hv_iscsi_remote_connection:
         connection_info: "{{ connection_info }}"
         state: present
@@ -37,9 +38,9 @@
         var: result
 
     ######################################################################################
-    # Task Name : Delete a iSCSI based remote connection
+    # Task Name : Remove the registration of an iSCSI port
     ######################################################################################
-    - name: Delete a iSCSI based remote connection
+    - name: Remove the registration of an iSCSI port
       hitachivantara.vspone_block.vsp.hv_iscsi_remote_connection:
         connection_info: "{{ connection_info }}"
         state: absent

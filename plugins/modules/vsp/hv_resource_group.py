@@ -4,16 +4,16 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
+
 
 DOCUMENTATION = """
 ---
 module: hv_resource_group
-short_description: Manages resource groups on Hitachi VSP storage systems.
+short_description: Manages resource groups on VSP block storage systems.
 description:
-  - This module allows the creation and deletion of resource groups on Hitachi
-    VSP storage systems.
+  - This module allows the creation and deletion of resource groups on
+    VSP block storage systems.
   - It also enables adding or removing various types of resources to/from the
     resource group.
   - For examples, go to URL
@@ -30,6 +30,10 @@ attributes:
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.gateway_note
   - hitachivantara.vspone_block.common.connection_with_type
+notes:
+  - If any resource is locked in the target storage system, the operations
+    related to resource groups cannot be performed. In such cases, unlock the
+    resources before running resource group related operations.
 options:
   state:
     description: The desired state of the resource group task.
@@ -439,18 +443,18 @@ resource_groups:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
-    VSPResourceGroupArguments,
-    VSPParametersManager,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
-    Log,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_resource_group import (
     VSPResourceGroupReconciler,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
-    validate_ansible_product_registration,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
+    VSPResourceGroupArguments,
+    VSPParametersManager,
 )
 
 
@@ -475,7 +479,8 @@ class VSPResourceGroupManager:
                 f"MOD:hv_resource_group:spec= {self.spec} ss = {self.storage_serial_number}"
             )
         except Exception as e:
-            self.logger.writeError(f"An error occurred during initialization: {str(e)}")
+            self.logger.writeError(
+                f"An error occurred during initialization: {str(e)}")
             self.module.fail_json(msg=str(e))
 
     def apply(self):
@@ -510,7 +515,7 @@ class VSPResourceGroupManager:
         self.module.exit_json(**resp)
 
 
-def main(module=None):
+def main():
     obj_store = VSPResourceGroupManager()
     obj_store.apply()
 
