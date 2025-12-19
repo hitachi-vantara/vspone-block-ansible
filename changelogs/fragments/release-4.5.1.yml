@@ -1,0 +1,5 @@
+---
+release_summary: "This minor release of `hitachivantara.vspone_block` includes bug fixes for resource group creation with VSP 5XXX series storage systems and various playbook improvements."
+bugfixes:
+  - "Resolved resource group creation with VSP 5XXX series storage systems."
+  - "Various playbook fixes and improvements."
