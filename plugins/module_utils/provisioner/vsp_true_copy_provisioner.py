@@ -132,6 +132,14 @@ class VSPTrueCopyProvisioner:
             return self.cg_gw.get_remote_pairs_by_svol(spec)
 
         ret_list = self.cg_gw.get_all_remote_pairs_from_copy_groups(spec)
+        logger.writeDebug(
+            f"PROV:get_all_remote_pairs_from_copy_groups:ret_list= {ret_list} serial = {serial}"
+        )
+        ret_list = [
+            tc
+            for tc in ret_list
+            if tc.replicationType and tc.replicationType.upper() == "TC"
+        ]
         return ret_list
 
     @log_entry_exit
@@ -667,14 +675,6 @@ class VSPTrueCopyProvisioner:
 
     @log_entry_exit
     def create_true_copy(self, spec) -> Dict[str, Any]:
-        tc_exits = self.get_tc_by_cp_group_and_primary_vol_id(spec)
-        if tc_exits:
-            return tc_exits
-        copy_group = self.get_copy_group_by_name(spec)
-        if copy_group is None:
-            spec.is_new_group_creation = True
-        else:
-            spec.is_new_group_creation = False
 
         pvol = self.get_volume_by_id(spec.primary_volume_id)
         logger.writeDebug(f"PV:create_true_copy: pvol = {pvol}")
@@ -697,6 +697,23 @@ class VSPTrueCopyProvisioner:
             )
             logger.writeError(err_msg)
             raise ValueError(err_msg)
+
+        if pvol.numOfPorts is None or pvol.numOfPorts < 1:
+            raise ValueError(
+                VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_NO_PATH.value.format(
+                    spec.primary_volume_id
+                )
+            )
+
+        tc_exits = self.get_tc_by_cp_group_and_primary_vol_id(spec)
+        if tc_exits:
+            return tc_exits
+        copy_group = self.get_copy_group_by_name(spec)
+        if copy_group is None:
+            spec.is_new_group_creation = True
+        else:
+            spec.is_new_group_creation = False
+
         secondary_connection_info = spec.secondary_connection_info
         secondary_connection_info.connection_type = ConnectionTypes.DIRECT
         rr_prov = RemoteReplicationHelperForSVol(

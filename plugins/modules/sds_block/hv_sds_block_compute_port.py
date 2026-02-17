@@ -41,18 +41,22 @@ options:
     suboptions:
       id:
         description: The ID of the compute port.
+          Required for the Edit compute port settings task.
         type: str
         required: false
       name:
         description: The name of the compute port.
+          Required for the Edit compute port settings task.
         type: str
         required: false
       nick_name:
         description: The nickname of the compute port.
+          Required for the Edit compute port settings task.
         type: str
         required: false
       protocol:
         description: The protocol of the compute port.
+          Required for the Change the compute port protocol (Bare metal only) task.
         type: str
         required: false
         choices: ["iscsi", "nvme_tcp"]

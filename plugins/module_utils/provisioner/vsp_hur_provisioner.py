@@ -277,7 +277,6 @@ class VSPHurProvisioner:
 
     @log_entry_exit
     def get_hur_facts(self, spec=None):
-        # primary_volume_id = spec.get('primary_volume_id',None)
         primary_volume_id = spec.primary_volume_id
         if spec is None or (spec and primary_volume_id is None):
             return self.get_all_hurpairs()
@@ -476,7 +475,15 @@ class VSPHurProvisioner:
 
     @log_entry_exit
     def swap_split_hur_pair(self, primary_volume_id, spec=None):
+        err_msg = ""
         pair_exiting = self.gateway.get_replication_pair(spec)
+        if pair_exiting is None:
+            err_msg = (
+                HurFailedMsg.PAIR_SWAP_SPLIT_FAILED.value
+                + VSPHurValidateMsg.NO_HUR_PAIR_FOUND.value.format(spec.copy_pair_name)
+            )
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
         if (
             pair_exiting["pvol_status"] == "PSUS"
             and pair_exiting["svol_status"] == "SSWS"
@@ -490,20 +497,8 @@ class VSPHurProvisioner:
 
     @log_entry_exit
     def secondary_takeover_hur_pair(self, spec=None):
-        # pair_exiting = self.gateway.get_replication_pair(spec)
-        # if (
-        #     pair_exiting["pvol_status"] != "PSUS"
-        #     and pair_exiting["svol_status"] != "SSWS"
-        # ):
-        #     err_msg = (
-        #         HurFailedMsg.SECONDARY_TAKEOVER_FAILED.value
-        #         + VSPHurValidateMsg.PAIR_NOT_IN_SSWS_STATE.value.format(spec.copy_pair_name)
-        #     )
-        #     logger.writeError(err_msg)
-        #     raise ValueError(err_msg)
         pair = self.gateway.secondary_takeover_hur_pair(spec)
         self.logger.writeDebug(f"PV:secondary_takeover_hur_pair: pair=  {pair}")
-        # pair = self.gateway.get_replication_pair(spec)
         self.connection_info.changed = True
         return pair
 
@@ -669,9 +664,7 @@ class VSPHurProvisioner:
     @log_entry_exit
     def get_volume_by_id(self, primary_volume_id):
         volume = self.vol_gw.get_volume_by_id(primary_volume_id)
-        # return vol_gw.get_volume_by_id(device_id, primary_volume_id)
         self.logger.writeDebug(f"PROV:get_volume_by_id:volume: {volume}")
-
         return volume
 
     @log_entry_exit

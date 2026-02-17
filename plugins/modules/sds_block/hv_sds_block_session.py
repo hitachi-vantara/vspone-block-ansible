@@ -43,7 +43,7 @@ options:
         description: Session ID. UUID format. Required for delete operation.
         type: str
         required: false
-      alive_time:
+      alive_time_in_seconds:
         description: The idle time in seconds after which a session times out. Valid for create session operation.
           If omitted, 300 is applied. If specified value must be between 1 and 300.
         type: int
@@ -58,7 +58,7 @@ EXAMPLES = """
       username: "admin"
       password: "password"
     spec:
-      alive_time: 100
+      alive_time_in_seconds: 100
 
 - name: Delete a session
   hitachivantara.vspone_block.sds_block.hv_sds_block_session:
@@ -77,15 +77,15 @@ session:
   type: dict
   returned: always
   contains:
-    createdTime:
+    created_time:
       description: Timestamp when the session was created.
       type: str
       sample: "2025-11-06T19:22:13Z"
-    expirationTime:
+    expiration_time:
       description: Timestamp when the session will expire.
       type: str
       sample: "2025-11-07T19:22:13Z"
-    lastAccessTime:
+    last_access_time:
       description: Timestamp of the last access using this session.
       type: str
       sample: "2025-11-06T19:22:13Z"
@@ -94,7 +94,7 @@ session:
       type: list
       elements: dict
       contains:
-        roleNames:
+        role_names:
           description: List of role names granted in this privilege.
           type: list
           elements: str
@@ -103,12 +103,12 @@ session:
           description: Scope of the privilege.
           type: str
           sample: "system"
-    roleNames:
+    role_names:
       description: List of roles assigned to the session.
       type: list
       elements: str
       sample: ["Audit", "Security", "Storage", "Monitor", "Service", "Resource", "RemoteCopy"]
-    sessionId:
+    session_id:
       description: Unique identifier for the session.
       type: str
       sample: "0ba72e6d-b109-4638-bbea-9452ed8401b8"
@@ -116,15 +116,15 @@ session:
       description: Session token used for authentication.
       type: str
       sample: "gAAAAABpDPVlhsNMvLyM5vBrb5oMpKDuChy1vT-HtowicWzZnEHtfLKPvj95U5rzOxdhw3p95ipuREgrkZRTgM2RDTHM3nWQDQD82qxwd50v74XqXTheuztB2506bRqHtLXgUQ..."
-    userId:
+    user_id:
       description: ID of the user who owns the session.
       type: str
       sample: "admin"
-    userObjectId:
+    user_object_id:
       description: Object ID of the user.
       type: str
       sample: "admin"
-    vpsId:
+    vps_id:
       description: Identifier for the Virtual Private Storage (VPS) or system context.
       type: str
       sample: "(system)"

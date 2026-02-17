@@ -32,12 +32,13 @@ class SDSBSoftwareUpdateReconciler:
         try:
             return self.provisioner.get_software_update_file()
         except Exception as e:
+            logger.writeException(e)
             if "HTTP Error 404: Not Found" in str(e):
                 return (
                     SDSBSoftwareUpdateValidationMsg.SOFTWARE_UPDATE_FILE_NOT_FOUND.value
                 )
             else:
-                raise Exception(e)
+                return str(e)
 
     @log_entry_exit
     def reconcile_software_update(self, spec: Any, state) -> Any:

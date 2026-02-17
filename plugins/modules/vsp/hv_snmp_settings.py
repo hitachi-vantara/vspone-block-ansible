@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_snmp_settings
-short_description: Manage SNMP settings on Hitachi Vantara storage systems.
+short_description: Manage SNMP settings on VSP block storage systems.
 description:
-  - This module allows you to configure SNMP (Simple Network Management Protocol) settings on Hitachi Vantara storage systems,
+  - This module allows you to configure SNMP (Simple Network Management Protocol) settings on VSP block storage systems,
     including agent enablement, SNMP versions, trap destinations, authentication, and system group information.
   - For example usage, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snmp_settings.yml)
@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.gateway_note
   - hitachivantara.vspone_block.common.connection_info
+  - hitachivantara.vspone_block.common.snmp_settings_note
 options:
   state:
     description: Desired state of the SNMP settings.

@@ -24,8 +24,6 @@ except ImportError:
     from common.hv_log import Log
     from message.vsp_parity_group_msgs import VSPParityGroupValidateMsg
 
-logger = Log()
-
 
 class VSPParityGroupProvisioner:
 
@@ -87,6 +85,7 @@ class VSPParityGroupProvisioner:
             pg_dict["ldevIds"].append(ldev.ldevId)
         pg_dict["raidLevel"] = parity_group.raidLevel
         pg_dict["driveType"] = parity_group.driveTypeName
+        pg_dict["emulationType"] = parity_group.emulationType
         pg_dict["copybackMode"] = parity_group.isCopyBackModeEnabled
         pg_dict["isAcceleratedCompression"] = (
             parity_group.isAcceleratedCompressionEnabled
@@ -197,7 +196,7 @@ class VSPParityGroupProvisioner:
                     err_msg = VSPParityGroupValidateMsg.NO_PARITY_GROUP_ID.value.format(
                         pg_id
                     )
-                    logger.writeError(err_msg)
+                    self.logger.writeError(err_msg)
                     raise ValueError(err_msg)
                 else:
                     raise (e)
@@ -303,7 +302,7 @@ class VSPParityGroupProvisioner:
                     err_msg = VSPParityGroupValidateMsg.NO_DISK_DRIVE_ID.value.format(
                         spec.drive_location_id
                     )
-                    logger.writeError(err_msg)
+                    self.logger.writeError(err_msg)
                     raise ValueError(err_msg)
                 else:
                     raise (e)
@@ -329,7 +328,7 @@ class VSPParityGroupProvisioner:
                     e
                 ):
                     err_msg = VSPParityGroupValidateMsg.FEATURE_NOT_SUPPORTED.value
-                    logger.writeError(err_msg)
+                    self.logger.writeError(err_msg)
                     raise ValueError(err_msg)
                 else:
                     raise (e)

@@ -258,3 +258,24 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    #########################################################################
+    # Task Name : Create shadow image pair with available pvol_mu_number
+    #########################################################################
+    - name: Create shadow image pair with available pvol_mu_number
+      hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          primary_volume_id: 274
+          secondary_pool_id: 1
+          pvol_mu_number: 0
+          copy_group_name: "CGTest"
+          copy_pair_name: "CPTest"
+          secondary_volume_id: 277
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

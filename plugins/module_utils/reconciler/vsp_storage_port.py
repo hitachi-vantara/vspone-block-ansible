@@ -60,7 +60,7 @@ class VSPStoragePortReconciler:
                     port_info
                 )
             else:
-                port_info = self.provisioner.get_all_storage_ports().data_to_list()
+                port_info = self.provisioner.get_all_storage_ports(spec).data_to_list()
                 return ShortStoragePortInfoExtractor(
                     self.storage_serial_number
                 ).extract(port_info)

@@ -57,6 +57,7 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
     ####################################################################
     # Task Name : Get Journal data with mirror not used
     ####################################################################

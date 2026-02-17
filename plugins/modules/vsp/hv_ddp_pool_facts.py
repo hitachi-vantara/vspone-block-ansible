@@ -10,10 +10,10 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_ddp_pool_facts
-short_description: Get facts of DDP Pools on Hitachi VSP storage systems.
+short_description: Get facts of DDP Pools on VSP block storage systems.
 description: >
-  - This module retrieves details of DDP Pools on Hitachi VSP storage systems.
-  - This module is only available for VSP One storage systems.
+  - This module retrieves details of DDP Pools on VSP block storage systems.
+  - This module is supported only when the storage system is VSP One Block 20.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/ddp_pool_facts.yml)
 version_added: '3.4.0'

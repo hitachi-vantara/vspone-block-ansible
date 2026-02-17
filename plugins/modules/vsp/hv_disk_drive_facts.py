@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_disk_drive_facts
-short_description: Retrieves information about hard drives from Hitachi VSP storage systems.
+short_description: Retrieves information about hard drives from VSP block storage systems.
 description:
-    - This module gathers facts about hard drives from Hitachi VSP storage systems.
+    - This module gathers facts about hard drives from VSP block storage systems.
     - For examples go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/disk_drive_facts.yml)
 version_added: '3.2.0'

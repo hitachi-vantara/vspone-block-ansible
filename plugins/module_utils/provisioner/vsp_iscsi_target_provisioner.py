@@ -38,7 +38,6 @@ class VSPIscsiTargetProvisioner:
         for port in ports.data:
             port_id = port.portId
             port_type = port.portType
-            logger.writeInfo("port_type = {}", port_type)
             if port_type != VSPIscsiTargetConstant.PORT_TYPE_ISCSI:
                 continue
 

@@ -1,4 +1,5 @@
 import json
+import threading
 import time
 import atexit
 import urllib.error as urllib_error
@@ -22,7 +23,10 @@ except ImportError:
 
 logger = Log()
 
+GET_SESSIONS = "v1/objects/sessions"
+CREATE_SESSION = "v1/objects/sessions"
 DELETE_SESSION = "v1/objects/sessions/{}"
+GET_SESSION_BY_ID = "v1/objects/sessions/{}"
 
 
 def mask_dict_tokens(data: dict) -> dict:
@@ -38,28 +42,64 @@ def mask_dict_tokens(data: dict) -> dict:
     return {k: mask_token(v) for k, v in data.items()}
 
 
-class SingletonClass(object):
-    def __new__(cls):
-        if not hasattr(cls, "instance"):
-            cls.instance = super(SingletonClass, cls).__new__(cls)
-        return cls.instance
+def mask_key_in_dict(data, visible_length=12, mask_char="X", key="token"):
+    """
+    Masks the value of `key` in the given dict so only the last `visible_length`
+    characters are visible. Mutates the dict in place.
+
+    - If the key is missing, None, or not a string, the dict is left unchanged.
+    """
+    if not isinstance(data, dict):
+        return data
+
+    result = data.copy()
+    token = data.get(key)
+
+    if not isinstance(token, str):
+        return data
+
+    if len(token) > visible_length:
+        result[key] = (
+            mask_char * (len(token) - visible_length) + token[-visible_length:]
+        )
+
+    return result
 
 
-class SessionManager(SingletonClass):
-    token_to_session_id_map = {}
-    token_to_connection_info_map = {}
-    current_sessions = {}
-    retry_count = 0
+class SessionManager:
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
 
     def __init__(self):
+        if self._initialized:
+            return
+        self.token_to_session_id_map = {}
+        self.token_to_connection_info_map = {}
+        self.current_sessions = {}
+        self.retry_count = 0
+
+        # Thread management
+        self.active_threads = []
+        self.stop_event = threading.Event()
+
         # only register once
         if not hasattr(self, "_cleanup_registered"):
             atexit.register(self.cleanup)
             self._cleanup_registered = True
+        self._initialized = True
 
     def cleanup(self):
-        logger.writeDebug("SessionManager - cleanup via atexit.")
+        # 4. Discard all sessions
         self.discard_sessions()
+        logger.writeDebug("SessionManager - cleanup completed.")
 
     def get_current_session(self, connection_info):
         logger.writeDebug(
@@ -79,6 +119,51 @@ class SessionManager(SingletonClass):
         token = self.generate_token(connection_info)
         self.current_sessions[connection_info.address] = token
         return token
+
+    def get_sessions(self, connection_info):
+        end_point = GET_SESSIONS
+        response = self._make_request(
+            connection_info=connection_info,
+            method="GET",
+            end_point=end_point,
+            data=None,
+        )
+        return response
+
+    def get_session_by_id(self, connection_info, id, token):
+        try:
+            end_point = GET_SESSION_BY_ID.format(id)
+            response = self._make_request(
+                connection_info=connection_info,
+                method="GET",
+                end_point=end_point,
+                token=token,
+                data=None,
+            )
+            logger.writeDebug(
+                "GW:get_session_by_id:response={}", mask_key_in_dict(response)
+            )
+            return response
+        except Exception as ex:
+            logger.writeDebug("GW:get_session_by_id:=Exception{}", ex)
+            raise ex
+
+    def create_session(
+        self, connection_info, alive_time=None, authentication_timeout=None
+    ):
+        if alive_time is None:
+            alive_time = 300
+        payload = {"aliveTime": alive_time}
+        if authentication_timeout is not None:
+            payload["authenticationTimeout"] = authentication_timeout
+        end_point = CREATE_SESSION
+        response = self._make_request(
+            connection_info=connection_info,
+            method="POST",
+            end_point=end_point,
+            data=payload,
+        )
+        return response
 
     def generate_token(self, connection_info):
         end_point = Endpoints.SESSIONS
@@ -109,7 +194,6 @@ class SessionManager(SingletonClass):
     def _make_request(self, connection_info, method, end_point, token=None, data=None):
 
         url = f"https://{connection_info.address}/ConfigurationManager/" + end_point
-        logger.writeDebug("url = {}", url)
 
         headers = {
             "Accept": "application/json",
@@ -126,8 +210,8 @@ class SessionManager(SingletonClass):
         if data is not None:
             data = json.dumps(data)
 
+        logger.writeDebug("url = {}", url)
         logger.writeDebug("method = {}", method)
-        logger.writeDebug("URL = {}", url)
 
         MAX_TIME_OUT = 300
 
@@ -146,7 +230,7 @@ class SessionManager(SingletonClass):
             )
         except socket.timeout as t_err:
             logger.writeError(f"SessionManager._make_request - TimeoutError {t_err}")
-            raise Exception(t_err)
+            raise TimeoutError(t_err)
         except urllib_error.HTTPError as err:
             logger.writeError(f"SessionManager._make_request - HTTPError {err}")
 
@@ -218,9 +302,9 @@ class SessionManager(SingletonClass):
             logger.writeDebug(f"Failed to read response: {e}")
             return None
 
-    def delete_session(self, connection_info, session_id, token):
+    def delete_session(self, connection_info, session_id, token=None):
         try:
-            end_point = Endpoints.DELETE_SESSION.format(session_id)
+            end_point = DELETE_SESSION.format(session_id)
             method = "DELETE"
             self._make_request(connection_info, method, end_point, token, data=None)
         except Exception as e:
@@ -234,3 +318,17 @@ class SessionManager(SingletonClass):
             logger.writeDebug(
                 f"Successfully discarded session. session_id = {v} token = {mask_token(k)}"
             )
+
+    def delete_user_session(self, connection_info, session_id, token=None, force=None):
+        try:
+            end_point = DELETE_SESSION.format(session_id)
+            method = "DELETE"
+            payload = None
+            if force is not None:
+                payload = {"force": force}
+            self._make_request(connection_info, method, end_point, token, data=payload)
+        except Exception as e:
+            logger.writeDebug(
+                f"Issue in deleting user created session. session_id = {session_id}"
+            )
+            raise e

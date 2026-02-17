@@ -1,0 +1,103 @@
+---
+####################################################################
+# Example : Event Log Syslog Setting Update Playbook
+####################################################################
+- name: Update Event Log Syslog Settings
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ##########################################################################
+    # Task Name : Configure or update email reporting settings for event logs
+    ##########################################################################
+    - name: Configure or update email reporting settings for event logs
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_log_setting:
+        state: present
+        connection_info: "{{ connection_info }}"
+        spec:
+          email_report_setting:
+            smtp_settings:
+              - index: 1
+                is_enabled: true
+                smtp_server_name: "smtp.example.com"
+                smtp_auth_account: "eventlog@example.com"
+                smtp_auth_password: "CHANGE_ME_SET_YOUR_PASSWORD"
+                from_address: "storage-alerts@example.com"
+                to_address1: "admin@example.com"
+                to_address2: "team@example.com"
+                to_address3: "team3@example.com"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ############################################################################
+    # Task Name : Configure or update syslog forwarding settings for event logs
+    #############################################################################
+    - name: Configure or update syslog forwarding settings for event logs
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_log_setting:
+        state: present
+        connection_info: "{{ connection_info }}"
+        spec:
+          syslog_forwarding_setting:
+            location_name: "datacenter1"
+            syslog_servers:
+              - index: 1
+                is_enabled: true
+                server_name: "syslog.example.com"
+                port: 514
+                transport_protocol: "UDP"
+              - index: 2
+                is_enabled: false
+                server_name: "backupp-syslog.example.com"
+                port: 514
+                transport_protocol: "UDP"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name: Download SMTP root certificate
+    ####################################################################
+    - name: Download SMTP root certificate from server 1 (default)
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_log_setting:
+        state: download_smtp_certificate
+        connection_info: "{{ connection_info }}"
+        spec:
+          smtp_root_certificate:
+            download_location: "/tmp/smtp_certificates"
+            target_smtp_server: 1
+      register: download_result
+
+    - name: Display download result
+      ansible.builtin.debug:
+        var: download_result
+
+    ####################################################################
+    # Task Name: Import SMTP root certificate
+    ####################################################################
+    - name: Import SMTP root certificate
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_log_setting:
+        state: import_smtp_certificate
+        connection_info: "{{ connection_info }}"
+        spec:
+          smtp_root_certificate:
+            certificate_path: /tmp/smtp_certificates/smtp_server_1_root_certificate_1761859830118.pem
+      register: smtp_cert_import_result
+
+    - name: Display import result for server 1
+      ansible.builtin.debug:
+        var: smtp_cert_import_result

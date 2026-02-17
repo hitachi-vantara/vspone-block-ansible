@@ -45,12 +45,12 @@ class SDSBLoginMessageProvisioner:
 
     @log_entry_exit
     def update_login_message(self, spec):
-        message = spec.message
-        if message is None:
+        login_message = spec.login_message
+        if login_message is None:
             raise ValueError(SDSBLoginMessageValidationMsg.NO_SPEC.value)
 
         # validate message using helper
-        self.validate_login_message(message)
+        self.validate_login_message(login_message)
 
         # get current message from gateway
         current_data = self.gateway.get_login_message()
@@ -60,10 +60,10 @@ class SDSBLoginMessageProvisioner:
             current_message = current_data.get("message", "")
 
         # skip if unchanged
-        if message == current_message:
+        if login_message == current_message:
             return current_data
 
         # perform update
-        self.gateway.update_login_message(message)
+        self.gateway.update_login_message(login_message)
         self.connection_info.changed = True
-        return message
+        return login_message

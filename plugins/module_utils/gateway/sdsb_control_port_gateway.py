@@ -15,7 +15,7 @@ except ImportError:
 logger = Log()
 
 
-class SDSBBlockControlPortDirectGateway:
+class SDSBControlPortDirectGateway:
 
     def __init__(self, connection_info):
         self.connection_manager = SDSBConnectionManager(

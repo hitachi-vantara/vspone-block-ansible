@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_ldev
-short_description: Manages logical devices (LDEVs) on Hitachi VSP storage systems.
+short_description: Manages logical devices (LDEVs) on VSP block storage systems.
 description:
-  - This module allows for the creation, modification, or deletion of logical devices (LDEVs) on Hitachi VSP storage systems.
+  - This module allows for the creation, modification, or deletion of logical devices (LDEVs) on VSP block storage systems.
   - It supports operations such as creating a new LDEV, updating an existing LDEV, or deleting a LDEV.
   - To create multiple volumes/LDEVs in a single task on VSP One Block or VSP E
       Series storage systems, use `hv_vsp_one_volume` module for faster execution.
@@ -89,6 +89,7 @@ options:
         required: false
       ldev_id:
         description: ID of the LDEV (required for delete and update operations), for new it will assigned to this ldev if it's free.
+          Can be decimal or hexadecimal.
           Required for the Create LDEV with a specific LDEV ID
           /Present existing volume to NVM System
           /Expand the size of LDEV
@@ -203,6 +204,7 @@ options:
             required: false
       vldev_id:
         description: Specify the virtual LDEV id. Specify -1 if you want to unassign the vldev_id.
+          Can be decimal or hexadecimal.
           Required for the Create new volume with virtual ldev
           /Assign virtual LDEV Id for a volume
           /Unassign virtual LDEV Id for a volume tasks.
@@ -318,14 +320,14 @@ options:
       start_ldev_id:
         description: >
           The starting LDEV ID for the range of LDEVs to be created. This is used when creating multiple LDEVs.
-          If not specified, a free LDEV ID will be assigned.
+          If not specified, a free LDEV ID will be assigned. Can be decimal or hexadecimal.
           Required for the Create LDEV within a range of LDEV IDs using parallel execution task.
         type: str
         required: false
       end_ldev_id:
         description: >
           The ending LDEV ID for the range of LDEVs to be created. This is used when creating multiple LDEVs.
-          If not specified, only one LDEV will be created.
+          If not specified, only one LDEV will be created. Can be decimal or hexadecimal.
           Required for the Create LDEV within a range of LDEV IDs using parallel execution task.
         type: str
         required: false
@@ -363,6 +365,41 @@ options:
           If set to true, it will enable parallel execution for the LDEV operations.
           Required for the Create LDEV within a range of LDEV IDs using parallel execution task.
         type: bool
+        required: false
+      should_stop_all_volume_format:
+        description: >
+          Whether to stop all volume format operations. This is used to stop ongoing volume format tasks.
+          If set to true, it will stop all volume format operations.
+          Optional for stopping all volume format operations.
+        type: bool
+      cylinder:
+        description: >
+          The cylinder number for the Mainframe LDEV. This is used for specifying the cylinder for the LDEV.
+        type: int
+        required: false
+      emulation_type:
+        description: >
+          The emulation type for the Mainframe LDEV. This is used for specifying the emulation type for the LDEV.
+          Example values are 3390-A and 3390-V.
+        type: str
+        required: false
+      is_tse_volume:
+        description: >
+          Whether the LDEV is a TSE (Thin Provisioning with Space Efficiency) volume. This is used for specifying if the LDEV is a TSE volume.
+        type: bool
+        required: false
+      is_ese_volume:
+        description: >
+          Whether the LDEV is an ESE (Enhanced Space Efficiency) volume. This is used for specifying if the LDEV is an ESE volume.
+        type: bool
+        required: false
+      ssid:
+        description: >
+          The SSID (Subsystem ID) for the Mainframe LDEV. This is used for specifying the SSID for the LDEV.
+          if not specified, the default SSID will be used. if specified, it will use the specified ssid if ssid id is not assigned
+          It will use the existing SSID of the free LDEV if ssid is already assigned to any LDEV.
+        type: str
+        required: false
 """
 
 EXAMPLES = """
@@ -504,6 +541,10 @@ volume:
       description: Status of compression accelerator.
       type: str
       sample: "ENABLED"
+    cylinder:
+      description: Cylinder number for mainframe volumes.
+      type: int
+      sample: 65945
     data_reduction_process_mode:
       description: Data reduction process mode.
       type: str
@@ -523,7 +564,7 @@ volume:
     emulation_type:
       description: Emulation type of the volume.
       type: str
-      sample: "OPEN-V-CVS"
+      sample: "3390-V-CVS"
     hostgroups:
       description: List of host groups associated with the volume.
       type: list
@@ -585,15 +626,15 @@ volume:
     ldev_id:
       description: Logical Device ID.
       type: int
-      sample: 258
+      sample: 10010
     ldev_id_hex:
       description: Logical Device ID in hexadecimal.
       type: str
-      sample: "00:01:02"
+      sample: "00:27:1A"
     mp_blade_id:
       description: MP blade ID.
       type: int
-      sample: 0
+      sample: 3
     name:
       description: Name of the volume.
       type: str
@@ -601,28 +642,65 @@ volume:
     num_of_ports:
       description: Number of ports associated with the volume.
       type: int
-      sample: -1
+      sample: 2
     nvm_subsystems:
       description: List of NVMe subsystems associated with the volume.
       type: list
       elements: dict
       sample: []
+    parent_volume_id:
+      description: Parent volume ID for snapshot volumes.
+      type: int
+      sample: -1
+    parent_volume_id_hex:
+      description: Parent volume ID in hexadecimal format.
+      type: str
+      sample: "-0:00:01"
     parity_group_id:
       description: Parity group ID.
       type: str
-      sample: ""
+      sample: "1-8"
     path_count:
       description: Path count to the volume.
       type: int
-      sample: -1
+      sample: 2
     pool_id:
       description: Pool ID where the volume resides.
       type: int
       sample: 13
+    ports:
+      description: List of ports associated with the volume.
+      type: list
+      elements: dict
+      contains:
+        host_group_name:
+          description: Host group name.
+          type: str
+          sample: "1C-G00"
+        host_group_number:
+          description: Host group number.
+          type: int
+          sample: 156
+        lun:
+          description: Logical Unit Number.
+          type: int
+          sample: 26
+        port_id:
+          description: Port identifier.
+          type: str
+          sample: "CL1-C"
+      sample: [
+        {
+          "host_group_name": "1C-G00",
+          "host_group_number": 156,
+          "lun": 26,
+          "port_id": "CL1-C"
+        }
+      ]
     provision_type:
       description: Provisioning type of the volume.
       type: str
-      sample: "CVS,HDP,DRS"
+      sample: "CVS"
     qos_settings:
       description: QoS settings for the volume.
       type: dict
@@ -636,6 +714,10 @@ volume:
       type: list
       elements: dict
       sample: []
+    ssid:
+      description: Subsystem ID for mainframe volumes.
+      type: str
+      sample: "000C"
     status:
       description: Current status of the volume.
       type: str
@@ -643,7 +725,7 @@ volume:
     storage_serial_number:
       description: Serial number of the storage system.
       type: str
-      sample: "810045"
+      sample: "70033"
     tiering_policy:
       description: Tiering policy details.
       type: dict
@@ -651,11 +733,11 @@ volume:
     total_capacity:
       description: Total capacity of the volume.
       type: str
-      sample: "1.00GB"
+      sample: "54.71GB"
     total_capacity_in_mb:
       description: Total capacity of the volume in megabytes.
       type: float
-      sample: 1024.0
+      sample: 56023.04
     used_capacity:
       description: Used capacity of the volume.
       type: str

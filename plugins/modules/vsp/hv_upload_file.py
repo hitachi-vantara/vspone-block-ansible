@@ -35,10 +35,14 @@ options:
     suboptions:
       file_path:
         description: Path to the file to be uploaded.
+          Required for the Upload a primary client certificate file to the Storage System for audit log
+          /Upload a secondary client certificate file to the Storage System for audit log tasks.
         type: str
         required: true
       file_type:
         description: Type of the file to be uploaded.
+          Required for the Upload a primary client certificate file to the Storage System for audit log
+          /Upload a secondary client certificate file to the Storage System for audit log tasks.
         type: str
         required: true
         choices:

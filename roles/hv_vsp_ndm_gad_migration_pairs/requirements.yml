@@ -1,0 +1,5 @@
+---
+# Collection requirements for hv_vsp_one_query_host_volumes_by_wwns role
+collections:
+  - name: hitachivantara.vspone_block
+    version: ">=1.0.0"

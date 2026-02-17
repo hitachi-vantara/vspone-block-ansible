@@ -27,20 +27,20 @@ try:
     from ..model.sdsb_storage_pool_models import StoragePoolFactSpec, StoragePoolSpec
     from ..model.sdsb_cluster_models import ClusterFactSpec, ClusterSpec
     from ..model.sdsb_chap_user_models import ChapUserFactSpec, ChapUserSpec
-    from ..model.sdsb_event_logs_model import EventLogFactSpec
+    from ..model.sdsb_event_log_models import EventLogFactSpec
     from ..model.sdsb_drive_models import SDSBDriveFactSpec, SDSBDriveSpec
     from ..model.sdsb_control_port_model import SDSBControlPortSpec
     from ..model.sdsb_fault_domain_model import SDSBFaultDomainSpec
-    from ..model.sdsb_user_models import SDSBUserFactSpec, SDSBUserSpec
+    from ..model.sdsb_user_models import (
+        SDSBUserFactSpec,
+        SDSBUserSpec,
+        UserAuthSettingSpec,
+    )
     from ..model.sdsb_user_group_models import (
         SDSBUserGroupFactSpec,
         SDSBUserGroupSpec,
     )
     from ..model.sdsb_journal_model import JournalFactSpec
-    from ..model.sdsb_storage_controller_model import (
-        SDSBStorageControllerFactSpec,
-        SDSBStorageControllerSpec,
-    )
     from ..model.sdsb_port_auth_models import PortAuthSpec
     from ..model.sdsb_port_models import PortFactSpec, ComputePortSpec
     from ..model.sdsb_vps_models import VpsFactSpec, VpsSpec
@@ -61,9 +61,7 @@ try:
         StoragePoolEncryptionSettingsSpec,
     )
     from ..message.sdsb_encryption_key_msgs import SDSBEncryptionKeyValidationMsg
-    from ..model.sdsb_license_management_models import (
-        LicenseManagementSpec,
-    )
+    from ..model.sdsb_license_models import LicenseManagementSpec, SDSBLicenseFactsSpec
     from ..model.sdsb_protection_domain_model import SDSBProtectionDomainFactSpec
     from ..model.sdsb_storage_controller_model import (
         get_snmp_settings_args,
@@ -72,6 +70,8 @@ try:
         StorageSystemSpec,
         SDSBSpareNodeSpec,
         SpareNodeFactsSpec,
+        SDSBStorageControllerFactSpec,
+        SDSBStorageControllerSpec,
         WebServerAccessSettingSpec,
     )
     from ..model.sdsb_session_models import (
@@ -83,7 +83,12 @@ try:
         SDSBRemotePathGroupSpec,
     )
     from ..model.sdsb_login_message_model import LoginMessageFactSpec
-
+    from ..model.sdsb_audit_log_models import AuditLogSettingsSpec
+    from ..model.sdsb_event_log_models import EventLogSettingsSpec
+    from ..model.sdsb_external_auth_server_models import (
+        SDSBExternalAuthServerSettingSpec,
+    )
+    from ..model.sdsb_dump_log_models import CreateDumpFileSpec, DumpLogStatusSpec
 except ImportError:
     from common.hv_constants import StateValue
     from common.hv_constants import ConnectionTypes
@@ -111,18 +116,23 @@ except ImportError:
     from model.sdsb_storage_pool_models import StoragePoolFactSpec, StoragePoolSpec
     from model.sdsb_cluster_models import ClusterFactSpec, ClusterSpec
     from model.sdsb_chap_user_models import ChapUserFactSpec, ChapUserSpec
-    from model.sdsb_event_logs_model import EventLogFactSpec
+    from model.sdsb_event_log_models import EventLogFactSpec
     from model.sdsb_drive_models import SDSBDriveFactSpec, SDSBDriveSpec
     from model.sdsb_control_port_model import SDSBControlPortSpec
     from model.sdsb_fault_domain_model import SDSBFaultDomainSpec
-    from ..model.sdsb_user_models import SDSBUserFactSpec, SDSBUserSpec
-    from ..model.sdsb_user_group_models import (
+    from model.sdsb_user_models import (
+        SDSBUserFactSpec,
+        SDSBUserSpec,
+        UserAuthSettingSpec,
+    )
+    from model.sdsb_user_group_models import (
         SDSBUserGroupFactSpec,
         SDSBUserGroupSpec,
     )
     from model.sdsb_storage_controller_model import (
         SDSBStorageControllerFactSpec,
         SDSBStorageControllerSpec,
+        WebServerAccessSettingSpec,
     )
     from model.sdsb_port_auth_models import PortAuthSpec
     from model.sdsb_port_models import PortFactSpec, ComputePortSpec
@@ -143,8 +153,9 @@ except ImportError:
         StoragePoolEncryptionSettingsSpec,
     )
     from message.sdsb_encryption_key_msgs import SDSBEncryptionKeyValidationMsg
-    from model.sdsb_license_management_models import (
+    from model.sdsb_license_models import (
         LicenseManagementSpec,
+        SDSBLicenseFactsSpec,
     )
     from model.sdsb_protection_domain_model import SDSBProtectionDomainFactSpec
     from model.sdsb_session_models import (
@@ -155,6 +166,9 @@ except ImportError:
         SDSBRemotePathGroupFactSpec,
         SDSBRemotePathGroupSpec,
     )
+    from model.sdsb_audit_log_models import AuditLogSettingsSpec
+    from model.sdsb_event_log_models import EventLogSettingsSpec
+    from model.sdsb_external_auth_server_models import SDSBExternalAuthServerSettingSpec
 
 
 # SDSB Parameter manager
@@ -189,7 +203,7 @@ class SDSBParametersManager:
             input_spec = SDSBJournalSpec()
         return input_spec
 
-    def get_login(self):
+    def get_login_message_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
             input_spec = LoginMessageFactSpec(**self.params["spec"])
             # SDSBSpecValidators.validate_journal_spec(input_spec)
@@ -512,10 +526,6 @@ class SDSBParametersManager:
     def get_license_management_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
             spec_dict = self.params["spec"]
-            # Handle nested warning_threshold_setting
-            # if "warning_threshold_setting" in spec_dict and spec_dict["warning_threshold_setting"]:
-            #     wts = WarningThresholdSettingSpec(**spec_dict["warning_threshold_setting"])
-            #     spec_dict["warning_threshold_setting"] = wts
             input_spec = LicenseManagementSpec(**spec_dict)
             return input_spec
         else:
@@ -545,26 +555,65 @@ class SDSBParametersManager:
             **self.params["spec"] if self.params.get("spec") else {}
         )
 
-    def get_session_fact_spec(self):
-        return SDSBSessionFactsSpec(
+    def get_license_facts_spec(self):
+        return SDSBLicenseFactsSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def get_external_auth_server_setting_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            spec_dict = self.params["spec"]
+            input_spec = SDSBExternalAuthServerSettingSpec(**spec_dict)
+            return input_spec
+        else:
+            return None
+
+    def get_user_auth_setting_spec(self):
+        return UserAuthSettingSpec(
             **self.params["spec"] if self.params.get("spec") else {}
         )
 
     def get_session_spec(self):
         return SDSBSessionSpec(**self.params["spec"] if self.params.get("spec") else {})
 
+    def get_session_fact_spec(self):
+        return SDSBSessionFactsSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
     def get_remote_path_group_fact_spec(self):
         return SDSBRemotePathGroupFactSpec(
             **self.params["spec"] if self.params.get("spec") else {}
         )
 
-    def get_remote_path_group_spec(self):
-        return SDSBRemotePathGroupSpec(
+    def get_dump_file_spec(self):
+        return CreateDumpFileSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def get_dump_file_status_spec(self):
+        return DumpLogStatusSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def get_audit_log_settings_spec(self):
+        if "spec" in self.params and self.params["spec"] is not None:
+            return AuditLogSettingsSpec(**self.params["spec"])
+        else:
+            return AuditLogSettingsSpec()
+
+    def get_event_log_settings_spec(self):
+        return EventLogSettingsSpec(
             **self.params["spec"] if self.params.get("spec") else {}
         )
 
     def web_server_settings_spec(self):
         return WebServerAccessSettingSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def get_remote_path_group_spec(self):
+        return SDSBRemotePathGroupSpec(
             **self.params["spec"] if self.params.get("spec") else {}
         )
 
@@ -1600,6 +1649,10 @@ class SDSBEventLogsArguments:
     @classmethod
     def event_log_facts(cls):
         spec_options = {
+            "id": {
+                "required": False,
+                "type": "str",
+            },
             "severity": {
                 "required": False,
                 "type": "str",
@@ -1841,6 +1894,249 @@ class SDSBFaultDomainArguments:
         return cls.common_arguments
 
 
+class SDSBUserAuthArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present"],
+            "default": "present",
+        },
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def user_auth_setting(cls):
+        spec_options = {
+            "password_age_setting": {
+                "required": False,
+                "type": "dict",
+                "no_log": False,
+                "options": {
+                    "requires_initial_password_reset": {
+                        "required": False,
+                        "type": "bool",
+                    },
+                    "min_age_days": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "max_age_days": {
+                        "required": False,
+                        "type": "int",
+                    },
+                },
+            },
+            "password_complexity_setting": {
+                "required": False,
+                "type": "dict",
+                "no_log": False,
+                "options": {
+                    "min_length": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "min_number_of_upper_case_chars": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "min_number_of_lower_case_chars": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "min_number_of_numerals": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "min_number_of_symbols": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "number_of_password_history": {
+                        "required": False,
+                        "type": "int",
+                        "no_log": False,
+                    },
+                },
+            },
+            "lockout_setting": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "max_attempts": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "lockout_seconds": {
+                        "required": False,
+                        "type": "int",
+                    },
+                },
+            },
+            "session_setting": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "max_lifetime_seconds": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "max_idle_seconds": {
+                        "required": False,
+                        "type": "int",
+                    },
+                },
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = True
+
+        return cls.common_arguments
+
+    @classmethod
+    def user_auth_facts(cls):
+        cls.common_arguments.pop("state")
+        cls.common_arguments.pop("spec")
+        return cls.common_arguments
+
+
+class SDSBExternalAuthServerArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "download_root_certificate",
+                "import_root_certificate",
+            ],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def external_auth_server_setting(cls):
+        spec_options = {
+            "is_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "auth_protocol": {
+                "required": False,
+                "type": "str",
+                "choices": ["LDAP"],
+                "default": "LDAP",
+            },
+            "download_location": {
+                "required": False,
+                "type": "str",
+            },
+            "target_server": {
+                "required": False,
+                "type": "str",
+            },
+            "root_certificate_file_path": {
+                "required": False,
+                "type": "str",
+            },
+            "ldap_setting": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "mapping_mode": {
+                        "required": False,
+                        "type": "str",
+                        "choices": ["User", "Group"],
+                    },
+                    "primary_ldap_server_url": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "secondary_ldap_server_url": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "is_start_tls_enabled": {
+                        "required": False,
+                        "type": "bool",
+                    },
+                    "base_dn": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "bind_dn": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "bind_dn_password": {
+                        "required": False,
+                        "type": "str",
+                        "no_log": True,
+                    },
+                    "user_id_attribute": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "user_tree_dn": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "user_object_class": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "external_group_name_attribute": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "user_group_tree_dn": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "user_group_object_class": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "timeout_seconds": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "retry_interval_milliseconds": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "max_retries": {
+                        "required": False,
+                        "type": "int",
+                    },
+                },
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = False
+
+        return cls.common_arguments
+
+    @classmethod
+    def external_auth_server_facts(cls):
+        cls.common_arguments.pop("state")
+        cls.common_arguments.pop("spec")
+        return cls.common_arguments
+
+
 class SDSBUserArguments:
 
     common_arguments = {
@@ -1911,7 +2207,6 @@ class SDSBUserArguments:
         }
         cls.common_arguments["spec"]["options"] = spec_options
         cls.common_arguments["spec"]["required"] = False
-        # cls.common_arguments.pop("state")
 
         return cls.common_arguments
 
@@ -1996,7 +2291,6 @@ class SDSBUserGroupsArguments:
         }
         cls.common_arguments["spec"]["options"] = spec_options
         cls.common_arguments["spec"]["required"] = False
-        # cls.common_arguments.pop("state")
 
         return cls.common_arguments
 
@@ -2136,12 +2430,11 @@ class SDSBJournalArguments:
                 "type": "str",
             },
         }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args.pop("state")
 
-        cls.common_arguments["spec"]["options"] = spec_options
-        cls.common_arguments["spec"]["required"] = False
-        cls.common_arguments.pop("state")
-
-        return cls.common_arguments
+        return args
 
 
 class SDSBLoginMessageArguments:
@@ -2162,21 +2455,23 @@ class SDSBLoginMessageArguments:
 
     @classmethod
     def login_message_facts(cls):
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args.pop("state")
+        args.pop("spec")
+        return args
 
     @classmethod
     def login_message(cls):
         spec_options = {
-            "message": {
+            "login_message": {
                 "required": True,
                 "type": "str",
             },
         }
-        cls.common_arguments["spec"]["options"] = spec_options
-        cls.common_arguments["spec"]["required"] = False
-        # cls.common_arguments.pop("state")
-
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = True
+        return args
 
 
 class SDSBCapacityManagementSettingsArguments:
@@ -2641,7 +2936,7 @@ class SDSBSessionArguments:
                 "required": False,
                 "type": "str",
             },
-            "alive_time": {
+            "alive_time_in_seconds": {
                 "required": False,
                 "type": "int",
             },
@@ -2864,6 +3159,362 @@ class ProtectionDomainSettingsArgs:
         args["spec"]["options"] = spec_options
         args.pop("state")
         return args
+
+
+class SDSBAuditLogSettingArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "download_audit_log"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def audit_log_setting(cls):
+        spec_options = {
+            "audit_log_file_location": {
+                "required": False,
+                "type": "str",
+            },
+            "refresh": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "syslog_forwarding_setting": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "location_name": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "syslog_servers": {
+                        "required": False,
+                        "type": "list",
+                        "elements": "dict",
+                        "options": {
+                            "index": {
+                                "required": True,
+                                "type": "int",
+                                "choices": [1, 2],
+                            },
+                            "is_enabled": {
+                                "required": False,
+                                "type": "bool",
+                            },
+                            "server_name": {
+                                "required": False,
+                                "type": "str",
+                            },
+                            "port": {
+                                "required": False,
+                                "type": "int",
+                            },
+                            "transport_protocol": {
+                                "required": False,
+                                "type": "str",
+                                "choices": ["UDP"],
+                            },
+                        },
+                    },
+                },
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+    @classmethod
+    def audit_log_setting_facts(cls):
+        cls.common_arguments.pop("state")
+        cls.common_arguments.pop("spec")
+        return cls.common_arguments
+
+
+class SDSBEventLogSettingArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "import_smtp_certificate",
+                "download_smtp_certificate",
+            ],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def event_log_setting(cls):
+        spec_options = {
+            "smtp_root_certificate": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "certificate_path": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "download_location": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "target_smtp_server": {
+                        "required": False,
+                        "type": "int",
+                        "choices": [1, 2],
+                        "default": 1,
+                    },
+                },
+            },
+            "syslog_forwarding_setting": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "location_name": {
+                        "required": False,
+                        "type": "str",
+                    },
+                    "syslog_servers": {
+                        "required": False,
+                        "type": "list",
+                        "elements": "dict",
+                        "options": {
+                            "index": {
+                                "required": True,
+                                "type": "int",
+                                "choices": [1, 2],
+                            },
+                            "is_enabled": {
+                                "required": False,
+                                "type": "bool",
+                                "default": True,
+                            },
+                            "server_name": {
+                                "required": True,
+                                "type": "str",
+                            },
+                            "port": {
+                                "required": False,
+                                "type": "int",
+                                "default": 514,
+                            },
+                            "transport_protocol": {
+                                "required": False,
+                                "type": "str",
+                                "choices": ["UDP"],
+                                "default": "UDP",
+                            },
+                        },
+                    },
+                },
+            },
+            "email_report_setting": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "smtp_settings": {
+                        "required": False,
+                        "type": "list",
+                        "elements": "dict",
+                        "options": {
+                            "index": {
+                                "required": True,
+                                "type": "int",
+                                "choices": [1, 2],
+                            },
+                            "is_enabled": {
+                                "required": False,
+                                "type": "bool",
+                            },
+                            "smtp_server_name": {
+                                "required": False,
+                                "type": "str",
+                            },
+                            "port": {
+                                "required": False,
+                                "type": "int",
+                            },
+                            "connection_encryption_type": {
+                                "required": False,
+                                "type": "str",
+                                "choices": ["None", "STARTTLS", "SSL/TLS"],
+                            },
+                            "is_smtp_auth_enabled": {
+                                "required": False,
+                                "type": "bool",
+                            },
+                            "smtp_auth_account": {
+                                "required": False,
+                                "type": "str",
+                            },
+                            "smtp_auth_password": {
+                                "required": False,
+                                "type": "str",
+                                "no_log": True,
+                            },
+                            "from_address": {
+                                "required": False,
+                                "type": "str",
+                            },
+                            "to_address1": {
+                                "required": False,
+                                "type": "str",
+                            },
+                            "to_address2": {
+                                "required": False,
+                                "type": "str",
+                            },
+                            "to_address3": {
+                                "required": False,
+                                "type": "str",
+                            },
+                        },
+                    },
+                },
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = False
+        return cls.common_arguments
+
+    @classmethod
+    def event_log_setting_facts(cls):
+        spec_options = {}
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = False
+        cls.common_arguments.pop("state")
+        return cls.common_arguments
+
+
+class SDSBLicenseSettingArguments:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present"],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def license_setting(cls):
+        spec_options = {
+            "warning_threshold_setting": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "remaining_days": {
+                        "required": False,
+                        "type": "int",
+                    },
+                    "total_pool_capacity_rate": {
+                        "required": False,
+                        "type": "int",
+                    },
+                },
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = False
+        cls.common_arguments["state"]["choices"] = ["present"]
+        cls.common_arguments["state"]["default"] = "present"
+        return cls.common_arguments
+
+    @classmethod
+    def license_setting_facts(cls):
+        facts_arguments = {
+            "connection_info": SDSBCommonParameters.get_connection_info(),
+        }
+        return facts_arguments
+
+    @classmethod
+    def license_facts(cls):
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            "program_product_name": {
+                "required": False,
+                "type": "str",
+            },
+            "status": {
+                "required": False,
+                "type": "str",
+            },
+            "status_summary": {
+                "required": False,
+                "type": "str",
+                "choices": ["Normal", "Warning", "Error"],
+            },
+        }
+        facts_arguments = {
+            "connection_info": SDSBCommonParameters.get_connection_info(),
+            "spec": {
+                "required": False,
+                "type": "dict",
+                "options": spec_options,
+            },
+        }
+        return facts_arguments
+
+    @classmethod
+    def delete_license(cls):
+        spec_options = {
+            "id": {
+                "required": True,
+                "type": "str",
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = True
+        cls.common_arguments["state"]["choices"] = ["absent"]
+        cls.common_arguments["state"]["default"] = "absent"
+        return cls.common_arguments
+
+    @classmethod
+    def license(cls):
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "str",
+            },
+            "key_code": {
+                "required": False,
+                "type": "str",
+                "no_log": True,
+            },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        cls.common_arguments["spec"]["required"] = True
+        cls.common_arguments["state"]["choices"] = ["present", "absent"]
+        cls.common_arguments["state"]["default"] = "present"
+        return cls.common_arguments
 
 
 class SpareNodeArgs:
@@ -3131,6 +3782,66 @@ class WebServerAccessSettingsArgs:
         args = copy.deepcopy(cls.common_arguments)
         args.pop("state")
         args.pop("spec")
+        return args
+
+
+class DumpLogModuleArgs:
+
+    common_arguments = {
+        "connection_info": SDSBCommonParameters.get_connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": ["present", "absent", "download"],
+            "default": "present",
+        },
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def dump_log(cls):
+        spec_options = {
+            "label": {
+                "required": False,
+                "type": "str",
+            },
+            "mode": {
+                "required": False,
+                "type": "str",
+            },
+            "split_files_index": {
+                "required": False,
+                "type": "int",
+            },
+            "file_name": {
+                "required": False,
+                "type": "str",
+            },
+            "file_path": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        return args
+
+    @classmethod
+    def dump_log_status_facts(cls):
+        spec_options = {
+            "include_all_status": {
+                "required": False,
+                "type": "bool",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
         return args
 
 

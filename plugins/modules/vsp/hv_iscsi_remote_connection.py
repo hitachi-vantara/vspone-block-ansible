@@ -10,7 +10,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_iscsi_remote_connection
-short_description: Manages Remote connections through iSCSI ports on Hitachi VSP storage systems.
+short_description: Manages Remote connections through iSCSI ports on VSP block storage systems.
 description: >
   - This module allows settings of remote connections through iSCSI ports used for remote copy operations.
   - Remote connections are used to connect storage systems used in remote copy operations for TrueCopy, Universal Replicator, and global-active device.
@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_without_token
+- hitachivantara.vspone_block.common.remote_iscsi_connection_note
 options:
   state:
     description: The level of the Remote connection task. Choices are C(present), C(absent).

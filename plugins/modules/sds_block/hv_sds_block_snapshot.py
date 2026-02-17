@@ -41,11 +41,15 @@ options:
     suboptions:
       name:
         description: The name of the snapshot. This is a valid field for create operation.
+          Required for the Create a snapshot of the specified volume
+          /Create a snapshot of the specified volume in a VPS tasks.
         type: str
         required: false
       master_volume_name:
         description: The name of the master volume. This field is valid for the create operation and is mandatory
           if the master_volume_id field is not provided.
+          Required for the Create a snapshot of the specified volume
+          /Create a snapshot of the specified volume in a VPS tasks.
         type: str
         required: false
       master_volume_id:
@@ -56,6 +60,9 @@ options:
       snapshot_volume_name:
         description: The name of the snapshot volume. This field is valid for delete and restore operations and is mandatory
           if the snapshot_volume_id field is not provided.
+          Required for the Delete a snapshot of the specified volume
+          /Restore a snapshot of the specified volume
+          /Change the status of a snapshot from Prepare to Finalize tasks.
         type: str
         required: false
       snapshot_volume_id:
@@ -65,6 +72,9 @@ options:
         required: false
       operation_type:
         description: The type of snapshot operation. This field is valid for the create operation and is mandatory.
+          Required for the Create a snapshot of the specified volume
+          /Change the status of a snapshot from Prepare to Finalize
+          /Create a snapshot of the specified volume in a VPS tasks.
         type: str
         required: false
         choices: ["prepare_and_finalize", "prepare", "finalize"]
@@ -74,6 +84,7 @@ options:
         required: false
       vps_name:
         description: The name of the VPS.
+          Required for the Create a snapshot of the specified volume in a VPS task.
         type: str
         required: false
       qos:
@@ -83,14 +94,20 @@ options:
         suboptions:
           upper_limit_for_iops:
             description: Upper limit for IOPS.
+              Required for the Create a snapshot of the specified volume
+              /Create a snapshot of the specified volume in a VPS tasks.
             type: int
             required: false
           upper_limit_for_transfer_rate:
             description: Upper limit for transfer rate.
+              Required for the Create a snapshot of the specified volume
+              /Create a snapshot of the specified volume in a VPS tasks.
             type: int
             required: false
           upper_alert_allowable_time:
             description: Upper alert allowable time.
+              Required for the Create a snapshot of the specified volume
+              /Create a snapshot of the specified volume in a VPS tasks.
             type: int
             required: false
 """

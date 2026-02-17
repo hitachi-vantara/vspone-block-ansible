@@ -34,6 +34,7 @@ options:
     suboptions:
       id:
         description: Filter users by ID (UUID format).
+          Required for the Get one user by ID task.
         type: str
         required: false
       vps_id:
@@ -159,7 +160,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockFaultDomainFactsManager:
+class SDSBFaultDomainFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -198,7 +199,7 @@ class SDSBBlockFaultDomainFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockFaultDomainFactsManager()
+    obj_store = SDSBFaultDomainFactsManager()
     obj_store.apply()
 
 

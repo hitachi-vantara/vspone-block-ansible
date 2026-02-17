@@ -1,0 +1,53 @@
+---
+####################################################################
+# Example : Create License Playbook
+####################################################################
+- name: Create License
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+    # Required: Specify the license key code
+    license_key_code: "1LGB7VTDBH0J7QAQ3EEQM3O1VZLYBO1ER4HU7KXAN0DQ3GT6JW9NZCP1FS5IVAQ4BPF7DOO53TN"
+    # Required: Specify the license ID to delete
+    license_id_to_delete: "222c8201-805f-453d-99ac-0b21b8a66bd6"
+
+  tasks:
+  ####################################################################
+  # Task Name : Create License by Key Code
+  ####################################################################
+    - name: Create license by registering key code
+      hitachivantara.vspone_block.sds_block.hv_sds_block_license:
+        state: present
+        connection_info: "{{ connection_info }}"
+        spec:
+          key_code: "{{ license_key_code }}"
+      register: create_result
+
+    - name: Display create result
+      ansible.builtin.debug:
+        var: create_result
+
+    ####################################################################
+    # Task Name : Delete License by ID
+    ####################################################################
+    - name: Delete license by ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_license:
+        state: absent
+        connection_info: "{{ connection_info }}"
+        spec:
+          id: "{{ license_id_to_delete }}"
+      register: delete_result
+
+    - name: Display delete result
+      ansible.builtin.debug:
+        var: delete_result

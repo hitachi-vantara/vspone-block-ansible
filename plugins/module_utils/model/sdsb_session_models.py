@@ -17,7 +17,7 @@ class SDSBSessionFactsSpec(SingleBaseClass):
 @dataclass
 class SDSBSessionSpec(SingleBaseClass):
     id: Optional[str] = None
-    alive_time: Optional[int] = None
+    alive_time_in_seconds: Optional[int] = None
 
 
 @dataclass

@@ -34,20 +34,25 @@ options:
     suboptions:
       id:
         description: Unique identifier for the drive.
+          Required for the Get drive by ID task.
         type: str
       status_summary:
         description: Filter drives by status summary
+          Optional for the Get drives by specifying optional parameters task.
         choices: [ 'Normal', 'Warning', 'Error' ]
         type: str
       status:
           description: Filter drives by status
+            Optional for the Get drives by specifying optional parameters task.
           choices: [ 'Offline', 'Normal', 'TemporaryBlockage', 'Blockage' ]
           type: str
       storage_node_id:
           description: Filter drives by storage node ID (UUID format)
+            Optional for the Get drives by specifying optional parameters task.
           type: str
       locator_led_status:
           description: Filter drives by locator LED status
+            Optional for the Get drives by specifying optional parameters task.
           choices: [ 'On', 'Off' ]
           type: str
 """
@@ -150,14 +155,14 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_drives_reconciler import (
-    SDSBBlockDrivesReconciler,
+    SDSBDrivesReconciler,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
 )
 
 
-class SDSBBlockDrivesFactsManager:
+class SDSBDrivesFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -177,7 +182,7 @@ class SDSBBlockDrivesFactsManager:
         registration_message = validate_ansible_product_registration()
 
         try:
-            sdsb_reconciler = SDSBBlockDrivesReconciler(self.connection_info)
+            sdsb_reconciler = SDSBDrivesReconciler(self.connection_info)
             block_drives = sdsb_reconciler.get_drives(self.spec)
 
             self.logger.writeDebug(
@@ -196,7 +201,7 @@ class SDSBBlockDrivesFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockDrivesFactsManager()
+    obj_store = SDSBDrivesFactsManager()
     obj_store.apply()
 
 

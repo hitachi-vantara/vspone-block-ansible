@@ -33,6 +33,16 @@ class HostWWN(SingleBaseClass):
 
 
 @dataclass
+class HostGroupPaths(SingleBaseClass):
+    ldev: int = None
+    lun: int = None
+
+    def __post_init__(self):
+        if self.ldev is not None:
+            self.ldev = normalize_ldev_id(self.ldev)
+
+
+@dataclass
 class HostGroupSpec(SingleBaseClass):
     state: Optional[str] = None
     name: Optional[str] = None
@@ -46,6 +56,8 @@ class HostGroupSpec(SingleBaseClass):
     host_group_number: Optional[int] = None
     should_release_host_reserve: Optional[bool] = None
     lun: Optional[int] = None
+    lun_paths: Optional[List[HostGroupPaths]] = None
+    ports: Optional[List[str]] = None
 
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():
@@ -56,8 +68,23 @@ class HostGroupSpec(SingleBaseClass):
     def __post_init__(self):
         if self.wwns:
             self.wwns = [HostWWN(**wwn) for wwn in self.wwns]
+
+        if self.ldevs is not None and self.lun_paths is not None:
+            raise ValueError("Specify either 'ldevs' or 'lun_paths', not both.")
+
         if self.ldevs:
             self.ldevs = [normalize_ldev_id(ldev_id) for ldev_id in self.ldevs]
+        if self.lun_paths:
+            self.lun_paths = [HostGroupPaths(**path) for path in self.lun_paths]
+
+        if self.port is not None and self.ports is not None:
+            raise ValueError("Specify either 'port' or 'ports', not both.")
+
+        if self.port is None and self.ports is None:
+            raise ValueError("'port' must be specified for hostgroup operation.")
+
+        if self.ports is not None and len(self.ports) > 6:
+            raise ValueError("Ports list cannot contain more than 6 entries.")
 
 
 @dataclass
@@ -216,6 +243,7 @@ class VSPHostGroupInfo(SingleBaseClass):
         if "wwns" in kwargs:
             self.wwns = [VSPWwn(**wwn) for wwn in kwargs.get("wwns")]
         self.port = kwargs.get("port")
+        self.portId = kwargs.get("port")
         self.resourceGroupId = kwargs.get("resourceGroupId")
         self.__post__init__()
 
@@ -295,3 +323,32 @@ class VSPHostGroupUAIG(SingleBaseClass):
 @dataclass
 class VSPHostGroupsUAIG(BaseDataClass):
     data: List[VSPHostGroupUAIG] = None
+
+
+@dataclass
+class HostModesRes(SingleBaseClass):
+    hostModeId: int = None
+    hostModeName: str = None
+    hostModeDisplay: str = None
+
+
+@dataclass
+class hostModeOptionsRes(SingleBaseClass):
+    hostModeOptionId: int = None
+    hostModeOptionDescription: str = None
+    scope: str = None
+    requiredHostModes: List[int] = None
+
+
+@dataclass
+class HostModeOptionsResponse(SingleBaseClass):
+    hostModes: List[HostModesRes] = None
+    hostModeOptions: List[hostModeOptionsRes] = None
+
+    def __post_init__(self):
+        if self.hostModes:
+            self.hostModes = [HostModesRes(**mode) for mode in self.hostModes]
+        if self.hostModeOptions:
+            self.hostModeOptions = [
+                hostModeOptionsRes(**option) for option in self.hostModeOptions
+            ]

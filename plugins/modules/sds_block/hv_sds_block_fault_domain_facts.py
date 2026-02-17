@@ -34,9 +34,11 @@ options:
     suboptions:
       id:
         description: Filter fault domains by ID (UUID format).
+          Required for the Get one fault domain by ID task.
         type: str
       name:
         description: Filter fault domains by name.
+          Required for the Get one fault domain by name task.
         type: str
 """
 
@@ -168,7 +170,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockFaultDomainFactsManager:
+class SDSBFaultDomainFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -209,7 +211,7 @@ class SDSBBlockFaultDomainFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockFaultDomainFactsManager()
+    obj_store = SDSBFaultDomainFactsManager()
     obj_store.apply()
 
 

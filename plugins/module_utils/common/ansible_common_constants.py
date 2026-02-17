@@ -44,3 +44,4 @@ APIG_URL = os.getenv(
     "HV_APIG_URL",
     "https://5v56roefvl.execute-api.us-west-2.amazonaws.com/api/update_telemetry",
 )
+MAX_WORKER_THREADS = 10

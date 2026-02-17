@@ -178,7 +178,7 @@ class UserGroupInfoExtractor:
 
         if response_key is None:
             return []
-        logger.writeDebug("RC:process_list:response_key={}", response_key)
+        # logger.writeDebug("RC:process_list:response_key={}", response_key)
         for item in response_key:
             new_dict = {}
             for key, value in item.items():

@@ -32,8 +32,14 @@ options:
     type: dict
     required: false
     suboptions:
+      id:
+          description: Filter events by exact event ID.
+            Optional for the Get event logs by specifying optional parameters task.
+          required: false
+          type: str
       severity:
           description: Filter events by exact severity level. If you specify severity_ge, you can't specify this.
+            Optional for the Get event logs by specifying optional parameters task.
           required: false
           type: str
           choices: [ 'Info', 'Warning', 'Error', 'Critical' ]
@@ -44,14 +50,17 @@ options:
           choices: [ 'Info', 'Warning', 'Error', 'Critical' ]
       start_time:
           description: Start time for event log retrieval (ISO 8601 format)
+            Optional for the Get event logs by specifying optional parameters task.
           required: false
           type: str
       end_time:
           description: End time for event log retrieval (ISO 8601 format)
+            Required for the Get event logs by specifying optional parameters task.
           required: false
           type: str
       max_events:
           description: Maximum number of events to retrieve (1-1000)
+            Required for the Get event logs by specifying optional parameters task.
           required: false
           type: int
           default: 1000
@@ -146,7 +155,6 @@ ansible_facts:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
     SDSBEventLogsArguments,
     SDSBParametersManager,
@@ -154,7 +162,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_event_logs_reconciler import (
     SDSBEventLogsReconciler,
 )
@@ -168,18 +175,20 @@ class SDSBEventLogsFactsManager:
 
         self.logger = Log()
         self.argument_spec = SDSBEventLogsArguments().event_log_facts()
-        self.logger.writeDebug(
-            f"MOD:hv_sds_block_event_log_facts:argument_spec= {self.argument_spec}"
-        )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,
         )
-
-        parameter_manager = SDSBParametersManager(self.module.params)
-        self.connection_info = parameter_manager.get_connection_info()
-        self.spec = parameter_manager.get_event_log_fact_spec()
-        self.logger.writeDebug(f"MOD:hv_sds_block_event_log_facts:spec= {self.spec}")
+        try:
+            parameter_manager = SDSBParametersManager(self.module.params)
+            self.connection_info = parameter_manager.get_connection_info()
+            self.spec = parameter_manager.get_event_log_fact_spec()
+            self.logger.writeDebug(
+                f"MOD:hv_sds_block_event_log_facts:spec= {self.spec}"
+            )
+        except Exception as e:
+            self.logger.writeException(e)
+            self.module.fail_json(msg=str(e))
 
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB Event Log Facts ===")

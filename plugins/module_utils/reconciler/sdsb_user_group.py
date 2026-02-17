@@ -5,6 +5,7 @@ try:
     from ..common.hv_constants import StateValue
     from .sdsb_vps_helper import SDSBVpsHelper
     from ..message.sdsb_vps_msgs import SDSBVpsValidationMsg
+    from ..message.sdsb_user_group_msgs import SDSBUserGroupValidationMsg
 except ImportError:
     from provisioner.sdsb_user_group_provisioner import SDSBUserGroupProvisioner
     from common.hv_log import Log
@@ -12,6 +13,7 @@ except ImportError:
     from common.hv_constants import StateValue
     from sdsb_vps_helper import SDSBVpsHelper
     from message.sdsb_vps_msgs import SDSBVpsValidationMsg
+    from message.sdsb_user_group_msgs import SDSBUserGroupValidationMsg
 
 logger = Log()
 
@@ -53,7 +55,8 @@ class SDSBUserGroupReconciler:
         if handler:
             return handler(spec)
         else:
-            spec.errors.append(f"Unsupported state: {state}")
+            msg = SDSBUserGroupValidationMsg.UNSUPPORTED_STATE.value.format(state)
+            spec.errors.append(msg)
             return spec
 
     @log_entry_exit

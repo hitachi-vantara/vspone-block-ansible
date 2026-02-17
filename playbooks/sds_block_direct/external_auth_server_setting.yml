@@ -1,0 +1,94 @@
+---
+####################################################################
+# Example : External Auth Server Settings Playbook
+####################################################################
+- name: External Auth Server Settings Module
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+  ####################################################################
+  # Task Name : Update external auth server settings
+  ####################################################################
+    - name: Update external auth server settings
+      hitachivantara.vspone_block.sds_block.hv_sds_block_storage_external_auth_server_setting:
+        connection_info: "{{ connection_info }}"
+        spec:
+          auth_protocol: "LDAP"
+          is_enabled: true
+          ldap_setting:
+            base_dn: "dc=esd-dc1,dc=sie,dc=hds,dc=com"
+            bind_dn: "cn=ldap1,cn=Users,dc=esd-dc1,dc=sie,dc=hds,dc=com"
+            bind_dn_password: "CHANGEME_123"
+            external_group_name_attribute: "sAMAccountName"
+            is_start_tls_enabled: false
+            mapping_mode: "Group"
+            max_retries: 1
+            primary_ldap_server_url: "ldap://esd-dc1.sie.hds.com"
+            retry_interval_milliseconds: 100
+            secondary_ldap_server_url: ""
+            timeout_seconds: 7
+            user_group_object_class: "Group"
+            user_group_tree_dn: "ou=StorageGroups,dc=esd-dc1,dc=sie,dc=hds,dc=com"
+            user_id_attribute: "sAMAccountName"
+            user_object_class: "User"
+            user_tree_dn: "ou=StorageUsers,dc=esd-dc1,dc=sie,dc=hds,dc=com"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ###############################################################################
+    # Task Name : Verifies the connection with the external authentication server.
+    ###############################################################################
+    - name: Verifies the connection with the external authentication server
+      hitachivantara.vspone_block.sds_block.hv_sds_block_storage_external_auth_server_setting:
+        connection_info: "{{ connection_info }}"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ##################################################################################################
+    # Task Name : Imports a root certificate for external authentication server to a storage cluster.
+    ##################################################################################################
+    - name: Imports a root certificate for external authentication server to a storage cluster
+      hitachivantara.vspone_block.sds_block.hv_sds_block_storage_external_auth_server_setting:
+        connection_info: "{{ connection_info }}"
+        state: "import_root_certificate"
+        spec:
+          root_certificate_file_path: "/user/john/certs/ext_auth_server_certificate.crt"
+          target_server: "primary"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ##########################################################################
+    # Task Name : Download root certificate for external authentication server
+    ##########################################################################
+    - name: Download root certificate for external authentication server
+      hitachivantara.vspone_block.sds_block.hv_sds_block_storage_external_auth_server_setting:
+        connection_info: "{{ connection_info }}"
+        state: "download_root_certificate"
+        spec:
+          download_location: "/user/john/downloads"
+          target_server: "primary"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

@@ -117,7 +117,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockStorageNodeNetworkSettingFactsManager:
+class SDSBStorageNodeNetworkSettingFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -164,7 +164,7 @@ class SDSBBlockStorageNodeNetworkSettingFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockStorageNodeNetworkSettingFactsManager()
+    obj_store = SDSBStorageNodeNetworkSettingFactsManager()
     obj_store.apply()
 
 

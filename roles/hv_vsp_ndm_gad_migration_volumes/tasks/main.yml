@@ -1,0 +1,124 @@
+---
+####################################################################
+# Role: hv_vsp_ndm_gad_migration_volumes
+# Description: Create GAD pairs with complete infrastructure setup
+####################################################################
+
+####################################################################
+# Task: Process input LDEVs from GAD status file
+####################################################################
+
+- name: Process input LDEVs from GAD status file
+  ansible.builtin.set_fact:
+    local_device_group_name: "{{ hv_vsp_ndm_gad_migration_volumes_copy_group_name }}P_"
+    remote_device_group_name: "{{ hv_vsp_ndm_gad_migration_volumes_copy_group_name }}S_"
+####################################################################
+
+###################################################################
+# swap-split gad pairs non-Disruptively
+###################################################################
+- name: Swap-Split All Remote Copy Group for GAD
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
+    connection_info: "{{ secondary_connection_info }}"
+    secondary_connection_info: "{{ connection_info }}"
+    state: "swap_split"
+    spec:
+      local_device_group_name: "{{ remote_device_group_name }}"
+      remote_device_group_name: "{{ local_device_group_name }}"
+      copy_group_name: "{{ hv_vsp_ndm_gad_migration_volumes_copy_group_name }}"
+      replication_type: "GAD"
+
+  register: swap_split_result
+
+- name: Debug the result variable
+  ansible.builtin.debug:
+    var: swap_split_result
+
+# ###################################################################
+# # Swap and Resync GAD pairs non-Disruptively
+# ###################################################################
+- name: Swap-Resync Remote Copy Group for GAD
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
+    connection_info: "{{ secondary_connection_info }}"
+    secondary_connection_info: "{{ connection_info }}"
+    state: "swap_resync"
+    spec:
+      local_device_group_name: "{{ remote_device_group_name }}"
+      remote_device_group_name: "{{ local_device_group_name }}"
+      copy_group_name: "{{ hv_vsp_ndm_gad_migration_volumes_copy_group_name }}"
+      replication_type: "GAD"
+
+  register: swap_resync_result
+
+- name: Debug the result variable
+  ansible.builtin.debug:
+    var: swap_resync_result
+
+###################################################################
+# Split the GAD pairs to complete migration
+###################################################################
+- name: Split the GAD pairs to complete migration
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
+    connection_info: "{{ connection_info }}"
+    secondary_connection_info: "{{ secondary_connection_info }}"
+    state: "split"
+    spec:
+      local_device_group_name: "{{ local_device_group_name }}"
+      remote_device_group_name: "{{ remote_device_group_name }}"
+      copy_group_name: "{{ hv_vsp_ndm_gad_migration_volumes_copy_group_name }}"
+      replication_type: "GAD"
+
+  register: split_result
+
+- name: Debug the result variable
+  ansible.builtin.debug:
+    var: split_result
+
+###################################################################
+# Delete the migrated gad pairs from source system
+###################################################################
+
+- name: Delete all GAD pairs using Remote Copy Group
+  hitachivantara.vspone_block.vsp.hv_remote_copy_group:
+    connection_info: "{{ connection_info }}"
+    secondary_connection_info: "{{ secondary_connection_info }}"
+    state: "absent"
+    spec:
+      local_device_group_name: "{{ local_device_group_name }}"
+      remote_device_group_name: "{{ remote_device_group_name }}"
+      copy_group_name: "{{ hv_vsp_ndm_gad_migration_volumes_copy_group_name }}"
+
+  register: delete_result
+
+- name: Debug the result variable
+  ansible.builtin.debug:
+    var: delete_result
+####################################################################
+# Task: Generate comprehensive GAD pair migration report
+####################################################################
+# cspell:ignore ldevs selectattr equalto
+- name: Generate GAD pair migration report
+  ansible.builtin.set_fact:
+    gad_migration_report:
+      migration_summary:
+        copy_group_name: "{{ hv_vsp_ndm_gad_migration_volumes_copy_group_name }}"
+        local_device_group: "{{ local_device_group_name }}"
+        remote_device_group: "{{ remote_device_group_name }}"
+        swap_split_completed: "{{ swap_split_result.changed | default(false) if swap_split_result is defined else false }}"
+        swap_resync_completed: "{{ swap_resync_result.changed | default(false) if swap_resync_result is defined else false }}"
+        deletion_completed: "{{ delete_result.changed | default(false) if delete_result is defined else false }}"
+      detailed_results:
+        last_operation_result: "{{ delete_result | default({}) }}"
+        timestamp: "{{ now(utc=true, fmt='%Y-%m-%dT%H:%M:%SZ') }}"
+
+- name: Display GAD pair migration report
+  ansible.builtin.debug:
+    msg:
+      - "=== GAD PAIR MIGRATION REPORT ==="
+      - "Copy Group: {{ hv_vsp_ndm_gad_migration_volumes_copy_group_name }}"
+      - "Local Device Group: {{ local_device_group_name }}"
+      - "Remote Device Group: {{ remote_device_group_name }}"
+      - "Swap-Split Status: {{ 'completed' if gad_migration_report.migration_summary.swap_split_completed else 'not executed or failed' }}"
+      - "Swap-Resync Status: {{ 'completed' if gad_migration_report.migration_summary.swap_resync_completed else 'not executed or failed' }}"
+      - "Deletion Status: {{ 'completed' if gad_migration_report.migration_summary.deletion_completed else 'not executed or failed' }}"
+      - "Report Generated: {{ gad_migration_report.detailed_results.timestamp }}"

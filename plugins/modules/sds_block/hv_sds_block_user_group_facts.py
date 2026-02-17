@@ -134,7 +134,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockFaultDomainFactsManager:
+class SDSBUserGroupFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -173,7 +173,7 @@ class SDSBBlockFaultDomainFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockFaultDomainFactsManager()
+    obj_store = SDSBUserGroupFactsManager()
     obj_store.apply()
 
 

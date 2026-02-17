@@ -1,0 +1,72 @@
+---
+####################################################################
+# Example : VSP PAV Alias facts Playbook
+####################################################################
+- name: VSP PAV Alias facts Module
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name : Get all PAV aliases
+    ####################################################################
+    - name: Get all PAV aliases
+      hitachivantara.vspone_block.vsp.hv_pav_alias_facts:
+        connection_info: "{{ connection_info }}"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get PAV alias by CU number
+    ####################################################################
+    - name: Get PAV alias by CU number
+      hitachivantara.vspone_block.vsp.hv_pav_alias_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          cu_number: 123
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get PAV alias by base LDEV ID
+    ####################################################################
+    - name: Get PAV alias by base LDEV ID
+      hitachivantara.vspone_block.vsp.hv_pav_alias_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          base_ldev_id: 456
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get PAV alias by alias LDEV ID
+    ####################################################################
+    - name: Get PAV alias by alias LDEV ID
+      hitachivantara.vspone_block.vsp.hv_pav_alias_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          alias_ldev_id: 456
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

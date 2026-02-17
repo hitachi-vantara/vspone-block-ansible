@@ -28,6 +28,7 @@ attributes:
     support: none
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.sdsb_connection_info
+  - hitachivantara.vspone_block.common.sdsb_chap_user_note
 options:
   state:
     description: The level of the CHAP user task. Choices are C(present) and C(absent).
@@ -42,22 +43,32 @@ options:
     suboptions:
       id:
         description: ID of the CHAP user.
+          Required for the Update a CHAP user name
+          /Update a CHAP user name and secret
+          /Delete a CHAP user tasks.
         type: str
         required: false
       target_chap_user_name:
         description: Target CHAP user name.
+          Required for the Create a CHAP user
+          /Update a CHAP user name
+          /Update a CHAP user name and secret tasks.
         type: str
         required: false
       target_chap_secret:
         description: Target CHAP user secret.
+          Required for the Create a CHAP user
+          /Update a CHAP user name and secret tasks.
         type: str
         required: false
       initiator_chap_user_name:
         description: Initiator CHAP user name.
+          Optional for the Create a CHAP user task.
         type: str
         required: false
       initiator_chap_secret:
         description: Initiator CHAP user secret.
+          Optional for the Create a CHAP user task.
         type: str
         required: false
 """

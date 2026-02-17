@@ -93,6 +93,13 @@ class SDSBClusterProvisioner:
 
     @log_entry_exit
     def stop_storage_cluster(self, spec):
+        force = spec.force if spec.force is not None else False
+        reboot = spec.reboot if spec.reboot is not None else False
+        config_parameter_setting_mode = (
+            spec.config_parameter_setting_mode
+            if spec.config_parameter_setting_mode is not None
+            else False
+        )
         return self.gateway.stop_storage_cluster(
-            spec.force, spec.reboot, spec.config_parameter_setting_mode
+            force, reboot, config_parameter_setting_mode
         )

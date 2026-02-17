@@ -3,20 +3,11 @@ try:
     from ..common.hv_constants import GatewayClassTypes
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
-
-    # from ..model.vsp_user_models import (
-    #     VspUserInfoList,
-    # )
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
-
-    # from model.vsp_user_models import (
-    #     VspUserInfoList,
-    # )
-
 
 logger = Log()
 

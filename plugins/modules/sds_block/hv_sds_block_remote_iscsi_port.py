@@ -150,7 +150,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockRemoteIscsiPortManager:
+class SDSBRemoteIscsiPortManager:
     def __init__(self):
         self.logger = Log()
         self.argument_spec = SDSBRemoteIscsiPortArguments().remote_iscsi_port()
@@ -194,7 +194,7 @@ class SDSBBlockRemoteIscsiPortManager:
 
 
 def main():
-    obj_store = SDSBBlockRemoteIscsiPortManager()
+    obj_store = SDSBRemoteIscsiPortManager()
     obj_store.apply()
 
 

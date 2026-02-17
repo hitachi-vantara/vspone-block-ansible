@@ -37,21 +37,26 @@ options:
       count:
         type: int
         description: The maximum number of obtained volume information items. Default is 500.
+          Required for the Get volumes by count task.
+          Optional for the Get volumes by other filters task.
         required: false
         default: 500
       names:
         type: list
         description: The names of the volumes.
+          Required for the Get volumes by names task.
         required: false
         elements: str
       nicknames:
         type: list
         description: The nickname of the volume.
+          Required for the Get volumes by nicknames task.
         required: false
         elements: str
       capacity_saving:
         type: str
         description: Settings of the data reduction function for volumes.
+          Optional for the Get volumes by other filters task.
         required: false
         choices: ['Disabled', 'Compression']
       vps_id:

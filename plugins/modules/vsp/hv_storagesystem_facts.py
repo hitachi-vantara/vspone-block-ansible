@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_storagesystem_facts
-short_description:  retrieves storage system information from Hitachi VSP storage systems.
+short_description:  retrieves storage system information from VSP block storage systems.
 description:
   - This module gathers facts about a specific storage system.
   - For examples, go to URL
@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.storage_system_facts_note
 notes:
   - The input parameter C(refresh) was removed in version 3.4.0.
     They were deprecated due to internal API simplification and are no longer supported.
@@ -48,6 +49,7 @@ options:
     suboptions:
       query:
         description: Additional information to be gathered.
+          Required for the Getting a list of time zones that can be used in a storage system task.
         type: list
         elements: str
         choices: ['time_zone']
@@ -163,6 +165,10 @@ ansible_facts:
           description: Free capacity in megabytes.
           type: int
           sample: 1445087
+        is_compression_acceleration_available:
+          description: Indicates if compression acceleration is available.
+          type: bool
+          sample: true
         free_gad_consistency_group_id:
           description: Free GAD consistency group ID.
           type: int

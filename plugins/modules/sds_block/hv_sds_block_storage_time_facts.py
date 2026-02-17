@@ -82,7 +82,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockTimeSettingsFactsManager:
+class SDSBTimeSettingsFactsManager:
     def __init__(self):
         self.logger = Log()
         argument_spec = {
@@ -136,7 +136,7 @@ class SDSBBlockTimeSettingsFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockTimeSettingsFactsManager()
+    obj_store = SDSBTimeSettingsFactsManager()
     obj_store.apply()
 
 

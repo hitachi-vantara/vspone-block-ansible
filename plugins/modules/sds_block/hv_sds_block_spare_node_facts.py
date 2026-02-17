@@ -132,7 +132,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible.module_utils.basic import AnsibleModule
 
 
-class SDSBBlockSpareNodeFactsManager:
+class SDSBSpareNodeFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -168,7 +168,7 @@ class SDSBBlockSpareNodeFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockSpareNodeFactsManager()
+    obj_store = SDSBSpareNodeFactsManager()
     obj_store.apply()
 
 

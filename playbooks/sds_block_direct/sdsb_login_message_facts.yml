@@ -1,0 +1,30 @@
+---
+####################################################################
+# Example :  Login Message Facts playbook
+####################################################################
+- name: Login Message Facts
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name : Retrieve current login message
+    ####################################################################
+    - name: Retrieve current login message
+      hitachivantara.vspone_block.sds_block.hv_sds_block_login_message_facts:
+        connection_info: "{{ connection_info }}"
+      register: result
+
+    - name: Display current login message
+      ansible.builtin.debug:
+        var: result

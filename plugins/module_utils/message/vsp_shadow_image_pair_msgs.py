@@ -15,3 +15,4 @@ class VSPShadowImagePairValidateMsg(Enum):
     SVOL_POOL_ID_NEEDED = "When secondary_volume_id is not provided or type is UNDEFINED, secondary_pool_id is needed, which is missing."
     PVOL_SVOL_SIZE_MISMATCH = "Primary volume and secondary volume size mismatch."
     PAIR_NOT_FOUND = "Shadow image pair not found with pair id = {}."
+    PVOL_NO_HG_PRESENTATION = "Cannot create shadow image pair. Primary volume has no host group presentation."

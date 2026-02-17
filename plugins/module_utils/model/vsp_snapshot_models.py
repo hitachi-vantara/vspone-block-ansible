@@ -5,7 +5,7 @@ try:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from ..common.ansible_common import normalize_ldev_id
 except ImportError:
-    from common_base_models import BaseDataClass, SingleBaseClass
+    from .common_base_models import BaseDataClass, SingleBaseClass
     from common.ansible_common import normalize_ldev_id
 
 
@@ -37,6 +37,8 @@ class SnapshotGroupSpec:
     auto_split: Optional[bool] = None
     retention_period: Optional[int] = None
     copy_speed: Optional[str] = None
+    operation_type: Optional[str] = None
+    wait_for_final_state: Optional[bool] = None
 
 
 @dataclass
@@ -72,6 +74,9 @@ class SnapshotReconcileSpec:
     clones_automation: Optional[bool] = None
     operation_type: Optional[str] = None
     should_delete_tree: Optional[bool] = False
+    wait_for_final_state: Optional[bool] = None
+    should_delete_svol: Optional[bool] = False
+    create_drs_svol: Optional[bool] = False
 
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():
@@ -141,6 +146,8 @@ class DirectSnapshotInfo(SingleBaseClass):
     pvolHostGroups: Optional[List[HostGroupInfo]] = None
     svolHostGroups: Optional[List[HostGroupInfo]] = None
     retentionPeriod: Optional[int] = None
+    isVirtualCloneVolume: Optional[bool] = None
+    isVirtualCloneParentVolume: Optional[bool] = None
 
     def __init__(self, **kwargs):
         super().__init__()  # or selectively forward kwargs

@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_hur_facts
-short_description: Retrieves HUR information from Hitachi VSP storage systems.
+short_description: Retrieves HUR information from VSP block storage systems.
 description:
-  - This module retrieves information about HURs from Hitachi VSP storage systems.
+  - This module retrieves information about HURs from VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/hur_facts.yml)
 version_added: '3.1.0'
@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.hur_facts_note
 options:
   storage_system_info:
     description: Information about the storage system. This field is an optional field.

@@ -12,7 +12,7 @@ except ImportError:
 logger = Log()
 
 
-class SDSBBlockLoginMessageDirectGateway:
+class SDSBLoginMessageDirectGateway:
 
     def __init__(self, connection_info):
         self.connection_manager = SDSBConnectionManager(

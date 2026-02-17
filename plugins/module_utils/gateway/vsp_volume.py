@@ -1,9 +1,12 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 try:
     from .gateway_manager import VSPConnectionManager
     from ..common.vsp_constants import (
         Endpoints,
         VolumePayloadConst,
         AutomationConstants,
+        DEFAULT_NAME_PREFIX,
     )
     from ..common.ansible_common import dicts_to_dataclass_list
     from ..model.vsp_volume_models import (
@@ -19,10 +22,16 @@ try:
     from ..common.ansible_common import log_entry_exit
     from ..common.vsp_constants import PEGASUS_MODELS
     from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
+    from ..common.ansible_common import calculate_3390_ldev_blocks
 
 except ImportError:
     from common.ansible_common import log_entry_exit
-    from common.vsp_constants import Endpoints, VolumePayloadConst, AutomationConstants
+    from common.vsp_constants import (
+        Endpoints,
+        VolumePayloadConst,
+        AutomationConstants,
+        DEFAULT_NAME_PREFIX,
+    )
     from common.ansible_common import dicts_to_dataclass_list
     from model.vsp_volume_models import (
         VSPVolumesInfo,
@@ -90,7 +99,7 @@ class VSPVolumeDirectGateway:
         journal_id=None,
         parity_group_id=None,
     ) -> VSPVolumesInfo:
-
+        count = count if count > 0 else AutomationConstants.LDEV_MAX_NUMBER
         if pool_id is None:
             path = VolumePayloadConst.LDEV_OPTION.format(ldev_option)
             path += VolumePayloadConst.HEAD_LDEV_ID_NEXT.format(start_ldev)
@@ -104,29 +113,57 @@ class VSPVolumeDirectGateway:
         if parity_group_id:
             path = VolumePayloadConst.PARITY_GROUP_ID.format(parity_group_id)
 
-        path += VolumePayloadConst.COUNT.format(
-            count if count > 0 else AutomationConstants.LDEV_MAX_NUMBER
-        )
+        if count <= 1000:
+            path += VolumePayloadConst.COUNT.format(count)
+            end_point = self.end_points.GET_LDEVS.format(path)
+            vol_data = self.rest_api.get(end_point)
+            volumes = VSPVolumesInfo(
+                dicts_to_dataclass_list(vol_data["data"], VSPVolumeInfo)
+            )
+        else:
 
-        end_point = self.end_points.GET_LDEVS.format(path)
-        vol_data = self.rest_api.get(end_point)
-        volumes = VSPVolumesInfo(
-            dicts_to_dataclass_list(vol_data["data"], VSPVolumeInfo)
-        )
+            num_threads = (count + 999) // 1000
+            all_volumes = []
 
-        if self.is_pegasus and len(volumes.data) < 100:
-            for volume in volumes.data:
-                try:
-                    pega_end_point = self.end_points.PEGA_LDEVS_ONE.format(
-                        volume.ldevId
+            def fetch_volumes_chunk(chunk_start, chunk_count):
+                chunk_path = VolumePayloadConst.LDEV_OPTION.format(ldev_option)
+                chunk_path += VolumePayloadConst.HEAD_LDEV_ID_NEXT.format(chunk_start)
+                chunk_path += VolumePayloadConst.COUNT.format(chunk_count)
+                chunk_end_point = self.end_points.GET_LDEVS.format(chunk_path)
+                return self.rest_api.get(chunk_end_point)
+
+            executor = ThreadPoolExecutor(max_workers=num_threads)
+            try:
+                futures = {}
+                current_start = start_ldev
+                remaining = count
+
+                for unused in range(num_threads):
+                    chunk_size = min(1000, remaining)
+                    if chunk_size <= 0:
+                        break
+                    future = executor.submit(
+                        fetch_volumes_chunk, current_start, chunk_size
                     )
-                    add_vol_data = self.rest_api.pegasus_get(pega_end_point)
-                    drs_enabled = add_vol_data.get(
-                        VolumePayloadConst.IS_DATA_REDUCTION_SHARE_ENABLED, False
-                    )
-                    volume.isDataReductionShareEnabled = drs_enabled
-                except Exception as ex:
-                    logger.writeDebug(f"GW: exception in get_volumes {ex}")
+                    futures[future] = current_start
+                    current_start += 1000
+                    remaining -= chunk_size
+
+                for future in as_completed(futures):
+                    try:
+                        vol_data = future.result()
+                        all_volumes.extend(vol_data.get("data", []))
+                    except Exception as ex:
+                        logger.writeDebug(f"GW: exception in get_volumes thread {ex}")
+            except KeyboardInterrupt:
+                executor.shutdown(wait=False, cancel_futures=True)
+                raise
+            finally:
+                executor.shutdown(wait=True)
+
+            volumes = VSPVolumesInfo(
+                dicts_to_dataclass_list(all_volumes, VSPVolumeInfo)
+            )
         return volumes
 
     @log_entry_exit
@@ -137,7 +174,7 @@ class VSPVolumeDirectGateway:
         return VSPVolumesInfo(dicts_to_dataclass_list(vol_data["data"], VSPVolumeInfo))
 
     @log_entry_exit
-    def get_volume_by_id(self, ldev_id) -> VSPVolumeInfo:
+    def get_volume_by_id(self, ldev_id, include_drs=True) -> VSPVolumeInfo:
 
         end_point = self.end_points.LDEVS_ONE.format(ldev_id)
         try:
@@ -147,16 +184,6 @@ class VSPVolumeDirectGateway:
             vol_data = self.rest_api.get(end_point)
 
         volume_info = VSPVolumeInfo(**vol_data)
-        if self.is_pegasus and volume_info.poolId is not None:
-            try:
-                pega_end_point = self.end_points.PEGA_LDEVS_ONE.format(ldev_id)
-                add_vol_data = self.rest_api.pegasus_get(pega_end_point)
-                drs_enabled = add_vol_data.get(
-                    VolumePayloadConst.IS_DATA_REDUCTION_SHARE_ENABLED, False
-                )
-                volume_info.isDataReductionShareEnabled = drs_enabled
-            except Exception as ex:
-                logger.writeDebug(f"GW: exception in get_volume_by_id {ex}")
         return volume_info
 
     @log_entry_exit
@@ -170,16 +197,6 @@ class VSPVolumeDirectGateway:
             vol_data = self.rest_api.get(end_point)
 
         volume_info = VSPVolumeInfo(**vol_data)
-        if self.is_pegasus and volume_info.poolId is not None:
-            try:
-                pega_end_point = self.end_points.PEGA_LDEVS_ONE.format(ldev_id)
-                add_vol_data = self.rest_api.pegasus_get(pega_end_point)
-                drs_enabled = add_vol_data.get(
-                    VolumePayloadConst.IS_DATA_REDUCTION_SHARE_ENABLED, False
-                )
-                volume_info.isDataReductionShareEnabled = drs_enabled
-            except Exception as ex:
-                logger.writeDebug(f"GW: exception in get_volume_by_id {ex}")
         return volume_info
 
     @log_entry_exit
@@ -239,16 +256,86 @@ class VSPVolumeDirectGateway:
                         payload[
                             VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED
                         ] = is_true
-            else:
-                if spec.data_reduction_share is not None:
-                    payload[
-                        VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED
-                    ] = spec.data_reduction_share
+                    spec.data_reduction_share = None
+
+        if spec.data_reduction_share is not None:
+            payload[VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED] = (
+                spec.data_reduction_share
+            )
             # if spec.capacity_saving.lower() != VolumePayloadConst.DISABLED:
             #     if spec.is_compression_acceleration_enabled is not None:
             #         payload[VolumePayloadConst.IS_COMPRESSION_ACCELERATION_ENABLED] = (
             #             spec.is_compression_acceleration_enabled
             #         )
+        if spec.parity_group:
+            payload[VolumePayloadConst.PARITY_GROUP] = spec.parity_group
+
+        if spec.emulation_type is not None:
+            payload[VolumePayloadConst.EMULATION_TYPE] = spec.emulation_type
+
+        if spec.is_parallel_execution_enabled:
+            payload[VolumePayloadConst.IS_PARALLEL_EXECUTION_ENABLED] = (
+                spec.is_parallel_execution_enabled
+            )
+        if spec.start_ldev_id:
+            payload[VolumePayloadConst.START_LDEV_ID] = spec.start_ldev_id
+        if spec.end_ldev_id:
+            payload[VolumePayloadConst.END_LDEV_ID] = spec.end_ldev_id
+        if spec.external_parity_group:
+            payload[VolumePayloadConst.EXTERNAL_PARITY_GROUP_ID] = (
+                spec.external_parity_group
+            )
+
+        end_point = self.end_points.POST_LDEVS
+        logger.writeDebug(f"Payload for creating volume: {payload}")
+
+        url = self.rest_api.post(end_point, payload)
+
+        # Split the ldevid from url
+        return url.split("/")[-1]
+
+    @log_entry_exit
+    def create_mainframe_volume(self, spec: CreateVolumeSpec):
+        payload = {}
+        logger.writeDebug(f"spec for creating volume: {spec}")
+
+        # the block_size is added to support decimal values like 1.5 GB etc.
+        if isinstance(spec.pool_id, int):
+            payload[VolumePayloadConst.POOL_ID] = spec.pool_id
+        if spec.ldev_id:
+            payload[VolumePayloadConst.LDEV] = spec.ldev_id
+        if spec.is_parallel_execution_enabled:
+            payload[VolumePayloadConst.IS_PARALLEL_EXECUTION_ENABLED] = (
+                spec.is_parallel_execution_enabled
+            )
+        if spec.capacity_saving:
+            payload[VolumePayloadConst.ADR_SETTING] = spec.capacity_saving
+            if self.is_pegasus:
+                if (
+                    spec.capacity_saving.lower() != VolumePayloadConst.DISABLED
+                    and spec.pool_id is not None
+                ):
+                    logger.writeDebug(
+                        f"is spec.data_reduction_share : {spec.data_reduction_share}"
+                    )
+                    is_true = (
+                        True
+                        if spec.data_reduction_share is None
+                        else spec.data_reduction_share
+                    )
+                    logger.writeDebug(f"is true: {is_true}")
+
+                    if spec.pool_id != -1:
+                        payload[
+                            VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED
+                        ] = is_true
+                    spec.data_reduction_share = None
+
+        if spec.data_reduction_share is not None:
+            payload[VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED] = (
+                spec.data_reduction_share
+            )
+
         if spec.parity_group:
             payload[VolumePayloadConst.PARITY_GROUP] = spec.parity_group
 
@@ -264,6 +351,40 @@ class VSPVolumeDirectGateway:
             payload[VolumePayloadConst.EXTERNAL_PARITY_GROUP_ID] = (
                 spec.external_parity_group
             )
+
+        # Extend for mainframe specific params
+        if spec.cylinder is not None:
+            if spec.emulation_type.lower() == "3390-v":
+                payload[VolumePayloadConst.BLOCK_CAPACITY] = calculate_3390_ldev_blocks(
+                    spec.cylinder
+                )
+                spec.ssid = None
+            else:
+                payload[VolumePayloadConst.CYLINDER] = spec.cylinder
+
+        if spec.emulation_type is not None:
+            payload[VolumePayloadConst.EMULATION_TYPE] = spec.emulation_type.upper()
+
+        if spec.parity_group is None:
+            payload[VolumePayloadConst.LABEL] = (
+                spec.name if spec.name else f"{DEFAULT_NAME_PREFIX}-{spec.ldev_id}"
+            )
+            spec.name = None
+
+        if spec.ssid is not None:
+            payload[VolumePayloadConst.SSID] = spec.ssid
+            spec.ssid = None
+        if spec.mp_blade_id is not None:
+            payload[VolumePayloadConst.MP_BLADE_ID] = spec.mp_blade_id
+            spec.mp_blade_id = None
+        if spec.is_tse_volume is not None:
+            payload[VolumePayloadConst.IS_TSE_VOLUME] = spec.is_tse_volume
+        if spec.is_ese_volume is not None:
+            payload[VolumePayloadConst.IS_ESE_VOLUME] = spec.is_ese_volume
+            spec.is_ese_volume = None
+        if spec.clpr_id is not None:
+            payload[VolumePayloadConst.CLPR_ID] = spec.clpr_id
+            spec.clpr_id = None
 
         end_point = self.end_points.POST_LDEVS
         logger.writeDebug(f"Payload for creating volume: {payload}")
@@ -294,7 +415,12 @@ class VSPVolumeDirectGateway:
     def get_free_ldev_from_meta(self):
         end_point = self.end_points.GET_FREE_LDEV_FROM_META
         vol_data = self.rest_api.get(end_point)
-        return VSPVolumesInfo(dicts_to_dataclass_list(vol_data["data"], VSPVolumeInfo))
+        # logger.writeDebug(f"Free Ldevs from meta: {vol_data}")
+        for item in vol_data["data"]:
+            if "virtualLdevId" not in item:
+                undefined_vol_info = VSPUndefinedVolumeInfo(**item)
+                return VSPUndefinedVolumeInfoList(data=[undefined_vol_info])
+        raise Exception("No free ldevs present in meta.")
 
     @log_entry_exit
     def get_free_ldevs_from_meta(self, start_ldev=0, resource_group_id=0):
@@ -346,12 +472,14 @@ class VSPVolumeDirectGateway:
         vol_data = self.rest_api.get(end_point)
         if vol_data["data"]:
             resource_group_id = vol_data["data"][0]["resourceGroupId"]
-            if resource_group_id != 0:
+            vldev_id = vol_data["data"][0].get("virtualLdevId", None)
+            if resource_group_id != 0 or vldev_id is not None:
                 #     # if resource_group_id is 0, then it is a free ldev in meta
                 #     found = True
                 # else:
-                end_point = self.end_points.GET_FREE_LDEV_FROM_META.format(pvol_id)
-                vol_data = self.rest_api.get(end_point)
+                # end_point = self.end_points.GET_FREE_LDEV_FROM_META.format(pvol_id)
+                # vol_data = self.rest_api.get(end_point)
+                return self.get_free_ldev_from_meta()
 
         return VSPUndefinedVolumeInfoList(
             dicts_to_dataclass_list(vol_data["data"], VSPUndefinedVolumeInfo)
@@ -385,6 +513,8 @@ class VSPVolumeDirectGateway:
                 )
             if spec.is_alua_enabled is not None:
                 payload[VolumePayloadConst.IS_ALUA_ENABLED] = spec.is_alua_enabled
+            if spec.ssid is not None:
+                payload[VolumePayloadConst.SSID] = spec.ssid
 
         end_point = self.end_points.LDEVS_ONE.format(ldev_id)
         return self.rest_api.patch(end_point, payload)
@@ -401,6 +531,8 @@ class VSPVolumeDirectGateway:
             payload[VolumePayloadConst.PARAMS][
                 VolumePayloadConst.ENHANCED_EXPANSION
             ] = True
+
+        payload[VolumePayloadConst.PARAMS][VolumePayloadConst.ENHANCED_EXPANSION] = True
         end_point = self.end_points.POST_EXPAND_LDEV.format(ldev_id)
         return self.rest_api.post(end_point, payload)
 
@@ -657,3 +789,23 @@ class VSPVolumeDirectGateway:
         end_point = self.end_points.GET_LDEVS.format(query_params)
         vol_data = self.rest_api.get(end_point)
         return VSPVolumesInfo(dicts_to_dataclass_list(vol_data["data"], VSPVolumeInfo))
+
+    @log_entry_exit
+    def stop_volume_format(self):
+        end_point = self.end_points.STOP_VOLUME_FORMAT
+        try:
+            return self.rest_api.post_without_job(end_point, None)
+        except Exception as e:
+            if "No resource exists at the specified URI" in str(e):
+                raise Exception(
+                    "Stopping volume format is not supported on this system."
+                )
+            logger.writeError(f"Error stopping volume format: {e}")
+            raise e
+
+    @log_entry_exit
+    def set_ese_volume(self, ldev_id, is_ese_volume):
+        end_point = self.end_points.SET_ESE_VOLUME.format(ldev_id)
+        payload = {"parameters": {"isEseVolume": is_ese_volume}}
+
+        return self.rest_api.post(end_point, payload)

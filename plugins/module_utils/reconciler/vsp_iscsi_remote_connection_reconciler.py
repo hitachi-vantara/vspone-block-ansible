@@ -34,7 +34,7 @@ class VSPRemoteIscsiConnectionReconciler:
         #  reconcile the journal pool based on the desired state in the specification
         state = state.lower()
         self.provisioner.remote_serial = spec.remote_storage_serial_number
-        self.provisioner.get_remote_connection_info()
+        self.provisioner._get_remote_connection_info()
         if state == StateValue.PRESENT:
             return self.provisioner.create_update_iscsi_remote_connection(spec)
         else:

@@ -44,6 +44,7 @@ class StateValue:
     RESIZE = "resize"
     EXPAND = "expand"
     CLONE = "clone"
+    SHRUNK = "shrunk"
     SWAP_RESYNC = "swap_resync"
     SWAP_SPLIT = "swap_split"
     EXPAND_JOURNAL = "expand_journal"
@@ -99,6 +100,7 @@ class StateValue:
     IMPORT_CERTIFICATE = "import_certificate"
     ADD_USER_GROUP = "add_user_group"
     REMOVE_USER_GROUP = "remove_user_group"
+    DOWNLOAD = "download"
 
 
 class CommonConstants:
@@ -168,6 +170,8 @@ class GatewayClassTypes:
     SDSB_CLUSTER_INFORMATION = "sdsb_cluster_information"
     SDSB_JOB = "sdsb_job"
     SDSB_BMC_ACCESS_SETTING = "sdsb_bmc_access_setting"
+    SDSB_AUDIT_LOG_SETTING = "sdsb_audit_log_setting"
+    SDSB_EVENT_LOG_SETTING = "sdsb_event_log_setting"
     SDSB_CAPACITY_MGMT_SETTING = "sdsb_capacity_mgmt_setting"
     SDSB_ESTIMATED_CAPACITY = "sdsb_estimated_capacity"
     SDSB_REMOTE_ISCSI_PORT = "sdsb_remote_iscsi_port"

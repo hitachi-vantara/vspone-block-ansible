@@ -63,7 +63,7 @@ class VSPIscsiTargetReconciler:
             VSPIscsiTargetConstant.STATE_ADD_CHAP_USER,
             VSPIscsiTargetConstant.STATE_REMOVE_CHAP_USER,
         ):
-            raise Exception(VSPIscsiTargetMessage.SPEC_STATE_INVALID.value)
+            raise ValueError(VSPIscsiTargetMessage.SPEC_STATE_INVALID.value)
 
         if (
             sub_state == VSPIscsiTargetConstant.STATE_ATTACH_LDEV
@@ -88,7 +88,7 @@ class VSPIscsiTargetReconciler:
         logger = Log()
         logger.writeDebug("port = {}", port)
         if not port:
-            raise Exception("Port {} is not in the storage system.".format(port))
+            raise ValueError("Port {} is not in the storage system.".format(port))
         if port:
             # before the subobjState change
             # make sure all the ports are defined in the storage
@@ -98,11 +98,11 @@ class VSPIscsiTargetReconciler:
             found = [x for x in sports if x.portId == port]
             logger.writeDebug("found={}", found)
             if found is None or len(found) == 0:
-                raise Exception("Port {} is not in the storage system.".format(port))
+                raise ValueError("Port {} is not in the storage system.".format(port))
 
     def handle_create_iscsi_target(self, spec, result):
         if not spec.port:
-            raise Exception(VSPIscsiTargetMessage.PORTS_PARAMETER_INVALID.value)
+            raise ValueError(VSPIscsiTargetMessage.PORTS_PARAMETER_INVALID.value)
         logger = Log()
         spec.name = generate_random_name_prefix_string() if not spec.name else spec.name
         logger.writeDebug("spec.port={0}".format(spec.port))

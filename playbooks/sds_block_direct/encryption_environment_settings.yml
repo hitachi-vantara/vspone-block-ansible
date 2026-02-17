@@ -23,19 +23,13 @@
     - name: Enable encryption environment
       hitachivantara.vspone_block.sds_block.hv_sds_block_encryption_environment_settings:
         connection_info: "{{ connection_info }}"
-        state: present
         spec:
           is_encryption_enabled: true
       register: result
 
-    - name: Get encryption environment settings after enable
-      hitachivantara.vspone_block.sds_block.hv_sds_block_encryption_environment_setting_facts:
-        connection_info: "{{ connection_info }}"
-      register: facts_result
-
     - name: Debug the encryption environment setting
       ansible.builtin.debug:
-        var: facts_result.ansible_facts.encryption_environment_settings
+        var: result
 
     ####################################################################
     # Task Name : Disable encryption environment
@@ -43,16 +37,10 @@
     - name: Disable encryption environment
       hitachivantara.vspone_block.sds_block.hv_sds_block_encryption_environment_settings:
         connection_info: "{{ connection_info }}"
-        state: present
         spec:
           is_encryption_enabled: false
       register: result
 
-    - name: Get encryption environment settings after disable
-      hitachivantara.vspone_block.sds_block.hv_sds_block_encryption_environment_setting_facts:
-        connection_info: "{{ connection_info }}"
-      register: facts_result
-
     - name: Debug the encryption environment setting
       ansible.builtin.debug:
-        var: facts_result.ansible_facts.encryption_environment_settings
+        var: result

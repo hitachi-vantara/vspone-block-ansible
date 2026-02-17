@@ -141,7 +141,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockEstimatedCapacityFactsManager:
+class SDSBEstimatedCapacityFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -187,7 +187,7 @@ class SDSBBlockEstimatedCapacityFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockEstimatedCapacityFactsManager()
+    obj_store = SDSBEstimatedCapacityFactsManager()
     obj_store.apply()
 
 

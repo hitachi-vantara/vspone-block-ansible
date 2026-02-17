@@ -42,10 +42,21 @@ options:
     suboptions:
       id:
         description: The id of the volume.
+          Optional for the Update a volume task.
+          Required for the Expand a volume by ID
+          /Delete a volume by ID tasks.
         type: str
         required: false
       name:
         description: The name of the volume.
+          Optional for the Create a volume
+          /Create volume with QoS parameters
+          /Update a volume tasks.
+          Required for the Update volume QoS parameters
+          /Expand a volume by name
+          /Add a volume to compute nodes
+          /Remove a volume from compute nodes
+          /Delete a volume by name tasks.
         type: str
         required: false
       nickname:
@@ -54,14 +65,22 @@ options:
         required: false
       capacity:
         description: The capacity of the volume.
+          Required for the Create a volume
+          /Create volume with QoS parameters
+          /Expand a volume by name
+          /Expand a volume by ID tasks.
         type: str
         required: false
       capacity_saving:
         description: Settings of the data reduction function. C(Disabled) or  C(Compression).
+          Optional for the Create a volume
+          /Update a volume tasks.
         type: str
         required: false
       pool_name:
         description: The name of the storage pool where the volume will be created.
+          Required for the Create a volume
+          /Create volume with QoS parameters tasks.
         type: str
         required: false
       vps_id:
@@ -74,29 +93,42 @@ options:
         required: false
       state:
         description: The state of the volume task.
+          Required for the Add a volume to compute nodes
+          /Remove a volume from compute nodes tasks.
         type: str
         required: false
         choices: ['add_compute_node', 'remove_compute_node']
       compute_nodes:
         description: The array of name of compute nodes to which the volume is attached.
+          Optional for the Create a volume
+          /Create volume with QoS parameters tasks.
+          Required for the Add a volume to compute nodes
+          /Remove a volume from compute nodes tasks.
         type: list
         required: false
         elements: str
       qos_param:
         description: The quality of service parameters for the volume.
+          Optional for the Create volume with QoS parameters task.
         type: dict
         required: false
         suboptions:
           upper_limit_for_iops:
             description: The upper limit for IOPS.
+              Optional for the Create volume with QoS parameters
+              /Update volume QoS parameters tasks.
             type: int
             required: false
           upper_limit_for_transfer_rate_mb_per_sec:
             description: The upper limit for transfer rate (MB per Sec).
+              Optional for the Create volume with QoS parameters
+              /Update volume QoS parameters tasks.
             type: int
             required: false
           upper_alert_allowable_time_in_sec:
             description: The upper alert allowable time(In seconds).
+              Optional for the Create volume with QoS parameters
+              /Update volume QoS parameters tasks.
             type: int
             required: false
 

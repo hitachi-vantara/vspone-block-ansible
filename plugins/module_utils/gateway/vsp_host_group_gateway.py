@@ -14,9 +14,11 @@ try:
         VSPPortResponse,
         VSPWwnResponse,
         VSPLunResponses,
+        HostModeOptionsResponse,
     )
     from ..common.hv_constants import VSPHostGroupConstant
     from ..message.vsp_host_group_msgs import VSPHostGroupMessage
+    from ..common.ansible_common_constants import MAX_WORKER_THREADS
 except ImportError:
     from common.vsp_constants import Endpoints
     from .gateway_manager import VSPConnectionManager
@@ -31,6 +33,7 @@ except ImportError:
         VSPPortResponse,
         VSPWwnResponse,
         VSPLunResponses,
+        HostModeOptionsResponse,
     )
     from common.hv_constants import VSPHostGroupConstant
     from message.vsp_host_group_msgs import VSPHostGroupMessage
@@ -278,17 +281,49 @@ class VSPHostGroupDirectGateway:
         is_get_luns,
         is_ldev_detail,
     ):
+        """
+        Retrieves host groups from VSP storage system with optional filtering and detailed information.
+        This method fetches host groups from specified ports using concurrent processing for improved
+        performance. It supports filtering by port, host group name, or host group number, and can
+        optionally retrieve additional details like WWNs (World Wide Names), LUNs (Logical Unit Numbers),
+        and LDEV (Logical Device) information.
+        Args:
+            ports_input (list, optional): List of port IDs to filter host groups. If None, all ports are considered.
+            name_input (str, optional): Specific host group name to filter by. If None, no name filtering is applied.
+            hg_number (int, optional): Specific host group number to filter by. If None, no number filtering is applied.
+            is_get_wwns (bool): Flag to indicate whether to retrieve WWNs (World Wide Names) information
+                               for Fibre Channel connections.
+            is_get_luns (bool): Flag to indicate whether to retrieve LUNs (Logical Unit Numbers) information.
+            is_ldev_detail (bool): Flag to indicate whether to retrieve detailed LDEV (Logical Device) information.
+        Returns:
+            VSPHostGroupsInfo: A data structure containing a list of VSPHostGroupInfo objects with
+                              host group details. Each host group may include WWNs, LUNs, and LDEV
+                              information based on the specified flags.
+        Notes:
+            - Only processes ports of specific types: FIBRE, FCOE (Fibre Channel over Ethernet),
+              HNASS (Host Network Acceleration Storage Service), and HNASU (Host Network Acceleration Storage Unit).
+            - Uses ThreadPoolExecutor for concurrent processing to improve performance when handling
+              multiple ports and host groups.
+            - WWNs refer to World Wide Names used in Fibre Channel networking for unique identification
+              of devices and ports.
+            - FCOE stands for Fibre Channel over Ethernet, allowing Fibre Channel traffic over Ethernet networks.
+            - HNASS and HNASU are specific port types for host network acceleration services.
+        Raises:
+            Exception: May raise exceptions from the underlying REST API calls or data parsing operations.
+        """
         logger = Log()
         lstHg = []
+        un_parsed_hg = []
         port_set = None
         if ports_input:
             port_set = set(ports_input)
         logger.writeInfo("port_set={0}".format(port_set))
         ports = self.get_ports()
-        for port in ports:
+
+        def get_port_host_groups(port):
             port_id = port.portId
             if port_set and port_id not in port_set:
-                continue
+                return []
 
             port_type = port.portType
             logger.writeInfo("port_type = {}", port_type)
@@ -298,22 +333,59 @@ class VSPHostGroupDirectGateway:
                 and port_type != VSPHostGroupConstant.PORT_TYPE_HNASS
                 and port_type != VSPHostGroupConstant.PORT_TYPE_HNASU
             ):
-                continue
+                return []
 
             end_point = self.end_points.GET_HOST_GROUPS.format(
                 "?portId={}&detailInfoType=resourceGroup".format(port_id)
             )
             resp = self.rest_api.read(end_point)
-            for hg in resp["data"]:
-                if hg_number is not None and hg["hostGroupNumber"] != hg_number:
-                    continue
-                elif name_input and hg["hostGroupName"] != name_input:
-                    continue
+            return resp["data"]
 
-                tmpHg = self.parse_host_group(
-                    hg, is_get_wwns, is_get_luns, is_ldev_detail
-                )
-                lstHg.append(tmpHg)
+        executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=MAX_WORKER_THREADS, thread_name_prefix="GetPortHostGroups"
+        )
+        try:
+            future_to_port = {
+                executor.submit(get_port_host_groups, port): port for port in ports
+            }
+
+            for future in concurrent.futures.as_completed(future_to_port):
+                result = future.result()
+                if result:
+                    un_parsed_hg.append(result)
+        except KeyboardInterrupt:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        finally:
+            executor.shutdown(wait=True)
+
+        def process_hg(hg):
+            if hg_number is not None and hg["hostGroupNumber"] != hg_number:
+                return None
+            elif name_input and hg["hostGroupName"] != name_input:
+                return None
+
+            return self.parse_host_group(hg, is_get_wwns, is_get_luns, is_ldev_detail)
+
+        executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=MAX_WORKER_THREADS, thread_name_prefix="ProcessHostGroups"
+        )
+        try:
+            future_tasks = [
+                executor.submit(process_hg, hg)
+                for hg_list in un_parsed_hg
+                for hg in hg_list
+            ]
+
+            for future in concurrent.futures.as_completed(future_tasks):
+                result = future.result()
+                if result is not None:
+                    lstHg.append(result)
+        except KeyboardInterrupt:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        finally:
+            executor.shutdown(wait=True)
 
         return VSPHostGroupsInfo(dicts_to_dataclass_list(lstHg, VSPHostGroupInfo))
 
@@ -376,7 +448,7 @@ class VSPHostGroupDirectGateway:
 
         logger = Log()
         for hg in resp["data"]:
-            logger.writeDebug("20250324 hg = {}", hg)
+            # logger.writeDebug("20250324 hg = {}", hg)
             if name == hg["hostGroupName"]:
                 retHg = self.parse_host_group(hg, True, True, False)
                 return VSPOneHostGroupInfo(VSPHostGroupInfo(**retHg))
@@ -385,7 +457,15 @@ class VSPHostGroupDirectGateway:
 
     @log_entry_exit
     def create_host_group(
-        self, port, name, wwns, luns, host_mode, host_mode_options, hg_number=None
+        self,
+        port,
+        name,
+        wwns,
+        host_mode,
+        host_mode_options,
+        luns=None,
+        lun_paths=None,
+        hg_number=None,
     ):
 
         errors, comments = [], []
@@ -429,6 +509,10 @@ class VSPHostGroupDirectGateway:
                 comments.extend(comment)
             if luns:
                 error, comment = self.add_luns_to_host_group(hg_info, luns)
+                errors.extend(error)
+                comments.extend(comment)
+            if lun_paths:
+                error, comment = self.add_lun_paths_to_host_group(hg_info, lun_paths)
                 errors.extend(error)
                 comments.extend(comment)
         return errors, comments
@@ -517,6 +601,74 @@ class VSPHostGroupDirectGateway:
         return comments, errors
 
     @log_entry_exit
+    def add_ldev_and_ports_to_host_group(self, hg_number, luns, ports):
+        logger = Log()
+        errors = []
+        comments = []
+        for lun in luns:
+            end_point = self.end_points.POST_LUNS
+            data = {}
+            data["ldevId"] = lun
+            data["portIds"] = ports
+            data["hostGroupNumber"] = hg_number
+            # if lun_id is not None:
+            #     data["lun"] = lun_id
+            try:
+                resp = self.rest_api.post(end_point, data)
+                logger.writeInfo(resp)
+                comments.append(
+                    VSPHostGroupMessage.ADD_LUN_SUCCESS.value.format(lun, hg_number)
+                )
+            except Exception as e:
+                logger.writeError(
+                    VSPHostGroupMessage.ADD_LUN_FAILED.value.format(
+                        lun, hg_number, str(e)
+                    )
+                )
+                errors.append(
+                    VSPHostGroupMessage.ADD_LUN_FAILED.value.format(
+                        lun, hg_number, str(e)
+                    )
+                )
+                # raise ValueError(errors)
+        return comments, errors
+
+    @log_entry_exit
+    def add_lun_paths_to_host_group(self, hg, lun_paths):
+        logger = Log()
+        errors = []
+        comments = []
+        for lun in lun_paths:
+            end_point = self.end_points.POST_LUNS
+            data = {}
+            data["ldevId"] = lun.ldev
+            data["portId"] = hg.port
+            data["hostGroupNumber"] = hg.hostGroupNumber
+            if lun.lun is not None:
+                data["lun"] = lun.lun
+            try:
+                resp = self.rest_api.post(end_point, data)
+                logger.writeInfo(resp)
+                comments.append(
+                    VSPHostGroupMessage.ADD_LUN_SUCCESS.value.format(
+                        lun.ldev, hg.hostGroupName
+                    )
+                )
+            except Exception as e:
+                logger.writeError(
+                    VSPHostGroupMessage.ADD_LUN_FAILED.value.format(
+                        lun.ldev, hg.hostGroupName, str(e)
+                    )
+                )
+                errors.append(
+                    VSPHostGroupMessage.ADD_LUN_FAILED.value.format(
+                        lun.ldev, hg.hostGroupName, str(e)
+                    )
+                )
+                raise ValueError(errors)
+        return comments, errors
+
+    @log_entry_exit
     def delete_one_lun_from_host_group(self, host_group: VSPHostGroupInfo, lun_id):
         logger = Log()
         end_point = self.end_points.DELETE_LUNS.format(
@@ -552,16 +704,24 @@ class VSPHostGroupDirectGateway:
     def delete_host_group(self, hg, is_delete_all_luns):
         logger = Log()
         if is_delete_all_luns:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            executor = concurrent.futures.ThreadPoolExecutor(
+                max_workers=MAX_WORKER_THREADS, thread_name_prefix="DeleteLuns"
+            )
+            try:
                 future_tasks = [
                     executor.submit(
                         self.unpresent_lun_from_hg_and_delete_lun, hg, logical_unit
                     )
                     for logical_unit in hg.lunPaths
                 ]
-            # Re-raise exceptions if they occurred in the threads
-            for future in concurrent.futures.as_completed(future_tasks):
-                future.result()
+                # Re-raise exceptions if they occurred in the threads
+                for future in concurrent.futures.as_completed(future_tasks):
+                    future.result()
+            except KeyboardInterrupt:
+                executor.shutdown(wait=False, cancel_futures=True)
+                raise
+            finally:
+                executor.shutdown(wait=True)
 
         end_point = self.end_points.DELETE_HOST_GROUPS.format(
             hg.port, hg.hostGroupNumber
@@ -604,6 +764,7 @@ class VSPHostGroupDirectGateway:
         logger = Log()
         errors = []
         comments = []
+        logger.writeDebug(f"Deleting LUNs: {luns} from Host Group: {hg}")
         for lun in luns:
             try:
                 for lunPath in hg.lunPaths:
@@ -617,21 +778,16 @@ class VSPHostGroupDirectGateway:
                         logger.writeInfo(resp)
                         break
                 comments.append(
-                    VSPHostGroupMessage.REMOVE_LUN_SUCCESS.value.format(
-                        lun, hg.hostGroupName
+                    VSPHostGroupMessage.REMOVE_LUN_PORT_SUCCESS.value.format(
+                        lun, hg.hostGroupName, hg.port
                     )
                 )
             except Exception as e:
-                logger.writeError(
-                    VSPHostGroupMessage.REMOVE_LUN_FAILED.value.format(
-                        lun, hg.hostGroupName, str(e)
-                    )
+                msg = VSPHostGroupMessage.REMOVE_LUN_FAILED.value.format(
+                    lun, hg.hostGroupName, str(e)
                 )
-                errors.append(
-                    VSPHostGroupMessage.REMOVE_LUN_FAILED.value.format(
-                        lun, hg.hostGroupName, str(e)
-                    )
-                )
+                logger.writeError(msg)
+                errors.append(msg)
         return comments, errors
 
     @log_entry_exit
@@ -684,5 +840,19 @@ class VSPHostGroupDirectGateway:
         except Exception as e:
             if "affectedResources" in str(e):
                 pass
+            else:
+                raise e
+
+    @log_entry_exit
+    def get_host_mode_options(self):
+        end_point = self.end_points.GET_HOST_MODE_OPTIONS
+        try:
+            resp = self.rest_api.read(end_point)
+            return HostModeOptionsResponse(**resp)
+        except Exception as e:
+            if "The API is not supported for the specified storage system" in str(e):
+                raise Exception(
+                    VSPHostGroupMessage.HOST_MODE_OPTION_NOT_SUPPORTED.value
+                )
             else:
                 raise e

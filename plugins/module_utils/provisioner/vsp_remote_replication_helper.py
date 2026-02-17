@@ -167,6 +167,13 @@ class RemoteReplicationHelperForSVol:
             )
             spec.is_data_reduction_force_copy = True
 
+        if (
+            pvol_info.isDataReductionShareEnabled is not None
+            and pvol_info.isDataReductionShareEnabled is True
+        ):
+            sec_vol_spec.data_reduction_share = True
+        else:
+            sec_vol_spec.data_reduction_share = False
         return sec_vol_spec
 
     @log_entry_exit
@@ -214,6 +221,11 @@ class RemoteReplicationHelperForSVol:
             sec_vol_id = spec.provisioned_secondary_volume_id
         else:
             sec_vol_id = self.vol_gateway.create_volume(sec_vol_spec)
+            if (
+                spec.data_reduction_share is not None
+                and spec.data_reduction_share is True
+            ):
+                self.vol_gateway.assign_vldev(sec_vol_id, sec_vol_id)
             # the name change is done in the update_volume method
             if vol_info.label is not None and vol_info.label != "":
                 sec_vol_name = vol_info.label

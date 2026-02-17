@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_snapshot_facts
-short_description: Retrieves snapshot information from Hitachi VSP storage systems.
+short_description: Retrieves snapshot information from VSP block storage systems.
 description:
-  - This module retrieves information about snapshots from Hitachi VSP storage systems.
+  - This module retrieves information about snapshots from VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snapshot_facts.yml)
 version_added: '3.0.0'
@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.snapshot_facts_note
 options:
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -137,6 +138,14 @@ ansible_facts:
           description: Indicates if the snapshot data is read-only.
           type: bool
           sample: null
+        is_virtual_clone_parent_volume:
+          description: Indicates if this is a virtual clone parent volume.
+          type: bool
+          sample: false
+        is_virtual_clone_volume:
+          description: Indicates if this is a virtual clone volume.
+          type: bool
+          sample: false
         is_written_in_svol:
           description: Indicates if data is written in secondary volume.
           type: bool

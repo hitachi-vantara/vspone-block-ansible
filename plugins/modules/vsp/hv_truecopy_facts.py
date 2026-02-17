@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_truecopy_facts
-short_description: Retrieves TrueCopy pairs information from Hitachi VSP storage systems.
+short_description: Retrieves TrueCopy pairs information from VSP block storage systems.
 description:
-  - This module retrieves the TrueCopy pairs information from Hitachi VSP storage systems.
+  - This module retrieves the TrueCopy pairs information from VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/truecopy_facts.yml)
 version_added: '3.1.0'
@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.true_copy_facts_note
 options:
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -69,16 +70,19 @@ options:
       primary_volume_id:
         description:
           - ID of the primary volume to retrieve TrueCopy pair information for.
+            Required for the Get TrueCopy pair by primary volume ID task.
         type: str
         required: false
       secondary_volume_id:
         description:
           - ID of the secondary volume to retrieve TrueCopy pair information for.
+            Required for the Get TrueCopy pair by secondary volume ID task.
         type: str
         required: false
       copy_group_name:
         description:
           - Name of the copy group to retrieve TrueCopy pair information for.
+            Required for the Get TrueCopy pair by copy group name task.
         type: str
         required: false
       copy_pair_name:

@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_storagepool
-short_description: Manage storage pool information on Hitachi VSP storage systems.
+short_description: Manage storage pool information on VSP block storage systems.
 description:
-  - Create, update, or delete storage pool information on Hitachi VSP storage systems.
+  - Create, update, or delete storage pool information on VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storagepool.yml)
 version_added: "3.1.0"
@@ -55,6 +55,7 @@ options:
         "tier_relocate",
         "monitor_performance",
         "init_capacity_saving",
+        "shrunk"
       ]
     default: "present"
   spec:
@@ -147,15 +148,17 @@ options:
       start_ldev_id:
         description: The first LDEV number in the range of consecutive LDEV numbers, if such a range is specified.
           Required for the Create a storage pool with a specific pool ID and start and end LDEV numbers task.
+          Can be decimal or hexadecimal.
         type: str
         required: false
       end_ldev_id:
         description: The last LDEV number in the range of consecutive LDEV numbers, if such a range is specified.
           Required for the Create a storage pool with a specific pool ID and start and end LDEV numbers task.
+          Can be decimal or hexadecimal.
         type: str
         required: false
       ldev_ids:
-        description: LDEV numbers.
+        description: LDEV numbers. Can be decimal or hexadecimal.
           Required for the Create a storage pool with a specific pool ID and LDEV numbers task.
         type: list
         elements: str
@@ -179,7 +182,7 @@ options:
               /Expand pool by pool name
               /Expand pool by pool ID tasks.
             type: str
-            required: true
+            required: false
           parity_group_id:
             description: ID of the parity group the volume belongs to.
               Required for the Create a storage pool using required details
@@ -189,6 +192,10 @@ options:
               /Expand pool by pool ID tasks.
             type: str
             required: true
+          cylinder:
+            description: Cylinder size of the pool volume.
+            type: int
+            required: false
       operation_type:
         description: Specify the operation of tier relocation and performance monitoring.
           Required for the Performing performance monitoring of a pool
@@ -251,6 +258,27 @@ options:
         description: Whether to delete pool volumes when the pool is deleted.
           Required for the Delete a pool including pool volumes task.
         type: bool
+        required: false
+      should_stop_shrinking:
+        description: Whether to stop shrinking the pool.
+          Required for the Shrink pool task.
+        type: bool
+        required: false
+      pool_volume_ids:
+        description: List of pool volume IDs to be removed from the pool.
+          Required for the Shrink pool task.
+        type: list
+        elements: str
+        required: false
+      start_pool_volume_id:
+        description: The first pool volume ID in the range of consecutive pool volume IDs to be removed from the pool.
+          Required for the Shrink pool task.
+        type: str
+        required: false
+      end_pool_volume_id:
+        description: The last pool volume ID in the range of consecutive pool volume IDs to be removed from the pool.
+          Required for the Shrink pool task.
+        type: str
         required: false
 """
 
@@ -377,123 +405,288 @@ storage_pool:
   type: list
   elements: dict
   contains:
-    deduplication_enabled:
-      description: Indicates if deduplication is enabled.
-      type: bool
-      sample: false
-    depletion_threshold_rate:
-      description: Depletion threshold rate for the pool.
-      type: int
-      sample: 80
-    dp_volumes:
-      description: List of DP volumes in the pool.
-      type: list
-      elements: dict
-      contains:
-        logical_unit_id:
-          description: Logical unit ID of the volume.
-          type: int
-          sample: 0
-        size:
-          description: Size of the volume.
-          type: str
-          sample: "21.00 GB"
-    free_capacity:
-      description: Free capacity of the pool in bytes.
-      type: int
-      sample: 6297747456
-    free_capacity_in_units:
-      description: Free capacity of the pool in human-readable units.
+    auto_add_pool_vol:
+      description: The auto add pool volume setting.
       type: str
-      sample: "5.87 GB"
-    ldev_ids:
-      description: List of LDEV IDs in the pool.
-      type: list
-      elements: int
-      sample: [1285]
-    pool_id:
-      description: ID of the pool.
+      sample: ""
+    available_physical_volume_capacity_mb:
+      description: The available physical volume capacity in MB.
       type: int
-      sample: 48
-    pool_name:
-      description: Name of the pool.
-      type: str
-      sample: "test_pool"
-    pool_type:
-      description: Type of the pool.
-      type: str
-      sample: "HDP"
-    replication_data_released_rate:
-      description: Replication data released rate.
+      sample: 14591094
+    available_volume_capacity_mb:
+      description: The available volume capacity in MB.
       type: int
-      sample: -1
-    replication_depletion_alert_rate:
-      description: Replication depletion alert rate.
-      type: int
-      sample: -1
-    replication_usage_rate:
-      description: Replication usage rate.
-      type: int
-      sample: -1
-    resource_group_id:
-      description: ID of the resource group the pool belongs to.
-      type: int
-      sample: -1
-    status:
-      description: Status of the pool.
-      type: str
-      sample: "NORMAL"
-    subscription_limit_rate:
-      description: Subscription limit rate.
-      type: int
-      sample: -1
-    subscription_rate:
-      description: Subscription rate.
-      type: int
-      sample: 0
-    subscription_warning_rate:
-      description: Subscription warning rate.
-      type: int
-      sample: -1
-    total_capacity:
-      description: Total capacity of the pool in bytes.
-      type: int
-      sample: 6297747456
-    total_capacity_in_units:
-      description: Total capacity of the pool in human-readable units.
-      type: str
-      sample: "5.87 GB"
-    utilization_rate:
-      description: Utilization rate of the pool.
-      type: int
-      sample: 0
-    virtual_volume_count:
-      description: Number of virtual volumes in the pool.
-      type: int
-      sample: 0
-    warning_threshold_rate:
-      description: Warning threshold rate for the pool.
-      type: int
-      sample: 70
-    is_encrypted:
-      description: Indicates if the pool is encrypted.
+      sample: 14591094
+    is_compression_acceleration_available:
+      description: Indicates if compression acceleration is available.
       type: bool
       sample: true
+    blocking_mode:
+      description: The blocking mode of the pool.
+      type: str
+      sample: "NB"
+    capacities_excluding_system_data:
+      description: Capacity information excluding system data.
+      type: dict
+      contains:
+        compressed_capacity:
+          description: The compressed capacity.
+          type: int
+          sample: 0
+        deduped_capacity:
+          description: The deduplicated capacity.
+          type: int
+          sample: 0
+        pre_compressed_capacity:
+          description: The pre-compressed capacity.
+          type: int
+          sample: 0
+        pre_dedupred_capacity:
+          description: The pre-deduplicated capacity.
+          type: int
+          sample: 0
+        pre_used_capacity:
+          description: The pre-used capacity.
+          type: int
+          sample: 0
+        reclaimed_capacity:
+          description: The reclaimed capacity.
+          type: int
+          sample: 0
+        system_data_capacity:
+          description: The system data capacity.
+          type: int
+          sample: 1118208
+        used_virtual_volume_capacity:
+          description: The used virtual volume capacity.
+          type: int
+          sample: 258048
+    compression_rate:
+      description: The compression rate.
+      type: int
+      sample: 0
+    dat:
+      description: The DAT information.
+      type: str
+      sample: ""
+    data_reduction_accelerate_comp_capacity_mb:
+      description: The data reduction accelerate compression capacity in MB.
+      type: int
+      sample: 0
+    data_reduction_accelerate_comp_including_system_data:
+      description: Data reduction accelerate compression including system data.
+      type: dict
+      contains:
+        is_reduction_capacity_available:
+          description: Whether reduction capacity is available.
+          type: bool
+          sample: false
+        is_reduction_rate_available:
+          description: Whether reduction rate is available.
+          type: bool
+          sample: false
+        reduction_capacity:
+          description: The reduction capacity.
+          type: int
+          sample: -1
+        reduction_rate:
+          description: The reduction rate.
+          type: int
+          sample: -1
+    data_reduction_accelerate_comp_rate:
+      description: The data reduction accelerate compression rate.
+      type: int
+      sample: 0
+    data_reduction_before_capacity_mb:
+      description: The data reduction before capacity in MB.
+      type: int
+      sample: 0
+    data_reduction_capacity_mb:
+      description: The data reduction capacity in MB.
+      type: int
+      sample: 0
+    data_reduction_including_system_data:
+      description: Data reduction including system data.
+      type: dict
+      contains:
+        is_reduction_capacity_available:
+          description: Whether reduction capacity is available.
+          type: bool
+          sample: false
+        is_reduction_rate_available:
+          description: Whether reduction rate is available.
+          type: bool
+          sample: false
+        reduction_capacity:
+          description: The reduction capacity.
+          type: int
+          sample: -1
+        reduction_rate:
+          description: The reduction rate.
+          type: int
+          sample: -1
+    data_reduction_rate:
+      description: The data reduction rate.
+      type: int
+      sample: 0
+    depletion_threshold:
+      description: The depletion threshold.
+      type: int
+      sample: 80
+    duplication_ldev_ids:
+      description: List of duplication LDEV IDs.
+      type: list
+      elements: int
+      sample: [32731, 32730, 32729, 32728]
+    duplication_ldev_ids_hex:
+      description: List of duplication LDEV IDs in hexadecimal format.
+      type: list
+      elements: str
+      sample: ["00:7F:DB", "00:7F:DA", "00:7F:D9", "00:7F:D8"]
+    duplication_number:
+      description: The number of duplications.
+      type: int
+      sample: 8
+    duplication_rate:
+      description: The duplication rate.
+      type: int
+      sample: 0
+    effective_capacity_mb:
+      description: The effective capacity in MB.
+      type: int
+      sample: 14591766
+    efficiency:
+      description: The efficiency value.
+      type: int
+      sample: null
+    first_ldev_id:
+      description: The first LDEV ID.
+      type: int
+      sample: 32754
+    formatted_capacity:
+      description: The formatted capacity.
+      type: int
+      sample: -1
+    has_blocked_pool_volume:
+      description: Whether the pool has blocked pool volume.
+      type: bool
+      sample: null
+    is_mainframe:
+      description: Whether the pool is for mainframe.
+      type: bool
+      sample: false
+    is_shrinking:
+      description: Whether the pool is shrinking.
+      type: bool
+      sample: false
+    located_volume_count:
+      description: The count of located volumes.
+      type: int
+      sample: 29
+    monitoring_mode:
+      description: The monitoring mode.
+      type: str
+      sample: ""
+    num_of_ldevs:
+      description: The number of LDEVs.
+      type: int
+      sample: 12
+    pool_action_mode:
+      description: The pool action mode.
+      type: str
+      sample: ""
+    pool_id:
+      description: The pool ID.
+      type: int
+      sample: 0
+    pool_name:
+      description: The name of the pool.
+      type: str
+      sample: "test-ddp-pool_1"
+    pool_status:
+      description: The status of the pool.
+      type: str
+      sample: "NORMAL"
+    pool_type:
+      description: The type of the pool.
+      type: str
+      sample: "HDP"
+    reserved_volume_count:
+      description: The count of reserved volumes.
+      type: int
+      sample: 0
+    snapshot_count:
+      description: The count of snapshots.
+      type: int
+      sample: 1
+    snapshot_used_capacity_mb:
+      description: The snapshot used capacity in MB.
+      type: int
+      sample: 0
+    suspend_snapshot:
+      description: Whether snapshot is suspended.
+      type: bool
+      sample: true
+    tier_operation_status:
+      description: The tier operation status.
+      type: str
+      sample: ""
+    tiers:
+      description: List of tiers.
+      type: list
+      elements: dict
+      sample: []
+    total_located_capacity_mb:
+      description: The total located capacity in MB.
+      type: int
+      sample: 33597984
+    total_physical_capacity_mb:
+      description: The total physical capacity in MB.
+      type: int
+      sample: 14591766
+    total_pool_capacity_mb:
+      description: The total pool capacity in MB.
+      type: int
+      sample: 14591766
+    total_reserved_capacity_mb:
+      description: The total reserved capacity in MB.
+      type: int
+      sample: 0
+    used_capacity_rate:
+      description: The used capacity rate.
+      type: int
+      sample: 1
+    used_physical_capacity:
+      description: The used physical capacity.
+      type: int
+      sample: -1
+    used_physical_capacity_rate:
+      description: The used physical capacity rate.
+      type: int
+      sample: 1
+    virtual_volume_capacity_rate:
+      description: The virtual volume capacity rate.
+      type: int
+      sample: -1
+    warning_threshold:
+      description: The warning threshold.
+      type: int
+      sample: 70
 """
 
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
-    Log,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler import (
-    vsp_storage_pool,
-)
-from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPStoragePoolArguments,
     VSPParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
-    validate_ansible_product_registration,
+from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler import (
+    vsp_storage_pool,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
 )
 
 
@@ -528,7 +721,7 @@ class VspStoragePoolManager:
             result = response if not isinstance(response, str) else None
             response_dict = {
                 "changed": self.connection_info.changed,
-                "data": result,
+                "storage_pool": result,
                 "msg": msg,
             }
             if registration_message:

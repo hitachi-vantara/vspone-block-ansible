@@ -1,0 +1,142 @@
+---
+####################################################################
+# Role: hv_vsp_one_query_host_volumes_by_wwns
+# Description: Query host volumes by WWNs and return matching LDEV IDs
+####################################################################
+
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - connection_info is defined
+      - host_wwns is defined
+      - host_wwns | length > 0
+      - ports is not defined or (ports is defined and ports | length > 0)
+    fail_msg: "Required variables 'connection_info' and 'host_wwns' must be defined"
+
+- name: Initialize variables
+  ansible.builtin.set_fact:
+    matched_ldev_ids: []
+    host_volumes: []
+    all_hostgroups: []
+
+- name: Debug ports (showing omit when undefined)
+  ansible.builtin.debug:
+    msg: "Ports: {{ ports | default('undefined') }}"
+
+- name: Get hostgroups with WWNs and LDEVs information
+  hitachivantara.vspone_block.vsp.hv_hg_facts:
+    connection_info: "{{ connection_info }}"
+    spec:
+      ports: "{{ ports | default(omit) }}"
+      query:
+        - wwns
+        - ldevs
+  register: hostgroup_result
+
+- name: Set hostgroup data variable
+  ansible.builtin.set_fact:
+    hostgroup_data: "{{ hostgroup_result.ansible_facts.hostGroups | default([]) }}"
+
+- name: Convert host WWNs to uppercase
+  ansible.builtin.set_fact:
+    host_wwns: "{{ host_wwns | map('upper') | list }}"
+
+- name: Build detailed host volumes data for matching WWNs
+  ansible.builtin.set_fact:
+    host_volumes: "{{ host_volumes + temp_volumes }}"
+    matched_ldev_ids: "{{ (matched_ldev_ids + (item.lun_paths | map(attribute='ldev_id') | list)) | list }}"
+    ports: "{{ ports | default([]) + [item.port_id] if item.port_id is defined and (ports is not defined or item.port_id not in ports) else ports }}"
+  vars:
+    temp_volumes: |
+      [
+      {% for lun_path in item.lun_paths %}
+      {
+      "ldev": {{ lun_path.ldev_id }},
+      "lun": {{ lun_path.lun }},
+      "port": "{{ item.port_id }}",
+      "host_group_name": "{{ item.host_group_name }}",
+      "host_mode": "{{ item.host_mode }}",
+      "host_mode_options": {{ item.host_mode_options | map(attribute='host_mode_option_number') | list | to_json }},
+      "host_wwns": {{ (item.wwns | map(attribute='id') | list) | intersect(host_wwns) | to_json }},
+      "host_group_id": {{ item.host_group_id }}
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+      ]
+  loop: "{{ hostgroup_data }}"
+  when:
+    - item.wwns is defined
+    - item.wwns | length > 0
+    - item.lun_paths is defined
+    - item.lun_paths | length > 0
+    - (item.wwns | map(attribute='id') | list) | intersect(host_wwns) | length > 0
+  loop_control:
+    label: "{{ item.host_group_name | default('N/A') }} (Port: {{ item.port_id | default('N/A') }})"
+
+- name: Check host mode and host mode options consistency
+  ansible.builtin.set_fact:
+    unique_host_modes: "{{ host_volumes | map(attribute='host_mode') | unique | list }}"
+    unique_host_mode_options: "{{ host_volumes | map(attribute='host_mode_options') | unique | list }}"
+    host_mode_consistent: "{{ (host_volumes | map(attribute='host_mode') | unique | list | length) == 1 }}"
+    host_mode_options_consistent: "{{ (host_volumes | map(attribute='host_mode_options') | unique | list | length) == 1 }}"
+  when: host_volumes | length > 0
+
+- name: Build hostgroup LDEV summary
+  ansible.builtin.set_fact:
+    hostgroup_ldev_summary: "{{ hostgroup_ldev_summary | default([]) + [{'hg_id': item.host_group_id, 'hg_name': item.host_group_name, 'port_id': item.port_id, 'ldevs':
+      item.lun_paths | map(attribute='ldev_id') | list}] }}"
+  loop: "{{ hostgroup_data }}"
+  when:
+    - item.wwns is defined
+    - item.wwns | length > 0
+    - item.lun_paths is defined
+    - item.lun_paths | length > 0
+    - (item.wwns | map(attribute='id') | list) | intersect(host_wwns) | length > 0
+
+- name: Display host mode consistency check results
+  ansible.builtin.debug:
+    msg:
+      - "=== Host Mode Consistency Check ==="
+      - "Host modes found: {{ unique_host_modes | default([]) }}"
+      - "Host mode options found: {{ unique_host_mode_options | default([]) }}"
+      - "Host mode consistent: {{ host_mode_consistent | default(true) }}"
+      - "Host mode options consistent: {{ host_mode_options_consistent | default(true) }}"
+      - "Overall consistency: {{ (host_mode_consistent | default(true)) and (host_mode_options_consistent | default(true)) }}"
+  when: debug_mode | default(false) | bool
+
+- name: Clear host volumes if host modes or options are inconsistent
+  ansible.builtin.set_fact:
+    host_volumes: []
+    matched_ldev_ids: []
+    consistency_error: "Host modes or host mode options are not consistent across host groups. Found host modes: {{ unique_host_modes | default([]) }}, Found host
+      mode options: {{ unique_host_mode_options | default([]) }}"
+  when:
+    - host_volumes | length > 0
+    - not ((host_mode_consistent | default(true)) and (host_mode_options_consistent | default(true)))
+
+- name: Display consistency error warning
+  ansible.builtin.debug:
+    msg:
+      - "WARNING: {{ consistency_error }}"
+      - "Returning empty response due to inconsistent host configuration."
+  when: consistency_error is defined
+
+- name: Get current timestamp
+  ansible.builtin.command: date -u +"%Y-%m-%dT%H:%M:%SZ"
+  register: current_timestamp
+  changed_when: false
+
+- name: Set role output facts
+  ansible.builtin.set_fact:
+    host_volumes_result:
+      input_wwns: "{{ host_wwns }}"
+      hostgroup_ldev_summary: "{{ hostgroup_ldev_summary | default([]) }}"
+      matched_ldev_ids: "{{ matched_ldev_ids }}"
+      total_ldevs_found: "{{ matched_ldev_ids | length }}"
+      host_volumes: "{{ host_volumes }}"
+      ports: "{{ ports | default([]) }}"
+      total_host_volume_entries: "{{ host_volumes | length }}"
+      host_mode_consistent: "{{ host_mode_consistent | default(true) }}"
+      host_mode_options_consistent: "{{ host_mode_options_consistent | default(true) }}"
+      overall_consistency: "{{ (host_mode_consistent | default(true)) and (host_mode_options_consistent | default(true)) }}"
+      consistency_error: "{{ consistency_error | default('') }}"
+      timestamp: "{{ current_timestamp.stdout }}"

@@ -1,0 +1,73 @@
+---
+- name: VSP Session Management
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+  ####################################################################
+  # Task Name : Create Session
+  ####################################################################
+    - name: Create Session
+      hitachivantara.vspone_block.vsp.hv_session:
+        connection_info: "{{ connection_info }}"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #######################################################################
+    # Task Name : Create a session with a maximum idle time of 200 seconds
+    ######################################################################
+    - name: Create a session with a maximum idle time of 200 seconds
+      hitachivantara.vspone_block.vsp.hv_session:
+        connection_info: "{{ connection_info }}"
+        spec:
+          alive_time_in_seconds: 200
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #############################################################################
+    # Task Name : Create a session with an authentication_timeout of 300 seconds.
+    # Specify this value if an external authentication server is being used to
+    # authenticate users.
+    #############################################################################
+    - name: Create a session with an authentication_timeout of 300 seconds.
+      hitachivantara.vspone_block.vsp.hv_session:
+        connection_info: "{{ connection_info }}"
+        spec:
+          authentication_timeout: 300
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Delete Session
+    ####################################################################
+    - name: Delete Session
+      hitachivantara.vspone_block.vsp.hv_session:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          id: 15561
+          token: "d7c7bd35d3854a9f973d934800fb70ab"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

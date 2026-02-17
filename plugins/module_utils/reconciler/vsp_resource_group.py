@@ -509,9 +509,12 @@ class ResourceGroupInfoExtractor:
     def process_list(self, response_key):
         new_items = []
 
-        if response_key is None:
+        if response_key is None or response_key == []:
             return []
         # logger.writeDebug("RC:process_list:response_key={}", response_key)
+        list_element_type = type(response_key[0])
+        if list_element_type != dict:
+            return response_key
         for item in response_key:
             new_dict = {}
             for key, value in item.items():

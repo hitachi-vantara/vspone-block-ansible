@@ -1,0 +1,49 @@
+---
+####################################################################
+# Example : VSP PAV Alias Playbook
+####################################################################
+- name: VSP PAV Alias Playbook
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name : Assign PAV aliases to a base LDEV
+    ####################################################################
+    - name: Assign PAV aliases to a base LDEV
+      hitachivantara.vspone_block.vsp.hv_pav_alias:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          base_ldev_id: 100
+          alias_ldev_ids: [102, 103, 104]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Unassign PAV aliases from a base LDEV
+    ####################################################################
+    - name: Unassign PAV aliases from a base LDEV
+      hitachivantara.vspone_block.vsp.hv_pav_alias:
+        connection_info: "{{ connection_info }}"
+        state: absent
+        spec:
+          alias_ldev_ids: [102, 103]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

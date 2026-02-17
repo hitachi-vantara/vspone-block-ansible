@@ -2,6 +2,9 @@ from typing import Any
 
 try:
     from ..provisioner.vsp_snapshot_provisioner import VSPHtiSnapshotProvisioner
+    from ..provisioner.vsp_snapshot_family_provisioner import (
+        VSPSnapshotFamilyProvisioner,
+    )
     from ..provisioner.vsp_storage_port_provisioner import VSPStoragePortProvisioner
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..common.ansible_common import (
@@ -13,9 +16,13 @@ try:
     from ..common.hv_log_decorator import LogDecorator
     from ..common.hv_constants import StateValue
     from ..message.vsp_snapshot_msgs import VSPSnapShotValidateMsg
+    from ..message.vsp_vclone_msgs import VSPVcloneValidateMsg
     from ..model.vsp_snapshot_models import SnapshotGroupFactSpec
 except ImportError:
     from provisioner.vsp_snapshot_provisioner import VSPHtiSnapshotProvisioner
+    from ..provisioner.vsp_snapshot_family_provisioner import (
+        VSPSnapshotFamilyProvisioner,
+    )
     from provisioner.vsp_storage_port_provisioner import VSPStoragePortProvisioner
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from common.ansible_common import (
@@ -27,6 +34,7 @@ except ImportError:
     from common.hv_log_decorator import LogDecorator
     from common.hv_constants import StateValue
     from message.vsp_snapshot_msgs import VSPSnapShotValidateMsg
+    from message.vsp_vclone_msgs import VSPVcloneValidateMsg
     from model.vsp_snapshot_models import SnapshotGroupFactSpec
 
 
@@ -49,6 +57,9 @@ class VSPHtiSnapshotReconciler:
         self.snapshotSpec = snapshotSpec
         self.provisioner = VSPHtiSnapshotProvisioner(self.connectionInfo, serial)
         self.port_provisioner = VSPStoragePortProvisioner(connectionInfo)
+        self.sn_family_prov = VSPSnapshotFamilyProvisioner(
+            self.connectionInfo, self.storage_serial_number
+        )
         self.port_type_dict = {}
         self.get_port_type_dict()
 
@@ -79,7 +90,6 @@ class VSPHtiSnapshotReconciler:
         result2 = SnapshotCommonPropertiesExtractor(self.storage_serial_number).extract(
             result, self.port_type_dict
         )
-        # self.logger.writeDebug(f"5744resultspec: {result2}")
         return result2
 
     def get_storage_serial_number(self):
@@ -94,8 +104,6 @@ class VSPHtiSnapshotReconciler:
         extracted_data = SnapshotGroupCommonPropertiesExtractor(
             self.storage_serial_number
         ).extract(snapshot_groups.data_to_list())
-        # result = {"snapshot_groups": extracted_data}
-        # return result
         return extracted_data
 
     def get_snapshots_using_grp_name(self, grp_name: Any) -> Any:
@@ -112,6 +120,80 @@ class VSPHtiSnapshotReconciler:
         result["snapshots"] = extracted_data
         return result
 
+    def create_vclone_from_snapshot(self, spec: Any) -> None:
+
+        existing_snapshot = self.provisioner.get_snapshot_facts(
+            pvol=spec.pvol, mirror_unit_id=spec.mirror_unit_id
+        )
+        if not existing_snapshot:
+            raise ValueError(
+                f"Snapshot with primary volume ID {spec.primary_volume_id} and mirror unit ID {spec.mirror_unit_id} does not exist."
+            )
+        self.logger.writeDebug(
+            f"RC:create_convert_to_vclone_snapshot:existing_snapshot= {existing_snapshot}"
+        )
+        sn_pair_status = existing_snapshot[0].get("status")
+        if sn_pair_status == "PAIR" or sn_pair_status == "PSUS":
+            if sn_pair_status == "PAIR":
+                self.provisioner.create_vclone_from_snapshot(
+                    pvol=spec.pvol, mirror_unit_id=spec.mirror_unit_id
+                )
+            elif sn_pair_status == "PSUS":
+                self.provisioner.convert_vclone_from_snapshot(
+                    pvol=spec.pvol, mirror_unit_id=spec.mirror_unit_id
+                )
+            return self.sn_family_prov.get_snapshot_family(spec.primary_volume_id)
+        else:
+            self.logger.writeDebug(
+                f"Snapshot with primary volume ID {spec.primary_volume_id} and mirror unit ID {spec.mirror_unit_id} is already a VClone."
+            )
+            raise ValueError(
+                f"Snapshot with primary volume ID {spec.primary_volume_id} and mirror unit ID {spec.mirror_unit_id} is not in a valid state to create a VClone."
+            )
+
+    def process_vclone_operations(self, spec: Any) -> None:
+        is_vclone_supported = self.sn_family_prov.is_vclone_supported()
+        if not is_vclone_supported:
+            raise ValueError(VSPVcloneValidateMsg.NOT_SUPPORTED_ON_THIS_STORAGE.value)
+        if spec.primary_volume_id is None or spec.mirror_unit_id is None:
+            raise ValueError(
+                "primary_volume_id and mirror_unit_id are required for operation_type = vclone"
+            )
+        operation_type = spec.operation_type
+        if operation_type == "vclone":
+            return self.create_vclone_from_snapshot(spec)
+        elif operation_type == "restore":
+            ret_value = self.provisioner.restore_snapshot_from_vclone(
+                spec.primary_volume_id, spec.mirror_unit_id
+            )
+            self.logger.writeDebug(
+                f"RC:process_vclone_operations:ret_value= {ret_value}"
+            )
+            return self.sn_family_prov.get_snapshot_family(spec.primary_volume_id)
+
+        else:
+            raise ValueError(
+                f"Invalid operation_type: {spec.operation_type}. Supported operations are 'vclone' and 'restore'."
+            )
+
+    def validate_operation_type(self, spec: Any) -> None:
+        if spec.operation_type:
+            valid_operations = ["start", "stop", "vclone", "restore"]
+            if spec.operation_type.lower() not in valid_operations:
+                raise ValueError(
+                    f"Invalid operation_type: {spec.operation_type}. Supported operations are: {valid_operations}."
+                )
+            spec.operation_type = spec.operation_type.lower()
+
+    def validate_operation_type_for_snapshot_group(self, spec: Any) -> None:
+        if spec.operation_type:
+            valid_operations = ["vclone", "restore"]
+            if spec.operation_type.lower() not in valid_operations:
+                raise ValueError(
+                    f"Invalid operation_type: {spec.operation_type}. Supported operations are: {valid_operations}."
+                )
+            spec.operation_type = spec.operation_type.lower()
+
     def reconcile_snapshot(self, spec: Any) -> Any:
         """
         Reconcile the snapshot based on the desired state in the specification.
@@ -124,16 +206,17 @@ class VSPHtiSnapshotReconciler:
                 return msg
             else:
                 msg = self.provisioner.delete_snapshot(
-                    pvol=spec.pvol, mirror_unit_id=spec.mirror_unit_id
+                    pvol=spec.pvol,
+                    mirror_unit_id=spec.mirror_unit_id,
+                    should_delete_svol=spec.should_delete_svol,
                 )
                 return msg
         elif state == StateValue.PRESENT:
-            # this is incorrect if an existing pair is in the spec
-            # ex. for assign/unassign, we don't need pool id
-            # if spec.pool_id is None:
-            #     raise ValueError("Spec.pool_id is required for spec.state = present")
-
-            resp_data = self.provisioner.create_snapshot(spec=spec)
+            self.validate_operation_type(spec)
+            if spec.operation_type in ["vclone", "restore"]:
+                return self.process_vclone_operations(spec)
+            else:
+                resp_data = self.provisioner.create_snapshot(spec=spec)
             # self.logger.writeDebug(f"20240801 before calling extract, expect good poolId in resp_data: {resp_data}")
         elif state == StateValue.SPLIT:
             if spec.mirror_unit_id and spec.pvol:  # Just split
@@ -183,6 +266,11 @@ class VSPHtiSnapshotReconciler:
             ).extract([resp_in_dict], self.port_type_dict)[0]
 
     def snapshot_group_id_reconcile(self, spec: Any, state: str) -> Any:
+
+        self.validate_operation_type_for_snapshot_group(spec)
+        if spec.operation_type in ["vclone", "restore"]:
+            return self.process_vclone_operations_for_snapshot_group(spec)
+
         grp_functions = {
             StateValue.ABSENT: self.provisioner.delete_snapshots_by_gid,
             StateValue.SPLIT: self.provisioner.split_snapshots_by_gid,
@@ -206,6 +294,88 @@ class VSPHtiSnapshotReconciler:
             if state != StateValue.ABSENT
             else "Snapshot group deleted successfully"
         )
+
+    def process_vclone_operations_for_snapshot_group(self, spec: Any) -> None:
+        is_vclone_supported = self.sn_family_prov.is_vclone_supported()
+        if not is_vclone_supported:
+            raise ValueError(VSPVcloneValidateMsg.NOT_SUPPORTED_ON_THIS_STORAGE.value)
+        if spec.snapshot_group_name is None:
+            raise ValueError(
+                "snapshot_group_name is required for operation_type = restore"
+            )
+        operation_type = spec.operation_type.lower()
+        if operation_type == "vclone":
+            return self.create_vclone_from_snapshot_group_name(spec)
+        elif operation_type == "restore":
+            return self.restore_snapshot_group_from_vclone(spec)
+        else:
+            raise ValueError(
+                f"Invalid operation_type: {spec.operation_type}. Supported operations are 'vclone' and 'restore'."
+            )
+
+    def restore_snapshot_group_from_vclone(self, spec: Any) -> None:
+        existing_snapshot_grp = self.provisioner.get_snapshots_by_gid(
+            spec.snapshot_group_name
+        )
+        if not existing_snapshot_grp:
+            raise ValueError(
+                f"Snapshot group {spec.snapshot_group_name} does not exist."
+            )
+        self.logger.writeDebug(
+            f"RC:restore_snapshot_group_from_vclone:existing_snapshot= {existing_snapshot_grp}"
+        )
+        ret_value = self.provisioner.restore_snapshots_by_snapshot_group_name(
+            spec.snapshot_group_name
+        )
+        self.logger.writeDebug(
+            f"RC:restore_snapshot_group_from_vclone:ret_value= {ret_value}"
+        )
+        return self.get_snapshots_using_grp_name(spec.snapshot_group_name)
+
+    def create_vclone_from_snapshot_group_name(self, spec: Any) -> None:
+        existing_snapshot_grp = self.provisioner.get_snapshots_by_gid(
+            spec.snapshot_group_name
+        )
+        if not existing_snapshot_grp:
+            raise ValueError(
+                f"Snapshot group {spec.snapshot_group_name} does not exist."
+            )
+        self.logger.writeDebug(
+            f"RC:create_convert_to_vclone_snapshot:existing_snapshot= {existing_snapshot_grp}"
+        )
+        if not self.is_status_same_for_all_snapshots(
+            existing_snapshot_grp.snapshots.data
+        ):
+            raise ValueError(
+                f"Not all snapshots in snapshot group {spec.snapshot_group_name} are in the same status."
+            )
+        sn_pair_status = existing_snapshot_grp.snapshots.data[0].status
+        primary_volume_id = existing_snapshot_grp.snapshots.data[0].pvolLdevId
+        if sn_pair_status == "PAIR" or sn_pair_status == "PSUS":
+            if sn_pair_status == "PAIR":
+                self.provisioner.create_vclone_from_snapshot_group_name(
+                    spec.snapshot_group_name
+                )
+
+            elif sn_pair_status == "PSUS":
+                self.provisioner.convert_vclone_from_snapshot_group_name(
+                    spec.snapshot_group_name
+                )
+            return self.sn_family_prov.get_snapshot_family(primary_volume_id)
+        else:
+            self.logger.writeDebug(
+                f"Snapshot with snapshot group name {spec.snapshot_group_name} is not in a valid state to create a VClone."
+            )
+            raise ValueError(
+                f"Snapshot with snapshot group name {spec.snapshot_group_name} is not in a valid state to create a VClone."
+            )
+
+    def is_status_same_for_all_snapshots(self, snapshots: Any) -> bool:
+        status = snapshots[0].status
+        for snapshot in snapshots:
+            if snapshot.status != status:
+                return False
+        return True
 
 
 class SnapshotGroupCommonPropertiesExtractor:
@@ -267,6 +437,8 @@ class SnapshotCommonPropertiesExtractor:
             "pvolProcessingStatus": str,
             "splitTime": str,
             "isWrittenInSvol": bool,
+            "isVirtualCloneParentVolume": bool,
+            "isVirtualCloneVolume": bool,
         }
 
         self.parameter_mapping = {
@@ -437,8 +609,6 @@ class SnapshotCommonPropertiesExtractor:
                 if value is None:
                     default_value = get_default_value(value_type)
                     value = default_value
-                # logger.writeDebug(f"20250324 key: {key}")
-                # logger.writeDebug(f"20250324 value: {value}")
                 new_dict[key] = value
             new_items.append(new_dict)
         return new_items

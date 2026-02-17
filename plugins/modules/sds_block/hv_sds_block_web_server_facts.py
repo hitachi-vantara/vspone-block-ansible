@@ -97,7 +97,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockWebServerFactsManager:
+class SDSBWebServerFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -134,7 +134,7 @@ class SDSBBlockWebServerFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockWebServerFactsManager()
+    obj_store = SDSBWebServerFactsManager()
     obj_store.apply()
 
 

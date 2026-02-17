@@ -125,14 +125,14 @@ This collection includes modules for managing both VSP One SDS Block and Cloud s
 - **hv_user_facts:** Retrieves information about users.
 - **hv_user_group:** Manages user groups for role-based access control.
 - **hv_user_group_facts:** Retrieves information about user groups.
-- **hv_vsp_one_port:** Manages ports on VSP E series and VSP One Block 20 series storage systems.
-- **hv_vsp_one_port_facts:** Retrieves port information from VSP E series and VSP One Block 20 series storage systems.
-- **hv_vsp_one_server:** Manages servers including creation, modification, deletion, and configuration on VSP E series and VSP One Block 20 series storage systems.
-- **hv_vsp_one_server_facts:** Retrieves server information from VSP E series and VSP One Block 20 series storage systems.
-- **hv_vsp_one_server_hba_facts:** Retrieves HBA (Host Bus Adapter) information for servers on VSP E series and VSP One Block 20 series storage systems.
-- **hv_vsp_one_volume:** Manages volumes including creation, modification, deletion, and server attachment/detachment on VSP E series and VSP One Block 20 series storage systems.
-- **hv_vsp_one_volume_facts:** Retrieves volumes information from servers on VSP E series and VSP One Block 20 series storage systems.
-- **hv_vsp_one_snapshot:** Manages snapshots including creation, modification, deletion, and management operations on VSP E series and VSP One Block 20 series storage systems.
-- **hv_vsp_one_snapshot_facts:** Retrieves snapshot information from VSP E series and VSP One Block 20 series storage systems.
-- **hv_vsp_one_snapshot_group:** Manages snapshot groups including creation, modification, deletion, and coordinated operations on VSP E series and VSP One Block 20 series storage systems.
-- **hv_vsp_one_snapshot_group_facts:** Retrieves snapshot group information from VSP E series and VSP One Block 20 series storage systems.
+- **hv_vsp_one_port:** Manages ports on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+- **hv_vsp_one_port_facts:** Retrieves port information from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+- **hv_vsp_one_server:** Manages servers including creation, modification, deletion, and configuration on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+- **hv_vsp_one_server_facts:** Retrieves server information from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+- **hv_vsp_one_server_hba_facts:** Retrieves HBA (Host Bus Adapter) information for servers on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+- **hv_vsp_one_volume:** Manages volumes including creation, modification, deletion, and server attachment/detachment on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+- **hv_vsp_one_volume_facts:** Retrieves volumes information from servers on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+- **hv_vsp_one_snapshot:** Manages snapshots including creation, modification, deletion, and management operations on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+- **hv_vsp_one_snapshot_facts:** Retrieves snapshot information from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+- **hv_vsp_one_snapshot_group:** Manages snapshot groups including creation, modification, deletion, and coordinated operations on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+- **hv_vsp_one_snapshot_group_facts:** Retrieves snapshot group information from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.

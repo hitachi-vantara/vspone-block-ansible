@@ -38,10 +38,24 @@ class VSPStoragePoolDirectGateway:
         )
 
     @log_entry_exit
-    def get_all_storage_pools(self, extended_info=False):
+    def get_all_storage_pools(
+        self, extended_info=False, is_mainframe=False, cache_info=False
+    ):
         endPoint = Endpoints.GET_POOLS
+        query_params = (
+            "FMC,tierPhysicalCapacity,efficiency,formattedCapacity,autoAddPoolVol"
+        )
+        class_param = "class"
+
+        if cache_info:
+            query_params = query_params + "," + class_param
+        end_point_list = []
+        if is_mainframe:
+            end_point_list.append("isMainframe=true")
         if extended_info:
-            endPoint += "?detailInfoType=class"
+            end_point_list.append(f"detailInfoType={query_params}")
+        if end_point_list:
+            endPoint += "?" + "&".join(end_point_list)
         try:
             storagePoolsDict = self.connectionManager.get(endPoint)
             if extended_info:
@@ -207,6 +221,24 @@ class VSPStoragePoolDirectGateway:
         return self.connectionManager.post(endPoint, payload)
 
     @log_entry_exit
+    def shrink_storage_pool(self, spec):
+        if spec.pool_volume_ids is not None:
+            payload = {
+                StoragePoolPayloadConst.PARAMETERS: {
+                    StoragePoolPayloadConst.LDEV_IDS: spec.pool_volume_ids,
+                }
+            }
+        else:
+            payload = {
+                StoragePoolPayloadConst.PARAMETERS: {
+                    StoragePoolPayloadConst.START_LDEV_ID: spec.start_pool_volume_id,
+                    StoragePoolPayloadConst.END_LDEV_ID: spec.end_pool_volume_id,
+                }
+            }
+        endPoint = Endpoints.SHRINK_POOL.format(spec.id)
+        return self.connectionManager.post(endPoint, payload)
+
+    @log_entry_exit
     def restore_storage_pool(self, pool_id):
         endPoint = Endpoints.RESTORE_POOL.format(pool_id)
         return self.connectionManager.post(endPoint, None)
@@ -214,4 +246,9 @@ class VSPStoragePoolDirectGateway:
     @log_entry_exit
     def initialize_capacity_savings(self, pool_id):
         endPoint = Endpoints.INITIALIZE_CAPACITY_SAVINGS.format(pool_id)
+        return self.connectionManager.post(endPoint, None)
+
+    @log_entry_exit
+    def stop_shrinking_storage_pool(self, pool_id):
+        endPoint = Endpoints.STOP_SHRINKING_POOL.format(pool_id)
         return self.connectionManager.post(endPoint, None)

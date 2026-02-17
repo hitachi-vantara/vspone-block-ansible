@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_hur
-short_description: Manages HUR pairs on Hitachi VSP storage systems.
+short_description: Manages HUR pairs on VSP block storage systems.
 description:
-  - This module allows for the creation, deletion, splitting, swap splitting, re-syncing and swap-resyncing of HUR pairs on Hitachi VSP storage systems.
+  - This module allows for the creation, deletion, splitting, swap splitting, re-syncing and swap-resyncing of HUR pairs on VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/hur.yml)
 version_added: '3.1.0'
@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.hur_note
 notes:
   - The output parameters C(entitlement_status), C(subscriber_id), and C(partner_id) were removed in version 3.4.0.
     These were deprecated due to internal API simplification and are no longer supported.

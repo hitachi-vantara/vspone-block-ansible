@@ -181,7 +181,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockUserGroupManager:
+class SDSBUserGroupManager:
     def __init__(self):
 
         self.logger = Log()
@@ -235,7 +235,7 @@ class SDSBBlockUserGroupManager:
 
 
 def main():
-    obj_store = SDSBBlockUserGroupManager()
+    obj_store = SDSBUserGroupManager()
     obj_store.apply()
 
 

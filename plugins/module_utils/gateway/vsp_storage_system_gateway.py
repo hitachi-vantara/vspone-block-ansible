@@ -4,7 +4,7 @@ try:
     from ..common.vsp_constants import Endpoints, TimeZoneConst
     from ..common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from ..common.hv_log import Log
-    from ..common.vsp_constants import PEGASUS_MODELS
+    from ..common.vsp_constants import PEGASUS_MODELS, VCLONE_SUPPORTED_MODELS
     from ..model.vsp_storage_system_models import (
         VSPStorageSystemsInfoPfrestList,
         VSPStorageSystemsInfoPfrest,
@@ -32,7 +32,7 @@ except ImportError:
     from common.vsp_constants import Endpoints, TimeZoneConst
     from common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from common.hv_log import Log
-    from common.vsp_constants import PEGASUS_MODELS
+    from common.vsp_constants import PEGASUS_MODELS, VCLONE_SUPPORTED_MODELS
     from model.vsp_storage_system_models import (
         VSPStorageSystemsInfoPfrestList,
         VSPStorageSystemsInfoPfrest,
@@ -77,6 +77,7 @@ class VSPStorageSystemDirectGateway:
             connection_info.api_token,
         )
         self.address = connection_info.address
+        self.is_pegasus_model = False
 
     @log_entry_exit
     def get_site_cache(self):
@@ -130,10 +131,20 @@ class VSPStorageSystemDirectGateway:
             return value
         else:
             endPoint = Endpoints.GET_STORAGE_INFO
-            storageSystemInfo = self.connectionManager.get(endPoint)
-            result = VSPStorageSystemInfoPfrest(**storageSystemInfo)
-            cache["get_current_storage_system_info"] = result
-            return result
+
+            try:
+                if not self.is_pegasus_model:
+                    endPoint += "?detailInfoType=compressionAcceleration"
+                storageSystemInfo = self.connectionManager.get(endPoint)
+                result = VSPStorageSystemInfoPfrest(**storageSystemInfo)
+                cache["get_current_storage_system_info"] = result
+                return result
+            except Exception as e:
+                endPoint = Endpoints.GET_STORAGE_INFO
+                storageSystemInfo = self.connectionManager.get(endPoint)
+                result = VSPStorageSystemInfoPfrest(**storageSystemInfo)
+                cache["get_current_storage_system_info"] = result
+                return result
 
     @log_entry_exit
     def is_pegasus(self):
@@ -144,8 +155,29 @@ class VSPStorageSystemDirectGateway:
         else:
             storage_info = self.get_current_storage_system_info()
             pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
-            cache["is_vsp_5000_series"] = pegasus_model
+            cache["is_pegasus"] = pegasus_model
+            self.is_pegasus_model = pegasus_model
             return pegasus_model
+
+    @log_entry_exit
+    def is_vclone_supported(self):
+        cache = self.get_site_cache()
+        value = cache.get("is_vclone_supported", None)
+        if value is not None:
+            return value
+        else:
+            storage_info = self.get_current_storage_system_info()
+            logger.writeDebug(
+                f"GATEWAY:is_vclone_supported:storage_info.model= {storage_info.model}"
+            )
+            vclone_supported_model = any(
+                sub in storage_info.model for sub in VCLONE_SUPPORTED_MODELS
+            )
+            logger.writeDebug(
+                f"GATEWAY:is_vclone_supported:vclone_supported_model= {vclone_supported_model}"
+            )
+            cache["is_vclone_supported"] = vclone_supported_model
+            return vclone_supported_model
 
     @log_entry_exit
     def is_vsp_5000_series(self):

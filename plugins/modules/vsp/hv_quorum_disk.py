@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_quorum_disk
-short_description: Manages Quorum Disks in the Hitachi VSP storage systems.
+short_description: Manages Quorum Disks in the VSP block storage systems.
 description:
-  - This module registers and de-registers the Quorum Disks in the Hitachi VSP storage systems.
+  - This module registers and de-registers the Quorum Disks in the VSP block storage systems.
   - This module is supported for direct connection type only.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/quorum_disk.yml)
@@ -68,13 +68,14 @@ options:
           M8: VSP One B20, VSP E series, VSP Gx00 models or VSP Fx00 models.
           R8: VSP G1000, VSP G1500, or VSP F1500.
           R9: VSP 5000 series.
+          RH20ETP: VSP One BHE(B85).
           Optional for the Register Quorum Disk task.
           Required for the Register ldev-less Quorum Disk and auto select free id task.
         type: str
         choices: ['M8', 'R8', 'R9', 'RH20ETP']
         required: false
       ldev_id:
-        description: Local LDEV ID for the external volume.
+        description: Local LDEV ID for the external volume. Can be decimal or hexadecimal.
           Required for the Register Quorum Disk task.
         type: str
         required: false

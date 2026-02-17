@@ -1,0 +1,47 @@
+---
+####################################################################
+# Default variables for hv_vsp_one_create_gad_pair role
+####################################################################
+
+# Strict mode - fail the playbook if any GAD pair creation fails
+hv_vsp_ndm_gad_migration_pairs_strict_mode: false
+
+# Default empty list for GAD pairs (should be overridden by caller)
+hv_vsp_ndm_gad_migration_pairs_gad_pairs: []
+# Example GAD pairs configuration:
+# gad_pairs:
+#   - copy_group_name: "GAD_CG_001"
+#     copy_pair_name: "GAD_CP_001"
+#     primary_volume_id: 1000
+#     secondary_pool_id: 0
+#     consistency_group_id: 1
+#     quorum_disk_id: 100
+#     is_data_reduction_force_copy: false
+#     enable_delta_resync: true
+#     fence_level: "NEVER"
+#     is_new_group_creation: true
+#
+#   - copy_group_name: "GAD_CG_002"
+#     copy_pair_name: "GAD_CP_002"
+#     primary_volume_id: 1001
+#     secondary_pool_id: 0
+#     is_new_group_creation: false
+
+# Default GAD pair settings (these will be applied if not specified in individual pairs)
+hv_vsp_ndm_gad_migration_pairs_default_gad_settings:
+  secondary_pool_id: 0
+  is_data_reduction_force_copy: false
+  enable_delta_resync: false
+  fence_level: "NEVER"
+  is_new_group_creation: true
+
+# Debug mode - set to true to enable detailed debug output
+hv_vsp_ndm_gad_migration_pairs_debug_mode: false
+
+hv_vsp_ndm_gad_migration_pairs_min_remote_paths: 1
+hv_vsp_ndm_gad_migration_pairs_remote_io_timeout_in_sec: 15
+hv_vsp_ndm_gad_migration_pairs_round_trip_in_msec: 1
+hv_vsp_ndm_gad_migration_pairs_copy_pair_name_prefix: "NDM_GAD_CP_"
+hv_vsp_ndm_gad_migration_pairs_copy_group_name: "NDM_GAD_CG"
+hv_vsp_ndm_gad_migration_pairs_hg_name_prefix: "NDM_HG_"
+hv_vsp_ndm_gad_migration_pairs_batch_gad_pair_creation_size: 2

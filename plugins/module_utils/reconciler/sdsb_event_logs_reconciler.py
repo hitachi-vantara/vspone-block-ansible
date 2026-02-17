@@ -3,7 +3,7 @@ try:
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
 except ImportError:
-    from ..provisioner.sdsb_event_logs_provisioner import SDSBEventLogsProvisioner
+    from provisioner.sdsb_event_logs_provisioner import SDSBEventLogsProvisioner
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
 

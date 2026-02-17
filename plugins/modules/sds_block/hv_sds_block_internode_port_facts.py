@@ -34,6 +34,7 @@ options:
     suboptions:
       id:
         description: Filter internode port by ID (UUID format).
+          Required for the Get internode ports by specifying optional parameters task.
         type: str
 """
 
@@ -203,7 +204,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockInterNodePortFactsManager:
+class SDSBInterNodePortFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -244,7 +245,7 @@ class SDSBBlockInterNodePortFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockInterNodePortFactsManager()
+    obj_store = SDSBInterNodePortFactsManager()
     obj_store.apply()
 
 

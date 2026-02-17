@@ -125,3 +125,54 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ######################################################################################
+    # Task Name : Create or convert a snapshot pair to vclone by snapshot group name
+    ######################################################################################
+    - name: Create or convert a snapshot pair to vclone by snapshot group name
+      hitachivantara.vspone_block.vsp.hv_snapshot_group:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          snapshot_group_name: "rd_vclone_ss_grp_6924"
+          operation_type: "vclone"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Restore snapshot group from vclone
+    # Before performing this operation, you must first create the Thin Image Advanced
+    # pair by using volumes that have the vClone attribute.
+    ######################################################################################
+    - name: Restore snapshot group from vclone
+      hitachivantara.vspone_block.vsp.hv_snapshot_group:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          snapshot_group_name: "rd_vclone_ss_grp_6924"
+          operation_type: "restore"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################################
+    # Task Name : Restore the snapshot pairs using group name and wait for the final state of all snapshots
+    # This is applicable for SPLIT, RESTORE, and SYNC operations.
+    #####################################################################################################
+    - name: Restore the snapshot pairs using group name and wait for the final state of all snapshots
+      hitachivantara.vspone_block.vsp.hv_snapshot_group:
+        connection_info: "{{ connection_info }}"
+        state: "restore"
+        spec:
+          snapshot_group_name: "snapshot-group-name-1"
+          wait_for_final_state: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

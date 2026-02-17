@@ -20,7 +20,7 @@ except ImportError:
 logger = Log()
 
 
-class SDSBBlockJournalDirectGateway:
+class SDSBJournalDirectGateway:
 
     def __init__(self, connection_info):
         self.connection_manager = SDSBConnectionManager(
@@ -137,8 +137,11 @@ class SDSBBlockJournalDirectGateway:
     def get_journal_by_id(self, id):
         end_point = SDSBlockEndpoints.GET_JOURNAL_BY_ID.format(id)
         logger.writeDebug(f"GW:get_journal_by_id:end_point={end_point}")
-        journals = self.connection_manager.get(end_point)
-        logger.writeDebug(f"GW:get_journal_by_id:response={journals}")
+        try:
+            journals = self.connection_manager.get(end_point)
+        except Exception as e:
+            logger.writeDebug(f"GW:get_journal_by_id:error={e}")
+            return None
         return SDSBJournalResponse(**journals)
 
     @log_entry_exit

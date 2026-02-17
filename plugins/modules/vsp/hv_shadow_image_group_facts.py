@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_shadow_image_group_facts
-short_description: Retrieves Local Copy Groups information from Hitachi VSP storage systems.
+short_description: Retrieves Local Copy Groups information from VSP block storage systems.
 description:
-  - This module retrieves information about Local Copy Groups from Hitachi VSP storage systems.
+  - This module retrieves information about Local Copy Groups from VSP block storage systems.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/local_copy_group_facts.yml)
 version_added: '3.2.0'

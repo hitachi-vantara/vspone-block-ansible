@@ -1,28 +1,27 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 try:
 
-    from ..gateway.gateway_factory import GatewayFactory
-    from ..common.hv_constants import GatewayClassTypes
     from ..common.hv_log import Log
     from ..common.ansible_common import convert_hex_to_dec
     from ..common.ansible_common import log_entry_exit
     from ..message.vsp_host_group_msgs import VSPHostGroupMessage
-
+    from ..gateway.vsp_host_group_gateway import VSPHostGroupDirectGateway
+    from ..common.hv_constants import VSPHostGroupConstant
+    from ..common.ansible_common_constants import MAX_WORKER_THREADS
 
 except ImportError:
-    from gateway.gateway_factory import GatewayFactory
-    from common.hv_constants import GatewayClassTypes
     from common.hv_log import Log
     from common.ansible_common import convert_hex_to_dec
     from common.ansible_common import log_entry_exit
     from message.vsp_host_group_msgs import VSPHostGroupMessage
+    from gateway.vsp_host_group_gateway import VSPHostGroupDirectGateway
 
 
 class VSPHostGroupProvisioner:
 
     def __init__(self, connection_info):
-        self.gateway = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.VSP_HOST_GROUP
-        )
+        self.gateway = VSPHostGroupDirectGateway(connection_info)
         self.connection_info = connection_info
         self.serial = None
         self.all_hgs = None
@@ -100,8 +99,6 @@ class VSPHostGroupProvisioner:
         logger.writeDebug(f"self.all_hgs{self.all_hgs}")
         if self.all_hgs:
             for hg in self.all_hgs.data:
-                # logger.writeDebug(f"hg.portId={hg.portId}, hg.hostGroupNumber={hg.hostGroupNumber}")
-                # logger.writeDebug(f"port_id={port_id}, hg_id={hg_id}")
                 if hg.portId == port_id and hg.hostGroupNumber == hg_id:
                     hg.port = hg.portId
                     return hg
@@ -113,12 +110,27 @@ class VSPHostGroupProvisioner:
 
     @log_entry_exit
     def create_host_group(
-        self, port, name, wwns, luns, host_mode, host_mode_options, hg_number=None
+        self,
+        port,
+        name,
+        wwns,
+        host_mode,
+        host_mode_options,
+        luns=None,
+        lun_paths=None,
+        hg_number=None,
     ):
         logger = Log()
         try:
             errors, comments = self.gateway.create_host_group(
-                port, name, wwns, luns, host_mode, host_mode_options, hg_number
+                port,
+                name,
+                wwns,
+                host_mode,
+                host_mode_options,
+                luns,
+                lun_paths,
+                hg_number,
             )
             return errors, comments
         except Exception as e:
@@ -143,6 +155,10 @@ class VSPHostGroupProvisioner:
         return self.gateway.add_luns_to_host_group(hg, luns)
 
     @log_entry_exit
+    def add_lun_paths_to_host_group(self, hg, lun_paths):
+        return self.gateway.add_lun_paths_to_host_group(hg, lun_paths)
+
+    @log_entry_exit
     def delete_luns_from_host_group(self, hg, luns):
         return self.gateway.delete_luns_from_host_group(hg, luns)
 
@@ -163,3 +179,114 @@ class VSPHostGroupProvisioner:
     @log_entry_exit
     def release_host_reserve(self, port_id, hg_number, lun=None):
         self.gateway.release_host_reservation_status(port_id, hg_number, lun)
+
+    @log_entry_exit
+    def get_host_mode_options(self):
+        return self.gateway.get_host_mode_options()
+
+    @log_entry_exit
+    def handle_multi_hg_with_present_ldevs(
+        self, hg_number, hg_name, ports, ldevs, sub_state
+    ):
+        logger = Log()
+
+        hg_objects = []
+        hg_objects_dict = {}
+        logger.writeDebug("PROV:handle_multi_hg_with_present_ldevs:")
+        logger.writeDebug(f"sub state: {sub_state}")
+
+        def fetch_host_group(port):
+            if hg_name is not None:
+                hg = self.get_one_host_group(port, hg_name).data
+            else:
+                hg = self.get_one_host_group_using_hg_port_id(port, hg_number)
+            if hg is None:
+                raise Exception(VSPHostGroupMessage.PORTS_PARAMETER_INVALID.value)
+            return hg
+
+        executor = ThreadPoolExecutor(
+            max_workers=MAX_WORKER_THREADS,
+            thread_name_prefix="FetchHostGroups",
+        )
+        try:
+            futures = {executor.submit(fetch_host_group, port): port for port in ports}
+            for future in as_completed(futures):
+                try:
+                    hg = future.result()
+                    hg_objects.append(hg)
+                    hg_objects_dict.setdefault(hg.hostGroupNumber, []).append(hg.portId)
+                except Exception as exc:
+                    logger.writeError(
+                        f"Port {futures[future]} generated an exception: {exc}"
+                    )
+                    raise exc
+        except KeyboardInterrupt:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        finally:
+            executor.shutdown(wait=True)
+
+        all_comments, all_errors = [], []
+
+        if sub_state == VSPHostGroupConstant.STATE_PRESENT_LDEV:
+
+            def process_present(hg_num, port_ids):
+                return self.gateway.add_ldev_and_ports_to_host_group(
+                    hg_num, ldevs, port_ids
+                )
+
+            executor = ThreadPoolExecutor(
+                max_workers=MAX_WORKER_THREADS,
+                thread_name_prefix="ProcessPresent",
+            )
+            try:
+                futures = {
+                    executor.submit(process_present, hg_num, port_ids): hg_num
+                    for hg_num, port_ids in hg_objects_dict.items()
+                }
+                for future in as_completed(futures):
+                    try:
+                        comments, errors = future.result()
+                        all_comments.extend(comments or [])
+                        all_errors.extend(errors or [])
+                    except Exception as exc:
+                        logger.writeError(
+                            f"Host group {futures[future]} exception: {exc}"
+                        )
+                        all_errors.append(str(exc))
+            except KeyboardInterrupt:
+                executor.shutdown(wait=False, cancel_futures=True)
+                raise
+            finally:
+                executor.shutdown(wait=True)
+
+        elif sub_state == VSPHostGroupConstant.STATE_UNPRESENT_LDEV:
+
+            def process_unpresent(hg):
+                updated_hg = self.get_one_host_group(hg.portId, hg.hostGroupName).data
+                return self.gateway.delete_luns_from_host_group(updated_hg, ldevs)
+
+            executor = ThreadPoolExecutor(
+                max_workers=MAX_WORKER_THREADS, thread_name_prefix="ProcessUnpresent"
+            )
+            try:
+                futures = {
+                    executor.submit(process_unpresent, hg): hg for hg in hg_objects
+                }
+                for future in as_completed(futures):
+                    try:
+                        com, err = future.result()
+                        all_errors.extend(err or [])
+                        all_comments.extend(com or [])
+                    except Exception as exc:
+                        logger.writeError(
+                            f"Host group {futures[future]} exception: {exc}"
+                        )
+                        all_errors.append(str(exc))
+            except KeyboardInterrupt:
+                executor.shutdown(wait=False, cancel_futures=True)
+                raise
+            finally:
+                executor.shutdown(wait=True)
+
+        return all_comments, all_errors

@@ -49,7 +49,9 @@ class SDSBRemotePathGroupReconciler:
         if handler:
             return handler(spec)
         else:
-            spec.comments = f"Unsupported state: {state}"
+            spec.comments = (
+                SDSBRemotePathGroupValidationMsg.UNSUPPORTED_STATE.value.format(state)
+            )
             return spec
 
     @log_entry_exit
@@ -58,11 +60,17 @@ class SDSBRemotePathGroupReconciler:
         try:
             response = self.provisioner.get_remote_path_group_by_id(spec.id)
             if response is None:
-                spec.comments = f"Did not find remote path group with id = {spec.id}"
+                spec.comments = SDSBRemotePathGroupValidationMsg.REMOTE_PATH_GROUP_NOT_FOUND.value.format(
+                    spec.id
+                )
                 return None
             change_needed = self.is_update_needed_for_add_path(response, spec)
             if not change_needed:
-                spec.comments = f"The remote path already exists in the remote path group with id = {spec.id}"
+                spec.comments = (
+                    SDSBRemotePathGroupValidationMsg.REMOTE_PATH_EXISTS.value.format(
+                        spec.id
+                    )
+                )
                 return response
             response = self.provisioner.add_remote_path_to_remote_path_group(spec)
             self.connection_info.changed = True
@@ -90,11 +98,17 @@ class SDSBRemotePathGroupReconciler:
         try:
             response = self.provisioner.get_remote_path_group_by_id(spec.id)
             if response is None:
-                spec.comments = f"Did not find remote path group with id = {spec.id}"
+                spec.comments = (
+                    SDSBRemotePathGroupValidationMsg.REMOTE_PATH_NOT_FOUND.value.format(
+                        spec.id
+                    )
+                )
                 return None
             change_needed = self.is_update_needed_for_remove_path(response, spec)
             if not change_needed:
-                spec.comments = f"The remote path does not exist in remote path group with id = {spec.id}"
+                spec.comments = SDSBRemotePathGroupValidationMsg.REMOTE_PATH_DOES_NOT_EXIST.value.format(
+                    spec.id
+                )
                 return response
             response = self.provisioner.remove_remote_path_from_remote_path_group(spec)
             self.connection_info.changed = True
@@ -163,12 +177,16 @@ class SDSBRemotePathGroupReconciler:
         try:
             self.provisioner.delete_remote_path_group(spec.id)
             self.connection_info.changed = True
-            spec.comments = f"Deleted remote path group with id = {spec.id}"
+            spec.comments = SDSBRemotePathGroupValidationMsg.DELETE_REMOTE_PATH_SUCCESS.value.format(
+                spec.id
+            )
             return
         except Exception as e:
             logger.writeException(e)
             if "not found" in str(e).lower() or "404" in str(e).lower():
-                spec.comments = "Remote Path Group not found or deleted."
+                spec.comments = SDSBRemotePathGroupValidationMsg.REMOTE_PATH_GROUP_NOT_FOUND_OR_DELETED.value.format(
+                    spec.id
+                )
             else:
                 spec.comments = str(e)
             return

@@ -36,7 +36,7 @@
       hitachivantara.vspone_block.sds_block.hv_sds_block_session:
         connection_info: "{{ connection_info }}"
         spec:
-          alive_time: 200
+          alive_time_in_seconds: 200
       register: result
 
     - name: Debug the result variable

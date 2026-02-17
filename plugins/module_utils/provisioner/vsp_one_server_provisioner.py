@@ -311,14 +311,6 @@ class VSPServerSimpleApiProvisioner:
         return response
 
     @log_entry_exit
-    def get_servers(self, query: str = None):
-        """
-        Get servers
-        """
-        response = self.gateway.get_servers(query)
-        return response
-
-    @log_entry_exit
     def get_server_by_id(self, server_id: int):
         """
         Get server

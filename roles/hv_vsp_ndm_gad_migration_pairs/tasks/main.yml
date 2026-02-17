@@ -1,0 +1,828 @@
+---
+####################################################################
+# Role: hv_vsp_ndm_gad_migration_pairs
+# Description: Create GAD pairs with complete infrastructure setup
+####################################################################
+
+####################################################################
+# Task: Process input LDEVs from WWN query role or direct input
+####################################################################
+
+- name: Ensure GAD status file exists
+  ansible.builtin.file:
+    path: "{{ gad_status_file | default('~/logs/hitachivantara/ansible/vspone_block/gad_status_role_test.json') }}"
+    state: touch
+    mode: "0644"
+  delegate_to: localhost
+  register: gad_status_file_result
+
+- name: Fail if GAD status file creation failed
+  ansible.builtin.fail:
+    msg: "Failed to create or touch the GAD status file: {{ gad_status_file }}"
+  when: gad_status_file_result is failed
+
+- name: Extract LDEV IDs, ports, and host mode from host_volumes
+  ansible.builtin.set_fact:
+    extracted_ldev_ids: "{{ host_volumes | map(attribute='ldev') | unique | list }}"
+    extracted_ports: "{{ host_volumes | map(attribute='port') | unique | list }}"
+    extracted_host_mode_options: "{{ host_volumes[0].host_mode_options if host_volumes | length > 0 else [] }}"
+    extracted_host_mode: "{{ host_volumes[0].host_mode if host_volumes | length > 0 else 'LINUX' }}"
+  when:
+    - host_volumes is defined
+    - host_volumes | length > 0
+
+- name: Transform extracted LDEV IDs to new_ldevs format
+  ansible.builtin.set_fact:
+    new_ldevs: "{{ extracted_ldev_ids | map('regex_replace', '^(.*)$', '{ \"item\": \\1 }') | map('from_json') | list }}"
+  when:
+    - extracted_ldev_ids is defined
+    - extracted_ldev_ids | length > 0
+
+- name: Transform host_volumes to new_ldevs format if host_volumes not provided
+  ansible.builtin.set_fact:
+    new_ldevs: "{{ host_volumes | map('regex_replace', '^(.*)$', '{ \"item\": \\1 }') | map('from_json') | list }}"
+  when:
+    - host_volumes is not defined or host_volumes | length == 0
+    - host_volumes is defined
+    - host_volumes | length > 0
+    - new_ldevs is not defined or new_ldevs | length == 0
+
+- name: Validate LDEV input
+  ansible.builtin.assert:
+    that:
+      - new_ldevs is defined
+      - new_ldevs | length > 0
+    fail_msg: "No LDEVs provided for GAD pair creation. Either 'host_volumes' or 'host_volumes' must be defined with at least one LDEV."
+
+####################################################################
+# Task: User confirmation and LDEV selection
+####################################################################
+- name: Display LDEVs to be processed for GAD pair creation
+  ansible.builtin.debug:
+    msg:
+      - "=== GAD Pair Creation Confirmation ==="
+      - "The following LDEVs will be used to create GAD pairs:"
+      - "{{ new_ldevs | map(attribute='item') | list }}"
+      - "Total LDEVs: {{ new_ldevs | length }}"
+      - ""
+      - "Options:"
+      - "1. Press Enter to proceed with all LDEVs"
+      - "2. Type 'custom' to provide your own LDEV list"
+      - "3. Type 'cancel' to abort the operation"
+
+- name: Prompt user for confirmation or custom LDEV selection until valid input
+  ansible.builtin.pause:
+    prompt: |2
+
+      Do you want to proceed with all {{ new_ldevs | length }} LDEVs, or provide custom list?:
+      - Press Enter for all LDEVs
+      - Type 'custom' for custom selection
+      - Type 'cancel' to abort
+
+      Your choice
+  register: user_choice
+  until: user_choice.user_input | default('') | lower in ['', 'custom', 'cancel']
+  retries: 5
+  delay: 1
+
+- name: Handle cancellation
+  ansible.builtin.fail:
+    msg: "GAD pair creation cancelled by user"
+  when:
+    - user_choice.user_input is defined
+    - user_choice.user_input | lower == 'cancel'
+
+- name: Prompt for custom LDEV list
+  ansible.builtin.pause:
+    prompt: |2
+
+      Available LDEVs: "{{ new_ldevs | map(attribute='item') | list | join(', ') }}"
+      Please enter your custom LDEV IDs separated by commas (e.g., 1001,1002,1003):
+
+  register: custom_ldev_input
+  when:
+    - user_choice.user_input is defined
+    - user_choice.user_input | lower == 'custom'
+
+- name: Validate custom LDEVs are in available list
+  ansible.builtin.set_fact:
+    invalid_ldevs: "{{ custom_ldev_input.user_input.split(',') | map('trim') | list | difference(new_ldevs | map(attribute='item') | map('string') | list) }}"
+    valid_custom_ldevs: "{{ custom_ldev_input.user_input.split(',') | map('trim') | list | intersect(new_ldevs | map(attribute='item') | map('string') | list) }}"
+  when:
+    - user_choice.user_input | lower == 'custom'
+    - custom_ldev_input.user_input is defined
+    - custom_ldev_input.user_input | length > 0
+
+- name: Re-prompt for custom LDEV list if invalid LDEVs found
+  ansible.builtin.pause:
+    prompt: |2
+
+      Error: The following LDEVs are not available: {{ invalid_ldevs | join(', ') }}
+      Available LDEVs: {{ new_ldevs | map(attribute='item') | list | join(', ') }}
+      Please enter valid LDEV IDs separated by commas:
+
+  register: custom_ldev_input
+  when:
+    - user_choice.user_input | lower == 'custom'
+    - invalid_ldevs is defined
+    - invalid_ldevs | length > 0
+
+- name: Re-validate custom LDEVs after re-prompt
+  ansible.builtin.set_fact:
+    invalid_ldevs: "{{ custom_ldev_input.user_input.split(',') | map('trim') | list | difference(new_ldevs | map(attribute='item') | map('string') | list) }}"
+    valid_custom_ldevs: "{{ custom_ldev_input.user_input.split(',') | map('trim') | list | intersect(new_ldevs | map(attribute='item') | map('string') | list) }}"
+  when:
+    - user_choice.user_input | lower == 'custom'
+    - custom_ldev_input.user_input is defined
+    - custom_ldev_input.user_input | length > 0
+
+- name: Fail if invalid LDEVs still present after re-prompt
+  ansible.builtin.fail:
+    msg: "Invalid LDEVs provided: {{ invalid_ldevs | join(', ') }}. Only available LDEVs are allowed: {{ new_ldevs | map(attribute='item') | list | join(', ') }}"
+  when:
+    - user_choice.user_input | lower == 'custom'
+    - invalid_ldevs is defined
+    - invalid_ldevs | length > 0
+
+- name: Process custom LDEV input
+  ansible.builtin.set_fact:
+    new_ldevs: "{{ valid_custom_ldevs | map('regex_replace', '^(.*)$', '{ \"item\": \"\\1\" }') | map('from_json') | list }}"
+  when:
+    - user_choice.user_input | lower == 'custom'
+    - valid_custom_ldevs is defined
+    - valid_custom_ldevs | length > 0
+
+- name: Validate custom LDEV input
+  ansible.builtin.assert:
+    that:
+      - new_ldevs is defined
+      - new_ldevs | length > 0
+      - new_ldevs | map(attribute='item') | list | select('match', '^[0-9]+$') | list | length == new_ldevs | length
+    fail_msg: "Invalid LDEV input. Please ensure all LDEVs are numeric values."
+  when: user_choice.user_input | lower == 'custom'
+
+- name: Keep only LDEV IDs in final selection
+  ansible.builtin.set_fact:
+    selected_ldev_ids: "{{ new_ldevs | map(attribute='item') | list }}"
+
+- name: Display final LDEV selection
+  ansible.builtin.debug:
+    msg:
+      - "=== Final LDEV Selection ==="
+      - "Total LDEVs selected: {{ new_ldevs | length }}"
+      - "Selected LDEVs for GAD pair creation: {{ selected_ldev_ids }}"
+      - "Host Volumes before filtering: {{ host_volumes }}"
+
+- name: Filter host_volumes to keep only selected LDEVs
+  ansible.builtin.set_fact:
+    filtered_host_volumes: >-
+      {{
+        host_volumes | selectattr('ldev', 'in', selected_ldev_ids | map('int') | list) | list
+        if host_volumes | length > 0
+        else []
+      }}
+  when:
+    - host_volumes is defined
+    - selected_ldev_ids is defined
+
+- name: Display filtered host_volumes
+  ansible.builtin.debug:
+    msg:
+      - "=== Filtered Host Volumes (Selected LDEVs Only) ==="
+      - "{{ filtered_host_volumes }}"
+  when: filtered_host_volumes is defined
+####################################################################
+# Task: Validate port configuration
+####################################################################
+- name: Validate extracted ports and secondary storage ports match
+  ansible.builtin.assert:
+    that:
+      - extracted_ports is defined
+      - secondary_storage_ports is defined
+      - extracted_ports | length == secondary_storage_ports | length
+    fail_msg: |
+      Port configuration mismatch detected:
+      - Extracted ports count: {{ extracted_ports | default([]) | length }}
+      - Secondary storage ports count: {{ secondary_storage_ports | default([]) | length }}
+      - Extracted ports: {{ extracted_ports | default([]) }}
+      - Secondary storage ports: {{ secondary_storage_ports | default([]) }}
+      The number of extracted ports and secondary storage ports must be equal.
+  when:
+    - extracted_ports is defined or secondary_storage_ports is defined
+
+####################################################################
+# Task: Create port mapping between primary and secondary storage
+####################################################################
+- name: Create port mapping dictionary
+  ansible.builtin.set_fact:
+    port_mapping: "{{ dict(extracted_ports | zip(secondary_storage_ports)) }}"
+  when:
+    - extracted_ports is defined
+    - secondary_storage_ports is defined
+    - extracted_ports | length > 0
+    - secondary_storage_ports | length > 0
+
+- name: Update host_volumes with secondary_port mapping
+  ansible.builtin.set_fact:
+    updated_host_volumes: >-
+      [
+        {% for volume in filtered_host_volumes %}
+        {{ volume | combine({'secondary_port': port_mapping[volume.port]}) }}{{ ',' if not loop.last else '' }}
+        {% endfor %}
+      ]
+  vars:
+    port_mapping: "{{ dict(extracted_ports | zip(secondary_storage_ports)) }}"
+  when:
+    - filtered_host_volumes is defined
+    - filtered_host_volumes | length > 0
+    - port_mapping is defined
+
+- name: Display updated host_volumes with secondary port mapping
+  ansible.builtin.debug:
+    msg:
+      - "=== Updated Host Volumes with Secondary Port Mapping ==="
+      - "{{ updated_host_volumes }}"
+  when: updated_host_volumes is defined
+
+####################################################################
+# Task: Get storage system facts for primary storage
+####################################################################
+- name: Get Storage System facts for primary storage
+  hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
+    connection_info: "{{ connection_info }}"
+  register: primary_storage_facts
+
+- name: Extract storage model from primary storage facts
+  ansible.builtin.set_fact:
+    primary_storage_model: "{{ primary_storage_facts.ansible_facts.storage_system.model | regex_replace(' ', '_') | upper }}"
+    primary_storage_model_raw: "{{ primary_storage_facts.ansible_facts.storage_system.model }}"
+    primary_storage_serial: "{{ primary_storage_facts.ansible_facts.storage_system.serial_number }}"
+
+####################################################################
+# Task: Get storage system facts for secondary storage
+####################################################################
+- name: Get Storage System facts for secondary storage
+  hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
+    connection_info: "{{ secondary_connection_info }}"
+  register: secondary_storage_facts
+
+- name: Extract storage model from secondary storage facts
+  ansible.builtin.set_fact:
+    secondary_storage_model: "{{ secondary_storage_facts.ansible_facts.storage_system.model | regex_replace(' ', '_') }}"
+    secondary_storage_model_raw: "{{ secondary_storage_facts.ansible_facts.storage_system.model }}"
+    secondary_storage_serial: "{{ secondary_storage_facts.ansible_facts.storage_system.serial_number }}"
+- name: Display secondary storage information
+  ansible.builtin.debug:
+    msg:
+      - "Secondary Storage Serial: {{ secondary_storage_serial }}"
+      - "Secondary Storage Model: {{ secondary_storage_model }}"
+
+- name: Determine primary storage type based on model
+  ansible.builtin.set_fact:
+    primary_storage_type: >-
+      {%- set model_part = primary_storage_model_raw.split('VSP')[1].strip() if 'VSP' in primary_storage_model_raw else primary_storage_model_raw -%}
+      {%- if model_part.startswith('5') -%}
+      R9{%- elif model_part in ['G1000', 'G1500', 'F1500'] -%}
+      R8{%- elif model_part in ['B85'] -%}
+      RH20ETP{%- else -%}
+      M8{%- endif -%}
+
+- name: Determine secondary storage type based on model
+  ansible.builtin.set_fact:
+    secondary_storage_type: >-
+      {%- set model_part = secondary_storage_model_raw.split('VSP')[1].strip() if 'VSP' in secondary_storage_model_raw else secondary_storage_model_raw -%}
+      {%- if model_part.startswith('5') -%}
+      R9{%- elif model_part in ['G1000', 'G1500', 'F1500'] -%}
+      R8{%- elif model_part in ['B85'] -%}
+      RH20ETP{%- else -%}
+      M8{%- endif -%}
+
+####################################################################
+# Task: Get quorum disk facts from both storage systems
+####################################################################
+- name: Retrieve information about all Quorum Disks from primary storage
+  hitachivantara.vspone_block.vsp.hv_quorum_disk_facts:
+    connection_info: "{{ connection_info }}"
+  register: primary_quorum_facts
+
+- name: Retrieve information about all Quorum Disks from secondary storage
+  hitachivantara.vspone_block.vsp.hv_quorum_disk_facts:
+    connection_info: "{{ secondary_connection_info }}"
+  register: secondary_quorum_facts
+
+####################################################################
+# Task: Get available quorum disk IDs
+####################################################################
+
+- name: Check if quorum disk already exists for secondary storage on primary storage
+  ansible.builtin.set_fact:
+    existing_primary_quorum_ids: >-
+      {{
+        (primary_quorum_facts.ansible_facts.quorum_disk | default([])
+        | selectattr('remote_serial_number', 'defined')
+        | selectattr('remote_serial_number', 'equalto', secondary_storage_serial | string)
+        | rejectattr('status', 'equalto', 'BLOCKED')
+        | map(attribute='quorum_disk_id')
+        | list ) | default(None)
+      }}
+
+- name: Check if quorum disk already exists for primary storage on secondary storage
+  ansible.builtin.set_fact:
+    existing_secondary_quorum_ids: >-
+      {{
+        (secondary_quorum_facts.ansible_facts.quorum_disk | default([])
+        | selectattr('remote_serial_number', 'defined')
+        | selectattr('remote_serial_number', 'equalto', primary_storage_serial | string)
+        | rejectattr('status', 'equalto', 'BLOCKED')
+        | map(attribute='quorum_disk_id')
+        | list ) | default(None)
+      }}
+
+- name: Set is_quorum_already_exists flag
+  ansible.builtin.set_fact:
+    is_quorum_already_exists: false
+
+- name: Find matching quorum disk pairs between primary and secondary storages
+  ansible.builtin.set_fact:
+    matching_quorum_ids: >-
+      {{
+        (existing_primary_quorum_ids | default([]) | intersect(existing_secondary_quorum_ids | default([])))
+      }}
+
+- name: Set is_quorum_already_exists flag based on matching quorum pairs
+  ansible.builtin.set_fact:
+    is_quorum_already_exists: "{{ matching_quorum_ids | length > 0 }}"
+
+- name: Use existing quorum disk ID if already exists
+  ansible.builtin.set_fact:
+    available_primary_quorum_id: "{{ matching_quorum_ids[0] }}"
+    available_secondary_quorum_id: "{{ matching_quorum_ids[0] }}"
+  when: is_quorum_already_exists | bool
+
+- name: Display existing quorum disk information
+  ansible.builtin.debug:
+    msg:
+      - "Existing quorum disks found between storages"
+      - "Matching quorum disk IDs: {{ matching_quorum_ids }}"
+      - "Using existing quorum disk ID: {{ matching_quorum_ids[0] }}"
+  when: is_quorum_already_exists | bool
+
+- name: Extract existing quorum disk IDs from primary storage
+  ansible.builtin.set_fact:
+    primary_existing_quorum_ids: "{{ primary_quorum_facts.ansible_facts.quorum_disk | default([]) | map(attribute='quorum_disk_id') | list }}"
+  when: is_quorum_already_exists is false
+
+- name: Extract existing quorum disk IDs from secondary storage
+  ansible.builtin.set_fact:
+    secondary_existing_quorum_ids: "{{ secondary_quorum_facts.ansible_facts.quorum_disk | default([]) | map(attribute='quorum_disk_id') | list }}"
+  when: is_quorum_already_exists is false
+
+- name: Find available quorum disk IDs for both storages (0-31)
+  ansible.builtin.set_fact:
+    available_primary_quorum_ids: "{{ range(0, 32) | list | difference(primary_existing_quorum_ids) }}"
+    available_secondary_quorum_ids: "{{ range(0, 32) | list | difference(secondary_existing_quorum_ids) }}"
+  when: is_quorum_already_exists is false
+
+- name: Find common available quorum disk IDs
+  ansible.builtin.set_fact:
+    common_available_quorum_ids: "{{ available_primary_quorum_ids | intersect(available_secondary_quorum_ids) }}"
+  when: is_quorum_already_exists is false
+
+- name: Set the lowest available common quorum disk ID
+  ansible.builtin.set_fact:
+    available_primary_quorum_id: "{{ common_available_quorum_ids | min }}"
+    available_secondary_quorum_id: "{{ common_available_quorum_ids | min }}"
+  when:
+    - is_quorum_already_exists is false
+    - common_available_quorum_ids | length > 0
+
+- name: Validate available quorum disk IDs
+  ansible.builtin.assert:
+    that:
+      - common_available_quorum_ids | length > 0
+      - available_primary_quorum_id is defined
+      - available_secondary_quorum_id is defined
+      - available_primary_quorum_id == available_secondary_quorum_id
+    fail_msg: |
+      No common available quorum disk IDs found in range 0-31:
+      - Primary storage existing IDs: {{ primary_existing_quorum_ids }}
+      - Secondary storage existing IDs: {{ secondary_existing_quorum_ids }}
+      - Primary storage available IDs: {{ available_primary_quorum_ids | default([]) }}
+      - Secondary storage available IDs: {{ available_secondary_quorum_ids | default([]) }}
+      - Common available IDs: {{ common_available_quorum_ids | default([]) }}
+      Both storages must use the same quorum disk ID that is available on both systems.
+  when: is_quorum_already_exists is false
+
+- name: Display available quorum disk IDs
+  ansible.builtin.debug:
+    msg:
+      - "Available quorum disk ID for primary storage: {{ available_primary_quorum_id }}"
+      - "Available quorum disk ID for secondary storage: {{ available_secondary_quorum_id }}"
+  when: is_quorum_already_exists is false
+####################################################################
+# Task: Set quorum_id for consistent usage across tasks
+####################################################################
+- name: Set quorum_id for consistent usage across tasks
+  ansible.builtin.set_fact:
+    quorum_disk_id: "{{ available_primary_quorum_id }}"
+  when: available_primary_quorum_id is defined
+
+# ####################################################################
+# # Task: Create remote path lists for MCU and RCU connections
+# ####################################################################
+
+- name: Ensure remote_paths is defined and not empty
+  ansible.builtin.assert:
+    that:
+      - remote_paths is defined
+      - remote_paths | length > 0
+    fail_msg: "remote_paths is a mandatory parameter and must be provided and non-empty."
+
+- name: Create RCU remote paths list by reversing local_port and remote_port
+  ansible.builtin.set_fact:
+    rcu_remote_paths: >-
+      [{% for path in remote_paths %}
+        {"local_port": "{{ path.remote_port }}", "remote_port": "{{ path.local_port }}"}{% if not loop.last %},{% endif %}
+      {% endfor %}]
+
+- name: Display created remote path lists
+  ansible.builtin.debug:
+    msg:
+      - "MCU Remote Paths List:"
+      - "{{ remote_paths }}"
+      - "RCU Remote Paths List:"
+      - "{{ rcu_remote_paths | default([]) }}"
+
+#####################################################################
+# Task : Group host volumes by LDEV for GAD pair creation
+#####################################################################
+- name: Group host volumes by LDEV ID
+  ansible.builtin.set_fact:
+    ldev_groups: >-
+      {%- set groups = {} -%}
+      {%- for volume in updated_host_volumes -%}
+        {%- set ldev_id = volume.ldev | string -%}
+        {%- if ldev_id not in groups -%}
+          {%- set _ = groups.update({ldev_id: []}) -%}
+        {%- endif -%}
+        {%- set _ = groups[ldev_id].append(volume) -%}
+      {%- endfor -%}
+      {{ groups }}
+  when: updated_host_volumes | length > 0
+
+- name: Create unique LDEV list for GAD pair creation
+  ansible.builtin.set_fact:
+    unique_ldevs: "{{ updated_host_volumes | map(attribute='ldev') | unique | list }}"
+    host_volumes: "{{ updated_host_volumes }}"
+  when: updated_host_volumes | length > 0
+
+- name: Debug LDEV groups
+  ansible.builtin.debug:
+    msg:
+      - "=== LDEV Groups for GAD Pair Creation ==="
+      - "{{ ldev_groups }}"
+      - "Unique LDEVs: {{ unique_ldevs }}"
+  when: updated_host_volumes | length > 0
+
+- name: Extract unique host groups from updated_host_volumes
+  ansible.builtin.set_fact:
+    unique_hostgroups: >-
+      {{
+        updated_host_volumes
+        | groupby('host_group_name')
+        | map('last')
+        | map('first')
+        | list
+      }}
+  when: updated_host_volumes is defined and updated_host_volumes | length > 0
+
+- name: Debug unique host groups object
+  ansible.builtin.debug:
+    msg:
+      - "=== Unique Host Groups Extracted from updated_host_volumes ==="
+      - "{{ unique_hostgroups }}"
+  when: unique_hostgroups is defined
+
+###########################################################################
+# Path group and remote path related tasks
+###########################################################################
+
+- name: Get all remote connection information on primary storage
+  hitachivantara.vspone_block.vsp.hv_remote_connection_facts:
+    connection_info: "{{ connection_info }}"
+
+  register: remote_connection_result
+  when: path_group_id is undefined or path_group_id == "" or path_group_id is none
+
+- name: Find matching path_group_id from remote connections
+  ansible.builtin.set_fact:
+    path_group_id: >-
+      {%- set matching_connections = [] -%}
+      {%- for connection in remote_connection_result.ansible_facts.remote_connections -%}
+      {%- if connection.remote_paths is defined -%}
+        {%- set connection_paths = [] -%}
+        {%- for path in connection.remote_paths -%}
+          {%- set _ = connection_paths.append({'local_port': path.local_port_id, 'remote_port': path.remote_port_id}) -%}
+        {%- endfor -%}
+        {%- set input_paths = remote_paths -%}
+        {%- set connection_path_pairs = connection_paths | map(attribute='local_port') | zip(connection_paths | map(attribute='remote_port')) | list -%}
+        {%- set input_path_pairs = input_paths | map(attribute='local_port') | zip(input_paths | map(attribute='remote_port')) | list -%}
+        {%- if connection_path_pairs | sort == input_path_pairs | sort -%}
+        {%- set _ = matching_connections.append(connection.path_group_id) -%}
+        {%- endif -%}
+      {%- endif -%}
+      {%- endfor -%}
+      {{ matching_connections[0] if matching_connections | length > 0 else None }}
+  when:
+    - remote_connection_result is defined
+    - remote_connection_result.ansible_facts.remote_connections is defined
+    - remote_paths is defined
+
+- name: Get all remote connection information on secondary storage
+  hitachivantara.vspone_block.vsp.hv_remote_connection_facts:
+    connection_info: "{{ secondary_connection_info }}"
+
+  register: secondary_remote_connection_result
+  when: path_group_id is undefined or path_group_id == "" or path_group_id is none
+
+- name: Find used path_group_ids on primary storage
+  ansible.builtin.set_fact:
+    used_path_group_ids: "{{ remote_connection_result.ansible_facts.remote_connections | map(attribute='path_group_id') | list | default([]) }}"
+  when:
+    - remote_connection_result is defined
+    - remote_connection_result.ansible_facts.remote_connections is defined
+    - (path_group_id is undefined or path_group_id == "" or path_group_id is none)
+
+- name: Find used path_group_ids on secondary storage
+  ansible.builtin.set_fact:
+    secondary_used_path_group_ids: "{{ secondary_remote_connection_result.ansible_facts.remote_connections | map(attribute='path_group_id') | list | default([]) }}"
+  when:
+    - secondary_remote_connection_result is defined
+    - secondary_remote_connection_result.ansible_facts.remote_connections is defined
+    - (path_group_id is undefined or path_group_id == "" or path_group_id is none)
+
+- name: Find available path_group_ids on both storages (0-255)
+  ansible.builtin.set_fact:
+    available_primary_path_group_ids: "{{ range(0, 256) | list | difference(used_path_group_ids | default([])) }}"
+    available_secondary_path_group_ids: "{{ range(0, 256) | list | difference(secondary_used_path_group_ids | default([])) }}"
+  when: path_group_id is undefined or path_group_id == "" or path_group_id is none
+
+- name: Find common available path_group_ids
+  ansible.builtin.set_fact:
+    common_available_path_group_ids: "{{ available_primary_path_group_ids | intersect(available_secondary_path_group_ids) }}"
+  when: path_group_id is undefined or path_group_id == "" or path_group_id is none
+
+- name: Set the lowest available common path_group_id
+  ansible.builtin.set_fact:
+    path_group_id: "{{ common_available_path_group_ids | min }}"
+  when:
+    - (path_group_id is undefined or path_group_id == "" or path_group_id is none)
+    - common_available_path_group_ids is defined
+    - common_available_path_group_ids | length > 0
+
+- name: Fail if no common available path_group_id found
+  ansible.builtin.fail:
+    msg: |
+      No common available path_group_id found in range 0-255.
+      Used on primary: {{ used_path_group_ids | default([]) }}
+      Used on secondary: {{ secondary_used_path_group_ids | default([]) }}
+      Available on primary: {{ available_primary_path_group_ids | default([]) }}
+      Available on secondary: {{ available_secondary_path_group_ids | default([]) }}
+      Common available: {{ common_available_path_group_ids | default([]) }}
+      Both storages must use the same path_group_id that is available on both systems.
+  when:
+    - common_available_path_group_ids is defined
+    - common_available_path_group_ids | length == 0
+    - (path_group_id is undefined or path_group_id == "" or path_group_id is none)
+##########################################################################
+
+#############################################################################
+# Start of main task
+####################################################################
+# Task  : Create host group on RCU
+# ####################################################################
+- name: Create host group on RCU matching with MCU host groups
+  hitachivantara.vspone_block.vsp.hv_hg:
+    connection_info: "{{ secondary_connection_info }}"
+    state: "present"
+    spec:
+      name: "{{ hv_vsp_ndm_gad_migration_pairs_hg_name_prefix }}{{ item.host_group_name }}"
+      port: "{{ item.secondary_port }}"
+      host_mode: "{{ extracted_host_mode | default('LINUX') }}"
+      host_mode_options: "{{ extracted_host_mode_options | default([]) }}"
+      wwns: "{{ item.host_wwns | map('regex_replace', '^(.*)$', '{\"wwn\": \"\\1\"}') | map('from_json') | list }}"
+  loop: "{{ unique_hostgroups }}"
+  loop_control:
+    label: "{{ item.host_group_name }}"
+  register: rcu_host_group_results
+
+- name: Debug the result variable
+  ansible.builtin.debug:
+    var: rcu_host_group_results
+######################################################################################
+# Task  : Create a Resource Group with with the following resources for RCU
+######################################################################################
+- name: Create a Resource Group with following resources on RCU
+  hitachivantara.vspone_block.vsp.hv_resource_group:
+    connection_info: "{{ secondary_connection_info }}"
+    spec:
+      name: "{{ primary_storage_serial }}_ndm_gad_vsm_{{ secondary_storage_serial }}"
+      virtual_storage_serial: "{{ primary_storage_serial }}"
+      virtual_storage_model: "{{ primary_storage_model }}"
+      ports: "{{ secondary_storage_ports }}"
+      host_groups: >-
+        [{% for hg_result in rcu_host_group_results.results %}
+          {
+        "name": "{{ hg_result.host_group.host_group_name }}",
+        "port": "{{ hg_result.host_group.port_id }}"
+          }{% if not loop.last %},{% endif %}
+        {% endfor %}]
+  register: resource_group_results
+
+- name: Debug the result variable
+  ansible.builtin.debug:
+    var: resource_group_results
+####################################################################
+# Task : Register Quorum Disk on MCU
+####################################################################
+- name: Register Quorum Disk on MCU
+  hitachivantara.vspone_block.vsp.hv_quorum_disk:
+    connection_info: "{{ connection_info }}"
+    spec:
+      remote_storage_serial_number: "{{ secondary_storage_serial }}"
+      id: "{{ quorum_disk_id }}"
+      remote_storage_type: "{{ secondary_storage_type }}"
+
+  register: mcu_quorum_disk_result
+  when: is_quorum_already_exists is false
+
+- name: Debug the result variable
+  ansible.builtin.debug:
+    var: mcu_quorum_disk_result
+  when: is_quorum_already_exists is false
+####################################################################
+# Task : Register Quorum Disk on RCU
+####################################################################
+- name: Register Quorum Disk on RCU
+  hitachivantara.vspone_block.vsp.hv_quorum_disk:
+    connection_info: "{{ secondary_connection_info }}"
+    spec:
+      remote_storage_serial_number: "{{ primary_storage_serial }}"
+      remote_storage_type: "{{ primary_storage_type }}"
+      id: "{{ quorum_disk_id }}"
+
+  register: rcu_quorum_disk_result
+  when: is_quorum_already_exists is false
+
+- name: Debug the result variable
+  ansible.builtin.debug:
+    var: rcu_quorum_disk_result
+  when: is_quorum_already_exists is false
+######################################################################################
+# Task  : Create a remote connection on MCU
+######################################################################################
+- name: Create a new remote connection on MCU
+  hitachivantara.vspone_block.vsp.hv_remote_connection:
+    connection_info: "{{ connection_info }}"
+    state: present
+    spec:
+      path_group_id: "{{ path_group_id }}"
+      remote_storage_serial_number: "{{ secondary_storage_serial }}"
+      remote_paths: "{{ remote_paths }}"
+      min_remote_paths: "{{ hv_vsp_ndm_gad_migration_pairs_min_remote_paths }}"
+      remote_io_timeout_in_sec: "{{ hv_vsp_ndm_gad_migration_pairs_remote_io_timeout_in_sec }}"
+      round_trip_in_msec: "{{ hv_vsp_ndm_gad_migration_pairs_round_trip_in_msec }}"
+  register: mcu_remote_connection_result
+
+- name: Debug result
+  ansible.builtin.debug:
+    var: mcu_remote_connection_result
+######################################################################################
+# Task  : Create remote connection on RCU
+######################################################################################
+- name: Create a new remote connection on RCU
+  hitachivantara.vspone_block.vsp.hv_remote_connection:
+    connection_info: "{{ secondary_connection_info }}"
+    state: present
+    spec:
+      path_group_id: "{{ path_group_id }}"
+      remote_storage_serial_number: "{{ primary_storage_serial }}"
+      remote_paths: "{{ rcu_remote_paths }}"
+      min_remote_paths: "{{ hv_vsp_ndm_gad_migration_pairs_min_remote_paths }}"
+      remote_io_timeout_in_sec: "{{ hv_vsp_ndm_gad_migration_pairs_remote_io_timeout_in_sec }}"
+      round_trip_in_msec: "{{ hv_vsp_ndm_gad_migration_pairs_round_trip_in_msec }}"
+  register: rcu_remote_connection_result
+
+- name: Debug result
+  ansible.builtin.debug:
+    var: rcu_remote_connection_result
+
+#####################################################################
+# Task : Create GAD pairs for each unique LDEV with all its hostgroups in batches
+#####################################################################
+- name: Initialize GAD pair results collection
+  ansible.builtin.set_fact:
+    all_gad_pair_results: []
+  when: updated_host_volumes | length > 0
+
+- name: Convert ldev_groups to list for batch processing
+  ansible.builtin.set_fact:
+    ldev_groups_list: "{{ ldev_groups | dict2items }}"
+  when: updated_host_volumes | length > 0
+
+- name: Display batch processing information
+  ansible.builtin.debug:
+    msg:
+      - "=== GAD Pair Batch Processing ==="
+      - "Total GAD pairs to create: {{ ldev_groups_list | length }}"
+      - "Batch size: {{ hv_vsp_ndm_gad_migration_pairs_batch_gad_pair_creation_size }}"
+      - "Number of batches: {{ (ldev_groups_list | length / hv_vsp_ndm_gad_migration_pairs_batch_gad_pair_creation_size) | round(0, 'ceil') | int }}"
+  when: updated_host_volumes | length > 0
+
+- name: Create GAD pairs in batches
+  ansible.builtin.include_tasks: create_gad_batch.yml
+  loop: "{{ ldev_groups_list | batch(hv_vsp_ndm_gad_migration_pairs_batch_gad_pair_creation_size) | list }}"
+  loop_control:
+    loop_var: current_batch
+    index_var: batch_index
+    label: "Batch {{ batch_index + 1 }} with {{ current_batch | length }} GAD pair(s)"
+  when: updated_host_volumes | length > 0
+
+- name: Consolidate all GAD pair results
+  ansible.builtin.set_fact:
+    gad_pair_results:
+      results: "{{ all_gad_pair_results }}"
+  when: updated_host_volumes | length > 0
+
+- name: Debug GAD pair creation results
+  ansible.builtin.debug:
+    msg:
+      - "=== GAD Pair Creation Results ==="
+      - "Total unique LDEVs processed: {{ unique_ldevs | length if unique_ldevs is defined else 0 }}"
+      - "GAD pair results: {{ gad_pair_results.results | map(attribute='data') | list if gad_pair_results is defined else [] }}"
+  when: updated_host_volumes | length > 0
+
+####################################################################
+# Task : Update host_volumes fact to include only processed LDEVs
+####################################################################
+- name: Create unique LDEV list for GAD pair creation
+  ansible.builtin.set_fact:
+    host_volumes: "{{ updated_host_volumes }}"
+  when: updated_host_volumes | length > 0
+
+####################################################################
+# Task : Generate execution results summary and save to file
+####################################################################
+- name: Get current timestamp
+  ansible.builtin.command: date -u +"%Y-%m-%dT%H:%M:%SZ"
+  register: current_timestamp
+  changed_when: false
+
+- name: Create execution results report data structure
+  ansible.builtin.set_fact:
+    execution_report_data:
+      execution_time: "{{ current_timestamp.stdout }}"
+      gad_migration_pair_info:
+        host_volumes: "{{ updated_host_volumes if updated_host_volumes is defined else [] }}"
+        secondary_storage_vsm:
+          virtual_storage_device_id: "{{ secondary_storage_serial }}"
+          virtual_serial_number: "{{ secondary_storage_serial }}"
+          virtual_model: "{{ secondary_storage_model }}"
+          resource_group_ids: "{{ resource_group_results.resource_groups[0].id | default([]) if resource_group_results is defined else [] }}"
+          virtual_storage_type_id: "{{ secondary_storage_model }}"
+        secondary_storage_host_groups: "{{ rcu_host_group_results.results | map(attribute='host_group') | list if rcu_host_group_results is defined else [] }}"
+        primary_quorum_disk: "{{ available_primary_quorum_id | default(null) }}"
+        path_group_id: "{{ path_group_id | default(null) }}"
+        secondary_quorum_disk: "{{ available_primary_quorum_id | default(null) }}"
+        mcu_remote_connections: "{{ mcu_remote_connection_result.remote_connection | default({}) if mcu_remote_connection_result is defined else {} }}"
+        rcu_remote_connections: "{{ rcu_remote_connection_result.remote_connection | default({}) if rcu_remote_connection_result is defined else {} }}"
+        gad_pairs: "{{ gad_pair_results.results | map(attribute='data') | list if gad_pair_results is defined else [] }}"
+      execution_summary:
+        host_group_creation: "{{ rcu_host_group_results if rcu_host_group_results is defined else none }}"
+        resource_group_creation: "{{ resource_group_results if resource_group_results is defined else none }}"
+        mcu_quorum_disk_creation: "{{ mcu_quorum_disk_result if mcu_quorum_disk_result is defined else none }}"
+        rcu_quorum_disk_creation: "{{ rcu_quorum_disk_result if rcu_quorum_disk_result is defined else none }}"
+        mcu_remote_connection_creation: "{{ mcu_remote_connection_result if mcu_remote_connection_result is defined else none }}"
+        rcu_remote_connection_creation: "{{ rcu_remote_connection_result if rcu_remote_connection_result is defined else none }}"
+        gad_pair_creation: "{{ gad_pair_results if gad_pair_results is defined else none }}"
+
+- name: Ensure GAD status file exists
+  ansible.builtin.file:
+    path: "{{ gad_status_file | default('~/logs/hitachivantara/ansible/vspone_block/gad_status_role_test.json') }}"
+    state: touch
+    mode: "0644"
+  delegate_to: localhost
+
+- name: Write formatted JSON execution results report to file
+  ansible.builtin.copy:
+    content: "{{ execution_report_data | to_nice_json }}"
+    dest: "{{ gad_status_file | default('~/logs/hitachivantara/ansible/vspone_block/gad_status_role_test.json') }}"
+    mode: "0644"
+  delegate_to: localhost
+
+- name: Display summary message
+  ansible.builtin.debug:
+    msg:
+      - "=== GAD Pair Creation Complete ==="
+      - "Results saved to: {{ gad_status_file }}"
+      - "Report format: JSON"

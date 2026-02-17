@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_server_priority_manager_facts
-short_description: Retrieves Server Priority Manager information from Hitachi VSP storage systems.
+short_description: Retrieves Server Priority Manager information from VSP block storage systems.
 description:
-  - This module retrieves information about Server Priority Manager from Hitachi VSP storage systems.
+  - This module retrieves information about Server Priority Manager from VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/server_priority_manager_facts.yml)
 
@@ -62,7 +62,7 @@ options:
     required: false
     suboptions:
       ldev_id:
-        description: LDEV number.
+        description: LDEV number. Can be decimal or hexadecimal.
           Required for the Get Server Priority Manager information by specifying a volume and the
           WWN of the HBA
           /Get Server Priority Manager information by specifying a volume and the iSCSI
@@ -127,35 +127,39 @@ ansible_facts:
         io_control_ldev_wwn_iscsi_id:
           description: Object ID of the SPM information.
           type: str
-          sample: "0,210003e08b0256f9"
+          sample: "156,10908978675678ab"
         ldev_id:
           description: LDEV number.
           type: int
-          sample: 80
+          sample: 156
         ldev_id_hex:
           description: LDEV number in hexadecimal.
-          type: int
-          sample: "00:50"
+          type: str
+          sample: "00:00:9C"
         host_wwn:
           description: WWN of the HBA.
           type: str
-          sample: "210003e08b0256f9"
+          sample: "10908978675678ab"
         iscsi_name:
           description: iSCSI name of the HBA (iSCSI initiator).
           type: str
-          sample: "iqn.myrestapiiscsi20150907"
+          sample: ""
         priority:
           description: Prioritized or not prioritized.
           type: str
-          sample: "Prioritize"
+          sample: "NonPrioritize"
+        storage_serial_number:
+          description: Serial number of the storage system.
+          type: str
+          sample: "40015"
         upper_limit_for_iops:
           description: Upper limit on IOPS.
           type: int
-          sample: 9999
-        upper_limit_for_transfer_rate:
+          sample: 8888
+        upper_limit_for_transfer_rate_in_MBps:
           description: Upper limit on the transfer rate (MBps).
           type: int
-          sample: 30
+          sample: -1
 """
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (

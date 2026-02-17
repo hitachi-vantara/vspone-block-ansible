@@ -7,6 +7,9 @@ except ImportError:
     from common_base_models import BaseDataClass, SingleBaseClass
 
 
+PORT_TYPE_CHOICES = ["fibre", "scsi", "iscsi", "nvme_tcp", "enas", "escon", "ficon"]
+
+
 @dataclass
 class ShortPortInfo(SingleBaseClass):
     portId: Optional[str] = None
@@ -111,6 +114,15 @@ class PortFactSpec:
     external_iscsi_name: Optional[str] = None
     external_tcp_port: Optional[int] = None
     external_wwn: Optional[str] = None
+    port_type: Optional[str] = None
+
+    def __post_init__(self):
+        if self.port_type:
+            if self.port_type.lower() not in PORT_TYPE_CHOICES:
+                raise ValueError(
+                    f"Invalid port_type: {self.port_type}. Must be one of {PORT_TYPE_CHOICES} and case insensitive."
+                )
+            self.port_type = self.port_type.upper()
 
 
 @dataclass

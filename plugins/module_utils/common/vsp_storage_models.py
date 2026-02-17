@@ -41,6 +41,7 @@ class VSPStorageModelsManager:
         "VSP_ONE_B28": "VSP One B28",
         "VSP_ONE_B26": "VSP One B26",
         "VSP_ONE_B24": "VSP One B24",
+        "VSP_ONE_B85": "VSP One B85",
         "VSP_E790H": "VSP E790H",
         "VSP_E590H": "VSP E590H",
         # The following models are no longer supported by HV

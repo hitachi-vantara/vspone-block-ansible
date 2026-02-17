@@ -10,7 +10,7 @@ except ImportError:
     from model.vsp_mp_blade_models import MPBladesResponse
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
-    from ..common.vsp_constants import Endpoints
+    from common.vsp_constants import Endpoints
 
 logger = Log()
 

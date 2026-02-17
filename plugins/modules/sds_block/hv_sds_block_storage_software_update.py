@@ -41,16 +41,19 @@ options:
     suboptions:
       should_stop_software_update:
         description: Should stop storage software update.
+          Required for the Stop updating the storage software task.
         type: bool
         required: false
         default: false
       is_software_downgrade:
         description: Whether to perform storage software downgrade.
+          Required for the Downgrade the storage software task.
         type: bool
         required: false
         default: false
       software_update_file:
         description: The update file of the storage software to be transferred to the storage cluster.
+          Required for the Upload the storage software update file task.
         type: str
         required: false
 """

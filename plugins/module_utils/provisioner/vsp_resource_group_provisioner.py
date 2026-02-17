@@ -61,6 +61,25 @@ class VSPResourceGroupProvisioner:
                 resource_groups.data, None, None
             )
         else:
+            if spec.is_simple:
+                # logger.writeDebug("PV:get_resource_groups:is_simple=True")
+                resource_groups = self.gateway.get_resource_groups()
+                simple_rg_list = []
+                for rg in resource_groups.data:
+                    simple_rg = DisplayResourceGroup()
+                    simple_rg.name = rg.resourceGroupName
+                    simple_rg.id = rg.resourceGroupId
+                    simple_rg.lockStatus = rg.lockStatus
+                    simple_rg.virtualStorageId = rg.virtualStorageId
+                    simple_rg.ldevs = rg.ldevIds
+                    simple_rg.parityGroups = rg.parityGroupIds
+                    simple_rg.externalParityGroups = rg.externalParityGroupIds
+                    simple_rg.ports = rg.portIds
+                    simple_rg.hostGroups = rg.hostGroupIds
+                    simple_rg.nvmSubsystemIds = rg.nvmSubsystemIds
+                    simple_rg_list.append(simple_rg)
+                return DisplayResourceGroupList(data=simple_rg_list)
+
             ret_list = []
             sp_ids = None
             if spec.query and "storage_pool_ids" in spec.query:
@@ -323,6 +342,16 @@ class VSPResourceGroupProvisioner:
     @log_entry_exit
     def create_resource_group(self, spec):
         return self.gateway.create_resource_group(spec)
+
+    @log_entry_exit
+    def add_resource_by_rg_id(self, rg_id, spec):
+        try:
+            ret_value = self.gateway.add_resource(rg_id, spec)
+            logger.writeError("PV:add_resource:ret_value={}", ret_value)
+            return ret_value
+        except Exception as e:
+            logger.writeError(f"An error occurred during add_resource call: {str(e)}")
+            raise ValueError(str(e))
 
     @log_entry_exit
     def add_resource(self, rg, spec):

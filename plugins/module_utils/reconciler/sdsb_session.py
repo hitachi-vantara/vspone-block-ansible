@@ -48,12 +48,12 @@ class SDSBSessionReconciler:
 
     @log_entry_exit
     def create_session(self, spec=None):
-        if spec and spec.alive_time:
-            if not (1 <= spec.alive_time <= 300):
+        if spec and spec.alive_time_in_seconds:
+            if not (1 <= spec.alive_time_in_seconds <= 300):
                 raise ValueError(SDSBSessionValidationMsg.INVALID_ALIVE_TIME.value)
         self.connection_info.changed = True
         response = self.provisioner.create_session(spec)
-        logger.writeDebug("RC:create_session:response = {}", response)
+        # logger.writeDebug("RC:create_session:response = {}", response)
         return response
 
     @log_entry_exit
@@ -68,9 +68,11 @@ class SDSBSessionReconciler:
 
             response = self.delete_session(spec.id)
             if response:
-                return f"Session with id {spec.id} is deleted successfully."
+                return SDSBSessionValidationMsg.SESSION_DELETE_SUCCESS.value.format(
+                    spec.id
+                )
             else:
                 self.connection_info.changed = False
-                return (
-                    f"Could not delete session, ensure session ID {spec.id} is valid. "
+                return SDSBSessionValidationMsg.SESSION_DELETE_FAILURE.value.format(
+                    spec.id
                 )

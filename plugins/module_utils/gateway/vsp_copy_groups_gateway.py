@@ -1,5 +1,6 @@
 import time
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 try:
     from .gateway_manager import VSPConnectionManager
@@ -15,6 +16,8 @@ try:
     from ..common.ansible_common import dicts_to_dataclass_list
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
+    from ..common.ansible_common_constants import MAX_WORKER_THREADS
+
 except ImportError:
     from .gateway_manager import VSPConnectionManager
     from model.vsp_copy_groups_models import (
@@ -62,6 +65,7 @@ class VSPCopyGroupsDirectGateway:
         self.connection_info = connection_info
         self.remote_connection_manager = None
         self.serial = None
+        self.copy_groups = None
 
     @log_entry_exit
     def set_storage_serial_number(self, serial: str):
@@ -81,16 +85,34 @@ class VSPCopyGroupsDirectGateway:
         start_time = time.time()
         all_copy_groups = self.get_copy_groups(spec)
         logger.writeDebug(f"GW:get_storage_device_id:all_copy_groups={all_copy_groups}")
-        for copy_group in all_copy_groups.data:
-            all_copy_pairs_for_a_copy_group = self.get_all_copy_pairs_for_a_copy_group(
-                copy_group, spec
-            )
-            if all_copy_pairs_for_a_copy_group is None:
-                continue
-            all_remote_pairs.extend(all_copy_pairs_for_a_copy_group)
+
+        def fetch_copy_pairs(copy_group):
+            return self.get_all_copy_pairs_for_a_copy_group(copy_group, spec)
+
+        if not all_copy_groups.data:
+            return all_remote_pairs
+
+        executor = ThreadPoolExecutor(
+            max_workers=min(MAX_WORKER_THREADS, len(all_copy_groups.data)),
+            thread_name_prefix="FetchCopyPairs",
+        )
+        try:
+            futures = {
+                executor.submit(fetch_copy_pairs, cg): cg for cg in all_copy_groups.data
+            }
+            for future in as_completed(futures):
+                result = future.result()
+                if result is not None:
+                    all_remote_pairs.extend(result)
+        except KeyboardInterrupt:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        finally:
+            executor.shutdown(wait=True)
+
         end_time = time.time()
         logger.writeDebug(
-            "PF_REST:get_all_copy_pairs:time={:.2f} no_of_copy_grps = {} no_of_copy_pairs = {}",
+            "PF_REST:get_all_copy_pairs:time={:.2f} no_of_copy_groups = {} no_of_copy_pairs = {}",
             end_time - start_time,
             len(all_copy_groups.data),
             len(all_remote_pairs),
@@ -248,6 +270,9 @@ class VSPCopyGroupsDirectGateway:
 
     @log_entry_exit
     def get_copy_groups(self, spec):
+        if self.copy_groups is not None:
+            return self.copy_groups
+
         start_time = time.time()
         secondary_storage_info = self.get_secondary_storage_info(
             spec.secondary_connection_info
@@ -275,7 +300,8 @@ class VSPCopyGroupsDirectGateway:
         gCopyGroupList = CopyGroupInfoList(
             dicts_to_dataclass_list(response["data"], CopyGroupInfo)
         )
-        return gCopyGroupList
+        self.copy_groups = gCopyGroupList
+        return self.copy_groups
 
     @log_entry_exit
     def get_copy_group_by_name(self, spec):
@@ -302,12 +328,33 @@ class VSPCopyGroupsDirectGateway:
             logger.writeDebug(f"GW:get_remote_copy_pairs:response={response}")
 
             try:
-                for p in response["copyPairs"]:
-                    if p["replicationType"] == "GAD":
-                        pvol = VSPVolumeDirectGateway(
-                            self.connection_info
-                        ).get_volume_by_id(p["pvolLdevId"])
-                        p["isAluaEnabled"] = pvol.isAluaEnabled
+                gad_pairs = [
+                    p for p in response["copyPairs"] if p["replicationType"] == "GAD"
+                ]
+
+                def fetch_pvol_alua(pair):
+                    pvol = VSPVolumeDirectGateway(
+                        self.connection_info
+                    ).get_volume_by_id(pair["pvolLdevId"])
+                    pair["isAluaEnabled"] = pvol.isAluaEnabled
+                    return pair
+
+                if gad_pairs:
+                    executor = ThreadPoolExecutor(
+                        max_workers=min(MAX_WORKER_THREADS, len(gad_pairs)),
+                        thread_name_prefix="FetchPvolAlua",
+                    )
+                    try:
+                        futures = {
+                            executor.submit(fetch_pvol_alua, p): p for p in gad_pairs
+                        }
+                        for future in as_completed(futures):
+                            future.result()
+                    except KeyboardInterrupt:
+                        executor.shutdown(wait=False, cancel_futures=True)
+                        raise
+                    finally:
+                        executor.shutdown(wait=True)
             except Exception as e:
                 # sng20250111 - includes: Failed to establish a connection
                 # just log it so we can still return the pairs

@@ -6,6 +6,7 @@ import string
 import random
 from typing import List
 import ipaddress
+import math
 
 
 try:
@@ -208,19 +209,19 @@ def get_ansible_home_dir():
     # Define the target subdirectory to look for
 
     # Iterate over the base directories to find the target subdirectory
-    for base_dir in ansible_base_dirs:
+    for base_dir in ansible_base_dirs:  # nosec
         target_dir = os.path.join(base_dir, TARGET_SUB_DIRECTORY)  # nosec
-        if os.path.exists(target_dir):
-            return target_dir
+        if os.path.exists(target_dir):  # nosec
+            return target_dir  # nosec
 
     # Fallback to determining the directory from the current file's location
-    abs_path = os.path.dirname(os.path.abspath(__file__))
-    split_path = abs_path.split("plugins")[0]
+    abs_path = os.path.dirname(os.path.abspath(__file__))  # nosec
+    split_path = abs_path.split("plugins")[0]  # nosec
 
-    for base in ansible_base_dirs:
+    for base in ansible_base_dirs:  # nosec
         target_dir = os.path.join(base, split_path)  # nosec
-        if os.path.exists(target_dir):
-            return target_dir
+        if os.path.exists(target_dir):  # nosec
+            return target_dir  # nosec
 
     # If none of the directories exist, return the default user-specific directory
     return os.path.join(ansible_base_dirs[0], TARGET_SUB_DIRECTORY)  # nosec
@@ -334,9 +335,9 @@ def calculate_naid(wwn_any_port, serial_number, lun, array_family=7):
 
 def validate_ansible_product_registration():
 
-    if not os.path.exists(
-        os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)
-    ):  # nosec
+    if not os.path.exists(                                          # nosec
+        os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)     # nosec
+    ):                                                              # nosec
         return CommonMessage.USER_CONSENT_MISSING.value
     return
 
@@ -641,3 +642,22 @@ def convert_keys_to_snake_case(obj):
         return [convert_keys_to_snake_case(item) for item in obj]
     else:
         return obj
+
+
+def calculate_3390_ldev_blocks(requested_cylinders):
+    # Standard 3390-V block mapping
+    BLOCKS_PER_CYL = 1740
+    # The page-unit/boundary requirement
+    BOUNDARY_BLOCKS = 77952
+
+    # 1. Convert requested cylinders to raw blocks
+    raw_blocks = requested_cylinders * BLOCKS_PER_CYL
+
+    # 2. Calculate the number of boundary units (rounding up)
+    # This ensures the result is divisible by the page unit (77,952)
+    boundary_units = math.ceil(raw_blocks / BOUNDARY_BLOCKS)
+
+    # 3. Calculate final capacity in blocks
+    final_blocks = boundary_units * BOUNDARY_BLOCKS
+
+    return final_blocks

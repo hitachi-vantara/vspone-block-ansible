@@ -1,0 +1,209 @@
+---
+####################################################################
+# Example : Event Logs Facts Playbook - Comprehensive Examples
+####################################################################
+- name: Event Logs Facts - Comprehensive Examples
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name: Get all Event logs (default - last 1000 events)
+    ####################################################################
+    - name: Get all Event logs
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_logs_facts:
+        connection_info: "{{ connection_info }}"
+      register: all_events
+
+    - name: Display total number of events retrieved
+      ansible.builtin.debug:
+        var: all_events
+        # msg: "Total events retrieved: {{ all_events.ansible_facts.event_logs.data | length }}"
+
+    ####################################################################
+    # Task Name: Get Event by ID
+    ####################################################################
+    - name: Get Event by ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_logs_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          id: "c527d626-0e3e-4e0d-a4e0-d2a5383e1d7a"
+      register: result
+
+    - name: Display Info events
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name: Get only Info events
+    ####################################################################
+    - name: Get Info events only
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_logs_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          severity: "Info"
+          max_events: 100
+      register: info_events
+
+    - name: Display Info events
+      ansible.builtin.debug:
+        var: info_events
+
+    ####################################################################
+    # Task Name: Get Error and Critical events (severity_ge)
+    ####################################################################
+    - name: Get Error and above severity events
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_logs_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          severity_ge: "Error"
+          max_events: 50
+      register: error_and_above
+
+    - name: Display Error and Critical events count
+      ansible.builtin.debug:
+        var: error_and_above
+
+    ####################################################################
+    # Task Name: Get events within a specific time range
+    ####################################################################
+    - name: Get events from last 24 hours
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_logs_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          start_time: "{{ lookup('pipe', 'date -u -d \"1 day ago\" +%Y-%m-%dT%H:%M:%SZ') }}"
+          end_time: "{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}"
+          max_events: 100
+      register: recent_events
+
+    - name: Display recent events count
+      ansible.builtin.debug:
+        var: recent_events
+
+    ####################################################################
+    # Task Name: Get latest 10 events customized
+    ####################################################################
+    - name: Get latest 10 events
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_logs_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          max_events: 10
+      register: latest_events
+
+    - name: Display latest events customized
+      ansible.builtin.debug:
+        msg: |
+          Event {{ item.message_id }}:
+            Time: {{ item.time }}
+            Severity: {{ item.severity }}
+            Message: {{ item.message }}
+      loop: "{{ latest_events.ansible_facts.event_logs.data }}"
+      loop_control:
+        label: "{{ item.id }}"
+
+    ####################################################################
+    # Task Name: Get events within a specific time range
+    ####################################################################
+    - name: Get events from last 24 hours
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_logs_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          start_time: "{{ lookup('pipe', 'date -u -d \"1 day ago\" +%Y-%m-%dT%H:%M:%SZ') }}"
+          end_time: "{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}"
+          max_events: 100
+      register: recent_events
+
+    - name: Display recent events count
+      ansible.builtin.debug:
+        msg: "Events in last 24 hours: {{ recent_events.ansible_facts.event_logs.data | length }}"
+
+    ####################################################################
+    # Task Name: Get latest 10 events
+    ####################################################################
+    - name: Get latest 10 events
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_logs_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          max_events: 10
+      register: latest_events
+
+    - name: Display latest events with details
+      ansible.builtin.debug:
+        msg: |
+          Event {{ item.message_id }}:
+            Time: {{ item.time }}
+            Severity: {{ item.severity }}
+            Message: {{ item.message }}
+      loop: "{{ latest_events.ansible_facts.event_logs.data }}"
+      loop_control:
+        label: "{{ item.message_id }}"
+
+    ####################################################################
+    # Task Name: Get events and filter by category in playbook
+    ####################################################################
+    - name: Get all events and filter by Service category
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_logs_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          max_events: 100
+      register: all_events_for_filter
+
+    - name: Filter Service category events
+      ansible.builtin.set_fact:
+        service_events: "{{ all_events_for_filter.ansible_facts.event_logs.data | selectattr('category', 'equalto', 'Service') | list }}"
+
+    - name: Display Service category events count
+      ansible.builtin.debug:
+        msg: "Service category events: {{ service_events | length }}"
+
+    ####################################################################
+    # Task Name: Get events and group by severity
+    ####################################################################
+    - name: Get all events for grouping
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_logs_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          max_events: 200
+      register: events_for_grouping
+
+    - name: Group events by severity
+      ansible.builtin.set_fact:
+        events_by_severity: "{{ events_for_grouping.ansible_facts.event_logs.data | groupby('severity') }}"
+
+    - name: Display event counts by severity
+      ansible.builtin.debug:
+        msg: "{{ item.0 }}: {{ item.1 | length }} events"
+      loop: "{{ events_by_severity }}"
+      loop_control:
+        label: "{{ item.0 }}"
+
+    ####################################################################
+    # Task Name: Get events within specific date range
+    ####################################################################
+    - name: Get events from January 2024
+      hitachivantara.vspone_block.sds_block.hv_sds_block_event_logs_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          start_time: "2025-01-01T00:00:00Z"
+          end_time: "2029-01-01T23:59:59Z"
+          max_events: 500
+      register: january_events
+
+    - name: Display January events summary
+      ansible.builtin.debug:
+        msg:
+          - "Events in January 2024: {{ january_events.ansible_facts.event_logs.data | length }}"
+          - "Critical: {{ january_events.ansible_facts.event_logs.data | selectattr('severity', 'equalto', 'Critical') | list | length }}"
+          - "Error: {{ january_events.ansible_facts.event_logs.data | selectattr('severity', 'equalto', 'Error') | list | length }}"
+          - "Warning: {{ january_events.ansible_facts.event_logs.data | selectattr('severity', 'equalto', 'Warning') | list | length }}"
+          - "Info: {{ january_events.ansible_facts.event_logs.data | selectattr('severity', 'equalto', 'Info') | list | length }}"

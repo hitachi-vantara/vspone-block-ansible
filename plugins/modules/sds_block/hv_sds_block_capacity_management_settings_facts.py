@@ -34,6 +34,7 @@ options:
     suboptions:
       storage_controller_id:
         description: Filter capacity management settings by storage_controller ID.
+          Required for the Get capacity management settings for the cluster and for a specific storage controller task.
         required: false
         type: str
 """
@@ -110,7 +111,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockCapacityManagementSettingsFactsManager:
+class SDSBCapacityManagementSettingsFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -163,7 +164,7 @@ class SDSBBlockCapacityManagementSettingsFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockCapacityManagementSettingsFactsManager()
+    obj_store = SDSBCapacityManagementSettingsFactsManager()
     obj_store.apply()
 
 

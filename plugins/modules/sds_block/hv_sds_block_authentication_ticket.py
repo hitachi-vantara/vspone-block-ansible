@@ -28,6 +28,7 @@ attributes:
     support: none
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.sdsb_connection_info
+  - hitachivantara.vspone_block.common.sdsb_authentication_ticket_note
 options:
   state:
     description: The level of the authentication ticket task. Choices are C(present) and C(absent).
@@ -46,6 +47,7 @@ options:
           are the same as that for the password of the user who issued the ticket.
           However, if the user's password does not have an expiration time,
           the ticket will be valid for 365 days.
+          Optional for the Issue a new authentication ticket task.
         type: int
         required: false
 """

@@ -63,7 +63,9 @@ class SDSBUsersReconciler:
         if handler:
             return handler(spec)
         else:
-            raise ValueError(f"Unsupported state: {state}")
+            raise ValueError(
+                SDSBUserValidationMsg.UNSUPPORTED_STATE.value.format(state)
+            )
 
     @log_entry_exit
     def create_update_user(self, spec=None):
@@ -86,17 +88,17 @@ class SDSBUsersReconciler:
                 change_needed = True
         if change_needed:
             self.connection_info.changed = True
-            spec.comments = "User information updated successfully."
+            spec.comments = SDSBUserValidationMsg.USER_INFO_UPDATED_SUCCESS.value
             return self.provisioner.update_user(spec)
         else:
-            spec.comments = "User information update not needed."
+            spec.comments = SDSBUserValidationMsg.USER_INFO_UPDATE_NOT_NEEDED.value
             return user
 
     @log_entry_exit
     def create_user(self, spec=None):
         logger.writeDebug("User not found, creating new user: {}", spec.id)
         self.connection_info.changed = True
-        spec.comments = "User created successfully."
+        spec.comments = SDSBUserValidationMsg.USER_CREATED_SUCCESS.value
         return self.provisioner.create_user(spec)
 
     @log_entry_exit
@@ -114,7 +116,7 @@ class SDSBUsersReconciler:
             logger.writeDebug("User found, updating user's: {} password", spec.user_id)
             status = self.provisioner.update_user_password(spec)
             self.connection_info.changed = True
-            spec.comments = "User password updated successfully."
+            spec.comments = SDSBUserValidationMsg.USER_PASSWORD_UPDATED_SUCCESS.value
             return status
         else:
             logger.writeDebug("User not found, cannot update: {}", spec.user_id)
@@ -123,11 +125,15 @@ class SDSBUsersReconciler:
             if spec.user_id == "admin":
                 status = self.provisioner.update_user_password(spec)
                 self.connection_info.changed = True
-                spec.comments = "User password updated successfully."
+                spec.comments = (
+                    SDSBUserValidationMsg.USER_PASSWORD_UPDATED_SUCCESS.value
+                )
                 return status
             else:
                 raise ValueError(
-                    f"User {spec.user_id} not found for updating password."
+                    SDSBUserValidationMsg.USER_NOT_FOUND_FOR_PASSWORD_UPDATE.value.format(
+                        spec.user_id
+                    )
                 )
 
     @log_entry_exit
@@ -154,18 +160,18 @@ class SDSBUsersReconciler:
     def validate_change_password_spec(self, spec):
         if spec.current_password is None or spec.new_password is None:
             raise ValueError(
-                "For changing password, you must specify current_password or new_password."
+                SDSBUserValidationMsg.BOTH_CURRENT_AND_NEW_PASSWORD_REQD.value
             )
         if not PASSWORD_REGEX.fullmatch(spec.new_password):
-            raise ValueError("New password does not meet complexity requirements.")
-        if spec.new_password == spec.current_password:
             raise ValueError(
-                "New password must be different from the current password."
+                SDSBUserValidationMsg.NEW_PASSWORD_DOES_NOT_MEET_COMPLEXITY.value
             )
+        if spec.new_password == spec.current_password:
+            raise ValueError(SDSBUserValidationMsg.NEW_PASSWORD_SAME_AS_CURRENT.value)
         if len(spec.new_password) < 8:
-            raise ValueError("New password must be at least 8 characters long.")
+            raise ValueError(SDSBUserValidationMsg.NEW_PASSWORD_TOO_SHORT.value)
         if len(spec.new_password) > 256:
-            raise ValueError("New password must not exceed 256 characters.")
+            raise ValueError(SDSBUserValidationMsg.NEW_PASSWORD_TOO_LONG.value)
 
     @log_entry_exit
     def validate_update_user_settings(self, spec):

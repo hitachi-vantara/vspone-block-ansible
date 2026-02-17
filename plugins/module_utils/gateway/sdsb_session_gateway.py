@@ -60,7 +60,7 @@ class SDSBSessionGateway:
         payload = {"aliveTime": alive_time}
         end_point = CREATE_SESSION
         response = self.connection_manager.post(end_point, data=payload)
-        return response
+        return SessionResponse(**response)
 
     @log_entry_exit
     def delete_session(self, id):

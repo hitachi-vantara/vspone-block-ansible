@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_journal
-short_description: Create, update, expand, shrink, delete journal from Hitachi VSP storage systems.
+short_description: Create, update, expand, shrink, delete journal from VSP block storage systems.
 description:
-  - This module creates, update, expand, shrink, delete journal from Hitachi VSP storage systems.
+  - This module creates, update, expand, shrink, delete journal from VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/journal.yml)
 version_added: '3.2.0'
@@ -85,7 +85,7 @@ options:
         type: int
         required: false
       ldev_ids:
-        description: List of LDEVs.
+        description: List of LDEVs. Can be decimal or hexadecimal.
           Required for the Create a Journal using required details
           /Expand journal
           /Shrink journal task.

@@ -40,14 +40,17 @@ options:
         required: false
       master_volume_id:
         description: ID of the master volume associated with the snapshot.
+          Required for the Get Snapshots using master volume ID task.
         type: str
         required: false
       snapshot_volume_name:
         description: Name of the snapshot volume.
+          Required for the Get Snapshots using snapshot volume name task.
         type: str
         required: false
       snapshot_volume_id:
         description: ID of the snapshot volume.
+          Required for the Get Snapshots using snapshot volume ID task.
         type: str
         required: false
       vps_id:

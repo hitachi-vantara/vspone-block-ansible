@@ -42,8 +42,10 @@ class VSPStoragePortDirectGateway:
         self.serial = serial
 
     @log_entry_exit
-    def get_all_storage_ports(self):
+    def get_all_storage_ports(self, spec=None):
         endPoint = Endpoints.GET_PORTS_DETAILS
+        if spec is not None and spec.port_type is not None:
+            endPoint += f"&portType={spec.port_type}"
         portsInfo = self.connectionManager.get(endPoint)
         return ShortPortInfoList(
             dicts_to_dataclass_list(portsInfo["data"], ShortPortInfo)

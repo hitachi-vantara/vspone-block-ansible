@@ -61,8 +61,8 @@
           state: "add_iscsi_initiator"
           name: "computenode1"
           iscsi_initiators:
-            - "iqn_1991-05_com_hitachi:test-iscsi-iqn3"
-            - "iqn_1991-05_com_hitachi:test-iscsi-iqn4"
+            - "iqn.1991-05.com.microsoft:server01.example.com"
+            - "iqn.1998-01.com.vmware:esx-server-01"
       register: result
 
     - name: Debug the result variable
@@ -80,7 +80,8 @@
           state: "add_host_nqn"
           name: "computenode1a"
           host_nqns:
-            - "nqn_1994-04_jp_co_company:nvme:sds-subsystem-sid_1-3001-nvmssid_0101"
+            - "nqn.1994-04.jp.co.company:nvme:sds-subsystem-sid_1-3001-nvmssid_0101"
+
       register: result
 
     - name: Debug the result variable
@@ -98,7 +99,7 @@
           state: "remove_iscsi_initiator"
           name: "computenode1"
           iscsi_initiators:
-            - "iqn_1991-05_com_hitachi:test-iscsi-iqn3"
+            - "iqn.1991-05.com.microsoft:server02.example.com"
       register: result
 
     - name: Debug the result variable
@@ -116,7 +117,7 @@
           state: "remove_host_nqn"
           name: "computenode1a"
           host_nqns:
-            - "nqn_1994-04_jp_co_company:nvme:sds-subsystem-sid_1-3001-nvmssid_0101"
+            - "nqn.2014-08.org.nvmexpress:uuid:12345678-1234-1234-1234-123456789abc"
       register: result
 
     - name: Debug the result variable

@@ -83,7 +83,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockNetworkSettingsFactsManager:
+class SDSBNetworkSettingsFactsManager:
     def __init__(self):
         self.logger = Log()
         argument_spec = {
@@ -138,7 +138,7 @@ class SDSBBlockNetworkSettingsFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockNetworkSettingsFactsManager()
+    obj_store = SDSBNetworkSettingsFactsManager()
     obj_store.apply()
 
 

@@ -158,67 +158,55 @@ EXAMPLES = """
 """
 
 RETURN = """
-ansible_facts:
+hv_audit_log_transfer_dest_info:
   description: Audit Logs and related information retrieved from the storage system.
   returned: always
   type: dict
   contains:
-    audit_log_info:
-      description: Details about the audit log transfer settings.
+    is_detailed:
+      description: Whether detailed audit logs are enabled.
+      type: bool
+      returned: always
+    location_name:
+      description: Name of the location or identifier.
+      type: str
+      returned: always
+    primary_syslog_server:
+      description: Primary syslog server configuration.
       type: dict
       contains:
-        is_detailed:
-          description: Whether detailed audit logs are enabled.
+        ip_address:
+          description: IP address of the primary syslog server.
+          type: str
+          returned: always
+        is_enabled:
+          description: Whether the primary syslog server is enabled.
           type: bool
           returned: always
-        location_name:
-          description: Name of the location or identifier.
+        port:
+          description: Port used by the primary syslog server.
+          type: int
+          returned: always
+    secondary_syslog_server:
+      description: Secondary syslog server configuration.
+      type: dict
+      contains:
+        ip_address:
+          description: IP address of the secondary syslog server.
           type: str
           returned: always
-        primary_syslog_server:
-          description: Primary syslog server configuration.
-          type: dict
-          contains:
-            ip_address:
-              description: IP address of the primary syslog server.
-              type: str
-              returned: always
-            is_enabled:
-              description: Whether the primary syslog server is enabled.
-              type: bool
-              returned: always
-            port:
-              description: Port used by the primary syslog server.
-              type: int
-              returned: always
-        retries:
-          description: Number of retries for syslog transfer.
-          type: int
-          returned: when supported
-        retry_interval:
-          description: Interval between retries.
-          type: int
-          returned: when supported
-        secondary_syslog_server:
-          description: Secondary syslog server configuration.
-          type: dict
-          contains:
-            ip_address:
-              description: IP address of the secondary syslog server.
-              type: str
-              returned: always
-            is_enabled:
-              description: Whether the secondary syslog server is enabled.
-              type: bool
-              returned: always
-            port:
-              description: Port used by the secondary syslog server.
-              type: int
-              returned: always
-        transfer_protocol:
-          description: Protocol used for transferring audit logs.
-          type: str
+        is_enabled:
+          description: Whether the secondary syslog server is enabled.
+          type: bool
           returned: always
+        port:
+          description: Port used by the secondary syslog server.
+          type: int
+          returned: always
+    transfer_protocol:
+      description: Protocol used for transferring audit logs.
+      type: str
+      returned: always
 """
 
 

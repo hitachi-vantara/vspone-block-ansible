@@ -27,6 +27,9 @@ class VSPStoragePoolValidateMsg(Enum):
     )
     SPECIFY_ONE = "Specify only one of pool_volumes, ldev_ids, or range (start_ldev_id and end_ldev_id)."
     NO_MORE_THAN_64_LDEVS = "Specify a number such that the range indicated by the start_ldev_id and end_ldev_id attributes consists of no more than 64 LDEVs."
+    SHRINK_MANDATORY_PARAMS = "For shrinking a storage pool, specify either pool_volume_ids or both start_pool_volume_ids and end_pool_volume_ids."
+    PG_ID_CAPACITY_CYLINDER = "Only one of 'capacity' or 'cylinder' should be provided."
+    POOL_VOLUME_IDS_START_POOL_VOLUME_ID = "Specify only one of pool_volume_ids or start_pool_volume_id and end_pool_volume_id."
 
 
 class StoragePoolInfoMsg(Enum):
@@ -35,6 +38,8 @@ class StoragePoolInfoMsg(Enum):
     POOL_UPDATED = "Storage pool {} has been updated successfully."
     TIER_OPERATION_SUCCESS = "Tier relocation {} successfully"
     PERFORMANCE_MONITOR_UPDATE = "Performance monitor {} successfully."
+    POOL_SHRINK_INITIATED = "Storage pool shrink has been initiated successfully."
+    POOL_SHRINK_STOPPED = "Storage pool shrink has been stopped successfully."
     CAPACITY_SAVING_INITIATED = "Capacity saving has been initiated successfully."
     RESTORE_DONE = "Storage pool restored successfully."
     PERFORMANCE_MONITORING_IN_PROGRESS = (

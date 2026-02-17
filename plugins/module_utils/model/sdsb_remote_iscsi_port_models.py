@@ -20,6 +20,7 @@ class SDSBRemoteIscsciPortSpec:
     remote_port: Optional[str] = None
     remote_ip_address: Optional[str] = None
     remote_tcp_port: Optional[int] = None
+    is_detailed_logging_mode: Optional[bool] = None
 
     def is_empty(self):
         if self.id is None and self.is_detailed_logging_mode is None:

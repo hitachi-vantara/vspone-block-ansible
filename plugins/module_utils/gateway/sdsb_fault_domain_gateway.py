@@ -15,7 +15,7 @@ except ImportError:
 logger = Log()
 
 
-class SDSBBlockFaultDomainDirectGateway:
+class SDSBFaultDomainDirectGateway:
 
     def __init__(self, connection_info):
         self.connection_manager = SDSBConnectionManager(

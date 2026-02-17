@@ -5,7 +5,7 @@ try:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from ..common.ansible_common import normalize_ldev_id
 except ImportError:
-    from common_base_models import BaseDataClass, SingleBaseClass
+    from .common_base_models import BaseDataClass, SingleBaseClass
     from common.ansible_common import normalize_ldev_id
 
 
@@ -14,6 +14,7 @@ class VSPResourceGroupFactSpec(SingleBaseClass):
     name: Optional[str] = None
     id: Optional[int] = None
     is_locked: Optional[bool] = None
+    is_simple: Optional[bool] = False
     query: Optional[List[str]] = None
 
     def is_empty(self):
@@ -21,6 +22,7 @@ class VSPResourceGroupFactSpec(SingleBaseClass):
             self.name is None
             and self.id is None
             and self.is_locked is None
+            and self.is_simple is None
             and self.query is None
         ):
             return True

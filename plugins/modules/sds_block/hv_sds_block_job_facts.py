@@ -36,10 +36,12 @@ options:
     suboptions:
       id:
         description: The ID of the job.
+          Required for the Get job by ID task.
         type: str
         required: false
       count:
         description: The number of jobs to be retrieved.
+          Required for the Get information about most recent 10 jobs task.
         type: int
         required: false
 """

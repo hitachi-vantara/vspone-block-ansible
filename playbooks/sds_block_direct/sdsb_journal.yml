@@ -1,0 +1,117 @@
+---
+####################################################################
+# Example : Journal Playbook
+####################################################################
+- name: Journal Management
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name : Creates a journal and adds a journal volume to the journal
+    ####################################################################
+    - name: Creates a journal and adds a journal volume to the journal
+      hitachivantara.vspone_block.sds_block.hv_sds_block_journal:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          number: 3
+          volume_ids:
+            - "a2b35c2c-b365-43fe-9e07-6ecb5a9dc421"
+          data_overflow_watch_in_sec: 120
+          enable_inflow_control: true
+          enable_cache_mode: true
+          vps_id: "1322e160-fac4-4ac7-9b71-5c1c1ea294ca"
+          vps_name: "MyVPS"
+      register: result
+
+    - name: Debug the result Creates a journal
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Update a existing journal
+    ####################################################################
+    - name: Update a existing journal
+      hitachivantara.vspone_block.sds_block.hv_sds_block_journal:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          id: "10" # if known, update directly
+          number: 3 # ignored if id provided
+          data_overflow_watch_in_sec: 150
+          enable_inflow_control: true
+          enable_cache_mode: true
+          vps_id: "1322e160-fac4-4ac7-9b71-5c1c1ea294ca"
+          vps_name: "MyVPS"
+          mirror_unit:
+            number: 0
+            copy_pace: "M"
+            data_transfer_speed_bps: "3M"
+      register: result
+
+    - name: Debug update journal result
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Delete a journal
+    ####################################################################
+    - name: Delete a journal
+      hitachivantara.vspone_block.sds_block.hv_sds_block_journal:
+        connection_info: "{{ connection_info }}"
+        state: absent
+        spec:
+          id: "10"
+          number: 3
+      register: result
+
+    - name: Debug delete journal result
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Expand a journal
+    ####################################################################
+    - name: Expand add volume to a journal
+      hitachivantara.vspone_block.sds_block.hv_sds_block_journal:
+        connection_info: "{{ connection_info }}"
+        state: expand_journal
+        spec:
+          id: "10"
+          number: 3
+          volume_ids:
+            - "ad58c370-7a55-4bd5-91ce-70ed71050835"
+      register: result
+
+    - name: Debug expand journal result
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Shrink a journal
+    ####################################################################
+    - name: Shrink (delete volume from) a journal
+      hitachivantara.vspone_block.sds_block.hv_sds_block_journal:
+        connection_info: "{{ connection_info }}"
+        state: shrink_journal
+        spec:
+          id: "10"
+          number: 3
+          volume_ids:
+            - "1322e160-fac4-4ac7-9b71-5c1c1ea294ca"
+      register: result
+
+    - name: Debug shrink journal result
+      ansible.builtin.debug:
+        var: result

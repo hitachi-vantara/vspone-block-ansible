@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_iscsi_target_facts
-short_description: Retrieves information about iscsi targets from Hitachi VSP storage systems.
+short_description: Retrieves information about iscsi targets from VSP block storage systems.
 description:
-  - This module retrieves information about iscsi targets from Hitachi VSP storage systems.
+  - This module retrieves information about iscsi targets from VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/iscsi_target_facts.yml)
 version_added: '3.0.0'

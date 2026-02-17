@@ -34,7 +34,8 @@ options:
     required: false
     suboptions:
       id:
-        description: Remote iSCSI port ID..
+        description: Remote iSCSI port ID.
+          Required for the Get remote iSCSI port by ID task.
         type: str
         required: false
       local_port:

@@ -1,0 +1,48 @@
+---
+####################################################################
+# Example : User Auth Settings Playbook
+####################################################################
+- name: User Auth Settings Module
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+  ####################################################################
+  # Task Name : Update user auth settings
+  ####################################################################
+    - name: Update user auth settings
+      hitachivantara.vspone_block.sds_block.hv_sds_block_storage_user_auth_setting:
+        connection_info: "{{ connection_info }}"
+        spec:
+          password_age_setting:
+            max_age_days: 42
+            min_age_days: 0
+            requires_initial_password_reset: true
+          password_complexity_setting:
+            min_length: 8
+            min_number_of_lower_case_chars: 1
+            min_number_of_numerals: 1
+            min_number_of_symbols: 1
+            min_number_of_upper_case_chars: 1
+            number_of_password_history: 1
+          lockout_setting:
+            max_attempts: 5
+            lockout_seconds: 600
+          session_setting:
+            max_lifetime_seconds: 86400
+            max_idle_seconds: 1800
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

@@ -59,6 +59,7 @@ class NVMeSubsystemSpec:
 
 @dataclass
 class VspGadPairSpec:
+    data_reduction_share: Optional[bool] = None
     primary_storage_serial_number: Optional[str] = None
     primary_volume_id: Optional[int] = None
     consistency_group_id: Optional[str] = None

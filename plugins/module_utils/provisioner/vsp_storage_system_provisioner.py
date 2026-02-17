@@ -352,6 +352,12 @@ class VSPStorageSystemProvisioner:
                 tmp_storage_info["controller_address"] = (
                     storage_system.svpIp if storage_system.svpIp is not None else ""
                 )
+                tmp_storage_info["is_compression_acceleration_available"] = (
+                    current_storage_system.isCompressionAccelerationAvailable
+                    if current_storage_system.isCompressionAccelerationAvailable
+                    is not None
+                    else None
+                )
 
                 # Get the specified storage system
                 specific_storage_system = self.gateway.get_storage_system(

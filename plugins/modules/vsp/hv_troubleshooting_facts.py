@@ -89,7 +89,7 @@ gmanagement_address = ""
 gmanagement_username = ""
 gmanagement_password = ""
 gauth_token = ""
-
+MODULE = None
 
 def writeLog(*args):
     logger.writeInfo(*args)
@@ -179,9 +179,9 @@ def get_os_info():
 
         # Get the Ansible version
         # nosec - This is a trusted command that is used to get the ansible version from the system
-        ansible_version = subprocess.check_output(
-            [ansible_full_path, "--version"], text=True
-        )
+        rc, ansible_version, err = MODULE.run_command([ansible_full_path, "--version"])
+        if rc != 0:
+            raise subprocess.SubprocessError(f"Error running ansible --version: {err}")
     except FileNotFoundError:
         ansible_version = "Ansible not installed"
     except subprocess.SubprocessError as e:
@@ -215,11 +215,12 @@ def write_os_info_to_file(filename):
 
 
 def main(module=None):
+    global MODULE
     fields = {}
 
     if module is None:
         module = AnsibleModule(argument_spec=fields, supports_check_mode=True)
-
+        MODULE = module
     logger.writeEnterModule(moduleName)
     comments = "LogBundle with direct connection logs"
     writeLog("Collecting logbundle for direct connection logs")
@@ -240,8 +241,8 @@ def main(module=None):
             os.makedirs(zipdir)
         for subdir in ("gateway_service", "modules", "playbooks"):
             subpath = os.path.join(tempdir, subdir)  # nosec
-            if not os.path.exists(subpath):
-                os.makedirs(subpath)
+            if not os.path.exists(subpath):  # nosec
+                os.makedirs(subpath)  # nosec
 
         write_os_info_to_file(os.path.join(tempdir, "os_info.txt"))  # nosec
 
@@ -277,10 +278,10 @@ def main(module=None):
             if os.path.exists(usages_dir):
                 shutil.copytree(usages_dir, temp_usages_dir)
 
-            with open(
-                os.path.join(temp_usages_dir, TELEMETRY_FILE_NAME),
+            with open(  # nosec
+                os.path.join(temp_usages_dir, TELEMETRY_FILE_NAME),  # nosec
                 "r+",  # nosec
-            ) as file:
+            ) as file:  # nosec
                 file_data = json.load(file)
                 new_data = {
                     "directConnectTasks": file_data.get("directConnectTasks"),
@@ -297,7 +298,7 @@ def main(module=None):
             # comment out the registration files
 
             if os.path.exists(consent_dir):
-                shutil.copytree(
+                shutil.copytree(  # nosec
                     consent_dir, os.path.join(tempdir, "user_consent")  # nosec
                 )  # nosec
                 logger.writeInfo(f"Copied user_consent files to {tempdir}/user_consent")

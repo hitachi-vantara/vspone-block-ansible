@@ -1,7 +1,12 @@
 from dataclasses import dataclass
 from typing import Optional
-from .common_base_models import BaseDataClass, SingleBaseClass
-from ..common.ansible_common import match_value_with_case_insensitive
+
+try:
+    from .common_base_models import BaseDataClass, SingleBaseClass
+    from ..common.ansible_common import match_value_with_case_insensitive
+except ImportError:
+    from .common_base_models import BaseDataClass, SingleBaseClass
+    from common.ansible_common import match_value_with_case_insensitive
 
 
 @dataclass

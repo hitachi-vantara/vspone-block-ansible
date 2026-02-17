@@ -8,6 +8,9 @@ except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
 
 
+RAID_LEVEL = ["raid5", "raid6"]
+
+
 @dataclass
 class CapacityManage(SingleBaseClass):
     usedCapacityRate: int = None
@@ -30,6 +33,10 @@ class SavingEffects(SingleBaseClass):
     softwareSavingWithoutSystemData: int = None
     calculationStartTime: str = None
     calculationEndTime: str = None
+    softwareSavingWithoutSystemDataReducibleOnlyStatus: str = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 
 @dataclass
@@ -112,25 +119,39 @@ class VspDynamicPoolsInfo(BaseDataClass):
 
 
 @dataclass
-class DriveSpec:
+class DriveSpec(SingleBaseClass):
     drive_type_code: str = None
     data_drive_count: int = None
-    raid_level: str = "RAID6"
+    raid_level: str = None
     parity_group_type: str = "DDP"
 
 
 @dataclass
-class VspDynamicPoolSpec:
+class VspDynamicPoolSpec(SingleBaseClass):
     pool_id: str = None
     pool_name: Optional[str] = None
     is_encryption_enabled: Optional[bool] = None
     threshold_warning: Optional[int] = None
     threshold_depletion: Optional[int] = None
     drives: Optional[List[DriveSpec]] = None
+    raid_level: Optional[str] = None
 
     def __post_init__(self, **kwargs):
+        if self.raid_level and self.raid_level.lower() not in RAID_LEVEL:
+            raise ValueError(
+                f"Invalid raid_level: {self.raid_level}. Must be one of {RAID_LEVEL}."
+            )
+
         if self.drives:
-            self.drives = [DriveSpec(**drive) for drive in self.drives]
+            self.drives = [
+                DriveSpec(
+                    drive_type_code=drive.get("drive_type_code", None),
+                    data_drive_count=drive.get("data_drive_count", None),
+                    raid_level=self.raid_level.upper() if self.raid_level else "RAID5",
+                    parity_group_type=drive.get("parity_group_type", "DDP"),
+                )
+                for drive in self.drives
+            ]
 
 
 @dataclass

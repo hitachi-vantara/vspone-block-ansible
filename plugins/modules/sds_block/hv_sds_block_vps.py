@@ -41,10 +41,12 @@ options:
     suboptions:
       id:
         description: ID of the VPS to retrieve information for.
+          Optional for the Update VPS volume ADR setting by ID task.
         type: str
         required: false
       name:
         description: VPS name to retrieve information for. Mandatory for creating a VPS.
+          Required for the Update VPS volume ADR setting by name task.
         type: str
         required: false
       upper_limit_for_number_of_user_groups:
@@ -186,6 +188,8 @@ options:
         required: false
       capacity_saving:
         description: Capacity saving for the VPS volumes.
+          Optional for the Update VPS volume ADR setting by ID task.
+          Required for the Update VPS volume ADR setting by name task.
         type: str
         required: false
         choices: ['Disabled', 'Compression']
@@ -380,15 +384,16 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     Log,
 )
 
-logger = Log()
-
 
 class SDSBVpsManager:
-    def __init__(self):
 
+    def __init__(self):
         self.logger = Log()
+
         self.argument_spec = SDSBVpsArguments().vps()
-        logger.writeDebug(f"MOD:hv_sds_block_vps:argument_spec= {self.argument_spec}")
+        self.logger.writeDebug(
+            f"MOD:hv_sds_block_vps:argument_spec= {self.argument_spec}"
+        )
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=False,
@@ -398,7 +403,7 @@ class SDSBVpsManager:
         self.state = parameter_manager.get_state()
         self.connection_info = parameter_manager.get_connection_info()
         self.spec = parameter_manager.get_vps_spec()
-        logger.writeDebug(f"MOD:hv_sds_block_vsp:spec= {self.spec}")
+        self.logger.writeDebug(f"MOD:hv_sds_block_vps:spec= {self.spec}")
 
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB VPS Operation ===")
@@ -408,7 +413,7 @@ class SDSBVpsManager:
             sdsb_reconciler = SDSBVpsReconciler(self.connection_info)
             vps = sdsb_reconciler.reconcile_vps(self.state, self.spec)
 
-            logger.writeDebug(f"MOD:hv_sds_block_vps:vps= {vps}")
+            self.logger.writeDebug(f"MOD:hv_sds_block_vps:vps= {vps}")
 
         except Exception as e:
             self.logger.writeException(e)
@@ -426,7 +431,7 @@ class SDSBVpsManager:
         self.module.exit_json(**response)
 
 
-def main(module=None):
+def main():
     obj_store = SDSBVpsManager()
     obj_store.apply()
 

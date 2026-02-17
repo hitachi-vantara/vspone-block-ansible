@@ -34,6 +34,7 @@ options:
     suboptions:
       id:
         description: The ID of the protection domain.
+          Required for the Get Protection Domain Information by ID task.
         type: str
         required: false
 """
@@ -142,7 +143,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible.module_utils.basic import AnsibleModule
 
 
-class SDSBBlockBlockDomainsFactsManager:
+class SDSBDomainsFactsManager:
     def __init__(self):
         self.logger = Log()
         argument_spec = {
@@ -207,7 +208,7 @@ class SDSBBlockBlockDomainsFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockBlockDomainsFactsManager()
+    obj_store = SDSBDomainsFactsManager()
     obj_store.apply()
 
 

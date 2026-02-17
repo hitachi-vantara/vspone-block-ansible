@@ -188,9 +188,9 @@
         var: result
 
     ###########################################################################
-    # Task Name : Delete ldev
+    # Task Name : Delete ldev or vClone volume
     ###########################################################################
-    - name: Delete ldev
+    - name: Delete ldev or vClone volume
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
         state: "absent"
@@ -451,6 +451,120 @@
           is_relocation_enabled: true
           is_full_allocation_enabled: true
           is_alua_enabled: true
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+    #########################################################################################################
+    # Task Name : Create DRS ldev without deduplication or compression
+    #########################################################################################################
+    - name: Create DRS ldev without deduplication or compression
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          pool_id: 15
+          size: "1GB"
+          data_reduction_share: true
+          capacity_saving: "disabled"
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+    #########################################################################################################
+    # Task Name : Create Mainframe LDEV with cylinder and emulation type
+    # ssid: if not specified, the default SSID will be used. if specified, it will use the specified ssid if ssid id is not assigned
+    # It will use the existing SSID of the free LDEV if ssid is already assigned to any LDEV
+    #########################################################################################################
+    - name: Create Mainframe LDEV with cylinder and emulation type
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          pool_id: 15
+          cylinder: 65525
+          emulation_type: "3390-A"
+          ssid: "01"
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+    #########################################################################################################
+    # Task Name : Create TSE Mainframe LDEV with cylinder and emulation type
+    # ssid: if not specified, the default SSID will be used. if specified, it will use the specified ssid if ssid id is not assigned
+    # It will use the existing SSID of the free LDEV if ssid is already assigned to any LDEV
+    #########################################################################################################
+    - name: Create TSE Mainframe LDEV with cylinder and emulation type
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          pool_id: 15
+          cylinder: 65525
+          emulation_type: "3390-A"
+          ssid: "01"
+          is_tse_volume: true
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+    #########################################################################################################
+    # Task Name : Create ESE Mainframe LDEV with cylinder and emulation type
+    # ssid: if not specified, the default SSID will be used. if specified, it will use the specified ssid if ssid id is not assigned
+    # It will use the existing SSID of the free LDEV if ssid is already assigned to any LDEV
+    # ESE Volume, User Directed Space Release should already be enabled
+    # Command to enable using CCI: raidcom modify mainframe_system_function -set_function_id 7
+    # CCI Minimum Version: 01-87-03/01
+    #########################################################################################################
+    - name: Create ESE Mainframe LDEV with cylinder and emulation type
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          pool_id: 15
+          cylinder: 65525
+          emulation_type: "3390-A"
+          ssid: "01"
+          is_ese_volume: true
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Create  Mainframe LDEV with cylinder and emulation type in a parity group
+    # Cylinder value by be divisible by the page unit of the storage system for 3390-V emulation type after Create
+    #########################################################################################################
+    - name: Create  Mainframe LDEV with cylinder and emulation type in a parity group
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          parity_group: "1-1"
+          cylinder: 65525
+          ldev_id: 4251
+          emulation_type: "3390-V"
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Stop the normal format for all volumes
+    # Note: To perform this operation, lock all resource groups.
+    #########################################################################################################
+    - name: Stop the normal format for all volumes
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          should_stop_all_volume_format: true
 
       register: result
     - name: Debug the result variable

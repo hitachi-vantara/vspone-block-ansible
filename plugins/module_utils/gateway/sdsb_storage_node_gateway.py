@@ -202,15 +202,6 @@ class SDSBStorageNodeDirectGateway:
             # Get response
             response = conn.getresponse()
 
-            # # Print response status, headers, and body
-            # print("Status:", response.status, response.reason)
-            # print("Headers:")
-            # for header, value in response.getheaders():
-            #     print(f"{header}: {value}")
-
-            # body = response.read().decode("utf-8", errors="ignore")
-            # print("\nBody:")
-            # print(body)
             if response.status == 200:
                 ret_value = True
             else:

@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_remote_storage_registration
-short_description: Manages remote storage registration and unregistration on Hitachi VSP storage systems.
+short_description: Manages remote storage registration and de-registration on VSP block storage systems.
 description:
-  - This module manages remote storage registration and unregistration on Hitachi VSP storage systems.
+  - This module manages remote storage registration and de-registration on VSP block storage systems.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/remote_storage_registration.yml)
 version_added: '3.2.0'
@@ -56,7 +56,7 @@ options:
         type: str
         required: false
   spec:
-    description: Specification for the remote storage registration and unregistration.
+    description: Specification for the remote storage registration and de-registration.
     type: dict
     required: false
     suboptions:
@@ -66,7 +66,7 @@ options:
         type: bool
         required: false
       is_mutual_deletion:
-        description: Specify whether to perform a mutual deletion operation during unregistration. true means perform a mutual deletion operation.
+        description: Specify whether to perform a mutual deletion operation during de-registration. true means perform a mutual deletion operation.
           Required for the Unregister Remote Storage task.
         type: bool
         required: false
@@ -116,10 +116,9 @@ EXAMPLES = """
 RETURN = """
 remote_storage:
   description: >
-    A list of information about the storage systems registered on the REST API server.
+    Information about the storage systems registered on the REST API server.
   returned: always
-  type: list
-  elements: dict
+  type: dict
   contains:
     storages_registered_in_local:
       description: List of storage systems registered locally.
@@ -135,14 +134,6 @@ remote_storage:
               description: Mode of communication.
               type: str
               sample: "lanConnectionMode"
-        ctl1_ip:
-          description: IP address of controller 1.
-          type: str
-          sample: "172.0.0.127"
-        ctl2_ip:
-          description: IP address of controller 2.
-          type: str
-          sample: "172.0.0.128"
         dkc_type:
           description: Type of DKC (Local or Remote).
           type: str
@@ -150,23 +141,61 @@ remote_storage:
         model:
           description: Model of the storage system.
           type: str
-          sample: "VSP E1090H"
+          sample: "VSP One B85"
         rest_server_ip:
           description: IP address of the REST server.
           type: str
-          sample: "172.0.0.2"
+          sample: "172.23.70.59"
         rest_server_port:
           description: Port number of the REST server.
           type: int
           sample: 443
         serial_number:
           description: Serial number of the storage system.
-          type: str
-          sample: "710036"
+          type: int
+          sample: 70041
         storage_device_id:
           description: Storage device ID.
           type: str
-          sample: "938000710036"
+          sample: "A00000970041"
+    storages_registered_in_remote:
+      description: List of storage systems registered remotely.
+      type: list
+      elements: dict
+      contains:
+        communication_modes:
+          description: List of communication modes.
+          type: list
+          elements: dict
+          contains:
+            communicationMode:
+              description: Mode of communication.
+              type: str
+              sample: "lanConnectionMode"
+        dkc_type:
+          description: Type of DKC (Local or Remote).
+          type: str
+          sample: "Remote"
+        model:
+          description: Model of the storage system.
+          type: str
+          sample: "VSP One B85"
+        rest_server_ip:
+          description: IP address of the REST server.
+          type: str
+          sample: "172.23.70.26"
+        rest_server_port:
+          description: Port number of the REST server.
+          type: int
+          sample: 443
+        serial_number:
+          description: Serial number of the storage system.
+          type: int
+          sample: 70045
+        storage_device_id:
+          description: Storage device ID.
+          type: str
+          sample: "A00000970045"
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -256,7 +285,7 @@ class VSPRemoteStorageRegistrationManager:
         self.module.exit_json(**resp)
 
 
-def main(module=None):
+def main():
     obj_store = VSPRemoteStorageRegistrationManager()
     obj_store.apply()
 

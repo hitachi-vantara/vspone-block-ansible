@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_clpr_facts
-short_description: Retrieves information about clprs from Hitachi VSP storage systems.
+short_description: Retrieves information about clprs from VSP block storage systems.
 description:
-  - This module retrieves information about clprs from Hitachi VSP storage systems.
+  - This module retrieves information about clprs from VSP block storage systems.
   - It provides details about CLPR such as ID, status and other relevant information.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/clpr_facts.yml)

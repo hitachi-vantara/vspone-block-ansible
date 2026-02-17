@@ -40,32 +40,40 @@ options:
     suboptions:
       id:
         description: The user ID. This is an alias of user_id.
+          Required for the Create a user
+          /Update user password tasks.
         aliases: ['user_id']
         type: str
         required: false
       password:
         description: Password for the user.
+          Required for the Create a user task.
         type: str
         required: false
       current_password:
         description: Current password for the user.
+          Required for the Update user password task.
         type: str
         required: false
       new_password:
         description: New password for the user.
+          Required for the Update user password task.
         type: str
         required: false
       authentication:
         description: Authentication method for the user.
+          Required for the Create a user task.
         type: str
         choices: ['local', 'external']
         default: 'local'
       user_group_ids:
         description: List of user group IDs to which the user belongs.
+          Required for the Create a user task.
         type: list
         elements: str
       is_enabled_console_login:
         description: Whether the user can log in to the console.
+          Required for the Create a user task.
         type: bool
         default: true
       is_enabled:
@@ -237,7 +245,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockUserManager:
+class SDSBUserManager:
     def __init__(self):
 
         self.logger = Log()
@@ -291,7 +299,7 @@ class SDSBBlockUserManager:
 
 
 def main():
-    obj_store = SDSBBlockUserManager()
+    obj_store = SDSBUserManager()
     obj_store.apply()
 
 

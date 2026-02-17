@@ -343,7 +343,9 @@ class SDSBJournalProvisioner:
 
         journal_info = self.gateway.get_journal_by_id(spec.id)
         if not journal_info or not getattr(journal_info, "data", None):
-            raise ValueError(SDSBJournalValidationMsg.VOLUME_ID_INVALID.value)
+            raise ValueError(
+                SDSBJournalValidationMsg.ID_NOT_AVAILABLE.value.format(spec.id)
+            )
 
         existing_data = journal_info
         journal_id = existing_data.id
@@ -377,7 +379,7 @@ class SDSBJournalProvisioner:
         journal_info = self.gateway.get_journal_by_number(spec.number)
 
         # CASE 1: Journal does not exist → CREATE
-        if not journal_info or not getattr(journal_info, "data", None):
+        if len(journal_info.data) < 1:
             if not spec.volume_ids:
                 raise ValueError(SDSBJournalValidationMsg.JOURNAL_NUMBER_ABSENT.value)
 

@@ -59,10 +59,12 @@ class SDSBStoragePoolReconciler:
                 )
                 return extracted_data
         except Exception as e:
+            logger.writeError("Error in get_storage_pools: {}", str(e))
             if "HTTP Error 404: Not Found" in str(e):
-                raise ValueError(SDSBStoragePoolValidationMsg.WRONG_POOL_ID.value)
+                spec.comments = SDSBStoragePoolValidationMsg.WRONG_POOL_ID.value
             else:
-                raise Exception(e)
+                spec.comments = str(e)
+                return []
 
     @log_entry_exit
     def reconcile_storage_pool(self, spec: Any) -> Any:
@@ -71,8 +73,12 @@ class SDSBStoragePoolReconciler:
         resp_data = None
         if state == StateValue.PRESENT:
             resp_data = self.edit_storage_pool_settings(spec=spec)
+            if resp_data:
+                spec.comments = SDSBStoragePoolValidationMsg.STORAGE_POOL_EDIT_SUCCESS.value
         elif state == StateValue.EXPAND:
             resp_data = self.expand_storage_pool(spec=spec)
+            if resp_data:
+                spec.comments = SDSBStoragePoolValidationMsg.STORAGE_POOL_EXPAND_SUCCESS.value
 
         if resp_data:
             s_pool = self.provisioner.get_storage_pool_by_id(resp_data)
@@ -94,16 +100,17 @@ class SDSBStoragePoolReconciler:
             try:
                 pool = self.provisioner.get_storage_pool_by_id(spec.id)
             except Exception as e:
+                logger.writeError("Error in get_storage_pool_by_id: {}", str(e))
                 if "HTTP Error 404: Not Found" in str(e):
-                    raise ValueError(SDSBStoragePoolValidationMsg.WRONG_POOL_ID.value)
+                    spec.comments = SDSBStoragePoolValidationMsg.WRONG_POOL_ID.value
                 else:
-                    raise Exception(e)
+                    spec.comments = str(e)
+                return None
         if spec.id is None:
-            raise ValueError(
-                SDSBStoragePoolValidationMsg.STORAGE_POOL_NOT_FOUND.value.format(
-                    spec.name
-                )
+            spec.comments = SDSBStoragePoolValidationMsg.STORAGE_POOL_NOT_FOUND.value.format(
+                spec.name
             )
+            return None
         if not self.is_edit_pool_needed(pool, spec):
             return pool.id
 
@@ -148,16 +155,17 @@ class SDSBStoragePoolReconciler:
             try:
                 pool = self.provisioner.get_storage_pool_by_id(spec.id)
             except Exception as e:
+                logger.writeError("Error in get_storage_pool_by_id: {}", str(e))
                 if "HTTP Error 404: Not Found" in str(e):
-                    raise ValueError(SDSBStoragePoolValidationMsg.WRONG_POOL_ID.value)
+                    spec.comments = SDSBStoragePoolValidationMsg.WRONG_POOL_ID.value
                 else:
-                    raise Exception(e)
+                    spec.comments = str(e)
+                return None
         if spec.id is None:
-            raise ValueError(
-                SDSBStoragePoolValidationMsg.STORAGE_POOL_NOT_FOUND.value.format(
-                    spec.name
-                )
+            spec.comments = SDSBStoragePoolValidationMsg.STORAGE_POOL_NOT_FOUND.value.format(
+                spec.name
             )
+            return None
         resp = self.provisioner.expand_storage_pool(spec.id, spec.drive_ids)
         self.connection_info.changed = True
         return resp

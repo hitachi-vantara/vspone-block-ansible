@@ -11,12 +11,14 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_server_hba_facts
-short_description: Retrieves server HBA information from VSP E series and VSP One Block 20 series storage systems.
+short_description: Retrieves server HBA information from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 description:
-    - This module retrieves HBA (Host Bus Adapter) information about servers from  VSP E series and VSP One Block 20 series storage systems.
-    - Utilizes the Hitachi Virtual Storage Platform One Simple API for server HBA facts retrieval across VSP one B20 series and VSP E series models.
+    - This module retrieves HBA (Host Bus Adapter) information about servers from VSP E series, VSP One Block 20 series, and
+      VSP One Block 80 series storage systems.
+    - Utilizes the Hitachi Virtual Storage Platform One Simple API for server HBA facts retrieval across VSP One B20 series,
+      VSP One B80 series, and VSP E series models.
     - For usage examples, visit
-        U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_server_hba_facts.yml)
+      U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_server_hba_facts.yml)
 version_added: '4.3.0'
 author:
     - Hitachi Vantara LTD (@hitachi-vantara)
@@ -36,18 +38,24 @@ options:
         suboptions:
             server_id:
                 description: Server identifier to retrieve specific server HBA information.
+                  Required for the Get all hbas using server_id
+                  /Get server HBA information by HBA WWN
+                  /Get server HBA information by iSCSI name tasks.
                 type: int
                 required: false
             nick_name:
                 description: Server nickname to filter servers.
+                  Required for the Get all hbas using server nick_name task.
                 type: str
                 required: false
             hba_wwn:
                 description: HBA WWN to filter servers.
+                  Required for the Get server HBA information by HBA WWN task.
                 type: str
                 required: false
             iscsi_name:
                 description: iSCSI name to filter servers.
+                  Required for the Get server HBA information by iSCSI name task.
                 type: str
                 required: false
 """

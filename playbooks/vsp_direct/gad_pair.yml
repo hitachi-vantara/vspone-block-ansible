@@ -22,6 +22,9 @@
   tasks:
     ####################################################################
     # Task Name : Create GAD pair with single server configuration
+    # Execution of the following task is not supported while any target
+    # storage system resources are locked.
+    # All resources must be unlocked prior to execution.
     ####################################################################
     - name: Create GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:
@@ -49,6 +52,9 @@
 
     ####################################################################
     # Task Name : Create GAD pair with server cluster configuration
+    # Execution of the following task is not supported while any target
+    # storage system resources are locked.
+    # All resources must be unlocked prior to execution.
     ####################################################################
     - name: Create GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:
@@ -80,6 +86,9 @@
 
     ####################################################################
     # Task Name : Create GAD pair with cross path server configuration
+    # Execution of the following task is not supported while any target
+    # storage system resources are locked.
+    # All resources must be unlocked prior to execution.
     ####################################################################
     - name: Create GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:
@@ -114,6 +123,9 @@
 
     #######################################################################
     # Task Name : Create a GAD pair using a range for secondary volume id
+    # Execution of the following task is not supported while any target
+    # storage system resources are locked.
+    # All resources must be unlocked prior to execution.
     #######################################################################
     - name: Create a GAD pair using a range for secondary volume id
       hitachivantara.vspone_block.vsp.hv_gad:
@@ -140,6 +152,9 @@
 
     ####################################################################
     # Task Name : Create GAD-NVMe Pair
+    # Execution of the following task is not supported while any target
+    # storage system resources are locked.
+    # All resources must be unlocked prior to execution.
     ####################################################################
     - name: Create GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:
@@ -166,6 +181,9 @@
 
     ####################################################################
     # Task Name : Create GAD-iSCSI pair
+    # Execution of the following task is not supported while any target
+    # storage system resources are locked.
+    # All resources must be unlocked prior to execution.
     ####################################################################
     - name: Create GAD-iSCSI pair
       hitachivantara.vspone_block.vsp.hv_gad:

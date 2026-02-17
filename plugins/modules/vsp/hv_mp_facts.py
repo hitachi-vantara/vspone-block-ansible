@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_mp_facts
-short_description: Retrieves MP blades information from Hitachi VSP storage systems.
+short_description: Retrieves MP blades information from VSP block storage systems.
 description:
-    - This module retrieves information about MP Blade from Hitachi VSP storage systems.
+    - This module retrieves information about MP Blade from VSP block storage systems.
     - For examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/mp_blade_facts.yml)
 version_added: '3.5.0'

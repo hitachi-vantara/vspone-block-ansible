@@ -230,3 +230,83 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ####################################################################
+    # Task Name : Present lun_paths to hostgroup
+    ####################################################################
+    - name: Present lun_paths to hostgroup
+      hitachivantara.vspone_block.vsp.hv_hg:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          state: "present_ldev"
+          name: "hostgroup-server1"
+          port: "CL1-C"
+          lun_paths:
+            - lun: 1
+              ldev: 100
+            - lun: 2
+              ldev: 200
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Un-present lun_paths from a hostgroup
+    ####################################################################
+    - name: Un-present lun_paths from a hostgroup
+      hitachivantara.vspone_block.vsp.hv_hg:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          state: "unpresent_ldev"
+          name: "hostgroup-server1"
+          port: "CL1-C"
+          lun_paths:
+            - lun: 1
+              ldev: 100
+            - lun: 2
+              ldev: 200
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Present Ldevs to host group across ports
+    ####################################################################
+    - name: Present Ldevs to host group across ports
+      hitachivantara.vspone_block.vsp.hv_hg:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          state: "present_ldev"
+          name: "hostgroup-server1"
+          ports: ["CL1-C", "CL2-D"]
+          ldevs: [300, 400]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Unmap Ldevs from host group across ports
+    ####################################################################
+    - name: Unmap Ldevs from host group across ports
+      hitachivantara.vspone_block.vsp.hv_hg:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          state: "unpresent_ldev"
+          name: "hostgroup-server1"
+          ports: ["CL1-C", "CL2-D"]
+          ldevs: [300, 400]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

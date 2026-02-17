@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_storage_port_facts
-short_description: Retrieves storage port information from Hitachi VSP storage systems.
+short_description: Retrieves storage port information from VSP block storage systems.
 description:
-  - This module retrieves information about storage ports from Hitachi VSP storage systems.
+  - This module retrieves information about storage ports from VSP block storage systems.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storage_port_facts.yml)
 version_added: '3.0.0'
@@ -45,31 +45,52 @@ options:
     suboptions:
       ports:
         description: The id of the specific ports to retrieve.
+            Required for the Get storage port details using port IDs
+            /Get an iSCSI target of a port on an external storage system
+            /Get the iSCSI name of an external storage system that is registered to a port on the local storage system
+            /Get a list of ports on an external storage system
+            /Get a list of LUs defined for an iSCSI port on an external storage system
+            /Get a list of LUs defined for a Fibre Channel port on an external storage system tasks.
         type: list
         required: false
         elements: str
       query:
         description: This field allows to query for getting information about a port on an external storage system.
-          query parameter is one of C(external_iscsi_targets), C(registered_external_iscsi_targets), C(external_storage_ports), C(external_luns).
+            query parameter is one of C(external_iscsi_targets), C(registered_external_iscsi_targets), C(external_storage_ports), C(external_luns).
+            Required for the Get an iSCSI target of a port on an external storage system
+            /Get the iSCSI name of an external storage system that is registered to a port on the local storage system
+            /Get a list of ports on an external storage system
+            /Get a list of LUs defined for an iSCSI port on an external storage system
+            /Get a list of LUs defined for a Fibre Channel port on an external storage system tasks.
         type: list
         required: false
         elements: str
       external_iscsi_ip_address:
         description:  IP address of the iSCSI target on the external storage system.
+            Required for the Get an iSCSI target of a port on an external storage system
+            /Get a list of LUs defined for an iSCSI port on an external storage system tasks.
         type: str
         required: false
       external_tcp_port:
         description: TCP port number of the iSCSI target on the external storage system. If this attribute is omitted,
           the TCP port number of the port on the local storage system is assumed.
+          Required for the Get an iSCSI target of a port on an external storage system task.
         type: int
         required: false
       external_iscsi_name:
         description: iSCSI name of the target on the external storage system.
+            Required for the Get a list of LUs defined for an iSCSI port on an external storage system task.
         type: str
         required: false
       external_wwn:
         description: This field is used to pass the value of the external WWN to operate on external storage systems.
           This field is used to query for getting information about a port on an external storage system.
+          Required for the Get a list of LUs defined for a Fibre Channel port on an external storage system task.
+        type: str
+        required: false
+      port_type:
+        description: The type of the port on the external storage system.Applicable when get all port condition.
+            Possible values are C(FIBRE), C(SCSI), C(ISCSI), C(NVME_TCP), C(ENAS), C(ESCON), C(FICON).
         type: str
         required: false
 """
@@ -184,25 +205,23 @@ ansible_facts:
                     sample: "50060e8028274271"
 """
 
-
-from ansible.module_utils.basic import AnsibleModule
-
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
-    VSPStoragePortArguments,
-    VSPParametersManager,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_storage_port import (
-    VSPStoragePortReconciler,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
-    Log,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log_decorator import (
     LogDecorator,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
-    validate_ansible_product_registration,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
 )
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_storage_port import (
+    VSPStoragePortReconciler,
+)
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
+    VSPStoragePortArguments,
+    VSPParametersManager,
+)
+from ansible.module_utils.basic import AnsibleModule
 
 
 @LogDecorator.debug_methods

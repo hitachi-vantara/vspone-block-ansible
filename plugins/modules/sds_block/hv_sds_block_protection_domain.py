@@ -92,7 +92,7 @@ protection_domain_settings:
         id:
             description: Unique identifier for the protection domain.
             type: str
-            sample: "8a047591-7acd-4d61-8b2b-39d703b1ed11"
+            sample: "265ba632-f08e-456c-b4a6-df46b1adaf99"
         name:
             description: Name of the protection domain.
             type: str
@@ -116,11 +116,11 @@ protection_domain_settings:
         rebuild_status:
             description: Current rebuild status.
             type: str
-            sample: "Error"
+            sample: "Stopped"
         rebuild_progress_rate:
-            description: Rebuild progress rate as a percentage.
+            description: Rebuild progress rate as a percentage. -1 if not active.
             type: int
-            sample: 0
+            sample: -1
         memory_mode:
             description: Memory mode used in the protection domain.
             type: str
@@ -144,7 +144,7 @@ protection_domain_settings:
         minimum_memory_size:
             description: Minimum memory size in MB.
             type: int
-            sample: 196608
+            sample: 131072
         is_fast_rebuild_enabled:
             description: Whether fast rebuild is enabled for the protection domain.
             type: bool
@@ -152,7 +152,7 @@ protection_domain_settings:
         total_physical_capacity:
             description: Total physical capacity in MB.
             type: int
-            sample: 36628608
+            sample: 0
 """
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (

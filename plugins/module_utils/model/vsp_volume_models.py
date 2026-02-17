@@ -13,7 +13,7 @@ try:
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from common.hv_log import Log
-    from ..common.ansible_common import (
+    from common.ansible_common import (
         convert_capacity_to_mib,
         normalize_ldev_id,
         volume_id_to_hex_format,
@@ -25,6 +25,7 @@ logger = Log()
 @dataclass
 class VolumeFactSpec:
     ldev_id: Optional[int] = None
+    ldev_ids: Optional[List[int]] = None
     name: Optional[str] = None
     count: Optional[int] = None
     end_ldev_id: Optional[int] = None
@@ -43,6 +44,8 @@ class VolumeFactSpec:
             self.start_ldev_id = normalize_ldev_id(self.start_ldev_id)
         if self.end_ldev_id:
             self.end_ldev_id = normalize_ldev_id(self.end_ldev_id)
+        if self.ldev_ids:
+            self.ldev_ids = [normalize_ldev_id(ldev_id) for ldev_id in self.ldev_ids]
 
 
 @dataclass
@@ -120,6 +123,12 @@ class CreateVolumeSpec:
     is_alua_enabled: Optional[bool] = None
     format_type: Optional[str] = None
     is_task_timeout: Optional[bool] = None
+    cylinder: Optional[int] = None
+    emulation_type: Optional[str] = None
+    is_tse_volume: Optional[bool] = None
+    is_ese_volume: Optional[bool] = None
+    ssid: Optional[str] = None
+    should_stop_all_volume_format: Optional[bool] = None
     # added comment for ldev module
     comment: Optional[str] = None
 
@@ -236,6 +245,10 @@ class VSPVolumeInfo(SingleBaseClass):
     dataReductionProcessMode: Optional[str] = None
     isRelocationEnabled: Optional[bool] = None
     isFullAllocationEnabled: Optional[bool] = None
+    parentVolumeId: Optional[int] = None
+    parentLdevId: Optional[int] = None
+    ssid: Optional[str] = None
+    cylinder: Optional[int] = None
 
     def __init__(self, **kwargs):
         try:
@@ -247,6 +260,17 @@ class VSPVolumeInfo(SingleBaseClass):
 
         super().__init__(**kwargs)
         try:
+
+            self.isDataReductionShareEnabled = (
+                True if "DRS" in self.attributes else None
+            )
+
+            if self.qosSettings is not None:
+                self.qosSettings = VolumeQosParamsOutput(**self.qosSettings)
+
+            if self.parentLdevId is not None and self.parentVolumeId is None:
+                self.parentVolumeId = self.parentLdevId
+
             storage_info = get_basic_storage_details()
             if storage_info is None:
                 return
@@ -261,16 +285,13 @@ class VSPVolumeInfo(SingleBaseClass):
             else:
                 self.canonicalName = self.naaId
 
-            self.isDataReductionShareEnabled = (
-                True if "DRS" in self.attributes else None
-            )
-
-            if self.qosSettings is not None:
-                self.qosSettings = VolumeQosParamsOutput(**self.qosSettings)
-
         except Exception as ex:
             logger.writeDebug(f"MODEL: exception in initializing VSPVolumeInfo {ex}")
         return
+
+    def camel_to_snake_dict(self):
+        camel_dict = super().camel_to_snake_dict()
+        return camel_dict
 
 
 @dataclass
@@ -391,12 +412,16 @@ class VSPVolume_V2:
 
 
 @dataclass
-class VSPUndefinedVolumeInfo:
+class VSPUndefinedVolumeInfo(SingleBaseClass):
     ldevId: int = 0
     emulationType: str = None
     ssid: str = None
+    attributes: List[str] = None
     resourceGroupId: int = 0
     virtualLdevId: int = 0
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
 
 @dataclass
@@ -465,6 +490,13 @@ class SimpleAPILuns(SingleBaseClass):
 
 
 @dataclass
+class PavAttribute(SingleBaseClass):
+    type: Optional[str] = None
+    numberOfAssignAliasVolumes: Optional[int] = None
+    assignAliasVolumeIds: Optional[List[int]] = None
+
+
+@dataclass
 class SalamanderSimpleVolumeInfo(SingleBaseClass):
     id: Optional[int] = None
     nickname: Optional[str] = None
@@ -490,6 +522,19 @@ class SalamanderSimpleVolumeInfo(SingleBaseClass):
     qosSettings: Optional[dict] = None
     parentVolumeId: Optional[int] = None
     capacitySavingProgress: Optional[int] = None
+    cuId: Optional[int] = None
+    ssid: Optional[str] = None
+    systemType: Optional[str] = None
+    emulationType: Optional[str] = None
+    capacityUnit: Optional[str] = None
+    clprId: Optional[int] = None
+    currentMpu: Optional[int] = None
+    currentMpuLocId: Optional[str] = None
+    pav: Optional[PavAttribute] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.__post_init__()
 
     def __post_init__(self):
         # if self.qosSettings:
@@ -507,6 +552,8 @@ class SalamanderSimpleVolumeInfo(SingleBaseClass):
             self.luns = [SimpleAPILuns(**lun) for lun in self.luns]
         if self.capacitySaving is None:
             self.capacitySaving = self.savingSetting
+        if self.pav is not None:
+            self.pav = PavAttribute(**self.pav)
 
     def camel_to_snake_dict(self):
         camel_dict = super().camel_to_snake_dict()

@@ -1,20 +1,15 @@
 try:
     from ..common.ansible_common import log_entry_exit
-    from ..common.hv_constants import GatewayClassTypes, ConnectionTypes
-    from ..gateway.gateway_factory import GatewayFactory
     from ..common.vsp_constants import VolumePayloadConst
     from ..message.vsp_lun_msgs import VSPVolValidationMsg
-    from .vsp_storage_system_provisioner import VSPStorageSystemProvisioner
     from ..common.hv_log import (
         Log,
     )
+    from ..gateway.vsp_volume import VSPVolumeDirectGateway
 except ImportError:
     from common.ansible_common import log_entry_exit
-    from common.hv_constants import GatewayClassTypes, ConnectionTypes
-    from gateway.gateway_factory import GatewayFactory
     from common.vsp_constants import VolumePayloadConst
     from message.vsp_lun_msgs import VSPVolValidationMsg
-    from .vsp_storage_system_provisioner import VSPStorageSystemProvisioner
     from common.hv_log import (
         Log,
     )
@@ -25,19 +20,15 @@ logger = Log()
 class VSPVolumeProvisioner:
 
     def __init__(self, connection_info, serial=None):
-        self.gateway = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.VSP_VOLUME
-        )
+        self.gateway = VSPVolumeDirectGateway(connection_info)
         self.connection_info = connection_info
         if serial:
             self.serial = serial
             self.gateway.set_serial(serial)
-        if connection_info.connection_type == ConnectionTypes.DIRECT:
-            VSPStorageSystemProvisioner(connection_info).populate_basic_storage_info()
 
     @log_entry_exit
-    def get_volume_by_ldev(self, ldev):
-        return self.gateway.get_volume_by_id(ldev)
+    def get_volume_by_ldev(self, ldev, include_drs=True):
+        return self.gateway.get_volume_by_id(ldev, include_drs=include_drs)
 
     @log_entry_exit
     def get_volumes(
@@ -136,8 +127,15 @@ class VSPVolumeProvisioner:
             and not spec.start_ldev_id
             and not spec.is_parallel_execution_enabled
         ):
-            spec.ldev_id = self.get_free_ldev_from_meta()
-        vol_id = self.gateway.create_volume(spec)
+            free_ldev_object = self.get_free_ldev_object_from_meta()
+            spec.ldev_id = free_ldev_object.ldevId
+            if free_ldev_object.ssid is not None:
+                spec.ssid = free_ldev_object.ssid
+
+        if spec.cylinder is None:
+            vol_id = self.gateway.create_volume(spec)
+        else:
+            vol_id = self.gateway.create_mainframe_volume(spec)
 
         vol_info = self.get_volume_by_ldev(vol_id)
         if vol_info.status == VolumePayloadConst.BLOCK:
@@ -147,7 +145,10 @@ class VSPVolumeProvisioner:
                 and vol_info.dataReductionMode.lower() != VolumePayloadConst.DISABLED
                 else False
             )
-            self.gateway.format_volume(ldev_id=vol_id, force_format=force_format)
+            format_type = "FMT" if spec.is_tse_volume else "quick"
+            self.gateway.format_volume(
+                ldev_id=vol_id, force_format=force_format, format_type=format_type
+            )
 
         self.gateway.change_volume_settings_tier_reloc(vol_id, spec)
         self.gateway.change_volume_settings_tier_policy(vol_id, spec)
@@ -163,6 +164,15 @@ class VSPVolumeProvisioner:
             logger.writeError(err_msg)
             raise Exception(err_msg)
         return ldevs.data[0].ldevId
+
+    @log_entry_exit
+    def get_free_ldev_object_from_meta(self):
+        ldevs = self.gateway.get_free_ldev_from_meta()
+        if not ldevs.data:
+            err_msg = VSPVolValidationMsg.NO_FREE_LDEV.value
+            logger.writeError(err_msg)
+            raise Exception(err_msg)
+        return ldevs.data[0]
 
     @log_entry_exit
     def get_free_ldevs_from_meta(
@@ -331,3 +341,27 @@ class VSPVolumeProvisioner:
             query_dict["poolId"] = filter_spec.pool_id
 
         return self.gateway.get_all_ldevs_using_filter(filter_spec)
+
+    @log_entry_exit
+    def stop_all_volume_format(self):
+
+        try:
+            self.gateway.stop_volume_format()
+            logger.writeInfo("Stopped formatting for all volumes successfully.")
+        except Exception as e:
+            logger.writeError(f"Error stopping format for volume: {e}")
+            raise e
+        self.connection_info.changed = True
+        return "Stop all volume format operation initiated successfully."
+
+    @log_entry_exit
+    def set_ese_volume(self, ldev_id, is_ese_volume):
+
+        try:
+            self.gateway.set_ese_volume(ldev_id, is_ese_volume)
+            logger.writeInfo(f"Set ESE volume for LDEV {ldev_id} successfully.")
+        except Exception as e:
+            logger.writeError(f"Error setting ESE volume for LDEV {ldev_id}: {e}")
+            raise e
+        self.connection_info.changed = True
+        return f"Set ESE volume operation for LDEV {ldev_id} initiated successfully."

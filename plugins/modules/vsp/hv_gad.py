@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_gad
-short_description: Manages GAD pairs on Hitachi VSP storage systems.
+short_description: Manages GAD pairs on VSP block storage systems.
 description:
-  - This module allows for the creation, deletion, splitting, and resynchronization of GAD pairs on Hitachi VSP storage systems.
+  - This module allows for the creation, deletion, splitting, and resynchronization of GAD pairs on VSP block storage systems.
   - It supports various GAD pairs operations based on the specified task level.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/gad_pair.yml)
@@ -29,6 +29,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.gad_note
 options:
   state:
     description: The level of the GAD pairs task.
@@ -236,7 +237,7 @@ options:
         description: Copy pace.
         type: str
         required: false
-        choices: ['HIGH', 'MEDIUM', 'LOW']
+        choices: ['SLOW', 'MEDIUM', 'FAST']
         default: 'MEDIUM'
       fence_level:
         description: Fence level.
@@ -577,6 +578,7 @@ class VSPGADPairManager:
                     "msg": response,
                 }
             else:
+                result = result[0] if isinstance(result, list) else result
                 response_dict = {
                     "failed": False,
                     "changed": self.connection_info.changed,
@@ -595,7 +597,7 @@ class VSPGADPairManager:
             self.module.fail_json(msg=str(ex))
 
 
-def main(module=None):
+def main():
     obj_store = VSPGADPairManager()
     obj_store.apply()
 

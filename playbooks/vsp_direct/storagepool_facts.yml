@@ -56,3 +56,44 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+    ####################################################################
+    # Task Name : Get all mainframe storage pools
+    ####################################################################
+    - name: Get all mainframe storage pools
+      hitachivantara.vspone_block.vsp.hv_storagepool_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          is_mainframe: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get all mainframe storage pools with extended info
+    ####################################################################
+    - name: Get all mainframe storage pools with extended info
+      hitachivantara.vspone_block.vsp.hv_storagepool_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          include_details: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #############################################################################################
+    # Task Name : Get all mainframe storage pools with cache info for VSP 5XXX series storage
+    #############################################################################################
+    - name: Get all mainframe storage pools with cache info
+      hitachivantara.vspone_block.vsp.hv_storagepool_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          include_cache_info: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

@@ -16,7 +16,7 @@ except ImportError:
         normalize_ldev_id,
         volume_id_to_hex_format,
     )
-    from vsp_host_group_models import LuHostReserve
+    from .vsp_host_group_models import LuHostReserve
 
 
 @dataclass

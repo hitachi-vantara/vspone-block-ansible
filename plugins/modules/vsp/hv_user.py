@@ -4,16 +4,15 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 
 DOCUMENTATION = """
 ---
 module: hv_user
-short_description: Manages users on Hitachi VSP storage systems.
+short_description: Manages users on VSP block storage systems.
 description:
-  - This module allows the creation and deletion of users on Hitachi VSP storage systems.
+  - This module allows the creation and deletion of users on VSP block storage systems.
   - It also enables add/remove user to/from the user groups.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/user.yml)
@@ -49,18 +48,35 @@ options:
         default: "local"
       password:
         description: The password of the user.
+          Required for the Create a User Account
+          /Change User Password by User ID
+          /Change User Password by User Name tasks.
         type: str
         required: false
       name:
         description: The name of the user.
+          Required for the Create a User Account
+          /Change User Password by User Name
+          /Add User to User Groups by User Name
+          /Remove User from User Groups by Name
+          /Delete User by name tasks.
         type: str
         required: false
       id:
         description: The ID of the user.
+          Required for the Change User Password by User ID
+          /Add User to User Groups by User ID
+          /Remove User from User Groups by User ID
+          /Delete User by ID tasks.
         type: str
         required: false
       group_names:
         description: User group name. You can specify up to 8 group names.
+          Optional for the Create a User Account
+          /Add User to User Groups by User ID
+          /Add User to User Groups by User Name
+          /Remove User from User Groups by User ID
+          /Remove User from User Groups by Name tasks.
         type: list
         required: false
         elements: str
@@ -69,6 +85,10 @@ options:
           - Operation to be performed on the user.
           - C(add_user_group) - To add the user to the user groups.
           - C(remove_user_group) - To remove the user from the user groups.
+          - Required for the Add User to User Groups by User ID
+            /Add User to User Groups by User Name
+            /Remove User from User Groups by User ID
+            /Remove User from User Groups by Name tasks.
         type: str
         required: false
         choices: ["add_user_group", "remove_user_group"]

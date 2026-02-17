@@ -74,7 +74,7 @@ class InitialSystemSettingsProvisioner:
         Create or update the SNMP configuration.
         """
         # Validate the SNMP specification
-        self.__validate_snmp_spec(spec)
+        self._validate_snmp_spec(spec)
 
         unused = self.gateway.specify_snmp_error_notification_destination(spec)
         response = self.get_snmp_facts().camel_to_snake_dict()
@@ -90,7 +90,7 @@ class InitialSystemSettingsProvisioner:
         self.gateway.connection_info.changed = True
         return None, VspInitialMsg.SNMP_TEST_MSG.value
 
-    def __validate_snmp_spec(self, spec: SNMPRequestSpec):
+    def _validate_snmp_spec(self, spec: SNMPRequestSpec):
         """
         Validate the SNMP specification.
         """

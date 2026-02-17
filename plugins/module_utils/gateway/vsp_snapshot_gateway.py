@@ -29,6 +29,14 @@ except ImportError:
     from common.vsp_constants import VSPSnapShotReq
     from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 
+CREATE_COVERT_VCLONE = "v1/objects/snapshots/{}/actions/virtual-clone/invoke"
+CREATE_COVERT_VCLONE_FROM_SNAPSHOT_GROUP = (
+    "v1/objects/snapshot-groups/{}/actions/virtual-clone/invoke"
+)
+RESTORE_SNAPSHOT_FROM_VCLONE = "v1/objects/snapshots/{}/actions/virtual-clone/invoke"
+RESTORE_SNAPSHOT_GROUP_FROM_VCLONE = (
+    "v1/objects/snapshot-groups/{}/actions/virtual-clone/invoke"
+)
 
 COPY_SPEED_CONST = {
     "SLOW": "slower",
@@ -50,6 +58,7 @@ class VSPHtiSnapshotDirectGateway:
         self.end_points = DirectEndPoints
         self.pegasus_model = None
         self.connection_info = connection_info
+        self.snapshot_groups = None
 
     def is_pegasus(self):
         if self.pegasus_model is None:
@@ -186,8 +195,10 @@ class VSPHtiSnapshotDirectGateway:
 
     # Snapshot group related methods
     def get_snapshot_groups(self) -> Dict[str, Any]:
-        ssgs = self.rest_api.get(self.end_points.GET_SNAPSHOT_GROUPS)
-        return SnapshotGroups().dump_to_object(ssgs)
+        if not self.snapshot_groups:
+            ssgs = self.rest_api.get(self.end_points.GET_SNAPSHOT_GROUPS)
+            self.snapshot_groups = SnapshotGroups().dump_to_object(ssgs)
+        return self.snapshot_groups
 
     def get_snapshots_using_group_id(self, gid):
         snapshots = None
@@ -380,3 +391,69 @@ class VSPHtiSnapshotDirectGateway:
             }
         }
         return self.rest_api.post(end_point, payload)
+
+    def create_vclone_from_snapshot(
+        self, pvol: int, mirror_unit_id: int
+    ) -> Dict[str, Any]:
+        end_point = CREATE_COVERT_VCLONE.format(f"{pvol},{mirror_unit_id}")
+        payload = {
+            "parameters": {
+                "operationType": "create",
+            }
+        }
+        return self.rest_api.post(end_point, data=payload)
+
+    def convert_vclone_from_snapshot(
+        self, pvol: int, mirror_unit_id: int
+    ) -> Dict[str, Any]:
+        end_point = CREATE_COVERT_VCLONE.format(f"{pvol},{mirror_unit_id}")
+        payload = {
+            "parameters": {
+                "operationType": "convert",
+            }
+        }
+        return self.rest_api.post(end_point, data=payload)
+
+    def create_vclone_from_snapshot_group_name(
+        self, snapshot_group_name: str
+    ) -> Dict[str, Any]:
+        end_point = CREATE_COVERT_VCLONE_FROM_SNAPSHOT_GROUP.format(snapshot_group_name)
+        payload = {
+            "parameters": {
+                "operationType": "create",
+            }
+        }
+        return self.rest_api.post(end_point, data=payload)
+
+    def convert_vclone_from_snapshot_group_name(
+        self, snapshot_group_name: str
+    ) -> Dict[str, Any]:
+        end_point = CREATE_COVERT_VCLONE_FROM_SNAPSHOT_GROUP.format(snapshot_group_name)
+        payload = {
+            "parameters": {
+                "operationType": "convert",
+            }
+        }
+        return self.rest_api.post(end_point, data=payload)
+
+    def restore_snapshot_from_vclone(
+        self, pvol: int, mirror_unit_id: int
+    ) -> Dict[str, Any]:
+        end_point = RESTORE_SNAPSHOT_FROM_VCLONE.format(f"{pvol},{mirror_unit_id}")
+        payload = {
+            "parameters": {
+                "operationType": "restore",
+            }
+        }
+        return self.rest_api.post(end_point, data=payload)
+
+    def restore_snapshots_by_snapshot_group_name(
+        self, snapshot_group_name: str
+    ) -> Dict[str, Any]:
+        end_point = RESTORE_SNAPSHOT_GROUP_FROM_VCLONE.format(snapshot_group_name)
+        payload = {
+            "parameters": {
+                "operationType": "restore",
+            }
+        }
+        return self.rest_api.post(end_point, data=payload)

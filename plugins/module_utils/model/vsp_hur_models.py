@@ -64,6 +64,7 @@ class HurFactSpec(SingleBaseClass):
 
 @dataclass
 class HurSpec(SingleBaseClass):
+    data_reduction_share: Optional[bool] = None
     primary_volume_id: Optional[int] = None
     secondary_volume_id: Optional[int] = None
     copy_group_name: Optional[str] = None

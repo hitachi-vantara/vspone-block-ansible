@@ -5,7 +5,7 @@ try:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from ..common.ansible_common import normalize_ldev_id
 except ImportError:
-    from common_base_models import BaseDataClass, SingleBaseClass
+    from .common_base_models import BaseDataClass, SingleBaseClass
     from common.ansible_common import normalize_ldev_id
 
 
@@ -68,7 +68,7 @@ class VSPShadowImagePairInfo(SingleBaseClass):
     svolNvmSubsystemName: Optional[str] = None
     pvolHostGroups: Optional[List[HostGroupInfo]] = None
     svolHostGroups: Optional[List[HostGroupInfo]] = None
-    __pvolMuNumber: Optional[int] = None
+    pvolMuNumber: Optional[int] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -125,6 +125,7 @@ class ShadowImagePairSpec:
     should_delete_svol: Optional[bool] = None
     should_force_split: Optional[bool] = None
     create_for_migration: Optional[bool] = None
+    pvol_mu_number: Optional[int] = None
 
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():
@@ -143,6 +144,8 @@ class ShadowImagePairSpec:
             self.pvol = normalize_ldev_id(self.pvol)
         if self.svol:
             self.svol = normalize_ldev_id(self.svol)
+        if self.pvol_mu_number is not None and self.pvol_mu_number not in range(0, 3):
+            raise ValueError("pvol_mu_number must be 0, 1, or 2 if specified.")
 
 
 @dataclass
