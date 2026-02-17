@@ -91,6 +91,7 @@ gmanagement_password = ""
 gauth_token = ""
 MODULE = None
 
+
 def writeLog(*args):
     logger.writeInfo(*args)
 
