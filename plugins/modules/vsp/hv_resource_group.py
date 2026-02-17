@@ -134,6 +134,7 @@ options:
           - VSP_ONE_B28
           - VSP_ONE_B26
           - VSP_ONE_B24
+          - VSP_ONE_B85
           - VSP_E790H
           - VSP_E590H
           - VSP_G1000
@@ -479,8 +480,7 @@ class VSPResourceGroupManager:
                 f"MOD:hv_resource_group:spec= {self.spec} ss = {self.storage_serial_number}"
             )
         except Exception as e:
-            self.logger.writeError(
-                f"An error occurred during initialization: {str(e)}")
+            self.logger.writeError(f"An error occurred during initialization: {str(e)}")
             self.module.fail_json(msg=str(e))
 
     def apply(self):

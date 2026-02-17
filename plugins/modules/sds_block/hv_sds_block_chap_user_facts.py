@@ -36,10 +36,12 @@ options:
     suboptions:
       id:
         description: ID of the CHAP user to retrieve information for.
+          Required for the Get one CHAP user by ID task.
         type: str
         required: false
       target_chap_user_name:
         description: Target CHAP user name to retrieve information for.
+          Required for the Get one CHAP user by name task.
         type: str
         required: false
 """

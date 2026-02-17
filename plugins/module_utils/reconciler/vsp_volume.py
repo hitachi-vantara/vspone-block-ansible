@@ -1,4 +1,5 @@
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 try:
     from ..common.ansible_common import (
@@ -32,6 +33,8 @@ try:
     from ..provisioner.vsp_snapshot_provisioner import VSPHtiSnapshotProvisioner
     from ..message.vsp_lun_msgs import VSPVolValidationMsg
     from ..provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
+    from ..common.ansible_common_constants import MAX_WORKER_THREADS
+
 except ImportError:
     from common.ansible_common import (
         convert_block_capacity,
@@ -95,7 +98,10 @@ class VSPVolumeReconciler:
         """Reconciler for volume management"""
 
         if state == StateValue.PRESENT:
-
+            if spec.should_stop_all_volume_format:
+                self.provisioner.stop_all_volume_format()
+                logger.writeInfo("RC:volume_reconcile:stop_all_volume_format finished")
+                return "Stop all volume format operation initiated successfully."
             if (
                 spec.ldev_id is None
                 and spec.name is None
@@ -109,16 +115,23 @@ class VSPVolumeReconciler:
 
             volume = None
             new_vol = False
-            if spec.ldev_id:
+            if spec.ldev_id is not None:
                 volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
                 logger.writeDebug("RC:sng20241205 volume={}", volume)
 
+            # set ssid by default from existing volume
+            if volume is not None:
+                if volume.ssid is not None:
+                    spec.ssid = volume.ssid
+
             if not volume or volume.emulationType == VolumePayloadConst.NOT_DEFINED:
                 spec.ldev_id = self.create_volume(spec)
-                if spec.name:
-                    self.update_volume_name(spec.ldev_id, spec.name)
-                else:
-                    self.update_volume_name(spec.ldev_id, None)
+
+                if spec.cylinder is None:
+                    if spec.name:
+                        self.update_volume_name(spec.ldev_id, spec.name)
+                    else:
+                        self.update_volume_name(spec.ldev_id, None)
 
                 volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
                 new_vol = True
@@ -158,7 +171,13 @@ class VSPVolumeReconciler:
                 self.connection_info.changed = True
                 additional_change = True
 
+            if spec.is_ese_volume is not None:
+                self.provisioner.set_ese_volume(spec.ldev_id, spec.is_ese_volume)
+                logger.writeInfo("RC:volume_reconcile:set_ese_volume finished")
+                additional_change = True
+
             # Keep this logic always at the end of the volume creation
+
             if spec.should_format_volume:
                 if volume.status.upper() != VolumePayloadConst.BLOCK:
                     logger.writeDebug(
@@ -188,7 +207,7 @@ class VSPVolumeReconciler:
                 logger.writeInfo("RC:volume_reconcile:format volume finished")
                 self.connection_info.changed = True
 
-            if additional_change:
+            if additional_change or self.connection_info.changed is True:
                 volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
 
             if new_vol:
@@ -216,7 +235,11 @@ class VSPVolumeReconciler:
             if spec.force is not None and spec.force is True:
                 self.delete_volume_force(volume)
             else:
-                if volume.numOfPorts and volume.numOfPorts > 0:
+                if (
+                    volume.numOfPorts
+                    and volume.numOfPorts > 0
+                    and volume.cylinder is None
+                ):
                     raise ValueError(VSPVolValidationMsg.PATH_EXIST.value)
                 if spec.should_shred_volume_enable:
                     unused = self.provisioner.shredding_volume(
@@ -298,6 +321,9 @@ class VSPVolumeReconciler:
         if spec.name is not None and spec.name == volume_data.label:
             spec.name = None
 
+        if spec.ssid is not None and spec.ssid == volume_data.ssid:
+            spec.ssid = None
+
         # update the volume by comparing the existing details
         if (
             (spec.capacity_saving is not None)
@@ -307,6 +333,7 @@ class VSPVolumeReconciler:
             or spec.data_reduction_process_mode is not None
             or spec.is_compression_acceleration_enabled is not None
             or spec.is_full_allocation_enabled is not None
+            or spec.ssid is not None
         ):
             self.provisioner.change_volume_settings(
                 volume_data.ldevId, spec.name, spec.capacity_saving, spec
@@ -722,7 +749,7 @@ class VSPVolumeReconciler:
             and not spec.external_parity_group
         ):
             raise ValueError(VSPVolValidationMsg.NOT_POOL_ID_OR_PARITY_ID.value)
-        if not spec.size:
+        if spec.size is None and spec.cylinder is None:
             raise ValueError(VSPVolValidationMsg.SIZE_REQUIRED.value)
         # if "." in spec.size:
         #     raise ValueError(VSPVolValidationMsg.SIZE_INT_REQUIRED.value)
@@ -744,7 +771,9 @@ class VSPVolumeReconciler:
                 logger.writeDebug("RC:create_volume:nvm_system={}", found)
 
         # spec.size = process_size_string(spec.size)
-        spec.block_size = convert_decimal_size_to_bytes(spec.size)
+        spec.block_size = (
+            convert_decimal_size_to_bytes(spec.size) if spec.size else None
+        )
         self.connection_info.changed = True
         volume_created = self.provisioner.create_volume(spec)
         if found:
@@ -827,22 +856,47 @@ class VSPVolumeReconciler:
     def get_volumes_with_hg_iscsi(self, volumes):
         retList = []
         if volumes:
-            for volume in volumes:
+
+            def process_volume(volume):
                 hg_iscsi_tar_info = self.get_hostgroup_and_iscsi_target_info(volume)
-                hostgroups = hg_iscsi_tar_info["hostgroups"]
-                iscsi_targets = hg_iscsi_tar_info["iscsiTargets"]
-                volume.hostgroups = hostgroups
-                volume.iscsiTargets = iscsi_targets
-                retList.append(volume)
+                volume.hostgroups = hg_iscsi_tar_info["hostgroups"]
+                volume.iscsiTargets = hg_iscsi_tar_info["iscsiTargets"]
+                return volume
+
+            executor = ThreadPoolExecutor(max_workers=MAX_WORKER_THREADS)
+            try:
+                futures = {
+                    executor.submit(process_volume, volume): volume
+                    for volume in volumes
+                }
+                for future in as_completed(futures):
+                    retList.append(future.result())
+            except KeyboardInterrupt:
+                executor.shutdown(wait=False, cancel_futures=True)
+                raise
+            finally:
+                executor.shutdown(wait=True)
         return VSPVolumesInfo(data=retList)
 
     @log_entry_exit
     def get_volumes_detail_for_spec(self, volumes, spec):
         retList = []
         if volumes:
-            for volume in volumes:
-                new_volume = self.get_volume_detail_for_spec(volume, spec)
-                retList.append(new_volume)
+            executor = ThreadPoolExecutor(max_workers=MAX_WORKER_THREADS)
+            try:
+                futures = {
+                    executor.submit(
+                        self.get_volume_detail_for_spec, volume, spec
+                    ): volume
+                    for volume in volumes
+                }
+                for future in as_completed(futures):
+                    retList.append(future.result())
+            except KeyboardInterrupt:
+                executor.shutdown(wait=False, cancel_futures=True)
+                raise
+            finally:
+                executor.shutdown(wait=True)
         return VSPVolumesInfo(data=retList)
 
     @log_entry_exit
@@ -1008,6 +1062,21 @@ class VSPVolumeReconciler:
         return port_type
 
     @log_entry_exit
+    def get_multiple_volumes_by_ids(self, get_volume_spec):
+        volumes = []
+        for ldev_id in get_volume_spec.ldev_ids:
+            volume = self.provisioner.get_volume_by_ldev(ldev_id)
+            if volume:
+                volumes.append(volume)
+        if (
+            get_volume_spec.is_detailed is not None
+            and get_volume_spec.is_detailed is True
+        ):
+            return self.get_volumes_detail_for_spec(volumes, get_volume_spec)
+        else:
+            return self.get_volumes_with_hg_iscsi(volumes)
+
+    @log_entry_exit
     def get_volumes(self, get_volume_spec: VolumeFactSpec):
 
         if get_volume_spec.query and "free_ldev_id" in get_volume_spec.query:
@@ -1033,6 +1102,11 @@ class VSPVolumeReconciler:
                 logger.writeDebug("RC:get_volumes:found volume={}", volume)
 
                 return VSPVolumesInfo(data=[volume])
+
+        if get_volume_spec.ldev_ids is not None and len(get_volume_spec.ldev_ids) > 0:
+            volume_data = self.get_multiple_volumes_by_ids(get_volume_spec)
+            logger.writeDebug("RC:get_volumes:found volumes={}", volume_data)
+            return volume_data
 
         if (
             get_volume_spec.start_ldev_id is not None
@@ -1075,12 +1149,6 @@ class VSPVolumeReconciler:
     def generate_volume_name(self, ldev_id, label):
         if label is None:
             label = f"{DEFAULT_NAME_PREFIX}-{ldev_id}"
-        # else:
-        #     do_not_need_prefix = label.lower().startswith("ansible")
-        #     if do_not_need_prefix:
-        #         pass
-        #     else:
-        #         label = f"ansible-{label}"
         return label
 
     @log_entry_exit
@@ -1256,6 +1324,8 @@ class VolumeCommonPropertiesExtractor:
         self.common_properties = {
             "ldev_id": int,
             "ldev_id_hex": str,
+            "parent_volume_id": int,
+            "parent_volume_id_hex": str,
             "deduplication_compression_mode": str,
             "emulation_type": str,
             "name": str,
@@ -1271,6 +1341,7 @@ class VolumeCommonPropertiesExtractor:
             "canonical_name": str,
             "dedup_compression_progress": int,
             "dedup_compression_status": str,
+            "data_reduction_status": str,
             "is_alua": bool,
             "is_data_reduction_share_enabled": bool,
             "num_of_ports": int,
@@ -1307,6 +1378,9 @@ class VolumeCommonPropertiesExtractor:
             "data_reduction_process_mode": str,
             "is_relocation_enabled": bool,
             "is_full_allocation_enabled": bool,
+            "ssid": str,
+            "cylinder": int,
+            "ports": list,
         }
 
         self.parameter_mapping = {
@@ -1419,7 +1493,8 @@ class VolumeCommonPropertiesExtractor:
                             response["tiering_policy"]["policy"]
                         )
                     else:
-                        logger.writeDebug("1053 response_key={}", response_key)
+                        pass
+                        # logger.writeDebug("1053 response_key={}", response_key)
                 elif key == self.hex_value:
                     new_dict[key] = (
                         response_key
@@ -1470,14 +1545,22 @@ class VolumeCommonPropertiesExtractor:
                     new_dict["ldev_id_hex"] = volume_id_to_hex_format(
                         new_dict.get("ldev_id")
                     )
-            if new_dict.get("vldev_id_hex") == "":
+            if new_dict.get("parent_volume_id_hex") == "":
                 if (
-                    new_dict.get("vldev_id") is not None
-                    and new_dict.get("vldev_id") != ""
-                    and new_dict.get("vldev_id") != -1
+                    new_dict.get("parent_volume_id") is not None
+                    and new_dict.get("parent_volume_id") != ""
                 ):
-                    new_dict["ldev_id_hex"] = volume_id_to_hex_format(
-                        new_dict.get("vldev_id")
+                    new_dict["parent_volume_id_hex"] = volume_id_to_hex_format(
+                        new_dict.get("parent_volume_id")
+                    )
+            if new_dict.get("virtual_ldev_id_hex") == "":
+                if (
+                    new_dict.get("virtual_ldev_id") is not None
+                    and new_dict.get("virtual_ldev_id") != ""
+                    and new_dict.get("virtual_ldev_id") != -1
+                ):
+                    new_dict["virtual_ldev_id_hex"] = volume_id_to_hex_format(
+                        new_dict.get("virtual_ldev_id")
                     )
             if new_dict.get("storage_serial_number") is None:
                 new_dict["storage_serial_number"] = self.serial
@@ -1616,8 +1699,8 @@ class ExternalVolumePropertiesExtractor:
 
                 cased_key = snake_to_camel_case(key)
                 # Get the corresponding key from the response or its mapped key
-                logger.writeDebug("20250314 cased_key={}", cased_key)
-                logger.writeDebug("20250314 key={}", key)
+                # logger.writeDebug("20250314 cased_key={}", cased_key)
+                # logger.writeDebug("20250314 key={}", key)
 
                 response_key = None
                 if not isinstance(response, list):
@@ -1630,7 +1713,7 @@ class ExternalVolumePropertiesExtractor:
                     )
 
                 # Assign the value based on the response key and its data type
-                logger.writeDebug("20250314 response_key={}", response_key)
+                # logger.writeDebug("20250314 response_key={}", response_key)
 
                 if response_key or isinstance(response_key, int):
                     if key == self.provision_type or key == self.parity_group_id:
@@ -1680,7 +1763,8 @@ class ExternalVolumePropertiesExtractor:
                             response["tiering_policy"]["policy"]
                         )
                     else:
-                        logger.writeDebug("1053 response_key={}", response_key)
+                        pass
+                        # logger.writeDebug("1053 response_key={}", response_key)
                 elif key == self.hex_value:
                     new_dict[key] = (
                         response_key
@@ -1705,8 +1789,8 @@ class ExternalVolumePropertiesExtractor:
                     logger.writeDebug(
                         "tieringProperties={}", response["tieringPropertiesDto"]
                     )
-                    logger.writeDebug("response_key={}", response_key)
-                    logger.writeDebug("key={}", key)
+                    # logger.writeDebug("response_key={}", response_key)
+                    # logger.writeDebug("key={}", key)
                     new_dict[key] = camel_to_snake_case_dict(response_key)
                     new_dict["tiering_policy"]["tier1_used_capacity_mb"] = new_dict[
                         "tiering_policy"

@@ -41,10 +41,13 @@ options:
     suboptions:
       id:
         description: The ID of the storage controller. This field is required if name is not specified.
+          Required for the Edit storage controller settings by storage controller ID task.
         type: str
         required: false
       is_detailed_logging_mode:
         description: Enable or disable the detailed logging mode.
+          Required for the Edit storage controller settings for all storage controllers
+          /Edit storage controller settings by storage controller ID tasks.
         type: bool
         required: false
 """

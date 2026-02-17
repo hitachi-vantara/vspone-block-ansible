@@ -44,10 +44,10 @@
       ansible.builtin.debug:
         var: result
 
-    ####################################################################
-    # Task Name : Get ldevs from start id up to max count
-    ####################################################################
-    - name: Get ldevs from start id up to max count
+    ###########################################################################
+    # Task Name : Get ldevs starting from a given ID up to the specified count
+    ###########################################################################
+    - name: Get ldevs starting from a given ID up to the specified count
       hitachivantara.vspone_block.vsp.hv_ldev_facts:
         connection_info: "{{ connection_info }}"
         spec:
@@ -96,6 +96,24 @@
         spec:
           ldev_id: 176
           is_detailed: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get information about multiple ldevs by their IDs
+    ####################################################################
+    - name: Get information about multiple ldevs by their IDs
+      hitachivantara.vspone_block.vsp.hv_ldev_facts:
+        connection_info:
+          address: "{{ storage_address }}"
+          username: "{{ vault_storage_username }}"
+          password: "{{ vault_storage_secret }}"
+        spec:
+          ldev_ids: [5242, 7002]
+          is_detailed: false
       register: result
 
     - name: Debug the result variable

@@ -1,0 +1,63 @@
+---
+####################################################################
+# Variables for hv_vsp_one_create_gad_pair role
+####################################################################
+
+# Secondary storage hostgroup configuration
+hv_vsp_host_volume_deletion_secondary_hg_name: "GAD_Secondary_HG"
+hv_vsp_host_volume_deletion_secondary_port: "CL1-A"
+
+# Resource group configuration
+hv_vsp_host_volume_deletion_rg_name: "GAD_Resource_Group"
+hv_vsp_host_volume_deletion_virtual_serial_number: "12345"
+hv_vsp_host_volume_deletion_vsm_model: "VSP5000"
+
+# Storage serial numbers
+hv_vsp_host_volume_deletion_storage_serial: "123456"
+hv_vsp_host_volume_deletion_secondary_storage_serial: "654321"
+
+# Quorum disk configuration for MCU (Main Control Unit)
+hv_vsp_host_volume_deletion_mcu_quorum_ldev: 100
+hv_vsp_host_volume_deletion_mcu_quorum_id: 1
+hv_vsp_host_volume_deletion_mcu_storage_type: "VSP"
+
+# Quorum disk configuration for RCU (Remote Control Unit)
+hv_vsp_host_volume_deletion_rcu_quorum_ldev: 200
+hv_vsp_host_volume_deletion_rcu_quorum_id: 1
+hv_vsp_host_volume_deletion_rcu_storage_type: "VSP"
+
+# Remote connection paths for MCU
+hv_vsp_host_volume_deletion_mcu_remote_paths_list:
+  - local_port: CL5-C
+    remote_port: CL5-C
+
+# Remote connection paths for RCU
+hv_vsp_host_volume_deletion_rcu_remote_paths_list:
+  - local_port: CL5-C
+    remote_port: CL5-C
+
+# GAD pair configuration
+hv_vsp_host_volume_deletion_copy_group_name: "Production_GAD_Group"
+hv_vsp_host_volume_deletion_rcu_pool_id: 0
+
+# New LDEVs list - can be provided in two ways:
+# 1. Directly as 'new_ldevs' (example format below)
+# 2. As 'matched_ldev_ids' from hv_vsp_one_query_host_volumes_by_wwns role (will be auto-converted)
+
+# Method 1: Direct new_ldevs format
+hv_vsp_host_volume_deletion_new_ldevs: []
+# Example format:
+# hv_vsp_host_volume_deletion_new_ldevs:
+#   - { item: 1000 }
+#   - { item: 1001 }
+#   - { item: 1002 }
+
+# Method 2: Use matched_ldev_ids from WWN query role
+# The role will automatically convert matched_ldev_ids like [277, 289]
+# to new_ldevs format like [{ item: 277 }, { item: 289 }]
+#
+# Example usage in playbook:
+# - include_role:
+#     name: hv_vsp_one_create_gad_pair
+#   vars:
+#     matched_ldev_ids: "{{ hv_vsp_one_query_result.matched_ldev_ids }}"

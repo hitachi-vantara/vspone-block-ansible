@@ -1,4 +1,5 @@
 from typing import Any
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 try:
     from ..common.ansible_common import (
@@ -28,6 +29,7 @@ try:
     )
     from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
     from ..common.uaig_utils import UAIGResourceID
+    from ..common.ansible_common_constants import MAX_WORKER_THREADS
 
 except ImportError:
     from message.vsp_gad_pair_msgs import GADPairValidateMSG
@@ -308,7 +310,13 @@ class VSPGadPairReconciler:
                         spec.primary_volume_id
                     )
                 )
-
+            logger.writeDebug("RC:270:numOfPorts={}", pvol.numOfPorts)
+            if pvol.numOfPorts is None or pvol.numOfPorts < 1:
+                raise ValueError(
+                    VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_NO_PATH.value.format(
+                        spec.primary_volume_id
+                    )
+                )
             if not pair:
                 pair = self.create_update_gad_pair(spec, pair, pvol)
                 if (
@@ -336,7 +344,15 @@ class VSPGadPairReconciler:
                 # for gateway only
                 return self.addDetails(pair.to_dict(), pair.primaryVolumeId)
 
-            return pair.camel_to_snake_dict() if pair else None
+            if pair is None:
+                return None
+            else:
+                logger.writeDebug("RC:gad_pair_reconcile:pair3={}", pair)
+                pair = DirectGADCopyPairInfoExtractor(
+                    self.storage_serial_number
+                ).extract(spec, pair.to_dict())
+                logger.writeDebug("RC:gad_pair_reconcile:pair4={}", pair)
+                return pair
 
     @log_entry_exit
     def validate_create_spec(self, spec: Any) -> None:
@@ -724,23 +740,12 @@ class VSPGadPairReconciler:
         logger.writeDebug("RC::copy_group_list={}", copy_group_list)
         logger.writeDebug("RC::gad_copy_pairs={}", gad_copy_pairs)
 
-        #  in case input is not a list
         if not isinstance(gad_copy_pairs, list):
             gad_copy_pairs = [gad_copy_pairs]
 
-        for gad_copy_pair in gad_copy_pairs:
-
+        def process_pair(gad_copy_pair):
             self.get_other_attributes_from_copy_group(
                 copy_group_list, gad_copy_pair, doSwap
-            )
-            if gad_copy_pair.get("muNumber"):
-                logger.writeDebug("sng1104 muNumber={}", gad_copy_pair["muNumber"])
-            logger.writeDebug(
-                "sng1104 localDeviceGroupName={}", gad_copy_pair["localDeviceGroupName"]
-            )
-            logger.writeDebug(
-                "sng1104 remoteDeviceGroupName={}",
-                gad_copy_pair["remoteDeviceGroupName"],
             )
 
             gad_copy_pair["isAluaEnabled"] = False
@@ -748,39 +753,26 @@ class VSPGadPairReconciler:
             gad_copy_pair["secondaryVirtualVolumeId"] = -1
 
             if not doMore:
-                continue
+                return
 
-            # sng20241126 swap as needed
             primary_volume_storage_id = get_serial_number_from_device_id(
                 gad_copy_pair.get("pvolStorageDeviceId")
             )
-            secondary_volume_storage_id = get_serial_number_from_device_id(
-                gad_copy_pair.get("svolStorageDeviceId")
-            )
+
+            local_do_swap = doSwap
             if spec.secondary_storage_serial_number is not None:
                 serial_str = str(spec.secondary_storage_serial_number).strip()
                 if serial_str[0].isalpha():
                     serial_str = get_serial_number_from_device_id(serial_str)
                 if int(serial_str) == int(primary_volume_storage_id):
-                    doSwap = True
-
-            logger.writeDebug("sng1104 doSwap={}", doSwap)
-            logger.writeDebug(
-                "sng1104 primary_volume_storage_id={}", primary_volume_storage_id
-            )
-            logger.writeDebug(
-                "sng1104 secondary_volume_storage_id={}", secondary_volume_storage_id
-            )
-            logger.writeDebug(
-                "sng1104 secondary_storage_serial_number={}",
-                spec.secondary_storage_serial_number,
-            )
+                    local_do_swap = True
 
             pvol = gad_copy_pair["pvolLdevId"]
             svol = gad_copy_pair["svolLdevId"]
             spec.secondary_storage_connection_info = self.secondary_connection_info
 
-            if doSwap:
+            # Fetch primary volume info
+            if local_do_swap:
                 vol = self.provisioner.get_vol_remote(spec, pvol)
                 rg = self.provisioner.get_resource_group_by_id_remote(
                     spec, vol.resourceGroupId
@@ -791,7 +783,6 @@ class VSPGadPairReconciler:
                 rg = self.provisioner.get_resource_group_by_id(vol.resourceGroupId)
                 vsms = self.provisioner.get_vsm_all()
 
-            # sng20241127 get_vsm_info for facts
             virtualStorageDeviceId, virtualSerialNumber = self.get_vsm_info(
                 vsms, vol.resourceGroupId
             )
@@ -802,25 +793,12 @@ class VSPGadPairReconciler:
                 gad_copy_pair["isAluaEnabled"] = vol.isAluaEnabled
 
             gad_copy_pair["primaryVSMResourceGroupName"] = rg.resourceGroupName
-            # gad_copy_pair["primaryVirtualStorageId"] = rg.virtualStorageId
             gad_copy_pair["primaryVirtualStorageDeviceId"] = virtualStorageDeviceId
             gad_copy_pair["primaryVirtualSerialNumber"] = virtualSerialNumber
 
-            logger.writeDebug("sng1104 pvol={}", vol)
-            logger.writeDebug("sng1104 pvolVirtualLdevId={}", vol.virtualLdevId)
-            logger.writeDebug("sng1104 rg={}", rg)
-            logger.writeDebug("sng1104 resourceGroupName={}", rg.resourceGroupName)
-            logger.writeDebug("sng1104 virtualStorageId={}", rg.virtualStorageId)
-            logger.writeDebug(
-                "sng1104 virtualStorageDeviceId={}", virtualStorageDeviceId
-            )
-            logger.writeDebug("sng1104 virtualSerialNumber={}", virtualSerialNumber)
-
-            if doSwap:
+            # Fetch secondary volume info
+            if local_do_swap:
                 vol = self.provisioner.get_volume_by_id(svol)
-                logger.writeDebug("sng1104 svol={}", svol)
-                logger.writeDebug("sng1104 vol={}", vol)
-                logger.writeDebug("sng1104 vol.resourceGroupId={}", vol.resourceGroupId)
                 rg = self.provisioner.get_resource_group_by_id(vol.resourceGroupId)
                 vsms = self.provisioner.get_vsm_all()
             else:
@@ -837,19 +815,31 @@ class VSPGadPairReconciler:
             if vol.virtualLdevId:
                 gad_copy_pair["secondaryVirtualVolumeId"] = vol.virtualLdevId
             gad_copy_pair["secondaryVSMResourceGroupName"] = rg.resourceGroupName
-            # gad_copy_pair["SecondaryVirtualStorageId"] = rg.virtualStorageId
             gad_copy_pair["secondaryVirtualStorageDeviceId"] = virtualStorageDeviceId
             gad_copy_pair["secondaryVirtualSerialNumber"] = virtualSerialNumber
 
-            logger.writeDebug("sng1104 svol={}", vol)
-            logger.writeDebug("sng1104 svolVirtualLdevId={}", vol.virtualLdevId)
-            logger.writeDebug("sng1104 rg={}", rg)
-            logger.writeDebug("sng1104 resourceGroupName={}", rg.resourceGroupName)
-            # logger.writeDebug("sng1104 virtualStorageId={}", rg.virtualStorageId)
-            logger.writeDebug(
-                "sng1104 virtualStorageDeviceId={}", virtualStorageDeviceId
+        if len(gad_copy_pairs) > 1:
+            max_workers = min(len(gad_copy_pairs), MAX_WORKER_THREADS)
+            executor = ThreadPoolExecutor(
+                max_workers=max_workers, thread_name_prefix="ProcessGadPairs"
             )
-            logger.writeDebug("sng1104 virtualSerialNumber={}", virtualSerialNumber)
+            try:
+                futures = [
+                    executor.submit(process_pair, pair) for pair in gad_copy_pairs
+                ]
+                for future in as_completed(futures):
+                    try:
+                        future.result()
+                    except Exception as e:
+                        logger.writeDebug("Error processing pair: {}", str(e))
+            except KeyboardInterrupt:
+                executor.shutdown(wait=False, cancel_futures=True)
+                raise
+            finally:
+                executor.shutdown(wait=True)
+        else:
+            for pair in gad_copy_pairs:
+                process_pair(pair)
 
         return
 

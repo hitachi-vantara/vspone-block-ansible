@@ -8,6 +8,11 @@ class SDSBEstimatedCapacityValidateMsg(Enum):
     )
     POOL_ID_OR_NAME_REQUIRED = "Either id or name is required. Specify one of them."
     ONLY_SUPPORTED_FOR_AWS = "This feature is available only with a Floating base license and for the AWS cloud model."
+    SERVER_NAME = "Server name is either host name or valid IPv4 address."
+    LOC_RANGE = "Location name length is between 1 and 32."
+    SERVERS_RANGE = "Number of syslog servers is between 1 and 2."
+    PORT_RANGE = "Port range is between 1 and 65535."
+    SERVER_NAME_RANGE = "Server name length is between 1 and 253."
     BOTH_ID_AND_NAME_NONE = (
         "Both id and name fields are null, you must specify one of them."
     )

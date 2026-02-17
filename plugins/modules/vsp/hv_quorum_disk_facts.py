@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_quorum_disk_facts
-short_description: Retrieves information about Quorum Disks from Hitachi VSP storage systems.
+short_description: Retrieves information about Quorum Disks from VSP block storage systems.
 description:
-  - This module retrieves information about Quorum Disks from Hitachi VSP storage systems.
+  - This module retrieves information about Quorum Disks from VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/quorum_disk_facts.yml)
 version_added: '3.3.0'

@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_external_volume_facts
-short_description: Retrieves information about External Volume from Hitachi VSP storage systems.
+short_description: Retrieves information about External Volume from VSP block storage systems.
 description:
-  - This module retrieves information about External Volume from Hitachi VSP storage systems.
+  - This module retrieves information about External Volume from VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/external_volume_facts.yml)
 version_added: '3.3.0'
@@ -49,6 +49,7 @@ options:
         required: false
       external_ldev_id:
         description: The external LDEV ID. Required for the Get all external volume for specific ldev_id task.
+          Can be decimal or hexadecimal.
         type: str
         required: false
 

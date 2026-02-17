@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_ldev_facts
-short_description: Retrieves information about logical devices (LDEVs) from Hitachi VSP storage systems.
+short_description: Retrieves information about logical devices (LDEVs) from VSP block storage systems.
 description:
-  - This module retrieves information about logical devices (LDEVs) from Hitachi VSP storage systems.
+  - This module retrieves information about logical devices (LDEVs) from VSP block storage systems.
   - It provides details such as LDEV IDs, names, and other relevant information.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/ldev_facts.yml)
@@ -45,14 +45,20 @@ options:
     required: false
     suboptions:
       ldev_id:
-        description: ID of the specific LDEV to retrieve information for.
+        description: ID of the specific LDEV to retrieve information for. Can be decimal or hexadecimal.
             Required for the Get one LDEV
             /Get one LDEV with detailed info
             /Get one ldev with detailed info by specifying one or more query parameters tasks.
         type: str
         required: false
+      ldev_ids:
+        description: List of LDEV IDs to retrieve information for. Can be decimal or hexadecimal.
+            Required for the Get multiple LDEVs task.
+        type: list
+        elements: str
+        required: false
       start_ldev_id:
-        description: Starting LDEV ID for filtering LDEVs.
+        description: Starting LDEV ID for filtering LDEVs. Can be decimal or hexadecimal.
             Required for the Get LDEVs within range
             /Get LDEVs from start ID up to max count tasks.
             Optional for the Get Free LDEV IDs task.
@@ -70,7 +76,7 @@ options:
         type: int
         required: false
       end_ldev_id:
-        description: Ending LDEV ID for filtering LDEVs.
+        description: Ending LDEV ID for filtering LDEVs. Can be decimal or hexadecimal.
             Required for the Get LDEVs within range task.
             Optional for the Get Free LDEV IDs task.
         type: str
@@ -148,7 +154,23 @@ ansible_facts:
         canonical_name:
           description: Unique identifier for the volume.
           type: str
-          sample: "naa.60060e8028274200508027420000000a"
+          sample: "naa.60060e8028273d005080273d00000102"
+        clpr_id:
+          description: CLPR (Control Logical Partition) ID.
+          type: int
+          sample: 0
+        compression_acceleration_status:
+          description: Status of compression accelerator.
+          type: str
+          sample: "ENABLED"
+        cylinder:
+          description: Cylinder number for mainframe volumes.
+          type: int
+          sample: 65945
+        data_reduction_process_mode:
+          description: Data reduction process mode.
+          type: str
+          sample: "inline"
         dedup_compression_progress:
           description: Progress percentage of deduplication and compression.
           type: int
@@ -164,24 +186,12 @@ ansible_facts:
         emulation_type:
           description: Emulation type of the volume.
           type: str
-          sample: "OPEN-V-CVS"
+          sample: "3390-V-CVS"
         hostgroups:
           description: List of host groups associated with the volume.
           type: list
           elements: dict
-          contains:
-            id:
-              description: ID of the host group.
-              type: int
-              sample: 3
-            name:
-              description: Name of the host group.
-              type: str
-              sample: "snewar-hur-remote-hg-01"
-            port_id:
-              description: Port ID associated with the host group.
-              type: str
-              sample: "CL2-B"
+          sample: []
         is_alua:
           description: Indicates if ALUA is enabled.
           type: bool
@@ -189,39 +199,147 @@ ansible_facts:
         is_command_device:
           description: Indicates if the volume is a command device.
           type: bool
-          sample: false
+          sample: null
+        is_compression_acceleration_enabled:
+          description: Whether compression accelerator is enabled.
+          type: bool
+          sample: true
         is_data_reduction_share_enabled:
           description: Indicates if data reduction share is enabled.
           type: bool
           sample: true
+        is_device_group_definition_enabled:
+          description: Indicates if device group definition is enabled.
+          type: bool
+          sample: null
         is_encryption_enabled:
           description: Indicates if encryption is enabled.
           type: bool
           sample: false
+        is_full_allocation_enabled:
+          description: Indicates if full allocation is enabled.
+          type: bool
+          sample: false
+        is_relocation_enabled:
+          description: Indicates if tier relocation is enabled.
+          type: bool
+          sample: null
+        is_security_enabled:
+          description: Indicates if security is enabled.
+          type: bool
+          sample: null
+        is_user_authentication_enabled:
+          description: Indicates if user authentication is enabled.
+          type: bool
+          sample: null
+        is_write_protected:
+          description: Indicates if write protection is enabled.
+          type: bool
+          sample: null
+        is_write_protected_by_key:
+          description: Indicates if write protection by key is enabled.
+          type: bool
+          sample: null
+        iscsi_targets:
+          description: List of iSCSI targets associated with the volume.
+          type: list
+          elements: dict
+          sample: []
         ldev_id:
           description: Logical Device ID.
           type: int
-          sample: 0
+          sample: 10010
+        ldev_id_hex:
+          description: Logical Device ID in hexadecimal.
+          type: str
+          sample: "00:27:1A"
+        mp_blade_id:
+          description: MP blade ID.
+          type: int
+          sample: 3
         name:
           description: Name of the volume.
           type: str
-          sample: "snewar_hur_vol_0"
+          sample: "smrha-258"
         num_of_ports:
           description: Number of ports associated with the volume.
           type: int
-          sample: 1
+          sample: 2
+        nvm_subsystems:
+          description: List of NVMe subsystems associated with the volume.
+          type: list
+          elements: dict
+          sample: []
+        parent_volume_id:
+          description: Parent volume ID for snapshot volumes.
+          type: int
+          sample: -1
+        parent_volume_id_hex:
+          description: Parent volume ID in hexadecimal format.
+          type: str
+          sample: "-0:00:01"
+        parity_group_id:
+          description: Parity group ID.
+          type: str
+          sample: "1-8"
+        path_count:
+          description: Path count to the volume.
+          type: int
+          sample: 2
         pool_id:
           description: Pool ID where the volume resides.
           type: int
-          sample: 23
+          sample: 13
+        ports:
+          description: List of ports associated with the volume.
+          type: list
+          elements: dict
+          contains:
+            host_group_name:
+              description: Host group name.
+              type: str
+              sample: "1C-G00"
+            host_group_number:
+              description: Host group number.
+              type: int
+              sample: 156
+            lun:
+              description: Logical Unit Number.
+              type: int
+              sample: 26
+            port_id:
+              description: Port identifier.
+              type: str
+              sample: "CL1-C"
+          sample: [
+            {
+              "host_group_name": "1C-G00",
+              "host_group_number": 156,
+              "lun": 26,
+              "port_id": "CL1-C"
+            }
+          ]
         provision_type:
           description: Provisioning type of the volume.
           type: str
-          sample: "CVS,HDP,DRS"
+          sample: "CVS"
+        qos_settings:
+          description: QoS settings for the volume.
+          type: dict
+          sample: null
         resource_group_id:
           description: Resource group ID of the volume.
           type: int
           sample: 0
+        snapshots:
+          description: List of snapshots associated with the volume.
+          type: list
+          elements: dict
+          sample: []
+        ssid:
+          description: Subsystem ID for mainframe volumes.
+          type: str
+          sample: "000C"
         status:
           description: Current status of the volume.
           type: str
@@ -229,27 +347,35 @@ ansible_facts:
         storage_serial_number:
           description: Serial number of the storage system.
           type: str
-          sample: "810045"
+          sample: "70033"
+        tiering_policy:
+          description: Tiering policy details.
+          type: dict
+          sample: {}
         total_capacity:
           description: Total capacity of the volume.
           type: str
-          sample: "24.00GB"
+          sample: "54.71GB"
         total_capacity_in_mb:
           description: Total capacity of the volume in megabytes.
           type: float
-          sample: 24576.0
+          sample: 56023.04
         used_capacity:
           description: Used capacity of the volume.
           type: str
-          sample: "42.00MB"
+          sample: "0.00B"
         used_capacity_in_mb:
           description: Used capacity of the volume in megabytes.
           type: float
-          sample: 42.0
+          sample: 0
         virtual_ldev_id:
           description: Virtual Logical Device ID.
           type: int
           sample: -1
+        virtual_ldev_id_hex:
+          description: Virtual Logical Device ID in hexadecimal.
+          type: str
+          sample: ""
     free_ldev_ids:
       description: List of free LDEV IDs when querying for available LDEVs.
       type: list

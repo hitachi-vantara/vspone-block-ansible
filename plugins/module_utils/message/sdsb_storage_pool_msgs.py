@@ -20,3 +20,8 @@ class SDSBStoragePoolValidationMsg(Enum):
     )
     MUST_SPECIFY_NO_OF_TOLERABLE_DRIVES = "Must specify number_of_tolerable_drive_failures when rebuild_capacity_policy is Fixed."
     MUST_SPECIFY_REBUILD_CAPACITY_POLICY = "Must specify rebuild_capacity_policy to 'Fixed' when number_of_tolerable_drive_failures is specified."
+    STORAGE_POOL_EDIT_SUCCESS = "Successfully modified the storage pool settings."
+    STORAGE_POOL_EXPAND_SUCCESS = (
+        "The storage system will generate additional jobs for capacity and metadata allocation. "
+        "Please wait for these tasks to finish and then verify the storage pool capacity."
+    )

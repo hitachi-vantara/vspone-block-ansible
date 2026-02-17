@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_volume_facts
-short_description: Retrieves facts about VSP E series and VSP One Block 20 series storage systems.
+short_description: Retrieves facts about VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 description:
-  - This module gathers information about volumes in VSP E series and VSP One Block 20 series storage systems.
+  - This module gathers information about volumes in VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
   - It supports filtering by pool, server, volume nickname, capacity, and volume ID.
   - For usage examples, see
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_volume_facts.yml)
@@ -40,50 +40,62 @@ options:
     suboptions:
       pool_id:
         description: ID of the pool.
+          Required for the Get facts for volumes in a specific pool by pool ID task.
         required: false
         type: int
       pool_name:
         description: Name of the pool. if both pool_id is present, it will ignore this parameter.
+          Required for the Get facts for volumes in a specific pool by pool name task.
         required: false
         type: str
       server_id:
         description: ID of the server.
+          Required for the Get facts for volumes attached to a server by server ID task.
         required: false
         type: int
       server_nickname:
         description: Nickname of the server. if both server_id is present, it will ignore this parameter.
+          Required for the Get facts for volumes attached to a server by server nickname task.
         required: false
         type: str
       nickname:
         description: Nickname of the volume.
+          Required for the Get facts for a volume by nickname task.
         required: false
         type: str
       min_total_capacity:
         description: Minimum total capacity.
+          Required for the Get facts for volumes with capacity filters task.
         required: false
         type: str
       max_total_capacity:
         description: Maximum total capacity.
+          Required for the Get facts for volumes with capacity filters task.
         required: false
         type: str
       min_used_capacity:
         description: Minimum used capacity.
+          Required for the Get facts for volumes with capacity filters task.
         required: false
         type: str
       max_used_capacity:
         description: Maximum used capacity.
+          Required for the Get facts for volumes with capacity filters task.
         required: false
         type: str
       start_volume_id:
         description: Starting volume ID.
+          Required for the Get facts for a range of volumes by start_volume_id and count task.
         required: false
         type: str
       count:
         description: Number of volumes.
+          Required for the Get facts for a range of volumes by start_volume_id and count task.
         required: false
         type: int
       volume_id:
         description: ID of the volume.
+          Required for the Get facts for a specific volume by volume_id task.
         required: false
         type: str
 """

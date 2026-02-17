@@ -38,11 +38,18 @@ class VSPHostGroupMessage(Enum):
     REMOVE_WWN_FAILED = "Failed to remove wwn {} from host group {} error: {}"
     ADD_LUN_SUCCESS = (
         "LUN {} was successfully added to the host group {}. It may take a few minutes for the LDEV to appear in the lun_path."
-        "If it doesn't show up immediately, wait a bit and then run hostgroup facts to check again."
+        "If it doesn't show up immediately, wait a bit and then run host group facts to check again."
     )
     REMOVE_LUN_SUCCESS = "LUN {} removed successfully from host group {}."
+    REMOVE_LUN_PORT_SUCCESS = (
+        "LUN {} removed successfully from host group {} and port {}."
+    )
     ADD_LUN_FAILED = "Failed to add LUN {} to host group {} error: {}"
     REMOVE_LUN_FAILED = "Failed to remove LUN {} from host group {} error: {}"
+    HG_NUMBER_REQUIRED = "Host group number is required when multi ldev and multi port are used to present."
+    HOST_MODE_OPTION_NOT_SUPPORTED = (
+        "Host mode option is not supported on this storage system."
+    )
 
 
 class VSPHostGroupValidationMsg(Enum):

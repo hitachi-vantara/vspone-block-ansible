@@ -3,9 +3,12 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from ..common.ansible_common import normalize_ldev_id
+    from ..common.ansible_common import normalize_ldev_id, convert_to_bytes
+    from ..message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
+    from ..common.vsp_constants import AutomationConstants
+
 except ImportError:
-    from common_base_models import BaseDataClass, SingleBaseClass
+    from .common_base_models import BaseDataClass, SingleBaseClass
     from common.ansible_common import normalize_ldev_id
 
 
@@ -13,12 +16,28 @@ except ImportError:
 class PoolFactSpec:
     pool_id: Optional[int] = None
     pool_name: Optional[str] = None
+    is_mainframe: Optional[bool] = None
+    include_details: Optional[bool] = None
+    include_cache_info: Optional[bool] = None
 
 
 @dataclass
 class PoolVolumesSpec:
     parity_group_id: str = None
     capacity: str = None
+    cylinder: int = None
+
+    def __post_init__(self):
+        if self.capacity is not None and self.cylinder is not None:
+            raise ValueError(VSPStoragePoolValidateMsg.PG_ID_CAPACITY_CYLINDER.value)
+
+        if self.parity_group_id is None:
+            raise ValueError(VSPStoragePoolValidateMsg.PG_ID_CAPACITY.value)
+
+        if self.capacity is not None:
+            size_in_bytes = convert_to_bytes(self.capacity)
+            if size_in_bytes < AutomationConstants.POOL_SIZE_MIN:
+                raise ValueError(VSPStoragePoolValidateMsg.POOL_SIZE_MIN.value)
 
 
 @dataclass
@@ -50,6 +69,10 @@ class StoragePoolSpec:
     tier: Tier = None
     monitoring_mode: str = None
     should_delete_pool_volumes: bool = False
+    pool_volume_ids: List[str] = None
+    start_pool_volume_id: str = None
+    end_pool_volume_id: str = None
+    should_stop_shrinking: bool = None
 
     def __post_init__(self):
         if self.pool_volumes:
@@ -72,6 +95,17 @@ class StoragePoolSpec:
         if self.ldev_ids:
             self.ldev_ids = [normalize_ldev_id(ldev_id) for ldev_id in self.ldev_ids]
 
+        if self.pool_volume_ids is not None and (
+            self.start_pool_volume_id is not None or self.end_pool_volume_id is not None
+        ):
+            raise ValueError(
+                VSPStoragePoolValidateMsg.POOL_VOLUME_IDS_START_POOL_VOLUME_ID.value
+            )
+        if (self.start_pool_volume_id is None) != (self.end_pool_volume_id is None):
+            raise ValueError(
+                VSPStoragePoolValidateMsg.POOL_VOLUME_IDS_START_POOL_VOLUME_ID.value
+            )
+
 
 @dataclass
 class TierObject(SingleBaseClass):
@@ -84,6 +118,9 @@ class TierObject(SingleBaseClass):
     performanceRate: int = None
     progressOfReplacing: int = None
     bufferRate: int = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def camel_to_snake_dict(self):
         data = super().camel_to_snake_dict()
@@ -138,6 +175,48 @@ class CapacitiesExcludingSystemDataObject(SingleBaseClass):
 
 
 @dataclass
+class DedupeAndCompression(SingleBaseClass):
+    totalRatio: Optional[str] = None
+    compressionRatio: Optional[str] = None
+    dedupeRatio: Optional[str] = None
+    reclaimRatio: Optional[str] = None
+
+
+@dataclass
+class AcceleratedCompression(SingleBaseClass):
+    totalRatio: Optional[str] = None
+    compressionRatio: Optional[str] = None
+    reclaimRatio: Optional[str] = None
+
+
+@dataclass
+class Efficiency(SingleBaseClass):
+    isCalculated: Optional[bool] = None
+    totalRatio: Optional[str] = None
+    compressionRatio: Optional[str] = None
+    snapshotRatio: Optional[str] = None
+    provisioningRate: Optional[str] = None
+    calculationStartTime: Optional[str] = None
+    calculationEndTime: Optional[str] = None
+    dedupeAndCompression: Optional[DedupeAndCompression] = None
+    acceleratedCompression: Optional[AcceleratedCompression] = None
+
+    def __post_init__(self):
+        if self.dedupeAndCompression and not isinstance(
+            self.dedupeAndCompression, DedupeAndCompression
+        ):
+            self.dedupeAndCompression = DedupeAndCompression(
+                **self.dedupeAndCompression
+            )
+        if self.acceleratedCompression and not isinstance(
+            self.acceleratedCompression, AcceleratedCompression
+        ):
+            self.acceleratedCompression = AcceleratedCompression(
+                **self.acceleratedCompression
+            )
+
+
+@dataclass
 class VSPPfrestStoragePool(SingleBaseClass):
     poolId: Optional[int] = None
     poolName: Optional[str] = None
@@ -188,7 +267,11 @@ class VSPPfrestStoragePool(SingleBaseClass):
     effectiveCapacity: Optional[int] = None
     usedPhysicalCapacity: Optional[int] = None
     hasBlockedPoolVolume: Optional[bool] = None
+    formattedCapacity: Optional[int] = None
+    autoAddPoolVol: Optional[str] = None
+    efficiency: Optional[Efficiency] = None
     # dpVolumes: List[VSPDpVolume] = None
+    poolVolumes: List[int] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -237,6 +320,8 @@ class VSPPfrestStoragePool(SingleBaseClass):
                 )
                 for tier in self.tiers
             ]
+        if self.efficiency:
+            self.efficiency = Efficiency(**self.efficiency)
 
     def camel_to_snake_dict(self):
         """

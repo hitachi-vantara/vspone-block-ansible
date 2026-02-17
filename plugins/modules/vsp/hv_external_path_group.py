@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_external_path_group
-short_description: Manages External Path Groups in the Hitachi VSP storage systems.
+short_description: Manages External Path Groups in the VSP block storage systems.
 description:
-  - This module adds and removes external paths to the external path group in the Hitachi VSP storage systems.
+  - This module adds and removes external paths to the external path group in the VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/external_path_group.yml)
 version_added: '3.5.0'

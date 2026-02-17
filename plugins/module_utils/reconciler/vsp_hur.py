@@ -95,9 +95,16 @@ class VSPHurReconciler:
 
         pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
         logger.writeDebug("RC:create_hur:pvol={} ", pvol)
-        if not pvol:
+        if not pvol or pvol.emulationType.upper() == "NOT DEFINED":
             raise ValueError(
                 VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
+                    spec.primary_volume_id
+                )
+            )
+
+        if pvol.numOfPorts is None or pvol.numOfPorts < 1:
+            raise ValueError(
+                VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_NO_PATH.value.format(
                     spec.primary_volume_id
                 )
             )

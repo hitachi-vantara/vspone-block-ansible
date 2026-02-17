@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  role_name: hv_vsp_ndm_gad_migration_pairs
+  author: Hitachi Vantara Infrastructure Team
+  description: Create GAD (Global-Active Device) pairs on Hitachi VSP One Block storage
+  company: Hitachi Vantara
+  license: Apache-2.0
+  min_ansible_version: "2.9"
+
+  galaxy_tags:
+    - hitachi
+    - vsp
+    - storage
+    - gad
+    - replication
+
+dependencies: []

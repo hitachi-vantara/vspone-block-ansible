@@ -153,6 +153,23 @@
         var: result
 
     ######################################################################################
+    # Task Name : Delete snapshot pair along with secondary volume
+    ######################################################################################
+    - name: Delete snapshot pair
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          primary_volume_id: 100
+          mirror_unit_id: 5
+          should_delete_svol: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
     # Task Name : Delete Thin Image pairs by snapshot tree
     ######################################################################################
     - name: Delete Thin Image pairs by snapshot tree
@@ -259,7 +276,7 @@
         var: result
 
     ######################################################################################
-    # Task Name : Unassign floating snapshot pair
+    # Task Name : Unassign floating snapshot pair without deleting the secondary volume
     ######################################################################################
     - name: Unassign floating snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -269,6 +286,24 @@
           primary_volume_id: 100
           secondary_volume_id: -1
           mirror_unit_id: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Unassign floating snapshot pair and delete the secondary volume
+    ######################################################################################
+    - name: Unassign floating snapshot pair
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          primary_volume_id: 100
+          secondary_volume_id: -1
+          mirror_unit_id: 1
+          should_delete_svol: true
       register: result
 
     - name: Debug the result variable
@@ -288,7 +323,7 @@
           secondary_volume_id: 3112
           pool_id: 32
           is_data_reduction_force_copy: true
-          can_cascade: true
+          can_cascade: true # Required for restoring a snapshot from vclone
       register: result
 
     - name: Debug the result variable
@@ -357,6 +392,42 @@
         spec:
           primary_volume_id: 100
           operation_type: "start"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Create or convert a snapshot pair depending on the snapshot pair status
+    ######################################################################################
+    - name: Create or convert a snapshot pair depending on the snapshot pair status
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          primary_volume_id: 1341
+          mirror_unit_id: 4
+          operation_type: "vclone"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Restore a snapshot pair from vclone
+    # Before performing this operation, you must first create the Thin Image Advanced
+    # pair by using volumes that have the vClone attribute.
+    ######################################################################################
+    - name: Restore a snapshot pair from vclone
+      hitachivantara.vspone_block.vsp.hv_snapshot:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          primary_volume_id: 1341
+          mirror_unit_id: 4
+          operation_type: "restore"
       register: result
 
     - name: Debug the result variable

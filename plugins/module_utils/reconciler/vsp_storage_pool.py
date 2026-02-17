@@ -42,9 +42,9 @@ class VSPStoragePoolReconciler:
         if state == StateValue.ABSENT:
             return self.delete_storage_pool(spec)
         elif state == StateValue.PRESENT:
-            ret_value = self.create_update_storage_pool(spec).camel_to_snake_dict()
+            ret_value, msg = self.create_update_storage_pool(spec)
             if ret_value is None:
-                return None
+                return None, None
             # free_capacity_mb = ret_value.get("free_capacity_in_units")
             # total_capacity_mb = ret_value.get("total_capacity_in_units")
             # if free_capacity_mb:
@@ -53,7 +53,8 @@ class VSPStoragePoolReconciler:
             #     ret_value["total_capacity_in_units"] = convert_mb_to_gb(
             #         total_capacity_mb
             #     )
-            msg = "Storage pool created/updated successfully."
+            msg = "Storage pool created/updated successfully." if msg is None else msg
+            ret_value = ret_value.camel_to_snake_dict()
             return self.inject_ldev_hex(ret_value), msg
             # return self.create_update_storage_pool(spec).to_dict()
         else:

@@ -80,6 +80,12 @@ class VSPParityGroupCommonPropertiesExtractor:
             "is_accelerated_compression": bool,
             "is_encryption_enabled": bool,
             "clpr_id": int,
+            "emulation_type": str,
+            "group_type": str,
+            "number_of_spare_drives": int,
+            "number_of_remaining_spare_drives": int,
+            "raid_type": str,
+            "drive_type_name": str,
         }
 
     @log_entry_exit

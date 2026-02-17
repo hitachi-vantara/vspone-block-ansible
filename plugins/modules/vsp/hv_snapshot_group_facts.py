@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_snapshot_group_facts
-short_description: Retrieves snapshot information in units of snapshot groups from Hitachi VSP storage systems.
+short_description: Retrieves snapshot information in units of snapshot groups from VSP block storage systems.
 description:
-  - This module retrieves information about snapshots in units of snapshot groups from Hitachi VSP storage systems.
+  - This module retrieves information about snapshots in units of snapshot groups from VSP block storage systems.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snapshot_group_facts.yml)
 version_added: '3.2.0'
@@ -118,6 +118,14 @@ ansible_facts:
               description: Indicates if the snapshot data is read-only.
               type: bool
               sample: null
+            is_virtual_clone_parent_volume:
+              description: Indicates if this is a virtual clone parent volume.
+              type: bool
+              sample: false
+            is_virtual_clone_volume:
+              description: Indicates if this is a virtual clone volume.
+              type: bool
+              sample: false
             is_written_in_svol:
               description: Indicates if data is written in secondary volume.
               type: bool

@@ -16,7 +16,7 @@ GET_PROTECTION_DOMAIN_BY_ID = "v1/objects/protection-domains/{}"
 logger = Log()
 
 
-class SDSBBlockClusterInformationDirectGateway:
+class SDSBClusterInformationDirectGateway:
 
     def __init__(self, connection_info):
         self.connection_manager = SDSBConnectionManager(

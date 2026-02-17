@@ -36,11 +36,13 @@ options:
     suboptions:
       names:
         description: The names of the compute nodes.
+          Required for the Get compute nodes by names task.
         type: list
         required: false
         elements: str
       hba_name:
         description: A WWN or an iSCSI name.
+          Required for the Get compute nodes by HBA name task.
         type: str
         required: false
       vps_name:

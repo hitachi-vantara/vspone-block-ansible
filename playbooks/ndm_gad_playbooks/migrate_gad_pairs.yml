@@ -1,0 +1,54 @@
+---
+####################################################################
+# Playbook: Migrate Existing GAD Pairs (Non-Destructive Migration Only)
+#
+# This playbook performs migration of already created GAD pairs:
+# 1. Discovers volumes assigned to from the status file
+# 2. Migrates GAD pairs using non-destructive swap-split operation
+#
+#
+# Prerequisites:
+# - GAD pairs must already be created between primary and secondary storage
+# - Hitachi VSP One Block collection installed
+# - Valid credentials for both primary and secondary storage systems
+# - Proper network connectivity between storage systems
+####################################################################
+- name: Migrate Existing GAD Pairs - Discovery, Migration, Cleanup
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Host WWNs to query for existing volumes
+    connection_info:
+      address: "{{storage_address}}"
+      username: "{{vault_storage_username}}"
+      password: "{{vault_storage_secret}}"
+    secondary_connection_info:
+      address: "{{secondary_storage_address}}"
+      username: "{{vault_secondary_storage_username}}"
+      password: "{{vault_secondary_storage_secret}}"
+
+    gad_status_file: "~/logs/hitachivantara/ansible/vspone_block/gad_status_role_test.json"
+
+  tasks:
+    ####################################################################
+    # STEP 1: Migration Phase - Non-Destructive GAD Migration
+    #
+    # Purpose: Migrate GAD pairs using swap-split operation
+    # - Performs non-destructive swap-split to make secondary volumes primary
+    # - Preserves data integrity throughout the migration process
+    # - Deletes original GAD pairs from source system after migration
+    # - Generates comprehensive migration report
+    ####################################################################
+    - name: "Step 3: Perform non-destructive GAD pair migration"
+      ansible.builtin.include_role:
+        name: hitachivantara.vspone_block.hv_vsp_ndm_gad_migration_volumes
+      when:
+        - gad_status_file is defined
+      tags:
+        - migration
+        - swap_split
+        - swap_resync

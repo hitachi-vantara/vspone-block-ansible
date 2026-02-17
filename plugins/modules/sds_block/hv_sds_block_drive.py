@@ -41,10 +41,14 @@ options:
     suboptions:
       id:
         description: The ID of the drive.
+          Required for the Turn on the locator LED of a drive (Bare Metal only)
+          /Turn off the locator LED of a drive (Bare Metal only)
+          /Remove a drive tasks.
         type: str
         required: true
       should_drive_locator_led_on:
-        description: Whether to turn on the drive locator LED..
+        description: Whether to turn on the drive locator LED.
+          Required for the Turn on the locator LED of a drive (Bare Metal only) task.
         type: bool
         required: false
         default: false
@@ -145,7 +149,7 @@ drive:
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_drives_reconciler import (
-    SDSBBlockDrivesReconciler,
+    SDSBDrivesReconciler,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
@@ -178,7 +182,7 @@ class SDSBDriveManager:
         msg = ""
         registration_message = validate_ansible_product_registration()
         try:
-            sdsb_reconciler = SDSBBlockDrivesReconciler(self.connection_info)
+            sdsb_reconciler = SDSBDrivesReconciler(self.connection_info)
             drive, msg = sdsb_reconciler.reconcile_drive(self.spec, self.state)
         except Exception as e:
             self.logger.writeException(e)

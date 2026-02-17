@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_journal_volume_facts
-short_description: Retrieves information about Journal Volumes from Hitachi VSP storage systems.
+short_description: Retrieves information about Journal Volumes from VSP block storage systems.
 description:
-  - This module retrieves information about Journal Volumes from Hitachi VSP storage systems.
+  - This module retrieves information about Journal Volumes from VSP block storage systems.
   - It provides details such as journalId, journalStatus, and other relevant information..
   - Forexamples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/journal_volume_facts.yml)

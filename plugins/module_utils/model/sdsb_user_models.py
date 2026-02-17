@@ -73,3 +73,144 @@ class SdsbUserResponse(SingleBaseClass):
 @dataclass
 class SdsbUserList(BaseDataClass):
     data: List[SdsbUserResponse] = None
+
+
+@dataclass
+class PasswordComplexitySettingOfUserAuthSetting(SingleBaseClass):
+    minLength: Optional[int] = None
+    minNumberOfUpperCaseChars: Optional[int] = None
+    minNumberOfLowerCaseChars: Optional[int] = None
+    minNumberOfNumerals: Optional[int] = None
+    minNumberOfSymbols: Optional[int] = None
+    numberOfPasswordHistory: Optional[int] = None
+
+    def camel_to_snake_dict(self):
+        camel_dict = super().camel_to_snake_dict()
+        return camel_dict
+
+
+@dataclass
+class PasswordAgeSettingOfUserAuthSetting(SingleBaseClass):
+    requiresInitialPasswordReset: Optional[bool] = None
+    minAgeDays: Optional[int] = None
+    maxAgeDays: Optional[int] = None
+
+    def camel_to_snake_dict(self):
+        camel_dict = super().camel_to_snake_dict()
+        return camel_dict
+
+
+@dataclass
+class LockoutSetting(SingleBaseClass):
+    maxAttempts: Optional[int] = None
+    lockoutSeconds: Optional[int] = None
+
+    def camel_to_snake_dict(self):
+        camel_dict = super().camel_to_snake_dict()
+        return camel_dict
+
+
+@dataclass
+class SessionSettingOfUserAuthSetting(SingleBaseClass):
+    maxLifetimeSeconds: Optional[int] = None
+    maxIdleSeconds: Optional[int] = None
+
+    def camel_to_snake_dict(self):
+        camel_dict = super().camel_to_snake_dict()
+        return camel_dict
+
+
+@dataclass
+class UserAuthSetting(SingleBaseClass):
+    passwordComplexitySetting: Optional[PasswordComplexitySettingOfUserAuthSetting] = (
+        None
+    )
+    passwordAgeSetting: Optional[PasswordAgeSettingOfUserAuthSetting] = None
+    lockoutSetting: Optional[LockoutSetting] = None
+    sessionSetting: Optional[SessionSettingOfUserAuthSetting] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if "passwordComplexitySetting" in kwargs:
+            self.passwordComplexitySetting = PasswordComplexitySettingOfUserAuthSetting(
+                **kwargs["passwordComplexitySetting"]
+            )
+        if "passwordAgeSetting" in kwargs:
+            self.passwordAgeSetting = PasswordAgeSettingOfUserAuthSetting(
+                **kwargs["passwordAgeSetting"]
+            )
+        if "lockoutSetting" in kwargs:
+            self.lockoutSetting = LockoutSetting(**kwargs["lockoutSetting"])
+        if "sessionSetting" in kwargs:
+            self.sessionSetting = SessionSettingOfUserAuthSetting(
+                **kwargs["sessionSetting"]
+            )
+
+    def camel_to_snake_dict(self):
+        camel_dict = super().camel_to_snake_dict()
+        return camel_dict
+
+
+@dataclass
+class PasswordAgeSettingSpec:
+    requires_initial_password_reset: Optional[bool] = None
+    min_age_days: Optional[int] = None
+    max_age_days: Optional[int] = None
+
+
+@dataclass
+class PasswordComplexitySettingSpec:
+    min_length: Optional[int] = None
+    min_number_of_upper_case_chars: Optional[int] = None
+    min_number_of_lower_case_chars: Optional[int] = None
+    min_number_of_numerals: Optional[int] = None
+    min_number_of_symbols: Optional[int] = None
+    number_of_password_history: Optional[int] = None
+
+
+@dataclass
+class LockoutSettingSpec:
+    max_attempts: Optional[int] = None
+    lockout_seconds: Optional[int] = None
+
+
+@dataclass
+class SessionSettingSpec:
+    max_lifetime_seconds: Optional[int] = None
+    max_idle_seconds: Optional[int] = None
+
+
+@dataclass
+class UserAuthSettingSpec:
+    password_age_setting: Optional[PasswordAgeSettingSpec] = None
+    password_complexity_setting: Optional[PasswordComplexitySettingSpec] = None
+    lockout_setting: Optional[LockoutSettingSpec] = None
+    session_setting: Optional[SessionSettingSpec] = None
+
+    def __init__(self, **kwargs):
+        if (
+            "password_age_setting" in kwargs
+            and kwargs["password_age_setting"] is not None
+        ):
+            self.password_age_setting = PasswordAgeSettingSpec(
+                **kwargs["password_age_setting"]
+            )
+        if (
+            "password_complexity_setting" in kwargs
+            and kwargs["password_complexity_setting"] is not None
+        ):
+            self.password_complexity_setting = PasswordComplexitySettingSpec(
+                **kwargs["password_complexity_setting"]
+            )
+        if "lockout_setting" in kwargs and kwargs["lockout_setting"] is not None:
+            self.lockout_setting = LockoutSettingSpec(**kwargs["lockout_setting"])
+        if "session_setting" in kwargs and kwargs["session_setting"] is not None:
+            self.session_setting = SessionSettingSpec(**kwargs["session_setting"])
+
+    def is_empty(self):
+        return (
+            self.password_age_setting is None
+            and self.password_complexity_setting is None
+            and self.lockout_setting is None
+            and self.session_setting is None
+        )

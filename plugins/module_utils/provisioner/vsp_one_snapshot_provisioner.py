@@ -126,7 +126,7 @@ class VspOneSnapshotProvisioner:
     def restore_snapshot(self, spec):
         try:
             result = self.gateway.restore_snapshot(
-                spec.master_volume_id, spec.snapshot_id
+                spec.master_volume_id, spec.snapshot_id, spec.wait_for_final_state
             )
             self.connection_info.changed = True
             return result.camel_to_snake_dict()

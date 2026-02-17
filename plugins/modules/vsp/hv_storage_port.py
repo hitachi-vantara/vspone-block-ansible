@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_storage_port
-short_description: Change the storage port settings in the Hitachi VSP storage systems.
+short_description: Change the storage port settings in the VSP block storage systems.
 description:
-  - This module change the storage port settings information in the Hitachi VSP storage systems.
+  - This module change the storage port settings information in the VSP block storage systems.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storage_port.yml)
 version_added: '3.1.0'
@@ -51,16 +51,26 @@ options:
     suboptions:
       port:
         description: The port id of the specific port to retrieve.
+          Required for the Change port security setting of the storage port by port ID
+          /Change port mode setting of the storage port by port ID
+          /Change attribute setting of the storage port by port id
+          /Change fabric mode and port connection settings of the storage port by port id
+          /Perform a login test on iSCSI targets of an external storage system that is registered to a port on the local storage system
+          /Register iSCSI names of an external storage system to a port on the local storage system
+          /Unregister iSCSI names of an external storage system from a port on the local storage system
+          /Sending the ping command to a specified host tasks.
         type: str
         required: true
       port_attribute:
         description: Specify the port attribute of the port. The specifiable values are 'TAR' or 'ALL'. Use 'TAR' for Fibre Target port,
           use 'ALL' for Bidirectional port. This attribute cannot be specified at the same time as any other attribute.
+          Required for the Change attribute setting of the storage port by port id task.
         type: str
         required: false
       port_mode:
         description: Specify the operating mode of the port. The specifiable values are 'FC-NVMe' or 'FCP-SCSI'.
           This attribute cannot be specified at the same time as any other attribute.
+          Required for the Change port mode setting of the storage port by port ID task.
         type: str
         required: false
       port_speed:
@@ -70,29 +80,41 @@ options:
       fabric_mode:
         description: Fabric mode of the port. Set when this value is true. Not set when this value is false.
           When specifying this attribute, be sure to also specify the port_connection attribute.
+          Required for the Change fabric mode and port connection settings of the storage port by port id task.
         type: bool
         required: false
       port_connection:
         description: Topology setting for the port. The specifiable values are 'FCAL', 'P2P' or 'PtoP'.
           When specifying this attribute, be sure to also specify the fabric_mode attribute.
+          Required for the Change fabric mode and port connection settings of the storage port by port id task.
         type: str
         required: false
       enable_port_security:
         description: Specify whether to enable the lun security setting for the port.
+          Required for the Change port security setting of the storage port by port ID task.
         type: bool
         required: false
       external_iscsi_targets:
         description: Information about the iSCSI target of the external storage system.
+          Required for the Perform a login test on iSCSI targets of an external storage system that is registered to a port on the local storage system
+          /Register iSCSI names of an external storage system to a port on the local storage system
+          /Unregister iSCSI names of an external storage system from a port on the local storage system tasks.
         type: list
         required: false
         elements: dict
         suboptions:
           ip_address:
             description: IP address of the iSCSI target of the external storage system.
+              Required for the Perform a login test on iSCSI targets of an external storage system that is registered to a port on the local storage system
+              /Register iSCSI names of an external storage system to a port on the local storage system
+              /Unregister iSCSI names of an external storage system from a port on the local storage system tasks.
             type: str
             required: true
           name:
             description: ISCSI name of the iSCSI target of the external storage system.
+              Required for the Perform a login test on iSCSI targets of an external storage system that is registered to a port on the local storage system
+              /Register iSCSI names of an external storage system to a port on the local storage system
+              /Unregister iSCSI names of an external storage system from a port on the local storage system tasks.
             type: str
             required: true
           tcp_port:
@@ -103,6 +125,7 @@ options:
         description: >
                 Sending the ping command from a specified iSCSI port or NVMe/TCP port on the storage system to the host,
                 It will return ping results when this is provided by ignoring other parameter.
+                Required for the Sending the ping command to a specified host task.
         type: str
         required: false
 """
@@ -158,11 +181,10 @@ EXAMPLES = """
 """
 
 RETURN = """
-storagePort:
+port_info:
   description: The storage port information.
   returned: always
-  type: list
-  elements: dict
+  type: dict
   contains:
     fabric_mode:
       description: Indicates if the port is in fabric mode.
@@ -188,14 +210,23 @@ storagePort:
       description: Keep alive timer value.
       type: int
       sample: -1
+    logins:
+      description: List of login WWNs and nicknames.
+      type: list
+      elements: dict
+      contains:
+        loginWwn:
+          description: Login WWN.
+          type: str
+          sample: "50060e80212b1841"
+        wwnNickName:
+          description: WWN nickname.
+          type: str
+          sample: "-"
     loop_id:
       description: Loop ID of the port.
       type: str
-      sample: "CE"
-    lun_security_setting:
-      description: Indicates if LUN security setting is enabled.
-      type: bool
-      sample: false
+      sample: "D4"
     mac_address:
       description: MAC address of the port.
       type: str
@@ -212,23 +243,27 @@ storagePort:
     port_id:
       description: Port ID.
       type: str
-      sample: "CL8-B"
+      sample: "CL8-A"
     port_mode:
       description: Operating mode of the port.
       type: str
       sample: "FCP-SCSI"
+    port_security_setting:
+      description: Indicates if port security setting is enabled.
+      type: bool
+      sample: true
     port_speed:
       description: Speed of the port.
       type: str
-      sample: "AUT"
+      sample: "16G"
     port_type:
       description: Type of the port.
       type: str
       sample: "FIBRE"
-    storage_serial_number:
-      description: Serial number of the storage system.
+    tcp_mtu:
+      description: TCP MTU value.
       type: str
-      sample: "715035"
+      sample: ""
     tcp_port:
       description: TCP port number.
       type: str
@@ -236,7 +271,7 @@ storagePort:
     wwn:
       description: World Wide Name of the port.
       type: str
-      sample: "50060e8028274271"
+      sample: "50060e8028274270"
 """
 
 

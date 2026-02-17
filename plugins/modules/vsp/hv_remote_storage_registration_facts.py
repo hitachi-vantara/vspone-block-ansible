@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_remote_storage_registration_facts
-short_description: Retrieves remote storage registration information from Hitachi VSP storage systems.
+short_description: Retrieves remote storage registration information from VSP block storage systems.
 description:
-  - This module retrieves remote storage registration information from Hitachi VSP storage systems.
+  - This module retrieves remote storage registration information from VSP block storage systems.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/remote_storage_registration_facts.yml)
 version_added: '3.2.0'

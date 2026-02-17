@@ -132,6 +132,23 @@ class GADPairProvisioner:
     @log_entry_exit
     def create_gad_pair(self, spec, pvol):
 
+        # if (
+        #     pvol.isDataReductionShareEnabled is not None
+        #     and pvol.isDataReductionShareEnabled is True
+        #     and pvol.virtualLdevId is None
+        #     or pvol.virtualLdevId == 65534
+        #     or pvol.virtualLdevId == 65535
+        # ):
+        #     err_msg = (
+        #         GADFailedMsg.PAIR_CREATION_FAILED.value
+        #         + " "
+        #         + GADPairValidateMSG.VLDEV_ID_NOT_SET_FOR_DRS_PVOL.value.format(
+        #             pvol.ldevId
+        #         )
+        #     )
+        #     logger.writeError(err_msg)
+        #     raise ValueError(err_msg)
+
         #  auto config the is_new_group_creation
         copy_group = self.cg_gw.get_copy_group_by_name(spec)
         logger.writeDebug(f"copy_group result: {copy_group}")

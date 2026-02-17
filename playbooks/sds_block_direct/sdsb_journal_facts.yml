@@ -1,0 +1,88 @@
+---
+####################################################################
+# Example : SDSB NE Journal Facts Playbook
+####################################################################
+- name: Obtain a list of journal information
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name : Get all SDSB Journal information
+    ####################################################################
+    - name: Get all SDSB Journal information
+      hitachivantara.vspone_block.sds_block.hv_sds_block_journal_facts:
+        connection_info: "{{ connection_info }}"
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get SDSB Journal information by vps ID
+    ####################################################################
+    - name: Get SDSB Journal information by vps ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_journal_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          vps_id: "system"
+      register: result
+
+    - name: Debug the result for vps ID
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get SDSB Journal by Storage Controller ID
+    ####################################################################
+
+    - name: Get SDSB Journal information by Storage Controller ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_journal_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          storage_controller_id: "3c65e322-ac62-4966-9489-072dbccdf430"
+      register: result
+
+    - name: Debug the result for Storage Controller ID
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get SDSB Journal by number
+    ####################################################################
+
+    - name: Get SDSB Journal information by number
+      hitachivantara.vspone_block.sds_block.hv_sds_block_journal_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          number: "3"
+      register: result
+
+    - name: Debug the result for Number
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get SDSB Journal information by VPS Name
+    ####################################################################
+    - name: Get SDSB Journal information by VPS Name
+      hitachivantara.vspone_block.sds_block.hv_sds_block_journal_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          vps_name: "system"
+      register: result
+
+    - name: Debug the result for vps Name
+      ansible.builtin.debug:
+        var: result

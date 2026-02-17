@@ -80,7 +80,9 @@ class VSPReplicationPairsDirectGateway:
         for s in storage_devices["data"]:
             if str(s.get("serialNumber")) == str(serial_number):
                 return s.get("storageDeviceId")
-        raise ValueError("Storage device not found.")
+        raise ValueError(
+            f"Storage device not found not found for serial number {serial_number}."
+        )
 
     @log_entry_exit
     def get_secondary_storage_info(self, remote_connection_info):
@@ -400,10 +402,10 @@ class VSPReplicationPairsDirectGateway:
             spec.secondary_connection_info
         )
         logger.writeDebug(
-            "GW:get_copy_pair_by_pair_id:secondary_storage_info={}",
+            "GW:get_replication_pair:secondary_storage_info={}",
             secondary_storage_info,
         )
-        secondary_storage_info.get("storageDeviceId")
+        svol_storage_device_id = secondary_storage_info.get("storageDeviceId")
 
         storage_deviceId = self.get_storage_device_id(str(self.storage_serial_number))
         # remoteStorageDeviceId,copyGroupName,localDeviceGroupName,remoteDeviceGroupName, copyPairName
@@ -415,13 +417,13 @@ class VSPReplicationPairsDirectGateway:
         object_id = (
             self.copy_group_gateway.get_object_id_by_copy_group_and_copy_pair_name(spec)
         )
-        logger.writeDebug("GW:split_replication_pair:object_id={}", object_id)
+        logger.writeDebug("GW:get_replication_pair:object_id={}", object_id)
 
         if object_id is None:
             return None  # this means hur pair is absent
 
         copy_group = self.copy_group_gateway.get_copy_group_by_name(spec)
-        logger.writeDebug("GW:split_replication_pair:copy_group={}", copy_group)
+        logger.writeDebug("GW:get_replication_pair:copy_group={}", copy_group)
         headers = self.get_remote_token(spec.secondary_connection_info)
         headers["Remote-Authorization"] = headers.pop("Authorization")
         headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
@@ -436,6 +438,7 @@ class VSPReplicationPairsDirectGateway:
         if copy_group.muNumber is not None:
             snake_case_journal_pool["mirror_unit_number"] = copy_group.muNumber
         snake_case_journal_pool["pvol_storage_device_id"] = storage_deviceId
+        snake_case_journal_pool["svol_storage_device_id"] = svol_storage_device_id
         snake_case_journal_pool["pvol_storage_serial_number"] = str(
             self.storage_serial_number
         )

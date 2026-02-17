@@ -41,22 +41,30 @@ options:
     suboptions:
       name:
         description: The name of the storage node.
+          Required for the Update BMC connection information for one storage node by name task.
         type: str
         required: false
       id:
         description: The UUID of the storage node.
+          Required for the Update BMC connection information for one storage node by id task.
         type: str
         required: false
       bmc_name:
         description: The host name or IP address (IPv4) of the BMC.
+          Required for the Update BMC connection information for one storage node by id
+          /Update BMC connection information for one storage node by name tasks.
         type: str
         required: false
       bmc_user:
         description: The username for BMC connection.
+          Required for the Update BMC connection information for one storage node by id
+          /Update BMC connection information for one storage node by name tasks.
         type: str
         required: false
       bmc_password:
         description: The password for BMC connection.
+          Required for the Update BMC connection information for one storage node by id
+          /Update BMC connection information for one storage node by name tasks.
         type: str
         required: false
 """

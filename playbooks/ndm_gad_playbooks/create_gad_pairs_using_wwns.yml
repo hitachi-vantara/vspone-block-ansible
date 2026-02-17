@@ -1,0 +1,127 @@
+---
+####################################################################
+# Example: Complete GAD Migration Workflow with Non-Destructive Migration
+#
+# This playbook demonstrates a complete storage migration workflow:
+# 1. Query existing volumes by WWNs to discover LDEVs
+# 2. Create GAD pairs for discovered volumes
+# 3. Migrate GAD pairs using non-destructive swap-split
+# 4. Clean up original volumes after successful migration
+#
+# Prerequisites:
+# - Hitachi VSP One Block collection installed
+# - Valid credentials for both primary and secondary storage systems
+# - Proper network connectivity between storage systems
+# - Existing volumes assigned to host groups with specified WWNs
+####################################################################
+- name: Complete GAD Migration Workflow - Query, Create, Migrate, Cleanup
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Host WWNs to query for existing volumes
+    connection_info:
+      address: "{{storage_address}}"
+      username: "{{vault_storage_username}}"
+      password: "{{vault_storage_secret}}"
+    secondary_connection_info:
+      address: "{{secondary_storage_address}}"
+      username: "{{vault_secondary_storage_username}}"
+      password: "{{vault_secondary_storage_secret}}"
+
+    # These are the World Wide Names of hosts whose volumes need migration
+    host_wwns:
+      - "50060E801234ABCD" # Production host WWN 1
+      - "50060E805678EFGH" # Production host WWN 2
+
+    # Storage ports to query (optional - if not specified, all ports are queried)
+    ports:
+      - "CL1-A" # Primary storage port
+      - "CL1-B" # Backup storage port
+
+    # GAD Infrastructure Configuration
+    # These settings define the GAD replication environment
+    secondary_storage_ports:
+      - "CL1-A" # Secondary storage port
+
+    # Mapping of local to remote storage ports for GAD connections
+    # This mapping defines how local storage ports correspond to remote storage ports in the GAD setup
+    # It will revered for secondary remote connections
+    remote_paths:
+      - local_port: "CL1-A" # Local storage port
+        remote_port: "CL1-A" # Corresponding remote storage port
+
+    # GAD Copy Configuration
+    secondary_storage_pool_id: 1 # Remote storage pool ID
+
+    # Status tracking file for GAD operations make sure the path exists and is writable
+    # Below is the sample path; modify as needed
+    gad_status_file: "~/logs/hitachivantara/ansible/vspone_block/gad_status_role_test.json"
+
+    # Operational Settings
+    debug_mode: true # Enable detailed debug output
+
+  tasks:
+    ####################################################################
+    # STEP 1: Discovery Phase - Query Host Volumes by WWNs
+    #
+    # Purpose: Discover existing volumes assigned to specified host WWNs
+    # - Validates host mode consistency across discovered volumes
+    # - Extracts LDEV IDs for GAD pair creation
+    # - Provides detailed volume mapping information
+    ####################################################################
+    - name: "Step 1: Discover existing volumes by host WWNs"
+      ansible.builtin.include_role:
+        name: hitachivantara.vspone_block.hv_vsp_query_host_volumes_by_wwns
+      tags:
+        - discovery
+        - wwn_query
+
+    - name: Display WWN discovery results
+      ansible.builtin.debug:
+        msg:
+          - "=== STEP 1 COMPLETED: Volume Discovery ==="
+          - "Input WWNs queried: {{ host_volumes_result.input_wwns }}"
+          - "Total unique LDEVs discovered: {{ host_volumes_result.total_ldevs_found }}"
+          - "LDEV IDs found: {{ host_volumes_result.matched_ldev_ids }}"
+          - "Host mode consistency check: {{ host_volumes_result.overall_consistency }}"
+          - "Total host volume mappings: {{ host_volumes_result.total_host_volume_entries }}"
+          - "Ready for GAD pair creation: {{ host_volumes_result.overall_consistency and (host_volumes_result.total_ldevs_found | int > 0) }}"
+      tags:
+        - discovery
+        - reporting
+
+    ####################################################################
+    # STEP 2: GAD Creation Phase - Create GAD Pairs for Discovered Volumes
+    #
+    # Purpose: Establish GAD replication pairs for discovered LDEVs
+    # - Creates GAD infrastructure (resource groups, host groups, remote connections)
+    # - Establishes GAD pairs between primary and secondary storage
+    # - Configures quorum disks for GAD consistency
+    # - Only executes if volumes were found and host modes are consistent
+    ####################################################################
+    - name: "Step 2: Create GAD replication pairs for discovered volumes"
+      ansible.builtin.include_role:
+        name: hitachivantara.vspone_block.hv_vsp_ndm_gad_migration_pairs
+      vars:
+        host_volumes: "{{ host_volumes_result.host_volumes }}"
+      when:
+        - host_volumes_result.overall_consistency
+        - host_volumes_result.total_ldevs_found | int > 0
+      tags:
+        - gad_creation
+        - replication
+
+    - name: Display GAD creation results
+      ansible.builtin.debug:
+        msg:
+          - "=== STEP 2 COMPLETED: GAD Pair Creation ==="
+      when:
+        - host_volumes_result.overall_consistency
+        - host_volumes_result.total_ldevs_found | int > 0
+      tags:
+        - gad_creation
+        - reporting

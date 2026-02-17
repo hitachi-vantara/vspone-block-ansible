@@ -1,3 +1,5 @@
+import threading
+
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
@@ -31,6 +33,7 @@ class VSPStoragePortProvisioner:
         self.connection_info = connection_info
         self.portIdToPortInfoMap = None
         self.all_ports = None
+        self._lock = threading.Lock()
 
     @log_entry_exit
     def get_single_storage_port(self, port_id: str) -> PortInfo:
@@ -50,24 +53,28 @@ class VSPStoragePortProvisioner:
         return PortsInfo(data=result_ports)
 
     @log_entry_exit
-    def get_all_storage_ports(self) -> PortsInfo:
-        if self.portIdToPortInfoMap is None:
-            self.portIdToPortInfoMap = {}
-            ports = self.gateway.get_all_storage_ports()
-            for port in ports.data:
-                self.portIdToPortInfoMap[port.portId] = port
-            return ports
-        else:
-            return PortsInfo(data=list(self.portIdToPortInfoMap.values()))
+    def get_all_storage_ports(self, spec=None) -> PortsInfo:
+        with self._lock:
+            if self.portIdToPortInfoMap is None:
+                self.portIdToPortInfoMap = {}
+                ports = self.gateway.get_all_storage_ports(spec)
+                for port in ports.data:
+                    self.portIdToPortInfoMap[port.portId] = port
+                return ports
+            else:
+                return PortsInfo(data=list(self.portIdToPortInfoMap.values()))
 
     @log_entry_exit
     def get_port_type(self, port_id):
-        if self.portIdToPortInfoMap is None:
-            self.portIdToPortInfoMap = {}
-            self.all_ports = self.gateway.get_all_storage_ports()
-            for port in self.all_ports.data:
-                self.portIdToPortInfoMap[port.portId] = port
-        port = self.portIdToPortInfoMap[port_id]
+        with self._lock:
+            if self.portIdToPortInfoMap is None:
+                self.portIdToPortInfoMap = {}
+                self.all_ports = self.gateway.get_all_storage_ports()
+                for port in self.all_ports.data:
+                    self.portIdToPortInfoMap[port.portId] = port
+        port = self.portIdToPortInfoMap.get(port_id)
+        if port is None:
+            raise KeyError(f"Port '{port_id}' not found in storage ports")
         return port.portType
 
     @log_entry_exit

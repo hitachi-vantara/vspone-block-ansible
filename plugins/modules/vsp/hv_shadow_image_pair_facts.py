@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_shadow_image_pair_facts
-short_description: Retrieves information about shadow image pairs from Hitachi VSP storage systems.
+short_description: Retrieves information about shadow image pairs from VSP block storage systems.
 description:
-  - This module retrieves information about shadow image pairs from Hitachi VSP storage systems.
+  - This module retrieves information about shadow image pairs from VSP block storage systems.
   - It provides details about shadow image pair such as ID, status and other relevant information.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/shadow_image_pair_facts.yml)
@@ -29,6 +29,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.shadow_image_pair_facts_note
 notes:
   - The output parameters C(entitlement_status), C(subscriber_id) and C(partner_id) were removed in version 3.4.0.
     They were also deprecated due to internal API simplification and are no longer supported.

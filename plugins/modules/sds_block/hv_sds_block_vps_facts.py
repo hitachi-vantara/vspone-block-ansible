@@ -35,10 +35,12 @@ options:
     suboptions:
       id:
         description: ID of the VPS to retrieve information for.
+          Required for the Get VPS by ID task.
         type: str
         required: false
       name:
         description: VPS name to retrieve information for.
+          Required for the Get VPS by name task.
         type: str
         required: false
 """

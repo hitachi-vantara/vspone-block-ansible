@@ -242,7 +242,8 @@ class OpenUrlWithTelemetry:
                 audit_thread.daemon = True
                 audit_thread.start()
             if not success:
-                raise exception_message  # Exception(f"open_url failed: {exception_message}")
+                # Exception(f"open_url failed: {exception_message}")
+                raise exception_message
 
             return result
         else:
@@ -371,12 +372,18 @@ class OpenUrlWithTelemetry:
 
         finally:
             # Clean up any leftover temporary file
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
+            try:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+            except Exception:
+                pass
 
             # Optionally, clean up the lock file if no longer needed
-            if os.path.exists(lock_file):
-                os.remove(lock_file)
+            try:
+                if os.path.exists(lock_file):
+                    os.remove(lock_file)
+            except Exception:
+                pass
 
     def _handle_corrupted_file(self, corrupted=False):
         """
@@ -392,8 +399,8 @@ class OpenUrlWithTelemetry:
                 else f"usage_backup{timestamp}.json"
             )
             # Create backup directory
-            backup_dir = os.path.join(
-                os.path.dirname(self.output_file), "backup"
+            backup_dir = os.path.join(  # nosec
+                os.path.dirname(self.output_file), "backup"  # nosec
             )  # nosec
             os.makedirs(backup_dir, exist_ok=True)
 
@@ -404,7 +411,7 @@ class OpenUrlWithTelemetry:
             self.log.writeDebug(f"Moved corrupted file to {backup_file}")
 
             # Create a new empty JSON file
-            self.data = {}
+            self.data = {}  # nosec
             with open(self.output_file, "w") as file:
                 json.dump(self.data, file, indent=4)
             self.log.writeDebug(f"Created a new empty JSON file at {self.output_file}")
@@ -458,18 +465,18 @@ def process_request(apig_body):
 
 def get_consent_flag():
     # Get API key
-    global USER_CONSENT, CONSENT_FILE_PRESENT, SITE_ID
+    global USER_CONSENT, CONSENT_FILE_PRESENT, SITE_ID  # nosec
 
-    if not CONSENT_FILE_PRESENT and os.path.exists(
+    if not CONSENT_FILE_PRESENT and os.path.exists(  # nosec
         os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)  # nosec
-    ):
+    ):  # nosec
         CONSENT_FILE_PRESENT = True
-    if not USER_CONSENT and os.path.exists(
+    if not USER_CONSENT and os.path.exists(                      # nosec
         os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)  # nosec
-    ):
-        with open(
-            os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME), "r"  # nosec
-        ) as file:  # nosec
+    ):                                                           # nosec
+        with open(                                                          # nosec
+            os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME), "r"    # nosec
+        ) as file:                                                          # nosec
             consent_data = json.load(file)
             if consent_data.get("user_consent_accepted", False):
                 SITE_ID = consent_data.get("site_id")
@@ -484,7 +491,10 @@ def write_to_audit_log(url, request, response):
     """
     Writes the API call details to the audit log if enabled.
     """
+    log = Log()
+    log.writeDebug(f"write_to_audit_log: {url}")
 
-    logger.writeAudit(
-        f'API: {url}, Method: {request.get("method")}, Data: {request.get("data", None)}, Response Status: {response.status}'
-    )
+    if response is not None:
+        logger.writeAudit(
+            f'API: {url}, Method: {request.get("method")}, Data: {request.get("data", None)}, Response Status: {response.status}'
+        )

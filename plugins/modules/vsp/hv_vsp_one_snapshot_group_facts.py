@@ -11,10 +11,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_snapshot_group_facts
-short_description: Retrieves snapshot group information from VSP E series and VSP One Block 20 series storage systems.
+short_description: Retrieves snapshot group information from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 description:
-  - This module retrieves snapshot group information from VSP E series and VSP One Block 20 series storage systems.
-  - Utilizes the Hitachi Virtual Storage Platform One Simple API for snapshot group facts retrieval across VSP one B20 series and VSP E series models.
+  - This module retrieves snapshot group information from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for snapshot group facts retrieval across VSP One B20 series,
+    VSP One B80 series, and VSP E series models.
   - Retrieves detailed information about snapshot groups including individual snapshots within each group.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_snapshot_group_facts.yml)

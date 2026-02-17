@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_nvm_subsystems
-short_description: Manages NVM subsystems on Hitachi VSP storage systems.
+short_description: Manages NVM subsystems on VSP block storage systems.
 description:
-  - This module allows creation, deletion, and other operations on NVM subsystems on Hitachi VSP storage systems.
+  - This module allows creation, deletion, and other operations on NVM subsystems on VSP block storage systems.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/nvm_subsystems.yml)
 version_added: '3.2.0'
@@ -134,7 +134,7 @@ options:
         required: false
         suboptions:
           ldev_id:
-            description: The LDEV ID of the namespace.
+            description: The LDEV ID of the namespace. Can be decimal or hexadecimal.
               Required for the Create an NVM Subsystem with a specific ID
               /Create an NVM Subsystem with a free ID
               /Add namespaces and namespace paths to an NVM Subsystem with a specific ID

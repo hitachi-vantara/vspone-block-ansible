@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_hg
-short_description: Manages host group on Hitachi VSP storage system.
+short_description: Manages host group on VSP block storage system.
 description:
   - This module provides the following host group management operations
   - 1. create host group.
@@ -82,7 +82,7 @@ options:
           /Asymmetric access priority level for ALUA host group/Release the host reservation status by specifying a host group
           /Release the host reservation status by specifying the LU path tasks.
         type: str
-        required: true
+        required: false
       wwns:
         description: List of host WWN to add or remove. Required for the Create a host group/Add WWNs to a host group
           /Remove WWNs from a host group tasks.
@@ -196,6 +196,25 @@ options:
         type: str
         required: false
         choices: ['low', 'high']
+      lun_paths:
+        description: List of LUN path entries to be modified. Each entry describes an LDEV mapping and path metadata.
+        type: list
+        elements: dict
+        required: false
+        suboptions:
+          ldev:
+            description: Logical device ID.
+            type: str
+            required: true
+          lun:
+            description: LUN number.
+            type: str
+            required: false
+      ports:
+        description: List of ports associated with the host group.
+        type: list
+        elements: str
+        required: false
 """
 
 EXAMPLES = """

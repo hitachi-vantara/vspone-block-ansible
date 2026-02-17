@@ -3,7 +3,7 @@ import time
 from typing import List, Dict
 
 try:
-    from ..common.ansible_common import log_entry_exit, volume_id_to_hex_format
+    from ..common.ansible_common import log_entry_exit
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
     from ..common.hv_log import Log
@@ -23,10 +23,10 @@ try:
         DirectSnapshotsInfo,
         DirectSnapshotInfo,
         UAIGSnapshotInfo,
+        SnapshotReconcileSpec,
     )
     from .vsp_volume_prov import VSPVolumeProvisioner
     from .vsp_host_group_provisioner import VSPHostGroupProvisioner
-    from .vsp_iscsi_target_provisioner import VSPIscsiTargetProvisioner
     from .vsp_storage_port_provisioner import VSPStoragePortProvisioner
 
 except ImportError:
@@ -42,9 +42,8 @@ except ImportError:
     from .vsp_volume_prov import VSPVolumeProvisioner
     from .vsp_storage_port_provisioner import VSPStoragePortProvisioner
     from .vsp_host_group_provisioner import VSPHostGroupProvisioner
-    from .vsp_iscsi_target_provisioner import VSPIscsiTargetProvisioner
     from .vsp_nvme_provisioner import VSPNvmeProvisioner
-    from common.ansible_common import log_entry_exit, volume_id_to_hex_format
+    from common.ansible_common import log_entry_exit
     from model.vsp_host_group_models import VSPHostGroupInfo
     from model.vsp_snapshot_models import (
         DirectSnapshotsInfo,
@@ -137,7 +136,7 @@ class VSPHtiSnapshotProvisioner:
 
     @log_entry_exit
     def host_group_for_ldev_id(self, ldev_id):
-        volume = self.vol_provisioner.get_volume_by_ldev(ldev_id)
+        volume = self.vol_provisioner.get_volume_by_ldev(ldev_id, include_drs=False)
         self.logger.writeDebug(
             "PROV:20250324 volume = {}",
             volume,
@@ -185,7 +184,7 @@ class VSPHtiSnapshotProvisioner:
 
     @log_entry_exit
     def nvm_subsystem_name_for_ldev_id(self, ldev_id):
-        volume = self.vol_provisioner.get_volume_by_ldev(ldev_id)
+        volume = self.vol_provisioner.get_volume_by_ldev(ldev_id, include_drs=False)
         if volume.nvmSubsystemId:
             nvm_subsystem_name = self.get_nvm_subsystem_name(volume)
             self.logger.writeDebug(
@@ -231,7 +230,7 @@ class VSPHtiSnapshotProvisioner:
         # the pool_id is not required for the new snapshot creation
         # if none, use the pvol pool_id
         if spec.pool_id is None:
-            pvol = self.vol_provisioner.get_volume_by_ldev(spec.pvol)
+            pvol = self.vol_provisioner.get_volume_by_ldev(spec.pvol, include_drs=False)
             self.logger.writeDebug(f"20250324 pvol: {pvol}")
             if pvol.emulationType == VolumePayloadConst.NOT_DEFINED:
                 err_msg = VSPSnapShotValidateMsg.PVOL_NOT_FOUND.value
@@ -276,80 +275,15 @@ class VSPHtiSnapshotProvisioner:
         if ssp.svolLdevId is None:
             # floating snapshot
             return
-        svol = self.vol_provisioner.get_volume_by_ldev(ssp.svolLdevId)
-        self.delete_nvmss_namespace(ssp.svolLdevId, svol)
+        svol = self.vol_provisioner.get_volume_by_ldev(
+            ssp.svolLdevId, include_drs=False
+        )
+        if svol.nvmSubsystemId:
+            self.delete_nvmss_namespace(ssp.svolLdevId, svol)
         if svol.ports is not None and len(svol.ports) > 0:
             for hg_info in svol.ports:
                 self.logger.writeDebug(f"20250324 hg_info: {hg_info}")
-                port_type = self.get_port_type(hg_info["portId"])
-                if port_type == "ISCSI":
-                    hg_provisioner = VSPIscsiTargetProvisioner(self.connection_info)
-                    # get the hg with the full name
-                    hg = hg_provisioner.get_iscsi_target_by_id(
-                        hg_info["portId"], hg_info["hostGroupNumber"]
-                    )
-                    self.logger.writeDebug(f"20250324 hg: {hg}")
-                    # get the hg with the attached luns info
-                    hg = hg_provisioner.get_one_iscsi_target(
-                        hg_info["portId"], hg.iscsiName, None
-                    ).data
-                    self.logger.writeDebug(f"20250324 hg: {hg}")
-                    hg_provisioner.delete_luns_from_iscsi_target(
-                        hg, luns=[ssp.svolLdevId], serial=None
-                    )
-                else:
-
-                    # option #1
-                    # hg_provisioner = VSPHostGroupProvisioner(self.connection_info)
-                    # this call is getting 500 since its trying to get all hgs
-                    # hg = hg_provisioner.get_one_host_group_using_hg_port_id(
-                    #     hg_info["portId"], hg_info["hostGroupNumber"]
-                    # )
-                    # self.logger.writeDebug(f"20250324 hg: {hg}")
-                    # hg = hg_provisioner.get_one_host_group(
-                    #     hg_info["portId"], hg.hostGroupName, None).data
-                    # # we need the hg with the full name
-                    # self.logger.writeDebug(f"20250324 hg: {hg}")
-                    # # unpresent the svol from the host group
-                    # hg_provisioner.delete_luns_from_host_group(hg, luns=[ssp.svolLdevId])
-
-                    # option #2, the hostGroupName is incomplete from pf-rest
-                    # hg_provisioner = VSPHostGroupProvisioner(self.connection_info)
-                    # for hg_info in svol.ports:
-                    #     hg = hg_provisioner.get_one_host_group(
-                    #         hg_info["portId"], hg_info["hostGroupName"]
-                    #     ).data
-                    #     self.logger.writeDebug(f"20250324 hg_info: {hg_info}")
-                    #     self.logger.writeDebug(f"20250324 hg: {hg}")
-                    #     hg_provisioner.delete_luns_from_host_group(hg, luns=[ssp.svolLdevId])
-
-                    hg_provisioner = VSPHostGroupProvisioner(self.connection_info)
-                    # query for the hg.lunPaths
-                    hgs = hg_provisioner.get_host_groups(
-                        None, None, volume_id_to_hex_format(ssp.svolLdevId), ["ldev"]
-                    )
-                    for hg_info in svol.ports:
-                        for hg in hgs.data:
-                            # the name in hg_info is not the full name, its 16 char max
-                            self.logger.writeDebug(f"20250324 this hg_info: {hg_info}")
-                            if hg.hostGroupId != hg_info["hostGroupNumber"]:
-                                continue
-                            if hg.port != hg_info["portId"]:
-                                continue
-                            self.logger.writeDebug(
-                                f"20250324 that hg: {hg.hostGroupId}"
-                            )
-                            self.logger.writeDebug(f"20250324 that hg: {hg.port}")
-                            self.logger.writeDebug(
-                                f"20250324 that hg.lunPaths: {hg.lunPaths}"
-                            )
-                            self.logger.writeDebug(
-                                f"20250324 that hg full name: {hg.hostGroupName}"
-                            )
-                            hg_provisioner.delete_luns_from_host_group(
-                                hg, luns=[ssp.svolLdevId]
-                            )
-
+                self.vol_provisioner.delete_lun_path(hg_info)
         # delete the svol
         force_execute = (
             True
@@ -371,7 +305,8 @@ class VSPHtiSnapshotProvisioner:
     def add_remove_svol_to_snapshot(self, spec, ssp):
         if spec.svol is not None and spec.svol == -1 and ssp.svolLdevId is not None:
             self.gateway.unassign_svol_to_snapshot(spec.pvol, spec.mirror_unit_id)
-            self.delete_svol_force(ssp)
+            if spec.should_delete_svol:
+                self.delete_svol_force(ssp)
             self.connection_info.changed = True
         elif spec.svol is not None and spec.svol >= 0 and ssp.svolLdevId is None:
             # assign svol to the floating snapshot
@@ -389,7 +324,8 @@ class VSPHtiSnapshotProvisioner:
             #  remove the svol from the snapshot first then assign
             self.check_for_pegasus(ssp)
             self.gateway.unassign_svol_to_snapshot(spec.pvol, spec.mirror_unit_id)
-            self.delete_svol_force(ssp)
+            if spec.should_delete_svol:
+                self.delete_svol_force(ssp)
             #  assign the new svol to the snapshot
             self.gateway.assign_svol_to_snapshot(
                 spec.pvol, spec.mirror_unit_id, spec.svol
@@ -506,7 +442,7 @@ class VSPHtiSnapshotProvisioner:
         return self.create_snapshot_auto_svol(spec)
 
     @log_entry_exit
-    def create_snapshot_auto_svol(self, spec):
+    def create_snapshot_auto_svol(self, spec: SnapshotReconcileSpec):
         self.logger.writeDebug(f"20250324 spec: {spec}")
         svol_id, port = self.create_snapshot_svol(spec)
         try:
@@ -538,7 +474,6 @@ class VSPHtiSnapshotProvisioner:
                 self.logger.writeDebug(
                     f"Exception in create_snapshot failure cleanup: {str(e2)}"
                 )
-
             self.logger.writeException(e)
             raise e
         self.logger.writeDebug(f"mirror_unit_id and pvol_id: {result}")
@@ -564,7 +499,7 @@ class VSPHtiSnapshotProvisioner:
     def is_volume_defined(self, svol_id):
         if svol_id is None or svol_id == -1:
             return False, None
-        svol = self.vol_provisioner.get_volume_by_ldev(svol_id)
+        svol = self.vol_provisioner.get_volume_by_ldev(svol_id, include_drs=False)
         self.logger.writeDebug(f"20250324 svol: {svol}")
         if svol is None:
             return False, None
@@ -580,7 +515,7 @@ class VSPHtiSnapshotProvisioner:
         self.logger.writeDebug(f"20250324 svol_id: {svol_id}")
         hg_provisioner = VSPHostGroupProvisioner(self.connection_info)
 
-        pvol = self.vol_provisioner.get_volume_by_ldev(spec.pvol)
+        pvol = self.vol_provisioner.get_volume_by_ldev(spec.pvol, include_drs=True)
         if pvol.emulationType == VolumePayloadConst.NOT_DEFINED:
             err_msg = VSPSnapShotValidateMsg.PVOL_NOT_FOUND.value
             self.logger.writeError(err_msg)
@@ -672,12 +607,13 @@ class VSPHtiSnapshotProvisioner:
                 )
 
                 hg_provisioner.add_luns_to_host_group(hg, luns=[svol_id])
-                svol = self.vol_provisioner.get_volume_by_ldev(svol_id)
+                svol = self.vol_provisioner.get_volume_by_ldev(
+                    svol_id, include_drs=False
+                )
                 self.logger.writeDebug(f"20250324 created_volume svol: {svol}")
                 if svol.ports:
                     hg_info = svol.ports[0]
             # Assign the svol and pvol to the host group
-
         return svol_id, hg_info
 
     @log_entry_exit
@@ -736,14 +672,17 @@ class VSPHtiSnapshotProvisioner:
         return resp
 
     @log_entry_exit
-    def delete_snapshot(self, pvol: int, mirror_unit_id: int):
+    def delete_snapshot(
+        self, pvol: int, mirror_unit_id: int, should_delete_svol: bool = False
+    ):
         try:
             ssp = self.get_one_snapshot(pvol, mirror_unit_id)
         except ValueError as e:
             return str(e)
         self.logger.writeDebug(f"20250324 ssp.svolLdevId: {ssp.svolLdevId}")
         self.gateway.delete_snapshot(pvol, mirror_unit_id)
-        self.delete_svol_force(ssp)
+        if should_delete_svol:
+            self.delete_svol_force(ssp)
         self.connection_info.changed = True
         return
 
@@ -840,7 +779,12 @@ class VSPHtiSnapshotProvisioner:
             else:
                 raise e
 
+        if spec.wait_for_final_state:
+            self.__check_snapshot_group_status(spec, PairStatus.PSUS)
+
         if spec.retention_period is not None:
+            if spec.wait_for_final_state is None:
+                self.__check_snapshot_group_status(spec, PairStatus.PSUS)
             self.add_retention_period(
                 spec.retention_period, group_id=spec.snapshot_group_id
             )
@@ -857,6 +801,10 @@ class VSPHtiSnapshotProvisioner:
         data = self.gateway.restore_snapshot_using_ssg(
             spec.snapshot_group_id, spec.auto_split
         )
+
+        if spec.wait_for_final_state:
+            self.__check_snapshot_group_status(spec, PairStatus.PAIR)
+
         self.connection_info.changed = True
         return data
 
@@ -867,6 +815,10 @@ class VSPHtiSnapshotProvisioner:
             # UCA-2602 for the case where the snapshot is already in PAIR status, do nothing, removed the check
             pass
         data = self.gateway.resync_snapshot_using_ssg(spec.snapshot_group_id)
+
+        if spec.wait_for_final_state:
+            self.__check_snapshot_group_status(spec, PairStatus.PAIR)
+
         self.connection_info.changed = True
         return data
 
@@ -953,3 +905,52 @@ class VSPHtiSnapshotProvisioner:
     def get_port_type(self, port_id):
         port_type = self.port_prov.get_port_type(port_id)
         return port_type
+
+    @log_entry_exit
+    def create_vclone_from_snapshot(self, pvol, mirror_unit_id):
+        ret_value = self.gateway.create_vclone_from_snapshot(pvol, mirror_unit_id)
+        self.connection_info.changed = True
+        return ret_value
+
+    @log_entry_exit
+    def convert_vclone_from_snapshot(self, pvol, mirror_unit_id):
+        ret_value = self.gateway.convert_vclone_from_snapshot(pvol, mirror_unit_id)
+        self.connection_info.changed = True
+        return ret_value
+
+    @log_entry_exit
+    def create_vclone_from_snapshot_group_name(self, sn_group_name):
+        ret_value = self.gateway.create_vclone_from_snapshot_group_name(sn_group_name)
+        self.connection_info.changed = True
+        return ret_value
+
+    @log_entry_exit
+    def convert_vclone_from_snapshot_group_name(self, sn_group_name):
+        ret_value = self.gateway.convert_vclone_from_snapshot_group_name(sn_group_name)
+        self.connection_info.changed = True
+        return ret_value
+
+    @log_entry_exit
+    def restore_snapshot_from_vclone(self, pvol, mirror_unit_id):
+        ret_value = self.gateway.restore_snapshot_from_vclone(pvol, mirror_unit_id)
+        self.connection_info.changed = True
+        return ret_value
+
+    @log_entry_exit
+    def restore_snapshots_by_snapshot_group_name(self, sn_group_name):
+        ret_value = self.gateway.restore_snapshots_by_snapshot_group_name(sn_group_name)
+        self.connection_info.changed = True
+        return ret_value
+
+    def __check_snapshot_group_status(self, spec, status):
+        retryCount = 0
+        while retryCount < 30:
+            snapshots = self.get_snapshots_by_grp_name(spec.snapshot_group_name)
+            all_in_pair = all(
+                snapshot.status == status for snapshot in snapshots.snapshots.data
+            )
+            if all_in_pair:
+                break
+            retryCount = retryCount + 1
+            self.logger.writeDebug(f"Polling for restore by gid status: {retryCount}")
+            time.sleep(20)

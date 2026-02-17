@@ -1,0 +1,22 @@
+---
+####################################################################
+# Default variables for hv_vsp_one_query_host_volumes_by_wwns role
+####################################################################
+
+# Debug mode - set to true to enable debug output
+hv_vsp_query_host_volumes_by_wwns_debug_mode: true
+
+# Default empty list for host WWNs (should be overridden by caller)
+hv_vsp_query_host_volumes_by_wwns_host_wwns: []
+# Example of expected hv_vsp_query_host_volumes_by_wwns_host_wwns format:
+# hv_vsp_query_host_volumes_by_wwns_host_wwns:
+#   - "1111111111111111"
+#   - "2222222222222222"
+#   - "3333333333333333"
+
+# Optional: Specify specific ports to query (if not provided, all ports will be queried)
+# ports: []
+# Example:
+# ports:
+#   - "CL1-A"
+#   - "CL2-B"

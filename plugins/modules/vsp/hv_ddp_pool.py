@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_ddp_pool
-short_description: Manages DDP Pools on Hitachi VSP storage systems.
+short_description: Manages DDP Pools on VSP block storage systems.
 description: >
-  - This module manages DDP Pools on Hitachi VSP storage systems.
+  - This module manages DDP Pools on VSP block storage systems.
   - It allows for the creation, deletion, and modification of DDP Pools.
   - This module supports only on VSP One storage systems.
   - For examples go to URL
@@ -75,6 +75,11 @@ options:
             description: Specify at least 9 for the number of data drives. if not specified, the number of data drives will be selected with recommend count.
             type: int
             required: false
+      raid_level:
+        description: Specify the RAID level for the drives in the DDP Pool. Valid values are 'raid5', 'raid6'.
+          If not specified, the default value is 'raid5'.
+        type: str
+        required: false
 """
 
 EXAMPLES = """

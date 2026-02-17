@@ -3,20 +3,15 @@ try:
     from ..common.hv_constants import GatewayClassTypes
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
-    from .vsp_remote_storage_registration_provisioner import (
-        VSPRemoteStorageRegistrationProvisioner,
-    )
     from ..message.vsp_remote_connection_msgs import VSPRemoteConnectionMSG
+    from .vsp_remote_connection_provisioner import VSPRemoteConnectionProvisioner
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
-    from .vsp_remote_storage_registration_provisioner import (
-        VSPRemoteStorageRegistrationProvisioner,
-    )
     from message.vsp_remote_connection_msgs import VSPRemoteConnectionMSG
-
+    from vsp_remote_connection_provisioner import VSPRemoteConnectionProvisioner
 
 R9_MODEL_NAME = "VSP 5"
 R9 = "R9"
@@ -32,13 +27,12 @@ class VSPIscsiRemoteConnectionProvisioner:
             connection_info, GatewayClassTypes.VSP_ISCSI_REMOTE_CONNECTION
         )
         self.connection_info = connection_info
+        self.remote_serial = None
 
-        self.remote_storage_system_gw = VSPRemoteStorageRegistrationProvisioner(
-            connection_info
-        )
+        self.remote_prov = VSPRemoteConnectionProvisioner(connection_info)
+
         self.remote_storage_type_id = None
         self.remote_storage_device_id = None
-        self.remote_serial = None
 
     @log_entry_exit
     def get_all_iscsi_remote_connections(
@@ -60,7 +54,7 @@ class VSPIscsiRemoteConnectionProvisioner:
         spec.object_id = f"{spec.local_port},{self.remote_serial},{self.remote_storage_type_id},{spec.remote_port}"
 
         existing_remote = self.get_iscsi_remote_connection_by_id(spec.object_id)
-        if not existing_remote:
+        if existing_remote is None:
             response = self.gateway.create_iscsi_remote_connection(spec)
             self.connection_info.changed = True
             existing_remote = self.get_iscsi_remote_connection_by_id(spec.object_id)
@@ -70,7 +64,7 @@ class VSPIscsiRemoteConnectionProvisioner:
     def delete_iscsi_remote_connection(self, spec):
         spec.object_id = f"{spec.local_port},{self.remote_serial},{self.remote_storage_type_id},{spec.remote_port}"
         rc = self.get_iscsi_remote_connection_by_id(spec.object_id)
-        if not rc:
+        if rc is None:
             return VSPRemoteConnectionMSG.REMOTE_CONNECTIONS_NOT_FOUND.value
         response = self.gateway.delete_iscsi_remote_connection(spec.object_id)
         self.connection_info.changed = True
@@ -80,18 +74,9 @@ class VSPIscsiRemoteConnectionProvisioner:
         connections = self.get_all_iscsi_remote_connections()
         return connections.data_to_snake_case_list()
 
-    @log_entry_exit
-    def get_remote_connection_info(self):
-        basic_info = self.remote_storage_system_gw.get_remote_storages_from_local()
-        for storage in basic_info.data:
-            if storage.serialNumber == int(self.remote_serial):
-                self.remote_storage_device_id = storage.storageDeviceId
-                self.remote_storage_type_id = (
-                    R9 if R9_MODEL_NAME in storage.model else M8
-                )
-                return basic_info
-        raise ValueError(
-            VSPRemoteConnectionMSG.REMOTE_STORAGE_IS_NOT_REGISTERED.value.format(
-                self.remote_serial
-            )
-        )
+    def _get_remote_connection_info(self):
+        self.remote_prov.remote_serial = self.remote_serial
+        self.remote_prov.get_remote_connection_info()
+
+        self.remote_storage_type_id = self.remote_prov.remote_storage_type_id
+        self.remote_storage_device_id = self.remote_prov.remote_storage_device_id

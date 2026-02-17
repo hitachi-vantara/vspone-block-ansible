@@ -5,17 +5,16 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 
 DOCUMENTATION = r"""
 ---
 module: hv_vsp_one_snapshot
-short_description: Manages snapshots on VSP E series and VSP One Block 20 series storage systems.
+short_description: Manages snapshots on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 description:
   - This module enables creation, modification, and deletion of snapshots.
-  - Utilizes the Hitachi Virtual Storage Platform One Simple API for snapshot management across VSP one B20 series and VSP E series models.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for snapshot management across VSP One B20 series, VSP One B80 series, and VSP E series models.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_snapshot.yml)
 version_added: '4.4.0'
@@ -145,54 +144,57 @@ RETURN = """
 snapshots:
   description: Snapshot information returned after operation. For map operation, it returns the information about the mapped volume.
   returned: always
-  type: dict
+  type: list
+  elements: dict
   contains:
     id:
       description: Master volume ID of the snapshot and the snapshot ID, linked by a comma.
       type: str
-      sample: "1445,4"
+      sample: "6376,3"
     is_volume_capacity_expanding:
-      description: Master volume ID of the snapshot and the snapshot ID, linked by a comma.
+      description: Indicates if the volume capacity is expanding.
       type: bool
       sample: false
     mapped_volume_id:
-      description: ID of the volume to be created from the snapshots. This attribute is obtained
-        only if the ID of the volume for which the snapshot was created is defined.
+      description: ID of the volume to be created from the snapshots. -1 if not mapped.
       type: int
-      sample: 1445
+      sample: -1
     mapped_volume_id_hex:
-      description: Mapped volume ID of the snapshot in hexadecimal.
+      description: Mapped volume ID of the snapshot in hexadecimal. Empty if not mapped.
       type: str
-      sample: "00:05:A5"
+      sample: ""
     master_volume_id:
       description: Master volume ID of the snapshot.
       type: int
-      sample: 1445
+      sample: 6376
     master_volume_id_hex:
       description: Master volume ID of the snapshot in hexadecimal.
       type: str
-      sample: "00:05:A5"
+      sample: "00:18:E8"
     pool_id:
       description: ID of the pool in which the differential data of the snapshots is stored.
       type: int
-      sample: 1
+      sample: 13
     retention_period:
-      description: Remaining Retention Time (hours) of the snapshot. If the snapshot data
-        retention period is not set or the snapshot data retention period has expired, 0 is obtained.
+      description: Remaining Retention Time (hours) of the snapshot. 0 if not set or expired.
       type: int
       sample: 0
     root_volume_id:
       description: ID of the root volume of the snapshots.
       type: int
-      sample: 104
+      sample: 6376
+    root_volume_id_hex:
+      description: Root volume ID of the snapshot in hexadecimal.
+      type: str
+      sample: "00:18:E8"
     snapshot_date:
       description: Date and time when the snapshot was created.
       type: str
-      sample: "2025-08-28T18:12:39Z"
+      sample: "2025-10-15T13:07:18Z"
     snapshot_group_name:
       description: Snapshot group name.
       type: str
-      sample: "test_sp_group"
+      sample: "sn_ti_group_6376"
     snapshot_id:
       description: Snapshot ID. The mirror unit number is obtained.
       type: int
@@ -205,27 +207,28 @@ snapshots:
       description: Type of snapshot.
       type: str
       sample: "Snapshot"
-    used_capacity__in_mb_per_root_volume:
-      description: The amount of disk space (MiB) occupied by differential information and
-        control information used by the snapshot group created from the same volume.
+    used_capacity_per_root_volume:
+      description: The amount of disk space (MiB) occupied by differential information and control information used by
+        the snapshot group created from the same volume.
       type: int
       sample: 0
 """
 
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_one_snapshot import (
-    VspOneSnapshotReconciler,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
-    Log,
+
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPOneSnapshotArguments,
     VSPParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
-    validate_ansible_product_registration,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
 )
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_one_snapshot import (
+    VspOneSnapshotReconciler,
+)
+from ansible.module_utils.basic import AnsibleModule
 
 
 class VSPOneSnapshot:

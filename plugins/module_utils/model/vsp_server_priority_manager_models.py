@@ -5,7 +5,7 @@ try:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from ..common.ansible_common import normalize_ldev_id
 except ImportError:
-    from common_base_models import BaseDataClass, SingleBaseClass
+    from .common_base_models import BaseDataClass, SingleBaseClass
     from common.ansible_common import normalize_ldev_id
 
 

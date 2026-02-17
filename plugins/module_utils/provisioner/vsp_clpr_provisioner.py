@@ -54,7 +54,6 @@ class VSPClprProvisioner:
             logger.writeDebug("PROV:get_all_clprs:time={}", response)
             return response
         except Exception as e:
-            # logger.writeError(MessageID.ERR_GetCopyGroups)
             logger.writeDebug(str(e))
             raise (e)
 
@@ -191,6 +190,16 @@ class VSPClprProvisioner:
         except Exception as e:
             logger.writeDebug(str(e))
             raise (e)
+
+    @log_entry_exit
+    def assign_ldev_to_clpr(self, spec):
+        """Assign LDEV to CLPR"""
+        return self.provisioner.assign_ldev_to_clpr(spec)
+
+    @log_entry_exit
+    def assign_parity_group_to_clpr(self, spec):
+        """Assign parity group to CLPR"""
+        return self.provisioner.assign_parity_group_to_clpr(spec)
 
     @log_entry_exit
     def delete_clpr(self, spec):

@@ -6,7 +6,6 @@ try:
         get_size_from_byte_format_capacity,
         dicts_to_dataclass_list,
     )
-    from ..common.hv_constants import ConnectionTypes
     from ..common.hv_log import Log
     from ..common.vsp_constants import DEFAULT_NAME_PREFIX
     from ..model.vsp_shadow_image_pair_models import (
@@ -29,7 +28,6 @@ except ImportError:
         get_size_from_byte_format_capacity,
         dicts_to_dataclass_list,
     )
-    from common.hv_constants import ConnectionTypes
     from common.hv_log import Log
     from common.vsp_constants import DEFAULT_NAME_PREFIX
     from model.vsp_shadow_image_pair_models import (
@@ -67,15 +65,9 @@ class VSPShadowImagePairProvisioner:
         else:
             shadow_image_pairs = self.gateway.get_all_shadow_image_pairs(
                 serial, refresh
-            )
-            shadow_image_pairs = shadow_image_pairs.data_to_list()
-
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            shadow_image_pairs = self.fill_additional_info_for_si_pairs(
-                shadow_image_pairs
-            )
-
-        return shadow_image_pairs
+            ).data
+        shadow_image_pairs = self.fill_additional_info_for_si_pairs(shadow_image_pairs)
+        return shadow_image_pairs.data_to_list()
 
     @log_entry_exit
     def host_group_for_ldev_id(self, ldev_id):
@@ -91,20 +83,12 @@ class VSPShadowImagePairProvisioner:
     @log_entry_exit
     def fill_host_group_info_for_one_si_pair(self, shadow_image_pair):
         logger.writeDebug(f"20250324 shadow_image_pair= {shadow_image_pair}")
-        if isinstance(shadow_image_pair, dict):
-            pvol = shadow_image_pair["primaryVolumeId"]
-            svol = shadow_image_pair["secondaryVolumeId"]
-            if pvol:
-                shadow_image_pair["pvolHostGroups"] = self.host_group_for_ldev_id(pvol)
-            if svol:
-                shadow_image_pair["svolHostGroups"] = self.host_group_for_ldev_id(svol)
-        else:
-            pvol = shadow_image_pair.primaryVolumeId
-            svol = shadow_image_pair.secondaryVolumeId
-            if pvol:
-                shadow_image_pair.pvolHostGroups = self.host_group_for_ldev_id(pvol)
-            if svol:
-                shadow_image_pair.svolHostGroups = self.host_group_for_ldev_id(svol)
+        pvol = shadow_image_pair.primaryVolumeId
+        svol = shadow_image_pair.secondaryVolumeId
+        if pvol:
+            shadow_image_pair.pvolHostGroups = self.host_group_for_ldev_id(pvol)
+        if svol:
+            shadow_image_pair.svolHostGroups = self.host_group_for_ldev_id(svol)
 
         return shadow_image_pair
 
@@ -116,31 +100,21 @@ class VSPShadowImagePairProvisioner:
             new_si_pair = self.fill_nvm_subsystem_info_for_one_si_pair(si)
             new_si_pair = self.fill_host_group_info_for_one_si_pair(new_si_pair)
             new_shadow_image_pairs.append(new_si_pair)
-        return new_shadow_image_pairs
+        return VSPShadowImagePairsInfo(data=new_shadow_image_pairs)
 
     @log_entry_exit
     def fill_nvm_subsystem_info_for_one_si_pair(self, shadow_image_pair):
         logger.writeDebug(
             f"fill_nvm_subsystem_info_for_one_si_pair:shadow_image_pair= {shadow_image_pair}"
         )
-        if isinstance(shadow_image_pair, dict):
-            pvol = shadow_image_pair["primaryVolumeId"]
-            svol = shadow_image_pair["secondaryVolumeId"]
-            shadow_image_pair["pvolNvmSubsystemName"] = (
-                self.nvm_subsystem_name_for_ldev_id(pvol)
-            )
-            shadow_image_pair["svolNvmSubsystemName"] = (
-                self.nvm_subsystem_name_for_ldev_id(svol)
-            )
-        else:
-            pvol = shadow_image_pair.primaryVolumeId
-            svol = shadow_image_pair.secondaryVolumeId
-            shadow_image_pair.pvolNvmSubsystemName = (
-                self.nvm_subsystem_name_for_ldev_id(pvol)
-            )
-            shadow_image_pair.svolNvmSubsystemName = (
-                self.nvm_subsystem_name_for_ldev_id(svol)
-            )
+        pvol = shadow_image_pair.primaryVolumeId
+        svol = shadow_image_pair.secondaryVolumeId
+        shadow_image_pair.pvolNvmSubsystemName = self.nvm_subsystem_name_for_ldev_id(
+            pvol
+        )
+        shadow_image_pair.svolNvmSubsystemName = self.nvm_subsystem_name_for_ldev_id(
+            svol
+        )
 
         return shadow_image_pair
 
@@ -182,6 +156,7 @@ class VSPShadowImagePairProvisioner:
         else:
             sec_vol_name = f"{DEFAULT_NAME_PREFIX}-{pvol.ldevId}"
         sec_vol_spec.name = sec_vol_name
+        sec_vol_spec.data_reduction_share = pvol.isDataReductionShareEnabled
 
         sec_vol_id = self.vol_provisioner.create_volume(sec_vol_spec)
         return sec_vol_id
@@ -189,22 +164,51 @@ class VSPShadowImagePairProvisioner:
     @log_entry_exit
     def create_shadow_image_pair(self, serial, createShadowImagePairSpec):
 
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            #  20240820 for direct only
-            pvol = self.vol_provisioner.get_volume_by_ldev(
-                createShadowImagePairSpec.pvol
-            )
-            if pvol.emulationType == VolumePayloadConst.NOT_DEFINED:
-                err_msg = VSPShadowImagePairValidateMsg.PVOL_NOT_FOUND.value
-                logger.writeError(err_msg)
-                raise ValueError(err_msg)
+        svol = None
+        pvol = self.vol_provisioner.get_volume_by_ldev(
+            createShadowImagePairSpec.pvol, include_drs=False
+        )
+        if pvol.emulationType == VolumePayloadConst.NOT_DEFINED:
+            err_msg = VSPShadowImagePairValidateMsg.PVOL_NOT_FOUND.value
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
 
-            if createShadowImagePairSpec.svol is None:
+        if pvol.nvmSubsystemId is None and pvol.ports is None:
+            err_msg = VSPShadowImagePairValidateMsg.PVOL_NO_HG_PRESENTATION.value
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
+
+        if createShadowImagePairSpec.svol is None:
+            if createShadowImagePairSpec.secondary_pool_id is None:
+                err_msg = VSPShadowImagePairValidateMsg.SVOL_POOL_ID_NEEDED.value
+                raise ValueError(err_msg)
+            svol_pool_id = createShadowImagePairSpec.secondary_pool_id
+            svol_id = self.create_secondary_volume(pvol, svol_pool_id)
+            createShadowImagePairSpec.svol = svol_id
+            if pvol.nvmSubsystemId:
+                ns_id = self.create_name_space_for_svol(pvol.nvmSubsystemId, svol_id)
+
+            if pvol.ports is not None and len(pvol.ports) > 0:
+                hg_info = pvol.ports[0]
+                hg = VSPHostGroupInfo(
+                    port=hg_info["portId"], hostGroupId=hg_info["hostGroupNumber"]
+                )
+                self.hg_prov.add_luns_to_host_group(hg, luns=[svol_id])
+                svol = self.vol_provisioner.get_volume_by_ldev(svol_id)
+                if svol.ports:
+                    hg_info = svol.ports[0]
+        else:
+            svol = self.vol_provisioner.get_volume_by_ldev(
+                createShadowImagePairSpec.svol, include_drs=False
+            )
+            if svol.emulationType == VolumePayloadConst.NOT_DEFINED:
                 if createShadowImagePairSpec.secondary_pool_id is None:
                     err_msg = VSPShadowImagePairValidateMsg.SVOL_POOL_ID_NEEDED.value
                     raise ValueError(err_msg)
                 svol_pool_id = createShadowImagePairSpec.secondary_pool_id
-                svol_id = self.create_secondary_volume(pvol, svol_pool_id)
+                svol_id = self.create_secondary_volume(
+                    pvol, svol_pool_id, createShadowImagePairSpec.svol
+                )
                 createShadowImagePairSpec.svol = svol_id
                 if pvol.nvmSubsystemId:
                     ns_id = self.create_name_space_for_svol(
@@ -214,78 +218,40 @@ class VSPShadowImagePairProvisioner:
                 if pvol.ports is not None and len(pvol.ports) > 0:
                     hg_info = pvol.ports[0]
                     hg = VSPHostGroupInfo(
-                        port=hg_info["portId"], hostGroupId=hg_info["hostGroupNumber"]
+                        port=hg_info["portId"],
+                        hostGroupId=hg_info["hostGroupNumber"],
                     )
                     self.hg_prov.add_luns_to_host_group(hg, luns=[svol_id])
                     svol = self.vol_provisioner.get_volume_by_ldev(svol_id)
                     if svol.ports:
                         hg_info = svol.ports[0]
-            else:
-                svol = self.vol_provisioner.get_volume_by_ldev(
-                    createShadowImagePairSpec.svol
-                )
-                if svol.emulationType == VolumePayloadConst.NOT_DEFINED:
-                    # err_msg = VSPShadowImagePairValidateMsg.SVOL_NOT_FOUND.value
-                    # logger.writeError(err_msg)
-                    # raise ValueError(err_msg)
-                    if createShadowImagePairSpec.secondary_pool_id is None:
-                        err_msg = (
-                            VSPShadowImagePairValidateMsg.SVOL_POOL_ID_NEEDED.value
-                        )
-                        raise ValueError(err_msg)
-                    svol_pool_id = createShadowImagePairSpec.secondary_pool_id
-                    svol_id = self.create_secondary_volume(
-                        pvol, svol_pool_id, createShadowImagePairSpec.svol
-                    )
-                    createShadowImagePairSpec.svol = svol_id
-                    if pvol.nvmSubsystemId:
-                        ns_id = self.create_name_space_for_svol(
-                            pvol.nvmSubsystemId, svol_id
-                        )
-
-                    if pvol.ports is not None and len(pvol.ports) > 0:
-                        hg_info = pvol.ports[0]
-                        hg = VSPHostGroupInfo(
-                            port=hg_info["portId"],
-                            hostGroupId=hg_info["hostGroupNumber"],
-                        )
-                        self.hg_prov.add_luns_to_host_group(hg, luns=[svol_id])
-                        svol = self.vol_provisioner.get_volume_by_ldev(svol_id)
-                        if svol.ports:
-                            hg_info = svol.ports[0]
-                elif pvol.byteFormatCapacity != svol.byteFormatCapacity:
-                    err_msg = (
-                        VSPShadowImagePairValidateMsg.PVOL_SVOL_SIZE_MISMATCH.value
-                    )
-                    logger.writeError(err_msg)
-                    raise ValueError(err_msg)
-            logger.writeDebug(
-                f"PV:create_shadow_image_pair:spec= {createShadowImagePairSpec}"
+            elif pvol.byteFormatCapacity != svol.byteFormatCapacity:
+                err_msg = VSPShadowImagePairValidateMsg.PVOL_SVOL_SIZE_MISMATCH.value
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
+        logger.writeDebug(
+            f"PV:create_shadow_image_pair:spec= {createShadowImagePairSpec}"
+        )
+        if createShadowImagePairSpec.is_data_reduction_force_copy is None:
+            createShadowImagePairSpec.is_data_reduction_force_copy = (
+                True
+                if pvol.dataReductionMode
+                and pvol.dataReductionMode != VolumePayloadConst.DISABLED
+                else False
             )
-            if createShadowImagePairSpec.is_data_reduction_force_copy is None:
-                createShadowImagePairSpec.is_data_reduction_force_copy = (
-                    True
-                    if pvol.dataReductionMode
-                    and pvol.dataReductionMode != VolumePayloadConst.DISABLED
-                    else False
-                )
 
         pairId = self.gateway.create_shadow_image_pair(
             serial, createShadowImagePairSpec
         )
-        time.sleep(20)
         shadow_image_pair = self.gateway.get_shadow_image_pair_by_id(serial, pairId)
-        shadow_image_pair = self.fill_nvm_subsystem_info_for_one_si_pair(
-            shadow_image_pair
-        )
-        shadow_image_pair = self.fill_host_group_info_for_one_si_pair(shadow_image_pair)
-        logger.writeDebug(
-            "PROV::shadow_image_pair = {} type = {}",
-            shadow_image_pair,
-            type(shadow_image_pair),
-        )
-        if isinstance(shadow_image_pair, dict):
-            return shadow_image_pair
+        if pvol.nvmSubsystemId:
+            shadow_image_pair = self.fill_nvm_subsystem_info_for_one_si_pair(
+                shadow_image_pair
+            )
+        if pvol.numOfPorts and pvol.numOfPorts > 0:
+            shadow_image_pair = self.fill_host_group_info_for_one_si_pair(
+                shadow_image_pair
+            )
         return shadow_image_pair.to_dict()
 
     @log_entry_exit
@@ -301,6 +267,11 @@ class VSPShadowImagePairProvisioner:
     @log_entry_exit
     def get_shadow_image_pair_by_pvol_and_svol(self, serial, pvol, svol=None):
         shadow_image_pairs = None
+        if pvol is not None and svol is not None:
+            shadow_image_pair = self.get_specific_cg_pair_by_pvol_svol(pvol, svol)
+            if shadow_image_pair:
+                return shadow_image_pair
+
         if pvol is None:
             shadow_image_pairs = self.gateway.get_all_shadow_image_pairs(serial)
         else:
@@ -309,21 +280,17 @@ class VSPShadowImagePairProvisioner:
             )
         shadow_image_list = []
         shadow_image_pair = None
-        for sip in shadow_image_pairs.data_to_list():
-            if sip.get("primaryVolumeId") == pvol:
+        for sip in shadow_image_pairs.data:
+            if sip.primaryVolumeId == pvol:
                 shadow_image_list.append(sip)
             if svol is not None:
-                if sip.get("secondaryVolumeId") == svol:
+                if sip.secondaryVolumeId == svol:
                     shadow_image_pair = sip
                     return shadow_image_pair
 
         if svol is not None:
             return None
-
-        data = VSPShadowImagePairsInfo(
-            dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo)
-        )
-        return data.data_to_list()
+        return shadow_image_list
 
     @log_entry_exit
     def get_shadow_image_pair_by_copy_pair_name(
@@ -344,10 +311,7 @@ class VSPShadowImagePairProvisioner:
                     return shadow_image_pair
 
         if copy_pair_name is not None:
-            if len(shadow_image_list) > 0:
-                return shadow_image_list[0]
-            else:
-                return None
+            return None
 
         data = VSPShadowImagePairsInfo(
             dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo)

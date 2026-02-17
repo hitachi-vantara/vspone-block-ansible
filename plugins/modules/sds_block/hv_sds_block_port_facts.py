@@ -36,11 +36,13 @@ options:
     suboptions:
       names:
         description: The names of the compute ports.
+          Required for the Get a compute port by names task.
         type: list
         required: false
         elements: str
       nicknames:
         description: The nicknames of the compute ports.
+          Required for the Get a compute port by nickname task.
         type: list
         required: false
         elements: str

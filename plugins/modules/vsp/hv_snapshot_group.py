@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_snapshot_group
-short_description: Manages snapshots in units of snapshot groups on Hitachi VSP storage systems.
+short_description: Manages snapshots in units of snapshot groups on VSP block storage systems.
 description:
-  - This module allows for the deletion, splitting, syncing, and restoring of snapshots on Hitachi VSP storage systems.
+  - This module allows for the deletion, splitting, syncing, and restoring of snapshots on VSP block storage systems.
   - It supports various snapshot operations based on the specified task level.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snapshot_group.yml)
@@ -34,7 +34,7 @@ options:
     description: The level of the snapshot task. Choices are C(absent), C(split), C(sync), C(restore), C(clone), C(defragment).
     type: str
     required: true
-    choices: ['split', 'sync', 'restore', 'clone', 'absent', 'defragment']
+    choices: ['present', 'split', 'sync', 'restore', 'clone', 'absent', 'defragment']
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
     type: dict
@@ -76,6 +76,17 @@ options:
         type: str
         required: false
         choices: ['SLOW', 'MEDIUM', 'FAST']
+      operation_type:
+        description: The operation type for the clone.
+          Optional for the Clone the snapshot pairs using group name task.
+        type: str
+        required: false
+      wait_for_final_state:
+        description: Whether to wait for the snapshot group to reach its final state after the operation.
+          Optional for all tasks.
+        type: bool
+        required: false
+        default: false
 """
 
 EXAMPLES = """
@@ -334,15 +345,29 @@ class VSPHtiSnapshotGroupManager:
             ).snapshot_group_id_reconcile(self.spec, self.state)
 
             operation = operation_constants(self.module.params["state"])
-            msg = (
-                f"Snapshot {operation} successfully"
-                if not isinstance(snapshot_data, str)
-                else snapshot_data
-            )
+            if (
+                self.spec.operation_type
+                and self.spec.operation_type.lower() == "vclone"
+            ):
+                msg = "VClone created successfully from snapshot group."
+            elif (
+                self.spec.operation_type
+                and self.spec.operation_type.lower() == "restore"
+            ):
+                msg = "Snapshot group restored successfully."
+            else:
+                msg = (
+                    f"Snapshot {operation} successfully"
+                    if not isinstance(snapshot_data, str)
+                    else snapshot_data
+                )
             resp = {
                 "changed": self.connection_info.changed,
                 "snapshot_data": (
-                    snapshot_data if isinstance(snapshot_data, dict) else None
+                    snapshot_data
+                    if isinstance(snapshot_data, dict)
+                    or isinstance(snapshot_data, list)
+                    else None
                 ),
                 "msg": msg,
             }

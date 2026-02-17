@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_user_group_facts
-short_description: Retrieves user group information from Hitachi VSP storage systems.
+short_description: Retrieves user group information from VSP block storage systems.
 description:
-  - This module retrieves information about user groups from Hitachi VSP storage systems.
+  - This module retrieves information about user groups from VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/user_group_facts.yml)
 version_added: "3.3.0"
@@ -36,10 +36,12 @@ options:
     suboptions:
       name:
         description: The name of the specific user group to retrieve.
+          Required for the Get User Group by name task.
         type: str
         required: false
       id:
         description: The id of the specific user group to retrieve.
+          Required for the Get User Group by ID task.
         type: str
         required: false
 """

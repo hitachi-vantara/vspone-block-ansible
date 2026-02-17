@@ -28,6 +28,7 @@ attributes:
     support: full
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.sdsb_connection_info
+  - hitachivantara.vspone_block.common.sdsb_storage_node_facts_note
 options:
   spec:
     description: Specification for retrieving storage node information.
@@ -36,6 +37,8 @@ options:
     suboptions:
       fault_domain_id:
         description: The ID of a fault domain to which the volume belongs.
+          Required for the Get storage nodes by fault domain ID
+          /Get storage node with the following properties tasks.
         type: str
         required: false
       id:
@@ -44,15 +47,22 @@ options:
         required: false
       name:
         description: Storage node name.
+          Required for the Get storage node by name
+          /Get storage node with the following properties tasks.
         type: str
         required: false
       cluster_role:
         description: The role of a storage node in a storage cluster.
+          Required for the Get all master storage nodes
+          /Get all worker storage nodes
+          /Get storage node with the following properties tasks.
         type: str
         required: false
         choices: ['Master', 'Worker']
       protection_domain_id:
         description: The ID of the protection domain to which the volume is belonging.
+          Required for the Get storage nodes by protection domain ID
+          /Get storage node with the following properties tasks.
         type: str
         required: false
 """

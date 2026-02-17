@@ -11,6 +11,7 @@ except ImportError:
     from common.sdsb_utils import convert_keys_to_snake_case, replace_nulls
 
 GET_EVENT_LOGS = "v1/objects/event-logs"
+GET_EVENT_LOG_BY_ID = "v1/objects/event-logs/{}"
 GET_EVENT_LOGS_QUERY = "v1/objects/event-logs{}"
 
 logger = Log()
@@ -49,6 +50,8 @@ class SDSBEventLogsDirectGateway:
 
     @log_entry_exit
     def get_event_logs(self, spec=None):
+        if spec and spec.id:
+            return self.get_event_log_by_id(spec.id)
 
         end_point = GET_EVENT_LOGS
 
@@ -63,3 +66,17 @@ class SDSBEventLogsDirectGateway:
         converted = convert_keys_to_snake_case(event_logs)
         cleaned_data = replace_nulls(converted)
         return cleaned_data
+
+    @log_entry_exit
+    def get_event_log_by_id(self, event_log_id):
+        try:
+            end_point = GET_EVENT_LOG_BY_ID.format(event_log_id)
+            logger.writeDebug("GW:get_event_log_by_id:end_point={}", end_point)
+            event_log = self.connection_manager.get(end_point)
+            logger.writeDebug("GW:get_event_log_by_id:data={}", event_log)
+
+            converted = convert_keys_to_snake_case(event_log)
+            cleaned_data = replace_nulls(converted)
+            return cleaned_data
+        except Exception as e:
+            return None

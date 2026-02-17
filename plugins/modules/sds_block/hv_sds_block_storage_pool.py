@@ -41,14 +41,19 @@ options:
     suboptions:
       name:
         description: The name of the storage pool.
+          Required for the Expand storage pool by pool name task.
         type: str
         required: false
       id:
         description: The ID of the storage pool.
+          Required for the Expand storage pool by pool ID
+          /Edit storage pool settings by ID tasks.
         type: str
         required: false
       drive_ids:
         description: The drive ids to be added to the pool.
+          Required for the Expand storage pool by pool name
+          /Expand storage pool by pool ID tasks.
         type: list
         required: false
         elements: str
@@ -56,11 +61,13 @@ options:
         description: Rebuild capacity policy. Fixed means secures capacity required for Rebuild as a fixed Rebuild-dedicated capacity.
           Variable means secures a part of user data capacity as rebuild capacity when the storage pool usage is low, and uses the capacity
           entirely as user data capacity when the storage pool usage increases.
+          Required for the Edit storage pool settings by ID task.
         type: str
         required: false
         choices: ["Fixed", "Variable"]
       number_of_tolerable_drive_failures:
         description: The number of drive failures that can be tolerated. Must be in the range 0 to 23.
+          Required for the Edit storage pool settings by ID task.
         type: int
         required: false
       is_encryption_enabled:
@@ -308,30 +315,18 @@ class SDSBStoragePoolManager:
             self.logger.writeException(e)
             self.logger.writeInfo("=== End of SDSB Storage Pool Operation ===")
             self.module.fail_json(msg=str(e))
-        msg = ""
-        if storage_pools:
-            msg = self.get_message()
+
         data = {
             "changed": self.connection_info.changed,
-            "storage_pools": storage_pools,
-            "message": msg,
+            "storage_pools": storage_pools if storage_pools is not None else {},
         }
+        if self.spec.comments:
+            data["comments"] = self.spec.comments
         if registration_message:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo(f"{data}")
         self.logger.writeInfo("=== End of SDSB Storage Pool Operation ===")
         self.module.exit_json(**data)
-
-    def get_message(self):
-        msg = ""
-        if self.state == "present":
-            msg = "Successfully modified the storage pool settings."
-        elif self.state == "expand":
-            msg = (
-                "The storage system will generate additional jobs for capacity and metadata allocation. "
-                "Please wait for these tasks to finish and then verify the storage pool capacity."
-            )
-        return msg
 
 
 def main():

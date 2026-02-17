@@ -93,6 +93,9 @@ class RemoteIscsiConnection(SingleBaseClass):
     remoteIpAddress: Optional[str] = None
     remoteTcpPort: Optional[int] = None
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
 
 @dataclass
 class RemoteIscsiConnections(BaseDataClass):

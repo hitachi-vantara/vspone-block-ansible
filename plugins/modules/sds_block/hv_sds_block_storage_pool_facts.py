@@ -36,10 +36,12 @@ options:
     suboptions:
       id:
         description: The ID of a storage pool.
+          Required for the Get storage pool by ID task.
         type: str
         required: false
       names:
         description: Storage pool names.
+          Required for the Get storage pool by names task.
         type: list
         elements: str
         required: false
@@ -291,6 +293,8 @@ class SDSBStoragePoolFactsManager:
         data = {
             "storage_pools": storage_pools,
         }
+        if self.spec.comments:
+            data["comments"] = self.spec.comments
         if registration_message:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo(f"{data}")

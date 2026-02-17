@@ -17,7 +17,7 @@ EDIT_BMC_SETTING_FOR_ONE_STORAGE_NODE = "v1/objects/storage-node-bmc-access-sett
 logger = Log()
 
 
-class SDSBBlockBmcAccessSettingGateway:
+class SDSBBmcAccessSettingGateway:
 
     def __init__(self, connection_info):
         self.connection_manager = SDSBConnectionManager(

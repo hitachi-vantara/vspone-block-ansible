@@ -26,6 +26,7 @@ attributes:
     support: none
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.sdsb_connection_info
+  - hitachivantara.vspone_block.common.sdsb_cluster_note
 notes:
   - Replace node operation steps for GCP platform
     1) The node should be on block state before replacement.
@@ -69,16 +70,26 @@ options:
       configuration_file:
         description: The configuration definition file to be transferred to the storage cluster.
           if this field is specified, storage_nodes field will be ignored if present.
+          Required for the Add storage node to the cluster with the configuration file
+          /Add storage node to the storage cluster on AWS cloud tasks.
         type: str
         required: false
       config_file_location:
         description: The directory where the cluster configuration file is downloaded. This is a
           required field when the state field is C(download_config_file).
+          Required for the Download cluster configuration file
+          /Create the cluster configuration file and then download it
+          /Create the cluster configuration file for different export file types (AddStorageNodes)
+          /Create the cluster configuration file for different export file types (AddDrives)
+          /Create the cluster configuration file for different export file types (AWS Only) tasks.
         type: str
         required: false
       export_file_type:
         description: Specifies the type of the configuration file to be output for download. This is a valid field
           when the state field is C(download_config_file).
+          Required for the Create the cluster configuration file for different export file types (AddStorageNodes)
+          /Create the cluster configuration file for different export file types (AddDrives)
+          /Create the cluster configuration file for different export file types (AWS Only) tasks.
         type: str
         required: false
         choices: ['normal', 'add_storage_nodes', 'add_drives', 'replace_storage_node']
@@ -90,6 +101,9 @@ options:
         required: false
       machine_image_id:
         description: The ID of the machine image be used for storage node addition or storage node replacement.
+          Required for the Add storage node to the storage cluster on Azure cloud
+          /Create the cluster configuration file for different export file types (AddStorageNodes)
+          /Create the cluster configuration file for different export file types (AWS Only) tasks.
         type: str
         required: false
       system_requirement_file:
@@ -101,6 +115,7 @@ options:
         description: URL (https) of Amazon S3 where the VM configuration file is to be stored at the time of each
           maintenance operation. This option is a mandatory parameter for the cloud model for AWS when the state field is
           C(download_config_file) and refresh is true. This parameter is ignored if it is specified for other platforms.
+          Required for the Create the cluster configuration file for different export file types (AWS Only) task.
         type: str
         required: false
       vm_configuration_file_s3_uri:
@@ -108,42 +123,55 @@ options:
           If the bucket name contains a period (.), the URI cannot be specified.
           This option is a mandatory parameter for the cloud model for AWS when the state field is C(add_storage_node).
           This parameter is ignored if it is specified for other platforms.
+          Required for the Add storage node to the storage cluster on AWS cloud task.
         type: str
         required: false
       no_of_drives:
         description: The number of drives to be installed per storage node after adding the drives. The specified number
           of drives applies to all storage nodes. This is a required field when the export_file_type is C(add_drives).
+          Required for the Create the cluster configuration file for different export file types (AddDrives) task.
         type: int
         required: false
       refresh:
         description: Whether to create the cluster configuration file. This is a valid field
           when the state field is C(download_config_file).
+          Required for the Create the cluster configuration file and then download it
+          /Create the cluster configuration file for different export file types (AddStorageNodes)
+          /Create the cluster configuration file for different export file types (AddDrives)
+          /Create the cluster configuration file for different export file types (AWS Only) tasks.
         type: bool
         required: false
         default: false
       controller_id:
         description: The ID of the storage controller node for which capacity balancing setting will be
-          changded to value specified by attribute is_capacity_balancing_enabled.
+          changed to value specified by attribute is_capacity_balancing_enabled.
+          Required for the Edit the capacity balancing settings of a controller in the cluster task.
         type: str
         required: false
       is_capacity_balancing_enabled:
         description: Enables or disables capacity balancing. If this is true, capacity balancing applies.
           If this is false, capacity balancing does not apply. If controller_id is not specified it will be
           applied to the cluster, otherwise it will be applied to the controller node.
+          Required for the Edit the capacity balancing settings of the cluster
+          /Edit the capacity balancing settings of a controller in the cluster tasks.
         type: bool
         required: false
       node_id:
         description: The ID of the storage node that will be removed or replaced. This field is valid
           when the state field is C(remove_storage_node) and C(replace_storage_node).
+          Required for the Remove storage node from the cluster by storage node ID task.
         type: str
         required: false
       node_name:
         description: The name of the storage node that will be removed. This field is valid
           when the state field is C(remove_storage_node).
+          Required for the Remove the storage node from the cluster by storage node name task.
         type: str
         required: false
       setup_user_password:
         description: Setup user password.
+          Optional for the Add storage node to the cluster with the configuration file
+          /Add storage node to the cluster using ansible variables tasks.
         type: str
         required: false
       force:
@@ -176,38 +204,46 @@ options:
         suboptions:
           host_name:
             description: Name of the storage node. Used as the host name of the storage node.
+              Required for the Add storage node to the cluster using ansible variables task.
             type: str
             required: true
           fault_domain_name:
             description: Name of the fault domain to which the storage node belongs.
+              Required for the Add storage node to the cluster using ansible variables task.
             type: str
             required: true
           is_cluster_master_role:
             description: Whether the node is a master node in the cluster.
+              Required for the Add storage node to the cluster using ansible variables task.
             type: bool
             required: false
             default: false
           number_of_fc_target_port:
             description: Number of FC target ports.
+              Optional for the Add storage node to the cluster using ansible variables task.
             type: int
             required: false
             default: 0
           control_network:
             description: Information about the control network.
+              Required for the Add storage node to the cluster using ansible variables task.
             type: dict
             required: true
             suboptions:
               control_network_ip:
                 description: IP address (IPv4) of the storage node for the control network.
+                  Required for the Add storage node to the cluster using ansible variables task.
                 type: str
                 required: true
               control_network_subnet:
                 description: IPv4 subnet of the control network.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: str
                 required: false
                 default: "255.255.255.0"
               control_network_mtu_size:
                 description: MTU size of the control network.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: int
                 required: false
                 default: 1500
@@ -218,15 +254,18 @@ options:
             suboptions:
               internode_network_ip:
                 description: IP address (IPv4) of the storage node for the inter node network.
+                  Required for the Add storage node to the cluster using ansible variables task.
                 type: str
                 required: true
               internode_network_subnet:
                 description: IPv4 subnet of the inter node network.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: str
                 required: false
                 default: "255.255.255.0"
               internode_network_mtu_size:
                 description: MTU size of the inter node network.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: int
                 required: false
                 default: 9000
@@ -238,6 +277,7 @@ options:
               control_internode_network_route_destinations:
                 description: Destination networks to be set in the routing table of the control port or internode port.
                   Up to four network addresses or ip addresses can be provided.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: list
                 elements: str
                 required: false
@@ -245,61 +285,73 @@ options:
               control_internode_network_route_gateways:
                 description: Gateways (IPv4) to be set in the routing table of the control port or internode port.
                   If not provided, gateway information from the other node of the cluster will be used.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: list
                 elements: str
                 required: false
               control_internode_network_route_interfaces:
                 description: Interface name to be set in the routing table of the control port or internode port.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: list
                 elements: str
                 required: false
                 default: ["control"]
           compute_networks:
             description: Information about the control network.
+              Required for the Add storage node to the cluster using ansible variables task.
             type: list
             elements: dict
             required: true
             suboptions:
               compute_port_protocol:
                 description: Protocol of the compute port.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: str
                 required: false
                 choices: [ "iSCSI", "NVMe/TCP"]
                 default: "iSCSI"
               compute_network_ip:
                 description: IP address (IPv4) of the storage node for the compute network.
+                  Required for the Add storage node to the cluster using ansible variables task.
                 type: str
                 required: true
               compute_network_subnet:
                 description: IPv4 subnet of the compute network.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: str
                 required: false
                 default: "255.255.255.0"
               compute_network_gateway:
                 description: Default IPv4 gateway for the compute network. If not provided,
                   gateway information from the other compute node of the cluster will be used.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: str
                 required: false
               is_compute_network_ipv6_mode:
                 description: Whether the compute network uses IPv6 mode.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: bool
                 required: false
                 default: false
               compute_network_ipv6_globals:
                 description: IPv6 global addresses for the compute network.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: list
                 elements: str
                 required: false
               compute_network_ipv6_subnet_prefix:
                 description: IPv6 subnet prefix for the compute network.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: str
                 required: false
               compute_network_ipv6_gateway:
                 description: Default IPv6 gateway for the compute network.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: str
                 required: false
               compute_network_mtu_size:
                 description: MTU size of the compute network.
+                  Optional for the Add storage node to the cluster using ansible variables task.
                 type: int
                 required: false
                 default: 9000

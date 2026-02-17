@@ -29,6 +29,20 @@
       ansible.builtin.debug:
         var: result
 
+    ########################################################################################################
+    # Task Name : Get basic information about all Resource Groups including meta resource group information
+    ########################################################################################################
+    - name: Get basic information about all Resource Groups including meta resource group information
+      hitachivantara.vspone_block.vsp.hv_resource_group_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          is_simple: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
     ####################################################################
     # Task Name : Get Resource Group by name
     ####################################################################

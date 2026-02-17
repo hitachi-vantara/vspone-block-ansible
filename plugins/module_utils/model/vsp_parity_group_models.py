@@ -43,6 +43,13 @@ class VSPPfrestParityGroup(SingleBaseClass):
     # driveType: str = None
     # availablePhysicalCapacity: int = None
     # spaces: List[] = None
+    emulationType: str = None
+    groupType: str = None
+    numberOfSpareDrives: int = None
+    numberOfRemainingSpareDrives: int = None
+    raidType: str = None
+    driveType: str = None
+    driveTypeName: str = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -139,6 +146,7 @@ class VSPParityGroup(SingleBaseClass):
     isAcceleratedCompression: bool = None
     isEncryptionEnabled: bool = None
     clprId: int = None
+    emulationType: str = None
 
 
 @dataclass

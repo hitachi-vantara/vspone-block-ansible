@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_iscsi_remote_connection_facts
-short_description: Retrieves Remote connection details from Hitachi VSP storage systems.
+short_description: Retrieves Remote connection details from VSP block storage systems.
 description: >
-  - This module retrieves information about remote connections thorough iSCSI ports from Hitachi VSP storage systems.
+  - This module retrieves information about remote connections thorough iSCSI ports from VSP block storage systems.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/remote_iscsi_connection_facts.yml)
 version_added: '3.3.0'

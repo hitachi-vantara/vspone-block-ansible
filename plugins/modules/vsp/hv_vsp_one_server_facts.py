@@ -11,11 +11,12 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_server_facts
-short_description: Retrieves server information from VSP E series and VSP One Block 20 series storage systems.
+short_description: Retrieves server information from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 description:
-  - This module retrieves information about servers from VSP E series and VSP One Block 20 series storage systems.
+  - This module retrieves information about servers from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
   - Supports filtering servers by various criteria such as server ID, nickname, HBA WWN, or iSCSI name.
-  - Utilizes the Hitachi Virtual Storage Platform One Simple API for server facts retrieval across VSP one B20 series and VSP E series models.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for server facts retrieval across VSP E series,
+    VSP One B20 series, and VSP One B80 series models.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_server_facts.yml)
 version_added: '4.3.0'
@@ -37,18 +38,22 @@ options:
     suboptions:
       server_id:
         description: Server identifier to retrieve specific server information.
+          Required for the Get server by server ID task
         type: int
         required: false
       nick_name:
         description: Server nickname to filter servers by name.
+          Required for the Get servers by nickname task.
         type: str
         required: false
       hba_wwn:
         description: HBA WWN address to filter servers containing this WWN.
+          Required for the Get servers containing specific HBA WWN task.
         type: str
         required: false
       iscsi_name:
         description: iSCSI name to filter servers containing this iSCSI initiator.
+          Required for the Get servers containing specific iSCSI name task.
         type: str
         required: false
       include_details:

@@ -11,10 +11,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_port_facts
-short_description: Retrieves port information from VSP E series and VSP One Block 20 series storage systems.
+short_description: Retrieves port information from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 description:
-  - This module retrieves port information from  VSP E series and VSP One Block 20 series storage systems.
-  - Utilizes the Hitachi Virtual Storage Platform One Simple API for port facts retrieval across VSP one B20 series and VSP E series models.
+  - This module retrieves port information from  VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for port facts retrieval across VSP One B20 series,
+    VSP One B80 series, and VSP E series models.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_port_facts.yml)
 version_added: '4.3.0'
@@ -36,10 +37,12 @@ options:
     suboptions:
       port_id:
         description: Port identifier to filter ports.
+          Required for the Get port information by port ID task.
         type: str
         required: false
       protocol:
         description: Protocol type to filter ports. Valid values are  like C(NVME_TCP), C(FC), and C(iSCSI). This is case insensitive.
+          Required for the Get ports information using protocol filter task.
         type: str
         required: false
 """

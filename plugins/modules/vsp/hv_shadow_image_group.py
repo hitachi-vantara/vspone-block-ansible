@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_shadow_image_group
-short_description: Manages Remote Copy Group on Hitachi VSP storage systems.
+short_description: Manages Remote Copy Group on VSP block storage systems.
 description: >
-  - This module allows for the splitting, re-syncing, restore, deletion and migration of Shadow Image Group on Hitachi VSP storage systems.
+  - This module allows for the splitting, re-syncing, restore, deletion and migration of Shadow Image Group on VSP block storage systems.
   - It supports various Shadow image pairs operations based on the specified task level.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/shadow_image_group.yml)

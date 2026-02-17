@@ -9,9 +9,9 @@ from .sdsb_compute_node_gateway import (
 from .sdsb_volume_gateway import SDSBVolumeDirectGateway
 from .sdsb_chap_user_gateway import SDSBChapUserDirectGateway
 from .sdsb_event_logs_gateway import SDSBEventLogsDirectGateway
-from .sdsb_drives_gateway import SDSBBlockDrivesDirectGateway
-from .sdsb_fault_domain_gateway import SDSBBlockFaultDomainDirectGateway
-from .sdsb_control_port_gateway import SDSBBlockControlPortDirectGateway
+from .sdsb_drives_gateway import SDSBDrivesDirectGateway
+from .sdsb_fault_domain_gateway import SDSBFaultDomainDirectGateway
+from .sdsb_control_port_gateway import SDSBControlPortDirectGateway
 from .sdsb_storage_controller_gateway import SDSBStorageControllerDirectGateway
 from .sdsb_port_auth_gateway import SDSBPortAuthDirectGateway
 from .sdsb_port_gateway import SDSBPortDirectGateway
@@ -23,8 +23,8 @@ from .sdsb_job_gateway import SDSBJobGateway
 from .sdsb_capacity_mgmt_settings_gateway import SDSBCapacityMgmtSettingGateway
 from .sdsb_estimated_capacity_gateway import SDSBEstimatedCapacityGateway
 from .sdsb_remote_iscsi_port_gateway import SDSBRemoteIscsiPortGateway
-from .sdsb_journal_gateway import SDSBBlockJournalDirectGateway
-from .sdsb_login_message_gateway import SDSBBlockLoginMessageDirectGateway
+from .sdsb_journal_gateway import SDSBJournalDirectGateway
+from .sdsb_login_message_gateway import SDSBLoginMessageDirectGateway
 from .vsp_snapshot_gateway import VSPHtiSnapshotDirectGateway
 from .vsp_volume import VSPVolumeDirectGateway
 from .vsp_host_group_gateway import VSPHostGroupDirectGateway
@@ -80,10 +80,12 @@ from .vsp_clpr_gateway import VSPClprDirectGateway
 from .vsp_external_parity_group_gateway import VSPExternalParityGroupGateway
 from .vsp_spm_gateway import VSPSpmGateway
 from .vsp_storage_system_monitor_gateway import VSPStorageSystemMonitorGateway
-from .sdsb_cluster_information_gateway import SDSBBlockClusterInformationDirectGateway
+from .sdsb_cluster_information_gateway import SDSBClusterInformationDirectGateway
 from .sdsb_user_gateway import SDSBUserGateway
-from .sdsb_bmc_access_setting_gw import SDSBBlockBmcAccessSettingGateway
+from .sdsb_bmc_access_setting_gw import SDSBBmcAccessSettingGateway
 from .sdsb_software_update_gateway import SDSBSoftwareUpdateGateway
+from .sdsb_audit_log_setting_gw import SDSBAuditLogSettingGateway
+from .sdsb_event_log_setting_gw import SDSBEventLogSettingGateway
 
 GATEWAY_MAP = {
     ConnectionTypes.DIRECT: {
@@ -132,19 +134,21 @@ GATEWAY_MAP = {
         GatewayClassTypes.SDSB_CLUSTER: SDSBClusterGateway,
         GatewayClassTypes.SDSB_JOB: SDSBJobGateway,
         GatewayClassTypes.SDSB_EVENT_LOGS: SDSBEventLogsDirectGateway,
-        GatewayClassTypes.SDSB_BLOCK_DRIVES: SDSBBlockDrivesDirectGateway,
-        GatewayClassTypes.SDSB_FAULT_DOMAIN: SDSBBlockFaultDomainDirectGateway,
+        GatewayClassTypes.SDSB_BLOCK_DRIVES: SDSBDrivesDirectGateway,
+        GatewayClassTypes.SDSB_FAULT_DOMAIN: SDSBFaultDomainDirectGateway,
         GatewayClassTypes.SDSB_STORAGE_CONTROLLER: SDSBStorageControllerDirectGateway,
-        GatewayClassTypes.SDSB_CONTROL_PORT: SDSBBlockControlPortDirectGateway,
-        GatewayClassTypes.SDSB_CLUSTER_INFORMATION: SDSBBlockClusterInformationDirectGateway,
+        GatewayClassTypes.SDSB_CONTROL_PORT: SDSBControlPortDirectGateway,
+        GatewayClassTypes.SDSB_CLUSTER_INFORMATION: SDSBClusterInformationDirectGateway,
         GatewayClassTypes.SDSB_USER: SDSBUserGateway,
-        GatewayClassTypes.SDSB_BMC_ACCESS_SETTING: SDSBBlockBmcAccessSettingGateway,
+        GatewayClassTypes.SDSB_BMC_ACCESS_SETTING: SDSBBmcAccessSettingGateway,
+        GatewayClassTypes.SDSB_AUDIT_LOG_SETTING: SDSBAuditLogSettingGateway,
+        GatewayClassTypes.SDSB_EVENT_LOG_SETTING: SDSBEventLogSettingGateway,
         GatewayClassTypes.SDSB_CAPACITY_MGMT_SETTING: SDSBCapacityMgmtSettingGateway,
         GatewayClassTypes.SDSB_ESTIMATED_CAPACITY: SDSBEstimatedCapacityGateway,
         GatewayClassTypes.SDSB_REMOTE_ISCSI_PORT: SDSBRemoteIscsiPortGateway,
         GatewayClassTypes.SDSB_SOFTWARE_UPDATE: SDSBSoftwareUpdateGateway,
-        GatewayClassTypes.SDSB_JOURNAL: SDSBBlockJournalDirectGateway,
-        GatewayClassTypes.SDSB_LOGIN_MESSAGE: SDSBBlockLoginMessageDirectGateway,
+        GatewayClassTypes.SDSB_JOURNAL: SDSBJournalDirectGateway,
+        GatewayClassTypes.SDSB_LOGIN_MESSAGE: SDSBLoginMessageDirectGateway,
     },
 }
 

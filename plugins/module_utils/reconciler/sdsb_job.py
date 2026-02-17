@@ -37,7 +37,6 @@ class SDSBJobReconciler:
                 return extracted_data
 
             jobs = self.provisioner.get_jobs(spec)
-            # logger.writeDebug("RC:get_jobs:jobs={}", jobs)
             extracted_data = SDSBJobExtractor().extract(jobs.data_to_list())
             return extracted_data
 

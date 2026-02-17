@@ -45,18 +45,37 @@ options:
     suboptions:
       id:
         description: ID of the compute node.
+          Required for the Update a compute node name
+          /Delete a compute node by ID tasks.
         type: str
         required: false
       name:
         description: Name of the compute node.
+          Required for the Create a compute node
+          /Update a compute node name
+          /Add IQN initiators to a compute node
+          /Add NQN initiators to compute node
+          /Remove IQN initiators from a compute node
+          /Remove NQN initiators from compute node
+          /Attach volumes to a compute node
+          /Detach volumes from a compute node
+          /Delete a compute node by name tasks.
         type: str
         required: false
       os_type:
         description: The OS type of the compute node.
+          Required for the Create a compute node task.
+          Optional for the Update a compute node name task.
         type: str
         required: false
       state:
         description: The state of the compute node task.
+          Required for the Add IQN initiators to a compute node
+          /Add NQN initiators to compute node
+          /Remove IQN initiators from a compute node
+          /Remove NQN initiators from compute node
+          /Attach volumes to a compute node
+          /Detach volumes from a compute node tasks.
         type: str
         required: false
         choices:
@@ -68,21 +87,28 @@ options:
           - remove_host_nqn
       iscsi_initiators:
         description: The array of iSCSI Initiators.
+          Required for the Add IQN initiators to a compute node
+          /Remove IQN initiators from a compute node tasks.
         type: list
         required: false
         elements: str
       host_nqns:
         description: The array of NQN Initiators.
+          Required for the Add NQN initiators to compute node
+          /Remove NQN initiators from compute node tasks.
         type: list
         required: false
         elements: str
       volumes:
         description: The array of name of volumes.
+          Required for the Attach volumes to a compute node
+          /Detach volumes from a compute node tasks.
         type: list
         required: false
         elements: str
       should_delete_all_volumes:
         description: Will delete the volumes that are not attached to any compute node.
+          Optional for the Delete a compute node by name task.
         type: bool
         required: false
       vps_id:

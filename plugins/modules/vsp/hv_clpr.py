@@ -10,10 +10,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_clpr
-short_description: Manages CLPRs on Hitachi VSP storage systems.
+short_description: Manages CLPRs on VSP block storage systems.
 description:
-  - This module manages Cache Logical Partitions (CLPRs) on Hitachi VSP storage systems.
+  - This module manages Cache Logical Partitions (CLPRs) on VSP block storage systems.
   - Supports creating, updating, deleting CLPRs.
+  - Create CLPR to logically partition cache memory, isolating workloads.
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)

@@ -61,7 +61,7 @@ class VSPVolValidationMsg(Enum):
     COUNT_VALUE = "The parameter 'count' must be a whole number greater than zero."
     END_LDEV_AND_COUNT = "Ambiguous parameters, count and end_ldev_id cannot co-exist."
     POOL_ID_OR_PARITY_ID = "pool_id or parity_group is mandatory for new ldev creation."
-    SIZE_REQUIRED = "size is mandatory for new ldev creation."
+    SIZE_REQUIRED = "size or cylinder is mandatory for new ldev creation."
     SIZE_INT_REQUIRED = (
         "provide integer value for the size with unit. e.g. 5GB, 2TB, etc."
     )
@@ -102,9 +102,9 @@ class VSPVolValidationMsg(Enum):
     NVM_SUBSYSTEM_DOES_NOT_EXIST = "NVM subsystem {} does not exist."
     CONTRADICT_INFO = "Contradicting information provided in the spec. Volume name does not exist in the system, and spec.state is set to remove_host_nqn."
     VOLUME_HAS_PATH = (
-        "This ldev can't be deleted. It might be connected to host groups or "
-        "might be added to the NVM Subsystem as a namespace. Use force=true to "
-        "delete this ldev."
+        "This LDEV can't be deleted. It may be connected to host groups, added to an NVM subsystem as a namespace, or be the parent of vClones. "
+        "Use force=true to delete this LDEV. In case of vClone, parent volume can't be deleted, when it has vClone children. When all the children "
+        "of a parent volume is deleted, then the parent volume can be deleted."
     )
     LDEV_NOT_FOUND_IN_NVM = "Did not find ldev_id {} in NVM subsystem {}."
     INVALID_LDEV_NAME_LEN = "Invalid volume name length. Number of characters in volume name should be between 1 to 24."
@@ -138,3 +138,4 @@ class VSPVolValidationMsg(Enum):
     BOTH_LDEV_VLDEV_ID_REQD = (
         "Both ldev_id and vldev_id are required for this operation."
     )
+    STOP_ALL_FORMAT_REQD = "should_stop_all_volume_format and should_format_volume both can't be declared together."

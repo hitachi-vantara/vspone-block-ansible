@@ -34,7 +34,7 @@ class SDSBSessionProvisioner:
 
     @log_entry_exit
     def create_session(self, spec=None):
-        alive_time = None
-        if spec and spec.alive_time:
-            alive_time = spec.alive_time
-        return self.gateway.create_session(alive_time)
+        alive_time_in_seconds = None
+        if spec and spec.alive_time_in_seconds:
+            alive_time_in_seconds = spec.alive_time_in_seconds
+        return self.gateway.create_session(alive_time_in_seconds).camel_to_snake_dict()

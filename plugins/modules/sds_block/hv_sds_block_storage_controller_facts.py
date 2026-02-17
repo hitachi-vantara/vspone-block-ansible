@@ -34,6 +34,7 @@ options:
     suboptions:
       id:
         description: Filter storage_controllers by ID (UUID format).
+          Required for the Get one storage controller by ID task.
         required: false
         type: str
       primary_fault_domain_name:
@@ -225,7 +226,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockStorageControllerFactsManager:
+class SDSBStorageControllerFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -268,7 +269,7 @@ class SDSBBlockStorageControllerFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockStorageControllerFactsManager()
+    obj_store = SDSBStorageControllerFactsManager()
     obj_store.apply()
 
 

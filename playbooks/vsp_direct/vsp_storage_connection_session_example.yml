@@ -1,0 +1,80 @@
+---
+########################################################################
+# Example : Session Connection Example Playbook
+# This playbook demonstrates creating a session, using it to fetch
+# information from the storage system. Finally, it deletes the session.
+# You can to any storage operation using the session token obtained.
+########################################################################
+- name: Example playbook
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    my_name: "rd-test-05-16"
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+  ####################################################################
+  # Task Name : Create Session
+  ####################################################################
+    - name: Create Session
+      hitachivantara.vspone_block.vsp.hv_session:
+        connection_info: "{{ connection_info }}"
+      register: result_session
+      ignore_errors: false
+
+    ####################################################################
+    # Task Name : Get one ldev
+    ####################################################################
+    - name: Get ldev information
+      hitachivantara.vspone_block.vsp.hv_ldev_facts:
+        connection_info:
+          address: "{{ storage_address }}"
+          api_token: "{{ result_session.session.token }}"
+        spec:
+          ldev_id: 34
+      register: result
+
+    - name: Display ldev information
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task 1 : Get all hostgroups for port CL1-A
+    ####################################################################
+    - name: Get all hostgroups for port CL1-A
+      hitachivantara.vspone_block.vsp.hv_hg_facts:
+        connection_info:
+          address: "{{ storage_address }}"
+          api_token: "{{ result_session.session.token }}"
+        spec:
+          ports: [CL1-A]
+      register: result
+
+    - name: Debug result
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Delete Session
+    ####################################################################
+    - name: Delete Session
+      hitachivantara.vspone_block.vsp.hv_session:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          id: "{{ result_session.session.session_id }}"
+          token: "{{ result_session.session.token }}"
+          force: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

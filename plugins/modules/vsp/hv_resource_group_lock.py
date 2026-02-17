@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_resource_group_lock
-short_description: Allows the locking and unlocking of resource groups on Hitachi VSP storage systems.
+short_description: Allows the locking and unlocking of resource groups on VSP block storage systems.
 description:
-    - This module allows the locking and unlocking of resource groups on Hitachi VSP storage systems.
+    - This module allows the locking and unlocking of resource groups on VSP block storage systems.
     - For examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/resource_management_with_lock/vsp_direct)
 version_added: '3.2.0'
@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.resource_group_locks_note
 notes:
   - The input parameters C(id) and C(name) were removed in version 3.4.0.
     They were deprecated due to internal API simplification and are no longer supported.
@@ -105,7 +106,7 @@ EXAMPLES = """
 """
 
 RETURN = """
-response:
+locked_resource_groups:
   description: Information of the locked resource group. When secondary_connection_info is provided,
     remote_lock_session_id, remote_lock_token, and remote_locked_resource_groups are populated in the output.
   returned: always
@@ -154,20 +155,22 @@ response:
           type: str
           sample: "test-rg-2"
 """
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_rg_lock_reconciler import (
-    VSPResourceGroupLockReconciler,
-)
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
-    Log,
+
+
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
+    validate_ansible_product_registration,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.vsp_utils import (
     VSPResourceGroupLockArguments,
     VSPParametersManager,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
-    validate_ansible_product_registration,
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
+    Log,
 )
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.vsp_rg_lock_reconciler import (
+    VSPResourceGroupLockReconciler,
+)
+from ansible.module_utils.basic import AnsibleModule
 
 
 class VSPResourceGroupLockManager:
@@ -238,7 +241,7 @@ class VSPResourceGroupLockManager:
         self.module.exit_json(**resp)
 
 
-def main(module=None):
+def main():
     obj_store = VSPResourceGroupLockManager()
     obj_store.apply()
 

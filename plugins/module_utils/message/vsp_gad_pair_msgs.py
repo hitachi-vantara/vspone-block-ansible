@@ -66,3 +66,4 @@ class GADPairValidateMSG(Enum):
         "Resource Group ID for secondary volume and the hostgroups did not match."
     )
     QUORUM_DISK_ID = "quorum_disk_id is a required field, which is missing."
+    VLDEV_ID_NOT_SET_FOR_DRS_PVOL = "Virtual LDEV ID is not set for the data reduction share primary volume {}, which is required for GAD pair creation."

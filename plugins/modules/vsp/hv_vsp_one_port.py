@@ -11,10 +11,10 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_port
-short_description: Manages ports on VSP E series and VSP One Block 20 series storage systems.
+short_description: Manages ports on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 description:
-  - This module manages port configuration on VSP E series and VSP One Block 20 series storage systems.
-  - Utilizes the Hitachi Virtual Storage Platform One Simple API for port management across VSP one B20 series and VSP E series models.
+  - This module manages port configuration on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for port management across VSP One B20 series, VSP One B80 series, and VSP E series models.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_port.yml)
 version_added: '4.3.0'
@@ -36,124 +36,165 @@ options:
     suboptions:
       port_id:
         description: Port identifier to configure.
+          Required for the Configure basic port settings (port security and speed)
+          /Configure FC port with all settings
+          /Configure iSCSI port with comprehensive settings
+          /Configure NVMe over TCP port with all parameters
+          /Remove VLAN from iSCSI port
+          /Configure port with minimal settings tasks.
         type: str
         required: true
       port_speed_in_gbps:
         description: Port speed in Gbps.
+          Required for the Configure basic port settings (port security and speed)
+          /Configure FC port with all settings
+          /Configure iSCSI port with comprehensive settings
+          /Configure NVMe over TCP port with all parameters
+          /Configure port with minimal settings tasks.
         type: int
         choices: [0, 1, 4, 8, 10, 16, 25, 32, 64, 100]
         required: false
       enable_port_security:
         description: Whether to enable port security.
+          Required for the Configure basic port settings (port security and speed)
+          /Configure FC port with all settings
+          /Configure iSCSI port with comprehensive settings tasks.
         type: bool
         required: false
       fc_settings:
         description: Fibre Channel specific settings.
+          Required for the Configure FC port with all settings task.
         type: dict
         required: false
         suboptions:
           al_pa:
             description: Arbitrated Loop Physical Address.
+              Required for the Configure FC port with all settings task.
             type: str
             required: false
           should_enable_fabric_switch_setting:
             description: Whether to enable fabric switch setting.
+              Required for the Configure FC port with all settings task.
             type: bool
             required: false
           connection_type:
             description: FC connection type choices are C(Point_To_Point) and C(FC_AL) and case insensitive.
+              Required for the Configure FC port with all settings task.
             type: str
             required: false
       iscsi_settings:
         description: iSCSI specific settings.
+          Required for the Configure iSCSI port with comprehensive settings
+          /Remove VLAN from iSCSI port tasks.
         type: dict
         required: false
         suboptions:
           enable_vlan_use:
             description: Whether to enable VLAN use.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: bool
             required: false
           add_vlan_id:
             description: VLAN ID to add.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: int
             required: false
           delete_vlan_id:
             description: VLAN ID to delete.
+              Required for the Remove VLAN from iSCSI port task.
             type: int
             required: false
           ip_mode:
             description: IP mode configuration. Choices are C(ipv4) and C(ipv4v6) and case insensitive.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: str
             required: false
           ipv4_configuration:
             description: IPv4 configuration settings.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: dict
             required: false
             suboptions:
               address:
                 description: IPv4 address.
+                  Required for the Configure iSCSI port with comprehensive settings task.
                 type: str
                 required: false
               subnet_mask:
                 description: IPv4 subnet mask.
+                  Required for the Configure iSCSI port with comprehensive settings task.
                 type: str
                 required: false
               default_gateway:
                 description: IPv4 default gateway.
+                  Required for the Configure iSCSI port with comprehensive settings task.
                 type: str
                 required: false
           ipv6_configuration:
             description: IPv6 configuration settings.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: dict
             required: false
             suboptions:
               linklocal:
                 description: IPv6 link-local address.
+                  Required for the Configure iSCSI port with comprehensive settings task.
                 type: str
                 required: false
               global:
                 description: IPv6 global address.
+                  Required for the Configure iSCSI port with comprehensive settings task.
                 type: str
                 required: false
               default_gateway:
                 description: IPv6 default gateway.
+                  Required for the Configure iSCSI port with comprehensive settings task.
                 type: str
                 required: false
           tcp_port:
             description: TCP port number.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: int
             required: false
           enable_selective_ack:
             description: Whether to enable selective ACK.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: bool
             required: false
           enable_delayed_ack:
             description: Whether to enable delayed ACK.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: bool
             required: false
           window_size:
             description: TCP window size. Choices are C(NUMBER_16K), C(NUMBER_32K), C(NUMBER_64K), C(NUMBER_128K), C(NUMBER_256K), C(NUMBER_512K),
                         C(NUMBER_1024K) and case insensitive.
+                        Required for the Configure iSCSI port with comprehensive settings task.
             type: str
             required: false
           mtu_size:
             description: MTU size. Choices are C(NUMBER_1500), C(NUMBER_4500), C(NUMBER_9000) and case insensitive.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: str
             required: false
           keep_alive_timer:
             description: Keep alive timer value.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: int
             required: false
           enable_isns_server_mode:
             description: Whether to enable iSNS server mode.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: bool
             required: false
           isns_server_ip_address:
             description: iSNS server IP address.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: str
             required: false
           isns_server_port:
             description: iSNS server port.
+              Required for the Configure iSCSI port with comprehensive settings task.
             type: int
             required: false
           enable_virtual_port:
@@ -162,15 +203,18 @@ options:
             required: false
       nvme_tcp_settings:
         description: NVMe over TCP specific settings.
+          Required for the Configure NVMe over TCP port with all parameters task.
         type: dict
         required: false
         suboptions:
           enable_vlan_use:
             description: Whether to enable VLAN use.
+              Required for the Configure NVMe over TCP port with all parameters task.
             type: bool
             required: false
           add_vlan_id:
             description: VLAN ID to add.
+              Required for the Configure NVMe over TCP port with all parameters task.
             type: int
             required: false
           delete_vlan_id:
@@ -179,64 +223,79 @@ options:
             required: false
           ip_mode:
             description: IP mode configuration. Choices are C(ipv4) and C(ipv4v6) and case insensitive.
+              Required for the Configure NVMe over TCP port with all parameters task.
             type: str
             required: false
           ipv4_configuration:
             description: IPv4 settings.
+              Required for the Configure NVMe over TCP port with all parameters task.
             type: dict
             required: false
             suboptions:
               address:
                 description: IPv4 address.
+                  Required for the Configure NVMe over TCP port with all parameters task.
                 type: str
                 required: false
               subnet_mask:
                 description: IPv4 subnet mask.
+                  Required for the Configure NVMe over TCP port with all parameters task.
                 type: str
                 required: false
               default_gateway:
                 description: IPv4 default gateway.
+                  Required for the Configure NVMe over TCP port with all parameters task.
                 type: str
                 required: false
           ipv6_configuration:
             description: IPv6 settings.
+              Required for the Configure NVMe over TCP port with all parameters task.
             type: dict
             required: false
             suboptions:
               linklocal:
                 description: IPv6 link-local address.
+                  Required for the Configure NVMe over TCP port with all parameters task.
                 type: str
                 required: false
               global_:
                 description: IPv6 global address.
+                  Required for the Configure NVMe over TCP port with all parameters task.
                 type: str
                 required: false
               default_gateway:
                 description: IPv6 default gateway.
+                  Required for the Configure NVMe over TCP port with all parameters task.
                 type: str
                 required: false
           tcp_port:
             description: TCP port number.
+              Required for the Configure NVMe over TCP port with all parameters task.
             type: int
             required: false
           discovery_tcp_port:
             description: Discovery TCP port number.
+              Required for the Configure NVMe over TCP port with all parameters task.
             type: int
             required: false
           enable_selective_ack:
             description: Whether to enable selective ACK.
+              Required for the Configure NVMe over TCP port with all parameters task.
             type: bool
             required: false
           enable_delayed_ack:
             description: Whether to enable delayed ACK.
+              Required for the Configure NVMe over TCP port with all parameters task.
             type: bool
             required: false
           window_size:
             description: TCP window size. Choices are C(NUMBER_64K), C(NUMBER_128K), C(NUMBER_256K), C(NUMBER_512K), C(NUMBER_1024K) and case insensitive.
+              Required for the Configure NVMe over TCP port with all parameters task.
             type: str
             required: false
           mtu_size:
             description: MTU size. Choices are C(NUMBER_1500), C(NUMBER_4500), C(NUMBER_9000) and case insensitive.
+              Required for the Configure NVMe over TCP port with all parameters task.
             type: str
             required: false
 """

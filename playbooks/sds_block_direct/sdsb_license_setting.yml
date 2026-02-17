@@ -1,0 +1,35 @@
+---
+####################################################################
+# Example : License Setting Update Playbook
+####################################################################
+- name: Update License Settings
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name : Modify License Settings
+    ####################################################################
+    - name: Modify license settings
+      hitachivantara.vspone_block.sds_block.hv_sds_block_license_setting:
+        state: present
+        connection_info: "{{ connection_info }}"
+        spec:
+          warning_threshold_setting:
+            remaining_days: 6
+            total_pool_capacity_rate: -1
+      register: result
+
+    - name: Display result
+      ansible.builtin.debug:
+        var: result

@@ -18,7 +18,7 @@ REMOVE_DRIVE = "v1/objects/drives/{}/actions/remove/invoke"
 logger = Log()
 
 
-class SDSBBlockDrivesDirectGateway:
+class SDSBDrivesDirectGateway:
 
     def __init__(self, connection_info):
         self.connection_manager = SDSBConnectionManager(

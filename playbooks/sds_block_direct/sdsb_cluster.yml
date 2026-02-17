@@ -399,3 +399,20 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ###############################################################################################
+    # Task Name : Stop the storage cluster
+    # ##############################################################################################
+    - name: Stop the storage cluster
+      hitachivantara.vspone_block.sds_block.hv_sds_block_cluster:
+        connection_info: "{{ connection_info }}"
+        state: "stop_storage_cluster"
+        spec:
+          force: false
+          reboot: true
+          config_parameter_setting_mode: false
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

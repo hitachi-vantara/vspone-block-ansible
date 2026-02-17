@@ -1,0 +1,137 @@
+---
+####################################################################
+# Role: hv_vsp_host_volume_deletion
+# Description: Deletes host volumes from Hitachi VSP storage systems,
+#              including host group removal, volume deletion, quorum disk
+#              deregistration, and remote connection deletion.
+####################################################################
+
+####################################################################
+# Task: Get storage system facts for primary storage
+####################################################################
+- name: Get Storage System facts for primary storage
+  hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
+    connection_info: "{{ connection_info }}"
+  register: primary_storage_facts
+####################################################################
+# Task: Get storage system facts for secondary storage
+####################################################################
+- name: Get Storage System facts for secondary storage
+  hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
+    connection_info: "{{ secondary_connection_info }}"
+  register: secondary_storage_facts
+
+- name: Extract storage model from secondary storage facts
+  ansible.builtin.set_fact:
+    primary_storage_serial: "{{ primary_storage_facts.ansible_facts.storage_system.serial_number }}"
+    secondary_storage_serial: "{{ secondary_storage_facts.ansible_facts.storage_system.serial_number }}"
+
+####################################################################
+# Task: Delete the Volumes from Host Groups after gad Migration
+####################################################################
+- name: Delete ldev
+  hitachivantara.vspone_block.vsp.hv_ldev:
+    connection_info: "{{ connection_info }}"
+    state: "absent"
+    spec:
+      ldev_id: "{{ ldev_item }}"
+      force: true
+  register: absent_ldev_result
+  loop: "{{ primary_volume_ids }}"
+  loop_control:
+    loop_var: ldev_item
+  when: primary_volume_ids is defined
+
+- name: Debug the result variable
+  ansible.builtin.debug:
+    var: absent_ldev_result
+
+####################################################################
+# Task: Deregister Quorum Disks if present
+####################################################################
+- name: Deregister Primary Quorum Disk
+  hitachivantara.vspone_block.vsp.hv_quorum_disk:
+    connection_info: "{{ connection_info }}"
+    state: absent
+    spec:
+      id: "{{ quorum_disk_id }}"
+  register: primary_quorum_result
+  when: quorum_disk_id is defined
+
+- name: Debug Primary Quorum Disk result
+  ansible.builtin.debug:
+    var: primary_quorum_result
+  when: quorum_disk_id is defined
+
+- name: Deregister Secondary Quorum Disk
+  hitachivantara.vspone_block.vsp.hv_quorum_disk:
+    connection_info: "{{ secondary_connection_info }}"
+    state: absent
+    spec:
+      id: "{{ quorum_disk_id }}"
+  register: secondary_quorum_result
+  when: quorum_disk_id is defined
+
+- name: Debug Secondary Quorum Disk result
+  ansible.builtin.debug:
+    var: secondary_quorum_result
+  when: quorum_disk_id is defined
+
+####################################################################
+# Delete remote connections in both primary and secondary storage
+####################################################################
+
+- name: Delete remote connection from primary storage
+  hitachivantara.vspone_block.vsp.hv_remote_connection:
+    connection_info: "{{ connection_info }}"
+    state: absent
+    spec:
+      path_group_id: "{{ path_group_id }}"
+      remote_storage_serial_number: "{{ secondary_storage_serial }}"
+  register: primary_remote_connection_result
+  when: path_group_id is defined
+
+- name: Debug Primary Remote Connection result
+  ansible.builtin.debug:
+    var: primary_remote_connection_result
+  when: path_group_id is defined
+
+- name: Delete remote connection from secondary storage
+  hitachivantara.vspone_block.vsp.hv_remote_connection:
+    connection_info: "{{ secondary_connection_info }}"
+    state: absent
+    spec:
+      path_group_id: "{{ path_group_id }}"
+      remote_storage_serial_number: "{{ primary_storage_serial }}"
+  register: secondary_remote_connection_result
+  when: path_group_id is defined
+
+- name: Debug Secondary Remote Connection result
+  ansible.builtin.debug:
+    var: secondary_remote_connection_result
+  when: path_group_id is defined
+
+####################################################################
+# Task: Generate execution report
+####################################################################
+- name: Generate execution report
+  ansible.builtin.set_fact:
+    execution_report:
+      summary: "Host volume deletion completed"
+      ldev_ids: "{{ primary_volume_ids | default([]) }}"
+      volume_deletion: "{{ 'Completed' if absent_ldev_result is defined and absent_ldev_result.results is defined and (absent_ldev_result.results | selectattr('changed',
+        'equalto', true) | list | length > 0) else 'No deletions performed' }}"
+      primary_quorum_disk: "{{ 'Deregistered' if primary_quorum_result is defined and primary_quorum_result.changed else 'Not applicable' }}"
+      secondary_quorum_disk: "{{ 'Deregistered' if secondary_quorum_result is defined and secondary_quorum_result.changed else 'Not applicable' }}"
+      remote_connections: "{{ 'Deleted' if path_group_id is defined else 'Not applicable' }}"
+
+- name: Display execution report
+  ansible.builtin.debug:
+    msg:
+      - "=== EXECUTION REPORT ==="
+      - "Total LDEVs processed: {{ execution_report.ldev_ids }}"
+      - "Volume deletion status: {{ execution_report.volume_deletion }}"
+      - "Primary quorum disk status: {{ execution_report.primary_quorum_disk }}"
+      - "Secondary quorum disk status: {{ execution_report.secondary_quorum_disk }}"
+      - "Remote connections status: {{ execution_report.remote_connections }}"
+      - "=== END REPORT ==="

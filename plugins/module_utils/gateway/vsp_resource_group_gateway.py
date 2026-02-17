@@ -75,7 +75,7 @@ class VSPResourceGroupDirectGateway:
     def set_serial(self, serial=None):
         if serial:
             self.serial = serial
-            logger.writeError(f"GW:set_serial={self.serial}")
+            logger.writeDebug(f"GW:set_serial={self.serial}")
 
     @log_entry_exit
     def get_resource_groups(self, spec=None, b_refresh=True):
@@ -218,7 +218,9 @@ class VSPResourceGroupDirectGateway:
                     raise ValueError("Virtual Model must be specified to create a VSM.")
             else:
                 payload["virtualStorageDeviceId"] = virtual_storage_device_id
-
+        # payload["virtualStorageDeviceId"] = True
+        # commenting out canRunIfResourceLocked as it causes error when resource is not locked
+        # payload["canRunIfResourceLocked"] = True
         resource_group = self.connection_manager.post(end_point, payload)
         self.connection_info.changed = True
         return resource_group
@@ -307,6 +309,8 @@ class VSPResourceGroupDirectGateway:
         if len(parameters) == 0:
             return
 
+        # commenting out canRunIfResourceLocked as it causes error when resource is not locked
+        # parameters["canRunIfResourceLocked"] = True
         payload = {"parameters": parameters}
         end_point = ADD_RESOURCE_TO_RESOURCE_GROUP_DIRECT.format(rg_id)
         timeout = None
@@ -346,9 +350,16 @@ class VSPResourceGroupDirectGateway:
         if spec.nvm_subsystem_ids:
             parameters["nvmSubsystemIds"] = spec.nvm_subsystem_ids
 
+        # check if parameters["hostGroupIds"] is empty after assignment, if yes then remove it from parameters
+        if "hostGroupIds" in parameters and len(parameters["hostGroupIds"]) == 0:
+            del parameters["hostGroupIds"]
+
         if len(parameters) == 0:
             return
 
+        # parameters["virtualStorageDeviceId"] = True
+        # commenting out canRunIfResourceLocked as it causes error when resource is not locked
+        # parameters["canRunIfResourceLocked"] = True
         payload = {"parameters": parameters}
         self.remove_resoure_with_payload(rg_id, payload)
         self.connection_info.changed = True
@@ -403,6 +414,9 @@ class VSPResourceGroupDirectGateway:
             parameters["nvmSubsystemIds"] = rg.nvmSubsystemIds
 
         if bool(parameters):
+            # parameters["virtualStorageDeviceId"] = True
+            # commenting out canRunIfResourceLocked as it causes error when resource is not locked
+            # parameters["canRunIfResourceLocked"] = True
             payload = {"parameters": parameters}
             self.remove_resoure_with_payload(rg.resourceGroupId, payload)
 

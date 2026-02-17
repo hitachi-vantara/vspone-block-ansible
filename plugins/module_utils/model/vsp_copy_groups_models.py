@@ -18,8 +18,8 @@ class CopyGroupSpec(SingleBaseClass):
     copy_pair_name: Optional[str] = None
     local_device_group_name: Optional[str] = None
     remote_device_group_name: Optional[str] = None
-    replication_type: str = ""
-    svol_operation_mode: str = ""
+    replication_type: Optional[str] = None
+    svol_operation_mode: Optional[str] = None
     is_svol_writable: Optional[bool] = False
     do_pvol_write_protect: Optional[bool] = False
     do_data_suspend: Optional[bool] = False
@@ -50,10 +50,10 @@ class CopyGroupsFactSpec(SingleBaseClass):
 class CopyGroupInfo(SingleBaseClass):
     remoteMirrorCopyGroupId: str
     copyGroupName: str
-    muNumber: int
     remoteStorageDeviceId: str
     localDeviceGroupName: str
     remoteDeviceGroupName: str
+    muNumber: Optional[int] = None
 
 
 @dataclass
@@ -73,18 +73,18 @@ class DirectCopyPairInfo(SingleBaseClass):
     pvolStorageDeviceId: str
     svolStorageDeviceId: str
 
-    consistencyGroupId: int = ""
-    svolDifferenceDataManagement: str = ""
-    svolProcessingStatus: str = ""
-    quorumDiskId: int = ""
-    pvolIOMode: str = ""
-    svolIOMode: str = ""
-    replicationType: str = ""
-    fenceLevel: str = ""
-    pvolDifferenceDataManagement: str = ""
-    pvolProcessingStatus: str = ""
-    pvolJournalId: int = ""
-    svolJournalId: int = ""
+    consistencyGroupId: Optional[int] = None
+    svolDifferenceDataManagement: Optional[str] = None
+    svolProcessingStatus: Optional[str] = None
+    quorumDiskId: Optional[int] = None
+    pvolIOMode: Optional[str] = None
+    svolIOMode: Optional[str] = None
+    replicationType: Optional[str] = None
+    fenceLevel: Optional[str] = None
+    pvolDifferenceDataManagement: Optional[str] = None
+    pvolProcessingStatus: Optional[str] = None
+    pvolJournalId: Optional[int] = None
+    svolJournalId: Optional[int] = None
     isAluaEnabled: Optional[bool] = None
     copyProgressRate: Optional[int] = None
 
@@ -105,7 +105,7 @@ class DirectSpecificCopyGroupInfo(SingleBaseClass):
     localDeviceGroupName: str
     remoteDeviceGroupName: str
     copyPairs: List[DirectCopyPairInfo]
-    muNumber: int = ""
+    muNumber: Optional[int] = None
 
     def __init__(self, **kwargs):
         self.remoteMirrorCopyGroupId = kwargs.get("remoteMirrorCopyGroupId")

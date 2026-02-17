@@ -34,6 +34,7 @@ options:
     suboptions:
       id:
         description: Filter control port by ID (UUID format).
+          Required for the Get control port by ID task.
         type: str
         required: false
 """
@@ -153,7 +154,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockControlPortFactsManager:
+class SDSBControlPortFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -194,7 +195,7 @@ class SDSBBlockControlPortFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockControlPortFactsManager()
+    obj_store = SDSBControlPortFactsManager()
     obj_store.apply()
 
 

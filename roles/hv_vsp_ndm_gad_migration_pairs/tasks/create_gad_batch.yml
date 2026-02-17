@@ -1,0 +1,76 @@
+---
+####################################################################
+# Task: Create GAD pairs for a single batch and wait for PAIR status
+####################################################################
+
+- name: Display batch information
+  ansible.builtin.debug:
+    msg:
+      - "=== Processing Batch {{ batch_index + 1 }} ==="
+      - "GAD pairs in this batch: {{ current_batch | length }}"
+      - "LDEVs: {{ current_batch | map(attribute='key') | list }}"
+
+- name: Create GAD pair for each LDEV in current batch
+  hitachivantara.vspone_block.vsp.hv_gad:
+    connection_info: "{{ connection_info }}"
+    secondary_connection_info: "{{ secondary_connection_info }}"
+    spec:
+      primary_storage_serial_number: "{{ primary_storage_serial }}"
+      secondary_storage_serial_number: "{{ secondary_storage_serial }}"
+      copy_group_name: "{{ hv_vsp_ndm_gad_migration_pairs_copy_group_name }}"
+      copy_pair_name: "{{ hv_vsp_ndm_gad_migration_pairs_copy_pair_name_prefix }}{{ item.key }}"
+      primary_volume_id: "{{ item.key }}"
+      secondary_pool_id: "{{ secondary_storage_pool_id }}"
+      secondary_hostgroups: >-
+        {%- set hostgroups = [] -%}
+        {%- for volume in item.value -%}
+          {%- set _ = hostgroups.append({
+            'port': volume.secondary_port,
+            'name': hv_vsp_ndm_gad_migration_pairs_hg_name_prefix ~ volume.host_group_name,
+            'lun_id': volume.lun
+          }) -%}
+        {%- endfor -%}
+        {{ hostgroups }}
+      quorum_disk_id: "{{ available_primary_quorum_id }}"
+      path_group_id: "{{ path_group_id }}"
+  loop: "{{ current_batch }}"
+  loop_control:
+    label: "LDEV {{ item.key }} with {{ item.value | length }} hostgroup(s)"
+  register: batch_gad_pair_results
+
+- name: Wait for GAD pairs in current batch to reach PAIR status
+  hitachivantara.vspone_block.vsp.hv_gad_facts:
+    connection_info: "{{ connection_info }}"
+    secondary_connection_info: "{{ secondary_connection_info }}"
+    spec:
+      copy_group_name: "{{ hv_vsp_ndm_gad_migration_pairs_copy_group_name }}"
+      copy_pair_name: "{{ item.data.copy_pair_name }}"
+  loop: "{{ batch_gad_pair_results.results | selectattr('data', 'defined') | list }}"
+  loop_control:
+    label: "Monitoring GAD pair {{ item.data.copy_pair_name }}"
+  register: batch_gad_status_check
+  until: batch_gad_status_check.ansible_facts.gad_pair[0].primary_volume_status | default('') == 'PAIR'
+  retries: 10
+  delay: 60
+  when:
+    - batch_gad_pair_results is defined
+    - batch_gad_pair_results.results is defined
+    - batch_gad_pair_results.results | length > 0
+    - batch_gad_pair_results.results | selectattr('data', 'defined') | list | length > 0
+
+- name: Display batch completion status
+  ansible.builtin.debug:
+    msg:
+      - "=== Batch {{ batch_index + 1 }} Complete ==="
+      - "All GAD pairs in this batch have reached PAIR status"
+      - "Pairs created: {{ batch_gad_pair_results.results | map(attribute='data.copy_pair_name') | list }}"
+  when:
+    - batch_gad_pair_results is defined
+    - batch_gad_pair_results.results is defined
+
+- name: Append batch results to all_gad_pair_results
+  ansible.builtin.set_fact:
+    all_gad_pair_results: "{{ all_gad_pair_results + batch_gad_pair_results.results }}"
+  when:
+    - batch_gad_pair_results is defined
+    - batch_gad_pair_results.results is defined

@@ -27,6 +27,7 @@ attributes:
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.gateway_note
   - hitachivantara.vspone_block.common.connection_info
+  - hitachivantara.vspone_block.common.storage_system_note
 options:
   spec:
     description: Specification storage system.
@@ -40,31 +41,42 @@ options:
         suboptions:
           is_ntp_enabled:
             description: Whether NTP is enabled.
+              Required for the Set date and time in Storage System with NTP disabled
+              /Set date and time in Storage System with NTP enabled tasks.
             type: bool
             required: true
           ntp_server_names:
             description: List of NTP server names.
+              Optional for the Set date and time in Storage System with NTP enabled task.
             type: list
             elements: str
             required: false
           time_zone_id:
             description: Time zone identifier.
+              Required for the Set date and time in Storage System with NTP disabled
+              /Set date and time in Storage System with NTP enabled tasks.
             type: str
             required: true
           system_time:
             description: System time in ISO format.
+              Required for the Set date and time in Storage System with NTP disabled
+              /Set date and time in Storage System with NTP enabled tasks.
             type: str
             required: true
           synchronizing_local_time:
             description: Synchronizing local time.
+              Optional for the Set date and time in Storage System with NTP enabled task.
             type: str
             required: false
           adjusts_daylight_saving_time:
             description: Whether daylight saving time is adjusted.
+              Optional for the Set date and time in Storage System with NTP enabled task.
             type: bool
             required: false
           synchronizes_now:
             description: Whether to synchronize time immediately.
+              Required for the Set date and time in Storage System with NTP disabled task.
+              Optional for the Set date and time in Storage System with NTP enabled task.
             type: bool
             required: false
 """

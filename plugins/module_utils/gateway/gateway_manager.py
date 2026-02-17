@@ -330,6 +330,9 @@ class SDSBConnectionManager(ConnectionManager):
     def download_file(self, endpoint):
         return self._make_request("GET", endpoint, download=True)
 
+    def download_file_header(self, endpoint, header):
+        return self._make_request("GET", endpoint, download=True, headers_input=header)
+
     def _process_job_till_running_state(self, job_id):
         retry_count = 0
 

@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_paritygroup
-short_description: Create, delete parity group from Hitachi VSP storage systems.
+short_description: Create, delete parity group from VSP block storage systems.
 description:
-  - This module creates, delete parity group from Hitachi VSP storage systems.
+  - This module creates, delete parity group from VSP block storage systems.
   - For examples go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/paritygroup.yml)
 version_added: '3.2.0'

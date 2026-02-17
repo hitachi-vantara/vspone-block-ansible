@@ -13,7 +13,7 @@ except ImportError:
 logger = Log()
 
 
-class SDSBBlockDrivesProvisioner:
+class SDSBDrivesProvisioner:
 
     def __init__(self, connection_info):
 

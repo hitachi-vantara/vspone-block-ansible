@@ -19,6 +19,7 @@ except ImportError:
     )
     from common.hv_log import Log
     from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
+import time
 
 
 GET_SNAPSHOTS_SIMPLE = "simple/v1/objects/snapshots"
@@ -167,11 +168,26 @@ class VspOneSnapshotGateway:
         return result
 
     @log_entry_exit
-    def restore_snapshot(self, master_volume_id, snapshot_id):
+    def restore_snapshot(
+        self, master_volume_id, snapshot_id, wait_for_final_state=True
+    ):
         object_id = f"{master_volume_id},{snapshot_id}"
         end_point = RESTORE_SNAPSHOT_SIMPLE.format(object_id)
         response = self.rest_api.pegasus_post(end_point, data=None)
-        result = self.get_snapshot_by_id(response)
+        result = None
+        # Retry logic to wait for pair status to become PSUS
+        max_retries = 30
+        retry_interval = 10  # seconds
+        for attempt in range(max_retries):
+            result = self.get_snapshot_by_id(response)
+            if wait_for_final_state is False:
+                break
+            if result and result.status == "PSUS":
+                break
+            logger.writeDebug(
+                f"GW:restore_snapshot:waiting for PSUS status, attempt {attempt + 1}/{max_retries}"
+            )
+            time.sleep(retry_interval)
         logger.writeDebug(f"GW:restore_snapshot:result = {result}")
         return result
 

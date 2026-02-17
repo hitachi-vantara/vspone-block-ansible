@@ -9,7 +9,7 @@ try:
     from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 except ImportError:
     from .gateway_manager import VSPConnectionManager
-    from ..model.vsp_clpr_models import (
+    from model.vsp_clpr_models import (
         ClprInfo,
         ClprInfoList,
     )

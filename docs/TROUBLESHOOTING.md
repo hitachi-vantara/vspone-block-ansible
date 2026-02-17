@@ -2,6 +2,13 @@
 
 ## Logging
 
+- **Enabling Debug Mode:**
+  The default log level for Ansible module is INFO
+  Run the following command to change the log level to DEBUG
+    export HV_ANSIBLE_LOG_LEVEL="DEBUG"
+  Run the following command to change the log level back to INFO
+    export HV_ANSIBLE_LOG_LEVEL="INFO"
+
 - **Log File Location:**  
   `$HOME/logs/hitachivantara/ansible/vspone_block/hv_vspone_block_modules.log`
   `$HOME/logs/hitachivantara/ansible/vspone_block/hv_vspone_block_audit.log`

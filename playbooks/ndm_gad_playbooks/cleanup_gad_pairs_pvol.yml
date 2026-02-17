@@ -1,0 +1,51 @@
+---
+####################################################################
+# Cleanup Workflow: Remove Primary Volumes, Remote Connections, and Quorum Disks
+#
+# This playbook performs cleanup after GAD migration:
+# 1. Deletes original primary volumes
+# 2. Removes remote connections
+# 3. Deletes quorum disks
+#
+# Prerequisites:
+# - Hitachi VSP One Block collection installed
+# - Valid credentials for storage systems
+####################################################################
+- name: Cleanup Workflow - Remove Primary Volumes, Remote Connections, Quorum Disks
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Host WWNs to query for existing volumes
+    connection_info:
+      address: "{{storage_address}}"
+      username: "{{vault_storage_username}}"
+      password: "{{vault_storage_secret}}"
+    secondary_connection_info:
+      address: "{{secondary_storage_address}}"
+      username: "{{vault_secondary_storage_username}}"
+      password: "{{vault_secondary_storage_secret}}"
+
+    primary_volume_ids: [1888, 1891] # List of primary volume IDs to be deleted
+    quorum_disk_id: 5 # Quorum disk ID to be deregistered
+    path_group_id: 3 # Path group ID for remote connection deletion
+
+  tasks:
+    ####################################################################
+    # STEP 1: Cleanup Phase - Remove Original Volumes After Migration
+    #
+    # Purpose: Clean up source volumes after successful migration
+    # - Un presents volumes from original host groups
+    # - Deletes original volumes from primary storage system
+    # - Provides cleanup execution report
+    # - Only executes if migration was successful
+    ####################################################################
+    - name: "Step 4: Clean up original volumes from source storage"
+      ansible.builtin.include_role:
+        name: hitachivantara.vspone_block.hv_vsp_host_volume_deletion
+      tags:
+        - cleanup
+        - volume_deletion

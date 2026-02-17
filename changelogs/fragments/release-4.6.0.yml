@@ -1,0 +1,77 @@
+---
+release_summary: |
+  This release adds support for Mainframe z16 and SVOS 10.5.1, introduces multiple new modules for
+  VSP One SDS Block and Cloud systems (audit logging, event logs, journaling, licensing, login
+  messages, and external authentication), and expands capabilities across VSP block storage modules
+  including storage pools, LDEVs, snapshots, host groups, and facts modules.
+minor_changes:
+  - Added support for Mainframe z16.
+  - Added support for SVOS 10.5.1.
+  - Added a new "hv_sds_block_audit_log_setting" module to support configuration of audit log settings on VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_audit_log_setting_facts" module to retrieve audit log setting from VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_dump_log_file" module to retrieve and dump log information from VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_dump_log_status_facts" module to retrieve and dump log status information from VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_event_log_setting_facts" module to retrieve event log setting from VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_event_logs_facts" module to retrieve event logs with various filtering options from VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_journal" module to create and update journals on VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_journal_facts" module to retrieve journal details from VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_license" module to manage license on VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_license_facts" module to retrieve license from VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_license_setting" module to modify license warning threshold settings for VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_license_setting_facts" module to retrieve license setting from VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_login_message" module to update the message configured to be displayed on the GUI login window and CLI warning banner of the VSP One
+    SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_login_message_facts" module to retrieve the message configured to be displayed on the GUI login window and CLI warning banner of the
+    VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_storage_external_auth_server_setting" module to configure external authentication server settings on VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_storage_external_auth_server_setting_facts" module to retrieve external authentication server settings from the VSP One SDS Block and
+    Cloud systems.
+  - Added a new "hv_sds_block_storage_user_auth_setting" module to configure external authentication server settings on VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_storage_user_auth_setting_facts" module to retrieve user authentication settings from VSP One SDS Block and Cloud systems.
+  - Added a new "hv_pav_alias" module to manage PAV (Parallel Access Volume) alias assignments for Mainframe based VSP block storage systems.
+  - Added a new "hv_pav_alias_facts" module to gather facts about PAV aliases from Mainframe based VSP block storage systems.
+  - Added a new "hv_session" module to generate and discard session on VSP block storage systems.
+  - Added a new "hv_session_facts" module to retrieve information about sessions on VSP block storage systems.
+  - Added a new "hv_snapshot_family_facts" module to retrieve information about snapshot family of the provided LDEV ID from VSP block storage systems.
+  - Added a new "hv_supported_host_mode_facts" module to retrieve detailed information about supported host mode options available in a given VSP block storage system.
+  - Added a new "hv_vclone_parent_volume_facts" module to retrieve information about virtual clone parent volume from VSP block storage systems.
+  - Added support to "hv_storagepool" module to shrink a storage pool using list of pool volume IDs.
+  - Added support to "hv_storagepool" module to shrink a storage pool using list of pool volume IDs and delete pool volumes.
+  - Added support to "hv_storagepool" module to shrink a storage pool using start and end pool volume IDs.
+  - Added support to "hv_storagepool" module to stop the shrink operation of a storage pool.
+  - Added support to "hv_storagepool" module to create a mainframe HDP storage pool using parity group and cylinder.
+  - Added support to "hv_storagepool_facts" module to get all mainframe storage pools.
+  - Added support to "hv_storagepool_facts" module to get all mainframe storage pools with extended info.
+  - Added support to "hv_storagepool_facts" module to get all mainframe storage pools with cache info for VSP 5XXX series storage.
+  - Added support to "hv_sds_block_cluster" module to stop the storage cluster.
+  - Added support to "hv_ldev" module to create DRS LDEV without deduplication and compression.
+  - Added support to "hv_ldev" module to create Mainframe LDEV with cylinder and emulation type.
+  - Added support to "hv_ldev" module to create TSE Mainframe LDEV with cylinder and emulation type.
+  - Added support to "hv_ldev" module to create ESE Mainframe LDEV with cylinder and emulation type.
+  - Added support to "hv_ldev" module to create Mainframe LDEV with cylinder and emulation type in a parity group.
+  - Added support to "hv_ldev" module to stop the normal format for all volumes.
+  - Added support to "hv_ldev_facts" module to get information about multiple LDEVs by their IDs.
+  - Added support to "hv_vsp_one_volume" module to create DRS volume without deduplication and compression.
+  - Added support to "hv_resource_group_facts" module to get basic information about all resource groups including meta resource group information.
+  - Added support to "hv_snapshot" module to create or convert a snapshot pair to vClone depending on the snapshot pair status.
+  - Added support to "hv_snapshot" module to restore a snapshot pair from vClone.
+  - Added support to "hv_snapshot_group" module to create or convert a snapshot pair to vClone by snapshot group name.
+  - Added support to "hv_snapshot_group" module to restore snapshot group from vClone.
+  - Added support to "hv_snapshot_group" module to restore the snapshot pairs using group name and wait for the final state of all snapshots.
+  - Added support to "hv_ddp_pool" module for DDP pool creation with RAID6.
+  - Added support to "hv_hg" module to support host group's lun paths.
+  - Added support to "hv_hg" module for present/unpresent multiple LDEVs to/from hostgroups across multiple ports.
+  - Added support to "hv_storagepool" module output to include pool volumes information.
+  - Added support to "hv_storagepool_facts" module output to include pool volumes information.
+  - Added support to "hv_snapshot" module to optionally delete secondary volume using should_delete_svol parameter.
+  - Added support to "hv_snapshot_facts" module output to include vClone-related properties.
+  - Added support to "hv_snapshot_group_facts" module output to include vClone-related properties.
+  - Added "playbooks/vsp_direct/vsp_storage_connection_session_example.yml" as a sample playbook demonstrating session-based storage operations.
+  - Added support to "hv_paritygroup_facts" module output to include Mainframe and other new properties.
+  - Added support to "hv_storage_port_facts" module output to include Mainframe and other new properties.
+  - Added support to "hv_ldev_facts" module output to include Mainframe, vClone and other new properties.
+  - Added support to "hv_vsp_one_volume_facts" module output to include Mainframe, vClone and other new properties.
+  - Added support to "hv_storagesystem_facts" module output to include "is_compression_acceleration_available" status.
+  - Enhanced the performance of the "hv_hg_facts" module's task by implementing parallel calls.
+  - Enhanced the performance of the "hv_gad_facts" module's task by implementing thread pool and batch processing.
+  - Enhanced the performance of the "hv_ldev_facts" module's task by implementing thread pool and batch processing.

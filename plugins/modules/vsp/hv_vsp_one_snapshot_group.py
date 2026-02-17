@@ -11,10 +11,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_snapshot_group
-short_description: Manages snapshot group operations in VSP E series and VSP One Block 20 series storage systems.
+short_description: Manages snapshot group operations in VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 description:
-  - This module manages snapshot group operations in VSP E series and VSP One Block 20 series storage systems.
-  - Utilizes the Hitachi Virtual Storage Platform One Simple API for snapshot group operations across VSP one B20 series and VSP E series models.
+  - This module manages snapshot group operations in VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for snapshot group operations across VSP One B20 series,
+    VSP One B80 series, and VSP E series models.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_snapshot_group.yml)
 version_added: '4.4.0'
@@ -146,13 +147,13 @@ class VSPOneSnapshotGroupModule:
 
         response = {
             "snapshots": snapshots if snapshots else [],
-            "comment": self.spec.comments if self.spec.comments else "",
+            "comments": self.spec.comments if self.spec.comments else "",
             "changed": self.connection_info.changed,
         }
         if registration_message:
             response["user_consent_required"] = registration_message
         self.logger.writeInfo("=== End of VSP One Snapshot Group Module ===")
-        self.module.exit_json(changed=False, ansible_facts=response)
+        self.module.exit_json(**response)
 
 
 def main():

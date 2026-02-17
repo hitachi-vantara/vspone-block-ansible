@@ -67,6 +67,7 @@ class VSPStorageSystemCommonPropertiesExtractor:
             "totalEfficiency": dict,
             "systemDateTime": dict,
             "TimeZonesInfo": dict,
+            "isCompressionAccelerationAvailable": bool,
         }
 
     def extract(self, response):

@@ -12,11 +12,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_server
-short_description: Manages servers on  VSP E series and VSP One Block 20 series storage systems.
+short_description: Manages servers on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 description:
   - This module enables register, modification, and deletion of servers, as well as various server operations.
   - Supports various server operations depending on the specified state parameter.
-  - Utilizes the Hitachi Virtual Storage Platform One Simple API for server management across VSP one B20 series and VSP E series models.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for server management across VSP E series, VSP One B20 series, and VSP One B80 series models.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_server.yml)
 version_added: '4.3.0'
@@ -46,19 +46,58 @@ options:
     suboptions:
       nick_name:
         description: Server nickname specification.
+          Required for the Register a basic server with minimal configuration
+          /Register a FC server with HBA WWN
+          /Register an iSCSI server with iSCSI names
+          /Register server with host groups configuration
+          /Register server with multiple HBAs and paths configuration
+          /Register iSCSI server with multiple HBAs and paths
+          /Register reserved server with specific configuration
+          /Update existing server nick_name (using server_id)
+          /Register HP-UX server with comprehensive configuration
+          /Delete server using nick_name tasks.
         type: str
         required: false
       protocol:
         description: Server protocol type.
+          Required for the Register a basic server with minimal configuration
+          /Register a FC server with HBA WWN
+          /Register an iSCSI server with iSCSI names
+          /Register server with host groups configuration
+          /Register server with multiple HBAs and paths configuration
+          /Register iSCSI server with multiple HBAs and paths
+          /Register reserved server with specific configuration
+          /Register HP-UX server with comprehensive configuration tasks.
         type: str
         required: false
         choices: ["FC", "iSCSI"]
       server_id:
         description: Server identifier.
+          Required for the Update existing server nick_name (using server_id)
+          /Update existing server settings like os type options using server_id
+          /Add host groups to existing server
+          /Add HBA to existing FC server
+          /Add iSCSI HBA to existing iSCSI server
+          /Remove HBA from FC server
+          /Remove iSCSI HBA from iSCSI server
+          /Add path to server
+          /Remove path from server
+          /Sync server nickname
+          /Change the iSCSI target settings for existing server
+          /Delete server by server_id and keep lun configuration tasks.
         type: int
         required: false
       os_type:
         description: Operating system type of the server.
+          Required for the Register a basic server with minimal configuration
+          /Register a FC server with HBA WWN
+          /Register an iSCSI server with iSCSI names
+          /Register server with host groups configuration
+          /Register server with multiple HBAs and paths configuration
+          /Register iSCSI server with multiple HBAs and paths
+          /Register reserved server with specific configuration
+          /Update existing server settings like os type options using server_id
+          /Register HP-UX server with comprehensive configuration tasks.
         type: str
         required: false
         choices: ["Linux", "HP-UX", "Solaris", "AIX", "VMware", "Windows"]
@@ -69,66 +108,113 @@ options:
         elements: str
       is_reserved:
         description: Indicates if the server is reserved.
+          Required for the Register a basic server with minimal configuration
+          /Register reserved server with specific configuration tasks.
         type: bool
         required: false
       os_type_options:
         description: List of OS type option identifiers.
+          Required for the Register reserved server with specific configuration
+          /Update existing server settings like os type options using server_id tasks.
         type: list
         required: false
         elements: int
       hbas:
         description: List of HBA configurations.
+          Required for the Register a FC server with HBA WWN
+          /Register an iSCSI server with iSCSI names
+          /Register server with multiple HBAs and paths configuration
+          /Register iSCSI server with multiple HBAs and paths
+          /Register reserved server with specific configuration
+          /Add HBA to existing FC server
+          /Add iSCSI HBA to existing iSCSI server
+          /Remove HBA from FC server
+          /Remove iSCSI HBA from iSCSI server
+          /Register HP-UX server with comprehensive configuration tasks.
         type: list
         required: false
         elements: dict
         suboptions:
           hba_wwn:
             description: HBA WWN address.
+              Required for the Register a FC server with HBA WWN
+              /Register server with multiple HBAs and paths configuration
+              /Register reserved server with specific configuration
+              /Add HBA to existing FC server
+              /Remove HBA from FC server
+              /Register HP-UX server with comprehensive configuration tasks.
             type: str
             required: false
           iscsi_name:
             description: iSCSI name.
+              Required for the Register an iSCSI server with iSCSI names
+              /Register iSCSI server with multiple HBAs and paths
+              /Add iSCSI HBA to existing iSCSI server
+              /Remove iSCSI HBA from iSCSI server tasks.
             type: str
             required: false
       paths:
         description: List of path configurations.
+          Required for the Register server with multiple HBAs and paths configuration
+          /Register iSCSI server with multiple HBAs and paths
+          /Add path to server
+          /Remove path from server
+          /Register HP-UX server with comprehensive configuration tasks.
         type: list
         required: false
         elements: dict
         suboptions:
           port_ids:
             description: List of port identifiers.
+              Required for the Register server with multiple HBAs and paths configuration
+              /Register iSCSI server with multiple HBAs and paths
+              /Add path to server
+              /Remove path from server
+              /Register HP-UX server with comprehensive configuration tasks.
             type: list
             required: true
             elements: str
           hba_wwn:
             description: HBA WWN address.
+              Required for the Register server with multiple HBAs and paths configuration
+              /Add path to server
+              /Remove path from server
+              /Register HP-UX server with comprehensive configuration tasks.
             type: str
             required: false
           iscsi_name:
             description: iSCSI name.
+              Required for the Register iSCSI server with multiple HBAs and paths tasks
             type: str
             required: false
       keep_lun_config:
         description: Whether to keep LUN configuration.
+          Required for the Register HP-UX server with comprehensive configuration
+          /Delete server by server_id and keep lun configuration tasks.
         type: bool
         required: false
       iscsi_target_settings:
         description: List of iSCSI target configurations.
+          Required for the Change the iSCSI target settings for existing server tasks.
         type: list
         required: false
         elements: dict
         suboptions:
           port_id:
             description: Port identifier.
+              Required for the Change the iSCSI target settings for existing server task.
             type: str
             required: true
           target_iscsi_name:
             description: iSCSI target name.
+              Required for the Change the iSCSI target settings for existing server task.
             type: str
             required: true
       host_groups:
         description: List of host group configurations.
+          Required for the Register server with host groups configuration
+          /Add host groups to existing server
+          /Register HP-UX server with comprehensive configuration tasks.
         type: list
         required: false
         elements: dict
@@ -139,10 +225,16 @@ options:
             required: false
           host_group_name:
             description: Host group name.
+              Required for the Register server with host groups configuration
+              /Add host groups to existing server
+              /Register HP-UX server with comprehensive configuration tasks.
             type: str
             required: false
           port_id:
             description: Port identifier.
+              Required for the Register server with host groups configuration
+              /Add host groups to existing server
+              /Register HP-UX server with comprehensive configuration tasks.
             type: str
             required: false
       iscsi_targets:

@@ -19,3 +19,17 @@ class SDSBRemotePathGroupValidationMsg(Enum):
     INVALID_TIMEOUT_VALUE = (
         "The 'remote_io_timeout_in_sec' value must be between 10 and 80."
     )
+    UNSUPPORTED_STATE = "Unsupported state: {}. Supported states are present, absent, update, add_remote_path and remove_remote_path."
+    REMOTE_PATH_GROUP_NOT_FOUND = "Did not find remote path group with id = '{}'."
+    REMOTE_PATH_EXISTS = (
+        "The remote path already exists in the remote path group with id = '{}'."
+    )
+    REMOTE_PATH_DOES_NOT_EXIST = (
+        "The remote path does not exist in the remote path group with id = '{}'."
+    )
+    DELETE_REMOTE_PATH_SUCCESS = (
+        "Remote path group with ID '{}' has been successfully deleted."
+    )
+    REMOTE_PATH_GROUP_NOT_FOUND_OR_DELETED = (
+        "Remote path group with ID '{}' not found or already deleted."
+    )

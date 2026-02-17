@@ -1,0 +1,45 @@
+---
+####################################################################
+# Example : SDSB Dump log status facts Playbook
+####################################################################
+- name: Manage SDSB Dump log status facts
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name : Get latest dump file status
+    ####################################################################
+    - name: Get latest dump file status
+      hitachivantara.vspone_block.sds_block.hv_sds_block_dump_log_status_facts:
+        connection_info: "{{ connection_info }}"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    # ####################################################################
+    # # Task Name : Get all dump log status
+    # ####################################################################
+    - name: Get all dump log status
+      hitachivantara.vspone_block.sds_block.hv_sds_block_dump_log_status_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          include_all_status: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

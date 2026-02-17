@@ -11,6 +11,7 @@ try:
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from ..message.vsp_shadow_image_pair_msgs import VSPShadowImagePairValidateMsg
+    from ..common.ansible_common_constants import MAX_WORKER_THREADS
 
 except ImportError:
     from common.vsp_constants import Endpoints
@@ -37,11 +38,15 @@ class VSPShadowImagePairDirectGateway:
             connection_info.password,
             connection_info.api_token,
         )
+        self.all_pairs = []
+        self.all_si_pairs = None
 
     @log_entry_exit
     def get_all_shadow_image_pairs(self, serial, refresh=None):
         funcName = "VSPShadowImagePairDirectGateway: get_all_shadow_image_pairs"
         self.logger.writeEnterSDK(funcName)
+        if self.all_si_pairs is not None:
+            return self.all_si_pairs
         response = self.get_all_shadow_image_pairs_by_copy_group(serial, refresh)
         self.logger.writeDebug("{} Response={}", funcName, response)
         shadow_image_list = []
@@ -50,9 +55,11 @@ class VSPShadowImagePairDirectGateway:
             if shadow_image is not None:
                 shadow_image_list.append(shadow_image)
         self.logger.writeExitSDK(funcName)
-        return VSPShadowImagePairsInfo(
+        si_pais = VSPShadowImagePairsInfo(
             dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo)
         )
+        self.all_si_pairs = si_pais
+        return self.all_si_pairs
 
     @log_entry_exit
     def get_specific_cg_pair_by_pvol_svol(
@@ -220,9 +227,12 @@ class VSPShadowImagePairDirectGateway:
             createShadowImagePairSpec.is_new_group_creation is None
             or createShadowImagePairSpec.is_new_group_creation is True
         ):
-            pvol_mu_number = self.get_pvol_mu_number(
-                serial, createShadowImagePairSpec.pvol
+            pvol_mu_number = (
+                self.get_pvol_mu_number(serial, createShadowImagePairSpec.pvol)
+                if createShadowImagePairSpec.pvol_mu_number is None
+                else createShadowImagePairSpec.pvol_mu_number
             )
+
         if createShadowImagePairSpec.copy_group_name is not None:
             copy_group_name = createShadowImagePairSpec.copy_group_name
         else:
@@ -442,9 +452,7 @@ class VSPShadowImagePairDirectGateway:
             else None
         )
         shadow_image_obj["status"] = response["pvolStatus"]
-        shadow_image_obj["_VSPShadowImagePairInfo__pvolMuNumber"] = response[
-            "pvolMuNumber"
-        ]
+        shadow_image_obj["pvolMuNumber"] = response["pvolMuNumber"]
         shadow_image_obj["mirrorUnitId"] = response["pvolMuNumber"]
         shadow_image_obj["copyRate"] = (
             response["copyProgressRate"]
@@ -467,13 +475,19 @@ class VSPShadowImagePairDirectGateway:
         funcName = (
             "VSPShadowImagePairDirectGateway: get_all_shadow_image_pairs_by_copy_pair"
         )
+        if self.all_pairs:
+            return {"data": self.all_pairs}
+
         self.logger.writeEnterSDK(funcName)
         end_point = Endpoints.DIRECT_GET_ALL_COPY_PAIR_GROUP
         local_cp_pairs = Endpoints.DIRECT_GET_SI_BY_CPG
         response = self.connectionManager.read(end_point)
         self.logger.writeDebug("{} Copy Group Response={}", funcName, response)
         shadow_image_list = []
-        for copy_group_item in response["data"]:
+
+        import concurrent.futures
+
+        def fetch_copy_group_data(copy_group_item):
             copy_group_id = copy_group_item["localCloneCopygroupId"]
             if refresh is not None and refresh is True:
                 uri = local_cp_pairs.format(copy_group_id) + "&refresh=true"
@@ -481,13 +495,38 @@ class VSPShadowImagePairDirectGateway:
                 uri = local_cp_pairs.format(copy_group_id)
             try:
                 resp = self.connectionManager.read(uri)
-                for shadow_image_item in resp.get("data"):
-                    shadow_image_list.append(shadow_image_item)
+                return resp.get("data", [])
             except Exception as e:
                 self.logger.writeError(f"An error occurred: {str(e)}")
+                return []
 
+        # Use ThreadPoolExecutor for concurrent requests
+        executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=MAX_WORKER_THREADS, thread_name_prefix="FetchCopyGroups"
+        )
+        try:
+            self.logger.writeDebug(
+                f"Fetching shadow image items concurrently for {len(response['data'])} copy groups"
+            )
+            future_to_copy_group = {
+                executor.submit(fetch_copy_group_data, copy_group_item): copy_group_item
+                for copy_group_item in response["data"]
+            }
+
+            for future in concurrent.futures.as_completed(future_to_copy_group):
+                shadow_image_items = future.result()
+                shadow_image_list.extend(shadow_image_items)
+            self.logger.writeDebug(
+                f"Total shadow image items fetched = {len(shadow_image_list)}"
+            )
+        except KeyboardInterrupt:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        finally:
+            executor.shutdown(wait=True)
         self.logger.writeExitSDK(funcName)
         data = {"data": shadow_image_list}
+        self.all_pairs = shadow_image_list
         return data
 
     def __check_group_exists(self, copy_group_name):

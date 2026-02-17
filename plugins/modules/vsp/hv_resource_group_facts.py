@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_resource_group_facts
-short_description: Retrieves resource group information from Hitachi VSP storage systems.
+short_description: Retrieves resource group information from VSP block storage systems.
 description:
-    - This module retrieves information about resource groups from Hitachi VSP storage systems.
+    - This module retrieves information about resource groups from VSP block storage systems.
     - For examples, go to URL
       U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/resource_group_facts.yml)
 version_added: '3.2.0'
@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.resource_groups_note
 options:
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -64,6 +65,15 @@ options:
           specified in the query task.
         type: bool
         required: false
+      is_simple:
+        description: >
+          If this field is true, only basic information about all the resource groups will be retrieved including
+          meta resource group information.
+          If this field is false or not present, detailed information about the resource groups will be retrieved.
+          Optional for all tasks. If this is true, all other parameters will be ignored. Default is false.
+        type: bool
+        required: false
+        default: false
       query:
         description: >
           The field allows to query resource groups for different types of resources.

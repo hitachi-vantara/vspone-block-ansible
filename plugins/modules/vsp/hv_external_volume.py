@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_external_volume
-short_description: Manages External Volumes in the Hitachi VSP storage systems.
+short_description: Manages External Volumes in the VSP block storage systems.
 description:
-  - This module creates and deletes the External Volumes in the Hitachi VSP storage systems.
+  - This module creates and deletes the External Volumes in the VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/external_volume.yml)
 version_added: '3.3.0'
@@ -51,6 +51,7 @@ options:
     suboptions:
       ldev_id:
         description: LDEV ID, it will be auto-selected if omitted. Required for the Create/Delete tasks.
+          Can be decimal or hexadecimal.
         type: str
         required: false
       external_storage_serial:

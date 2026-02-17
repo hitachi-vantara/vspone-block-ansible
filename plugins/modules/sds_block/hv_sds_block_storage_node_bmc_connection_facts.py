@@ -35,6 +35,7 @@ options:
     suboptions:
       id:
         description: Filter storage node BMC access settings by storage node ID.
+          Required for the Get BMC connection information for one storage node by ID task.
         type: str
         required: true
 """
@@ -102,7 +103,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockStorageNodeBmcAccessSettingFactsManager:
+class SDSBStorageNodeBmcAccessSettingFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -153,7 +154,7 @@ class SDSBBlockStorageNodeBmcAccessSettingFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockStorageNodeBmcAccessSettingFactsManager()
+    obj_store = SDSBStorageNodeBmcAccessSettingFactsManager()
     obj_store.apply()
 
 

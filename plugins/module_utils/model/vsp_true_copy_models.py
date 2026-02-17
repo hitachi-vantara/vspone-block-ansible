@@ -53,6 +53,7 @@ class NVMeSubsystemSpec:
 
 @dataclass
 class TrueCopySpec(SingleBaseClass):
+    data_reduction_share: Optional[bool] = None
     primary_volume_id: Optional[int] = None
     consistency_group_id: Optional[int] = None
     fence_level: Optional[str] = None

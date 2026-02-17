@@ -21,6 +21,7 @@ class VSPStorageSystemsInfoPfrest:
     svpIp: str = None
     ctl1Ip: str = None
     ctl2Ip: str = None
+    isCompressionAccelerationAvailable: bool = None
 
     def __init__(self, **kwargs):
         self.storageDeviceId = kwargs.get("storageDeviceId")
@@ -90,8 +91,10 @@ class VSPStorageSystemInfoPfrest:
     communicationModes: List[dict] = None
     isSecure: bool = None
     totalEfficiency: dict = None
+    isCompressionAccelerationAvailable: bool = None
 
     def __init__(self, **kwargs):
+        super().__init__()
         self.storageDeviceId = kwargs.get("storageDeviceId")
         self.model = kwargs.get("model")
         self.serialNumber = str(kwargs.get("serialNumber"))
@@ -109,6 +112,9 @@ class VSPStorageSystemInfoPfrest:
             self.ctl2MicroVersion = kwargs.get("ctl2MicroVersion")
         self.communicationModes = kwargs.get("communicationModes")
         self.isSecure = kwargs.get("isSecure")
+        self.isCompressionAccelerationAvailable = kwargs.get(
+            "isCompressionAccelerationAvailable"
+        )
 
 
 @dataclass
@@ -499,6 +505,7 @@ class VSPStorageSystemInfo(SingleBaseClass):
     total_efficiency: TotalEfficiency = None
     system_date_time: StorageSystemDateTime = None
     time_zones_info: TimeZonesInfo = None
+    is_compression_acceleration_available: bool = None
 
 
 @dataclass

@@ -2,6 +2,7 @@ import logging
 
 
 PEGASUS_MODELS = ["VSP One B", "VSP E"]
+VCLONE_SUPPORTED_MODELS = ["VSP One B"]
 
 BASIC_STORAGE_DETAILS = None
 
@@ -55,9 +56,10 @@ class Endpoints(object):
     POST_CHANGE_STATUS_LDEV = "v1/objects/ldevs/{}/actions/change-status/invoke"
     UAIG_GET_VOLUMES = "v3/storage/{}/volumes/details{}"
     UAIG_DELETE_ONE_VOLUME = "v3/storage/{}/volumes/{}?isDelete=true"
-    GET_FREE_LDEV_FROM_META = (
-        "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0&count=1"
-    )
+    # GET_FREE_LDEV_FROM_META = (
+    #     "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0&count=1"
+    # )
+    GET_FREE_LDEV_FROM_META = "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0"
     GET_FREE_LDEVS_FROM_META = "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0"
     GET_FREE_LDEVS_FROM_META_RES = (
         "v1/objects/ldevs?ldevOption=undefined&resourceGroupId={}&count=16384"
@@ -83,6 +85,8 @@ class Endpoints(object):
     RECLAIM_ZERO_PAGES = "v1/objects/ldevs/{}/actions/discard-zero-page/invoke"
     CHANGE_MP_BLADE = "v1/objects/ldevs/{}/actions/assign-mp-blade/invoke"
     ASSIGN_LDEV = "v1/objects/ldevs/{}/actions/assign-clpr/invoke"
+    STOP_VOLUME_FORMAT = "v1/services/ldev-service/actions/stop-format/invoke"
+    SET_ESE_VOLUME = "/v1/objects/ldevs/{}/actions/set-ese/invoke"
     # Port
     GET_PORTS = "v1/objects/ports"
     GET_PORTS_DETAILS = "v1/objects/ports?detailInfoType=portMode"
@@ -114,6 +118,7 @@ class Endpoints(object):
     RELEASE_HOST_RES_STATUS = (
         "v1/objects/host-groups/{},{}/actions/release-lu-host-reserves/invoke"
     )
+    GET_HOST_MODE_OPTIONS = "v1/objects/supported-host-modes/instance"
 
     # ISCSI
     GET_HOST_ISCSISS = "v1/objects/host-iscsis{}"
@@ -285,6 +290,8 @@ class Endpoints(object):
     INITIALIZE_CAPACITY_SAVINGS = (
         "v1/objects/pools/{}/actions/data-reduction-initialize/invoke"
     )
+    SHRINK_POOL = "v1/objects/pools/{}/actions/shrink/invoke"
+    STOP_SHRINKING_POOL = "v1/objects/pools/{}/actions/stop-shrinking/invoke"
 
     # Journal Volumes
     GET_JOURNAL_POOLS = "v1/objects/journals"
@@ -368,6 +375,12 @@ class Endpoints(object):
     # VSP one Port
     VSP_ONE_GET_PORTS = "simple/v1/objects/ports"
     VSP_ONE_SINGLE_PORT = "simple/v1/objects/ports/{}"
+
+    # PAV LDEVS
+    GET_PAV_LDEVS = "v1/objects/pav-ldevs"
+    GET_PAV_LDEV_BY_CU = "v1/objects/pav-ldevs/{}"
+    PAV_UNASSIGN_LDEV = "v1/objects/pav-ldevs/instance/actions/unassign-alias/invoke"
+    PAV_ASSIGN_LDEV = "v1/objects/pav-ldevs/instance/actions/assign-alias/invoke"
 
 
 class Http(object):
@@ -547,6 +560,7 @@ class VolumePayloadConst:
     PARITY_GROUP = "parityGroupId"
     PARALLEL_EXECUTION = "isParallelExecutionEnabled"
     LABEL = "label"
+    SSID = "ssid"
     ADDITIONAL_BLOCK_CAPACITY = "additionalBlockCapacity"
     IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED = "isDataReductionSharedVolumeEnabled"
     IS_DATA_REDUCTION_SHARE_ENABLED = "isDataReductionShareEnabled"
@@ -562,6 +576,11 @@ class VolumePayloadConst:
     IS_FULL_ALLOCATION_ENABLED = "isFullAllocationEnabled"
     IS_ALUA_ENABLED = "isAluaEnabled"
     CLPR_ID = "clprId"
+    CYLINDER = "cylinder"
+    EMULATION_TYPE = "emulationType"
+    IS_TSE_VOLUME = "isTseVolume"
+    IS_ESE_VOLUME = "isEseVolume"
+    FORMATTING = "FMT"
 
     # SALMENDER PARAMS
     CAPACITY = "capacity"

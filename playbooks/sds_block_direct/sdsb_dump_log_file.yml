@@ -1,0 +1,82 @@
+---
+####################################################################
+# Example : SDSB Dump log file Playbook
+####################################################################
+- name: Manage SDSB Dump log file
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name : Create dump log file
+    ####################################################################
+    - name: Create dump log file
+      hitachivantara.vspone_block.sds_block.hv_sds_block_dump_log_file:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          mode: "base"
+          label: "test"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Delete dump log file
+    ####################################################################
+    - name: Delete dump log file
+      hitachivantara.vspone_block.sds_block.hv_sds_block_dump_log_file:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          file_name: "hsds_log_20211110_164657_test_maint-test-SN03_Base.tar.gz"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Download the latest dump log file
+    ####################################################################
+    - name: Download the latest dump log file
+      hitachivantara.vspone_block.sds_block.hv_sds_block_dump_log_file:
+        connection_info: "{{ connection_info }}"
+        state: "download"
+        spec:
+          file_path: "/tmp/"
+          split_files_index: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Download the dump log file by using file name
+    ####################################################################
+    - name: Download the dump log file by using file name
+      hitachivantara.vspone_block.sds_block.hv_sds_block_dump_log_file:
+        connection_info: "{{ connection_info }}"
+        state: "download"
+        spec:
+          file_path: "/tmp/"
+          file_name: "hsds_log_20211110_164657_test_maint-test-SN03_Base.tar.gz"
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

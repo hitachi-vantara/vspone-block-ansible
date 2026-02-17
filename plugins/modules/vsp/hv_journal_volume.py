@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_journal_volume
-short_description: Create, update, expand, shrink, delete journal volume from Hitachi VSP storage systems.
+short_description: Create, update, expand, shrink, delete journal volume from VSP block storage systems.
 description:
-  - This module creates, update, expand, shrink, delete journal volume from Hitachi VSP storage systems.
+  - This module creates, update, expand, shrink, delete journal volume from VSP block storage systems.
   - DEPRECATED - Use hv_journal instead.
   - This module will be removed in a future release.
   - For examples, go to URL

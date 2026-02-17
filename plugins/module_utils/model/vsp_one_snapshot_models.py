@@ -8,7 +8,7 @@ try:
         volume_id_to_hex_format,
     )
 except ImportError:
-    from common_base_models import BaseDataClass, SingleBaseClass
+    from .common_base_models import BaseDataClass, SingleBaseClass
     from common.ansible_common import normalize_ldev_id
 
 
@@ -174,4 +174,4 @@ class SnapshotGroupDetailResponse(SingleBaseClass):
 class VspOneSnapshotGroupFactSpec:
     include_snapshots: Optional[bool] = False
     snapshot_group_name: Optional[str] = None
-    comment: Optional[str] = None
+    comments: Optional[str] = None

@@ -11,6 +11,7 @@ except ImportError:
 class StoragePoolFactSpec:
     id: Optional[str] = None
     names: Optional[List[str]] = None
+    comments: Optional[str] = None
 
 
 @dataclass
@@ -21,6 +22,7 @@ class StoragePoolSpec:
     rebuild_capacity_policy: Optional[str] = None
     number_of_tolerable_drive_failures: Optional[int] = None
     is_encryption_enabled: Optional[bool] = None
+    comments: Optional[str] = None
 
 
 @dataclass

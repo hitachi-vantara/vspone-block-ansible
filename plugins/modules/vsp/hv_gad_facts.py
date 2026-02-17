@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_gad_facts
-short_description: Retrieves GAD pairs information from Hitachi VSP storage systems.
+short_description: Retrieves GAD pairs information from VSP block storage systems.
 description:
-  - This module allows to fetch GAD pairs on Hitachi VSP storage systems.
+  - This module allows to fetch GAD pairs on VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/gad_pair_facts.yml)
 version_added: '3.1.0'
@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.gad_facts_note
 notes:
   - The output parameters C(entitlement_status) and C(partner_id) were removed in version 3.4.0.
     They were also deprecated due to internal API simplification and are no longer supported.

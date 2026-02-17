@@ -181,7 +181,9 @@ class SDSBStorageClusterManagementGateway:
             file_name = "bmc_root_certificate.cer"
             logger.writeInfo(f"Response from BMC: {response}")
             # Save the binary content to the specified download path
-            with open(os.path.join(download_path, file_name), "wb") as cert_file:
+            with open(                                          # nosec
+                os.path.join(download_path, file_name), "wb"    # nosec
+            ) as cert_file:                                     # nosec
                 if isinstance(response, bytes):
                     cert_file.write(response)
                 elif isinstance(response, str):
@@ -189,7 +191,7 @@ class SDSBStorageClusterManagementGateway:
                 else:
                     # Handle other response types by converting to bytes
                     cert_file.write(str(response).encode("utf-8"))
-            msg = f"Certificate downloaded and saved to {os.path.join(download_path, file_name)}"
+            msg = f"Certificate downloaded and saved to {os.path.join(download_path, file_name)}"  # nosec
             logger.writeInfo(msg)
             return msg
 

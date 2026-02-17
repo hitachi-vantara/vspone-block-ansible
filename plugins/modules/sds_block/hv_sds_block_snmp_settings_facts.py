@@ -127,7 +127,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible.module_utils.basic import AnsibleModule
 
 
-class SDSBBlockSnmpSettingsFactsManager:
+class SDSBSnmpSettingsFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -164,7 +164,7 @@ class SDSBBlockSnmpSettingsFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockSnmpSettingsFactsManager()
+    obj_store = SDSBSnmpSettingsFactsManager()
     obj_store.apply()
 
 

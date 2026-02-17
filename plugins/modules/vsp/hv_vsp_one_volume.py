@@ -11,11 +11,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_vsp_one_volume
-short_description: Manages volumes on VSP E series and VSP One Block 20 series storage systems.
+short_description: Manages volumes on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 description:
   - This module enables creation, modification, and deletion of volumes, as well as attaching and detaching to servers.
   - Supports various volume operations depending on the specified state parameter.
-  - Utilizes the Hitachi Virtual Storage Platform One Simple API for volume management across VSP one B20 series and VSP E series models.
+  - Utilizes the Hitachi Virtual Storage Platform One Simple API for volume management across VSP One B20 series, VSP One B80 series, and VSP E series models.
   - For usage examples, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_volume.yml)
 version_added: '4.2.0'
@@ -43,140 +43,209 @@ options:
     suboptions:
       capacity:
         description: Volume size specification.
+          Required for the Create a volume with capacity and pool ID
+          /Create volume with data reduction sharing enabled
+          /Create a single volume with QoS threshold settings (threshold)
+          /Expand the volume size of an existing volume tasks.
         type: str
         required: false
       number_of_volumes:
         description: Quantity of volumes to create.
+          Required for the Create multiple volumes with custom nickname sequence task.
         type: int
         required: false
         default: 1
       volume_name:
         description: Naming configuration for the volume.
+          Required for the Create a volume with capacity and pool ID
+          /Create multiple volumes with custom nickname sequence
+          /Create volume with data reduction sharing enabled
+          /Create a single volume with QoS threshold settings (threshold)
+          /Change the nickname the Volume settings of an existing volume tasks.
         type: dict
         required: false
         suboptions:
           base_name:
             description: Foundation name for volume naming.
+              Required for the Create a volume with capacity and pool ID
+              /Create multiple volumes with custom nickname sequence
+              /Create volume with data reduction sharing enabled
+              /Create a single volume with QoS threshold settings (threshold)
+              /Change the nickname the Volume settings of an existing volume tasks.
             type: str
             required: true
           start_number:
             description: Initial number for volume name sequencing.
+              Required for the Create multiple volumes with custom nickname sequence task.
             type: int
             required: false
           number_of_digits:
             description: Digit count for the numerical portion of volume names.
+              Required for the Create multiple volumes with custom nickname sequence task.
             type: int
             required: false
       is_data_reduction_share_enabled:
         description: Activates data reduction sharing functionality.
+          Required for the Create volume with data reduction sharing enabled task.
         type: bool
         required: false
         default: false
       pool_id:
         description: Storage pool identifier.
+          Required for the Create a volume with capacity and pool ID
+          /Create multiple volumes with custom nickname sequence
+          /Create volume with data reduction sharing enabled
+          /Create a single volume with QoS threshold settings (threshold) tasks.
         type: int
         required: false
       volume_id:
         description: Volume identifier.
+          Required for the Attach volume to servers
+          /Detach volume from servers
+          /Change the threshold QoS settings of an existing volume
+          /Change the alert QoS settings of an existing volume
+          /Expand the volume size of an existing volume
+          /Change the nickname the Volume settings of an existing volume
+          /Update the Volume saving settings and compression_acceleration of an existing volume
+          /Delete volume by volume ID tasks.
         type: str
         required: false
       volume_ids:
         description: Collection of volume identifiers for batch operations to add servers.
+          Required for the Attach multiple volumes to a multiple servers in one operation task.
         type: list
         required: false
         elements: str
       qos_settings:
         description: Quality of service configuration for the volume.
+          Required for the Create a single volume with QoS threshold settings (threshold)
+          /Change the threshold QoS settings of an existing volume
+          /Change the alert QoS settings of an existing volume tasks.
         type: dict
         required: false
         suboptions:
           threshold:
             description: QoS threshold configuration.
+              Required for the Create a single volume with QoS threshold settings (threshold)
+              /Change the threshold QoS settings of an existing volume tasks.
             type: dict
             required: false
             suboptions:
               is_upper_iops_enabled:
                 description: Activates maximum IOPS restriction.
+                  Required for the Create a single volume with QoS threshold settings (threshold)
+                  /Change the threshold QoS settings of an existing volume tasks.
                 type: bool
                 required: false
               upper_iops:
                 description: Maximum IOPS threshold.
+                  Required for the Create a single volume with QoS threshold settings (threshold)
+                  /Change the threshold QoS settings of an existing volume tasks.
                 type: int
                 required: false
               is_upper_transfer_rate_enabled:
                 description: Activates maximum transfer rate restriction.
+                  Required for the Create a single volume with QoS threshold settings (threshold)
+                  /Change the threshold QoS settings of an existing volume tasks.
                 type: bool
                 required: false
               upper_transfer_rate:
                 description: Maximum transfer rate threshold.
+                  Required for the Create a single volume with QoS threshold settings (threshold)
+                  /Change the threshold QoS settings of an existing volume tasks.
                 type: int
                 required: false
               is_lower_iops_enabled:
                 description: Activates minimum IOPS restriction.
+                  Required for the Create a single volume with QoS threshold settings (threshold)
+                  /Change the threshold QoS settings of an existing volume tasks.
                 type: bool
                 required: false
               lower_iops:
                 description: Minimum IOPS threshold.
+                  Required for the Create a single volume with QoS threshold settings (threshold)
+                  /Change the threshold QoS settings of an existing volume tasks.
                 type: int
                 required: false
               is_lower_transfer_rate_enabled:
                 description: Activates minimum transfer rate restriction.
+                  Required for the Create a single volume with QoS threshold settings (threshold)
+                  /Change the threshold QoS settings of an existing volume tasks.
                 type: bool
                 required: false
               lower_transfer_rate:
                 description: Minimum transfer rate threshold.
+                  Required for the Create a single volume with QoS threshold settings (threshold)
+                  /Change the threshold QoS settings of an existing volume tasks.
                 type: int
                 required: false
               is_response_priority_enabled:
                 description: Activates response priority setting.
+                  Required for the Create a single volume with QoS threshold settings (threshold)
+                  /Change the threshold QoS settings of an existing volume tasks.
                 type: bool
                 required: false
               response_priority:
                 description: Response priority level.
+                  Required for the Create a single volume with QoS threshold settings (threshold)
+                  /Change the threshold QoS settings of an existing volume tasks.
                 type: int
                 required: false
           alert_setting:
             description: QoS alert configuration.
+              Required for the Change the alert QoS settings of an existing volume task.
             type: dict
             required: false
             suboptions:
               is_upper_alert_enabled:
                 description: Activates upper threshold alerts.
+                  Required for the Change the alert QoS settings of an existing volume task.
                 type: bool
                 required: false
               upper_alert_allowable_time:
                 description: Permitted duration for upper threshold alerts.
+                  Required for the Change the alert QoS settings of an existing volume task.
                 type: int
                 required: false
               is_lower_alert_enabled:
                 description: Activates lower threshold alerts.
+                  Required for the Change the alert QoS settings of an existing volume task.
                 type: bool
                 required: false
               lower_alert_allowable_time:
                 description: Permitted duration for lower threshold alerts.
+                  Required for the Change the alert QoS settings of an existing volume task.
                 type: int
                 required: false
               is_response_alert_enabled:
                 description: Activates response time alerts.
+                  Required for the Change the alert QoS settings of an existing volume task.
                 type: bool
                 required: false
               response_alert_allowable_time:
                 description: Permitted duration for response time alerts.
+                  Required for the Change the alert QoS settings of an existing volume task.
                 type: int
                 required: false
       server_ids:
         description: Collection of server identifiers for volume attachment.
+          Required for the Attach volume to servers
+          /Detach volume from servers
+          /Attach multiple volumes to a multiple servers in one operation tasks.
         type: list
         required: false
         elements: int
       capacity_saving:
         description: Data reduction function configuration.
+          Required for the Create volume with data reduction sharing enabled
+          /Update the Volume saving settings and compression_acceleration of an existing volume tasks.
         type: str
         required: false
         aliases: ["saving_setting"]
         choices: ["compression", "deduplication_and_compression", "disable"]
       compression_acceleration:
         description: Controls compression acceleration feature.
+          Required for the Update the Volume saving settings and compression_acceleration of an existing volume task.
         type: bool
         required: false
 """
@@ -316,24 +385,24 @@ volume:
       type: int
     total_capacity_in_mb:
       description: Total capacity in MB.
-      type: str
+      type: int
     used_capacity:
       description: Used capacity of the volume.
       type: int
     used_capacity_in_mb:
       description: Used capacity in MB.
-      type: str
+      type: int
     free_capacity:
       description: Free capacity of the volume.
       type: int
     free_capacity_in_mb:
       description: Free capacity in MB.
-      type: str
+      type: int
     reserved_capacity:
       description: Reserved capacity of the volume.
       type: int
     capacity_saving:
-      description: Capacity saving setting (e.g., COMPRESSION).
+      description: Capacity saving setting (e.g., DISABLE).
       type: str
     capacity_saving_status:
       description: Capacity saving status.

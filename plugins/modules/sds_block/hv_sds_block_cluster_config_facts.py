@@ -28,6 +28,7 @@ attributes:
     support: full
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.sdsb_connection_info
+  - hitachivantara.vspone_block.common.sdsb_cluster_config_facts_note
 """
 
 EXAMPLES = """

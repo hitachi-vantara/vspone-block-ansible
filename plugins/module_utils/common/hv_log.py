@@ -110,12 +110,20 @@ def setup_logging(logger, audit_logger):
         audit_log_file, mode="a", maxBytes=5242880, backupCount=20
     )
 
-    # Use the custom formatter
+    # Create the custom formatter
     formatter = CustomFormatter(
         fmt=logging_config["formatters"]["logfileformatter"]["format"]
     )
+    # Use the custom formatter
     log_handler.setFormatter(formatter)
     audit_log_handler.setFormatter(formatter)
+
+    # Apply custom formatter to existing console handlers
+    for handler in logging.getLogger().handlers:
+        handler.setFormatter(formatter)
+
+    for handler in logging.getLogger("hv_logger").handlers:
+        handler.setFormatter(formatter)
 
     # Inject UUID into all records
     uuid_filter = UuidInjectFilter()
@@ -185,7 +193,7 @@ class Log:
             self.audit_logger.propagate = False
             if ENABLE_AUDIT_LOG:
                 self.audit_logger.info(
-                    f'{"X" * 15} Starting Audit log with UUID: {UUID} {"X" * 15}'
+                    f'{"=" * 15} Starting Audit log with UUID: {UUID} {"=" * 15}'
                 )
         self.loadMessageIDs()
 

@@ -203,6 +203,23 @@ class ChapUserPropertiesExtractor(SDSBBasePropertiesExtractor):
         self.parameter_mapping = {}
 
 
+class AuditLogSettingPropertiesExtractor(SDSBBasePropertiesExtractor):
+    def __init__(self):
+        self.common_properties = {
+            "syslogForwardingSetting": dict,
+        }
+        self.parameter_mapping = {}
+
+
+class EventLogSettingPropertiesExtractor(SDSBBasePropertiesExtractor):
+    def __init__(self):
+        self.common_properties = {
+            "syslogForwardingSetting": dict,
+            "emailReportSetting": dict,
+        }
+        self.parameter_mapping = {}
+
+
 class VolumePropertiesExtractor(SDSBBasePropertiesExtractor):
     def __init__(self):
         # self.qos_param = {

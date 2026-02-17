@@ -274,3 +274,23 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+
+    ####################################################################
+    # Task Name : Create DRS volume without deduplication and compression
+    ####################################################################
+    - name: Create DRS volume without deduplication and compression
+      hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+        state: present
+        connection_info: "{{ connection_info }}"
+        spec:
+          capacity: 200MB
+          volume_name:
+            base_name: "DataVol"
+          is_data_reduction_share_enabled: true
+          capacity_saving: "disable"
+          pool_id: 3
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

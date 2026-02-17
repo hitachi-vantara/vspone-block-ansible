@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_shadow_image_pair
-short_description: Manages shadow image pairs on Hitachi VSP storage systems.
+short_description: Manages shadow image pairs on VSP block storage systems.
 description:
-  - This module allows for the creation, deletion, splitting, syncing, restoring and migrating of shadow image pairs on Hitachi VSP storage systems.
+  - This module allows for the creation, deletion, splitting, syncing, restoring and migrating of shadow image pairs on VSP block storage systems.
   - It supports various shadow image pairs operations based on the specified task level.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/shadow_image_pair.yml)
@@ -29,6 +29,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.shadow_image_pairs_note
 notes:
   - The output parameters C(entitlement_status), C(subscriber_id) and C(partner_id) were removed in version 3.4.0.
     They were also deprecated due to internal API simplification and are no longer supported.
@@ -198,6 +199,11 @@ options:
           Required for the Create ShadowImage pair for an existing secondary volume for migration
           /Create ShadowImage pair for non-existing secondary volume for migration tasks.
         type: bool
+        required: false
+      pvol_mu_number:
+        description: Primary volume mirror unit number.
+          Optional for the Create a ShadowImage pair.
+        type: int
         required: false
 """
 
@@ -406,7 +412,7 @@ class VSPShadowImagePairManager:
         self.module.exit_json(**response)
 
 
-def main(module=None):
+def main():
 
     obj_store = VSPShadowImagePairManager()
     obj_store.apply()

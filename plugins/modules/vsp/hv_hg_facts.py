@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_hg_facts
-short_description: Retrieves host group information from a specified Hitachi VSP storage system.
+short_description: Retrieves host group information from a specified VSP block storage system.
 description:
-  - This module fetches detailed information about host groups configured within a given Hitachi VSP storage system.
+  - This module fetches detailed information about host groups configured within a given VSP block storage system.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/hostgroup_facts.yml)
 version_added: '3.0.0'

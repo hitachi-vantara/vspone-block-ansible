@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_user_group
-short_description: Manages user groups on Hitachi VSP storage systems.
+short_description: Manages user groups on VSP block storage systems.
 description:
-  - This module allows the creation and deletion of user groups on Hitachi VSP storage systems.
+  - This module allows the creation and deletion of user groups on VSP block storage systems.
   - It also enables adding or removing resource groups to/from the user group.
   - This module is supported for C(direct) connection types.
   - For examples, go to URL
@@ -44,10 +44,19 @@ options:
     suboptions:
       name:
         description: The name of the user group.
+          Required for the Create a User Group
+          /Change User Group Name
+          /Delete User Group by name tasks.
         type: str
         required: false
       id:
         description: The ID of the user group.
+          Required for the Change User Group Name
+          /Add Resource Groups to a User Group
+          /Remove Resource Groups from a User Group
+          /Delete User Group by ID
+          /Add roles to a user group
+          /Remove roles from a user group tasks.
         type: str
         required: false
       role_names:
@@ -66,6 +75,9 @@ options:
           - "STORAGE_ADMIN_VIEW_ONLY"
           - "SUPPORT_PERSONNEL"
           - "USER_MAINTENANCE"
+          - Optional for the Create a User Group
+            /Add roles to a user group
+            /Remove roles from a user group tasks.
         type: list
         required: false
         elements: str
@@ -80,6 +92,9 @@ options:
           - SECURITY_ADMIN_VIEW_ONLY
           - SUPPORT_PERSONNEL
           - USER_MAINTENANCE
+          - Optional for the Create a User Group
+            /Add Resource Groups to a User Group
+            /Remove Resource Groups from a User Group tasks.
         type: list
         required: false
         elements: int
@@ -90,6 +105,10 @@ options:
           - C(remove_resource_group) - To remove resource groups from the user group.
           - C(add_role) - To add roles to the user group.
           - C(remove_role) - To remove roles from the user group.
+          - Required for the Add Resource Groups to a User Group
+            /Remove Resource Groups from a User Group
+            /Add roles to a user group
+            /Remove roles from a user group tasks.
         type: str
         required: false
         choices:

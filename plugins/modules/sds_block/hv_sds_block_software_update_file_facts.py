@@ -71,7 +71,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 )
 
 
-class SDSBBlockStorageControllerFactsManager:
+class SDSSoftwareUpdateFileFactsManager:
     def __init__(self):
 
         self.logger = Log()
@@ -80,13 +80,8 @@ class SDSBBlockStorageControllerFactsManager:
             argument_spec=self.argument_spec,
             supports_check_mode=True,
         )
-
         parameter_manager = SDSBParametersManager(self.module.params)
         self.connection_info = parameter_manager.get_connection_info()
-        # self.spec = parameter_manager.get_storage_controller_fact_spec()
-        # self.logger.writeDebug(
-        #     f"MOD:hv_sds_block_storage_controller_facts:spec= {self.spec}"
-        # )
 
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB Software Update File Facts ===")
@@ -114,7 +109,7 @@ class SDSBBlockStorageControllerFactsManager:
 
 
 def main():
-    obj_store = SDSBBlockStorageControllerFactsManager()
+    obj_store = SDSSoftwareUpdateFileFactsManager()
     obj_store.apply()
 
 

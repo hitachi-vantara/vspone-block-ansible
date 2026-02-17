@@ -4,7 +4,7 @@ try:
     from ..common.sdsb_constants import SDSBlockEndpoints
 except ImportError:
     from .gateway_manager import SDSBConnectionManager
-    from ..common.sdsb_constants import SDSBlockEndpoints
+    from common.sdsb_constants import SDSBlockEndpoints
     from common.ansible_common import log_entry_exit
 
 

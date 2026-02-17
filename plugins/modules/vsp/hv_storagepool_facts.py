@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_storagepool_facts
-short_description: Retrieves storage pool information from Hitachi VSP storage systems.
+short_description: Retrieves storage pool information from VSP block storage systems.
 description:
-  - This module retrieves information about storage pools from Hitachi VSP storage systems.
+  - This module retrieves information about storage pools from VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storagepool_facts.yml)
 
@@ -57,6 +57,18 @@ options:
           Required for the Get one storage pool using pool name task.
         type: str
         required: false
+      is_mainframe:
+        description: Specify whether the pool is for mainframe.
+        type: bool
+        required: false
+      include_details:
+        description: Specify whether to include extended details about the storage pools.
+        type: bool
+        required: false
+      include_cache_info:
+        description: Specify whether to include cache information about the storage pools.
+        type: bool
+        required: false
 """
 
 EXAMPLES = """
@@ -98,6 +110,10 @@ ansible_facts:
       type: list
       elements: dict
       contains:
+        auto_add_pool_vol:
+          description: The auto add pool volume setting.
+          type: str
+          sample: ""
         available_physical_volume_capacity_mb:
           description: The available physical volume capacity in MB.
           type: int
@@ -240,10 +256,18 @@ ansible_facts:
           description: The effective capacity in MB.
           type: int
           sample: 14591766
+        efficiency:
+          description: The efficiency value.
+          type: int
+          sample: null
         first_ldev_id:
           description: The first LDEV ID.
           type: int
           sample: 32754
+        formatted_capacity:
+          description: The formatted capacity.
+          type: int
+          sample: -1
         has_blocked_pool_volume:
           description: Whether the pool has blocked pool volume.
           type: bool

@@ -9,7 +9,7 @@ except ImportError:
 
 @dataclass
 class LoginMessageFactSpec:
-    message: Optional[str] = None
+    login_message: Optional[str] = None
 
 
 @dataclass

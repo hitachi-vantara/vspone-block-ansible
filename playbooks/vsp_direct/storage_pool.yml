@@ -314,3 +314,96 @@
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result
+    ######################################################################################
+    # Task Name : Shrink a storage pool using list of pool volume ids
+    ######################################################################################
+    - name: Shrink a storage pool using list of pool volume ids
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "shrunk"
+        spec:
+          id: 5
+          pool_volume_ids:
+            - 1001
+            - 1002
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################
+    # Task Name : Shrink a storage pool using list of pool volume ids and delete pool volumes
+    #########################################################################################
+    - name: Shrink a storage pool using list of pool volume ids and delete pool volumes
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "shrunk"
+        spec:
+          id: 5
+          pool_volume_ids:
+            - 1001
+            - 1002
+          should_delete_pool_volumes: true
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Shrink a storage pool using start and end pool volume ids
+    ######################################################################################
+    - name: Shrink a storage pool using start and end pool volume ids
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "shrunk"
+        spec:
+          id: 5
+          start_pool_volume_id: 1003
+          end_pool_volume_id: 1005
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Stop the Shrink operation of a storage pool
+    ######################################################################################
+    - name: Stop the Shrink operation of a storage pool
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          id: 5
+          should_stop_shrinking: true
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################
+    # Task Name : Create a mainframe HDP storage pool using parity group and cylinder
+    ######################################################################################
+    - name: Create a mainframe HDP storage pool using parity group and cylinder
+      hitachivantara.vspone_block.vsp.hv_storagepool:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          name: "storagepool-1"
+          type: "HDP"
+          pool_volumes:
+            - parity_group_id: "1-1"
+              cylinder: 65525
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

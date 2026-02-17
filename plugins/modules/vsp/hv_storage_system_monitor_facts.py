@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_storage_system_monitor_facts
-short_description: Retrieves alerts, hardware installed, and channel boards information from Hitachi VSP storage systems.
+short_description: Retrieves alerts, hardware installed, and channel boards information from VSP block storage systems.
 description:
-  - This module retrieves information about Storage System Monitor information from Hitachi VSP storage systems.
+  - This module retrieves information about Storage System Monitor information from VSP block storage systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/storage_system_monitor_facts.yml)
 
@@ -64,12 +64,16 @@ options:
       query:
         description: Specify the component for which you want the monitor information from the storage system.
           Possible value is one of, C(alerts), C(hardware_installed), C(channel_boards).
+          Required for the Get alerts information
+          /Get Hardware Installed information
+          /Get Channel Boards information tasks.
         type: str
         required: true
         choices: ['alerts', 'hardware_installed', 'channel_boards']
       alert_type:
         description: Type of the alerts. This field is valid when query field is C(alerts). Then this field is required.
           Possible value is one of, C(DKC), C(CTL1), C(CTL2)
+          Required for the Get alerts information task.
         type: str
         required: false
         choices: ['DKC', 'CTL1', 'CTL2']
@@ -80,6 +84,7 @@ options:
           If you specified C(DKC) for the alert_type parameter, specify a value in the range from 1 to 10240.
           If you specified C(CTL1) or C(CTL2) for the alert_type parameter, specify a value in the range from 1 to 256.
           If this parameter is omitted, alert information will be obtained starting from the first alert.
+          Required for the Get alerts information task.
         type: int
         required: false
       alert_count:
@@ -87,11 +92,13 @@ options:
           Numbrt of alerts to be retrieved. If you specified C(DKC) for the alert_type parameter,
           specify a value in the range from 1 to 10240. If you specified C(CTL1) or C(CTL2) for the alert_type parameter,
           specify a value in the range from 1 to 256. If this parameter is omitted, 10 alerts will be obtained.
+          Required for the Get alerts information task.
         type: int
         required: false
       include_component_option:
         description: This field is valid when query field is C(hardware_installed). Then this field is optional.
           If set to true, it will bring the information about the components, otherwise not.
+          Required for the Get Hardware Installed information task.
         type: bool
         required: false
 """

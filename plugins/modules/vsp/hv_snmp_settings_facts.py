@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_snmp_settings_facts
-short_description: Retrieves SNMP configuration from Hitachi VSP storage systems.
+short_description: Retrieves SNMP configuration from VSP block storage systems.
 description:
-  - This module retrieves SNMP settings (v1, v2c, v3) from Hitachi VSP storage systems.
+  - This module retrieves SNMP settings (v1, v2c, v3) from VSP block storage systems.
   - For example usage, visit
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snmp.yml)
 version_added: '4.0.0'

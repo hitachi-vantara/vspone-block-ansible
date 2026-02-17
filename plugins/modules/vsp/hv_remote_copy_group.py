@@ -10,9 +10,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_remote_copy_group
-short_description: Manages Remote Copy Group on Hitachi VSP storage systems.
+short_description: Manages Remote Copy Group on VSP block storage systems.
 description: >
-  - This module allows for the splitting, swap-splitting, re-syncing, swap-resyncing, takeover and deletion of Remote Copy Group on Hitachi VSP storage systems.
+  - This module allows for the splitting, swap-splitting, re-syncing, swap-resyncing, takeover and deletion of Remote Copy Group on VSP block storage systems.
   - It supports various remote copy pairs operations based on the specified task level.
   - The module supports the following replication types: HUR, TC, GAD.
   - For examples go to URL

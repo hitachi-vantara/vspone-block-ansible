@@ -28,6 +28,7 @@ attributes:
     support: none
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.sdsb_connection_info
+  - hitachivantara.vspone_block.common.sdsb_storage_node_note
 options:
   state:
     description: The desired state of the storage pool.
@@ -42,15 +43,23 @@ options:
     suboptions:
       name:
         description: The name of the storage node.
+          Required for the Block storage node for maintenance by node name
+          /Restore storage node from maintenance by node name
+          /Edit the capacity balancing settings of a storage node by name tasks.
         type: str
         required: false
       id:
         description: The UUID of the storage node.
+          Required for the Block storage node for maintenance by node ID
+          /Restore storage node from maintenance by node ID
+          /Edit the capacity balancing settings of a storage node by ID tasks.
         type: str
         required: false
       is_capacity_balancing_enabled:
         description: Enables or disables the capacity balancing. If true, capacity balancing applies to the storage node.
           If false, capacity balancing does not apply to the storage node.
+          Required for the Edit the capacity balancing settings of a storage node by ID
+          /Edit the capacity balancing settings of a storage node by name tasks.
         type: bool
         required: false
 """

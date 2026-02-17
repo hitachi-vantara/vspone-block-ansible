@@ -1,0 +1,60 @@
+---
+####################################################################
+# Example : Licenses Facts Playbook
+####################################################################
+- name: Licenses Facts
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name : Get All Licenses
+    ####################################################################
+    - name: Get all licenses
+      hitachivantara.vspone_block.sds_block.hv_sds_block_license_facts:
+        connection_info: "{{ connection_info }}"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get License by ID
+    ####################################################################
+    - name: Get license by ID
+      hitachivantara.vspone_block.sds_block.hv_sds_block_license_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          id: "4a7061b0-8cc0-4379-aec1-23184d26bacd"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Get License by other properties
+    ####################################################################
+    - name: Get license by other properties
+      hitachivantara.vspone_block.sds_block.hv_sds_block_license_facts:
+        connection_info: "{{ connection_info }}"
+        spec:
+          program_product_name: "Data At Rest Encryption"
+          status: "Active"
+          status_summary: "Normal"
+      register: result
+
+    - name: Display the result variable
+      ansible.builtin.debug:
+        var: result

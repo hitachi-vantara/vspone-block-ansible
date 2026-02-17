@@ -11,9 +11,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_snapshot
-short_description: Manages snapshots on Hitachi VSP storage systems.
+short_description: Manages snapshots on VSP block storage systems.
 description:
-  - This module allows for the creation, deletion, splitting, syncing, and restoring of snapshots on Hitachi VSP storage systems.
+  - This module allows for the creation, deletion, splitting, syncing, and restoring of snapshots on VSP block storage systems.
   - It supports various snapshot operations based on the specified task level.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/snapshot.yml)
@@ -29,6 +29,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.snapshots_note
 notes:
   - The input parameters C(consistency_group_id) and C(enable_quick_mode) were removed in version 3.4.0.
     These were deprecated due to internal API simplification and are no longer supported.
@@ -194,7 +195,17 @@ options:
           Required for the Deleting garbage data of all Thin Image pairs in a snapshot tree task.
         required: false
         type: str
-        choices: ["start", "stop"]
+      should_delete_svol:
+        description: >
+          Specify whether to delete the secondary volume when deleting a snapshot pair.
+          Required for the Delete a snapshot pair task.
+        required: false
+        type: bool
+        default: false
+      wait_for_final_state:
+        description: Should wait for final state after initiating the snapshot operation.
+        required: false
+        type: bool
 """
 
 EXAMPLES = """
@@ -568,10 +579,28 @@ class VSPHtiSnapshotManager:
             snapshot_data = self.reconcile_snapshot()
             operation = operation_constants(self.module.params["state"])
             msg = ""
-            if operation == "defragmented" and self.spec.operation_type == "start":
-                msg = "Started deleting garbage data of all Thin Image pairs in a snapshot tree"
-            elif operation == "defragmented" and self.spec.operation_type == "stop":
+            if (
+                operation == "defragmented"
+                and self.spec.operation_type
+                and self.spec.operation_type.lower() == "start"
+            ):
+                msg = "Started deleting garbage data of all Thin Image pairs in a snapshot tree."
+            elif (
+                operation == "defragmented"
+                and self.spec.operation_type
+                and self.spec.operation_type.lower() == "stop"
+            ):
                 msg = "Stopped deleting garbage data of all Thin Image pairs in a snapshot tree"
+            elif (
+                self.spec.operation_type
+                and self.spec.operation_type.lower() == "vclone"
+            ):
+                msg = "VClone created successfully from snapshot."
+            elif (
+                self.spec.operation_type
+                and self.spec.operation_type.lower() == "restore"
+            ):
+                msg = "Snapshot restored successfully."
             else:
                 msg = (
                     f"Snapshot {operation} successfully"
@@ -581,7 +610,10 @@ class VSPHtiSnapshotManager:
             resp = {
                 "changed": self.connection_info.changed,
                 "snapshot_data": (
-                    snapshot_data if isinstance(snapshot_data, dict) else ""
+                    snapshot_data
+                    if isinstance(snapshot_data, dict)
+                    or isinstance(snapshot_data, list)
+                    else ""
                 ),
                 "msg": msg,
             }

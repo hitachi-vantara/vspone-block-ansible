@@ -20,6 +20,8 @@ try:
     from ..model.vsp_host_group_models import VSPLunResponses
     from ..common.hv_constants import VSPIscsiTargetConstant
     from ..message.vsp_iscsi_target_msgs import VSPIscsiTargetMessage
+    from ..common.ansible_common_constants import MAX_WORKER_THREADS
+
 except ImportError:
     from common.vsp_constants import Endpoints
 
@@ -265,7 +267,10 @@ class VSPIscsiTargetDirectGateway:
             "?portId={}&detailInfoType=resourceGroup&isSimpleMode=false".format(port_id)
         )
         resp = self.connectionManager.get(end_point)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=MAX_WORKER_THREADS, thread_name_prefix="ParseIscsiTarget"
+        )
+        try:
             futures = []
             for iscsi_target in resp["data"]:
                 if (
@@ -278,6 +283,11 @@ class VSPIscsiTargetDirectGateway:
                 )
             for future in concurrent.futures.as_completed(futures):
                 lst_iscsi_target.append(future.result())
+        except KeyboardInterrupt:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        finally:
+            executor.shutdown(wait=True)
         return lst_iscsi_target
 
     def get_iscsi_targets_bk(self, spec, serial=None):
@@ -292,7 +302,10 @@ class VSPIscsiTargetDirectGateway:
             port_set = set(ports_input)
         logger.writeInfo("port_set={0}".format(port_set))
         ports = self.get_ports()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=MAX_WORKER_THREADS, thread_name_prefix="GetIscsiTargets"
+        )
+        try:
             futures = []
             for port in ports.data:
                 port_id = port.portId
@@ -308,6 +321,11 @@ class VSPIscsiTargetDirectGateway:
                 )
             for future in concurrent.futures.as_completed(futures):
                 lst_iscsi_target = lst_iscsi_target + future.result()
+        except KeyboardInterrupt:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        finally:
+            executor.shutdown(wait=True)
 
         lst_iscsi_target = sorted(
             lst_iscsi_target, key=lambda x: (x["portId"], x["iscsiId"])

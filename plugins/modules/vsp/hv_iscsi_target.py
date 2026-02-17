@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_iscsi_target
-short_description: Manages iscsi target on Hitachi VSP storage systems.
+short_description: Manages iscsi target on VSP block storage systems.
 description:
   - The hv_iscsi_target module provides the following iscsi target management operations
   - 1. Create iscsi target

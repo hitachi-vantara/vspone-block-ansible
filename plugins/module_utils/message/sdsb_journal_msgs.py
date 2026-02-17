@@ -16,7 +16,7 @@ class SDSBJournalValidationMsg(Enum):
     CONTROL_ID_INVALID = "Storage Controller ID must be a valid UUID."
     CONFLICTING_JOURNAL_VOLUMES = "Conflicting journal {} already exists with different volume IDs Existing={}, Requested={})}"
     VOLUME_ALREADY_ATTACHED = "Volumes {} are already attached to this journal number{}"
-    ID_NOT_AVAILABLE = "Provided id {} not available"
+    ID_NOT_AVAILABLE = "Provided id {} not available or deleted."
     JOURNAL_DELETE = "Journal has been deleted successfully."
     ID_INVALID = (
         "Id must match /^system$|^[A-Fa-f0-9]{8}(-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12}$/"

@@ -11,7 +11,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: hv_truecopy
-short_description: Manages TrueCopy pairs on Hitachi VSP storage systems.
+short_description: Manages TrueCopy pairs on VSP block storage systems.
 description:
   - This module allows for the creation, deletion, splitting, re-syncing and resizing of TrueCopy pairs.
   - It also allows swap-splitting and swap-resyncing operations of TrueCopy pairs.
@@ -30,6 +30,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.true_copy_note
 notes:
   - The output parameters C(entitlement_status), C(subscriber_id), and C(partner_id) were removed in version 3.4.0.
     They were also deprecated due to internal API simplification and are no longer supported.
@@ -87,11 +88,34 @@ options:
       copy_group_name:
         description: Name of the copy group. This is a required field for create operation.
           For other operations, this field is optional, but when provided, the time to complete the operation is faster.
+          Required for the Split TrueCopy pair by copy_group_name and primary volume ID
+          /Resync TrueCopy pair by copy_group_name and copy_pair_name
+          /Resync TrueCopy pair
+          /Resync TrueCopy pair by copy_group_name and primary volume ID
+          /Swap-Split TrueCopy pair by copy_group_name and copy_pair_name
+          /Swap-Split TrueCopy pair
+          /Swap-Split TrueCopy pair by copy_group_name and primary volume ID
+          /Swap-Resync TrueCopy pair by copy_group_name and copy_pair_name
+          /Swap-Resync TrueCopy pair
+          /Swap-Resync TrueCopy pair by copy_group_name and primary volume ID
+          /Delete TrueCopy pair by copy_group_name and copy_pair_name
+          /Delete TrueCopy pair
+          /Delete TrueCopy pair by copy_group_name and primary volume ID
+          /Expand TrueCopy pair tasks.
         type: str
         required: false
       copy_pair_name:
         description: Name of the copy pair. This is a required field for create operation.
           For other operations, this field is optional, but when provided, the time to complete the operation is faster.
+          Required for the Resync TrueCopy pair by copy_group_name and copy_pair_name
+          /Resync TrueCopy pair
+          /Swap-Split TrueCopy pair by copy_group_name and copy_pair_name
+          /Swap-Split TrueCopy pair
+          /Swap-Resync TrueCopy pair by copy_group_name and copy_pair_name
+          /Swap-Resync TrueCopy pair
+          /Delete TrueCopy pair by copy_group_name and copy_pair_name
+          /Delete TrueCopy pair
+          /Expand TrueCopy pair tasks.
         type: str
         required: false
       remote_device_group_name:
@@ -104,6 +128,11 @@ options:
         required: false
       primary_volume_id:
         description: Primary volume ID. This is a required field for create operation.
+          Required for the Split TrueCopy pair by copy_group_name and primary volume ID
+          /Resync TrueCopy pair by copy_group_name and primary volume ID
+          /Swap-Split TrueCopy pair by copy_group_name and primary volume ID
+          /Swap-Resync TrueCopy pair by copy_group_name and primary volume ID
+          /Delete TrueCopy pair by copy_group_name and primary volume ID tasks.
         type: str
         required: false
       consistency_group_id:
@@ -119,10 +148,18 @@ options:
         default: 'NEVER'
       secondary_pool_id:
         description: ID of the dynamic pool where the secondary volume will be created.
+          Required for the Create a TrueCopy pair by specifying only the required fields
+          /Create a TC pair using a range for secondary volume ID
+          /Create a TrueCopy-NVMe pair by specifying only the required fields
+          /Create a TrueCopy-NVMe pair by specifying all the fields
+          /Create a TrueCopy-ISCSI pair by specifying only the required fields
+          /Create a TrueCopy-ISCSI pair by specifying all the fields tasks.
         type: int
         required: false
       provisioned_secondary_volume_id:
         description: ID of the provisioned secondary volume that you want to use for the true copy creation.
+          Required for the Create a TrueCopy pair with provisioned_secondary_volume_id
+          /Create a TrueCopy pair with provisioned_secondary_volume_id and hostgroups tasks.
         type: str
         required: false
       begin_secondary_volume_id:
@@ -143,17 +180,23 @@ options:
         type: str
       copy_pace:
         description: Copy speed.
+          This is optional for the create operation.
         type: str
         required: false
         choices: ['SLOW', 'MEDIUM', 'FAST']
         default: 'MEDIUM'
       is_svol_readwriteable:
         description: It is applicable for split pair operation only. If true, the secondary volume will be read-writeable after split.
+          Optional for the Split TrueCopy pair by specifying only the required fields
+          /Split TrueCopy pair tasks.
         type: bool
         required: false
         default: false
       secondary_hostgroup:
         description: Host group details of the secondary volume.
+          Required for the Create a TrueCopy pair by specifying only the required fields
+          /Create a TrueCopy pair with provisioned_secondary_volume_id and hostgroups
+          /Create a TC pair using a range for secondary volume ID tasks.
         type: dict
         required: false
         suboptions:
@@ -166,7 +209,7 @@ options:
             type: str
             required: true
           lun_id:
-            description: LUN ID of the host group on the secondary storage system. This is not required for create operation.
+            description: LUN ID of the host group on the secondary storage system. This is required for create operation.
             type: int
             required: false
       secondary_hostgroups:
@@ -189,33 +232,47 @@ options:
             required: false
       secondary_iscsi_targets:
         description: The list of iscsi targets on the secondary storage device.
+          Required for the Create a TrueCopy-ISCSI pair by specifying only the required fields
+          /Create a TrueCopy-ISCSI pair by specifying all the fields tasks.
         type: list
         elements: dict
         required: false
         suboptions:
           name:
             description: ISCSI target name.
+              Required for the Create a TrueCopy-ISCSI pair by specifying only the required fields
+              /Create a TrueCopy-ISCSI pair by specifying all the fields tasks.
             type: str
             required: true
           port:
             description: Port name.
+              Required for the Create a TrueCopy-ISCSI pair by specifying only the required fields
+              /Create a TrueCopy-ISCSI pair by specifying all the fields tasks.
             type: str
             required: true
           lun_id:
             description: LUN ID.
+              Required for the Create a TrueCopy-ISCSI pair by specifying only the required fields
+              /Create a TrueCopy-ISCSI pair by specifying all the fields tasks.
             type: int
             required: false
       secondary_nvm_subsystem:
         description: NVM subsystem details of the secondary volume.
+          Required for the Create a TrueCopy-NVMe pair by specifying only the required fields
+          /Create a TrueCopy-NVMe pair by specifying all the fields tasks.
         type: dict
         required: false
         suboptions:
           name:
             description: Name of the NVM subsystem on the secondary storage system.
+              Required for the Create a TrueCopy-NVMe pair by specifying only the required fields
+              /Create a TrueCopy-NVMe pair by specifying all the fields tasks.
             type: str
             required: true
           paths:
             description: Host NQN paths information on the secondary storage system.
+              Required for the Create a TrueCopy-NVMe pair by specifying only the required fields
+              /Create a TrueCopy-NVMe pair by specifying all the fields tasks.
             type: list
             elements: str
             required: false
@@ -242,7 +299,7 @@ options:
         type: int
         required: false
       new_volume_size:
-        description: Required only for resize or expand operation. Value should be grater than the current volume size.
+        description: Required only for resize or expand operation. Value should be greater than the current volume size.
         type: str
         required: false
       is_consistency_group:
@@ -255,6 +312,7 @@ options:
         default: false
       should_delete_svol:
         description: Specify true to delete the SVOL.
+          Optional for the Delete TrueCopy pair task.
         type: bool
         required: false
         default: false

@@ -41,15 +41,21 @@ options:
     suboptions:
       port_name:
         description: Port name.
+          Required for the Set port authentication mode
+          /Allow CHAP users to access the compute port
+          /Cancel compute port access permission for CHAP users tasks.
         type: str
         required: false
       state:
         description: The state of the port authorization task.
+          Required for the Allow CHAP users to access the compute port
+          /Cancel compute port access permission for CHAP users tasks.
         type: str
         required: false
         choices: ['add_chap_user', 'remove_chap_user']
       authentication_mode:
         description: Authentication mode.
+          Required for the Set port authentication mode task.
         type: str
         required: false
         choices: ['CHAP', 'CHAP_complying_with_initiator_setting', 'None']
@@ -59,6 +65,9 @@ options:
         required: false
       target_chap_users:
         description: List of target CHAP user name.
+          Optional for the Set port authentication mode
+          /Allow CHAP users to access the compute port
+          /Cancel compute port access permission for CHAP users tasks.
         type: list
         required: false
         elements: str

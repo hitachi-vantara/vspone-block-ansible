@@ -149,7 +149,15 @@ class VSPHostGroupReconciler:
         return subobjState
 
     def create_host_group(
-        self, port, hgName, hostmodename, hostoptlist, newWWN, newLun, hg_number=None
+        self,
+        port,
+        hgName,
+        hostmodename,
+        hostoptlist,
+        newWWN,
+        newLun=None,
+        lun_paths=None,
+        hg_number=None,
     ):
         logger = Log()
 
@@ -164,7 +172,14 @@ class VSPHostGroupReconciler:
         logger.writeDebug("hostoptlist={}", hostoptlist)
 
         comments, errors = self.provisioner.create_host_group(
-            port, hgName, newWWN, newLun, hostmodename, hostoptlist, hg_number
+            port,
+            hgName,
+            newWWN,
+            hostmodename,
+            hostoptlist,
+            newLun,
+            lun_paths,
+            hg_number,
         )
 
         hostGroup = self.provisioner.get_one_host_group(port, hgName).data
@@ -336,12 +351,53 @@ class VSPHostGroupReconciler:
             else:
                 result["comment"] = VSPHostGroupMessage.LUN_IS_NOT_IN_HG.value
 
+    def handle_update_lun_paths(self, subobjState, hg, lun_paths, result):
+        logger = Log()
+        hgLun = set(path.ldevId for path in hg.lunPaths or [])
+        newLun = set(path.ldev for path in lun_paths or [])
+        logger.writeDebug("newLun={0}", newLun)
+        addLun = self.luns_to_add(newLun, hgLun)
+        # delLun = list(set(hgLun) - set(newLun))
+        delLun = self.luns_to_delete(newLun, hgLun)
+        logger.writeDebug("hgLun={0}", hgLun)
+        logger.writeDebug("541 addLun={0}", addLun)
+        logger.writeDebug("542 delLun={0}", delLun)
+
+        add_lun_path = [path for path in lun_paths if path.ldev in addLun]
+
+        if subobjState == StateValue.PRESENT and add_lun_path:
+            if len(add_lun_path) > 0:
+                comments, errors = self.provisioner.add_lun_paths_to_host_group(
+                    hg, add_lun_path
+                )
+                if errors:
+                    self.errors.append(errors)
+                if comments:
+                    self.comments.extend(comments)
+                    result["changed"] = True
+
+        if subobjState == StateValue.ABSENT:
+            if delLun:
+                logger.writeDebug("delete_luns_from_host_group delLun={0}", delLun)
+                if len(delLun) > 0:
+                    comments, errors = self.provisioner.delete_luns_from_host_group(
+                        hg, delLun
+                    )
+                    if errors:
+                        self.errors.append(errors)
+                    if comments:
+                        self.comments.extend(comments)
+                        result["changed"] = True
+            else:
+                result["comment"] = VSPHostGroupMessage.LUN_IS_NOT_IN_HG.value
+
     def handle_update_host_group(self, hg, data, result):
         logger = Log()
         # check for add/remove hostgroup for each given port
         subobjState = data["subobjState"]
         newWWN = data["newWWN"]
         newLun = data["newLun"]
+        lun_paths = data["lun_paths"]
         hostoptlist = data["hostoptlist"]
         hostmodename = data["hostmodename"]
 
@@ -368,14 +424,17 @@ class VSPHostGroupReconciler:
         logger.writeDebug("532 check luns for update")
         if newLun:  # If luns is present, present or overwrite luns
             self.handle_update_luns(subobjState, hg, newLun, result)
+        if lun_paths:  # If lun_paths is present, present or overwrite lun_paths
+            self.handle_update_lun_paths(subobjState, hg, lun_paths, result)
 
     def host_group_reconcile(self, state, spec):
 
         result = {"changed": False}
         data = spec
-        subobjState = data.state
+        subobjState_raw = data.state
         port = data.port
         hgName = data.name
+        ports = data.ports
         hostmodename = data.host_mode
         hg_number = data.host_group_number
         hostoptlist = data.host_mode_options
@@ -386,18 +445,36 @@ class VSPHostGroupReconciler:
             hostoptlist = None
         result["comments"] = []
         result["errors"] = []
-        self.pre_check_port(port)
-        newWWN = self.pre_check_wwns(subobjState, data.wwns, result)
-        newLun = self.pre_check_luns(subobjState, data.ldevs, result)
-        subobjState = self.pre_check_sub_state(subobjState)
-        logger.writeParam("state={}", state)
-        logger.writeParam("subobjState={}", subobjState)
-        logger.writeParam("port={}", port)
-        logger.writeParam("hgName={}", hgName)
-        logger.writeParam("hostmodename={}", hostmodename)
-        logger.writeParam("hostoptlist={}", hostoptlist)
-        logger.writeParam("newWWN={}", newWWN)
-        logger.writeParam("ldevs={}", newLun)
+        if port:
+            self.pre_check_port(port)
+        newWWN = self.pre_check_wwns(subobjState_raw, data.wwns, result)
+        newLun = self.pre_check_luns(subobjState_raw, data.ldevs, result)
+        subobjState = self.pre_check_sub_state(subobjState_raw)
+        lun_paths = data.lun_paths
+
+        # Handle multi-hg with present ldevs
+        if (
+            state == StateValue.PRESENT
+            and subobjState_raw
+            in (
+                VSPHostGroupConstant.STATE_PRESENT_LDEV,
+                VSPHostGroupConstant.STATE_UNPRESENT_LDEV,
+            )
+            and ports is not None
+            and newLun
+        ):
+
+            comments, errors = self.provisioner.handle_multi_hg_with_present_ldevs(
+                hg_number, hgName, ports, newLun, subobjState_raw
+            )
+            if errors:
+                result["errors"].extend(errors)
+            if comments:
+                result["comments"].extend(comments)
+                result["changed"] = True
+            result["host_group"] = None
+            data = VSPModifyHostGroupProvResponse(**result)
+            return data.camel_to_snake_dict()
         # get all hgs
         # see if all the (hg,port)s are created
         hostGroup = None
@@ -438,6 +515,7 @@ class VSPHostGroupReconciler:
                         hostoptlist,
                         newWWN,
                         newLun,
+                        lun_paths,
                         hg_number,
                     )
                     result["changed"] = True
@@ -478,6 +556,7 @@ class VSPHostGroupReconciler:
                 "hostoptlist": hostoptlist,
                 "newWWN": newWWN,
                 "newLun": newLun,
+                "lun_paths": lun_paths,
             }
             self.handle_update_host_group(hostGroup, data, result)
 
@@ -552,6 +631,9 @@ class VSPHostGroupReconciler:
         return self.provisioner.get_host_groups(
             spec.ports, spec.name, spec.lun, spec.query, spec.host_group_number
         )
+
+    def host_group_host_mode_options_reconcile(self):
+        return self.provisioner.get_host_mode_options().camel_to_snake_dict()
 
 
 class VSPHostGroupCommonPropertiesExtractor:

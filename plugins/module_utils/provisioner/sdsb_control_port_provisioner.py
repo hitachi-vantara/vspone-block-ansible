@@ -58,10 +58,4 @@ class SDSBControlPortProvisioner:
     @log_entry_exit
     def get_storage_node_network_settings(self, spec=None):
         settings = self.gateway.get_storage_node_network_settings(spec)
-        # controllers = None
-        # controllers = settings.get("data", [])
-        # if spec is not None and spec.storage_node_name:
-        #     settings = [fd for fd in controllers if fd.get("storage_node_name") == spec.storage_node_name]
-        # if spec is not None and spec.id:
-        #     settings = [fd for fd in controllers if fd.get("id")  == spec.id]
         return settings
