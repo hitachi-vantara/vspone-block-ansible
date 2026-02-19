@@ -4,6 +4,20 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.6.1
+======
+
+Release Summary
+---------------
+
+This release includes minor changes and bug fixes.
+
+Minor Changes
+-------------
+
+- Added notes to module documentation indicating that a few modules are not supported for BHE and higher models.
+- Other minor bug fixes.
+
 v4.6.0
 ======
 

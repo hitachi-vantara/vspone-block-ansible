@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_info_basic
+- hitachivantara.vspone_block.common.bhe_higher_models
 options:
   state:
     description: The level of the Disk Drives task.

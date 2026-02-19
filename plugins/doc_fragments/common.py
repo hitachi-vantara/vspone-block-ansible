@@ -459,3 +459,9 @@ class ModuleDocFragment:
       - 1. In the task output, the is_storage_master_node_primary parameter indicates whether the
            node is the cluster's primary node. A value of true denotes the primary node.
     """
+
+    BHE_HIGHER_MODELS = r"""
+      options: {}
+      notes:
+      - This module is not supported for VSP One BHE and higher storage models.
+    """
