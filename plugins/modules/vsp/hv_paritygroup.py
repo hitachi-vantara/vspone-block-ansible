@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_with_type
+- hitachivantara.vspone_block.common.bhe_higher_models
 options:
   state:
     description: The level of the HUR pairs task. Choices are C(present), C(absent), C(update), (assign_clpr_id).

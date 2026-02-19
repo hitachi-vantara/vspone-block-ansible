@@ -28,6 +28,7 @@ attributes:
 extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gateway_note
 - hitachivantara.vspone_block.common.connection_info
+- hitachivantara.vspone_block.common.bhe_higher_models
 options:
   spec:
     description: Specification for retrieving DDP pool information.

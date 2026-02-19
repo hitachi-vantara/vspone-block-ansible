@@ -1,0 +1,7 @@
+---
+release_summary: |
+  This release includes minor changes and bug fixes.
+
+minor_changes:
+  - Added notes to module documentation indicating that a few modules are not supported for BHE and higher models.
+  - Other minor bug fixes.
