@@ -131,7 +131,11 @@ ansible_facts:
               type: bool
               sample: false
             mirror_unit_id:
-              description: ID of the mirror unit.
+              description: Deprecated. Use mirror_unit_number instead. Identifier of the mirror unit.
+              type: int
+              sample: 3
+            mirror_unit_number:
+              description: Number of the mirror unit.
               type: int
               sample: 3
             pool_id:

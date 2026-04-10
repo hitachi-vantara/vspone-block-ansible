@@ -251,4 +251,4 @@ class VSPStoragePoolDirectGateway:
     @log_entry_exit
     def stop_shrinking_storage_pool(self, pool_id):
         endPoint = Endpoints.STOP_SHRINKING_POOL.format(pool_id)
-        return self.connectionManager.post(endPoint, None)
+        return self.connectionManager.post_without_job(endPoint, None)

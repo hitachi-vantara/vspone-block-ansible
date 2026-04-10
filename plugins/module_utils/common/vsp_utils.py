@@ -22,7 +22,11 @@ try:
         ShadowImagePairSpec,
     )
     from ..model.vsp_clpr_models import ClprFactSpec, ClprSpec
-    from ..model.vsp_iscsi_target_models import IscsiTargetFactSpec, IscsiTargetSpec
+    from ..model.vsp_iscsi_target_models import (
+        IscsiTargetFactSpec,
+        IscsiTargetSpec,
+        IscsiTargetBulkSpec,
+    )
     from ..model.vsp_storage_system_models import (
         StorageSystemFactSpec,
         VSPStorageSystemSpec,
@@ -58,12 +62,17 @@ try:
         DrivesFactSpec,
     )
     from ..model.vsp_storage_port_models import PortFactSpec, ChangePortSettingSpec
-    from ..model.vsp_hur_models import HurSpec, HurFactSpec
+    from ..model.vsp_hur_models import HurSpec, HurFactSpec, HurBatchSpec
     from ..model.vsp_true_copy_models import (
         TrueCopyFactSpec,
         TrueCopySpec,
+        TrueCopyBatchSpec,
     )
-    from ..model.vsp_gad_pairs_models import VspGadPairSpec, GADPairFactSpec
+    from ..model.vsp_gad_pairs_models import (
+        VspGadPairSpec,
+        GADPairFactSpec,
+        VspBatchGadPairSpec,
+    )
     from ..model.vsp_nvme_models import VSPNvmeSubsystemFactSpec, VSPNvmeSubsystemSpec
     from ..model.uaig_subscriber_models import UnsubscribeSpec
     from ..model.vsp_copy_groups_models import CopyGroupsFactSpec, CopyGroupSpec
@@ -143,7 +152,6 @@ try:
     from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
     from ..message.vsp_hur_msgs import VSPHurValidateMsg
     from ..message.common_msgs import CommonMessage
-    from ..message.vsp_shadow_image_pair_msgs import VSPShadowImagePairValidateMsg
     from ..message.vsp_storage_port_msgs import VSPStoragePortValidateMsg
     from ..message.vsp_gad_pair_msgs import GADPairValidateMSG
     from ..message.gateway_msgs import GatewayValidationMsg
@@ -155,7 +163,7 @@ try:
     from ..message.vsp_copy_group_msgs import VSPCopyGroupsValidateMsg
     from ..message.vsp_spm_msgs import VSPSpmValidateMsg
     from ..message.vsp_storage_system_monitor_msgs import (
-        VSPStotageSystemMonitorValidateMsg,
+        VSPStorageSystemMonitorValidateMsg,
     )
     from ..message.vsp_external_parity_group_msgs import (
         VSPSExternalParityGroupValidateMsg,
@@ -178,7 +186,11 @@ except ImportError:
         ShadowImagePairSpec,
     )
     from model.vsp_clpr_models import ClprFactSpec, ClprSpec
-    from model.vsp_iscsi_target_models import IscsiTargetFactSpec, IscsiTargetSpec
+    from ..model.vsp_iscsi_target_models import (
+        IscsiTargetFactSpec,
+        IscsiTargetSpec,
+        IscsiTargetBulkSpec,
+    )
     from model.vsp_snapshot_models import (
         SnapshotFactSpec,
         SnapshotReconcileSpec,
@@ -214,12 +226,17 @@ except ImportError:
         DrivesFactSpec,
     )
     from model.vsp_storage_port_models import PortFactSpec, ChangePortSettingSpec
-    from model.vsp_hur_models import HurSpec, HurFactSpec
+    from model.vsp_hur_models import HurSpec, HurFactSpec, HurBatchSpec
     from model.vsp_true_copy_models import (
         TrueCopyFactSpec,
         TrueCopySpec,
+        TrueCopyBatchSpec,
     )
-    from model.vsp_gad_pairs_models import VspGadPairSpec, GADPairFactSpec
+    from model.vsp_gad_pairs_models import (
+        VspGadPairSpec,
+        GADPairFactSpec,
+        VspBatchGadPairSpec,
+    )
     from model.vsp_nvme_models import VSPNvmeSubsystemFactSpec, VSPNvmeSubsystemSpec
     from model.uaig_subscriber_models import UnsubscribeSpec
     from model.vsp_copy_groups_models import CopyGroupsFactSpec, CopyGroupSpec
@@ -282,7 +299,6 @@ except ImportError:
     from message.vsp_snapshot_msgs import VSPSnapShotValidateMsg
     from message.vsp_parity_group_msgs import VSPParityGroupValidateMsg
     from message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
-    from message.vsp_shadow_image_pair_msgs import VSPShadowImagePairValidateMsg
     from message.vsp_iscsi_target_msgs import VSPIscsiTargetValidationMsg
     from message.vsp_host_group_msgs import VSPHostGroupValidationMsg
     from message.vsp_storage_port_msgs import VSPStoragePortValidateMsg
@@ -297,7 +313,7 @@ except ImportError:
     from message.vsp_copy_group_msgs import VSPCopyGroupsValidateMsg
     from message.vsp_spm_msgs import VSPSpmValidateMsg
     from message.vsp_storage_system_monitor_msgs import (
-        VSPStotageSystemMonitorValidateMsg,
+        VSPStorageSystemMonitorValidateMsg,
     )
     from message.vsp_external_parity_group_msgs import (
         VSPSExternalParityGroupValidateMsg,
@@ -437,6 +453,10 @@ class VSPParametersManager:
         else:
             input_spec = IscsiTargetSpec()
         return input_spec
+
+    def get_iscsi_target_bulk_spec(self):
+        self.spec = IscsiTargetBulkSpec(**self.params["spec"])
+        return self.spec
 
     def get_snapshot_fact_spec(self):
         self.spec = SnapshotFactSpec(
@@ -591,7 +611,11 @@ class VSPParametersManager:
             input_spec = DrivesFactSpec()
         return input_spec
 
-    def true_cpoy_spec(self):
+    def true_copy_batch_spec(self):
+        self.spec = TrueCopyBatchSpec(**self.params["spec"])
+        return self.spec
+
+    def true_copy_spec(self):
         self.spec = TrueCopySpec(**self.params["spec"])
         VSPSpecValidators().validate_true_copy_module(self.spec)
         return self.spec
@@ -643,6 +667,11 @@ class VSPParametersManager:
         VSPSpecValidators().validate_nvme_subsystem(self.spec)
         return self.spec
 
+    def hur_batch_spec(self):
+        self.spec = HurBatchSpec(**self.params["spec"])
+        # VSPSpecValidators().validate_hur_module(self.spec, self.state)
+        return self.spec
+
     def hur_spec(self):
         self.spec = HurSpec(**self.params["spec"])
         # VSPSpecValidators().validate_hur_module(self.spec, self.state)
@@ -656,6 +685,11 @@ class VSPParametersManager:
     def gad_pair_spec(self):
         self.spec = VspGadPairSpec(**self.params["spec"])
         VSPSpecValidators().validate_gad_pair_spec(self.spec, self.state)
+        return self.spec
+
+    def batch_gad_pair_spec(self):
+        self.spec = VspBatchGadPairSpec(**self.params["spec"])
+        # VSPSpecValidators().validate_gad_pair_spec(self.spec, self.state)
         return self.spec
 
     def gad_pair_fact_spec(self):
@@ -1280,7 +1314,217 @@ class VSPVolumeArguments:
                 "required": False,
                 "type": "str",
             },
-            "parity_group": {
+            "parity_group_id": {
+                "required": False,
+                "type": "str",
+                "aliases": ["parity_group"],
+            },
+            "data_reduction_share": {
+                "required": False,
+                "type": "bool",
+            },
+            "force": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_relocation_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_compression_acceleration_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "tier_level_for_new_page_allocation": {
+                "required": False,
+                "type": "str",
+            },
+            "tiering_policy": {
+                "required": False,
+                "type": "dict",
+                "options": tiering_policy,
+            },
+            "state": {
+                "required": False,
+                "type": "str",
+                "choices": ["add_host_nqn", "remove_host_nqn"],
+                "default": "add_host_nqn",
+            },
+            "nvm_subsystem_name": {
+                "required": False,
+                "type": "str",
+            },
+            "host_nqns": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+            },
+            "should_shred_volume_enable": {
+                "required": False,
+                "type": "bool",
+            },
+            "qos_settings": {
+                "required": False,
+                "type": "dict",
+                "options": qos_settings,
+            },
+            "should_reclaim_zero_pages": {
+                "required": False,
+                "type": "bool",
+            },
+            "mp_blade_id": {
+                "required": False,
+                "type": "int",
+            },
+            "clpr_id": {
+                "required": False,
+                "type": "int",
+            },
+            "is_parallel_execution_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "external_parity_group": {
+                "required": False,
+                "type": "str",
+            },
+            "should_format_volume": {
+                "required": False,
+                "type": "bool",
+            },
+            "format_type": {
+                "required": False,
+                "type": "str",
+                "choices": [
+                    "quick",
+                    "normal",
+                ],
+                "default": "quick",
+            },
+            "data_reduction_process_mode": {
+                "required": False,
+                "type": "str",
+                "choices": [
+                    "post_process",
+                    "inline",
+                ],
+            },
+            "is_full_allocation_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_alua_enabled": {
+                "required": False,
+                "type": "bool",
+            },
+            "cylinder": {
+                "required": False,
+                "type": "int",
+            },
+            "emulation_type": {"required": False, "type": "str"},
+            "is_tse_volume": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_ese_volume": {
+                "required": False,
+                "type": "bool",
+            },
+            "ssid": {
+                "required": False,
+                "type": "str",
+            },
+            "should_stop_all_volume_format": {
+                "required": False,
+                "type": "bool",
+            },
+            "resource_group_id": {
+                "required": False,
+                "type": "int",
+            },
+        }
+
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+    @classmethod
+    def volume_bulk(cls):
+
+        tiering_policy = {
+            "tier_level": {
+                "required": False,
+                "type": "int",
+            },
+            "tier1_allocation_rate_min": {
+                "required": False,
+                "type": "int",
+            },
+            "tier1_allocation_rate_max": {
+                "required": False,
+                "type": "int",
+            },
+            "tier3_allocation_rate_min": {
+                "required": False,
+                "type": "int",
+            },
+            "tier3_allocation_rate_max": {
+                "required": False,
+                "type": "int",
+            },
+        }
+
+        qos_settings = {
+            "upper_iops": {
+                "required": False,
+                "type": "int",
+            },
+            "lower_iops": {
+                "required": False,
+                "type": "int",
+            },
+            "upper_transfer_rate": {
+                "required": False,
+                "type": "int",
+            },
+            "lower_transfer_rate": {
+                "required": False,
+                "type": "int",
+            },
+            "upper_alert_allowable_time": {
+                "required": False,
+                "type": "int",
+            },
+            "lower_alert_allowable_time": {
+                "required": False,
+                "type": "int",
+            },
+            "response_priority": {
+                "required": False,
+                "type": "int",
+            },
+            "response_alert_allowable_time": {
+                "required": False,
+                "type": "int",
+            },
+        }
+        spec_options = {
+            "pool_id": {
+                "required": False,
+                "type": "int",
+            },
+            "size": {
+                "required": False,
+                "type": "str",
+            },
+            "name": {
+                "required": False,
+                "type": "str",
+            },
+            "capacity_saving": {
+                "required": False,
+                "type": "str",
+            },
+            "parity_group_id": {
                 "required": False,
                 "type": "str",
             },
@@ -1411,6 +1655,37 @@ class VSPVolumeArguments:
                 "required": False,
                 "type": "bool",
             },
+            "number_of_ldevs": {
+                "required": False,
+                "type": "int",
+            },
+            "resource_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "names": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "base_name": {"required": False, "type": "str", "default": "smrha"},
+                    "start_number": {"required": False, "type": "int", "default": 0},
+                    "number_of_digits": {
+                        "required": False,
+                        "type": "int",
+                        "default": 3,
+                    },
+                },
+            },
+            "ldev_ids": {
+                "required": False,
+                "type": "list",
+                "elements": "int",
+            },
+            "vldev_ids": {
+                "required": False,
+                "type": "list",
+                "elements": "int",
+            },
         }
 
         cls.common_arguments["spec"]["options"] = spec_options
@@ -1452,10 +1727,11 @@ class VSPHostGroupArguments:
                 "required": False,
                 "type": "str",
             },
-            "ports": {
+            "port_ids": {
                 "required": False,
                 "type": "list",
                 "elements": "str",
+                "aliases": ["ports"],
             },
             "lun": {
                 "required": False,
@@ -1492,14 +1768,16 @@ class VSPHostGroupArguments:
                 "required": False,
                 "type": "str",
             },
-            "port": {
+            "port_id": {
                 "required": False,
                 "type": "str",
+                "aliases": ["port"],
             },
-            "ports": {
+            "port_ids": {
                 "required": False,
                 "type": "list",
                 "elements": "str",
+                "aliases": ["ports"],
             },
             "host_mode": {
                 "required": False,
@@ -1542,15 +1820,17 @@ class VSPHostGroupArguments:
                         "required": True,
                         "type": "str",
                     },
-                    "nick_name": {
+                    "nickname": {
                         "required": False,
                         "type": "str",
+                        "aliases": ["nick_name"],
                     },
                 },
             },
-            "should_delete_all_ldevs": {
+            "should_delete_all_volumes": {
                 "required": False,
                 "type": "bool",
+                "aliases": ["should_delete_all_ldevs"],
             },
             "asymmetric_access_priority": {
                 "required": False,
@@ -1585,9 +1865,101 @@ class VSPHostGroupArguments:
                 },
             },
         }
-        # args = copy.deepcopy(cls.common_arguments)
-        cls.common_arguments["spec"]["options"] = spec_options
-        return cls.common_arguments
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        return args
+
+    @classmethod
+    def host_group_bulk(cls):
+        # cls.common_arguments["spec"]["required"] = True
+        spec_options = {
+            "name": {
+                "required": False,
+                "type": "str",
+            },
+            "should_delete_all_volumes": {
+                "required": False,
+                "type": "bool",
+            },
+            "port_ids": {
+                "required": False,
+                "type": "list",
+                "elements": "str",
+                "aliases": ["ports"],
+            },
+            "host_mode": {
+                "required": False,
+                "type": "str",
+                "choices": [
+                    "LINUX",
+                    "VMWARE",
+                    "HP",
+                    "OPEN_VMS",
+                    "TRU64",
+                    "SOLARIS",
+                    "NETWARE",
+                    "WINDOWS",
+                    "HI_UX",
+                    "AIX",
+                    "VMWARE_EXTENSION",
+                    "WINDOWS_EXTENSION",
+                    "UVM",
+                    "HP_XP",
+                    "DYNIX",
+                ],
+            },
+            # sng20250212 host_mode_options validations
+            "host_mode_options": {
+                "required": False,
+                "type": "list",
+                "elements": "int",
+            },
+            "wwns": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": {
+                    "wwn": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "nickname": {
+                        "required": False,
+                        "type": "str",
+                        "aliases": ["nick_name"],
+                    },
+                },
+            },
+            "asymmetric_access_priority": {
+                "required": False,
+                "type": "str",
+                "choices": ["high", "low"],
+            },
+            "host_group_number": {
+                "required": False,
+                "type": "int",
+            },
+            "lun_paths": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": {
+                    "ldev": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "lun": {
+                        "required": False,
+                        "type": "str",
+                    },
+                },
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["state"]["required"] = False
+        args["state"]["choices"] = ["present", "absent", "added", "removed", "updated"]
+        return args
 
 
 class VSPShadowImagePairArguments:
@@ -1659,10 +2031,10 @@ class VSPShadowImagePairArguments:
                 "required": False,
                 "type": "int",
             },
-            "copy_pace_track_size": {
+            "copy_pace": {
                 "required": False,
                 "type": "str",
-                "choices": ["SLOW", "MEDIUM", "FAST"],
+                "aliases": ["copy_pace_track_size"],
             },
             # "is_new_group_creation": {
             #     "required": False,
@@ -1712,9 +2084,10 @@ class VSPShadowImagePairArguments:
                 "required": False,
                 "type": "bool",
             },
-            "pvol_mu_number": {
+            "mirror_unit_number": {
                 "required": False,
                 "type": "int",
+                "aliases": ["pvol_mu_number"],
             },
         }
 
@@ -1919,9 +2292,10 @@ class VSPSnapshotArguments:
                 "required": False,
                 "type": "str",
             },
-            "mirror_unit_id": {
+            "mirror_unit_number": {
                 "required": False,
                 "type": "int",
+                "aliases": ["mirror_unit_id"],
             },
         }
         args = copy.deepcopy(cls.common_arguments)
@@ -1957,9 +2331,10 @@ class VSPSnapshotArguments:
                 "required": False,
                 "type": "bool",
             },
-            "mirror_unit_id": {
+            "mirror_unit_number": {
                 "required": False,
                 "type": "int",
+                "aliases": ["mirror_unit_id"],
             },
             "snapshot_group_name": {
                 "required": False,
@@ -2072,10 +2447,11 @@ class VSPIscsiTargetArguments:
     @classmethod
     def iscsi_target_facts(cls):
         spec_options = {
-            "ports": {
+            "port_ids": {
                 "required": False,
                 "type": "list",
                 "elements": "str",
+                "aliases": ["ports"],
             },
             "name": {
                 "required": False,
@@ -2114,9 +2490,10 @@ class VSPIscsiTargetArguments:
                 "required": False,
                 "type": "str",
             },
-            "port": {
+            "port_id": {
                 "required": True,
                 "type": "str",
+                "aliases": ["port"],
             },
             "host_mode": {
                 "required": False,
@@ -2155,9 +2532,10 @@ class VSPIscsiTargetArguments:
                 "type": "list",
                 "elements": "dict",
             },
-            "should_delete_all_ldevs": {
+            "should_delete_all_volumes": {
                 "required": False,
                 "type": "bool",
+                "aliases": ["should_delete_all_ldevs"],
             },
             "iqn_initiators": {
                 "required": False,
@@ -2168,9 +2546,10 @@ class VSPIscsiTargetArguments:
                         "required": True,
                         "type": "str",
                     },
-                    "nick_name": {
+                    "nickname": {
                         "required": False,
                         "type": "str",
+                        "aliases": ["nick_name"],
                     },
                 },
             },
@@ -2186,6 +2565,104 @@ class VSPIscsiTargetArguments:
                 "required": False,
                 "type": "int",
             },
+        }
+        cls.common_arguments["spec"]["options"] = spec_options
+        return cls.common_arguments
+
+    @classmethod
+    def iscsi_target_bulk(cls):
+        cls.common_arguments["spec"]["required"] = True
+        iscsi_target_bulk_state = VSPCommonParameters.state()
+        iscsi_target_bulk_state["choices"].extend(["updated", "added", "removed"])
+        cls.common_arguments["state"] = iscsi_target_bulk_state
+        spec_options = {
+            "id": {
+                "required": False,
+                "type": "int",
+            },
+            "name": {
+                "required": False,
+                "type": "str",
+            },
+            "port_ids": {
+                "required": True,
+                "type": "list",
+                "elements": "str",
+            },
+            "host_mode": {
+                "required": False,
+                "type": "str",
+                "choices": [
+                    "LINUX",
+                    "VMWARE",
+                    "HP",
+                    "OPEN_VMS",
+                    "TRU64",
+                    "SOLARIS",
+                    "NETWARE",
+                    "WINDOWS",
+                    "HI_UX",
+                    "AIX",
+                    "VMWARE_EXTENSION",
+                    "WINDOWS_EXTENSION",
+                    "UVM",
+                    "HP_XP",
+                    "DYNIX",
+                ],
+            },
+            "host_mode_options": {
+                "required": False,
+                "type": "list",
+                "elements": "int",
+            },
+            "chap_users": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+            },
+            "should_delete_all_volumes": {
+                "required": False,
+                "type": "bool",
+                "aliases": ["should_delete_all_ldevs"],
+            },
+            "lun_paths": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": {
+                    "ldev": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "lun": {
+                        "required": False,
+                        "type": "int",
+                    },
+                },
+            },
+            "iqn_initiators": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": {
+                    "iqn": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "nickname": {
+                        "required": False,
+                        "type": "str",
+                    },
+                },
+            },
+            "should_release_host_reserve": {
+                "required": False,
+                "type": "bool",
+            },
+            # "iscsi_id": {
+            #     "required": False,
+            #     "type": "int",
+            # },
         }
         cls.common_arguments["spec"]["options"] = spec_options
         return cls.common_arguments
@@ -2694,11 +3171,7 @@ class VSPJournalArguments:
                 "required": False,
                 "type": "int",
             },
-            "copy_pace": {
-                "required": False,
-                "type": "str",
-                "choices": ["SLOW", "MEDIUM", "FAST"],
-            },
+            "copy_pace": {"required": False, "type": "str", "default": "3"},
             "path_blockade_watch_in_minutes": {
                 "required": False,
                 "type": "int",
@@ -3079,10 +3552,11 @@ class VSPStoragePortArguments:
     @classmethod
     def storage_port_fact(cls):
         spec_options = {
-            "ports": {
+            "port_ids": {
                 "required": False,
                 "type": "list",
                 "elements": "str",
+                "aliases": ["ports"],
             },
             "query": {
                 "required": False,
@@ -3117,9 +3591,10 @@ class VSPStoragePortArguments:
     @classmethod
     def storage_port(cls):
         spec_options = {
-            "port": {
+            "port_id": {
                 "required": True,
                 "type": "str",
+                "aliases": ["port"],
             },
             "port_attribute": {
                 "required": False,
@@ -3433,6 +3908,217 @@ class VSPLocalCopyGroupArguments:
         return args
 
 
+class VSPTrueCopyBatchArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    ssi["options"].pop("connection_type")
+    ssi["required"] = False
+    common_arguments = {
+        # "storage_system_info": VSPCommonParameters.storage_system_info(),
+        "connection_info": VSPCommonParameters.connection_info(),
+        "secondary_connection_info": ssi,
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+            ],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def true_copy_batch(cls):
+        hg_options = {
+            "name": {
+                "required": True,
+                "type": "str",
+            },
+            "port_id": {
+                "required": True,
+                "type": "str",
+            },
+            "lun_id": {
+                "required": False,
+                "type": "int",
+            },
+        }
+
+        spec_options = {
+            "number_of_pairs": {
+                "required": True,
+                "type": "int",
+            },
+            "begin_primary_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+            "end_primary_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+            "primary_volume_base_name": {
+                "required": False,
+                "type": "str",
+            },
+            "capacity_saving": {
+                "required": False,
+                "type": "str",
+            },
+            "data_reduction_share": {
+                "required": False,
+                "type": "bool",
+            },
+            "primary_volume_base_name_start_number": {
+                "required": False,
+                "type": "int",
+            },
+            "primary_volume_base_name_number_of_digits": {
+                "required": False,
+                "choices": [1, 2, 3, 4, 5],
+                "type": "int",
+            },
+            "volume_size": {
+                "required": True,
+                "type": "str",
+            },
+            "primary_pool_id": {
+                "required": True,
+                "type": "int",
+            },
+            "secondary_pool_id": {
+                "required": True,
+                "type": "int",
+            },
+            "consistency_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            # "allocate_new_consistency_group": {
+            #     "required": False,
+            #     "type": "bool",
+            #     "default": False,
+            # },
+            "primary_hostgroups": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "primary_iscsi_targets": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "primary_nvm_subsystem": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "name": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "paths": {
+                        "required": False,
+                        "type": "list",
+                        "elements": "str",
+                    },
+                },
+            },
+            "secondary_hostgroups": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "secondary_iscsi_targets": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "secondary_nvm_subsystem": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "name": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "paths": {
+                        "required": False,
+                        "type": "list",
+                        "elements": "str",
+                    },
+                },
+            },
+            "local_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "copy_pair_base_name": {
+                "required": True,
+                "type": "str",
+            },
+            "path_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "copy_group_name": {
+                "required": True,
+                "type": "str",
+            },
+            "copy_pace": {"required": False, "type": "int", "default": 3},
+            "fence_level": {
+                "required": False,
+                "type": "str",
+                "choices": ["NEVER", "DATA", "STATUS"],
+                "default": "NEVER",
+            },
+            "is_data_reduction_force_copy": {
+                "required": False,
+                "type": "bool",
+                "default": True,
+            },
+            "do_initial_copy": {
+                "required": False,
+                "type": "bool",
+                "default": True,
+            },
+            "is_new_group_creation": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_consistency_group": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "begin_secondary_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+            "end_secondary_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = True
+
+        return args
+
+
 class VSPTrueCopyArguments:
     ssi = copy.deepcopy(VSPCommonParameters.connection_info())
     # ssi["options"].pop("subscriber_id")
@@ -3472,9 +4158,10 @@ class VSPTrueCopyArguments:
                 "required": True,
                 "type": "str",
             },
-            "port": {
+            "port_id": {
                 "required": True,
                 "type": "str",
+                "aliases": ["port"],
             },
             "lun_id": {
                 "required": False,
@@ -3541,7 +4228,6 @@ class VSPTrueCopyArguments:
             "is_new_group_creation": {
                 "required": False,
                 "type": "bool",
-                "default": False,
             },
             "is_consistency_group": {
                 "required": False,
@@ -3551,8 +4237,7 @@ class VSPTrueCopyArguments:
             "copy_pace": {
                 "required": False,
                 "type": "str",
-                "choices": ["SLOW", "MEDIUM", "FAST"],
-                "default": "MEDIUM",
+                "default": "3",
             },
             "do_initial_copy": {
                 "required": False,
@@ -3562,7 +4247,7 @@ class VSPTrueCopyArguments:
             "is_data_reduction_force_copy": {
                 "required": False,
                 "type": "bool",
-                "default": False,
+                "default": True,
             },
             "is_svol_readwriteable": {
                 "required": False,
@@ -3712,9 +4397,236 @@ class VSPVolTierArguments:
         return cls.common_arguments
 
 
+class VSPHurBatchArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    ssi["options"].pop("connection_type")
+    ssi["required"] = False
+    common_arguments = {
+        # "storage_system_info": VSPCommonParameters.storage_system_info(),
+        "connection_info": VSPCommonParameters.connection_info(),
+        "secondary_connection_info": ssi,
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+            ],
+            "default": "present",
+        },
+        "spec": {
+            "required": False,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def hur_batch(cls):
+        hg_options = {
+            "name": {
+                "required": True,
+                "type": "str",
+            },
+            "port_id": {
+                "required": True,
+                "type": "str",
+            },
+            "lun_id": {
+                "required": False,
+                "type": "int",
+            },
+        }
+
+        spec_options = {
+            "number_of_pairs": {
+                "required": True,
+                "type": "int",
+            },
+            "begin_primary_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+            "end_primary_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+            "primary_volume_base_name": {
+                "required": False,
+                "type": "str",
+            },
+            "capacity_saving": {
+                "required": False,
+                "type": "str",
+            },
+            "data_reduction_share": {
+                "required": False,
+                "type": "bool",
+            },
+            "primary_volume_base_name_start_number": {
+                "required": False,
+                "type": "int",
+            },
+            "primary_volume_base_name_number_of_digits": {
+                "required": False,
+                "choices": [1, 2, 3, 4, 5],
+                "type": "int",
+            },
+            "volume_size": {
+                "required": True,
+                "type": "str",
+            },
+            "primary_pool_id": {
+                "required": True,
+                "type": "int",
+            },
+            "secondary_pool_id": {
+                "required": True,
+                "type": "int",
+            },
+            "enable_delta_resync": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "consistency_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "allocate_new_consistency_group": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "primary_hostgroups": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "primary_iscsi_targets": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "primary_nvm_subsystem": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "name": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "paths": {
+                        "required": False,
+                        "type": "list",
+                        "elements": "str",
+                    },
+                },
+            },
+            "secondary_hostgroups": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "secondary_iscsi_targets": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "secondary_nvm_subsystem": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "name": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "paths": {
+                        "required": False,
+                        "type": "list",
+                        "elements": "str",
+                    },
+                },
+            },
+            "local_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "copy_pair_base_name": {
+                "required": True,
+                "type": "str",
+            },
+            "path_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "copy_group_name": {
+                "required": True,
+                "type": "str",
+            },
+            "fence_level": {
+                "required": False,
+                "type": "str",
+                "choices": ["ASYNC"],
+                "default": "ASYNC",
+            },
+            "is_data_reduction_force_copy": {
+                "required": False,
+                "type": "bool",
+                "default": True,
+            },
+            "do_initial_copy": {
+                "required": False,
+                "type": "bool",
+                "default": True,
+            },
+            "is_new_group_creation": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_consistency_group": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "begin_secondary_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+            "end_secondary_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+            "primary_journal_id": {
+                "required": False,
+                "type": "int",
+            },
+            "secondary_journal_id": {
+                "required": False,
+                "type": "int",
+            },
+            "mirror_unit_number": {
+                "required": False,
+                "choices": [0, 1, 2, 3],
+                "type": "int",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = True
+
+        return args
+
+
 class VSPHurArguments:
     ssi = copy.deepcopy(VSPCommonParameters.connection_info())
-    # ssi["options"].pop("subscriber_id")
     ssi["options"].pop("connection_type")
     ssi["required"] = False
     common_arguments = {
@@ -3751,9 +4663,10 @@ class VSPHurArguments:
                 "required": True,
                 "type": "str",
             },
-            "port": {
+            "port_id": {
                 "required": True,
                 "type": "str",
+                "aliases": ["port"],
             },
             "lun_id": {
                 "required": False,
@@ -3770,10 +4683,11 @@ class VSPHurArguments:
             #     "required": False,
             #     "type": "str",
             # },
-            "mirror_unit_id": {
+            "mirror_unit_number": {
                 "required": False,
                 "choices": [0, 1, 2, 3],
                 "type": "int",
+                "aliases": ["mirror_unit_id"],
             },
             "consistency_group_id": {
                 "required": False,
@@ -3844,7 +4758,7 @@ class VSPHurArguments:
             "is_data_reduction_force_copy": {
                 "required": False,
                 "type": "bool",
-                "default": False,
+                "default": True,
             },
             "do_delta_resync_suspend": {
                 "required": False,
@@ -3950,10 +4864,11 @@ class VSPHurArguments:
                 "required": False,
                 "type": "str",
             },
-            "mirror_unit_id": {
+            "mirror_unit_number": {
                 "required": False,
                 "type": "int",
                 "choices": [0, 1, 2, 3],
+                "aliases": ["mirror_unit_id"],
             },
         }
         args = copy.deepcopy(cls.common_arguments)
@@ -4062,6 +4977,7 @@ class VSPRemoteCopyGroupArguments:
             "copy_pace": {
                 "required": False,
                 "type": "int",
+                "default": 3,
             },
         }
         args = copy.deepcopy(cls.common_arguments)
@@ -4145,10 +5061,11 @@ class VSPNvmeSubsystemArguments:
                 "type": "bool",
                 "default": True,
             },
-            "ports": {
+            "port_ids": {
                 "required": False,
                 "type": "list",
                 "elements": "str",
+                "aliases": ["ports"],
             },
             "host_nqns": {
                 "required": False,
@@ -4241,12 +5158,26 @@ class VSPResourceGroupArguments:
     def resource_group(cls):
         hg_args = {
             "name": {
-                "required": True,
+                "required": False,
                 "type": "str",
             },
-            "port": {
+            "port_id": {
                 "required": True,
                 "type": "str",
+                "aliases": ["port"],
+            },
+            "ids": {
+                "required": False,
+                "type": "list",
+                "elements": "int",
+            },
+            "begin_id": {
+                "required": False,
+                "type": "int",
+            },
+            "end_id": {
+                "required": False,
+                "type": "int",
             },
         }
         spec_options = {
@@ -4312,23 +5243,27 @@ class VSPResourceGroupArguments:
                 "type": "list",
                 "elements": "str",
             },
-            "start_ldev": {
+            "begin_ldev_id": {
                 "required": False,
                 "type": "str",
+                "aliases": ["start_ldev"],
             },
-            "end_ldev": {
+            "end_ldev_id": {
                 "required": False,
                 "type": "str",
+                "aliases": ["end_ldev"],
             },
-            "ports": {
+            "port_ids": {
                 "required": False,
                 "type": "list",
                 "elements": "str",
+                "aliases": ["ports"],
             },
-            "parity_groups": {
+            "parity_group_ids": {
                 "required": False,
                 "type": "list",
                 "elements": "str",
+                "aliases": ["parity_groups"],
             },
             "external_parity_groups": {
                 "required": False,
@@ -4458,9 +5393,10 @@ class VSPGADArguments:
                 "required": False,
                 "type": "bool",
             },
-            "port": {
+            "port_id": {
                 "required": True,
                 "type": "str",
+                "aliases": ["port"],
             },
             "lun_id": {
                 "required": False,
@@ -4550,12 +5486,12 @@ class VSPGADArguments:
             "copy_pace": {
                 "required": False,
                 "type": "str",
-                "choices": ["SLOW", "MEDIUM", "FAST"],
-                "default": "MEDIUM",
+                "default": "3",
             },
-            "mu_number": {
+            "mirror_unit_number": {
                 "required": False,
-                "type": "str",
+                "type": "int",
+                "aliases": ["mu_number"],
             },
             "fence_level": {
                 "required": False,
@@ -4621,6 +5557,215 @@ class VSPGADArguments:
         cls.common_arguments["spec"]["options"] = spec_options
         cls.common_arguments["spec"]["required"] = True
         return cls.common_arguments
+
+    @classmethod
+    def batch_gad_pair_args_spec(cls):
+        hg_options = {
+            "name": {
+                "required": True,
+                "type": "str",
+            },
+            "port_id": {
+                "required": True,
+                "type": "str",
+            },
+        }
+
+        spec_options = {
+            "secondary_pool_id": {
+                "required": False,
+                "type": "int",
+            },
+            "consistency_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "allocate_new_consistency_group": {
+                "required": False,
+                "type": "bool",
+            },
+            "set_alua_mode": {
+                "required": False,
+                "type": "bool",
+            },
+            "primary_hostgroups": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "secondary_hostgroups": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "secondary_iscsi_targets": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "primary_iscsi_targets": {
+                "required": False,
+                "type": "list",
+                "elements": "dict",
+                "options": hg_options,
+            },
+            "primary_resource_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "secondary_resource_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "quorum_disk_id": {
+                "required": False,
+                "type": "int",
+            },
+            "local_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "remote_device_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "copy_pair_base_name": {
+                "required": False,
+                "type": "str",
+            },
+            "path_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "copy_group_name": {
+                "required": False,
+                "type": "str",
+            },
+            "copy_pace": {
+                "required": False,
+                "type": "int",
+                "default": 3,
+            },
+            "mirror_unit_number": {
+                "required": False,
+                "type": "str",
+            },
+            "fence_level": {
+                "required": False,
+                "type": "str",
+                "choices": ["NEVER", "DATA", "STATUS", "UNKNOWN"],
+                "default": "NEVER",
+            },
+            "is_data_reduction_force_copy": {
+                "required": False,
+                "type": "bool",
+                "default": True,
+            },
+            "do_initial_copy": {
+                "required": False,
+                "type": "bool",
+                "default": True,
+            },
+            "is_consistency_group": {
+                "required": False,
+                "type": "bool",
+            },
+            "is_new_group_creation": {
+                "required": False,
+                "type": "bool",
+            },
+            "new_volume_size": {
+                "required": False,
+                "type": "str",
+            },
+            "begin_secondary_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+            "end_secondary_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+            "provisioned_secondary_volume_id": {
+                "required": False,
+                "type": "str",
+            },
+            "secondary_nvm_subsystem": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "name": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "paths": {
+                        "required": False,
+                        "type": "list",
+                        "elements": "str",
+                    },
+                },
+            },
+            "primary_nvm_subsystem": {
+                "required": False,
+                "type": "dict",
+                "options": {
+                    "name": {
+                        "required": True,
+                        "type": "str",
+                    },
+                    "paths": {
+                        "required": False,
+                        "type": "list",
+                        "elements": "str",
+                    },
+                },
+            },
+            "number_of_pairs": {
+                "required": False,
+                "type": "int",
+            },
+            "begin_primary_volume_id": {
+                "required": False,
+                "type": "int",
+            },
+            "end_primary_volume_id": {
+                "required": False,
+                "type": "int",
+            },
+            "primary_volume_base_name": {
+                "required": False,
+                "type": "str",
+            },
+            "primary_volume_base_name_start_number": {
+                "required": False,
+                "type": "int",
+            },
+            "primary_pool_id": {
+                "required": False,
+                "type": "int",
+            },
+            "volume_size": {
+                "required": False,
+                "type": "str",
+            },
+            "capacity_saving": {
+                "required": False,
+                "type": "str",
+            },
+            "virtual_storage_serial_number": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = True
+        args.pop("state")
+        return args
 
 
 #  20240822 - VSPVolumeTieringArguments
@@ -5867,9 +7012,10 @@ class VSPVolumeSimpleAPIArguments:
                 "required": False,
                 "type": "str",
             },
-            "start_volume_id": {
+            "begin_volume_id": {
                 "required": False,
                 "type": "str",
+                "aliases": ["start_volume_id"],
             },
             "count": {
                 "required": False,
@@ -6043,6 +7189,7 @@ class VSPOneServerArguments:
                 "present",
                 "absent",
                 "sync_server_nick_name",
+                "sync_server_nickname",
                 "add_host_groups",
                 "add_hba",
                 "remove_hba",
@@ -6063,9 +7210,10 @@ class VSPOneServerArguments:
     @classmethod
     def get_vsp_one_server_args(cls):
         spec_options = {
-            "nick_name": {
+            "nickname": {
                 "required": False,
                 "type": "str",
+                "aliases": ["nick_name"],
             },
             "protocol": {
                 "required": False,
@@ -6199,9 +7347,10 @@ class VSPOneServerArguments:
                 "required": False,
                 "type": "int",
             },
-            "nick_name": {
+            "nickname": {
                 "required": False,
                 "type": "str",
+                "aliases": ["nick_name"],
             },
             "hba_wwn": {
                 "required": False,
@@ -6238,9 +7387,10 @@ class VSPOneServerArguments:
                 "required": False,
                 "type": "str",
             },
-            "nick_name": {
+            "nickname": {
                 "required": False,
                 "type": "str",
+                "aliases": ["nick_name"],
             },
         }
         args = copy.deepcopy(cls.common_arguments)
@@ -6451,7 +7601,7 @@ class VSPSpecValidators:
         if state == StateValue.ABSENT:
             # 2.3 gateway defines spec.ldev for one set of logics,
             # it also defines spec.ldevs as str (not list) for other business logics, it's a mess
-            if not input_spec.ldev_id:
+            if not input_spec.ldev_id and not input_spec.ldev_ids:
                 raise ValueError(VSPVolValidationMsg.LUN_REQUIRED.value)
         if input_spec.name:
             if (
@@ -6619,7 +7769,7 @@ class VSPSpecValidators:
         if spec.query == "alerts":
             if spec.alert_type is None:
                 raise ValueError(
-                    VSPStotageSystemMonitorValidateMsg.ALERT_TYPE_NEEDED.value
+                    VSPStorageSystemMonitorValidateMsg.ALERT_TYPE_NEEDED.value
                 )
 
     @staticmethod
@@ -6709,17 +7859,7 @@ class VSPSpecValidators:
     @staticmethod
     def validate_shadow_image_module(spec: ShadowImagePairSpec, conn: ConnectionInfo):
 
-        if spec.copy_pace is not None:
-            options = ["SLOW", "MEDIUM", "FAST"]
-            if spec.copy_pace not in options:
-                raise ValueError(VSPShadowImagePairValidateMsg.COPY_PACE_VALUE.value)
-
-        if spec.copy_pace_track_size is not None:
-            options = ["SLOW", "MEDIUM", "FAST"]
-            if spec.copy_pace_track_size not in options:
-                raise ValueError(
-                    VSPShadowImagePairValidateMsg.COPY_PACE_TRACK_SIZE_VALUE.value
-                )
+        pass
 
     @staticmethod
     def validate_iscsi_target_spec(input_spec: IscsiTargetSpec):
@@ -6998,14 +8138,6 @@ class VSPSpecValidators:
             ):
                 raise ValueError(
                     VSPTrueCopyValidateMsg.INVALID_REMOTE_DEVICE_GROUP_NAME.value
-                )
-
-        if input_spec.copy_pace:
-            c_p = input_spec.copy_pace
-            valid_cp = ["SLOW", "MEDIUM", "FAST"]
-            if c_p.upper() not in valid_cp:
-                raise ValueError(
-                    VSPTrueCopyValidateMsg.INVALID_CP_VALUE.value.format(valid_cp)
                 )
 
         if input_spec.new_volume_size:
@@ -7446,14 +8578,6 @@ class VSPSpecValidators:
                     VSPTrueCopyValidateMsg.INVALID_REMOTE_DEVICE_GROUP_NAME.value
                 )
 
-        if input_spec.copy_pace:
-            c_p = input_spec.copy_pace
-            valid_cp = ["SLOW", "MEDIUM", "FAST"]
-            if c_p.upper() not in valid_cp:
-                raise ValueError(
-                    VSPTrueCopyValidateMsg.INVALID_CP_VALUE.value.format(valid_cp)
-                )
-
         def _validate_hostgroups(hostgroups, pos):
             for hg in hostgroups:
 
@@ -7589,6 +8713,41 @@ def camel_to_snake_case_dict(response):
         logger.writeDebug(f"exception in camel_to_snake_case_dict {e}")
 
     return new_dict
+
+
+def get_serial_number_from_device_id(storageDeviceId):
+
+    # for 'pvolStorageDeviceId': 'A34000810045' -> 810045
+    # for 'svolStorageDeviceId': 'A34000810050' -> 810050
+
+    len2 = len(storageDeviceId)
+    # supports up to 7 digits device id
+    len1 = len2 - 8
+
+    result = ""
+    captureOn = False
+    while len1 < len2:
+        char = storageDeviceId[len1]
+        if char != "0" or captureOn:
+            captureOn = True
+            result = result + char
+        len1 = len1 + 1
+
+    return result
+
+
+def get_local_device_group_name_from_copy_pair_id(copy_pair_id):
+    # "A34000810045,tc_bulk_cg_1,tc_bulk_cg_1P_,tc_bulk_cg_1S_,tc_bulk_cp_4952_6683"
+    # local device group name is tc_bulk_cg_1P_
+
+    return copy_pair_id.split(",")[2]
+
+
+def get_remote_device_group_name_from_copy_pair_id(copy_pair_id):
+    # "A34000810045,tc_bulk_cg_1,tc_bulk_cg_1P_,tc_bulk_cg_1S_,tc_bulk_cp_4952_6683"
+    # remote device group name is tc_bulk_cg_1S_
+
+    return copy_pair_id.split(",")[3]
 
 
 class NAIDCalculator:

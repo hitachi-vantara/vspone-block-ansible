@@ -11,6 +11,7 @@ except ImportError:
 class JobFactSpec:
     id: Optional[str] = None
     count: Optional[int] = None
+    comments: Optional[str] = None
 
 
 @dataclass

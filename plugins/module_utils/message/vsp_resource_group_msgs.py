@@ -1,4 +1,5 @@
 from enum import Enum
+from ..common.hv_constants import LdevConstants
 
 
 class VSPResourceGroupValidateMsg(Enum):
@@ -19,7 +20,7 @@ class VSPResourceGroupValidateMsg(Enum):
         "Invalid start_ldev provided. Supported values are 0 to 65278."
     )
     END_LDEV_ID_REQUIRED = "end_ldev is required when start_ldev is provided."
-    INVALID_END_LDEV_ID = "Invalid end_ldev provided. Supported values are 1 to 65279."
+    INVALID_END_LDEV_ID = f"Invalid end_ldev provided. Supported values are 1 to {LdevConstants.MAX_VALID_LDEV_ID}."
     END_LDEV_LESS_START_LDEV = "end_ldev should be greater than start_ldev."
     NO_START_END_LDEV_AND_LDEV_IDS = (
         "Can't provide start_ldev and end_ldev (range) with ldev_ids."
@@ -29,7 +30,7 @@ class VSPResourceGroupValidateMsg(Enum):
     CONTRADICT_INFO = "Contradicting information provided in the spec. During create, remove task was specified."
     INVALID_VIRTUAL_STORAGE_DEVICE_ID = "Invalid virtual_storage_device_id provided. Minimum number of characters 12 needed."
     INVALID_RG_ID = "An unsupported or invalid resource group ID has been provided. Provide values in the range of 1 to 1023."
-    INVALID_LDEV_ID = "Invalid ldev_ids provided. Supported values are 0 to 65279."
+    INVALID_LDEV_ID = f"Invalid ldev_ids provided. Supported values are 0 to {LdevConstants.MAX_VALID_LDEV_ID}."
     INVALID_NVM_SUBSYSTEM_ID = (
         "Invalid nvm_subsystem_ids provided. Supported values are 0 to 2047."
     )
@@ -53,3 +54,9 @@ class VSPResourceGroupValidateMsg(Enum):
         "Ansible retries every 30 seconds, so waited for 2.5 minutes."
     )
     LDEVS_LIST_AND_RANGE_NOT_ALLOWED = "If you specify this attribute, you cannot specify the start_ldev attribute or the end_ldev attribute."
+    POOL_VOLUME_SUCCESS = "Pool volumes for Storage Pool(s) '{}' are incorporated in the Resource Group Ldevs."
+    RG_DELETE_SUCCESS = "Resource Group deleted successfully."
+    VSM_MODEL_MISMATCH = (
+        "Virtual Storage Model mismatch. The specified virtual storage model '{}' does not match the model '{}'"
+        " of the existing virtual storage with serial '{}'."
+    )

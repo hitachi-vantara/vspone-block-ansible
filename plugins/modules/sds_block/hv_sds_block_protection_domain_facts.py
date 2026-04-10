@@ -138,6 +138,7 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
     Log,
 )
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
+    ProtectionDomainSettingsArgs,
     SDSBParametersManager,
 )
 from ansible.module_utils.basic import AnsibleModule
@@ -146,31 +147,11 @@ from ansible.module_utils.basic import AnsibleModule
 class SDSBDomainsFactsManager:
     def __init__(self):
         self.logger = Log()
-        argument_spec = {
-            "connection_info": {
-                "required": True,
-                "type": "dict",
-                "options": {
-                    "address": {"required": True, "type": "str"},
-                    "username": {"required": True, "type": "str"},
-                    "password": {"required": True, "type": "str", "no_log": True},
-                    "connection_type": {
-                        "required": False,
-                        "type": "str",
-                        "choices": ["direct"],
-                        "default": "direct",
-                    },
-                },
-            },
-            "spec": {
-                "required": False,
-                "type": "dict",
-                "options": {"id": {"required": False, "type": "str"}},
-            },
-        }
-
+        self.argument_spec = (
+            ProtectionDomainSettingsArgs().protection_domain_settings_facts()
+        )
         self.module = AnsibleModule(
-            argument_spec=argument_spec,
+            argument_spec=self.argument_spec,
             supports_check_mode=True,
         )
 

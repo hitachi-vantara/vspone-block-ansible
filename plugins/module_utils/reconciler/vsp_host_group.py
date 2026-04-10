@@ -1,3 +1,6 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
+
 try:
     from ..provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
     from ..common.ansible_common import (
@@ -9,7 +12,14 @@ try:
         get_default_value,
     )
     from ..common.hv_log import Log
-    from ..model.vsp_host_group_models import VSPModifyHostGroupProvResponse
+    from ..common.vsp_errors import (
+        VspPortNotFoundError,
+        VspHostGroupDeleteError,
+    )
+    from ..model.vsp_host_group_models import (
+        VSPModifyHostGroupProvResponse,
+        HostGroupSpec,
+    )
     from ..common.hv_constants import VSPHostGroupConstant, StateValue
     from ..message.vsp_host_group_msgs import VSPHostGroupMessage
 except ImportError:
@@ -23,6 +33,10 @@ except ImportError:
         get_default_value,
     )
     from common.hv_log import Log
+    from common.vsp_errors import (
+        VspPortNotFoundError,
+        VspHostGroupDeleteError,
+    )
     from model.vsp_host_group_models import VSPModifyHostGroupProvResponse
     from common.hv_constants import VSPHostGroupConstant, StateValue
     from message.vsp_host_group_msgs import VSPHostGroupMessage
@@ -44,7 +58,9 @@ class VSPHostGroupReconciler:
         logger = Log()
         logger.writeInfo("port = {}", port)
         if not port:
-            raise Exception(VSPHostGroupMessage.PORT_NOT_IN_SYSTEM.value.format(port))
+            raise VspPortNotFoundError(
+                VSPHostGroupMessage.PORT_NOT_IN_SYSTEM.value.format(port)
+            )
         if port:
             # before the subobjState change
             # make sure all the ports are defined in the storage
@@ -53,7 +69,7 @@ class VSPHostGroupReconciler:
             found = [x for x in sports if x.portId == port]
             logger.writeDebug("210found={}", found)
             if found is None or len(found) == 0:
-                raise Exception(
+                raise VspPortNotFoundError(
                     VSPHostGroupMessage.PORT_NOT_IN_SYSTEM.value.format(port)
                 )
 
@@ -61,13 +77,7 @@ class VSPHostGroupReconciler:
         logger = Log()
         if wwns == "":
             wwns = None
-        # if wwns is not None:
-        #     logger.writeDebug("wwns={}", wwns)
-        #     logger.writeDebug("wwns={}", wwns[0])
-        #     logger.writeDebug("wwns={}", len(wwns))
 
-        #     if len(wwns[0]) == 1:
-        #         raise Exception(VSPHostGroupMessage.WWNS_INVALID.value)
         if (
             subobjState == VSPHostGroupConstant.STATE_PRESENT_LDEV
             or subobjState == VSPHostGroupConstant.STATE_UNPRESENT_LDEV
@@ -129,7 +139,7 @@ class VSPHostGroupReconciler:
             VSPHostGroupConstant.STATE_ADD_WWN,
             VSPHostGroupConstant.STATE_REMOVE_WWN,
         ):
-            raise Exception(VSPHostGroupMessage.SPEC_STATE_INVALID.value)
+            raise ValueError(VSPHostGroupMessage.SPEC_STATE_INVALID.value)
 
         # support the new subobjState keywords
         logger.writeDebug("subobjState={}", subobjState)
@@ -269,13 +279,17 @@ class VSPHostGroupReconciler:
 
         logger.writeDebug("update wwn nickname")
 
+        logger.writeDebug(f"newWWN={newWWN} hg.wwns={hg.wwns} ")
+
         for wwn in newWWN:
             # if not wwn.nick_name:
             #     continue
 
-            matched_wwn = next(
-                (hgwwn for hgwwn in hg.wwns if wwn.wwn == hgwwn.id), None
-            )
+            matched_wwn = None
+            if hg.wwns:
+                matched_wwn = next(
+                    (hgwwn for hgwwn in hg.wwns if wwn.wwn == hgwwn.id), None
+                )
             if (
                 matched_wwn
                 and wwn.nick_name is not None
@@ -402,6 +416,7 @@ class VSPHostGroupReconciler:
         hostmodename = data["hostmodename"]
 
         logger.writeDebug("subobjState={}", subobjState)
+        logger.writeDebug("data={}", data)
 
         if hg.port is None:
             return
@@ -411,14 +426,17 @@ class VSPHostGroupReconciler:
         port = hg.port
         logger.writeDebug("processing port={}", port)
 
-        logger.writeDebug("check hostmode and hostoptlist for update")
         if hostmodename is not None or hostoptlist is not None:
+            logger.writeDebug("check hostmode and hostoptlist for update")
+
             self.handle_set_host_mode(
                 subobjState, hg, hostmodename, hostoptlist, result
             )
 
         logger.writeDebug("check wwns for update")
         if newWWN:  # If newWWN is present,  update wwns
+            logger.writeDebug("check wwns for update {}", newWWN)
+
             self.handle_update_wwns(subobjState, hg, newWWN, result)
 
         logger.writeDebug("532 check luns for update")
@@ -498,7 +516,7 @@ class VSPHostGroupReconciler:
 
             if state == StateValue.ABSENT:
                 if hgName is None:
-                    raise Exception(VSPHostGroupMessage.HG_NAME_EMPTY.value)
+                    raise ValueError(VSPHostGroupMessage.HG_NAME_EMPTY.value)
                 logger.writeInfo("No host groups found, state is absent, no change")
                 result["comment"] = VSPHostGroupMessage.HG_HAS_BEEN_DELETED.value
 
@@ -506,7 +524,7 @@ class VSPHostGroupReconciler:
                 logger.writeDebug("Create Mode =========== ")
 
                 if not port:
-                    raise Exception(VSPHostGroupMessage.PORTS_PARAMETER_INVALID.value)
+                    raise ValueError(VSPHostGroupMessage.PORTS_PARAMETER_INVALID.value)
                 else:
                     hostGroup, comments, errors = self.create_host_group(
                         port,
@@ -538,7 +556,9 @@ class VSPHostGroupReconciler:
             else:
                 if len(hostGroup.lunPaths) > 0 and not spec.delete_all_luns:
                     # result["comment"] = VSPHostGroupMessage.LDEVS_PRESENT.value
-                    raise Exception(VSPHostGroupMessage.LDEVS_PRESENT.value)
+                    raise VspHostGroupDeleteError(
+                        VSPHostGroupMessage.LDEVS_PRESENT.value
+                    )
                 else:
                     # Handle delete host group
                     self.delete_host_group(spec, hostGroup, result)
@@ -586,6 +606,208 @@ class VSPHostGroupReconciler:
         data = VSPModifyHostGroupProvResponse(**result)
         # data.host_group.camel_to_snake_dict()
         return data.camel_to_snake_dict()
+
+    def _process_present_port(self, port, name, id, spec, results_lock, results):
+        """Process a single port for PRESENT state in a thread."""
+        result = {"changed": False, "comments": [], "errors": [], "host_group": None}
+        try:
+            hg = self.provisioner.get_host_group_by_name_or_number(port, name, id)
+
+            if not hg:
+                hg, comments, errors = self.create_host_group(
+                    port,
+                    name,
+                    spec.host_mode,
+                    spec.host_mode_options,
+                    spec.wwns,
+                    None,
+                    spec.lun_paths,
+                    spec.host_group_number,
+                )
+                if comments:
+                    result["comments"].extend(comments)
+                    result["changed"] = True
+                if errors:
+                    result["errors"].extend(errors)
+            result["host_group"] = hg
+        except Exception as e:
+            logger.writeException(e)
+            result["errors"].append(str(e))
+
+        with results_lock:
+            if result["comments"]:
+                results["comments"].extend(result["comments"])
+            if result["changed"]:
+                results["changed"] = True
+            if result["errors"]:
+                results["errors"].extend(result["errors"])
+            if result["host_group"]:
+                results["host_groups"].append(
+                    result["host_group"].camel_to_snake_dict()
+                )
+
+    def _process_absent_port(self, port, name, id, spec, results_lock, results):
+        """Process a single port for ABSENT state in a thread."""
+        result = {"changed": False, "comments": [], "errors": []}
+
+        try:
+            hg = self.provisioner.get_host_group_by_name_or_number(port, name, id)
+            if hg is None:
+                logger.writeInfo("No host group found, state is absent, no change")
+                result["comment"] = VSPHostGroupMessage.HG_HAS_BEEN_DELETED.value
+            else:
+                if len(hg.lunPaths) > 0 and not spec.delete_all_luns:
+                    result["errors"].append(
+                        VSPHostGroupMessage.LDEVS_PRESENT.value.format(hg.hostGroupName)
+                    )
+                else:
+                    self.delete_host_group(spec, hg, result)
+        except Exception as e:
+            logger.writeException(e)
+            result["errors"].append(str(e))
+
+        with results_lock:
+            if result.get("errors"):
+                results["errors"].extend(result["errors"])
+            if result.get("comment"):
+                results["comments"].append(result["comment"])
+            if result.get("changed"):
+                results["changed"] = True
+
+    def _process_update_port(self, port, name, id, spec, state, results_lock, results):
+        """Process a single port for ADDED/REMOVED/UPDATED state in a thread."""
+        result = {"changed": False, "comments": [], "errors": [], "host_group": None}
+        effective_state = (
+            StateValue.ABSENT if state == StateValue.REMOVED else StateValue.PRESENT
+        )
+        try:
+            hg = self.provisioner.get_host_group_by_name_or_number(port, name, id)
+            if not hg:
+                logger.writeInfo("No host group found for update, skip")
+                result["errors"].append(
+                    VSPHostGroupMessage.HG_NOT_FOUND_FOR_UPDATE.value.format(
+                        name, id, port
+                    )
+                )
+            else:
+                data = {
+                    "subobjState": effective_state,
+                    "port": port,
+                    "hgName": name,
+                }
+                if state == StateValue.UPDATED:
+                    data["hostmodename"] = spec.host_mode
+                    data["hostoptlist"] = spec.host_mode_options
+                    data["newWWN"] = None
+                    data["newLun"] = None
+                    data["lun_paths"] = None
+
+                else:
+                    data["hostmodename"] = None
+                    data["hostoptlist"] = None
+                    data["newWWN"] = spec.wwns
+                    data["newLun"] = None
+                    data["lun_paths"] = spec.lun_paths
+
+                self.handle_update_host_group(hg, data, result)
+
+                if state == StateValue.UPDATED:
+                    self.perform_misc_operations(spec, StateValue.PRESENT, hg, result)
+
+                if result["changed"] is True:
+                    hg = self.provisioner.get_one_host_group(
+                        port, hg.hostGroupName
+                    ).data
+
+                result["host_group"] = hg
+        except Exception as e:
+            logger.writeException(e)
+            result["errors"].append(str(e))
+
+        with results_lock:
+            if result["changed"]:
+                results["changed"] = True
+            results["comments"].extend(result["comments"])
+            results["errors"].extend(result["errors"])
+            if result["host_group"]:
+                results["host_groups"].append(
+                    result["host_group"].camel_to_snake_dict()
+                )
+
+    def host_group_bulk_reconcile(self, state, spec: HostGroupSpec):
+        ports = spec.port_ids
+        name = spec.name
+        id = spec.host_group_number
+        results = {"changed": False, "host_groups": [], "comments": [], "errors": []}
+        results_lock = threading.Lock()
+        max_workers = min(len(ports), 10)  # Limit concurrent threads
+
+        try:
+            for port in ports:
+                self.pre_check_port(port)
+        except Exception as e:
+            logger.writeException(e)
+            results["errors"].append(str(e))
+            results["failed"] = True
+            return results
+
+        if state == StateValue.PRESENT:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = [
+                    executor.submit(
+                        self._process_present_port,
+                        port,
+                        name,
+                        id,
+                        spec,
+                        results_lock,
+                        results,
+                    )
+                    for port in ports
+                ]
+                for future in as_completed(futures):
+                    future.result()  # Raise any exceptions from threads
+
+        elif state == StateValue.ABSENT:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = [
+                    executor.submit(
+                        self._process_absent_port,
+                        port,
+                        name,
+                        id,
+                        spec,
+                        results_lock,
+                        results,
+                    )
+                    for port in ports
+                ]
+                for future in as_completed(futures):
+                    future.result()
+
+        elif state in (StateValue.ADDED, StateValue.REMOVED, StateValue.UPDATED):
+
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = [
+                    executor.submit(
+                        self._process_update_port,
+                        port,
+                        name,
+                        id,
+                        spec,
+                        state,
+                        results_lock,
+                        results,
+                    )
+                    for port in ports
+                ]
+                for future in as_completed(futures):
+                    future.result()
+
+        if results.get("errors"):
+            results["failed"] = True
+
+        return results
 
     def perform_misc_operations(self, spec, state, hostGroup, result):
         result["comments"] = []

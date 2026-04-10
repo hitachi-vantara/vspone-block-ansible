@@ -8,7 +8,6 @@ from typing import List
 import ipaddress
 import math
 
-
 try:
     from .vsp_constants import PEGASUS_MODELS, DEFAULT_NAME_PREFIX
     from .hv_constants import TARGET_SUB_DIRECTORY
@@ -21,6 +20,10 @@ try:
         CONSENT_FILE_NAME,
     )
     from ..message.common_msgs import CommonMessage
+    from .hv_errors import (
+        HvTarFileReadingError,
+        HVUnknownError,
+    )
 except ImportError:
     from .hv_constants import TARGET_SUB_DIRECTORY
     from .vsp_constants import PEGASUS_MODELS, DEFAULT_NAME_PREFIX
@@ -33,6 +36,10 @@ except ImportError:
         CONSENT_FILE_NAME,
     )
     from message.common_msgs import CommonMessage
+    from .hv_errors import (
+        HvTarFileReadingError,
+        HVUnknownError,
+    )
 
 
 def get_logger_file():
@@ -335,9 +342,9 @@ def calculate_naid(wwn_any_port, serial_number, lun, array_family=7):
 
 def validate_ansible_product_registration():
 
-    if not os.path.exists(                                          # nosec
-        os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)     # nosec
-    ):                                                              # nosec
+    if not os.path.exists(  # nosec
+        os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)  # nosec
+    ):  # nosec
         return CommonMessage.USER_CONSENT_MISSING.value
     return
 
@@ -509,9 +516,9 @@ def unzip_targz(file_path, extract_path):
             tar.extractall(path=extract_path)
         return f"Successfully extracted '{file_path}' to '{extract_path}'"
     except tarfile.ReadError as e:
-        raise Exception(f"Error reading tar.gz file: {e}")
+        raise HvTarFileReadingError(f"Error reading tar.gz file: {e}")
     except Exception as e:
-        raise Exception(f"An unexpected error occurred: {e}")
+        raise HVUnknownError(f"An unexpected error occurred: {e}")
 
 
 # def to_integer(num):
@@ -566,7 +573,6 @@ def normalize_ldev_id(ldev_id):
       - decimal string ('42')
       - colon-separated hex string ('1A:2B:3C')
     """
-    # ldev_id = spec.get("ldev_id")
 
     if isinstance(ldev_id, int):
         return ldev_id
@@ -583,6 +589,38 @@ def normalize_ldev_id(ldev_id):
             raise ValueError(f"Invalid ldev_id format: {ldev_id}")
 
     raise TypeError(f"Unsupported ldev_id type: {type(ldev_id)}")
+
+
+def normalize_copy_pace(value):
+    """
+    Normalize copy pace value.
+    Handles:
+      - int (7)
+      - string (SLOW, MEDIUM, FAST)
+    """
+
+    if isinstance(value, int):
+        if value < 1 or value > 15:
+            raise ValueError(f"copy_pace value must be between 1 and 15, got {value}.")
+        return value
+
+    if isinstance(value, str):
+        value = value.strip()
+        if value.isdigit():
+            int_value = int(value)
+            if not (1 <= int_value <= 15):
+                raise ValueError(
+                    f"copy_pace value must be between 1 and 15, got {int_value}."
+                )
+            return int_value
+        if value.upper() in ["SLOW", "MEDIUM", "FAST"]:
+            return {"SLOW": 1, "MEDIUM": 3, "FAST": 10}[value.upper()]
+        else:
+            raise ValueError(
+                f"Invalid copy_pace string value: {value}. Must be 'SLOW', 'MEDIUM', or 'FAST'."
+            )
+
+    raise TypeError(f"Unsupported copy_pace type: {type(value)}")
 
 
 def mask_token(token: str, n: int = 12) -> str:
@@ -661,3 +699,24 @@ def calculate_3390_ldev_blocks(requested_cylinders):
     final_blocks = boundary_units * BOUNDARY_BLOCKS
 
     return final_blocks
+
+
+# Function to recursively replace None with ""
+def replace_nulls(obj):
+    if isinstance(obj, dict):
+        return {k: replace_nulls(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [replace_nulls(item) for item in obj]
+    elif obj is None:
+        return ""
+    else:
+        return obj
+
+
+def match_api_not_supported(message):
+    # Pattern: "api", then any space/char, then "not", then "supported"
+    # \b ensures we match whole words only, re.IGNORECASE makes it case-insensitive
+    pattern = r"\bapi\b\s+\bnot\b\s+\bsupported\b"
+    if re.search(pattern, message, re.IGNORECASE):
+        return True
+    return False

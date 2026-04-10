@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Encryption Key Count Facts Playbook
-####################################################################
+# ###################################################################
 - name: Encryption Key Count Facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Get encryption key count
-    ####################################################################
+    # ###################################################################
     - name: Get encryption key count
       hitachivantara.vspone_block.sds_block.hv_sds_block_encryption_key_count_facts:
         connection_info: "{{ connection_info }}"

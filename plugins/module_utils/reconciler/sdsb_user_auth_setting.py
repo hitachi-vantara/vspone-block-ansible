@@ -5,6 +5,7 @@ try:
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from ..common.hv_constants import StateValue
+    from ..message.sdsb_user_auth_setting_msgs import SDSBUserAuthSettingMsg
 except ImportError:
     from provisioner.sdsb_user_auth_setting_provisioner import (
         SDSBUserAuthSettingProvisioner,
@@ -12,6 +13,7 @@ except ImportError:
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from common.hv_constants import StateValue
+    from message.sdsb_user_auth_setting_msgs import SDSBUserAuthSettingMsg
 
 
 logger = Log()
@@ -35,14 +37,14 @@ class SDSBUserAuthSettingReconciler:
         if state == StateValue.PRESENT:
             return self.update_user_auth_settings(spec)
         else:
-            raise ValueError(
-                "SDSB User Auth Setting reconciliation only supports 'present' state."
+            raise ValueError(SDSBUserAuthSettingMsg.UNSUPPORTED_STATE.value).format(
+                state
             )
 
     @log_entry_exit
     def update_user_auth_settings(self, spec):
         if spec.is_empty():
-            raise ValueError("No user authentication settings provided for update.")
+            raise ValueError(SDSBUserAuthSettingMsg.NO_USER_AUTH_SETTINGS.value)
         current_user_auth_settings = self.get_user_auth_setting()
         if current_user_auth_settings is not None:
             if self.is_user_auth_setting_update_reuired(
@@ -52,9 +54,7 @@ class SDSBUserAuthSettingReconciler:
             else:
                 return current_user_auth_settings
         else:
-            raise ValueError(
-                "No existing user authentication settings found to update."
-            )
+            raise ValueError(SDSBUserAuthSettingMsg.USER_AUTH_SETTING_NOT_FOUND.value)
 
     @log_entry_exit
     def is_user_auth_setting_update_reuired(self, current_user_auth_settings, spec):

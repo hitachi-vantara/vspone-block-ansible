@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Encryption Environment Setting Facts Playbook
-####################################################################
+# ###################################################################
 - name: Encryption Environment Setting Facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Get encryption environment settings
-    ####################################################################
+    # ###################################################################
     - name: Get encryption environment settings
       hitachivantara.vspone_block.sds_block.hv_sds_block_encryption_environment_setting_facts:
         connection_info: "{{ connection_info }}"

@@ -29,6 +29,12 @@ attributes:
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.sdsb_connection_info
 options:
+  state:
+    description: The desired state of the encryption environment settings.
+    type: str
+    required: false
+    choices: ["present"]
+    default: "present"
   spec:
     description: Specification for encryption environment settings.
     type: dict
@@ -113,7 +119,8 @@ class SDSBEncryptionEnvironmentSettingsManager:
         parameter_manager = SDSBParametersManager(self.module.params)
         self.connection_info = parameter_manager.get_connection_info()
         self.spec = parameter_manager.get_encryption_environment_settings_spec()
-        self.logger.writeDebug(f"MOD:encryption_settings:spec={self.spec}")
+        self.state = parameter_manager.get_state()
+        self.logger.writeDebug(f"MOD:encryption_environment_settings:spec={self.spec}")
 
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB Encryption Environment Settings ===")
@@ -123,7 +130,7 @@ class SDSBEncryptionEnvironmentSettingsManager:
 
         try:
             sdsb_reconciler = SDSBEncryptionSettingsReconciler(self.connection_info)
-            response = sdsb_reconciler.reconcile("present", self.spec)
+            response = sdsb_reconciler.reconcile(self.state, self.spec)
             changed = self.connection_info.changed
 
             self.logger.writeDebug(

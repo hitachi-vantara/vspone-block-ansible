@@ -51,11 +51,12 @@ options:
           /Get one snapshot pair tasks.
         type: str
         required: false
-      mirror_unit_id:
+      mirror_unit_number:
         description: The mirror unit identifier. If not provided, it will be omitted.
           Required for the Get one snapshot pair task.
         type: int
         required: false
+        aliases: ['mirror_unit_id']
 """
 
 EXAMPLES = """
@@ -67,7 +68,7 @@ EXAMPLES = """
       password: "dummy_password"
     spec:
       primary_volume_id: 525
-      mirror_unit_id: 10
+      mirror_unit_number: 10
 
 - name: Gather snapshot facts with only primary volume
   hitachivantara.vspone_block.vsp.hv_snapshot_facts:
@@ -107,11 +108,11 @@ ansible_facts:
           type: int
           sample: -1
         copy_pace_track_size:
-          description: Track size for copy pace.
+          description: Deprecated. Track size for copy pace.
           type: str
           sample: ""
         copy_rate:
-          description: Copy rate of the snapshot.
+          description: Deprecated.Copy rate of the snapshot.
           type: int
           sample: -1
         is_clone:
@@ -119,7 +120,7 @@ ansible_facts:
           type: bool
           sample: false
         is_cloned:
-          description: Indicates if the snapshot is cloned.
+          description: Deprecated. Indicates if the snapshot is cloned.
           type: bool
           sample: false
         is_consistency_group:
@@ -135,7 +136,7 @@ ansible_facts:
           type: bool
           sample: true
         is_snapshot_data_read_only:
-          description: Indicates if the snapshot data is read-only.
+          description: Deprecated. Indicates if the snapshot data is read-only.
           type: bool
           sample: null
         is_virtual_clone_parent_volume:
@@ -146,11 +147,19 @@ ansible_facts:
           description: Indicates if this is a virtual clone volume.
           type: bool
           sample: false
-        is_written_in_svol:
+        is_written_in_secondary_volume:
           description: Indicates if data is written in secondary volume.
           type: bool
           sample: false
+        is_written_in_svol:
+          description: Deprecated. Use is_written_in_secondary_volume instead.
+          type: bool
+          sample: false
         mirror_unit_id:
+          description: Deprecated. Use mirror_unit_number instead. Identifier of the mirror unit.
+          type: int
+          sample: 0
+        mirror_unit_number:
           description: Identifier of the mirror unit.
           type: int
           sample: 3
@@ -170,17 +179,30 @@ ansible_facts:
           description: Progress rate of the snapshot.
           type: int
           sample: -1
-        pvol_host_groups:
+        primary_volume_host_groups:
           description: List of host groups for the primary volume.
           type: list
           elements: str
           sample: []
-        pvol_nvm_subsystem_name:
+        pvol_host_groups:
+          description: Deprecated. Use primary_volume_host_groups instead.
+          type: list
+          elements: str
+          sample: []
+        primary_volume_nvm_subsystem_name:
           description: NVM subsystem name for the primary volume.
           type: str
           sample: ""
-        pvol_processing_status:
+        pvol_nvm_subsystem_name:
+          description: Deprecated. Use primary_volume_nvm_subsystem_name instead.
+          type: str
+          sample: ""
+        primary_volume_processing_status:
           description: Processing status for the primary volume.
+          type: str
+          sample: "N"
+        pvol_processing_status:
+          description: Deprecated. Use primary_volume_processing_status instead.
           type: str
           sample: "N"
         retention_period_in_hours:
@@ -211,17 +233,30 @@ ansible_facts:
           description: Status of the snapshot.
           type: str
           sample: "PFUL"
-        svol_host_groups:
+        secondary_volume_host_groups:
           description: List of host groups for the secondary volume.
           type: list
           elements: str
           sample: []
-        svol_nvm_subsystem_name:
+        svol_host_groups:
+          description: Deprecated. Use secondary_volume_host_groups instead.
+          type: list
+          elements: str
+          sample: []
+        secondary_volume_nvm_subsystem_name:
           description: NVM subsystem name for the secondary volume.
           type: str
           sample: ""
-        svol_processing_status:
+        svol_nvm_subsystem_name:
+          description: Deprecated. Use secondary_volume_nvm_subsystem_name instead.
+          type: str
+          sample: ""
+        secondary_volume_processing_status:
           description: Processing status for the secondary volume.
+          type: str
+          sample: "N"
+        svol_processing_status:
+          description: Deprecated. Use secondary_volume_processing_status instead.
           type: str
           sample: ""
         type:

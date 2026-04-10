@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Vclone Parent Volume Facts playbook
-####################################################################
+# ###################################################################
 
 - name: Vclone Parent Volume Facts
   hosts: localhost
@@ -18,9 +18,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Get all parent volume IDs of vClone volumes
-    ####################################################################
+    # ###################################################################
     - name: Get all parent volume IDs of vClone volumes
       hitachivantara.vspone_block.vsp.hv_vclone_parent_volume_facts:
         connection_info: "{{ connection_info }}"

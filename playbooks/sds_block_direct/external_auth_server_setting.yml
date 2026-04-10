@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : External Auth Server Settings Playbook
-####################################################################
+# ###################################################################
 - name: External Auth Server Settings Module
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-  ####################################################################
+  # ###################################################################
   # Task Name : Update external auth server settings
-  ####################################################################
+  # ###################################################################
     - name: Update external auth server settings
       hitachivantara.vspone_block.sds_block.hv_sds_block_storage_external_auth_server_setting:
         connection_info: "{{ connection_info }}"

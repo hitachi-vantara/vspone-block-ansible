@@ -1,0 +1,5 @@
+---
+# Collection requirements for hv_vsp_primary_secondary_journal_creation role
+collections:
+  - name: hitachivantara.vspone_block
+    version: ">=1.0.0"

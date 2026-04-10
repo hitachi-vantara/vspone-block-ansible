@@ -24,7 +24,12 @@ class ComputePortSpec:
     id: Optional[str] = None
     name: Optional[str] = None
     nick_name: Optional[str] = None
+    nickname: Optional[str] = None
     protocol: Optional[str] = None
+
+    def __post_init__(self, **kwargs):
+        if self.nickname is not None:
+            self.nick_name = self.nickname
 
 
 @dataclass

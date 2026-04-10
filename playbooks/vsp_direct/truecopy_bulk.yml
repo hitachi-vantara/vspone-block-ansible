@@ -1,0 +1,142 @@
+---
+# ###################################################################
+# Example :  Hitachi TrueCopy (TC) bulk Playbook
+# ###################################################################
+- name: TC bulk
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+    secondary_connection_info:
+      address: "{{ secondary_storage_address }}"
+      username: "{{ vault_secondary_storage_username }}"
+      password: "{{ vault_secondary_storage_secret }}"
+
+  tasks:
+    # ########################################################################################
+    # Task Name : Create TC pair in bulk mode with hostgroups and minimum required parameters
+    # #######################################################################################
+    - name: Create TC pairs in bulk mode with hostgroups and minimum required parameters
+      hitachivantara.vspone_block.vsp.hv_truecopy_bulk:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          number_of_pairs: 2
+          copy_group_name: "rd_tc_cg_12"
+          copy_pair_base_name: "rd_tc_cp_123"
+          primary_pool_id: 0
+          secondary_pool_id: 0
+          volume_size: "10GB"
+          primary_hostgroups:
+            - name: "hg_rd_tc_bulk_01"
+              port_id: "CL2-A"
+            - name: "hg_rd_tc_bulk_02"
+              port_id: "CL2-B"
+          secondary_hostgroups:
+            - name: "hg_rd_tc_bulk_01"
+              port_id: "CL2-A"
+            - name: "hg_rd_tc_bulk_02"
+              port_id: "CL2-B"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #####################################################################################
+    # Task Name : Create TC pairs in bulk mode with hostgroups and additional parameters
+    #####################################################################################
+    - name: Create TC pairs in bulk mode with hostgroups and additional parameters
+      hitachivantara.vspone_block.vsp.hv_truecopy_bulk:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          number_of_pairs: 2
+          copy_group_name: "tc_bulk_cg_1"
+          copy_pair_base_name: "tc_bulk_cp"
+          primary_pool_id: 0
+          secondary_pool_id: 0
+          volume_size: "20GB"
+          primary_hostgroups:
+            - name: "hg_rd_tc_bulk_01"
+              port_id: "CL2-A"
+            - name: "hg_rd_tc_bulk_02"
+              port_id: "CL2-B"
+          secondary_hostgroups:
+            - name: "hg_rd_tc_bulk_01"
+              port_id: "CL2-A"
+            - name: "hg_rd_tc_bulk_02"
+              port_id: "CL2-B"
+          primary_volume_base_name: "tc_vol"
+          primary_volume_base_name_start_number: 1
+          capacity_saving: "compression"
+          begin_primary_volume_id: 4930
+          end_primary_volume_id: 5000
+          begin_secondary_volume_id: 6400
+          end_secondary_volume_id: 6500
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    # ########################################################################################
+    # Task Name : Create TC pair in bulk mode with iscsi targets
+    # #######################################################################################
+    - name: Create TC pairs in bulk mode with iscsi targets
+      hitachivantara.vspone_block.vsp.hv_truecopy_bulk:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          number_of_pairs: 3
+          copy_group_name: "rd_iscsi_tc_cg"
+          copy_pair_base_name: "rd_iscsi_tc_cp"
+          primary_pool_id: 0
+          secondary_pool_id: 0
+          volume_size: "10GB"
+          primary_iscsi_targets:
+            - name: "iscsi_target_primary_01"
+              port_id: "CL2-C"
+          secondary_iscsi_targets:
+            - name: "iscsi_target_secondary_01"
+              port_id: "CL2-C"
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    # ########################################################################################
+    # Task Name : Create TC pair in bulk mode with NVMe subsystems
+    # #######################################################################################
+    - name: Create TC pairs in bulk mode with NVMe subsystems
+      hitachivantara.vspone_block.vsp.hv_truecopy_bulk:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          number_of_pairs: 5
+          copy_group_name: "rd_nvme_tc_cg"
+          copy_pair_base_name: "rd_nvme_tc_cp"
+          primary_pool_id: 0
+          secondary_pool_id: 0
+          volume_size: "10GB"
+          primary_nvm_subsystem:
+            name: "primary-nvme-subsystem"
+            paths:
+              - "nqn.2014-08.com.example:nvme:primary-host"
+          secondary_nvm_subsystem:
+            name: "secondary-nvme-subsystem"
+            paths:
+              - "nqn.2014-08.com.example:nvme:secondary-host"
+
+      register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

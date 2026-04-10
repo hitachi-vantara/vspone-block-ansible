@@ -158,7 +158,6 @@ class Log:
 
         if path is None:
             path = get_ansible_home_dir()
-            # raise Exception("Improper environment home configuration, please execute the 'bash' command and try again.")
 
         if Log.logger:
             msg = "getHomePath={0}".format(path)
@@ -169,10 +168,6 @@ class Log:
     @staticmethod
     def getLogPath():
         path = os.getenv("HV_STORAGE_MGMT_VAR_LOG_PATH")  # example: "/var/log"
-
-        # if HAS_MESSAGE_ID and path is None:
-        #     path = '/var/log/hitachivantara/ansible/storage'
-        #     #raise Exception("Improper environment configuration, please execute the 'bash' command and try again.")
 
         if Log.logger:
             msg = "getHomePath={0}".format(path)
@@ -295,7 +290,7 @@ class Log:
         if os.path.exists(resources):
             with open(resources) as file:
                 for line in file.readlines():
-                    (key, value) = line.split("=")
+                    key, value = line.split("=")
                     self.messageIDs[key.strip()] = value.strip()
 
     def getMessageIDString(self, messageID, charType, strType):

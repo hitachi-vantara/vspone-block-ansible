@@ -5,7 +5,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 
@@ -33,10 +32,11 @@ extends_documentation_fragment:
 options:
   state:
     description: Defines the server operation type. Available options include C(present), C(absent),
-      C(sync_server_nick_name), C(add_host_groups), C(add_hba), C(remove_hba), C(add_path), and C(remove_path).
+      C(sync_server_nick_name), C(sync_server_nickname), C(add_host_groups), C(add_hba), C(remove_hba), C(add_path), and C(remove_path).
+      C(sync_server_nick_name) will be deprecated in favor of C(sync_server_nickname).
     type: str
     required: false
-    choices: ['present', 'absent', 'sync_server_nick_name', 'add_host_groups', 'add_hba',
+    choices: ['present', 'absent', 'sync_server_nick_name', 'sync_server_nickname', 'add_host_groups', 'add_hba',
             'remove_hba', 'add_path', 'remove_path', 'change_iscsi_target_settings']
     default: 'present'
   spec:
@@ -44,7 +44,7 @@ options:
     type: dict
     required: true
     suboptions:
-      nick_name:
+      nickname:
         description: Server nickname specification.
           Required for the Register a basic server with minimal configuration
           /Register a FC server with HBA WWN
@@ -53,11 +53,12 @@ options:
           /Register server with multiple HBAs and paths configuration
           /Register iSCSI server with multiple HBAs and paths
           /Register reserved server with specific configuration
-          /Update existing server nick_name (using server_id)
+          /Update existing server nickname (using server_id)
           /Register HP-UX server with comprehensive configuration
-          /Delete server using nick_name tasks.
+          /Delete server using nickname tasks.
         type: str
         required: false
+        aliases: ['nick_name']
       protocol:
         description: Server protocol type.
           Required for the Register a basic server with minimal configuration
@@ -73,7 +74,7 @@ options:
         choices: ["FC", "iSCSI"]
       server_id:
         description: Server identifier.
-          Required for the Update existing server nick_name (using server_id)
+          Required for the Update existing server nickname (using server_id)
           /Update existing server settings like os type options using server_id
           /Add host groups to existing server
           /Add HBA to existing FC server
@@ -266,7 +267,7 @@ EXAMPLES = """
       username: "admin"
       password: "password"
     spec:
-      nick_name: "WebServer01"
+      nickname: "WebServer01"
       protocol: "FC"
       os_type: "Linux"
       hbas:
@@ -280,7 +281,7 @@ EXAMPLES = """
       username: "admin"
       password: "password"
     spec:
-      nick_name: "DatabaseServer01"
+      nickname: "DatabaseServer01"
       protocol: "iSCSI"
       os_type: "Windows"
       hbas:
@@ -294,7 +295,7 @@ EXAMPLES = """
       username: "admin"
       password: "password"
     spec:
-      nick_name: "VMwareCluster01"
+      nickname: "VMwareCluster01"
       protocol: "FC"
       os_type: "VMware"
       host_groups:
@@ -311,7 +312,7 @@ EXAMPLES = """
       username: "admin"
       password: "password"
     spec:
-      nick_name: "AppServer01"
+      nickname: "AppServer01"
       protocol: "FC"
       os_type: "Linux"
       hbas:
@@ -331,7 +332,7 @@ EXAMPLES = """
       username: "admin"
       password: "password"
     spec:
-      nick_name: "HybridServer01"
+      nickname: "HybridServer01"
       protocol: "iSCSI"
       os_type: "Linux"
       hbas:
@@ -343,7 +344,7 @@ EXAMPLES = """
         - port_ids: ["CL1-B"]
           iscsi_name: "iqn.1991-05.com.example:server01-iscsi2"
 
-- name: Update existing server nick_name with server_id
+- name: Update existing server nickname with server_id
   hitachivantara.vspone_block.vsp.hv_vsp_one_server:
     state: present
     connection_info:
@@ -352,7 +353,7 @@ EXAMPLES = """
       password: "password"
     spec:
       server_id: 123
-      nick_name: "UpdatedServerName"
+      nickname: "UpdatedServerName"
 
 - name: Update existing server settings like os type os type options using server_id
   hitachivantara.vspone_block.vsp.hv_vsp_one_server:
@@ -429,7 +430,7 @@ EXAMPLES = """
 
 - name: Sync server nickname with host group
   hitachivantara.vspone_block.vsp.hv_vsp_one_server:
-    state: sync_server_nick_name
+    state: sync_server_nickname
     connection_info:
       address: vsp.company.com
       username: "admin"
@@ -445,7 +446,7 @@ EXAMPLES = """
       username: "admin"
       password: "password"
     spec:
-      nick_name: "ReservedServer01"
+      nickname: "ReservedServer01"
       protocol: "FC"
       os_type: "Solaris"
       is_reserved: true
@@ -478,7 +479,7 @@ EXAMPLES = """
       server_id: 123
       keep_lun_config: true
 
-- name: Delete server using nick_name.
+- name: Delete server using nickname.
   hitachivantara.vspone_block.vsp.hv_vsp_one_server:
     state: absent
     connection_info:
@@ -486,7 +487,7 @@ EXAMPLES = """
       username: "admin"
       password: "password"
     spec:
-      nick_name: "WebServer01"
+      nickname: "WebServer01"
 """
 
 RETURN = """

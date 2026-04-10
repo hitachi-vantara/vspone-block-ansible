@@ -154,7 +154,9 @@ class SDSBRemotePathGroupReconciler:
         try:
             response = self.provisioner.get_remote_path_group_by_id(spec.id)
             if response is None:
-                spec.comments = f"Did not find remote path group with id = {spec.id}"
+                spec.comments = SDSBRemotePathGroupValidationMsg.REMOTE_PATH_GROUP_NOT_FOUND.value.format(
+                    spec.id
+                )
                 return None
             current_timeout = response.get("remote_io_timeout_in_sec", None)
             logger.writeDebug(

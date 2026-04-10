@@ -86,7 +86,11 @@ class VSPSessionReconciler:
 
             response, msg = self.delete_session(spec)
             if response:
-                return f"Session with id {spec.id} is deleted successfully."
+                return VSPSessionValidationMsg.SESSION_DELETE_SUCCESS.value.format(
+                    spec.id
+                )
             else:
                 self.connection_info.changed = False
-                return f"Could not delete session, ensure session ID {spec.id} is valid. {msg}"
+                return VSPSessionValidationMsg.SESSION_DELETE_FAILURE.value.format(
+                    spec.id, msg
+                )

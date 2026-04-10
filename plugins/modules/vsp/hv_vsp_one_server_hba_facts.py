@@ -43,11 +43,12 @@ options:
                   /Get server HBA information by iSCSI name tasks.
                 type: int
                 required: false
-            nick_name:
+            nickname:
                 description: Server nickname to filter servers.
-                  Required for the Get all hbas using server nick_name task.
+                  Required for the Get all hbas using server nickname task.
                 type: str
                 required: false
+                aliases: ["nick_name"]
             hba_wwn:
                 description: HBA WWN to filter servers.
                   Required for the Get server HBA information by HBA WWN task.

@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example :  Remote connection through iSCSI management Playbook
-####################################################################
+# ###################################################################
 - name: Remote Connection add and delete using iSCSI ports
   hosts: localhost
   gather_facts: false
@@ -17,10 +17,10 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ######################################################################################
+    # #####################################################################################
     # Task Name : Register iSCSI ports
     # Perform this operation before creating/adding a iSCSI remote path to a remote connection.
-    ######################################################################################
+    # #####################################################################################
     - name: Register iSCSI ports
       hitachivantara.vspone_block.vsp.hv_iscsi_remote_connection:
         connection_info: "{{ connection_info }}"

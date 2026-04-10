@@ -107,7 +107,7 @@ class SDSBLicenseSettingFactsManager:
 
         try:
             sdsb_reconciler = SDSBLicenseReconciler(self.connection_info)
-            license_setting = sdsb_reconciler.get_license_setting()
+            license_setting = sdsb_reconciler.get_license_setting_facts()
 
             self.logger.writeDebug(
                 f"MOD:hv_sds_block_license_setting_facts:license_setting= {license_setting}"

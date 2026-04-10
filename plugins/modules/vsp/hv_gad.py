@@ -133,12 +133,14 @@ options:
             description: LUN ID.
             type: int
             required: false
-          port:
-            description: Port name.
+          port_id:
+            description: Port ID.
               Required for the Create GAD pair with server cluster configuration
               /Create GAD pair with cross path server configuration tasks.
+              port field is deprecated, port_id should be used instead.
             type: str
             required: true
+            aliases: ['port']
           enable_preferred_path:
             description: Enables the preferred path for the specified host group.
               Required for the Create GAD pair with server cluster configuration
@@ -155,10 +157,11 @@ options:
             description: Host group name. Required for the Create tasks.
             type: str
             required: true
-          port:
-            description: Port name. Required for the Create tasks.
+          port_id:
+            description: Port ID. Required for the Create tasks. port field is deprecated, port_id should be used instead.
             type: str
             required: true
+            aliases: ['port']
           enable_preferred_path:
             description: Enables the preferred path for the specified host group.
               Required for the Create tasks.
@@ -179,10 +182,11 @@ options:
             description: ISCSI target name. Required for the Create GAD-ISCSI Pair task.
             type: str
             required: true
-          port:
-            description: Port name. Required for the Create GAD-ISCSI Pair task.
+          port_id:
+            description: Port ID. Required for the Create GAD-ISCSI Pair task. port field is deprecated, port_id should be used instead.
             type: str
             required: true
+            aliases: ['port']
           enable_preferred_path:
             description: Enables the preferred path for the specified ISCSI target.
               Required for the Create GAD-ISCSI Pair task.
@@ -234,11 +238,10 @@ options:
         type: str
         required: false
       copy_pace:
-        description: Copy pace.
+        description: Copy pace to be used for the GAD pair, Supports "SMALL", "MEDIUM", "LARGE" values or 1 to 15.
         type: str
         required: false
-        choices: ['SLOW', 'MEDIUM', 'FAST']
-        default: 'MEDIUM'
+        default: "3"
       fence_level:
         description: Fence level.
         type: str
@@ -296,10 +299,11 @@ options:
         type: bool
         required: false
         default: false
-      mu_number:
+      mirror_unit_number:
         description: The mirror unit number.
-        type: str
+        type: int
         required: false
+        aliases: ['mu_number']
 """
 
 EXAMPLES = """
@@ -395,7 +399,7 @@ EXAMPLES = """
       secondary_pool_id: 1
       secondary_iscsi_targets:
         - name: "test"
-          port: "CL1-A"
+          port_id: "CL1-A"
           enable_preferred_path: false
           lun_id: 1
       quorum_disk_id: 1
@@ -408,97 +412,129 @@ data:
   type: dict
   contains:
     consistency_group_id:
-      description: Consistency Group ID.
-      type: str
-      sample: ""
+      description: Consistency group ID.
+      type: int
+      sample: -1
     copy_group_name:
       description: Copy group name.
       type: str
-      sample: "GAD_Test_perform"
-    copy_pair_name:
-      description: Copy pair name.
-      type: str
-      sample: "GAD_Pair_20250930032554_1"
-    copy_progress_rate:
-      description: Copy progress rate.
+      sample: "cp_group_840"
+    copy_pace_track_size:
+      description: Deprecated. Copy pace track size.
       type: int
-      sample: -1
+      sample: ""
+    copy_pair_name:
+      description: Pair name.
+      type: str
+      sample: "gad_pair_840"
+    copy_rate:
+      description: Deprecated. Copy rate.
+      type: str
+      sample: ""
     fence_level:
       description: Fence level.
       type: str
       sample: "NEVER"
     is_alua_enabled:
-      description: Whether ALUA is enabled.
+      description: Whether ALUA is enabled or not.
       type: bool
-      sample: null
-    pvol_difference_data_management:
-      description: Primary volume difference data management.
+      sample: false
+    local_device_group_name:
+      description: Local device group name.
       type: str
-      sample: "D"
-    pvol_io_mode:
-      description: Primary volume I/O mode.
+      sample: "cp_group_840S_"
+    mirror_unit_id:
+      description: Deprecated. Use mirror_unit_number instead.
+      type: int
+      sample: 0
+    mirror_unit_number:
+      description: Mirror unit number.
+      type: int
+      sample: 0
+    primary_virtual_serial_number:
+      description: Primary virtual serial number.
+      type: int
+      sample: -1
+    primary_virtual_volume_id:
+      description: Primary virtual volume id.
+      type: int
+      sample: -1
+    primary_volume_id:
+      description: Primary volume ID.
+      type: int
+      sample: 840
+    primary_volume_id_hex:
+      description: Primary volume ID in hexadecimal format.
       type: str
-      sample: "L/M"
-    pvol_journal_id:
-      description: Primary volume journal ID.
+      sample: "00:03:48"
+    primary_volume_size:
+      description: Size of the primary volume.
+      type: str
+      sample: "4.00GB"
+    primary_volume_status:
+      description: Status of the GAD pair.
+      type: str
+      sample: "PSUE"
+    primary_volume_storage_id:
+      description: Deprecated. Use primary_volume_storage_serial_number instead.
+      type: str
+      sample: "810050"
+    primary_volume_storage_serial_number:
+      description: Primary volume storage serial number.
+      type: str
+      sample: "810050"
+    primary_vsm_resource_group_name:
+      description: Primary VSM resource group name.
       type: str
       sample: ""
-    pvol_ldev_id:
-      description: Primary volume LDEV ID.
-      type: int
-      sample: 3364
-    pvol_processing_status:
-      description: Primary volume processing status.
-      type: str
-      sample: "N"
-    pvol_status:
-      description: Primary volume status.
-      type: str
-      sample: "PAIR"
-    pvol_storage_device_id:
-      description: Primary volume storage device ID.
-      type: str
-      sample: "900000040014"
     quorum_disk_id:
       description: Quorum disk ID.
       type: int
-      sample: 10
+      sample: 21
+    remote_device_group_name:
+      description: Remote device group name.
+      type: str
+      sample: "cp_group_840P_"
     remote_mirror_copy_pair_id:
-      description: Remote mirror copy pair ID.
+      description: Deprecated. Remote mirror copy pair ID.
       type: str
-      sample: "900000040015,GAD_Test_perform,GAD_Test_performP_,GAD_Test_performS_,GAD_Pair_20250930032554_1"
-    replication_type:
-      description: Replication type.
+      sample: "A34000810050,cp_group_840,cp_group_840S_,cp_group_840P_,gad_pair_840"
+    secondary_virtual_serial_number:
+      description: Secondary virtual storage serial number.
+      type: int
+      sample: -1
+    secondary_virtual_volume_id:
+      description: Secondary virtual volume ID.
+      type: int
+      sample: -1
+    secondary_volume_id:
+      description: Secondary volume ID.
+      type: int
+      sample: 831
+    secondary_volume_id_hex:
+      description: Secondary volume ID in hexadecimal format.
       type: str
-      sample: "GAD"
-    svol_difference_data_management:
-      description: Secondary volume difference data management.
+      sample: "00:03:3F"
+    secondary_volume_size:
+      description: Size of the secondary volume.
       type: str
-      sample: "D"
-    svol_io_mode:
-      description: Secondary volume I/O mode.
+      sample: "4.00GB"
+    secondary_volume_status:
+      description: Status of the GAD pair.
       type: str
-      sample: "L/M"
-    svol_journal_id:
-      description: Secondary volume journal ID.
+      sample: "PSUE"
+    secondary_volume_storage_id:
+      description: Deprecated. Use secondary_volume_storage_serial_number instead.
+      type: str
+      sample: "810045"
+    secondary_volume_storage_serial_number:
+      description: Secondary volume storage serial number.
+      type: str
+      sample: "810045"
+    secondary_vsm_resource_group_name:
+      description: Secondary VSM resource group name.
       type: str
       sample: ""
-    svol_ldev_id:
-      description: Secondary volume LDEV ID.
-      type: int
-      sample: 6285
-    svol_processing_status:
-      description: Secondary volume processing status.
-      type: str
-      sample: "N"
-    svol_status:
-      description: Secondary volume status.
-      type: str
-      sample: "PAIR"
-    svol_storage_device_id:
-      description: Secondary volume storage device ID.
-      type: str
-      sample: "900000040015"
 """
 
 
@@ -573,7 +609,7 @@ class VSPGADPairManager:
 
                 response_dict = {
                     "failed": isFailed,
-                    "data": None,
+                    "data": {},
                     "changed": self.connection_info.changed,
                     "msg": response,
                 }
@@ -583,8 +619,11 @@ class VSPGADPairManager:
                     "failed": False,
                     "changed": self.connection_info.changed,
                     "data": result,
-                    "msg": f"Gad Pair {operation} successfully.",
+                    "msg": f"Gad Pair operation '{operation}' completed successfully.",
                 }
+            if self.spec.comments:
+                response_dict["msg"] = self.spec.comments
+
             if registration_message:
                 response_dict["user_consent_required"] = registration_message
 

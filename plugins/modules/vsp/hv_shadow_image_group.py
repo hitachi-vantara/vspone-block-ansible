@@ -182,12 +182,20 @@ local_copy_group_info:
       description: Local clone copy group ID.
       type: str
       sample: "SI172,SI172P_,SI172S_"
-    pvol_device_group_name:
-      description: PVOL device group name.
+    primary_volume_device_group_name:
+      description: Primary volume device group name.
       type: str
       sample: "SI172P_"
+    pvol_device_group_name:
+      description: Deprecated. Use primary_volume_device_group_name instead.
+      type: str
+      sample: "SI172P_"
+    secondary_volume_device_group_name:
+      description: Secondary volume device group name.
+      type: str
+      sample: "SI172S_"
     svol_device_group_name:
-      description: SVOL device group name.
+      description: Deprecated. Use secondary_volume_device_group_name instead.
       type: str
       sample: "SI172S_"
     copy_pairs:
@@ -220,23 +228,35 @@ local_copy_group_info:
           type: str
           sample: "SI172,SI172P_,SI172S_,CPTest"
         pvol_difference_data_management:
-          description: PVOL difference data management.
+          description: Deprecated. PVOL difference data management.
           type: str
           sample: "S"
-        pvol_ldev_id:
-          description: PVOL LDEV ID.
+        primary_volume_id:
+          description: Primary volume ID.
           type: int
           sample: 172
+        pvol_ldev_id:
+          description: Deprecated. Use primary_volume_id instead.
+          type: int
+          sample: 172
+        mirror_unit_number:
+          description: Mirror unit number.
+          type: int
+          sample: 0
+        primary_volume_status:
+          description: Primary volume status.
+          type: str
+          sample: "PSUS"
         pvol_mu_number:
-          description: PVOL MU number.
+          description: Deprecated. Use mirror_unit_number instead.
           type: int
           sample: 0
         pvol_processing_status:
-          description: PVOL processing status.
+          description: Deprecated. PVOL processing status.
           type: str
           sample: "N"
         pvol_status:
-          description: PVOL status.
+          description: Deprecated. Use primary_volume_status instead.
           type: str
           sample: "PSUS"
         replication_type:
@@ -244,19 +264,27 @@ local_copy_group_info:
           type: str
           sample: "SI"
         svol_difference_data_management:
-          description: SVOL difference data management.
+          description: Deprecated. SVOL difference data management.
           type: str
           sample: "S"
+        secondary_volume_id:
+          description: Secondary volume ID.
+          type: int
+          sample: 173
         svol_ldev_id:
-          description: SVOL LDEV ID.
+          description: Deprecated. Use secondary_volume_id instead.
           type: int
           sample: 173
         svol_processing_status:
-          description: SVOL processing status.
+          description: Deprecated. SVOL processing status.
           type: str
           sample: "N"
+        secondary_volume_status:
+          description: Secondary volume status.
+          type: str
+          sample: "SSUS"
         svol_status:
-          description: SVOL status.
+          description: Deprecated. Use secondary_volume_status instead.
           type: str
           sample: "SSUS"
 """

@@ -3,13 +3,21 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from ..common.ansible_common import normalize_ldev_id, convert_to_bytes
+    from ..common.ansible_common import (
+        normalize_ldev_id,
+        convert_to_bytes,
+        normalize_copy_pace,
+    )
     from ..message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
     from ..common.vsp_constants import AutomationConstants
 
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from common.ansible_common import normalize_ldev_id
+    from common.ansible_common import (
+        normalize_ldev_id,
+        convert_to_bytes,
+        normalize_copy_pace,
+    )
 
 
 @dataclass
@@ -460,7 +468,7 @@ class JournalVolumeSpec:
     is_cache_mode_enabled: bool = None
     ldev_ids: List[int] = None
     mirror_unit_number: int = None
-    copy_pace: str = None
+    copy_pace: int = None
     path_blockade_watch_in_minutes: int = None
 
     def __post_init__(self):
@@ -470,6 +478,8 @@ class JournalVolumeSpec:
             self.end_ldev_id = normalize_ldev_id(self.end_ldev_id)
         if self.ldev_ids:
             self.ldev_ids = [normalize_ldev_id(ldev_id) for ldev_id in self.ldev_ids]
+        if self.copy_pace is not None:
+            self.copy_pace = normalize_copy_pace(self.copy_pace)
 
 
 @dataclass

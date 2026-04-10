@@ -14,6 +14,7 @@ try:
     from ..provisioner.vsp_uvm_provisioner import VSPUvmProvisioner
     from ..model.vsp_storage_port_models import ChangePortSettingSpec
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
+    from ..message.vsp_storage_port_msgs import VSPStoragePortValidateMsg
 except ImportError:
     from common.ansible_common import (
         log_entry_exit,
@@ -30,6 +31,7 @@ except ImportError:
     from provisioner.vsp_uvm_provisioner import VSPUvmProvisioner
     from model.vsp_storage_port_models import ChangePortSettingSpec
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
+    from message.vsp_storage_port_msgs import VSPStoragePortValidateMsg
 
 
 class VSPStoragePortReconciler:
@@ -98,18 +100,20 @@ class VSPStoragePortReconciler:
                 f"Invalid query keys provided. Valid keys are: {valid_query_keys}"
             )
             raise ValueError(
-                f"Invalid query keys provided. Valid keys are: {valid_query_keys}"
+                VSPStoragePortValidateMsg.INVALID_QUERY_PARAM.value.format(
+                    ",".join(valid_query_keys)
+                )
             )
         if spec.ports is None:
             self.logger.writeError(
                 "Query parameter cannot be used without specifying ports."
             )
-            raise ValueError("Query parameter cannot be used without specifying ports.")
+            raise ValueError(VSPStoragePortValidateMsg.QUERY_PARAM_NEEDS_PORTS.value)
         if len(spec.ports) != 1:
             self.logger.writeError(
                 "Query parameter can only be used with a single port."
             )
-            raise ValueError("Query parameter can only be used with a single port.")
+            raise ValueError(VSPStoragePortValidateMsg.SINGLE_PORT_FOR_QUERY.value)
         if (
             "external_iscsi_targets" in lower_case_query
             and spec.external_iscsi_ip_address is None
@@ -117,9 +121,7 @@ class VSPStoragePortReconciler:
             self.logger.writeError(
                 "External iSCSI IP address must be provided when using query parameter 'external_iscsi_targets'."
             )
-            raise ValueError(
-                "External iSCSI IP address must be provided when using query parameter 'external_iscsi_targets'."
-            )
+            raise ValueError(VSPStoragePortValidateMsg.EXTERNAL_TARGETS_NEED_IP.value)
         if (
             "external_luns" in lower_case_query
             and (
@@ -132,8 +134,9 @@ class VSPStoragePortReconciler:
                 "External WWN or external iSCSI IP address and external iSCSI name must be provided when using query parameter 'external_luns'."
             )
             raise ValueError(
-                "External WWN orexternal iSCSI IP address and external iSCSI name must be provided when using query parameter 'external_luns'."
+                VSPStoragePortValidateMsg.EXTERNAL_LUNS_NEED_WWN_OR_IP.value
             )
+
         spec.query = lower_case_query
 
     @log_entry_exit

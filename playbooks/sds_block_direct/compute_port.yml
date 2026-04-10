@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Compute Port Playbook
-####################################################################
+# ###################################################################
 - name: Compute Port Module
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Change the compute port protocol
-    ####################################################################
+    # ###################################################################
     - name: Change the compute port protocol
       hitachivantara.vspone_block.sds_block.hv_sds_block_compute_port:
         connection_info: "{{ connection_info }}"
@@ -39,7 +39,7 @@
         connection_info: "{{ connection_info }}"
         spec:
           id: "ffb1c13b-fed2-4c06-b996-8d98d878316f"
-          nick_name: "002-iSCSI-001"
+          nickname: "002-iSCSI-001"
           name: "iqn.1994-04.jp.co.hitachi:rsd.sph.t.1754a.003"
       register: result
 

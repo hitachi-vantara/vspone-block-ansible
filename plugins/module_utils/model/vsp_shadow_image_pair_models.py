@@ -3,10 +3,11 @@ from typing import Optional, List
 
 try:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from ..common.ansible_common import normalize_ldev_id
+    from ..common.ansible_common import normalize_ldev_id, normalize_copy_pace
+
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
-    from common.ansible_common import normalize_ldev_id
+    from common.ansible_common import normalize_ldev_id, normalize_copy_pace
 
 
 @dataclass
@@ -105,13 +106,14 @@ class ShadowImagePairSpec:
     pvol: Optional[int] = None
     svol: Optional[int] = None
     auto_split: Optional[bool] = None
+    allocate_new_consistency_group: Optional[bool] = None
     new_consistency_group: Optional[bool] = None
     is_new_group_creation: Optional[bool] = None
     consistency_group_id: Optional[int] = None
-    copy_pace_track_size: Optional[str] = None
+    copy_pace_track_size: Optional[int] = None
     enable_quick_mode: Optional[bool] = None
     enable_read_write: Optional[bool] = None
-    copy_pace: Optional[str] = None
+    copy_pace: Optional[int] = None
     is_data_reduction_force_copy: Optional[bool] = None
     pair_id: Optional[str] = None
     primary_volume_id: Optional[int] = None
@@ -126,38 +128,27 @@ class ShadowImagePairSpec:
     should_force_split: Optional[bool] = None
     create_for_migration: Optional[bool] = None
     pvol_mu_number: Optional[int] = None
+    mirror_unit_number: Optional[int] = None
 
-    def __init__(self, **kwargs):
-        for field in self.__dataclass_fields__.keys():
-            setattr(self, field, kwargs.get(field, None))
+    def __post_init__(self, **kwargs):
+        if self.primary_volume_id:
+            self.pvol = normalize_ldev_id(self.primary_volume_id)
+        if self.secondary_volume_id:
+            self.svol = normalize_ldev_id(self.secondary_volume_id)
+        if self.allocate_new_consistency_group is not None:
+            self.new_consistency_group = self.allocate_new_consistency_group
 
-        if kwargs.get("primary_volume_id"):
-            self.pvol = kwargs.get("primary_volume_id")
-        if kwargs.get("secondary_volume_id"):
-            self.svol = kwargs.get("secondary_volume_id")
-        if kwargs.get("allocate_new_consistency_group"):
-            self.new_consistency_group = kwargs.get("allocate_new_consistency_group")
-        self.__post_init__()
-
-    def __post_init__(self):
-        if self.pvol:
-            self.pvol = normalize_ldev_id(self.pvol)
-        if self.svol:
-            self.svol = normalize_ldev_id(self.svol)
         if self.pvol_mu_number is not None and self.pvol_mu_number not in range(0, 3):
             raise ValueError("pvol_mu_number must be 0, 1, or 2 if specified.")
 
+        if self.mirror_unit_number is not None:
+            if self.mirror_unit_number not in range(0, 3):
+                raise ValueError("mirror_unit_number must be 0, 1, or 2 if specified.")
+            else:
+                self.pvol_mu_number = self.mirror_unit_number
 
-@dataclass
-class UaigResourceMappingInfo:
-    deviceId: Optional[str] = None
-    resourceId: Optional[str] = None
-    partnerId: Optional[str] = None
-    subscriberId: Optional[str] = None
-    type: Optional[str] = None
-    resourceValue: Optional[str] = None
-    time: Optional[float] = None
-    totalCapacity: Optional[str] = None
+        if self.copy_pace_track_size is not None:
+            self.copy_pace_track_size = normalize_copy_pace(self.copy_pace_track_size)
 
-    def to_dict(self):
-        return asdict(self)
+        if self.copy_pace is not None:
+            self.copy_pace = normalize_copy_pace(self.copy_pace)

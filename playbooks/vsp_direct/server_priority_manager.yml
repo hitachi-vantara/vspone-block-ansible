@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example :  Server Priority Manager Playbook
-####################################################################
+# ###################################################################
 - name: Server Priority Manager Module
   hosts: localhost
   gather_facts: false
@@ -16,9 +16,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ###################################################################################################
+    # ##################################################################################################
     # Task Name : Set Server Priority Manager information by specifying a volume and the WWN of the HBA
-    ####################################################################################################
+    # ###################################################################################################
     - name: Set Server Priority Manager information by specifying a volume and the WWN of the HBA
       hitachivantara.vspone_block.vsp.hv_server_priority_manager:
         connection_info: "{{ connection_info }}"

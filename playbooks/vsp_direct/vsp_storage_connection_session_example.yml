@@ -1,10 +1,10 @@
 ---
-########################################################################
+# #######################################################################
 # Example : Session Connection Example Playbook
 # This playbook demonstrates creating a session, using it to fetch
 # information from the storage system. Finally, it deletes the session.
 # You can to any storage operation using the session token obtained.
-########################################################################
+# #######################################################################
 - name: Example playbook
   hosts: localhost
   gather_facts: false
@@ -14,16 +14,15 @@
 
   vars:
     # Common connection info for all tasks
-    my_name: "rd-test-05-16"
     connection_info:
       address: "{{ storage_address }}"
       username: "{{ vault_storage_username }}"
       password: "{{ vault_storage_secret }}"
 
   tasks:
-  ####################################################################
+  # ###################################################################
   # Task Name : Create Session
-  ####################################################################
+  # ###################################################################
     - name: Create Session
       hitachivantara.vspone_block.vsp.hv_session:
         connection_info: "{{ connection_info }}"
@@ -55,7 +54,7 @@
           address: "{{ storage_address }}"
           api_token: "{{ result_session.session.token }}"
         spec:
-          ports: [CL1-A]
+          port_ids: [CL1-A]
       register: result
 
     - name: Debug result

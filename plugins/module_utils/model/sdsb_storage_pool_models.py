@@ -13,6 +13,9 @@ class StoragePoolFactSpec:
     names: Optional[List[str]] = None
     comments: Optional[str] = None
 
+    def is_empty(self):
+        return not any([self.id, self.names, self.comments])
+
 
 @dataclass
 class StoragePoolSpec:
@@ -60,7 +63,7 @@ class RebuildableResources:
 
 
 @dataclass
-class SDSBStoragePoolInfo:
+class SDSBStoragePoolInfo(SingleBaseClass):
     id: str = None
     name: str = None
     protectionDomainId: str = None
@@ -91,9 +94,13 @@ class SDSBStoragePoolInfo:
     rebuildCapacityStatus: str = None
     rebuildableResources: RebuildableResources = None
     encryptionStatus: str = None
+    volumeMaximumCapacity: int = None
 
     def to_dict(self):
         return asdict(self)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 @dataclass

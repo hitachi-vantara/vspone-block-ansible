@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Hostgroup Playbook
-####################################################################
+# ###################################################################
 - name: Hostgroup Module
   hosts: localhost
   gather_facts: false
@@ -17,24 +17,24 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Create hostgroup
-    ####################################################################
+    # ###################################################################
     - name: Create hostgroup
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
         state: "present"
         spec:
           name: "hostgroup-server1"
-          port: "CL1-C"
+          port_id: "CL1-C"
           host_mode: "VMWARE_EXTENSION"
           host_mode_options: [54, 63]
           ldevs: [100, 200]
           wwns:
             - wwn: "1234567890ABCDE0"
-              nick_name: "Server1_WWN1"
+              nickname: "Server1_WWN1"
             - wwn: "1234567890ABCDE1"
-              nick_name: "Server1_WWN2"
+              nickname: "Server1_WWN2"
       register: result
 
     - name: Debug the result variable
@@ -51,7 +51,7 @@
         spec:
           state: "set_host_mode_and_hmo"
           name: "hostgroup-server1"
-          port: "CL1-C"
+          port_id: "CL1-C"
           host_mode: "LINUX"
           host_mode_options: [13]
       register: result
@@ -70,12 +70,12 @@
         spec:
           state: "add_wwn"
           name: "hostgroup-server1"
-          port: "CL1-C"
+          port_id: "CL1-C"
           wwns:
             - wwn: "1234567890ABCDE0"
-              nick_name: "Server1_WWN1"
+              nickname: "Server1_WWN1"
             - wwn: "1234567890ABCDE1"
-              nick_name: "Server1_WWN2"
+              nickname: "Server1_WWN2"
       register: result
 
     - name: Debug the result variable
@@ -92,7 +92,7 @@
         spec:
           state: "remove_wwn"
           name: "hostgroup-server1"
-          port: "CL1-C"
+          port_id: "CL1-C"
           wwns:
             - wwn: "9876543210ABCDE0"
             - wwn: "9876543210ABCDE1"
@@ -112,7 +112,7 @@
         spec:
           state: "present_ldev"
           name: "hostgroup-server1"
-          port: "CL1-C"
+          port_id: "CL1-C"
           ldevs: [300, 400]
       register: result
 
@@ -130,7 +130,7 @@
         spec:
           state: "unpresent_ldev"
           name: "hostgroup-server1"
-          port: "CL1-C"
+          port_id: "CL1-C"
           ldevs: [300, 400]
       register: result
 
@@ -147,8 +147,8 @@
         state: "absent"
         spec:
           name: "hostgroup-server1"
-          port: "CL1-C"
-          should_delete_all_ldevs: true
+          port_id: "CL1-C"
+          should_delete_all_volumes: true
       register: result
 
     - name: Debug the result variable
@@ -156,21 +156,21 @@
         var: result
 
     ####################################################################
-    # Task Name : Change or unset nick name of a wwn (existing wwn)
+    # Task Name : Change or unset nickname of a wwn (existing wwn)
     ####################################################################
-    - name: Change or unset nick name of a wwn (existing wwn)
+    - name: Change or unset nickname of a wwn (existing wwn)
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
         state: "present"
         spec:
           state: "add_wwn"
           name: "hostgroup-server1"
-          port: "CL1-C"
+          port_id: "CL1-C"
           wwns:
             - wwn: "1234567890ABCDE0"
-              nick_name: "new_nick_name"
+              nickname: "new_nickname"
             - wwn: "1234567890ABCDE1"
-              nick_name: "" # unset nick name
+              nickname: "" # unset nickname
       register: result
 
     - name: Debug the result variable
@@ -186,7 +186,7 @@
         state: "present"
         spec:
           host_group_number: 201
-          port: "CL1-C"
+          port_id: "CL1-C"
           asymmetric_access_priority: "high"
       register: result
 
@@ -203,7 +203,7 @@
         state: "present"
         spec:
           host_group_number: 150
-          port: "CL1-A"
+          port_id: "CL1-A"
           should_release_host_reserve: true
 
       register: result
@@ -221,7 +221,7 @@
         state: "present"
         spec:
           host_group_number: 150
-          port: "CL1-A"
+          port_id: "CL1-A"
           lun: 0
           should_release_host_reserve: true
 
@@ -241,7 +241,7 @@
         spec:
           state: "present_ldev"
           name: "hostgroup-server1"
-          port: "CL1-C"
+          port_id: "CL1-C"
           lun_paths:
             - lun: 1
               ldev: 100
@@ -263,7 +263,7 @@
         spec:
           state: "unpresent_ldev"
           name: "hostgroup-server1"
-          port: "CL1-C"
+          port_id: "CL1-C"
           lun_paths:
             - lun: 1
               ldev: 100
@@ -285,7 +285,7 @@
         spec:
           state: "present_ldev"
           name: "hostgroup-server1"
-          ports: ["CL1-C", "CL2-D"]
+          port_ids: ["CL1-C", "CL2-D"]
           ldevs: [300, 400]
       register: result
 
@@ -303,7 +303,7 @@
         spec:
           state: "unpresent_ldev"
           name: "hostgroup-server1"
-          ports: ["CL1-C", "CL2-D"]
+          port_ids: ["CL1-C", "CL2-D"]
           ldevs: [300, 400]
       register: result
 

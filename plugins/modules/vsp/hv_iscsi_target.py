@@ -79,8 +79,8 @@ options:
           'attach_ldev', 'detach_ldev', 'add_chap_user', 'remove_chap_user']
         default: 'present'
         type: str
-      port:
-        description: Port of the iscsi target.
+      port_id:
+        description: Port ID of the iscsi target.
           Required for the Create an iSCSI target
           /Update iSCSI target host mode and host mode options
           /Add CHAP users to an iSCSI target
@@ -95,6 +95,7 @@ options:
           /Release host reserve status of the LU mapped to a specified LU mapped path tasks.
         required: true
         type: str
+        aliases: ["port"]
       name:
         description: Name of the iscsi target.If not given,
           It will create the name will contain with prefix value "smrha-<10 digit random number>".
@@ -201,13 +202,14 @@ options:
               /Rename or unset nickname of an IQN initiator (existing IQN initiator) tasks.
             required: true
             type: str
-          nick_name:
+          nickname:
             description: Nickname of the initiator.
               Required for the Create an iSCSI target
               /Add IQN initiators to an iSCSI target
               /Rename or unset nickname of an IQN initiator (existing IQN initiator) tasks.
             required: false
             type: str
+            aliases: ["nick_name"]
       chap_users:
         description: List of CHAP users that you want to add or remove.
           Optional for the Create an iSCSI target task.
@@ -216,10 +218,11 @@ options:
         required: false
         type: list
         elements: dict
-      should_delete_all_ldevs:
+      should_delete_all_volumes:
         description: If the value is true, destroy the logical devices that are no longer attached to any iSCSI Target.
         required: false
         type: bool
+        aliases: ["should_delete_all_ldevs"]
       should_release_host_reserve:
         description: If the value is true, release the host reserve.
           Required for the Release host reserve status of the LU mapped to all LU mapped paths
@@ -247,12 +250,12 @@ EXAMPLES = """
     state: present
     spec:
       name: 'iscsi-target-server-1'
-      port: 'CL4-C'
+      port_id: 'CL4-C'
       iqn_initiators:
         - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254a
-          nick_name: "nick_name1"
+          nickname: "nickname1"
         - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
-          nick_name: "nick_name2"
+          nickname: "nickname2"
       ldevs: [100, 200]
       chap_users:
         - chap_user_name: user1
@@ -267,7 +270,7 @@ EXAMPLES = """
     state: present
     spec:
       name: 'iscsi-target-server-1'
-      port: 'CL4-C'
+      port_id: 'CL4-C'
       host_mode: LINUX
       host_mode_options: [54, 63]
 
@@ -281,7 +284,7 @@ EXAMPLES = """
     spec:
       state: add_chap_user
       name: 'iscsi-target-server-1'
-      port: 'CL4-C'
+      port_id: 'CL4-C'
       chap_users:
         - chap_user_name: user1
           chap_secret: Secret1
@@ -298,7 +301,7 @@ EXAMPLES = """
     spec:
       state: remove_chap_user
       name: 'iscsi-target-server-1'
-      port: 'CL4-C'
+      port_id: 'CL4-C'
       chap_users:
         - chap_user_name: user2
           chap_secret: Secret2
@@ -313,7 +316,7 @@ EXAMPLES = """
     spec:
       state: add_iscsi_initiator
       name: 'iscsi-target-server-1'
-      port: 'CL4-C'
+      port_id: 'CL4-C'
       iqn_initiators:
         - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
 
@@ -327,7 +330,7 @@ EXAMPLES = """
     spec:
       iscsi_id: 20
       should_release_host_reserve: true
-      port: 'CL4-C'
+      port_id: 'CL4-C'
       lun: 100
 
 - name: Release host reserve status of a iscsi targets
@@ -339,7 +342,7 @@ EXAMPLES = """
     state: present
     spec:
       iscsi_id: 20
-      port: 'CL4-C'
+      port_id: 'CL4-C'
       should_release_host_reserve: true
 """
 
@@ -401,6 +404,10 @@ iscsi_target:
           type: str
           sample: "iqn.1993-08.org.debian.iscsi:01:107dc7e4254a"
         nick_name:
+          description: Deprecated. Use C(nickname) instead.
+          type: str
+          sample: "iscsi-target-server-1"
+        nickname:
           description: Nickname of the initiator.
           type: str
           sample: "iscsi-target-1"

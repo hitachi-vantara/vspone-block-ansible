@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example :  TrueCopy Playbook
-####################################################################
+# ###################################################################
 - name: TrueCopy pair operations module
   hosts: localhost
   gather_facts: false
@@ -20,9 +20,9 @@
       password: "{{ vault_secondary_storage_secret }}"
 
   tasks:
-    #########################################################################
+    # ########################################################################
     # Task Name : Create a TrueCopy pair by specifying only the required fields
-    #########################################################################
+    # ########################################################################
     - name: Create TrueCopy pair
       hitachivantara.vspone_block.vsp.hv_truecopy:
         connection_info: "{{ connection_info }}"
@@ -35,7 +35,7 @@
           secondary_pool_id: 0
           secondary_hostgroups:
             - name: "hostgroup-server1"
-              port: "CL1-A"
+              port_id: "CL1-A"
               lun_id: 5
       register: result
 
@@ -81,9 +81,9 @@
           provisioned_secondary_volume_id: 5609
           secondary_hostgroups:
             - name: "smrha-2449965918"
-              port: CL2-B
+              port_id: "CL2-B"
             - name: "smrha-1840203863"
-              port: CL2-B
+              port_id: "CL2-B"
               lun_id: 3
       register: result
 
@@ -106,7 +106,7 @@
           secondary_pool_id: 0
           secondary_hostgroups:
             - name: "hostgroup-server1"
-              port: "CL1-A"
+              port_id: "CL1-A"
               lun_id: 5
           fence_level: "NEVER"
           path_group_id: 5
@@ -115,7 +115,7 @@
           is_consistency_group: true
           consistency_group_id: 14
           do_initial_copy: true
-          copy_pace: "MEDIUM"
+          copy_pace: 7
           is_data_reduction_force_copy: false
       register: result
 
@@ -138,7 +138,7 @@
           end_secondary_volume_id: 4730
           secondary_hostgroups:
             - name: "smrha-5565537478"
-              port: CL1-A
+              port_id: "CL1-A"
           fence_level: NEVER
           secondary_pool_id: 0
       register: result
@@ -194,7 +194,7 @@
           is_consistency_group: true
           consistency_group_id: 14
           do_initial_copy: true
-          copy_pace: "MEDIUM"
+          copy_pace: 10
           is_data_reduction_force_copy: false
       register: result
 
@@ -217,7 +217,7 @@
           secondary_pool_id: 0
           secondary_iscsi_targets:
             - name: "test"
-              port: "CL1-A"
+              port_id: "CL1-A"
               lun_id: 5
       register: result
 
@@ -240,7 +240,7 @@
           secondary_pool_id: 0
           secondary_iscsi_targets:
             - name: "test"
-              port: "CL1-A"
+              port_id: "CL1-A"
               lun_id: 5
           fence_level: "NEVER"
           path_group_id: 5
@@ -249,7 +249,7 @@
           is_consistency_group: true
           consistency_group_id: 14
           do_initial_copy: true
-          copy_pace: "MEDIUM"
+          copy_pace: 7
           is_data_reduction_force_copy: false
       register: result
 

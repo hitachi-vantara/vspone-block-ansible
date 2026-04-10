@@ -12,6 +12,9 @@ try:
         VSPStorageSystemMonitorProvisioner,
     )
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
+    from ..message.vsp_storage_system_monitor_msgs import (
+        VSPStorageSystemMonitorValidateMsg,
+    )
 
 except ImportError:
     from common.hv_log import Log
@@ -27,6 +30,9 @@ except ImportError:
         VSPStorageSystemMonitorProvisioner,
     )
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
+    from message.vsp_storage_system_monitor_msgs import (
+        VSPStorageSystemMonitorValidateMsg,
+    )
 
 logger = Log()
 
@@ -50,7 +56,7 @@ class VSPStorageSystemMonitorReconciler:
     def storage_system_monitor_facts(self, spec=None):
 
         err_msg = "The API is not supported for the specified storage system".lower()
-        usr_msg = "This operation is not supported for the specified storage system."
+        usr_msg = VSPStorageSystemMonitorValidateMsg.OPERATION_NOT_SUPPORTED.value
 
         if spec.query == "channel_boards":
             try:

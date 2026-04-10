@@ -1,10 +1,6 @@
 from enum import Enum
 
 
-class SDSBComputeNodeMessage(Enum):
-    pass
-
-
 class SDSBComputeNodeValidationMsg(Enum):
 
     VOLUMES_EXIST = "Ensure that all volume names provided in the spec are present in the system. Compute node is not created."

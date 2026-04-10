@@ -37,6 +37,7 @@ class VolumeSpec:
     qos_param: Optional[QosParamSpec] = None
     vps_id: Optional[str] = None
     vps_name: Optional[str] = None
+    comments: Optional[str] = None
 
     def __post_init__(self):
         if isinstance(self.qos_param, dict):

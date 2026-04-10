@@ -91,7 +91,7 @@ class SDSBExternalAuthServerReconciler:
         logger.writeDebug(
             "RC:=== External Auth Server root certificate imported successfully ==="
         )
-        return "Root certificate for External Auth Server is imported successfully."
+        return SDSBExternalAuthServerValidationMsg.CERT_IMPORT_SUCCESS.value
 
     @log_entry_exit
     def validate_target_server(self, target_server):
@@ -121,10 +121,10 @@ class SDSBExternalAuthServerReconciler:
 
         # Generate filename with timestamp
         timestamp = int(time.time() * 1000)
-        file_name = os.path.join(                                                               # nosec
-            spec.download_location,                                                             # nosec
-            f"external_auth_server_{spec.target_server}_root_certificate_{timestamp}.crt",      # nosec
-        )                                                                                       # nosec
+        file_name = os.path.join(  # nosec
+            spec.download_location,  # nosec
+            f"external_auth_server_{spec.target_server}_root_certificate_{timestamp}.crt",  # nosec
+        )  # nosec
         logger.writeDebug(
             f"RC:=== Downloading External Auth Server root certificate for server {spec.target_server} to {file_name} ==="
         )
@@ -139,7 +139,11 @@ class SDSBExternalAuthServerReconciler:
             logger.writeDebug(
                 "RC:=== External Auth Server root certificate downloaded successfully ==="
             )
-            return f"Successfully downloaded External Auth Server root certificate to {file_name}"
+            return (
+                SDSBExternalAuthServerValidationMsg.CERT_DOWNLOAD_SUCCESS.value.format(
+                    file_name
+                )
+            )
         except Exception as e:
             logger.writeError("GW:download_root_certificate:error={}", e)
             return str(e)
@@ -154,7 +158,7 @@ class SDSBExternalAuthServerReconciler:
                 return current_auth_server_settings
         else:
             raise ValueError(
-                "No existing external authentication server settings found to update."
+                SDSBExternalAuthServerValidationMsg.NO_EXTERNAL_AUTH_SERVER_FOUND.value
             )
 
     @log_entry_exit

@@ -1,0 +1,45 @@
+---
+# Default values for hv_vsp_gad_pairs_creation role variables
+# These can be overridden in playbooks or inventory
+
+hv_vsp_gad_pairs_creation_connection_info: {}
+hv_vsp_gad_pairs_creation_secondary_connection_info: {}
+hv_vsp_gad_pairs_creation_quorum_storage_connection_info: {}
+hv_vsp_gad_pairs_creation_quorum_storage_hostgroups: []
+hv_vsp_gad_pairs_creation_quorum_id: ""
+hv_vsp_gad_pairs_creation_number_of_pairs: 1
+hv_vsp_gad_pairs_creation_primary_pool_id: ""
+hv_vsp_gad_pairs_creation_volume_size: ""
+hv_vsp_gad_pairs_creation_capacity_saving: ""
+hv_vsp_gad_pairs_creation_copy_pair_base_name: ""
+hv_vsp_gad_pairs_creation_virtual_storage_serial_number: ""
+hv_vsp_gad_pairs_creation_begin_primary_ldev_id: ""
+hv_vsp_gad_pairs_creation_end_primary_ldev_id: ""
+hv_vsp_gad_pairs_creation_primary_volume_base_name: ""
+hv_vsp_gad_pairs_creation_primary_volume_base_name_start_number: ""
+hv_vsp_gad_pairs_creation_secondary_pool_id: ""
+hv_vsp_gad_pairs_creation_consistency_group_id: ""
+hv_vsp_gad_pairs_creation_allocate_new_consistency_group: false
+hv_vsp_gad_pairs_creation_set_alua_mode: false
+hv_vsp_gad_pairs_creation_primary_resource_group_name: ""
+hv_vsp_gad_pairs_creation_secondary_resource_group_name: ""
+hv_vsp_gad_pairs_creation_primary_hostgroups: []
+hv_vsp_gad_pairs_creation_secondary_hostgroups: []
+hv_vsp_gad_pairs_creation_secondary_iscsi_targets: []
+hv_vsp_gad_pairs_creation_secondary_nvm_subsystem: {}
+hv_vsp_gad_pairs_creation_local_device_group_name: ""
+hv_vsp_gad_pairs_creation_remote_device_group_name: ""
+hv_vsp_gad_pairs_creation_copy_pair_name: ""
+hv_vsp_gad_pairs_creation_path_group_id: ""
+hv_vsp_gad_pairs_creation_copy_group_name: ""
+hv_vsp_gad_pairs_creation_copy_pace: 3
+hv_vsp_gad_pairs_creation_fence_level: "NEVER"
+hv_vsp_gad_pairs_creation_is_data_reduction_force_copy: true
+hv_vsp_gad_pairs_creation_do_initial_copy: true
+hv_vsp_gad_pairs_creation_is_new_group_creation: false
+hv_vsp_gad_pairs_creation_is_consistency_group: false
+hv_vsp_gad_pairs_creation_begin_secondary_volume_id: ""
+hv_vsp_gad_pairs_creation_end_secondary_volume_id: ""
+hv_vsp_gad_pairs_creation_mirror_unit_number: ""
+hv_vsp_gad_pairs_creation_external_pool_id: ""
+hv_vsp_gad_pairs_creation_quorum_disk_size: "12300MB"

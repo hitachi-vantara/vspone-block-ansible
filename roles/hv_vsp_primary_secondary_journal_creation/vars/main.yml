@@ -1,0 +1,17 @@
+---
+####################################################################
+# Variables for hv_vsp_primary_secondary_journal_creation role
+####################################################################
+
+# Variables for primary and secondary journal creation
+# hv_vsp_primary_secondary_journal_creation_size_in_gb: 8
+
+# Variables for primary storage journal creation
+# hv_vsp_primary_secondary_journal_creation_primary_journal_id: 125
+# hv_vsp_primary_secondary_journal_creation_primary_pool_id: 0
+# hv_vsp_primary_secondary_journal_creation_primary_parity_group_id: "1-1"
+
+# Variables for secondary storage journal creation
+# hv_vsp_primary_secondary_journal_creation_secondary_journal_id: 125
+# hv_vsp_primary_secondary_journal_creation_secondary_pool_id: 0
+# hv_vsp_primary_secondary_journal_creation_secondary_parity_group_id: "1-1"

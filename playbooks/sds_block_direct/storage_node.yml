@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Storage Node Playbook
-####################################################################
+# ###################################################################
 - name: Storage Node
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ###################################################################
+    # ##################################################################
     # Task Name : Block storage node for maintenance by node ID
-    ###################################################################
+    # ##################################################################
     - name: Block storage node for maintenance by node ID
       hitachivantara.vspone_block.sds_block.hv_sds_block_storage_node:
         connection_info: "{{ connection_info }}"

@@ -102,7 +102,7 @@ options:
           Required for the Update a Journal using more details task.
         type: str
         required: false
-        choices: ['SLOW', 'MEDIUM', 'FAST']
+        default: "3"
       path_blockade_watch_in_minutes:
         description: Path blockade watch in minutes.
           Required for the Update a Journal using more details task.
@@ -270,7 +270,7 @@ class VSPJournalManager:
             result = result if not isinstance(result, str) else None
             response_dict = {
                 "changed": self.connection_info.changed,
-                "data": result,
+                "journal": result,
                 "msg": msg,
             }
             if registration_message:

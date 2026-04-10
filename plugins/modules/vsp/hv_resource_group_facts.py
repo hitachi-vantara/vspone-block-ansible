@@ -171,12 +171,20 @@ ansible_facts:
           type: list
           elements: dict
           contains:
+            id:
+              description: The ID of the iSCSI target.
+              type: int
+              sample: 1
             name:
               description: The name of the host group.
               type: str
               sample: "GK-TC-HG1"
+            port_id:
+              description: The port ID of the host group.
+              type: str
+              sample: "CL1-A"
             port:
-              description: The port of the host group.
+              description: Deprecated. Use port_id instead.
               type: str
               sample: "CL1-A"
         iscsi_targets:
@@ -192,8 +200,12 @@ ansible_facts:
               description: The name of the iSCSI target.
               type: str
               sample: "my_iscsi_target_1"
+            port_id:
+              description: The port ID of the iSCSI target.
+              type: str
+              sample: "CL1-C"
             port:
-              description: The port of the iSCSI target.
+              description: Deprecated. Use port_id instead.
               type: str
               sample: "CL1-C"
         ldevs:

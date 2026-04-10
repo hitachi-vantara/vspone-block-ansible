@@ -59,9 +59,9 @@ class VSPUserGroupReconciler:
                 user_group, comment = self.get_user_group_by_id(spec.id)
                 if user_group is None:
                     err_msg = VSPUserGroupValidateMsg.USER_GROUP_NOT_FOUND.value
-                    if comment:
-                        err_msg = err_msg + comment
-                    return None, comment
+                    spec.comments = err_msg + comment
+                    self.connection_info.changed = False
+                    return None
             else:
                 if spec.name:
                     user_group = self.provisioner.get_user_group_by_name(spec.name)
@@ -71,14 +71,13 @@ class VSPUserGroupReconciler:
             if not user_group:
                 user_group_id = self.create_user_group(spec)
             else:
-                user_group_id, comment = self.update_user_group(user_group, spec)
+                user_group_id = self.update_user_group(user_group, spec)
                 if user_group_id is None:
-                    if comment:
-                        return None, comment
+                    return None
             if user_group_id:
                 user_group = self.provisioner.get_user_group_by_id(user_group_id)
             extracted_data = UserGroupInfoExtractor().extract([user_group.to_dict()])
-            return extracted_data, None
+            return extracted_data
         elif self.state == StateValue.ABSENT:
             if spec.id:
                 user_group, comment = self.get_user_group_by_id(spec.id)
@@ -86,7 +85,8 @@ class VSPUserGroupReconciler:
                     err_msg = VSPUserGroupValidateMsg.USER_GROUP_NOT_FOUND.value
                     if comment:
                         err_msg = err_msg + comment
-                    return None, comment
+                    spec.comments = err_msg
+                    return None
             else:
                 if spec.name:
                     user_group = self.provisioner.get_user_group_by_name(spec.name)
@@ -121,11 +121,12 @@ class VSPUserGroupReconciler:
         try:
             user_group_id = self.provisioner.update_user_group(user_group, spec)
             logger.writeDebug("RC:update_user_group:user_group_id={}", user_group_id)
-            return user_group_id, None
+            return user_group_id
         except Exception as e:
             err_msg = VSPUserGroupFailedMsg.UPDATE_FAILED.value + str(e)
             logger.writeError(err_msg)
-            return None, err_msg
+            spec.comments = err_msg
+            return None
 
     @log_entry_exit
     def delete_user_group(self, user, spec):

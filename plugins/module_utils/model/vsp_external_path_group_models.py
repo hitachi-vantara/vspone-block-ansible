@@ -10,15 +10,25 @@ except ImportError:
 
 @dataclass
 class ExternalFcPath(SingleBaseClass):
+    port_id: Optional[str] = None
     port: Optional[str] = None
     external_wwn: Optional[str] = None
+
+    def __post_init__(self):
+        if self.port_id and self.port is None:
+            self.port = self.port_id
 
 
 @dataclass
 class ExternalIscsiTargetPath(SingleBaseClass):
+    port_id: Optional[str] = None
     port: Optional[str] = None
     external_iscsi_ip_address: Optional[str] = None
     external_iscsi_name: Optional[str] = None
+
+    def __post_init__(self):
+        if self.port_id and self.port is None:
+            self.port = self.port_id
 
 
 @dataclass

@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : VSP One Snapshot Facts Playbook
-####################################################################
+# ###################################################################
 - name: VSP One Snapshot Facts
   hosts: localhost
   gather_facts: false
@@ -17,7 +17,7 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    #######################################################################################
+    # ######################################################################################
     # Task Name : Get all snapshot pairs
     # Note: With this task, you can obtain information for a maximum of 1000 snapshots.
     #       To obtain information for more than 1000 snapshots, execute the task several

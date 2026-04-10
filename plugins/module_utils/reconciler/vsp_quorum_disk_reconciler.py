@@ -48,7 +48,7 @@ class VSPQuorumDiskReconciler:
             return self.provisioner.register_quorum_disk(spec)
         else:
             if spec is None:
-                raise Exception("The parameter id is required for absent state.")
+                raise ValueError("The parameter id is required for absent state.")
             return self.provisioner.delete_quorum_disk(spec.id)
 
     @log_entry_exit

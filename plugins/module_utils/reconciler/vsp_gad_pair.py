@@ -1,5 +1,13 @@
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
+import copy
+
+from ..common.vsp_utils import (
+    get_local_device_group_name_from_copy_pair_id,
+    get_remote_device_group_name_from_copy_pair_id,
+    get_serial_number_from_device_id,
+)
 
 try:
     from ..common.ansible_common import (
@@ -12,24 +20,35 @@ try:
     from ..common.hv_log import Log
     from ..provisioner.vsp_gad_pair_provisioner import GADPairProvisioner
     from ..provisioner.vsp_volume_prov import VSPVolumeProvisioner
+    from ..provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
+    from ..provisioner.vsp_iscsi_target_provisioner import VSPIscsiTargetProvisioner
+    from ..provisioner.vsp_nvme_provisioner import VSPNvmeProvisioner
+    from ..reconciler.vsp_volume import VSPVolumeReconciler
+    from ..reconciler.vsp_nvme import VSPNvmeReconciler
+    from ..reconciler.vsp_resource_group import VSPResourceGroupReconciler
     from ..provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
+    from ..reconciler.vsp_host_group import VSPHostGroupReconciler
+    from ..reconciler.vsp_iscsi_target import VSPIscsiTargetReconciler
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..model.vsp_gad_pairs_models import VspGadPairSpec
     from ..common.hv_constants import StateValue
     from ..message.vsp_gad_pair_msgs import GADPairValidateMSG
     from ..model.vsp_resource_group_models import (
         VSPResourceGroupFactSpec,
+        VSPResourceGroupSpec,
+        HostGroupInfo,
     )
     from ..model.vsp_gad_pairs_models import (
-        VspGadPairsInfo,
-        VspGadPairInfo,
+        VspBatchGadPairSpec,
     )
-    from ..model.vsp_copy_groups_models import (
-        DirectCopyPairInfo,
-    )
+    from ..model.vsp_host_group_models import HostGroupSpec
+    from ..model.vsp_iscsi_target_models import IscsiTargetSpec
+    from ..model.vsp_nvme_models import VSPNvmeSubsystemSpec
+    from ..model.vsp_resource_group_models import VSPResourceGroupSpec
+    from ..model.vsp_volume_models import CreateVolumeSpec, LdevNamespec
     from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
-    from ..common.uaig_utils import UAIGResourceID
     from ..common.ansible_common_constants import MAX_WORKER_THREADS
+    from ..provisioner.vsp_gad_pair_provisioner import GadHelperForSvol
 
 except ImportError:
     from message.vsp_gad_pair_msgs import GADPairValidateMSG
@@ -43,6 +62,8 @@ except ImportError:
     from common.hv_log import Log
     from provisioner.vsp_gad_pair_provisioner import GADPairProvisioner
     from provisioner.vsp_volume_prov import VSPVolumeProvisioner
+    from reconciler.vsp_volume import VSPVolumeReconciler
+
     from provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from model.vsp_gad_pairs_models import VspGadPairSpec
@@ -51,38 +72,11 @@ except ImportError:
         VSPResourceGroupFactSpec,
     )
     from model.vsp_gad_pairs_models import (
-        VspGadPairsInfo,
-        VspGadPairInfo,
-    )
-    from model.vsp_copy_groups_models import (
-        DirectCopyPairInfo,
+        VspBatchGadPairSpec,
     )
     from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
-    from common.uaig_utils import UAIGResourceID
 
 logger = Log()
-
-
-# sng20241126 get_serial_number_from_device_id
-def get_serial_number_from_device_id(storageDeviceId):
-
-    # for 'pvolStorageDeviceId': 'A34000810045' -> 810045
-    # for 'svolStorageDeviceId': 'A34000810050' -> 810050
-
-    len2 = len(storageDeviceId)
-    # supports up to 7 digits device id
-    len1 = len2 - 8
-
-    result = ""
-    captureOn = False
-    while len1 < len2:
-        char = storageDeviceId[len1]
-        if char != "0" or captureOn:
-            captureOn = True
-            result = result + char
-        len1 = len1 + 1
-
-    return result
 
 
 class VSPGadPairReconciler:
@@ -109,7 +103,7 @@ class VSPGadPairReconciler:
         return storage_system.serialNumber
 
     @log_entry_exit
-    def gad_pair_reconcile_direct(
+    def gad_pair_reconcile(
         self, state: str, spec: VspGadPairSpec, secondary_connection_info: str
     ) -> Any:
         state = state.lower()
@@ -118,12 +112,22 @@ class VSPGadPairReconciler:
         else:
             spec.secondary_connection_info = self.secondary_connection_info
 
-        self.provisioner_for_secondary_storage = GADPairProvisioner(
-            self.secondary_connection_info,
-            self.provisioner.get_secondary_serial_direct(spec),
-        )
+        spec.remote_connection_info = secondary_connection_info
+        spec.secondary_storage_connection_info = secondary_connection_info
+        spec.secondary_connection_info = secondary_connection_info
+
+        # sng20241114 - TODO
+        spec.is_svol_readwriteable = False
+        logger.writeDebug("sng20241114 copy_pair_name={}", spec.copy_pair_name)
+
         resp_data = None
-        if state == StateValue.SPLIT:
+        if state == StateValue.ABSENT:
+            result = self.delete_gad_pair(spec)
+            return result
+        elif state == StateValue.PRESENT:
+            resp_data = self.create_gad(spec)
+            logger.writeDebug("RC:resp_data={}", resp_data)
+        elif state == StateValue.SPLIT:
             resp_data = self.split_gad_pair(spec, None)
         elif state == StateValue.RE_SYNC:
             resp_data = self.resync_gad_pair(spec, None)
@@ -145,22 +149,9 @@ class VSPGadPairReconciler:
 
             resp_in_dict = resp_data.to_dict()
 
-            if state == StateValue.RESIZE or state == StateValue.EXPAND:
-                # Show pvol and svol size in case of resize.
-                pvolData = self.provisioner.get_volume_by_id(resp_in_dict["pvolLdevId"])
-                resp_in_dict["primaryVolumeSize"] = convert_block_capacity(
-                    pvolData.blockCapacity
-                )
-                svolData = self.provisioner_for_secondary_storage.get_volume_by_id(
-                    resp_in_dict["svolLdevId"]
-                )
-                resp_in_dict["secondaryVolumeSize"] = convert_block_capacity(
-                    svolData.blockCapacity
-                )
+            # inject pvol and svol size in the output
+            self.inject_pvol_svol_size(resp_in_dict, state)
 
-            logger.writeDebug("RC:77:tc_pairs={}", resp_in_dict)
-            # resp_in_dict["serialNumber"] = self.storage_serial_number
-            # resp_in_dict["remoteSerialNumber"] = spec.secondary_storage_serial_number
             spec.secondary_storage_serial_number = (
                 self.provisioner.get_secondary_serial_direct(spec)
             )
@@ -176,183 +167,609 @@ class VSPGadPairReconciler:
                 self.get_other_attributes(spec, pairs)
 
             return DirectGADCopyPairInfoExtractor(self.storage_serial_number).extract(
-                spec, pairs
+                pairs
             )
         else:
             return None
 
     @log_entry_exit
-    # reconcile_gad_pair
-    def gad_pair_reconcile(
-        self, state: str, spec: VspGadPairSpec, secondary_connection_info: str
-    ):
+    def inject_pvol_svol_size(self, resp_dict: dict, state=None) -> dict:
+        if state and state == StateValue.SWAP_SPLIT:
+            # for swap split, the primary and secondary connection are swapped, so we need to get the sizes accordingly
+            pvolData = self.provisioner.get_volume_by_id(resp_dict["svolLdevId"])
+            resp_dict["primaryVolumeSize"] = convert_block_capacity(
+                pvolData.blockCapacity
+            )
+            secondary_vol_prov = VSPVolumeProvisioner(self.secondary_connection_info)
+            svolData = secondary_vol_prov.get_volume_by_ldev_id(
+                resp_dict["pvolLdevId"], include_drs=False
+            )
+            resp_dict["secondaryVolumeSize"] = convert_block_capacity(
+                svolData.blockCapacity
+            )
+        else:
+            pvolData = self.provisioner.get_volume_by_id(resp_dict["pvolLdevId"])
+            resp_dict["primaryVolumeSize"] = convert_block_capacity(
+                pvolData.blockCapacity
+            )
+            secondary_vol_prov = VSPVolumeProvisioner(self.secondary_connection_info)
+            svolData = secondary_vol_prov.get_volume_by_ldev_id(
+                resp_dict["svolLdevId"], include_drs=False
+            )
+            resp_dict["secondaryVolumeSize"] = convert_block_capacity(
+                svolData.blockCapacity
+            )
+        return resp_dict
 
-        #  reconcile the storage pool based on the desired state in the specification
+    @log_entry_exit
+    def create_gad(self, spec: VspGadPairSpec):
+        self.validate_create_spec(spec)
 
-        spec.remote_connection_info = secondary_connection_info
-        spec.secondary_storage_connection_info = secondary_connection_info
-        spec.secondary_connection_info = secondary_connection_info
-
-        # sng20241114 - TODO
-        spec.is_svol_readwriteable = False
-        logger.writeDebug("sng20241114 copy_pair_name={}", spec.copy_pair_name)
-
-        if state in [
-            StateValue.SPLIT,
-            StateValue.RE_SYNC,
-            StateValue.SWAP_SPLIT,
-            StateValue.SWAP_RESYNC,
-            StateValue.RESIZE,
-            StateValue.EXPAND,
-        ]:
-            self.validate_gad_spec_for_ops(spec)
-            return self.gad_pair_reconcile_direct(
-                state, spec, secondary_connection_info
+        pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
+        logger.writeDebug("RC:create_gad:pvol={} ", pvol)
+        if not pvol or pvol.emulationType.upper() == "NOT DEFINED":
+            raise ValueError(
+                VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
+                    spec.primary_volume_id
+                )
             )
 
-        pair = None
-        #  see if we can find the pair with copy group name and copy pair name
-        if spec.copy_group_name and spec.copy_pair_name:
-            pair = self.provisioner.get_gad_pair_by_copy_group_and_copy_pair_name(spec)
-
+        if pvol.numOfPorts is None or pvol.numOfPorts < 1:
+            raise ValueError(
+                VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_NO_PATH.value.format(
+                    spec.primary_volume_id
+                )
+            )
+        pair = self.provisioner.create_gad_pair(spec, pvol)
         if pair is None:
-            if spec.primary_volume_id is None:
-                raise ValueError(VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID.value)
-
-            if spec.primary_volume_id:
-                # sng20241218 - swap here for now until operator rework is done
-                if state in [StateValue.SWAP_SPLIT, StateValue.SWAP_RESYNC]:
-                    pair = self.provisioner.get_gad_pair_by_svol_id(
-                        spec, spec.primary_volume_id
-                    )
-                elif state != StateValue.PRESENT:
-                    pair = self.provisioner.get_gad_pair_by_pvol_id(
-                        spec, spec.primary_volume_id
-                    )
-                logger.writeDebug("RC:206:pair={}", pair)
-
-        rec_methods = {
-            StateValue.ABSENT: self.delete_gad_pair,
-            StateValue.SPLIT: self.split_gad_pair,
-            StateValue.RE_SYNC: self.resync_gad_pair,
-            StateValue.SWAP_SPLIT: self.swap_split_gad_pair,
-            StateValue.SWAP_RESYNC: self.swap_resync_gad_pair,
-            StateValue.RESIZE: self.resize_gad_pair,
-            StateValue.EXPAND: self.resize_gad_pair,
-        }
-        #  sng1104 - GAD Operations, invoke rec_methods
-        if pair and rec_methods.get(state):
-
-            logger.writeDebug("RC:227:pair={}", pair)
-            response = rec_methods.get(state)(spec, pair)
-            logger.writeDebug("RC:rec_methods:response={}", response)
-
-            if response is None:
-                # operation completed, fetch the pair again
-                pairs = []
-                pair = self.provisioner.get_gad_pair_by_pvol_id(
-                    spec, spec.primary_volume_id
+            raise ValueError(
+                GADPairValidateMSG.CREATE_GAD_PAIR_FAILED.value.format(
+                    spec.primary_volume_id
                 )
-                logger.writeDebug("RC:get_gad_pair_by_pvol_id:pair={}", pair)
-                pairs.append(pair)
-                self.get_other_attributes(spec, pairs)
-                pair = DirectGADCopyPairInfoExtractor(
-                    self.storage_serial_number
-                ).extract(spec, pairs)
-                return pair
+            )
+        logger.writeDebug(f"RC:gad_pair_reconcile:pair1={pair} type={type(pair)}")
+        return pair
 
-            if isinstance(response, VspGadPairInfo):
-                if state == StateValue.SWAP_SPLIT:
-                    # fix for uca 2525
-                    # with the operator fix of uca-2282 we should not have to get it again
-                    # don't expect the pair to be swap yet even though the input is swapped
-                    pair = response
-                    logger.writeDebug("RC:240:pair={}", pair)
-                    return self.addDetails_swap_split(pair.to_dict())
-                else:
-                    pair = self.provisioner.get_gad_pair_by_pvol_id(
-                        spec, spec.primary_volume_id
+    @log_entry_exit
+    def gad_batch_reconcile(
+        self, state, spec: VspBatchGadPairSpec, secondary_connection_info: str
+    ):
+        spec.comments = []
+        vsm_prov = None
+        vsm = None
+        unused, rg_id = self._get_vsm_details(spec)
+
+        if spec.virtual_storage_serial_number is not None:
+            vsm_prov = VSPResourceGroupProvisioner(
+                self.connection_info, self.storage_serial_number
+            )
+            rg_spec = VSPResourceGroupFactSpec(query=["ldevs"])
+            vsms = vsm_prov.get_resource_groups(rg_spec).data
+            for vsm_object in vsms:
+                if vsm_object.virtualSerialNumber == spec.virtual_storage_serial_number:
+                    vsm = vsm_object
+                    break
+            if not vsm:
+                raise ValueError(
+                    f"Virtual Storage with id {spec.virtual_storage_serial_number} does not exist"
+                )
+            if vsm.lockStatus.lower() == "locked":
+                raise ValueError(
+                    f"Virtual Storage with id {spec.virtual_storage_serial_number} is locked"
+                )
+
+        primary_vol_rec = VSPVolumeReconciler(
+            self.connection_info, self.storage_serial_number
+        )
+        secondary_vol_rec = VSPVolumeReconciler(
+            self.secondary_connection_info, self.storage_serial_number
+        )
+        name_spec = LdevNamespec(
+            base_name=spec.primary_volume_base_name,
+            start_number=spec.primary_volume_base_name_start_number,
+        )
+        primary_volume_spec = CreateVolumeSpec(
+            size=spec.volume_size,
+            pool_id=spec.primary_pool_id,
+            names=name_spec,
+            number_of_ldevs=spec.number_of_pairs,
+            capacity_saving=spec.capacity_saving,
+        )
+        primary_volume_spec.start_ldev_id = spec.begin_primary_volume_id
+        if spec.number_of_pairs is None:
+            primary_volume_spec.end_ldev_id = spec.end_primary_volume_id
+
+        secondary_volume_spec = CreateVolumeSpec(
+            size=spec.volume_size,
+            pool_id=spec.secondary_pool_id,
+            names=name_spec,
+            number_of_ldevs=spec.number_of_pairs,
+            capacity_saving=spec.capacity_saving,
+        )
+        secondary_volume_spec.start_ldev_id = spec.begin_secondary_volume_id
+        if spec.number_of_pairs is None:
+            secondary_volume_spec.end_ldev_id = spec.end_secondary_volume_id
+
+        primary_ldevs = primary_vol_rec.ldev_batch_operation(primary_volume_spec)
+        primary_ldev_ids = [ldev.ldevId for ldev in primary_ldevs]
+
+        if (
+            primary_volume_spec.comments is not None
+            and len(primary_volume_spec.comments) > 0
+        ):
+            spec.comments.extend(primary_volume_spec.comments if spec.comments else [])
+            logger.writeDebug(
+                "RC: gad_batch_reconcile: primary_volume_spec.comments={}",
+                primary_volume_spec.comments,
+            )
+            if len(primary_ldev_ids) > 0:
+                self._cleanup_ldevs(
+                    primary_volume_spec, primary_ldev_ids, primary_vol_rec, force=False
+                )
+            return
+
+        if vsm is not None or rg_id > 0:
+            if not self._add_resource_to_vsm(
+                spec,
+                self.connection_info,
+                primary_volume_spec,
+                primary_vol_rec,
+                vsm,
+                vsm_prov,
+                ldev_ids=primary_ldev_ids,
+                ldevs=primary_ldevs,
+                vsm_id=rg_id,
+            ):
+                return
+
+        if spec.primary_hostgroups:
+            if not self._handle_hg_vol_add(
+                spec,
+                primary_volume_spec,
+                primary_vol_rec,
+                primary_ldev_ids,
+                self.connection_info,
+                spec.primary_hostgroups,
+                vsm,
+                vsm_prov,
+            ):
+                return
+        if spec.primary_iscsi_targets:
+            if not self._handle_iscsi_target_vol_add(
+                spec,
+                primary_volume_spec,
+                primary_vol_rec,
+                primary_ldev_ids,
+                self.connection_info,
+                spec.primary_iscsi_targets,
+                vsm,
+                vsm_prov,
+            ):
+                return
+        if spec.primary_nvm_subsystem:
+            if not self._handle_nvme_vol_add(
+                spec,
+                primary_volume_spec,
+                primary_vol_rec,
+                primary_ldev_ids,
+                self.connection_info,
+                spec.primary_nvm_subsystem,
+                vsm,
+                vsm_prov,
+            ):
+                return
+
+        # # secondary ldev creation
+
+        secondary_ldevs = secondary_vol_rec.ldev_batch_operation(secondary_volume_spec)
+        secondary_ldev_ids = [ldev.ldevId for ldev in secondary_ldevs]
+
+        if (
+            secondary_volume_spec.comments is not None
+            and len(secondary_volume_spec.comments) > 0
+        ):
+            spec.comments.extend(
+                secondary_volume_spec.comments if spec.comments else []
+            )
+            logger.writeDebug(
+                "RC: gad_batch_reconcile: secondary_volume_spec.comments={}",
+                secondary_volume_spec.comments,
+            )
+            if len(secondary_ldev_ids) > 0:
+                self._cleanup_ldevs(
+                    secondary_volume_spec,
+                    secondary_ldev_ids,
+                    secondary_vol_rec,
+                    force=False,
+                )
+                self._cleanup_ldevs(
+                    primary_volume_spec, primary_ldev_ids, primary_vol_rec
+                )
+            return
+
+        gad_response = []
+        gad_lock = threading.Lock()
+        stop_event = threading.Event()
+
+        def create_gad_pair(ldev_id, secondary_ldev_id):
+            if stop_event.is_set():
+                return
+            try:
+                # Use a copy of spec for each thread to avoid race conditions
+                local_spec = copy.deepcopy(spec)
+                local_spec.primary_volume_id = ldev_id
+                local_spec.provisioned_secondary_volume_id = secondary_ldev_id
+                local_spec.copy_pair_name = (
+                    f"{spec.copy_pair_base_name}_{ldev_id}_{secondary_ldev_id}"
+                )
+
+                logger.writeDebug("RC: gad_batch_reconcile: local_spec={}", local_spec)
+
+                gad_data = self.gad_pair_reconcile(
+                    StateValue.PRESENT, local_spec, secondary_connection_info
+                )
+
+                with gad_lock:
+                    gad_response.append(gad_data)
+                    if ldev_id in primary_ldev_ids:
+                        primary_ldev_ids.remove(ldev_id)
+                        self.connection_info.changed = True
+                    if secondary_ldev_id in secondary_ldev_ids:
+                        secondary_ldev_ids.remove(secondary_ldev_id)
+            except Exception as e:
+                with gad_lock:
+                    spec.comments.append(
+                        f"Exception while creating GAD pair for volume {ldev_id}: {str(e)}"
                     )
-                    logger.writeDebug("RC:240:pair={}", pair)
-                    return self.addDetails(pair.to_dict(), spec.primary_volume_id)
 
-            if isinstance(response, dict):
-                pair = response
-                logger.writeDebug("RC:gad_pair_reconcile:pair1={}", pair)
-                self.get_other_attributes(spec, pair)
-                if state == StateValue.RESIZE or state == StateValue.EXPAND:
-                    return pair
-                pair = DirectGADCopyPairInfoExtractor(
-                    self.storage_serial_number
-                ).extract(spec, pair)
-                return pair
+        threads = []
+        try:
+            # Run the first pair synchronously (wait for completion)
+            if primary_ldev_ids and secondary_ldev_ids:
+                create_gad_pair(primary_ldev_ids[0], secondary_ldev_ids[0])
+                # Remove the first ids since they are already processed
+                if len(gad_response) == 0:
+                    # If the first pair creation failed, stop processing further pairs
+                    raise ValueError(
+                        spec.comments[-1]
+                        if spec.comments
+                        else "First GAD pair creation failed"
+                    )
+            logger.writeDebug(
+                "RC: gad_batch_reconcile: first pair processed, remaining primary_ldev_ids={}, secondary_ldev_ids={}",
+                primary_ldev_ids,
+                secondary_ldev_ids,
+            )
+            spec.is_new_group_creation = False
+            # Run the rest concurrently
+            for primary_ldev_id, secondary_ldev_id in zip(
+                primary_ldev_ids, secondary_ldev_ids
+            ):
+                logger.writeDebug(
+                    "RC: gad_batch_reconcile: creating thread for primary_ldev_id={}, secondary_ldev_id={}",
+                    primary_ldev_id,
+                    secondary_ldev_id,
+                )
 
-            if isinstance(response, DirectCopyPairInfo):
-                pair = response
-                logger.writeDebug("RC:gad_pair_reconcile:pair1={}", pair)
-                self.get_other_attributes(spec, pair)
-                pair = DirectGADCopyPairInfoExtractor(
-                    self.storage_serial_number
-                ).extract(spec, pair.to_dict())
-                return pair
+                t = threading.Thread(
+                    target=create_gad_pair, args=(primary_ldev_id, secondary_ldev_id)
+                )
+                threads.append(t)
+                t.start()
 
-            return response.to_dict() if not isinstance(response, str) else response
-        elif not pair and rec_methods.get(state):
-            return "Gad pair not present"
+            for t in threads:
+                t.join()
+        except KeyboardInterrupt:
+            stop_event.set()
+            for t in threads:
+                t.join(timeout=1.0)
+            raise
+        except Exception as e:
+            pass
+
+        if len(primary_ldev_ids) > 0:
+            self._cleanup_volumes(
+                primary_volume_spec, primary_ldev_ids, primary_vol_rec
+            )
+        if len(secondary_ldev_ids) > 0:
+            self._cleanup_volumes(
+                secondary_volume_spec, secondary_ldev_ids, secondary_vol_rec
+            )
+        # If any error occurred, return False
+        if any(isinstance(r, bool) and r is False for r in gad_response):
+            return False
+        return gad_response
+
+    def _handle_hg_vol_add(
+        self,
+        spec,
+        volume_spec,
+        vol_prov,
+        ldev_ids,
+        connection_info,
+        hgs,
+        vsm=None,
+        vsm_prov=None,
+    ):
+        if vsm is not None:
+            if not self._add_resource_to_vsm(
+                spec,
+                connection_info,
+                volume_spec,
+                vol_prov,
+                vsm,
+                vsm_prov,
+                hgs=hgs,
+                ldev_ids=ldev_ids,
+            ):
+                return
+        hg_rec = VSPHostGroupReconciler(connection_info, None)
+
+        for hg in hgs:
+            hg_spec = HostGroupSpec(
+                name=hg.name,
+                port=hg.port,
+                ldevs=ldev_ids,
+                lun=hg.lun_id,
+                state="present_ldev",
+            )
+            logger.writeDebug("RC: gad_batch_reconcile: hg_spec={}", hg_spec)
+            try:
+                unused, errors = hg_rec.provisioner.handle_multi_hg_with_present_ldevs(
+                    None,
+                    hg_name=hg.name,
+                    ports=[hg.port],
+                    ldevs=ldev_ids,
+                    sub_state="present_ldev",
+                )
+                if len(errors) > 0:
+                    spec.comments.append(
+                        f"Failed to add ldevs to host group {hg.name}: {errors}"
+                    )
+                    self._cleanup_ldevs(volume_spec, ldev_ids, vol_prov)
+                    return False
+
+            except Exception as e:
+                logger.writeDebug(
+                    "RC: Exception while adding ldevs to host group {}: {}",
+                    hg.name,
+                    str(e),
+                )
+                spec.comments.append(
+                    f"Exception while adding ldevs to host group {hg.name}: {str(e)}"
+                )
+                self._cleanup_ldevs(volume_spec, ldev_ids, vol_prov)
+                return False
+
+        return True
+
+    def _handle_iscsi_target_vol_add(
+        self,
+        spec,
+        volume_spec,
+        vol_prov,
+        ldev_ids,
+        connection_info,
+        iscsi_targets,
+        vsm=None,
+        vsm_prov=None,
+    ):
+        if vsm is not None:
+            if not self._add_resource_to_vsm(
+                spec,
+                connection_info,
+                volume_spec,
+                vol_prov,
+                vsm,
+                vsm_prov,
+                iscsi_targets=iscsi_targets,
+                ldev_ids=ldev_ids,
+            ):
+                return
+
+        iscsi_rec = VSPIscsiTargetReconciler(connection_info, None)
+        for target in iscsi_targets:
+            target_spec = IscsiTargetSpec(
+                name=target.name,
+                port=target.port,
+                ldevs=ldev_ids,
+                lun=target.lun_id,
+                state="attach_ldev",
+            )
+            logger.writeDebug("RC: gad_batch_reconcile: target_spec={}", target_spec)
+            try:
+                target_data = iscsi_rec.iscsi_target_reconciler(
+                    StateValue.PRESENT, target_spec
+                )
+                if target_data.comment is None:
+                    spec.comments.append(
+                        f"Failed to add ldevs to iSCSI target {target.name}"
+                    )
+                    volume_spec.ldev_ids = ldev_ids
+                    vol_prov._handle_ldev_delete_operations(volume_spec)
+                    return False
+
+            except Exception as e:
+                spec.comments.append(
+                    f"Exception while adding ldevs to iSCSI target {target.name}: {str(e)}"
+                )
+                self._cleanup_ldevs(volume_spec, ldev_ids, vol_prov)
+                return False
+
+        return True
+
+    def _handle_nvme_vol_add(
+        self,
+        spec,
+        volume_spec,
+        vol_prov,
+        ldev_ids,
+        connection_info,
+        nvmes,
+        vsm=None,
+        vsm_prov=None,
+    ):
+        nvme_rec = VSPNvmeReconciler(connection_info, state=StateValue.PRESENT)
+        nvmes_object = nvme_rec.get_nvme_subsystem_by_name(nvmes.name)
+
+        if vsm is not None:
+            if not self._add_resource_to_vsm(
+                spec,
+                connection_info,
+                volume_spec,
+                vol_prov,
+                vsm,
+                vsm_prov,
+                hgs=spec.primary_hostgroups,
+                iscsi_targets=spec.primary_iscsi_targets,
+                nvmes=nvmes_object,
+                ldev_ids=ldev_ids,
+            ):
+                return
+        nvme_rec = VSPNvmeReconciler(connection_info, state=StateValue.PRESENT)
+        name_spaces = [
+            {"paths": nvmes.paths, "ldev_id": ldev_id} for ldev_id in ldev_ids
+        ]
+        nvme_spec = VSPNvmeSubsystemSpec(
+            name=nvmes.name,
+            namespaces=name_spaces,
+            id=nvmes.id,
+        )
+        logger.writeDebug("RC: gad_batch_reconcile: nvme_spec={}", nvme_spec)
+        try:
+            unused = nvme_rec.reconcile_nvm_subsystem(nvme_spec)
+
+        except Exception as e:
+            spec.comments.append(
+                f"Exception while adding ldevs to NVMe subsystem : {str(e)}"
+            )
+            self._cleanup_ldevs(volume_spec, ldev_ids, vol_prov)
+            return False
+
+        return True
+
+    def _cleanup_volumes(self, volume_spec, ldev_ids, vol_prov, force=True):
+        """Clean up logical devices (volumes) after failed operations."""
+        helper_prov = GadHelperForSvol(vol_prov.connection_info, vol_prov.serial)
+        for ldev in ldev_ids:
+            logger.writeDebug("RC: Cleaning up ldev_id={}", ldev)
+            try:
+                vol = vol_prov.provisioner.get_volume_by_ldev_id(ldev)
+                if vol:
+                    if vol.nvmSubsystemId is not None:
+                        helper_prov.delete_volume_when_nvme(
+                            ldev, vol.nvmSubsystemId, None, vol.namespaceId, vol
+                        )
+                    else:
+                        helper_prov.delete_volume(ldev, vol)
+            except Exception as e:
+                logger.writeDebug(
+                    "RC: Exception while cleaning up ldev {}: {}".format(ldev, str(e))
+                )
+        self.connection_info.changed = False
+
+    # Alias for backward compatibility
+    _cleanup_ldevs = _cleanup_volumes
+
+    def _add_resource_to_vsm(
+        self,
+        spec,
+        connection_info,
+        volume_spec,
+        vol_prov,
+        vsm,
+        vsm_prov,
+        ldev_ids=None,
+        ldevs=None,
+        hgs=None,
+        iscsi_targets=None,
+        nvmes=None,
+        vsm_id=None,
+    ):
+        vsm_spec = VSPResourceGroupSpec()
+        vsm_spec.state = "add_resource"
+        rg_rec = VSPResourceGroupReconciler(
+            connection_info=connection_info, state=StateValue.PRESENT
+        )
+        if ldevs:
+            vsm_spec.ldevs = [ldev.ldevId for ldev in ldevs]
+        if hgs:
+            hgs = [HostGroupInfo(name=hg.name, port=hg.port) for hg in hgs]
+            vsm_spec.host_groups = hgs
+        if iscsi_targets:
+            targets = [
+                HostGroupInfo(name=target.name, port=target.port)
+                for target in iscsi_targets
+            ]
+            vsm_spec.iscsi_targets = targets
+        if nvmes:
+            vsm_spec.nvm_subsystem_ids = [nvmes.nvmSubsystemId]
+        vsm_spec.id = vsm.id if vsm else vsm_id
+        try:
+            rg = rg_rec.provisioner.get_resource_group_by_id(vsm_spec.id)
+            rg_rec.update_resource_group(rg, vsm_spec)
+
+            if ldevs:
+                for ldev in ldevs:
+                    vol_prov.provisioner.assign_vldev(ldev.ldevId, ldev.ldevId)
+
+        except Exception as e:
+            spec.comments.append(
+                f"Exception while adding ldevs to virtual storage {vsm_spec.id}: {str(e)}"
+            )
+            logger.writeDebug(
+                "RC: Exception while adding ldevs to virtual storage {}".format(str(e))
+            )
+            if vol_prov:
+                # Cleanup already created pairs in case of failure
+                self._cleanup_ldevs(volume_spec, ldev_ids, vol_prov)
+            return False
+        return True
+
+    def _get_vsm_details(self, spec):
+        if spec.primary_hostgroups:
+            hg_prov = VSPHostGroupProvisioner(self.connection_info)
+            hgs = [
+                hg_prov.get_one_host_group(hg.port, hg.name).data
+                for hg in spec.primary_hostgroups
+            ]
+            if any(hg is None for hg in hgs):
+                raise ValueError(
+                    f"One or more host groups do not exist: {[hg.name for hg in spec.primary_hostgroups]}"
+                )
+            rg_ids = set(hg.resourceGroupId for hg in hgs)
+            if len(rg_ids) > 1:
+                raise ValueError(
+                    f"Host groups belong to different virtual storages: {rg_ids}"
+                )
+            return hgs, rg_ids.pop()
+        elif spec.primary_iscsi_targets:
+            iscsi_prov = VSPIscsiTargetProvisioner(self.connection_info)
+            targets = [
+                iscsi_prov.get_one_iscsi_target(target.port, target.name).data
+                for target in spec.primary_iscsi_targets
+            ]
+            if any(target is None for target in targets):
+                raise ValueError(
+                    f"One or more iSCSI targets do not exist: {[target.name for target in spec.primary_iscsi_targets]}"
+                )
+            rg_ids = set(target.resourceGroupId for target in targets)
+            if len(rg_ids) > 1:
+                raise ValueError(
+                    f"iSCSI targets belong to different virtual storages: {rg_ids}"
+                )
+            return targets, rg_ids.pop()
         else:
+            nvme_prov = VSPNvmeProvisioner(self.connection_info)
+            subsystem = nvme_prov.get_nvme_subsystem_by_name(
+                spec.primary_nvm_subsystem.name
+            )
 
-            self.validate_create_spec(spec)
-
-            pvol = self.provisioner.get_volume_by_id(spec.primary_volume_id)
-            if pvol.emulationType.upper() == "NOT DEFINED":
+            if subsystem is None:
                 raise ValueError(
-                    VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_DOES_NOT_EXIST.value.format(
-                        spec.primary_volume_id
-                    )
+                    f"NVMe subsystem does not exist: {spec.primary_nvm_subsystem.name}"
                 )
-            logger.writeDebug("RC:270:numOfPorts={}", pvol.numOfPorts)
-            if pvol.numOfPorts is None or pvol.numOfPorts < 1:
-                raise ValueError(
-                    VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_NO_PATH.value.format(
-                        spec.primary_volume_id
-                    )
-                )
-            if not pair:
-                pair = self.create_update_gad_pair(spec, pair, pvol)
-                if (
-                    spec.secondary_nvm_subsystem is not None
-                    or spec.secondary_iscsi_targets is not None
-                ):
-                    pair = self.provisioner.get_gad_pair_by_pvol_id(
-                        spec, spec.primary_volume_id
-                    )
-                    logger.writeDebug("RC:206:pair={}", pair)
-            logger.writeDebug("RC:270:pair={}", pair)
-
-            if isinstance(pair, dict):
-                logger.writeDebug("RC:gad_pair_reconcile:pair1={}", pair)
-                self.get_other_attributes(spec, pair)
-
-                pair = DirectGADCopyPairInfoExtractor(
-                    self.storage_serial_number
-                ).extract(spec, pair)
-                logger.writeDebug("RC:gad_pair_reconcile:pair2={}", pair)
-                return pair
-
-            if isinstance(pair, VspGadPairInfo):
-                logger.writeDebug("RC: 379 primaryVolumeId ={}", pair.primaryVolumeId)
-                # for gateway only
-                return self.addDetails(pair.to_dict(), pair.primaryVolumeId)
-
-            if pair is None:
-                return None
-            else:
-                logger.writeDebug("RC:gad_pair_reconcile:pair3={}", pair)
-                pair = DirectGADCopyPairInfoExtractor(
-                    self.storage_serial_number
-                ).extract(spec, pair.to_dict())
-                logger.writeDebug("RC:gad_pair_reconcile:pair4={}", pair)
-                return pair
+            return [subsystem], subsystem.resourceGroupId
 
     @log_entry_exit
     def validate_create_spec(self, spec: Any) -> None:
@@ -409,7 +826,14 @@ class VSPGadPairReconciler:
         return self.provisioner.create_gad_pair(spec, pvol)
 
     @log_entry_exit
-    def delete_gad_pair(self, spec, pair):
+    def delete_gad_pair(self, spec):
+        pair = self.provisioner.get_gad_pair_by_copy_group_and_copy_pair_name(spec)
+        if pair is None:
+            spec.comments = GADPairValidateMSG.GAD_PAIR_DOES_NOT_EXIST.value.format(
+                spec.copy_group_name, spec.copy_pair_name
+            )
+            return "Gad pair not present"
+
         rsp = self.provisioner.delete_gad_pair(spec, pair)
 
         if rsp == GADPairValidateMSG.DELETE_GAD_FAIL_SPLIT_DIRECT.value:
@@ -432,6 +856,7 @@ class VSPGadPairReconciler:
 
     @log_entry_exit
     def resync_gad_pair(self, spec, pair):
+        self.validate_gad_spec_for_ops(spec)
         return self.provisioner.resync_gad_pair(spec, pair)
 
     @log_entry_exit
@@ -496,7 +921,7 @@ class VSPGadPairReconciler:
         tc_pairs = self.provisioner.gad_pair_facts(spec)
         logger.writeDebug("RC:224 pairs={}", tc_pairs)
         if tc_pairs:
-            spec.secondary_storage_serial_number
+            # spec.secondary_storage_serial_number
             if hasattr(tc_pairs, "data"):
                 # VspGadPairsInfo class
                 cglistdict = tc_pairs.data
@@ -512,204 +937,16 @@ class VSPGadPairReconciler:
             logger.writeDebug("RC: 299 doMore ={}", doMore)
             self.get_other_attributes(spec, cglistdict, doMore)
 
+            if len(cglistdict) == 1:
+                self.inject_pvol_svol_size(cglistdict[0])
             # logger.writeDebug("RC:cglistdict={}", cglistdict)
             extracted_data = DirectGADCopyPairInfoExtractor(
                 self.storage_serial_number
-            ).extract(spec, cglistdict)
+            ).extract(cglistdict)
 
         else:
             extracted_data = {}
         return extracted_data
-
-    # for gateway only
-    def addDetails(self, pair: dict, secondaryVolumeId):
-        storage_id = UAIGResourceID().storage_resourceId(self.serial)
-        ldev_resource_id = UAIGResourceID().ldev_resourceId(
-            self.serial, pair["primary_volume_id"]
-        )
-        logger.writeDebug("RC: 393 pair ={}", pair)
-        logger.writeDebug("RC: 393 secondaryVolumeId ={}", secondaryVolumeId)
-        logger.writeDebug("RC: 393 self.serial ={}", self.serial)
-        logger.writeDebug("RC: 393 storage_id ={}", storage_id)
-        logger.writeDebug("RC: 393 ldev_resource_id ={}", ldev_resource_id)
-
-        vol = self.provisioner_volume.get_volume_by_ldev_uaig(
-            storage_id, ldev_resource_id
-        )
-        logger.writeDebug("RC: 393 vol ={}", vol)
-        logger.writeDebug("RC: 393 isAluaEnabled ={}", vol.isALUA)
-        pair["is_alua_enabled"] = vol.isALUA
-
-        # sng20250116 get svol_status
-        svol_status = ""
-        provisioner_remote = GADPairProvisioner(
-            self.connection_info, pair["secondary_volume_storage_id"]
-        )
-        remote_pair = provisioner_remote.get_gad_pair_by_svol_id_gw(
-            pair["secondary_volume_id"]
-        )
-        logger.writeDebug("RC: 393 remote_pair ={}", remote_pair)
-        if remote_pair:
-            svol_status = remote_pair.status
-        else:
-            remote_pair = provisioner_remote.get_gad_pair_by_id(
-                pair["secondary_volume_id"]
-            )
-            logger.writeDebug("RC: 393 remote_pair ={}", remote_pair)
-            if remote_pair:
-                svol_status = remote_pair.status
-        pair["primary_volume_status"] = pair["status"]
-        pair["secondary_volume_status"] = svol_status
-        logger.writeDebug("RC: 475 remote_pair ={}", remote_pair)
-        logger.writeDebug("RC: 475 svol_status ={}", svol_status)
-        logger.writeDebug("RC: 475 secondaryVolumeId ={}", pair["secondary_volume_id"])
-        logger.writeDebug(
-            "RC: 475 secondaryVolumeStorageId ={}", pair["secondary_volume_storage_id"]
-        )
-
-        input_spec = VSPResourceGroupFactSpec()
-        # we get RG number from the porcleain
-        # we want to show the RG name
-        input_spec.id = int(pair["primary_vsm_resource_group_name"])
-        logger.writeDebug("RC: 393 input_spec.id ={}", input_spec.id)
-
-        if input_spec.id == 0:
-            pair["primary_vsm_resource_group_name"] = "meta_resource"
-        else:
-            rgs = self.provisioner_rg.get_resource_groups(None, False)
-            if rgs:
-                for rg in rgs.data_to_list():
-                    # given input_spec.id, it is taking it as a start index
-                    logger.writeDebug("RC: 393 rg ={}", rg)
-                    if rg["id"] == input_spec.id:
-                        pair["primary_vsm_resource_group_name"] = rg["name"]
-                        break
-
-        input_spec.id = int(pair["secondary_vsm_resource_group_name"])
-        if input_spec.id == 0:
-            pair["secondary_vsm_resource_group_name"] = "meta_resource"
-        else:
-            # sng20250115 - get_resource_groups for remote storage
-            provisioner_rg = VSPResourceGroupProvisioner(
-                self.connection_info, pair["secondary_volume_storage_id"]
-            )
-            rgs = provisioner_rg.get_resource_groups(None, False)
-            if rgs:
-                for rg in rgs.data_to_list():
-                    logger.writeDebug("RC: 393 rg ={}", rg)
-                    if str(rg["id"]) == str(input_spec.id):
-                        pair["secondary_vsm_resource_group_name"] = rg["name"]
-                        break
-
-        if pair["secondary_virtual_hex_volume_id"] is None:
-            pair["secondary_virtual_hex_volume_id"] = ""
-        # if pair["partner_id"] is None:
-        #     pair["partner_id"] = ""
-        # if pair["subscriber_id"] is None:
-        #     pair["subscriber_id"] = ""
-        if pair["status"]:
-            del pair["status"]
-
-        return pair
-
-    # for gateway only
-    # pair is not swapped
-    # but the self.serial is the remote and
-    # the primary_volume_id is the secondaryVolumeId
-    def addDetails_swap_split(self, pair: dict):
-        storage_id = UAIGResourceID().storage_resourceId(
-            pair["primary_volume_storage_id"]
-        )
-        ldev_resource_id = UAIGResourceID().ldev_resourceId(
-            pair["primary_volume_storage_id"], pair["primary_volume_id"]
-        )
-        logger.writeDebug("RC: 393 pair ={}", pair)
-        logger.writeDebug(
-            "RC: 393 primary_volume_storage_id ={}", pair["primary_volume_storage_id"]
-        )
-        logger.writeDebug("RC: 393 storage_id ={}", storage_id)
-        logger.writeDebug("RC: 393 ldev_resource_id ={}", ldev_resource_id)
-
-        provisioner_volume = VSPVolumeProvisioner(
-            self.connection_info, pair["primary_volume_storage_id"]
-        )
-        vol = provisioner_volume.get_volume_by_ldev_uaig(storage_id, ldev_resource_id)
-        logger.writeDebug("RC: 393 vol ={}", vol)
-        logger.writeDebug("RC: 393 isAluaEnabled ={}", vol.isALUA)
-        pair["is_alua_enabled"] = vol.isALUA
-
-        # sng20250116 get svol_status
-        svol_status = ""
-        provisioner_remote = GADPairProvisioner(
-            self.connection_info, pair["secondary_volume_storage_id"]
-        )
-        # sng20250129 - get_gad_pair_by_svol_id_gw
-        remote_pair = provisioner_remote.get_gad_pair_by_svol_id_gw(
-            pair["secondary_volume_id"]
-        )
-        logger.writeDebug("RC: 393 remote_pair ={}", remote_pair)
-        if remote_pair:
-            svol_status = remote_pair.status
-        else:
-            remote_pair = provisioner_remote.get_gad_pair_by_id(
-                pair["secondary_volume_id"]
-            )
-            logger.writeDebug("RC: 393 remote_pair ={}", remote_pair)
-            if remote_pair:
-                svol_status = remote_pair.status
-        pair["primary_volume_status"] = pair["status"]
-        pair["secondary_volume_status"] = svol_status
-        logger.writeDebug("RC: 475 remote_pair ={}", remote_pair)
-        logger.writeDebug("RC: 475 svol_status ={}", svol_status)
-        logger.writeDebug("RC: 475 secondaryVolumeId ={}", pair["secondary_volume_id"])
-        logger.writeDebug(
-            "RC: 475 secondaryVolumeStorageId ={}", pair["secondary_volume_storage_id"]
-        )
-
-        input_spec = VSPResourceGroupFactSpec()
-        # we get RG number from the porcleain
-        # we want to show the RG name
-        input_spec.id = int(pair["primary_vsm_resource_group_name"])
-        logger.writeDebug("RC: 393 input_spec.id ={}", input_spec.id)
-
-        if input_spec.id == 0:
-            pair["primary_vsm_resource_group_name"] = "meta_resource"
-        else:
-            rgs = self.provisioner_rg.get_resource_groups(None, False)
-            if rgs:
-                for rg in rgs.data_to_list():
-                    # given input_spec.id, it is taking it as a start index
-                    logger.writeDebug("RC: 393 rg ={}", rg)
-                    if rg["id"] == input_spec.id:
-                        pair["primary_vsm_resource_group_name"] = rg["name"]
-                        break
-
-        input_spec.id = int(pair["secondary_vsm_resource_group_name"])
-        if input_spec.id == 0:
-            pair["secondary_vsm_resource_group_name"] = "meta_resource"
-        else:
-            # sng20250115 - get_resource_groups for remote storage
-            provisioner_rg = VSPResourceGroupProvisioner(
-                self.connection_info, pair["secondary_volume_storage_id"]
-            )
-            rgs = provisioner_rg.get_resource_groups(None, False)
-            if rgs:
-                for rg in rgs.data_to_list():
-                    logger.writeDebug("RC: 393 rg ={}", rg)
-                    if str(rg["id"]) == str(input_spec.id):
-                        pair["secondary_vsm_resource_group_name"] = rg["name"]
-                        break
-
-        if pair["secondary_virtual_hex_volume_id"] is None:
-            pair["secondary_virtual_hex_volume_id"] = ""
-        # if pair["partner_id"] is None:
-        #     pair["partner_id"] = ""
-        # if pair["subscriber_id"] is None:
-        #     pair["subscriber_id"] = ""
-        if pair["status"]:
-            del pair["status"]
-
-        return pair
 
     # convert objs in the input to dict
     def objs_to_dict(self, objs):
@@ -877,163 +1114,52 @@ class VSPGadPairReconciler:
                 logger.writeDebug("sng1104 392 gad_copy_pair={}", gad_copy_pair)
                 return
 
-    @log_entry_exit
-    def convert_primary_secondary_on_volume_type(self, pairs):
-        items = []
-        for item in pairs:
-            if item.primaryOrSecondary == "S-VOL":
-                tmp = item.ldevId
-                tmp2 = item.serialNumber
-                item.serialNumber = item.remoteSerialNumber
-                item.ldevId = item.remoteLdevId
-                item.remoteSerialNumber = tmp2
-                item.remoteLdevId = tmp
-
-            items.append(item)
-
-        return VspGadPairsInfo(data=items)
-
-
-class DirectGADInfoExtractor:
-    def __init__(self, serial):
-        self.storage_serial_number = serial
-        self.common_properties = {
-            # "replicationType": str,
-            "ldevId": int,
-            # ?
-            "primaryHexVolumeId": str,
-            "remoteSerialNumber": str,
-            # "remoteStorageTypeId": str,
-            "remoteLdevId": int,
-            # "primaryOrSecondary": str,
-            # ?
-            "secondaryHexVolumeId": str,
-            "muNumber": int,
-            "status": str,
-            # ?
-            "serialNumber": str,
-            "isSSWS": bool,
-            # "entitlementStatus": str,
-            # "partnerId": str,
-            # "subscriberId": str,
-        }
-
-        self.parameter_mapping = {
-            "ldev_id": "primary_volume_id",
-            "remote_ldev_id": "secondary_volume_id",
-            "mu_number": "mirror_unit_id",
-            "remote_serial_number": "secondary_storage_serial",
-            "serial_number": "primary_storage_serial",
-            # "remote_storage_type_id": "secondary_storage_type_id",
-        }
-
-    def fix_bad_camel_to_snake_conversion(self, key):
-        new_key = key.replace("s_s_w_s", "ssws")
-        return new_key
-
-    @log_entry_exit
-    def extract(self, responses):
-        new_items = []
-        for response in responses:
-            new_dict = {"storage_serial_number": self.storage_serial_number}
-            for key, value_type in self.common_properties.items():
-                # Get the corresponding key from the response or its mapped key
-                response_key = response.get(key)
-                # Assign the value based on the response key and its data type
-                cased_key = camel_to_snake_case(key)
-                if "s_s_w_s" in cased_key:
-                    cased_key = self.fix_bad_camel_to_snake_conversion(cased_key)
-                if response_key is not None:
-                    if cased_key in self.parameter_mapping.keys():
-                        cased_key = self.parameter_mapping[cased_key]
-                    new_dict[cased_key] = value_type(response_key)
-                else:
-                    # Handle missing keys by assigning default values
-                    default_value = get_default_value(value_type)
-                    new_dict[cased_key] = default_value
-            new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
-                new_dict.get("primary_volume_id")
-            )
-            new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
-                new_dict.get("secondary_volume_id")
-            )
-            new_items.append(new_dict)
-
-        return new_items
-
-    @log_entry_exit
-    def extract_dict(self, response):
-        new_dict = {"storage_serial_number": self.storage_serial_number}
-        for key, value_type in self.common_properties.items():
-            # Get the corresponding key from the response or its mapped key
-            response_key = response.get(key)
-            # Assign the value based on the response key and its data type
-            cased_key = camel_to_snake_case(key)
-            if "s_s_w_s" in cased_key:
-                cased_key = self.fix_bad_camel_to_snake_conversion(cased_key)
-            if response_key is not None:
-                if cased_key in self.parameter_mapping.keys():
-                    cased_key = self.parameter_mapping[cased_key]
-                new_dict[cased_key] = value_type(response_key)
-            else:
-                # Handle missing keys by assigning default values
-                default_value = get_default_value(value_type)
-                new_dict[cased_key] = default_value
-
-        new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
-            new_dict.get("primary_volume_id")
-        )
-        new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
-            new_dict.get("secondary_volume_id")
-        )
-
-        return new_dict
-
 
 class DirectGADCopyPairInfoExtractor:
     def __init__(self, serial):
         self.storage_serial_number = serial
         self.common_properties = {
             "consistencyGroupId": int,
-            "pvolLdevId": int,
-            "svolLdevId": int,
-            "pvolStatus": str,
-            "svolStatus": str,
+            "copyRate": str,
+            "copyPaceTrackSize": str,
             "copyGroupName": str,
             "copyPairName": str,
-            "localDeviceGroupName": str,
-            "remoteDeviceGroupName": str,
-            "primaryVSMResourceGroupName": str,
-            "primaryVirtualSerialNumber": int,
-            # "primaryVirtualStorageDeviceId": str,
-            "primaryVirtualVolumeId": int,
-            "secondaryVSMResourceGroupName": str,
-            "secondaryVirtualSerialNumber": int,
-            #  "secondaryVirtualStorageDeviceId": str,
-            "secondaryVirtualVolumeId": int,
-            "pvolVirtualLdevId": int,
-            "svolVirtualLdevId": int,
-            "muNumber": int,
-            "remoteMirrorCopyPairId": str,
-            # "entitlementStatus": str,
-            # "partnerId": str,
-            # "subscriberId": str,
+            "fenceLevel": str,
             "isAluaEnabled": bool,
             "quorumDiskId": int,
+            "mirrorUnitId": int,
+            "muNumber": int,
+            "localDeviceGroupName": str,
+            "remoteDeviceGroupName": str,
+            "remoteMirrorCopyPairId": str,
+            "primaryVirtualSerialNumber": int,
+            "primaryVirtualVolumeId": int,
             "primaryVolumeIdHex": str,
+            "primaryVSMResourceGroupName": str,
+            "primaryVolumeStorageSerialNumber": str,
+            "pvolLdevId": int,
+            "pvolStatus": str,
+            "pvolStorageDeviceId": str,
+            "pvolVirtualLdevId": int,
             "secondaryVolumeIdHex": str,
+            "secondaryVSMResourceGroupName": str,
+            "secondaryVirtualSerialNumber": int,
+            "secondaryVolumeStorageSerialNumber": str,
+            "secondaryVirtualVolumeId": int,
+            "svolLdevId": int,
+            "svolStatus": str,
+            "svolStorageDeviceId": str,
+            "svolVirtualLdevId": int,
         }
 
         self.parameter_mapping = {
             "pvol_virtual_ldev_id": "primary_virtual_volume_id",
             "svol_virtual_ldev_id": "secondary_virtual_volume_id",
-            "mu_number": "mirror_unit_id",
+            "mu_number": "mirror_unit_number",
             "pvol_status": "primary_volume_status",
             "svol_status": "secondary_volume_status",
             "pvol_ldev_id": "primary_volume_id",
             "svol_ldev_id": "secondary_volume_id",
-            # "pvol_status": "status",
-            # "copy_pair_name": "pair_name",
         }
 
     def fix_bad_camel_to_snake_conversion(self, key):
@@ -1042,40 +1168,11 @@ class DirectGADCopyPairInfoExtractor:
         return new_key
 
     @log_entry_exit
-    def extract(self, spec, responses):
+    def extract(self, responses):
         new_items = []
-        if responses is None:
-            return new_items
-        if isinstance(responses, dict):
-            responses = [responses]
 
         for response in responses:
-            if response is None:
-                continue
-
-            new_dict = {
-                "primary_volume_storage_id": self.storage_serial_number,
-                "secondary_volume_storage_id": spec.secondary_storage_serial_number,
-                "copy_pace_track_size": "",
-                "copy_rate": "",
-                "mirror_unit_id": "",
-                "consistency_group_id": "",  # in case we get None in the input data
-                "primary_vsm_resource_group_name": "",
-                "secondary_vsm_resource_group_name": "",
-            }
-
-            if response.get("pvolStorageDeviceId"):
-                new_dict["primary_volume_storage_id"] = (
-                    get_serial_number_from_device_id(
-                        response.get("pvolStorageDeviceId")
-                    )
-                )
-            if response.get("svolStorageDeviceId"):
-                new_dict["secondary_volume_storage_id"] = (
-                    get_serial_number_from_device_id(
-                        response.get("svolStorageDeviceId")
-                    )
-                )
+            new_dict = {}
 
             if response.get("primaryVolumeSize"):
                 new_dict["primary_volume_size"] = response.get("primaryVolumeSize")
@@ -1089,34 +1186,77 @@ class DirectGADCopyPairInfoExtractor:
                 response_key = response.get(key)
                 # Assign the value based on the response key and its data type
                 cased_key = camel_to_snake_case(key)
-                cased_key = self.fix_bad_camel_to_snake_conversion(cased_key)
-                if response_key is not None and response_key != "":
-                    if cased_key in self.parameter_mapping.keys():
-                        cased_key = self.parameter_mapping[cased_key]
-                    new_dict[cased_key] = value_type(response_key)
+                if "s_s_w_s" in cased_key or "v_s_m" in cased_key:
+                    cased_key = self.fix_bad_camel_to_snake_conversion(cased_key)
+                if cased_key in self.parameter_mapping.keys():
+                    cased_key = self.parameter_mapping[cased_key]
+                if response_key is not None:
+                    new_dict[cased_key] = response_key
                 else:
                     # Handle missing keys by assigning default values
                     default_value = get_default_value(value_type)
                     new_dict[cased_key] = default_value
-            new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
-                new_dict.get("primary_volume_id")
-            )
-            new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
-                new_dict.get("secondary_volume_id")
-            )
-            # new_dict["secondary_virtual_hex_volume_id"] = ""
-            # new_dict["secondary_virtual_volume_id"] = ""
-            if new_dict.get("mu_number"):
-                new_dict.pop("mu_number")
-            if new_dict.get("pvol_virtual_ldev_id"):
-                new_dict.pop("pvol_virtual_ldev_id")
-            if new_dict.get("svol_virtual_ldev_id"):
-                new_dict.pop("svol_virtual_ldev_id")
-            if new_dict.get("copy_rate"):
-                new_dict.pop("copy_rate")
+
+            new_dict = self.standardize_output(new_dict)
+
             new_items.append(new_dict)
 
         return new_items
+
+    @log_entry_exit
+    def standardize_output(self, new_dict):
+
+        if new_dict.get("mirror_unit_id") == "":
+            new_dict["mirror_unit_id"] = new_dict.get("mirror_unit_number", -1)
+
+        if new_dict.get("primary_volume_id_hex") == "":
+            new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
+                new_dict.get("primary_volume_id")
+            )
+        if new_dict.get("secondary_volume_id_hex") == "":
+            new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
+                new_dict.get("secondary_volume_id")
+            )
+        if new_dict.get("local_device_group_name") == "":
+            new_dict["local_device_group_name"] = (
+                get_local_device_group_name_from_copy_pair_id(
+                    new_dict.get("remote_mirror_copy_pair_id", "")
+                )
+            )
+
+        if new_dict.get("remote_device_group_name") == "":
+            new_dict["remote_device_group_name"] = (
+                get_remote_device_group_name_from_copy_pair_id(
+                    new_dict.get("remote_mirror_copy_pair_id", "")
+                )
+            )
+
+        if new_dict.get("primary_volume_storage_serial_number") == "":
+            new_dict["primary_volume_storage_serial_number"] = (
+                get_serial_number_from_device_id(
+                    new_dict.get("pvol_storage_device_id", "")
+                )
+            )
+            new_dict["primary_volume_storage_id"] = get_serial_number_from_device_id(
+                new_dict.get("pvol_storage_device_id", "")
+            )
+
+        if new_dict.get("secondary_volume_storage_serial_number") == "":
+            new_dict["secondary_volume_storage_serial_number"] = (
+                get_serial_number_from_device_id(
+                    new_dict.get("svol_storage_device_id", "")
+                )
+            )
+            new_dict["secondary_volume_storage_id"] = get_serial_number_from_device_id(
+                new_dict.get("svol_storage_device_id", "")
+            )
+
+        if new_dict.get("pvol_storage_device_id"):
+            del new_dict["pvol_storage_device_id"]
+        if new_dict.get("svol_storage_device_id"):
+            del new_dict["svol_storage_device_id"]
+
+        return new_dict
 
     @log_entry_exit
     def extract_dict(self, response):
@@ -1127,22 +1267,15 @@ class DirectGADCopyPairInfoExtractor:
             # Assign the value based on the response key and its data type
             cased_key = camel_to_snake_case(key)
             cased_key = self.fix_bad_camel_to_snake_conversion(cased_key)
+            if cased_key in self.parameter_mapping.keys():
+                cased_key = self.parameter_mapping[cased_key]
             if response_key is not None:
-                if cased_key in self.parameter_mapping.keys():
-                    cased_key = self.parameter_mapping[cased_key]
                 new_dict[cased_key] = value_type(response_key)
             else:
                 # Handle missing keys by assigning default values
                 default_value = get_default_value(value_type)
                 new_dict[cased_key] = default_value
 
-        new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
-            new_dict.get("primary_volume_id")
-        )
-        new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
-            new_dict.get("secondary_volume_id")
-        )
-        if new_dict.get("copy_rate"):
-            new_dict.pop("copy_rate")
+        new_dict = self.standardize_output(new_dict)
 
         return new_dict

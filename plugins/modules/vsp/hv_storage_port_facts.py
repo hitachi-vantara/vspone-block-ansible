@@ -43,7 +43,7 @@ options:
     type: dict
     required: false
     suboptions:
-      ports:
+      port_ids:
         description: The id of the specific ports to retrieve.
             Required for the Get storage port details using port IDs
             /Get an iSCSI target of a port on an external storage system
@@ -54,6 +54,7 @@ options:
         type: list
         required: false
         elements: str
+        aliases: [ports]
       query:
         description: This field allows to query for getting information about a port on an external storage system.
             query parameter is one of C(external_iscsi_targets), C(registered_external_iscsi_targets), C(external_storage_ports), C(external_luns).
@@ -110,7 +111,7 @@ EXAMPLES = """
       username: "admin"
       password: "secret"
     spec:
-      ports: ["CLA-1", "CLA-2"]
+      port_ids: ["CLA-1", "CLA-2"]
 """
 
 

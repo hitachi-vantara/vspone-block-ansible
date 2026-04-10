@@ -21,7 +21,6 @@ except ImportError:
     from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 import time
 
-
 GET_SNAPSHOTS_SIMPLE = "simple/v1/objects/snapshots"
 GET_SNAPSHOT_BY_ID_SIMPLE = "simple/v1/objects/snapshots/{}"
 CREATE_SNAPSHOT_SIMPLE = "simple/v1/objects/snapshots"

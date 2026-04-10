@@ -270,8 +270,6 @@ class VSPCopyGroupsDirectGateway:
 
     @log_entry_exit
     def get_copy_groups(self, spec):
-        if self.copy_groups is not None:
-            return self.copy_groups
 
         start_time = time.time()
         secondary_storage_info = self.get_secondary_storage_info(
@@ -301,11 +299,12 @@ class VSPCopyGroupsDirectGateway:
             dicts_to_dataclass_list(response["data"], CopyGroupInfo)
         )
         self.copy_groups = gCopyGroupList
-        return self.copy_groups
+        return gCopyGroupList
 
     @log_entry_exit
     def get_copy_group_by_name(self, spec):
         response = self.get_copy_groups(spec)
+        logger.writeDebug(f"GW:get_copy_group_by_name:response={response}")
         for x in response.data:
             if x.copyGroupName == spec.copy_group_name:
                 return x
@@ -775,7 +774,7 @@ class VSPCopyGroupsDirectGateway:
             parameters["consistencyGroupId"] = spec.consistency_group_id
         if spec.fence_level is not None:
             parameters["fenceLevel"] = spec.fence_level
-        if spec.copy_pace is not None:
+        if spec.copy_pace is not None and spec.replication_type == "TC":
             parameters["copyPace"] = spec.copy_pace
 
         if spec.local_device_group_name and spec.remote_device_group_name:
@@ -818,7 +817,7 @@ class VSPCopyGroupsDirectGateway:
             parameters["isConsistencyGroup"] = spec.is_consistency_group
         if spec.consistency_group_id is not None:
             parameters["consistencyGroupId"] = spec.consistency_group_id
-        if spec.copy_pace is not None:
+        if spec.copy_pace is not None and spec.replication_type == "TC":
             parameters["copyPace"] = spec.copy_pace
         logger.writeDebug("GW:swap_resync_replication_pair:parameterss={}", parameters)
         if spec.local_device_group_name and spec.remote_device_group_name:

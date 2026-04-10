@@ -3,7 +3,6 @@ from typing import Optional, List
 
 from .common_base_models import BaseDataClass, SingleBaseClass
 
-
 BASE_MODES = ["Base", "Memory", "Monitor", "All"]
 
 

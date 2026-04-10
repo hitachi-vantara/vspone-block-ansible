@@ -38,7 +38,6 @@ except ImportError:
         DirectSpecificCopyGroupInfo,
     )
 
-
 logger = Log()
 
 
@@ -74,9 +73,10 @@ class VSPCopyGroupsReconciler:
         self.logger.writeDebug("RC:copy_groups={}", copy_groups)
 
         if copy_groups is None:
-            return "Operations cannot be performed for the specified copy group {}. ErrorCode: 30000E-0".format(
+            return VSPCopyGroupsValidateMsg.OPERATION_CANNOT_BE_PERFORMED.value.format(
                 spec.name
             )
+
         elif isinstance(copy_groups, DirectSpecificCopyGroupInfo):
             copy_groups = copy_groups.to_dict()
             return camel_dict_to_snake_case(copy_groups)

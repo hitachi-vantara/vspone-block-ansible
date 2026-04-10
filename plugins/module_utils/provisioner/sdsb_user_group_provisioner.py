@@ -2,10 +2,12 @@ try:
     from ..gateway.sdsb_user_group_gateway import SDSBUsersGroupGateway
     from ..common.ansible_common import log_entry_exit
     from ..common.hv_log import Log
+    from ..message.sdsb_user_group_msgs import SDSBUserGroupValidationMsg
 except ImportError:
     from gateway.sdsb_user_group_gateway import SDSBUsersGroupGateway
     from common.ansible_common import log_entry_exit
     from common.hv_log import Log
+    from message.sdsb_user_group_msgs import SDSBUserGroupValidationMsg
 
 logger = Log()
 
@@ -64,13 +66,20 @@ class SDSBUserGroupProvisioner:
         if spec and spec.id:
             try:
                 response = self.gateway.delete_user_group(spec.id)
-                spec.comments = f"Successfully deleted user group with id = {spec.id}."
+                spec.comments = (
+                    SDSBUserGroupValidationMsg.USER_GROUP_DELETED.value.format(spec.id)
+                )
                 return True
             except Exception as e:
                 logger.writeException(e)
-                spec.comments = (
-                    f"Not able to delete user group with id = {spec.id}. {str(e)}"
+                msg = (
+                    SDSBUserGroupValidationMsg.USER_GROUP_DELETE_FAILED.value.format(
+                        spec.id
+                    )
+                    + " "
+                    + str(e)
                 )
+                spec.comments = msg
                 return False
 
     @log_entry_exit

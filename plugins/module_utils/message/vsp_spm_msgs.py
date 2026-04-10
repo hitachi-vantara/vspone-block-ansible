@@ -1,11 +1,6 @@
 from enum import Enum
 
 
-# class VSPUserFailedMsg(Enum):
-#     UPDATE_FAILED = "Failed to update user information. "
-#     DELETE_FAILED = "Failed to delete user account. "
-
-
 class VSPSpmValidateMsg(Enum):
     BOTH_NOT_ALLOWED = (
         "Either specify host_wwn attribute or specify iscsi_name attribute, not both."
@@ -21,4 +16,14 @@ class VSPSpmValidateMsg(Enum):
     TR_OUT_OF_RANGE = "For upper_limit_for_transfer_rate_in_MBps specify a value in the range from 1 to 31."
     HBA_WWN_16_CHARS = (
         "For host_wwn specify a hexadecimal number consisting of 16 characters."
+    )
+    SPM_INFO_SET_SUCCESS = "Server Priority Manager information set successfully."
+    SPM_INFO_CHANGE_SUCCESS = (
+        "Server Priority Manager information changed successfully."
+    )
+    SPM_INFO_CHANGE_NOT_NEEDED = (
+        "Server Priority Manager information change not needed."
+    )
+    SPM_INFO_DELETE_SUCCESS = (
+        "Server Priority Manager information deleted successfully."
     )

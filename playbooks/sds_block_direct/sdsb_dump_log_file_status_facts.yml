@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : SDSB Dump log status facts Playbook
-####################################################################
+# ###################################################################
 - name: Manage SDSB Dump log status facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Get latest dump file status
-    ####################################################################
+    # ###################################################################
     - name: Get latest dump file status
       hitachivantara.vspone_block.sds_block.hv_sds_block_dump_log_status_facts:
         connection_info: "{{ connection_info }}"

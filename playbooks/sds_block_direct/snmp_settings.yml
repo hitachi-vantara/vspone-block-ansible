@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : SNMP Settings Playbook
-####################################################################
+# ###################################################################
 - name: SDSB SNMP Configuration Management
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Configure complete SNMP settings with system information
-    ####################################################################
+    # ###################################################################
     - name: Configure complete SNMP settings with system information
       hitachivantara.vspone_block.sds_block.hv_sds_block_snmp_settings:
         connection_info: "{{ connection_info }}"

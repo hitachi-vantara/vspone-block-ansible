@@ -1,0 +1,244 @@
+---
+# ###################################################################
+# Example : Bulk Hostgroup Playbook
+# ###################################################################
+# This playbook demonstrates bulk host group operations with parallel
+# processing across multiple ports using the hv_hg_bulk module.
+#
+# Supported states:
+#   - present: Create host groups on multiple ports
+#   - absent: Delete host groups from multiple ports
+#   - added: Add WWNs or LUN paths to existing host groups
+#   - removed: Remove WWNs or LUN paths from existing host groups
+#   - updated: Update host mode and host mode options
+# ###################################################################
+- name: Bulk Hostgroup Module
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    # ###################################################################
+    # Task Name : Create bulk host groups on multiple ports (state: present)
+    # ###################################################################
+    - name: Create multiple host groups using multiple ports
+      hitachivantara.vspone_block.vsp.hv_hg_bulk:
+        state: present
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: "bulk_hg_test"
+          port_ids: ["CL1-A", "CL1-B", "CL2-A", "CL2-B"]
+          host_mode: "VMWARE_EXTENSION"
+          host_mode_options: [40, 63]
+          wwns:
+            - wwn: "100000109B583B2D"
+              nickname: "server1_hba1"
+            - wwn: "100000109B583B2C"
+              nickname: "server1_hba2"
+          lun_paths:
+            - ldev: "1024"
+              lun: "0"
+            - ldev: "1025"
+              lun: "1"
+      register: create_result
+
+    - name: Debug create_result
+      ansible.builtin.debug:
+        var: create_result
+
+    # ###################################################################
+    # Task Name : Create multiple host groups with LINUX host mode (state: present)
+    # ###################################################################
+    - name: Create multiple host groups with LINUX host mode
+      hitachivantara.vspone_block.vsp.hv_hg_bulk:
+        state: present
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: "linux_hg_bulk"
+          port_ids: ["CL3-A", "CL3-B"]
+          host_mode: "LINUX"
+          host_mode_options: [54, 63, 68]
+          wwns:
+            - wwn: "200000109B3C0FD1"
+              nickname: "linux_server_hba1"
+      register: create_linux_result
+
+    - name: Debug create_linux_result
+      ansible.builtin.debug:
+        var: create_linux_result
+
+    # ###################################################################
+    # Task Name : Delete multiple host groups from multiple ports (state: absent)
+    # ###################################################################
+    - name: Delete multiple host groups from multiple ports in parallel
+      hitachivantara.vspone_block.vsp.hv_hg_bulk:
+        state: absent
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: "bulk_hg_test"
+          port_ids: ["CL1-A", "CL1-B", "CL2-A", "CL2-B"]
+          should_delete_all_volumes: true
+      register: delete_result
+
+    - name: Debug delete_result
+      ansible.builtin.debug:
+        var: delete_result
+
+    # ###################################################################
+    # Task Name : Delete multiple host groups without deleting volumes (state: absent)
+    # ###################################################################
+    - name: Delete multiple host groups without deleting volumes
+      hitachivantara.vspone_block.vsp.hv_hg_bulk:
+        state: absent
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: "linux_hg_bulk"
+          port_ids: ["CL3-A", "CL3-B"]
+          should_delete_all_volumes: false
+      register: delete_no_vol_result
+
+    - name: Debug delete_no_vol_result
+      ansible.builtin.debug:
+        var: delete_no_vol_result
+
+    # ###################################################################
+    # Task Name : Add WWNs to multiple host groups (state: added)
+    # ###################################################################
+    - name: Add WWNs to multiple host groups across multiple ports in parallel
+      hitachivantara.vspone_block.vsp.hv_hg_bulk:
+        state: added
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: "existing_hg"
+          port_ids: ["CL1-A", "CL1-B", "CL2-A"]
+          wwns:
+            - wwn: "200000109B3C0FD3"
+              nickname: "new_server_hba1"
+            - wwn: "200000109B3C0FD4"
+              nickname: "new_server_hba2"
+      register: add_wwn_result
+
+    - name: Debug add_wwn_result
+      ansible.builtin.debug:
+        var: add_wwn_result
+
+    # ###################################################################
+    # Task Name : Add LUN paths to multiple host groups (state: added)
+    # ###################################################################
+    - name: Add LUN paths to multiple host groups across multiple ports in parallel
+      hitachivantara.vspone_block.vsp.hv_hg_bulk:
+        state: added
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: "existing_hg"
+          port_ids: ["CL1-A", "CL1-B"]
+          lun_paths:
+            - ldev: "2048"
+              lun: "10"
+            - ldev: "2049"
+              lun: "11"
+      register: add_lun_result
+
+    - name: Debug add_lun_result
+      ansible.builtin.debug:
+        var: add_lun_result
+
+    # ###################################################################
+    # Task Name : Remove WWNs from multiple host groups (state: removed)
+    # ###################################################################
+    - name: Remove WWNs from multiple host groups across multiple ports in parallel
+      hitachivantara.vspone_block.vsp.hv_hg_bulk:
+        state: removed
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: "existing_hg"
+          port_ids: ["CL1-A", "CL1-B", "CL2-A"]
+          wwns:
+            - wwn: "200000109B3C0FD3"
+            - wwn: "200000109B3C0FD4"
+      register: remove_wwn_result
+
+    - name: Debug remove_wwn_result
+      ansible.builtin.debug:
+        var: remove_wwn_result
+
+    # ###################################################################
+    # Task Name : Remove LUN paths from multiple host groups (state: removed)
+    # ###################################################################
+    - name: Remove LUN paths from multiple host groups across multiple ports in parallel
+      hitachivantara.vspone_block.vsp.hv_hg_bulk:
+        state: removed
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: "existing_hg"
+          port_ids: ["CL1-A", "CL1-B"]
+          lun_paths:
+            - ldev: "2048"
+            - ldev: "2049"
+      register: remove_lun_result
+
+    - name: Debug remove_lun_result
+      ansible.builtin.debug:
+        var: remove_lun_result
+
+    # ###################################################################
+    # Task Name : Update host mode on multiple host groups (state: updated)
+    # ###################################################################
+    - name: Update host mode on multiple host groups in parallel
+      hitachivantara.vspone_block.vsp.hv_hg_bulk:
+        state: updated
+        connection_info: "{{ connection_info }}"
+        spec:
+          name: "existing_hg"
+          port_ids: ["CL1-A", "CL1-B", "CL2-A", "CL2-B"]
+          host_mode: "LINUX"
+          host_mode_options: [54, 63, 68]
+      register: update_mode_result
+
+    - name: Debug update_mode_result
+      ansible.builtin.debug:
+        var: update_mode_result
+
+    # ###################################################################
+    # Task Name : Update host mode options on multiple host groups using host_group_number (state: updated)
+    # ###################################################################
+    - name: Update host mode options on multiple host groups using host_group_number
+      hitachivantara.vspone_block.vsp.hv_hg_bulk:
+        state: updated
+        connection_info: "{{ connection_info }}"
+        spec:
+          host_group_number: 10
+          port_ids: ["CL1-A", "CL1-B"]
+          host_mode_options: [40, 63, 73]
+      register: update_options_result
+
+    - name: Debug update_options_result
+      ansible.builtin.debug:
+        var: update_options_result
+
+    # ###################################################################
+    # Task Name : Update multiple host groups to VMWARE_EXTENSION using host_group_number (state: updated)
+    # ###################################################################
+    - name: Update multiple host groups to VMWARE_EXTENSION using host_group_number
+      hitachivantara.vspone_block.vsp.hv_hg_bulk:
+        state: updated
+        connection_info: "{{ connection_info }}"
+        spec:
+          host_group_number: 15
+          port_ids: ["CL1-A", "CL1-B", "CL2-A", "CL2-B"]
+          host_mode: "VMWARE_EXTENSION"
+          host_mode_options: [40, 63, 114]
+      register: update_vmware_result
+
+    - name: Debug update_vmware_result
+      ansible.builtin.debug:
+        var: update_vmware_result

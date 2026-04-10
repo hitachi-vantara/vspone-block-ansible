@@ -24,3 +24,9 @@ class SDSBUserValidationMsg(Enum):
     )
     NEW_PASSWORD_TOO_SHORT = "New password must be at least 8 characters long."
     NEW_PASSWORD_TOO_LONG = "New password must not exceed 256 characters."
+    DELETE_USER_SUCCESS = "User {} deleted successfully."
+    DELETE_USER_FAILURE = "Failed to delete user {}."
+    CHANGE_PASSWORD_FAILED_FOR_ADMIN_AFTER_DEPLOYMENT = (
+        "Failed to change password for admin user after deployment. "
+        "Manual intervention may be required to reset the password."
+    )

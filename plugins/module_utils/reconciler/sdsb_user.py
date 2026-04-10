@@ -123,12 +123,20 @@ class SDSBUsersReconciler:
             # After deploying the cluster first time, admin user is not returned
             # by the get users, but update password rest api call works
             if spec.user_id == "admin":
-                status = self.provisioner.update_user_password(spec)
-                self.connection_info.changed = True
-                spec.comments = (
-                    SDSBUserValidationMsg.USER_PASSWORD_UPDATED_SUCCESS.value
-                )
-                return status
+                try:
+                    status = self.provisioner.update_user_password(spec)
+                    self.connection_info.changed = True
+                    spec.comments = (
+                        SDSBUserValidationMsg.USER_PASSWORD_UPDATED_SUCCESS.value
+                    )
+                    return status
+                except Exception as e:
+                    logger.writeError(
+                        "Failed to update password for admin user after deployment."
+                    )
+                    raise ValueError(
+                        SDSBUserValidationMsg.CHANGE_PASSWORD_FAILED_FOR_ADMIN_AFTER_DEPLOYMENT.value
+                    )
             else:
                 raise ValueError(
                     SDSBUserValidationMsg.USER_NOT_FOUND_FOR_PASSWORD_UPDATE.value.format(

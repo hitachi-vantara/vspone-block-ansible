@@ -55,7 +55,7 @@ class VSPResourceGroupProvisioner:
     def get_resource_groups(self, spec=None):
         if spec is None:
             resource_groups = self.gateway.get_resource_groups()
-            # logger.writeDebug("PV:resource_groups={}", resource_groups)
+            logger.writeDebug("PV:resource_groups in test={}", resource_groups)
             # return resource_groups
             return self.convert_rg_list_to_display_rg_list(
                 resource_groups.data, None, None
@@ -347,7 +347,6 @@ class VSPResourceGroupProvisioner:
     def add_resource_by_rg_id(self, rg_id, spec):
         try:
             ret_value = self.gateway.add_resource(rg_id, spec)
-            logger.writeError("PV:add_resource:ret_value={}", ret_value)
             return ret_value
         except Exception as e:
             logger.writeError(f"An error occurred during add_resource call: {str(e)}")
@@ -357,7 +356,6 @@ class VSPResourceGroupProvisioner:
     def add_resource(self, rg, spec):
         try:
             ret_value = self.gateway.add_resource(rg.resourceGroupId, spec)
-            logger.writeError("PV:add_resource:ret_value={}", ret_value)
             return ret_value
         except Exception as e:
             logger.writeError(f"An error occurred during add_resource call: {str(e)}")

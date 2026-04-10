@@ -191,10 +191,11 @@ class SDSBJobFactsManager:
             self.module.fail_json(msg=str(e))
             self.logger.writeInfo("=== End of SDSB Job Facts ===")
             self.logger.writeException(e)
-
         data = {
-            "jobs": jobs,
+            "jobs": jobs if jobs is not None else [],
         }
+        if self.spec and self.spec.comments:
+            data["comments"] = self.spec.comments
         if registration_message:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo(f"{data}")

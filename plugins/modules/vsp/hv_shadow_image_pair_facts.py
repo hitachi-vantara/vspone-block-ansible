@@ -134,56 +134,65 @@ ansible_facts:
           type: int
           sample: 100
         mirror_unit_id:
-          description: Mirror unit ID.
+          description: Deprecated. Use mirror_unit_number instead.
           type: int
           sample: 0
-        primary_volume_id_hex:
-          description: Primary hex volume ID in hexadecimal.
-          type: str
-          sample: "00:03:00"
+        mirror_unit_number:
+          description: Mirror unit number.
+          type: int
+          sample: 0
         primary_volume_id:
           description: Primary volume ID.
           type: int
           sample: 768
-        pvol_host_groups:
+        primary_volume_id_hex:
+          description: Primary hex volume ID in hexadecimal.
+          type: str
+          sample: "00:03:00"
+        primary_volume_host_groups:
           description: Primary volume host groups.
+          type: list
+          elements: dict
+          sample:
+            - host_group_name: "hostserver1153"
+              host_group_number: 189
+              lun: 0
+              port_id: "CL2-B"
+        pvol_host_groups:
+          description: Deprecated. Use primary_volume_host_groups instead.
+          type: list
+          elements: dict
+          sample:
+            - host_group_name: "hostserver1153"
+              host_group_number: 189
+              lun: 0
+              port_id: "CL2-B"
+        primary_volume_iscsi_targets:
+          description: Primary volume iSCSI targets.
           type: list
           elements: dict
           sample: []
         pvol_iscsi_targets:
-          description: Primary volume iSCSI targets.
+          description: Deprecated. Use primary_volume_iscsi_targets instead.
           type: list
           elements: dict
-          sample: [{"host_group_name": "iscsi176", "host_group_number": 2, "lun": 0, "port_id": "CL2-C"}]
-          contains:
-            host_group_name:
-              description: Host group name.
-              type: str
-            host_group_number:
-              description: Host group number.
-              type: int
-            lun:
-              description: LUN number.
-              type: int
-            port_id:
-              description: Port ID.
-              type: str
-        pvol_nvm_subsystem_name:
-          description: Primary volume NVM subsystem name.
+          sample: []
+        primary_volume_nvm_subsystem_name:
+          description: Primary volume's nvm subsystem name.
           type: str
           sample: ""
-        resource_id:
-          description: Resource ID.
+        pvol_nvm_subsystem_name:
+          description: Deprecated. Use primary_volume_nvm_subsystem_name instead.
           type: str
-          sample: "localpair-2749fed78e8d23a61ed17a8af71c85f8"
-        secondary_volume_id_hex:
-          description: Secondary hex volume ID in hexadecimal.
-          type: str
-          sample: "00:03:03"
+          sample: ""
         secondary_volume_id:
           description: Secondary volume ID.
           type: int
           sample: 771
+        secondary_volume_id_hex:
+          description: Secondary hex volume ID in hexadecimal.
+          type: str
+          sample: "00:03:03"
         status:
           description: Status of the shadow image pair.
           type: str
@@ -192,31 +201,40 @@ ansible_facts:
           description: Storage serial number.
           type: str
           sample: "810045"
+        secondary_volume_host_groups:
+            description: Secondary volume host groups.
+            type: list
+            elements: dict
+            sample:
+              - host_group_name: "hostserver1153"
+                host_group_number: 189
+                lun: 1
+                port_id: "CL2-B"
         svol_host_groups:
-          description: Secondary volume host groups.
+          description: Deprecated. Use secondary_volume_host_groups instead.
+          type: list
+          elements: dict
+          sample:
+            - host_group_name: "hostserver1153"
+              host_group_number: 189
+              lun: 1
+              port_id: "CL2-B"
+        secondary_volume_iscsi_targets:
+          description: Secondary volume iSCSI targets.
           type: list
           elements: dict
           sample: []
         svol_iscsi_targets:
-          description: Secondary volume iSCSI targets.
+          description: Deprecated. Use secondary_volume_iscsi_targets instead.
           type: list
           elements: dict
-          sample: [{"host_group_name": "iscsi176", "host_group_number": 2, "lun": 3, "port_id": "CL2-C"}]
-          contains:
-            host_group_name:
-              description: Host group name.
-              type: str
-            host_group_number:
-              description: Host group number.
-              type: int
-            lun:
-              description: LUN number.
-              type: int
-            port_id:
-              description: Port ID.
-              type: str
+          sample: []
+        secondary_volume_nvm_subsystem_name:
+          description: Secondary volume's nvm subsystem name.
+          type: str
+          sample: ""
         svol_nvm_subsystem_name:
-          description: Secondary volume NVM subsystem name.
+          description: Deprecated. Use secondary_volume_nvm_subsystem_name instead.
           type: str
           sample: ""
 """
@@ -267,7 +285,7 @@ class VSPShadowImagePairManager:
             self.logger.writeInfo("=== End of Shadow Image Pair Facts ===")
             self.module.fail_json(msg=str(e))
 
-        data = {"data": shadow_image_pair_data}
+        data = {"data": shadow_image_pair_data if shadow_image_pair_data else []}
 
         if not shadow_image_pair_data:
             if self.spec.pvol is not None:
@@ -283,7 +301,7 @@ class VSPShadowImagePairManager:
                     + str(self.spec.copy_pair_name)
                 )
             else:
-                data["comment"] = "Couldn't read shadow image pairs. "
+                data["comment"] = "Couldn't find shadow image pairs. "
         if registration_message:
             data["user_consent_required"] = registration_message
 

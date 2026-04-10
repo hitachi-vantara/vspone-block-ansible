@@ -32,3 +32,20 @@ class VSPSnapShotValidateMsg(Enum):
         "primary_volume_id and mirror_unit_id is required for the 'absent' state, "
         "when deleting a regular snapshot. mirror_unit_id is not required when deleing by snapshot tree."
     )
+    VSP_ONE_UNSUPPORTED_STATE = "Unsupported state: {}. Supported states are 'present', 'absent', 'map', and 'restore'."
+    SNAPSHOT_DOES_NOT_EXIST = (
+        "Snapshot with primary volume ID '{}' and mirror unit ID '{}' does not exist."
+    )
+    INVALID_OPERATION_TYPE = "Invalid operation_type: {}. Supported operation_types are 'vclone', and 'restore'."
+    INVALID_OPERATION_TYPE_2 = (
+        "Invalid operation_type: {}. Supported operations are: '{}'"
+    )
+    SNAPSHOT_GROUP_DELETE_SUCCESS = "Snapshot group deleted successfully."
+    RESTORE_REQD_PARAMS_MISSING_FOR_GROUP = (
+        "snapshot_group_name is required for 'restore' operation_type."
+    )
+    SNAPSHOT_GROUP_DOES_NOT_EXIST = "Snapshot group '{}' does not exist."
+    NOT_ALL_SNAPSHOTS_IN_SAME_STATUS = (
+        "Not all snapshots in snapshot group '{}' are in the same status."
+    )
+    NOT_CORRECT_STATE_FOR_SNAPSHOT_GROUP = "Snapshot with snapshot group name '{}' is not in a valid state to create a VClone."

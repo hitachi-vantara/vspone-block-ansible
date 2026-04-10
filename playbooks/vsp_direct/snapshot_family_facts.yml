@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Snapshot Family Facts playbook
-####################################################################
+# ###################################################################
 
 - name: Snapshot Family Facts
   hosts: localhost
@@ -18,9 +18,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
-    # Task 1 : Get snapshot family facts by ldev_id
-    ####################################################################
+    # ###################################################################
+    # Task Name : Get snapshot family facts by ldev_id
+    # ###################################################################
     - name: Get snapshot family facts by ldev_id
       hitachivantara.vspone_block.vsp.hv_snapshot_family_facts:
         connection_info: "{{ connection_info }}"

@@ -152,13 +152,18 @@ ansible_facts:
           type: str
           sample: "gad_pair_840"
         copy_progress_rate:
-          description: Copy progress rate.
+          description: Deprecated. Copy progress rate.
           type: int
           sample: -1
         fence_level:
           description: Fence level.
           type: str
           sample: "NEVER"
+        local_device_group_name:
+          description:
+            - Name of the local device group to retrieve TrueCopy pair information for.
+          type: str
+          sample: "tc_bulk_cg_1P_"
         primary_volume_id:
           description: Primary volume ID.
           type: int
@@ -167,22 +172,35 @@ ansible_facts:
           description: Primary volume ID in hexadecimal format.
           type: str
           sample: "00:03:48"
-        pvol_status:
-          description: PVOL status.
+        primary_volume_size:
+          description: Size of the primary volume. Display only for single TrueCopy pair query.
           type: str
-          sample: "PSUE"
+          sample: "4.00GB"
+        primary_volume_status:
+          description: Primary volume status.
+          type: str
+          sample: "PAIR"
+        primary_volume_storage_serial_number:
+          description: Storage serial number of the primary volume.
+          type: str
+          sample: "810050"
+        pvol_status:
+          description: Deprecated. Use primary_volume_status instead.
+          type: str
+          sample: "PAIR"
         pvol_storage_device_id:
-          description: PVOL storage device ID.
+          description: Deprecated. PVOL storage device ID.
           type: str
           sample: "A34000810050"
+        remote_device_group_name:
+          description:
+            - Name of the remote device group to retrieve TrueCopy pair information for.
+          type: str
+          sample: "tc_bulk_cg_1S_"
         remote_mirror_copy_pair_id:
-          description: Remote mirror copy pair ID.
+          description: Deprecated. Remote mirror copy pair ID.
           type: str
           sample: "A34000810050,cp_group_840,cp_group_840S_,cp_group_840P_,gad_pair_840"
-        replication_type:
-          description: Type of replication.
-          type: str
-          sample: "GAD"
         secondary_volume_id:
           description: Secondary volume ID.
           type: int
@@ -191,16 +209,28 @@ ansible_facts:
           description: Secondary volume ID in hexadecimal format.
           type: str
           sample: "00:03:3F"
-        storage_serial_number:
-          description: Storage serial number.
+        secondary_volume_size:
+          description: Size of the secondary volume. Display only for single TrueCopy pair query.
+          type: str
+          sample: "4.00GB"
+        secondary_volume_status:
+          description: Secondary volume status.
+          type: str
+          sample: "PAIR"
+        secondary_volume_storage_serial_number:
+          description: Storage serial number of the secondary volume.
           type: str
           sample: "810045"
-        svol_status:
-          description: SVOL status.
+        storage_serial_number:
+          description: Deprecated. Use primary_volume_storage_serial_number instead.
           type: str
-          sample: "PSUE"
+          sample: "810050"
+        svol_status:
+          description: Deprecated. Use secondary_volume_status instead.
+          type: str
+          sample: "PAIR"
         svol_storage_device_id:
-          description: SVOL storage device ID.
+          description: Deprecated. SVOL storage device ID.
           type: str
           sample: "A34000810045"
 """
@@ -243,7 +273,7 @@ class VSPTrueCopyFactsManager:
             self.parameter_manager.get_secondary_connection_info()
         )
 
-        self.spec.secondary_connection_info = self.secondary_connection_info
+        # self.spec.secondary_connection_info = self.secondary_connection_info
         # self.logger.writeDebug(f"MOD:hv_truecopy_facts:spec= {self.spec}")
 
     def apply(self):
@@ -252,7 +282,10 @@ class VSPTrueCopyFactsManager:
         registration_message = validate_ansible_product_registration()
         try:
             reconciler = VSPTrueCopyReconciler(
-                self.connection_info, self.storage_serial_number, self.state
+                self.connection_info,
+                self.storage_serial_number,
+                self.state,
+                self.secondary_connection_info,
             )
             tc_pairs = reconciler.get_true_copy_facts(self.spec)
             self.logger.writeDebug(f"MOD:hv_truecopy_facts:tc_pairs= {tc_pairs}")

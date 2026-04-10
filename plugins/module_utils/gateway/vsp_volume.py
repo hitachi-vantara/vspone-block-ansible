@@ -8,7 +8,15 @@ try:
         AutomationConstants,
         DEFAULT_NAME_PREFIX,
     )
-    from ..common.ansible_common import dicts_to_dataclass_list
+    from ..common.ansible_common import (
+        log_entry_exit,
+        dicts_to_dataclass_list,
+        calculate_3390_ldev_blocks,
+    )
+    from ..common.vsp_errors import (
+        VspVolumeNoFreeLdevError,
+        VspVolumeFeatureNotSupportedError,
+    )
     from ..model.vsp_volume_models import (
         VSPVolumesInfo,
         VSPVolumeInfo,
@@ -18,21 +26,24 @@ try:
         VSPUndefinedVolumeInfoList,
     )
     from ..common.hv_log import Log
-
-    from ..common.ansible_common import log_entry_exit
     from ..common.vsp_constants import PEGASUS_MODELS
     from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
-    from ..common.ansible_common import calculate_3390_ldev_blocks
-
 except ImportError:
-    from common.ansible_common import log_entry_exit
+    from common.ansible_common import (
+        log_entry_exit,
+        dicts_to_dataclass_list,
+        calculate_3390_ldev_blocks,
+    )
+    from common.vsp_errors import (
+        VspVolumeNoFreeLdevError,
+        VspVolumeFeatureNotSupportedError,
+    )
     from common.vsp_constants import (
         Endpoints,
         VolumePayloadConst,
         AutomationConstants,
         DEFAULT_NAME_PREFIX,
     )
-    from common.ansible_common import dicts_to_dataclass_list
     from model.vsp_volume_models import (
         VSPVolumesInfo,
         VSPVolumeInfo,
@@ -237,26 +248,26 @@ class VSPVolumeDirectGateway:
             )
         if spec.capacity_saving:
             payload[VolumePayloadConst.ADR_SETTING] = spec.capacity_saving
-            if self.is_pegasus:
-                if (
-                    spec.capacity_saving.lower() != VolumePayloadConst.DISABLED
-                    and spec.pool_id is not None
-                ):
-                    logger.writeDebug(
-                        f"is spec.data_reduction_share : {spec.data_reduction_share}"
-                    )
-                    is_true = (
-                        True
-                        if spec.data_reduction_share is None
-                        else spec.data_reduction_share
-                    )
-                    logger.writeDebug(f"is true: {is_true}")
+            # if self.is_pegasus:
+            #     if (
+            #         spec.capacity_saving.lower() != VolumePayloadConst.DISABLED
+            #         and spec.pool_id is not None
+            #     ):
+            #         logger.writeDebug(
+            #             f"is spec.data_reduction_share : {spec.data_reduction_share}"
+            #         )
+            #         is_true = (
+            #             True
+            #             if spec.data_reduction_share is None
+            #             else spec.data_reduction_share
+            #         )
+            #         logger.writeDebug(f"is true: {is_true}")
 
-                    if spec.pool_id != -1:
-                        payload[
-                            VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED
-                        ] = is_true
-                    spec.data_reduction_share = None
+            #         if spec.pool_id != -1:
+            #             payload[
+            #                 VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED
+            #             ] = is_true
+            #         spec.data_reduction_share = None
 
         if spec.data_reduction_share is not None:
             payload[VolumePayloadConst.IS_DATA_REDUCTION_SHARED_VOLUME_ENABLED] = (
@@ -277,10 +288,12 @@ class VSPVolumeDirectGateway:
             payload[VolumePayloadConst.IS_PARALLEL_EXECUTION_ENABLED] = (
                 spec.is_parallel_execution_enabled
             )
-        if spec.start_ldev_id:
-            payload[VolumePayloadConst.START_LDEV_ID] = spec.start_ldev_id
-        if spec.end_ldev_id:
-            payload[VolumePayloadConst.END_LDEV_ID] = spec.end_ldev_id
+
+        # not required
+        # if spec.start_ldev_id:
+        #     payload[VolumePayloadConst.START_LDEV_ID] = spec.start_ldev_id
+        # if spec.end_ldev_id:
+        #     payload[VolumePayloadConst.END_LDEV_ID] = spec.end_ldev_id
         if spec.external_parity_group:
             payload[VolumePayloadConst.EXTERNAL_PARITY_GROUP_ID] = (
                 spec.external_parity_group
@@ -420,7 +433,22 @@ class VSPVolumeDirectGateway:
             if "virtualLdevId" not in item:
                 undefined_vol_info = VSPUndefinedVolumeInfo(**item)
                 return VSPUndefinedVolumeInfoList(data=[undefined_vol_info])
-        raise Exception("No free ldevs present in meta.")
+        raise VspVolumeNoFreeLdevError("No free ldevs present in meta.")
+
+    @log_entry_exit
+    def get_free_ldev_from_meta_with_resource_group(self, resource_group_id=0):
+        end_point = self.end_points.GET_FREE_LDEVS_FROM_META_RG.format(
+            resource_group_id
+        )
+        vol_data = self.rest_api.get(end_point)
+        # logger.writeDebug(f"Free Ldevs from meta: {vol_data}")
+        for item in vol_data["data"]:
+            if "virtualLdevId" not in item:
+                undefined_vol_info = VSPUndefinedVolumeInfo(**item)
+                return VSPUndefinedVolumeInfoList(data=[undefined_vol_info])
+        raise VspVolumeNoFreeLdevError(
+            "No free ldevs present in meta or given resource group."
+        )
 
     @log_entry_exit
     def get_free_ldevs_from_meta(self, start_ldev=0, resource_group_id=0):
@@ -438,11 +466,18 @@ class VSPVolumeDirectGateway:
         )
 
     @log_entry_exit
-    def get_free_ldevs_from_meta_chunks(self, start_ldev=0, count=0):
+    def get_free_ldevs_from_meta_chunks(
+        self, start_ldev=0, count=0, resource_group_id=0
+    ):
 
-        end_point = self.end_points.GET_FREE_LDEVS_FROM_META_BASIC.format(
-            start_ldev, count
-        )
+        if resource_group_id > 0:
+            end_point = self.end_points.GET_FREE_LDEVS_FROM_META_RG_CHUNK.format(
+                resource_group_id, count
+            )
+        else:
+            end_point = self.end_points.GET_FREE_LDEVS_FROM_META_BASIC.format(
+                start_ldev, count
+            )
 
         vol_data = self.rest_api.get(end_point)
         return VSPUndefinedVolumeInfoList(
@@ -797,7 +832,7 @@ class VSPVolumeDirectGateway:
             return self.rest_api.post_without_job(end_point, None)
         except Exception as e:
             if "No resource exists at the specified URI" in str(e):
-                raise Exception(
+                raise VspVolumeFeatureNotSupportedError(
                     "Stopping volume format is not supported on this system."
                 )
             logger.writeError(f"Error stopping volume format: {e}")

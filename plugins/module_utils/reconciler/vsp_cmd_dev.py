@@ -58,13 +58,10 @@ class VSPCmdDevReconciler:
             response = self.vol_recon.get_volume_detail_for_spec(ldev, vol_spec)
             logger.writeDebug("RC:reconcile_cmd_dev:vol_detail={}", response)
 
-            comment = "Command Device is enabled successfully."
+            comment = VSPCmdDevValidateMsg.CMD_DEV_ENABLE_SUCCESS.value
             if response:
                 if self.is_pegasus():
-                    comment = (
-                        comment
-                        + " No command device information is available for VSP One storage system."
-                    )
+                    comment = comment + VSPCmdDevValidateMsg.NO_CMD_DEV_INFO.value
 
             volume_dict = response.to_dict() if response else {}
             logger.writeDebug("RC:reconcile_cmd_dev:response={}", response)
@@ -76,7 +73,7 @@ class VSPCmdDevReconciler:
 
         elif self.state == StateValue.ABSENT:
             self.delete_command_device(spec.ldev_id)
-            comment = "Command Device is disabled successfully."
+            comment = VSPCmdDevValidateMsg.CMD_DEV_DISABLE_SUCCESS.value
             return None, comment
 
     @log_entry_exit

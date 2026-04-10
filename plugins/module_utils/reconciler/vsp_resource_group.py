@@ -7,7 +7,7 @@ try:
         volume_id_to_hex_format,
     )
     from ..common.hv_log import Log
-    from ..common.hv_constants import StateValue
+    from ..common.hv_constants import StateValue, LdevConstants
     from ..provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
     from ..provisioner.vsp_volume_prov import VSPVolumeProvisioner
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
@@ -21,7 +21,7 @@ except ImportError:
         volume_id_to_hex_format,
     )
     from common.hv_log import Log
-    from common.hv_constants import StateValue
+    from common.hv_constants import StateValue, LdevConstants
     from provisioner.vsp_resource_group_provisioner import VSPResourceGroupProvisioner
     from provisioner.vsp_volume_prov import VSPVolumeProvisioner
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
@@ -112,7 +112,9 @@ class VSPResourceGroupReconciler:
                 self.storage_serial_number
             ).extract([rg2.to_dict()])
             if spec.storage_pool_ids:
-                comment = f"Pool volumes for Storage Pool(s) {spec.storage_pool_ids} are incorporated in the Resource Group Ldevs."
+                comment = VSPResourceGroupValidateMsg.POOL_VOLUME_SUCCESS.value.format(
+                    spec.storage_pool_ids
+                )
             return extracted_data, comment
 
         elif self.state == StateValue.ABSENT:
@@ -122,7 +124,7 @@ class VSPResourceGroupReconciler:
                 if spec.name:
                     rg = self.provisioner.get_resource_group_by_name(spec.name)
             if not rg:
-                return None, "Resource Group not found."
+                return None, VSPResourceGroupValidateMsg.RG_NOT_FOUND.value
             logger.writeDebug(
                 "RC:reconcile_resource_group:state=absent:resource_group={}", rg
             )
@@ -185,15 +187,22 @@ class VSPResourceGroupReconciler:
 
     @log_entry_exit
     def construct_simple_hg_list(self, spec):
+        logger.writeDebug("RC:construct_simple_hg_list:spec={}", spec)
         hg_list = []
         if spec.host_groups:
             for hg in spec.host_groups:
-                if "id" in hg:
-                    hg_list.append(f"{hg['port']},{hg['id']}")
-                elif "name" in hg:
-                    id = self.provisioner.get_host_group_id(hg["port"], hg["name"])
+                if hg.id:
+                    hg_list.append(f"{hg.port},{hg.id}")
+                elif hg.name:
+                    id = self.provisioner.get_host_group_id(hg.port, hg.name)
                     if id:
-                        hg_list.append(f"{hg['port']},{id}")
+                        hg_list.append(f"{hg.port},{id}")
+                elif hg.ids:
+                    for id in hg.ids:
+                        hg_list.append(f"{hg.port},{id}")
+                elif hg.begin_id is not None and hg.end_id is not None:
+                    for id in range(hg.begin_id, hg.end_id + 1):
+                        hg_list.append(f"{hg.port},{id}")
         return hg_list
 
     @log_entry_exit
@@ -201,54 +210,100 @@ class VSPResourceGroupReconciler:
         iscsi_list = []
         if spec.iscsi_targets:
             for hg in spec.iscsi_targets:
-                if "id" in hg:
-                    iscsi_list.append(f"{hg['port']},{hg['id']}")
-                elif "name" in hg:
-                    id = self.provisioner.get_iscsi_id(hg["port"], hg["name"])
+                if hg.id:
+                    iscsi_list.append(f"{hg.port},{hg.id}")
+                elif hg.name:
+                    id = self.provisioner.get_iscsi_id(hg.port, hg.name)
                     if id is None:
                         logger.writeInfo(
-                            f"Could not find ID for iSCSI {hg['name']} on port {hg['port']}."
+                            f"Could not find ID for iSCSI {hg.name} on port {hg.port}."
                         )
                         continue
                     logger.writeDebug("RC:construct_simple_iscsi_list:id={}", id)
-                    iscsi_list.append(f"{hg['port']},{id}")
+                    iscsi_list.append(f"{hg.port},{id}")
+                elif hg.ids:
+                    for id in hg.ids:
+                        iscsi_list.append(f"{hg.port},{id}")
+                elif hg.begin_id is not None and hg.end_id is not None:
+                    for id in range(hg.begin_id, hg.end_id + 1):
+                        iscsi_list.append(f"{hg.port},{id}")
         logger.writeDebug("RC:construct_simple_iscsi_list:iscsi_list={}", iscsi_list)
         return iscsi_list
 
     @log_entry_exit
     def get_vsm_ldevs(self, ldevs):
+        """
+        Get VSM LDEVs using ThreadPoolExecutor for parallelism and handle KeyboardInterrupt.
+        """
+        import concurrent.futures
+
         vsm_ldevs = []
-        for ldev in ldevs:
-            ldev_info = self.volume_provisioner.get_volume_by_ldev(ldev)
-            if ldev_info:
-                logger.writeDebug("RC:get_vsm_ldevs:ldev_info={}", ldev_info)
 
-                if ldev_info.resourceGroupId == 0:
-                    if ldev_info.nvmSubsystemId or ldev_info.namespaceId:
-                        logger.writeDebug(
-                            "RC:get_vsm_ldevs:ldev_info={}  is part of nvm subsystem.",
-                            ldev_info,
-                        )
-                        continue
+        def process_ldev(ldev):
+            try:
+                ldev_info = self.volume_provisioner.get_volume_by_ldev(ldev)
+                if ldev_info:
+                    logger.writeDebug("RC:get_vsm_ldevs:ldev_info={}", ldev_info)
 
-                    if ldev_info.ports and len(ldev_info.ports) > 0:
-                        logger.writeDebug(
-                            "RC:get_vsm_ldevs:ldev_info={}  is connected to host groups.",
-                            ldev_info,
-                        )
-                        continue
+                    if ldev_info.resourceGroupId == 0:
+                        if ldev_info.nvmSubsystemId or ldev_info.namespaceId:
+                            logger.writeDebug(
+                                "RC:get_vsm_ldevs:ldev_info={}  is part of nvm subsystem.",
+                                ldev_info,
+                            )
+                            return None
 
-                    self.volume_provisioner.unassign_vldev(
-                        ldev_info.ldevId, ldev_info.ldevId
-                    )
-                    vsm_ldevs.append(ldev)
+                        if ldev_info.ports and len(ldev_info.ports) > 0:
+                            logger.writeDebug(
+                                "RC:get_vsm_ldevs:ldev_info={}  is connected to host groups.",
+                                ldev_info,
+                            )
+                            return None
+
+                        # self.unassign_vldev(
+                        #     ldev_info.ldevId, ldev_info.ldevId
+                        # )
+                        self.unassign_vldev(ldev_info)
+                        return ldev
+                return None
+            except Exception as e:
+                logger.writeError(f"RC:get_vsm_ldevs: Exception for ldev {ldev}: {e}")
+                return None
+
+        try:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                results = list(executor.map(process_ldev, ldevs))
+            vsm_ldevs = [ldev for ldev in results if ldev is not None]
+        except KeyboardInterrupt:
+            logger.writeInfo(
+                "RC:get_vsm_ldevs: KeyboardInterrupt received, cancelling threads."
+            )
+            raise
+
         return vsm_ldevs
+
+    @log_entry_exit
+    def unassign_vldev(self, vol_info):
+
+        if vol_info.virtualLdevId is None:
+            self.volume_provisioner.unassign_vldev(vol_info.ldevId, vol_info.ldevId)
+        elif (
+            vol_info.virtualLdevId != LdevConstants.UNASSIGNED_LDEV_ID
+            and vol_info.virtualLdevId != LdevConstants.GAD_RESERVE_LDEV_ID
+        ):
+            self.volume_provisioner.unassign_vldev(
+                vol_info.ldevId, vol_info.virtualLdevId
+            )
 
     @log_entry_exit
     def update_add_resource(self, rg, spec):
         if rg:
             logger.writeDebug("RC:update_add_resource:rg={}", rg)
         ldevs_to_add = None
+
+        if spec.start_ldev and spec.end_ldev:
+            ldev_range = list(range(int(spec.start_ldev), int(spec.end_ldev) + 1))
+            spec.ldevs = ldev_range
 
         if spec.ldevs:
             # if virtual storage id is not 0, then this is a VSM
@@ -271,6 +326,7 @@ class VSPResourceGroupReconciler:
                 if rg.ldevIds:
                     ldevs_to_add = list(set(spec.ldevs) - set(rg.ldevIds))
                     spec.ldevs = ldevs_to_add
+
         if spec.parity_groups:
             if rg.parityGroupIds:
                 parity_groups_to_add = list(
@@ -315,7 +371,7 @@ class VSPResourceGroupReconciler:
                         host_groups_to_add.append(hg)
                 spec.host_groups_simple = host_groups_to_add
                 logger.writeDebug(
-                    "RC:update_add_resource:updated2 hg={} {}", hg, host_groups_to_add
+                    f"RC:update_add_resource:updated2 rg_hg={rg.hostGroupIds} host_groups_to_add={host_groups_to_add}"
                 )
 
         if spec.iscsi_targets:
@@ -383,6 +439,12 @@ class VSPResourceGroupReconciler:
                 ldevs_to_remove = list(set(spec.ldevs) & set(rg.ldevIds))
                 spec.ldevs = ldevs_to_remove
 
+        if spec.start_ldev and spec.end_ldev:
+            ldev_range = list(range(int(spec.start_ldev), int(spec.end_ldev) + 1))
+            if rg.ldevIds:
+                ldevs_to_remove = list(set(ldev_range) & set(rg.ldevIds))
+                spec.ldevs = ldevs_to_remove
+
         if spec.storage_pool_ids:
             pool_ldevs = self.provisioner.get_pool_ldevs(spec.storage_pool_ids)
             if pool_ldevs:
@@ -404,6 +466,13 @@ class VSPResourceGroupReconciler:
             if rg.ldevIds:
                 ldevs_to_add = list(set(spec.ldevs) - set(rg.ldevIds))
                 spec.ldevs = ldevs_to_add
+
+        if spec.start_ldev and spec.end_ldev:
+            ldev_range = list(range(int(spec.start_ldev), int(spec.end_ldev) + 1))
+            if rg.ldevIds:
+                ldevs_to_add = list(set(ldev_range) - set(rg.ldevIds))
+                spec.ldevs = ldevs_to_add
+
         if spec.storage_pool_ids:
             pool_ldevs = self.provisioner.get_pool_ldevs(spec.storage_pool_ids)
             if pool_ldevs:
@@ -436,8 +505,35 @@ class VSPResourceGroupReconciler:
         self.fix_host_groups_for_remove(rg, spec)
         self.fix_ldevs_for_remove(rg, spec)
 
+        ldevs_have_vledv = []
+        if spec.ldevs and len(spec.ldevs) > 0:
+
+            for ldev_id in spec.ldevs:
+                ldev = self.volume_provisioner.get_volume_by_ldev(
+                    ldev_id, include_drs=False
+                )
+
+                if ldev:
+                    if ldev.virtualLdevId is None:
+                        self.volume_provisioner.unassign_vldev(ldev_id, ldev_id)
+                    elif (
+                        ldev.virtualLdevId != LdevConstants.UNASSIGNED_LDEV_ID
+                        and ldev.virtualLdevId != LdevConstants.GAD_RESERVE_LDEV_ID
+                    ):
+                        self.volume_provisioner.unassign_vldev(
+                            ldev.ldevId, ldev.virtualLdevId
+                        )
+                        ldevs_have_vledv.append(ldev_id)
+
         rg_id = self.provisioner.remove_resource(rg, spec)
         logger.writeDebug("RC:remove_resource:ret_data={}", rg_id)
+
+        if ldevs_have_vledv and len(ldevs_have_vledv) > 0:
+            logger.writeDebug(
+                "RC:remove_resource:ldevs_have_vledv={}", ldevs_have_vledv
+            )
+            for ldev_id in ldevs_have_vledv:
+                self.volume_provisioner.assign_vldev(ldev_id, ldev_id)
 
         # if remove resource is not needed provision layer will return None
         if rg_id is None:
@@ -470,13 +566,13 @@ class VSPResourceGroupReconciler:
     def delete_resource_group(self, resource_group, spec):
         ret_value = self.provisioner.delete_resource_group(resource_group, spec)
         logger.writeDebug("RC:delete_resource_group:ret_value={}", ret_value)
-        return "Resource group deleted successfully."
+        return VSPResourceGroupValidateMsg.RG_DELETE_SUCCESS.value
 
     @log_entry_exit
     def delete_resource_group_force(self, resource_group):
         ret_value = self.provisioner.delete_resource_group_force(resource_group)
         logger.writeDebug("RC:delete_resource_group_force:ret_value={}", ret_value)
-        return "Resource group deleted successfully."
+        return VSPResourceGroupValidateMsg.RG_DELETE_SUCCESS.value
 
 
 class ResourceGroupInfoExtractor:
@@ -555,5 +651,8 @@ class ResourceGroupInfoExtractor:
                     new_dict["ldevs_hex"] = [
                         volume_id_to_hex_format(ldev_id) for ldev_id in ldev_ids
                     ]
+            if new_dict.get("ports"):
+                new_dict["port_ids"] = new_dict["ports"]
+
             new_items.append(new_dict)
         return new_items

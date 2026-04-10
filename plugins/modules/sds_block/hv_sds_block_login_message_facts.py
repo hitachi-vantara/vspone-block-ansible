@@ -68,6 +68,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconc
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
 )
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.sdsb_module_message_catalog import (
+    SdsbMessageCatalog,
+)
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -87,8 +90,9 @@ class SDSBLoginMessageFactsManager:
                 f"MOD:hv_sds_block_login_message_facts:connection_info= {self.connection_info}"
             )
         except Exception as e:
-            self.logger.writeError(f"An error occurred during initialization: {str(e)}")
-            self.module.fail_json(msg=str(e))
+            err_msg = SdsbMessageCatalog.MODULE_INIT_ERROR.value.format(str(e))
+            self.logger.writeError(err_msg)
+            self.module.fail_json(msg=err_msg)
 
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB Login Message Facts ===")

@@ -2,12 +2,13 @@ try:
     from ..gateway.sdsb_ticket_management_gateway import TicketManagementGateway
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
+    from ..message.sdsb_ticket_msgs import SDSBTicketMsg
 
 except ImportError:
     from gateway.sdsb_ticket_management_gateway import TicketManagementGateway
     from common.hv_log import Log
-    from common.hv_log import Log
     from common.ansible_common import log_entry_exit
+    from message.sdsb_ticket_msgs import SDSBTicketMsg
 
 logger = Log()
 
@@ -41,4 +42,4 @@ class SDSBTicketManagementProvisioner:
         """
         self.gateway.discard_all_tickets()
         self.connection_info.changed = True
-        return "All tickets discarded successfully."
+        return SDSBTicketMsg.TICKET_DISCARD_SUCCESS.value

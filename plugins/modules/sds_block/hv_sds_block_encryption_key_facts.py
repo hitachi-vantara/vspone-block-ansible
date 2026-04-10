@@ -178,9 +178,7 @@ class SDSBEncryptionKeyFactsManager:
 
         try:
             sdsb_reconciler = SDSBEncryptionKeyReconciler(self.connection_info)
-
             response = sdsb_reconciler.get_encryption_keys_facts(self.spec)
-
         except Exception as e:
             self.logger.writeException(e)
             self.logger.writeInfo("=== End of SDSB Encryption Key Facts ===")

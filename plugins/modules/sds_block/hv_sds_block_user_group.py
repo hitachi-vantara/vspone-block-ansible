@@ -217,17 +217,13 @@ class SDSBUserGroupManager:
             self.logger.writeInfo("=== End of SDSB User Group Operation ===")
             self.module.fail_json(msg=str(e))
 
-        msg = self.spec.comments
         data = {
             "changed": self.connection_info.changed,
             "user_groups": user_groups if user_groups else [],
-            "comments": msg if msg else "",
         }
-        # if self.state == "present":
-        #     msg = "User group created successfully."
-        # elif self.state == "absent":
-        #     msg = self.spec.comments
-        # data["msg"] = msg if msg else ""
+        if self.spec.comments:
+            data["comments"] = self.spec.comments
+
         if registration_message:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo("=== End of SDSB User Group Operation ===")

@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : VSP One Server Playbook
-####################################################################
+# ###################################################################
 - name: VSP One Server Module
   hosts: localhost
   gather_facts: false
@@ -17,15 +17,15 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Register a basic server with minimal configuration
-    ####################################################################
+    # ###################################################################
     - name: Register a basic server with minimal configuration
       hitachivantara.vspone_block.vsp.hv_vsp_one_server:
         state: present
         connection_info: "{{ connection_info }}"
         spec:
-          nick_name: "WebServer01"
+          nickname: "WebServer01"
           protocol: "FC"
           os_type: "Linux"
           is_reserved: true
@@ -43,7 +43,7 @@
         state: present
         connection_info: "{{ connection_info }}"
         spec:
-          nick_name: "WebServer01"
+          nickname: "WebServer01"
           protocol: "FC"
           os_type: "Linux"
           hbas:
@@ -63,7 +63,7 @@
         state: present
         connection_info: "{{ connection_info }}"
         spec:
-          nick_name: "DatabaseServer01"
+          nickname: "DatabaseServer01"
           protocol: "iSCSI"
           os_type: "Windows"
           hbas:
@@ -83,7 +83,7 @@
         state: present
         connection_info: "{{ connection_info }}"
         spec:
-          nick_name: "VMwareCluster01"
+          nickname: "VMwareCluster01"
           protocol: "FC"
           os_type: "VMware"
           host_groups:
@@ -105,7 +105,7 @@
         state: present
         connection_info: "{{ connection_info }}"
         spec:
-          nick_name: "AppServer01"
+          nickname: "AppServer01"
           protocol: "FC"
           os_type: "Linux"
           hbas:
@@ -130,7 +130,7 @@
         state: present
         connection_info: "{{ connection_info }}"
         spec:
-          nick_name: "HybridServer01"
+          nickname: "HybridServer01"
           protocol: "iSCSI"
           os_type: "Linux"
           hbas:
@@ -155,7 +155,7 @@
         state: present
         connection_info: "{{ connection_info }}"
         spec:
-          nick_name: "ReservedServer01"
+          nickname: "ReservedServer01"
           protocol: "FC"
           os_type: "Solaris"
           is_reserved: true
@@ -169,15 +169,15 @@
         var: result
 
     ####################################################################
-    # Task Name : Update existing server nick_name (using server_id)
+    # Task Name : Update existing server nickname (using server_id)
     ####################################################################
-    - name: Update existing server nick_name (using server_id)
+    - name: Update existing server nickname (using server_id)
       hitachivantara.vspone_block.vsp.hv_vsp_one_server:
         state: present
         connection_info: "{{ connection_info }}"
         spec:
           server_id: 123
-          nick_name: "UpdatedServerName"
+          nickname: "UpdatedServerName"
       register: result
 
     - name: Debug the result variable
@@ -351,7 +351,7 @@
     ####################################################################
     - name: Sync server nickname
       hitachivantara.vspone_block.vsp.hv_vsp_one_server:
-        state: sync_server_nick_name
+        state: sync_server_nickname
         connection_info: "{{ connection_info }}"
         spec:
           server_id: 123
@@ -389,7 +389,7 @@
         state: present
         connection_info: "{{ connection_info }}"
         spec:
-          nick_name: "HPUXServer01"
+          nickname: "HPUXServer01"
           protocol: "FC"
           os_type: "HP-UX"
           hbas:
@@ -425,14 +425,14 @@
         var: result
 
     ####################################################################
-    # Task Name : Delete server using nick_name
+    # Task Name : Delete server using nickname
     ####################################################################
-    - name: Delete server using nick_name
+    - name: Delete server using nickname
       hitachivantara.vspone_block.vsp.hv_vsp_one_server:
         state: absent
         connection_info: "{{ connection_info }}"
         spec:
-          nick_name: "WebServer01"
+          nickname: "WebServer01"
       register: result
 
     - name: Debug the result variable

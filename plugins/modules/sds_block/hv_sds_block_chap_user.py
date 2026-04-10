@@ -5,7 +5,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 
@@ -209,8 +208,12 @@ class SDSBChapUserManager:
 
         response = {
             "changed": self.connection_info.changed,
-            "chap_users": chap_user_data_extracted,
+            "chap_users": (
+                chap_user_data_extracted if chap_user_data_extracted is not None else []
+            ),
         }
+        if self.spec.comments is not None:
+            response["comments"] = self.spec.comments
         if registration_message:
             response["user_consent_required"] = registration_message
         self.logger.writeInfo("=== End of SDSB CHAP User Operation ===")

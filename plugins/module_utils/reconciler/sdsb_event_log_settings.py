@@ -8,12 +8,14 @@ try:
     )
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
+    from ..message.sdsb_event_log_msgs import SDSBEventLogValidationMsg
 except ImportError:
     from provisioner.sdsb_event_log_setting_provisioner import (
         SDSBEventLogSettingProvisioner,
     )
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
+    from message.sdsb_event_log_msgs import SDSBEventLogValidationMsg
 
 logger = Log()
 
@@ -355,10 +357,7 @@ class SDSBEventLogSettingsReconciler:
 
             # Validate that only one type is being modified
             if has_syslog and has_email:
-                raise ValueError(
-                    "Cannot modify both syslogForwardingSetting and emailReportSetting simultaneously. "
-                    "Modify them separately."
-                )
+                raise ValueError(SDSBEventLogValidationMsg.BOTH_SETTING_SPECIFIED.value)
 
             # Modify syslog settings only
             if has_syslog:
@@ -410,11 +409,11 @@ class SDSBEventLogSettingsReconciler:
                 return self.modify_event_log_settings_email(email_report_setting)
 
             else:
-                raise ValueError(
-                    "Either syslog_forwarding_setting or email_report_setting must be provided"
-                )
+                raise ValueError(SDSBEventLogValidationMsg.NO_SETTING_SPECIFIED.value)
         else:
-            raise ValueError(f"Unsupported state: {state}")
+            raise ValueError(
+                SDSBEventLogValidationMsg.UNSUPPORTED_STATE.value.format(state)
+            )
 
     @log_entry_exit
     def import_smtp_root_certificate(self, certificate_spec):
@@ -429,16 +428,18 @@ class SDSBEventLogSettingsReconciler:
         """
 
         if not certificate_spec or not certificate_spec.certificate_path:
-            raise ValueError(
-                "certificate_path is required for importing SMTP root certificate"
-            )
+            raise ValueError(SDSBEventLogValidationMsg.CERT_PATH_REQDUIRED.value)
 
         certificate_path = certificate_spec.certificate_path
         target_smtp_server = certificate_spec.target_smtp_server or 1
 
         # Validate certificate file exists
         if not os.path.exists(certificate_path):
-            raise ValueError(f"Certificate file not found: {certificate_path}")
+            raise ValueError(
+                SDSBEventLogValidationMsg.CERT_FILE_NOT_FOUND.value.format(
+                    certificate_path
+                )
+            )
 
         logger.writeDebug(
             f"RC:=== Importing SMTP root certificate from {certificate_path} for server index {target_smtp_server} ==="
@@ -453,9 +454,7 @@ class SDSBEventLogSettingsReconciler:
         self.connection_info.changed = True
 
         logger.writeDebug("RC:=== SMTP root certificate imported successfully ===")
-        return (
-            "Root certificate for SMTP server communication is imported successfully."
-        )
+        return SDSBEventLogValidationMsg.CERT_IMPORT_SUCCESS.value
 
     @log_entry_exit
     def download_smtp_root_certificate(self, certificate_spec=None):
@@ -500,4 +499,4 @@ class SDSBEventLogSettingsReconciler:
         self.connection_info.changed = False
 
         logger.writeDebug("RC:=== SMTP root certificate downloaded successfully ===")
-        return f"Successfully downloaded SMTP root certificate to {file_name}"
+        return SDSBEventLogValidationMsg.CERT_DOWNLOAD_SUCCESS.value.format(file_name)

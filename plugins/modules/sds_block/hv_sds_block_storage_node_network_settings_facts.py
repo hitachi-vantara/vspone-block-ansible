@@ -124,6 +124,7 @@ class SDSBStorageNodeNetworkSettingFactsManager:
         self.argument_spec = (
             SDSBControlPortArguments().storage_node_nw_setting_port_facts()
         )
+
         self.module = AnsibleModule(
             argument_spec=self.argument_spec,
             supports_check_mode=True,

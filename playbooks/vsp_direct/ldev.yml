@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : LDEV  Playbook
-####################################################################
+# ###################################################################
 - name: Logical Device Module
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Create ldev with a specific LDEV ID
-    ####################################################################
+    # ###################################################################
     - name: Create ldev
       hitachivantara.vspone_block.vsp.hv_ldev:
         connection_info: "{{ connection_info }}"
@@ -124,7 +124,7 @@
         connection_info: "{{ connection_info }}"
         state: "present"
         spec:
-          parity_group: "1-1"
+          parity_group_id: "1-1"
           size: "10GB"
           name: "database_volume2"
       register: result
@@ -545,7 +545,7 @@
         connection_info: "{{ connection_info }}"
         state: "present"
         spec:
-          parity_group: "1-1"
+          parity_group_id: "1-1"
           cylinder: 65525
           ldev_id: 4251
           emulation_type: "3390-V"
@@ -567,6 +567,23 @@
           should_stop_all_volume_format: true
 
       register: result
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    # ###################################################################
+    # Task Name : Create ldev on a specific resource group
+    # ###################################################################
+    - name: Create ldev on a specific resource group
+      hitachivantara.vspone_block.vsp.hv_ldev:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          pool_id: 15
+          size: "1GB"
+          resource_group_id: 5
+      register: result
+
     - name: Debug the result variable
       ansible.builtin.debug:
         var: result

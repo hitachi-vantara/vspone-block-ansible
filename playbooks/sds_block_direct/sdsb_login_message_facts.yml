@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example :  Login Message Facts playbook
-####################################################################
+# ###################################################################
 - name: Login Message Facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Retrieve current login message
-    ####################################################################
+    # ###################################################################
     - name: Retrieve current login message
       hitachivantara.vspone_block.sds_block.hv_sds_block_login_message_facts:
         connection_info: "{{ connection_info }}"

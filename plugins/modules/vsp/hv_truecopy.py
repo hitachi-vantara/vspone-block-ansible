@@ -183,8 +183,7 @@ options:
           This is optional for the create operation.
         type: str
         required: false
-        choices: ['SLOW', 'MEDIUM', 'FAST']
-        default: 'MEDIUM'
+        default: "3"
       is_svol_readwriteable:
         description: It is applicable for split pair operation only. If true, the secondary volume will be read-writeable after split.
           Optional for the Split TrueCopy pair by specifying only the required fields
@@ -193,7 +192,7 @@ options:
         required: false
         default: false
       secondary_hostgroup:
-        description: Host group details of the secondary volume.
+        description: Deprecated. Use secondary_hostgroups instead.
           Required for the Create a TrueCopy pair by specifying only the required fields
           /Create a TrueCopy pair with provisioned_secondary_volume_id and hostgroups
           /Create a TC pair using a range for secondary volume ID tasks.
@@ -204,10 +203,12 @@ options:
             description: Name of the host group on the secondary storage system. This is required for create operation.
             type: str
             required: true
-          port:
-            description: Port of the host group on the secondary storage system. This is required for create operation.
+          port_id:
+            description: Port ID of the host group on the secondary storage system. This is required for create operation.
+              port is deprecated, use port_id instead.
             type: str
             required: true
+            aliases: ['port']
           lun_id:
             description: LUN ID of the host group on the secondary storage system. This is required for create operation.
             type: int
@@ -222,10 +223,12 @@ options:
             description: Name of the host group on the secondary storage system. This is required for create operation.
             type: str
             required: true
-          port:
-            description: Port of the host group on the secondary storage system. This is required for create operation.
+          port_id:
+            description: Port ID of the host group on the secondary storage system. This is required for create operation.
+              port is deprecated, use port_id instead.
             type: str
             required: true
+            aliases: ['port']
           lun_id:
             description: LUN ID of the host group on the secondary storage system. This is not required for create operation.
             type: int
@@ -244,12 +247,14 @@ options:
               /Create a TrueCopy-ISCSI pair by specifying all the fields tasks.
             type: str
             required: true
-          port:
-            description: Port name.
+          port_id:
+            description: Port ID.
               Required for the Create a TrueCopy-ISCSI pair by specifying only the required fields
               /Create a TrueCopy-ISCSI pair by specifying all the fields tasks.
+              port is deprecated, use port_id instead.
             type: str
             required: true
+            aliases: ['port']
           lun_id:
             description: LUN ID.
               Required for the Create a TrueCopy-ISCSI pair by specifying only the required fields
@@ -285,12 +290,11 @@ options:
         description: Force copy for data reduction. This is an optional field during create operation.
         type: bool
         required: false
-        default: false
+        default: true
       is_new_group_creation:
         description: Create a new copy group. This is an optional field during create operation.
         type: bool
         required: false
-        default: false
       path_group_id:
         description: >
           This is an optional field during create operation.
@@ -339,7 +343,7 @@ EXAMPLES = """
       secondary_pool_id: 1
       secondary_hostgroup:
         name: ansible_test_group
-        port: CL1-A
+        port_id: CL1-A
         lun_id: 1
 
 - name: Split a TrueCopy pair
@@ -454,13 +458,18 @@ truecopy_info:
       type: str
       sample: "ESD_TC_CP"
     copy_progress_rate:
-      description: Copy progress rate.
+      description: Deprecated.Copy progress rate.
       type: int
       sample: -1
     fence_level:
       description: Fence level.
       type: str
       sample: "NEVER"
+    local_device_group_name:
+      description:
+        - Name of the local device group to retrieve TrueCopy pair information for.
+      type: str
+      sample: "tc_bulk_cg_1P_"
     primary_volume_id:
       description: Primary volume ID.
       type: int
@@ -469,14 +478,31 @@ truecopy_info:
       description: Primary volume ID in hex format.
       type: str
       sample: "00:00:0B"
+    primary_volume_size:
+      description: Size of the primary volume.
+      type: str
+      sample: "4.00GB"
+    primary_volume_status:
+      description: Primary volume status.
+      type: str
+      sample: "PAIR"
+    primary_volume_storage_serial_number:
+      description: Storage serial number of the primary volume.
+      type: str
+      sample: "810050"
     pvol_status:
-      description: PVOL status.
+      description: Deprecated. Use primary_volume_status instead.
       type: str
       sample: "PAIR"
     pvol_storage_device_id:
-      description: PVOL storage device ID.
+      description: Deprecated. PVOL storage device ID.
       type: str
       sample: "A00000970041"
+    remote_device_group_name:
+      description:
+        - Name of the remote device group to retrieve TrueCopy pair information for.
+      type: str
+      sample: "tc_bulk_cg_1S_"
     remote_mirror_copy_pair_id:
       description: Remote mirror copy pair ID.
       type: str
@@ -489,18 +515,30 @@ truecopy_info:
       description: Secondary volume ID in hex format.
       type: str
       sample: "00:00:0B"
-    storage_serial_number:
-      description: Storage serial number.
+    secondary_volume_size:
+      description: Size of the secondary volume.
       type: str
-      sample: "70041"
+      sample: "4.00GB"
+    secondary_volume_status:
+      description: Secondary volume status.
+      type: str
+      sample: "PAIR"
+    secondary_volume_storage_serial_number:
+      description: Storage serial number of the secondary volume.
+      type: str
+      sample: "810045"
+    storage_serial_number:
+      description: Deprecated. Use primary_volume_storage_serial_number instead.
+      type: str
+      sample: "810050"
     svol_status:
-      description: SVOL status.
+      description: Deprecated. Use secondary_volume_status instead.
       type: str
       sample: "PAIR"
     svol_storage_device_id:
-      description: SVOL storage device ID.
+      description: Deprecated. SVOL storage device ID.
       type: str
-      sample: "A00000970045"
+      sample: "A34000810045"
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -537,7 +575,7 @@ class VSPSTrueCopyManager:
             self.params_manager = VSPParametersManager(self.module.params)
             self.connection_info = self.params_manager.connection_info
             self.storage_serial_number = self.params_manager.storage_system_info.serial
-            self.spec = self.params_manager.true_cpoy_spec()
+            self.spec = self.params_manager.true_copy_spec()
             self.state = self.params_manager.get_state()
             self.secondary_connection_info = (
                 self.params_manager.get_secondary_connection_info()
@@ -554,7 +592,8 @@ class VSPSTrueCopyManager:
         self.logger.writeDebug("state = {}", self.state)
         try:
             data = self.true_copy_module()
-
+            if data is None:
+                data = []
         except Exception as e:
             self.logger.writeError(str(e))
             self.logger.writeInfo("=== End of TrueCopy operation. ===")
@@ -562,20 +601,15 @@ class VSPSTrueCopyManager:
 
         resp = {
             "changed": self.connection_info.changed,
-            # "truecopy_info": data,
-            # "msg": self.get_message(),
+            "truecopy_info": data,
         }
 
-        if data is not None and isinstance(data, list) or isinstance(data, dict):
-            resp["truecopy_info"] = data
-
-        if data is not None and isinstance(data, str):
-            resp["msg"] = data
-        else:
-            resp["msg"] = self.get_message()
+        if self.spec.comments:
+            resp["msg"] = self.spec.comments
 
         if registration_message:
             resp["user_consent_required"] = registration_message
+
         self.logger.writeInfo(f"{resp}")
         self.logger.writeInfo("=== End of TrueCopy operation. ===")
         self.module.exit_json(**resp)
@@ -588,28 +622,6 @@ class VSPSTrueCopyManager:
             self.secondary_connection_info,
         )
         return reconciler.reconcile_true_copy(self.spec)
-
-    def get_message(self):
-
-        if self.state == "present":
-            return "TrueCopy Pair created successfully."
-        elif self.state == "absent":
-            if self.spec.should_delete_svol is True:
-                return "TrueCopy Pair and Secondary volume deleted successfully."
-            else:
-                return "TrueCopy Pair deleted successfully."
-        elif self.state == "resize" or self.state == "expand":
-            return "TrueCopy Pair expanded successfully."
-        elif self.state == "resync":
-            return "TrueCopy Pair resynced successfully."
-        elif self.state == "split":
-            return "TrueCopy Pair split successfully."
-        elif self.state == "swap_split":
-            return "TrueCopy Pair swap_split successfully."
-        elif self.state == "swap_resync":
-            return "TrueCopy Pair swap_resynced successfully."
-        else:
-            return "Unknown state provided."
 
 
 def main(module=None):

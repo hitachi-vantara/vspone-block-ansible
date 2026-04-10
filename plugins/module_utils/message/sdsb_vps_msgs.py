@@ -1,10 +1,6 @@
 from enum import Enum
 
 
-class SDSBChapUserMessage(Enum):
-    pass
-
-
 class SDSBVpsValidationMsg(Enum):
 
     NO_SPEC = "Specifications for the VPS are not provided."
@@ -16,8 +12,11 @@ class SDSBVpsValidationMsg(Enum):
     INVALID_NUMBER_OF_SERVERS = (
         "The value of upper_limit_for_number_of_servers should be between 0 and 1024."
     )
-
     SAME_SAVING_SETTING = (
         "VPS volume ADR setting is same as the one specified in the spec."
     )
     FEATURE_NOT_SUPPORTED = "{} feature is not supported in this release."
+    VPS_CREATE_FAILED = "Failed to create VPS."
+    VPS_UPDATE_FAILED = "Failed to update VPS."
+    VPS_DELETE_SUCCESS = "VPS with ID '{}' has been successfully deleted."
+    VPS_DELETE_FAILED = "Could not delete VPS, ensure VPS ID '{}' is valid."

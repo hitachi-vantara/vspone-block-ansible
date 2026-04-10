@@ -18,11 +18,11 @@ class VSPSQuorumDiskValidateMsg(Enum):
     NO_JOURNAL_VOLUME_FOR_ID = (
         "Could not find the journal volume associated with journal_id {}."
     )
-    BOTH__FREE_POOL_ID_AND_USED_PARAM = "Both is_free_journal_pool_id and is_mirror_not_used cannot be set select only one"
-    NO_FREE_JOURNAL_POOL_ID = "No free journal pool id available"
+    BOTH_FREE_POOL_ID_AND_USED_PARAM = "Both is_free_journal_pool_id and is_mirror_not_used cannot be set select only one."
+    NO_FREE_JOURNAL_POOL_ID = "No free journal pool id available."
     JOURNAL_POOL_DELETE = "Journal deleted successfully."
     JP_POOL_LDEV_LIMIT_MAX = (
-        "The number of journal volume exceeds the maximum that can be registered"
+        "The number of journal volume exceeds the maximum that can be registered."
     )
     JP_POOL_LDEV_LIMIT_MIN = "The pool has reached the minimum number of LDEVs."
     JP_ID = "The journal_id is required for the operation."

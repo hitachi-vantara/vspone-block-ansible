@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  role_name: hv_vsp_primary_secondary_journal_creation
+  author: Hitachi Vantara Infrastructure Team
+  description: Create Journal on Hitachi VSP One Block storage for both primary and secondary storage
+  company: Hitachi Vantara
+  license: Apache-2.0
+  min_ansible_version: "2.9"
+
+  galaxy_tags:
+    - hitachi
+    - vsp
+    - storage
+    - journal
+    - hur
+    - replication
+
+dependencies: []

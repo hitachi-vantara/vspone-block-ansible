@@ -18,7 +18,6 @@ from ..model.sdsb_storage_controller_model import (
 
 from ..model.sdsb_storage_system_models import SDSBPfrestPool
 
-
 logger = Log()
 
 
@@ -181,9 +180,9 @@ class SDSBStorageClusterManagementGateway:
             file_name = "bmc_root_certificate.cer"
             logger.writeInfo(f"Response from BMC: {response}")
             # Save the binary content to the specified download path
-            with open(                                          # nosec
-                os.path.join(download_path, file_name), "wb"    # nosec
-            ) as cert_file:                                     # nosec
+            with open(  # nosec
+                os.path.join(download_path, file_name), "wb"  # nosec
+            ) as cert_file:  # nosec
                 if isinstance(response, bytes):
                     cert_file.write(response)
                 elif isinstance(response, str):

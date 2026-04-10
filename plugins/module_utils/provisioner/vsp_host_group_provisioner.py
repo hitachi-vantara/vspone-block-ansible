@@ -3,19 +3,25 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 try:
 
     from ..common.hv_log import Log
-    from ..common.ansible_common import convert_hex_to_dec
-    from ..common.ansible_common import log_entry_exit
+    from ..common.ansible_common import (
+        convert_hex_to_dec,
+        log_entry_exit,
+    )
     from ..message.vsp_host_group_msgs import VSPHostGroupMessage
     from ..gateway.vsp_host_group_gateway import VSPHostGroupDirectGateway
     from ..common.hv_constants import VSPHostGroupConstant
     from ..common.ansible_common_constants import MAX_WORKER_THREADS
+    from ..common.vsp_errors import VspHostGroupCreationError
 
 except ImportError:
     from common.hv_log import Log
-    from common.ansible_common import convert_hex_to_dec
-    from common.ansible_common import log_entry_exit
+    from common.ansible_common import (
+        convert_hex_to_dec,
+        log_entry_exit,
+    )
     from message.vsp_host_group_msgs import VSPHostGroupMessage
     from gateway.vsp_host_group_gateway import VSPHostGroupDirectGateway
+    from common.vsp_errors import VspHostGroupCreationError
 
 
 class VSPHostGroupProvisioner:
@@ -36,7 +42,7 @@ class VSPHostGroupProvisioner:
         hg_number=None,
     ):
         if name_input is not None and hg_number is not None:
-            raise Exception(
+            raise ValueError(
                 "Both name and hg_number cannot be provided at the same time."
             )
         logger = Log()
@@ -96,13 +102,22 @@ class VSPHostGroupProvisioner:
         if not self.all_hgs:
             self.all_hgs = self.get_all_host_groups(self.serial)
 
-        logger.writeDebug(f"self.all_hgs{self.all_hgs}")
+        logger.writeDebug(
+            f"GW:get_one_host_group_using_hg_port_id:self.all_hgs{self.all_hgs}"
+        )
         if self.all_hgs:
             for hg in self.all_hgs.data:
                 if hg.portId == port_id and hg.hostGroupNumber == hg_id:
                     hg.port = hg.portId
                     return hg
         return None
+
+    @log_entry_exit
+    def get_host_group_by_name_or_number(self, port_input, name=None, hg_number=None):
+        if name is not None:
+            return self.get_one_host_group(port_input, name).data
+        elif hg_number is not None:
+            return self.get_one_host_group_using_hg_port_id(port_input, hg_number)
 
     @log_entry_exit
     def get_all_host_groups(self, serial):
@@ -136,7 +151,7 @@ class VSPHostGroupProvisioner:
         except Exception as e:
             err_msg = VSPHostGroupMessage.HG_CREATE_FAILED.value + str(e)
             logger.writeError(err_msg)
-            raise Exception(err_msg)
+            raise VspHostGroupCreationError(err_msg)
 
     @log_entry_exit
     def delete_host_group(self, hg, is_delete_all_luns):
@@ -149,6 +164,10 @@ class VSPHostGroupProvisioner:
     @log_entry_exit
     def delete_wwns_from_host_group(self, hg, wwns):
         return self.gateway.delete_wwns_from_host_group(hg, wwns)
+
+    @log_entry_exit
+    def add_ldevs_to_host_group(self, hg, ldevs, lun_id=None):
+        return self.gateway.add_luns_to_host_group(hg, ldevs, lun_id=lun_id)
 
     @log_entry_exit
     def add_luns_to_host_group(self, hg, luns):
@@ -194,6 +213,8 @@ class VSPHostGroupProvisioner:
         hg_objects_dict = {}
         logger.writeDebug("PROV:handle_multi_hg_with_present_ldevs:")
         logger.writeDebug(f"sub state: {sub_state}")
+        logger.writeDebug(f"sub hg_name: {hg_name}")
+        logger.writeDebug(f"sub ports: {ports}")
 
         def fetch_host_group(port):
             if hg_name is not None:
@@ -201,7 +222,7 @@ class VSPHostGroupProvisioner:
             else:
                 hg = self.get_one_host_group_using_hg_port_id(port, hg_number)
             if hg is None:
-                raise Exception(VSPHostGroupMessage.PORTS_PARAMETER_INVALID.value)
+                raise ValueError(VSPHostGroupMessage.PORTS_PARAMETER_INVALID.value)
             return hg
 
         executor = ThreadPoolExecutor(
@@ -214,7 +235,12 @@ class VSPHostGroupProvisioner:
                 try:
                     hg = future.result()
                     hg_objects.append(hg)
-                    hg_objects_dict.setdefault(hg.hostGroupNumber, []).append(hg.portId)
+                    logger.writeDebug(
+                        f"PROV:handle_multi_hg_with_present_ldevs: fetched hg {hg}"
+                    )
+                    # Use hg.port if available, else fallback to hg.portId
+                    port_id = getattr(hg, "port", None) or getattr(hg, "portId", None)
+                    hg_objects_dict.setdefault(hg.hostGroupNumber, []).append(port_id)
                 except Exception as exc:
                     logger.writeError(
                         f"Port {futures[future]} generated an exception: {exc}"
@@ -238,6 +264,9 @@ class VSPHostGroupProvisioner:
             executor = ThreadPoolExecutor(
                 max_workers=MAX_WORKER_THREADS,
                 thread_name_prefix="ProcessPresent",
+            )
+            logger.writeDebug(
+                f"PROV:handle_multi_hg_with_present_ldevs: hg_objects_dict={hg_objects_dict}"
             )
             try:
                 futures = {

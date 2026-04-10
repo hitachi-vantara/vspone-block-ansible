@@ -11,6 +11,9 @@ try:
     from ..message.sdsb_volume_msgs import SDSBVolValidationMsg
     from ..message.sdsb_vps_msgs import SDSBVpsValidationMsg
     from .sdsb_vps_helper import SDSBVpsHelper
+    from ..common.sdsb_errors import (
+        SdsbVolumeCreationError,
+    )
 except ImportError:
     from provisioner.sdsb_volume_provisioner import SDSBVolumeProvisioner
     from provisioner.sdsb_storage_pool_provisioner import SDSBStoragePoolProvisioner
@@ -22,7 +25,9 @@ except ImportError:
     from message.sdsb_volume_msgs import SDSBVolValidationMsg
     from message.sdsb_vps_msgs import SDSBVpsValidationMsg
     from sdsb_vps_helper import SDSBVpsHelper
-
+    from common.sdsb_errors import (
+        SdsbVolumeCreationError,
+    )
 
 logger = Log()
 
@@ -63,10 +68,11 @@ class SDSBVolumeReconciler:
                     logger.writeDebug(
                         "RC:=== spec.id is not None but volume is None ==="
                     )
-                    raise ValueError(
-                        SDSBVolValidationMsg.VOL_ID_ABSENT.value.format(spec.id)
+                    spec.comments = SDSBVolValidationMsg.VOL_ID_ABSENT.value.format(
+                        spec.id
                     )
-
+                    self.connection_info.changed = False
+                    return None
             else:
                 # this could be a create or an update
                 if spec.name is not None:
@@ -94,18 +100,26 @@ class SDSBVolumeReconciler:
                 volume = self.get_volume_by_name(spec.name)
                 logger.writeDebug("RC:volume={}", volume)
                 if volume is None:
-                    raise ValueError(
-                        SDSBVolValidationMsg.VOLUME_NOT_FOUND.value.format(spec.name)
+                    spec.comments = SDSBVolValidationMsg.VOLUME_NOT_FOUND.value.format(
+                        spec.name
                     )
+                    self.connection_info.changed = False
+                    return None
                 volume_id = volume.id
             else:
                 raise ValueError(SDSBVolValidationMsg.NO_NAME_ID.value)
 
             vol_id = self.delete_volume_by_id(volume_id)
             if vol_id is not None:
-                return "Volume has been deleted successfully."
+                spec.comments = SDSBVolValidationMsg.DELETE_VOLUME_SUCCESS.value.format(
+                    vol_id
+                )
+                return None
             else:
-                return "Could not delete volume."
+                spec.comments = SDSBVolValidationMsg.DELETE_VOLUME_FAILED.value.format(
+                    volume_id
+                )
+                return None
 
     @log_entry_exit
     def get_pool_id(self, pool_name):
@@ -240,7 +254,9 @@ class SDSBVolumeReconciler:
             pool_id, spec.name, capacity, savings, spec.qos_param, spec.vps_id
         )
         if not vol_id:
-            raise Exception("Failed to create volume")
+            raise SdsbVolumeCreationError(
+                SDSBVolValidationMsg.FAILED_TO_CREATE_VOLUME.value
+            )
 
         if spec.compute_nodes is not None and len(spec.compute_nodes) > 0:
             logger.writeDebug(
@@ -257,6 +273,9 @@ class SDSBVolumeReconciler:
         vol.computeNodesInfo = cn_summary
 
         # return self.get_volume_by_id(vol_id)
+        spec.comments = SDSBVolValidationMsg.VOLUME_CREATION_SUCCESS.value.format(
+            vol_id
+        )
         return vol
 
     @log_entry_exit
@@ -380,21 +399,18 @@ class SDSBVolumeReconciler:
             elif spec.state.lower() == SDSBVolumeSubstates.REMOVE_COMPUTE_NODE:
                 self.update_remove_compute_nodes(volume_data.id, spec.compute_nodes)
             else:
-                raise Exception(
-                    "Invalid state provided in the spec. Valid states in the spec are: {}, and {}".format(
-                        SDSBVolumeSubstates.ADD_COMPUTE_NODE,
-                        SDSBVolumeSubstates.REMOVE_COMPUTE_NODE,
-                    )
+                err_msg = SDSBVolValidationMsg.INVALID_STATE.value.format(
+                    SDSBVolumeSubstates.ADD_COMPUTE_NODE,
+                    SDSBVolumeSubstates.REMOVE_COMPUTE_NODE,
                 )
+                spec.comments = err_msg
+                self.connection_info.changed = False
+                return None
 
         cn_summary = self.get_compute_nodes_summary(volume_data.id)
         vol = self.get_volume_by_id(volume_data.id)
-
-        # vol_with_cn = SDSBVolumeAndComputeNodeInfo(vol, cn_summary)
-
         vol.computeNodesInfo = cn_summary
         return vol
-        # return self.get_volume_by_id(volume_data.id)
 
     @log_entry_exit
     def update_add_compute_nodes(self, volume_id, compute_nodes):
@@ -420,10 +436,6 @@ class SDSBVolumeReconciler:
 
         if compute_nodes is None or len(compute_nodes) == 0:
             return
-
-        # if len(compute_nodes) == 0:
-        #     self.detach_compute_nodes_from_volume(volume_id)
-        #     return
 
         # get the compute node ids supplied in the spec
         cn_ids = self.get_compute_node_ids(compute_nodes)

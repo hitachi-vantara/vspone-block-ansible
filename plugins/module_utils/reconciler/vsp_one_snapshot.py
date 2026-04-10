@@ -6,7 +6,7 @@ from ..common.ansible_common import (
 from ..common.hv_log import Log
 from ..provisioner.vsp_one_snapshot_provisioner import VspOneSnapshotProvisioner
 from ..common.hv_constants import StateValue
-
+from ..message.vsp_snapshot_msgs import VSPSnapShotValidateMsg
 
 logger = Log()
 
@@ -60,5 +60,7 @@ class VspOneSnapshotReconciler:
         if handler:
             return handler(spec)
         else:
-            spec.errors.append(f"Unsupported state: {state}")
+            spec.errors.append(
+                VSPSnapShotValidateMsg.VSP_ONE_UNSUPPORTED_STATE.value.format(state)
+            )
             return spec

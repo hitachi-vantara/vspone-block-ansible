@@ -1,4 +1,5 @@
 from enum import Enum
+from ..common.hv_constants import LdevConstants
 
 
 class VSPHostGroupMessage(Enum):
@@ -50,13 +51,14 @@ class VSPHostGroupMessage(Enum):
     HOST_MODE_OPTION_NOT_SUPPORTED = (
         "Host mode option is not supported on this storage system."
     )
+    HG_NOT_FOUND_FOR_UPDATE = (
+        "Host group with name {} or number {} not found on port {} for update."
+    )
 
 
 class VSPHostGroupValidationMsg(Enum):
     HG_NAME_OUT_OF_RANGE = "The host group name is out of range. Specify a value in the range from 1 to 64."
-    LUN_OUT_OF_RANGE = (
-        "The lun is out of range. Specify a value in the range from 1 to 65535."
-    )
+    LUN_OUT_OF_RANGE = f"The lun is out of range. Specify a value in the range from 1 to {LdevConstants.MAX_VALID_LDEV_ID}."
     PORT_OUT_OF_RANGE = (
         "The port is out of range. Specify a value in the range from 1 to 256."
     )
@@ -70,3 +72,14 @@ class VSPHostGroupValidationMsg(Enum):
     INVALID_PARAM_LDEVS = (
         "The ldevs input parameter is incorrect, please correct and try again."
     )
+    LDEVS_OR_LUN_PATHS_NOT_BOTH = "Specify either 'ldevs' or 'lun_paths', not both."
+    PORT_OR_PORTS_NOT_BOTH = "Specify either 'port' or 'ports', not both."
+    PORT_ID_OR_PORT_IDS_NOT_BOTH = "Specify either 'port_id' or 'port_ids', not both."
+    PORT_IDS_LIST_RANGE = (
+        "Port IDs list must contain between 1 and MAX_BULK_PAIRS entries."
+    )
+    PORT_OR_PORT_ID_REQUIRED = (
+        "'port' or 'port_id' must be specified for hostgroup operation."
+    )
+    PORTS_LIST_MAX_EXCEEDED = "Ports list cannot contain more than 6 entries."
+    PORT_IDS_LIST_MAX_EXCEEDED = "Port IDs list cannot contain more than 6 entries."

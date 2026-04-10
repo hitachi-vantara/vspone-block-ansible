@@ -1,0 +1,21 @@
+---
+# ###################################################################
+# Meta information for hv_vsp_create_primary_and_secondary_quroum_disk role
+# ###################################################################
+
+galaxy_info:
+  role_name: hv_vsp_create_primary_and_secondary_quroum_disk
+  author: Hitachi Vantara
+  description: Create primary and secondary quorum disks for VSP One Block storage
+  company: Hitachi Vantara
+  license: Proprietary
+  min_ansible_version: "2.9"
+
+  galaxy_tags:
+    - hitachi
+    - vsp
+    - storage
+    - quorum
+    - gad
+
+dependencies: []

@@ -32,6 +32,7 @@ notes:
 - With each request, you can obtain information about a maximum of 500 volumes.
 - To obtain information about additional volumes, execute the ansible task multiple times by using a combination of the count and start_volume_id parameters.
 - By specifying the count parameter, you can also filter the volume information you require.
+- The parameter C(start_volume_id) will be deprecated in the future. Please use C(begin_volume_id) instead.
 options:
   spec:
     description: Specification for the volume task.
@@ -83,14 +84,15 @@ options:
           Required for the Get facts for volumes with capacity filters task.
         required: false
         type: str
-      start_volume_id:
+      begin_volume_id:
         description: Starting volume ID.
-          Required for the Get facts for a range of volumes by start_volume_id and count task.
+          Required for the Get facts for a range of volumes by begin_volume_id and count task.
         required: false
         type: str
+        aliases: ['start_volume_id']
       count:
         description: Number of volumes.
-          Required for the Get facts for a range of volumes by start_volume_id and count task.
+          Required for the Get facts for a range of volumes by begin_volume_id and count task.
         required: false
         type: int
       volume_id:

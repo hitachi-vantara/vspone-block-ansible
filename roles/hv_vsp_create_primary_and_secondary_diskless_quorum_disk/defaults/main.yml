@@ -1,0 +1,29 @@
+---
+# ###################################################################
+# Default variables for hv_vsp_create_primary_and_secondary_diskless_quorum_disk role
+# ###################################################################
+
+# Connection information for the primary storage (Mandatory)
+# Connection information for the secondary storage (Mandatory)
+# Example:
+# hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_connection:
+#   address: "192.168.1.101"
+#   username: "admin"
+#   password: "password"
+hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_connection: {}
+# Connection information for the storage provider for the quorum disk (Mandatory)
+# Example:
+# hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_storage_connection:
+#   address: "192.168.1.102"
+#   username: "admin"
+#   password: "password"
+hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_storage_connection: {}
+# Host groups of the storage provider for the quorum disk (Mandatory)
+# Type: list of host group input object
+# Example:
+# hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_storage_host_groups:
+#   - host_group_name: "HG_001"
+#     port: "CL1-A"
+#   - host_group_name: "HG_002"
+#     port: "CL1-B"
+hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id:

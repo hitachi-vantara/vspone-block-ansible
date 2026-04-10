@@ -342,7 +342,7 @@ class SDSBJournalProvisioner:
         """Handles journal update or retrieval by ID."""
 
         journal_info = self.gateway.get_journal_by_id(spec.id)
-        if not journal_info or not getattr(journal_info, "data", None):
+        if not journal_info or not getattr(journal_info, "id", None):
             raise ValueError(
                 SDSBJournalValidationMsg.ID_NOT_AVAILABLE.value.format(spec.id)
             )

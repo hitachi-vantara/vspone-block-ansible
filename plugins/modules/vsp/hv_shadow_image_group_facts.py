@@ -104,18 +104,26 @@ ansible_facts:
           description: The name of the local copy group.
           type: str
           sample: "SI_768"
-        pvol_device_group_name:
-          description: The name of the primary volume device group.
-          type: str
-          sample: "PSI768_"
-        svol_device_group_name:
-          description: The name of the secondary volume device group.
-          type: str
-          sample: "SSI768_"
         local_clone_copygroup_id:
           description: The ID of the local clone copy group.
           type: str
           sample: "SI_768,PSI768_,SSI768_"
+        primary_volume_device_group_name:
+          description: The name of the primary volume device group.
+          type: str
+          sample: "PSI768_"
+        pvol_device_group_name:
+          description: Deprecated. Use primary_volume_device_group_name instead.
+          type: str
+          sample: "PSI768_"
+        secondary_volume_device_group_name:
+          description: The name of the secondary volume device group.
+          type: str
+          sample: "SSI768_"
+        svol_device_group_name:
+          description: Deprecated. Use secondary_volume_device_group_name instead.
+          type: str
+          sample: "SSI768_"
         storage_serial_number:
           description: The serial number of the storage system.
           type: str

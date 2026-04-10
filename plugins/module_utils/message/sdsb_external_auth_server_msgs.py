@@ -12,3 +12,12 @@ class SDSBExternalAuthServerValidationMsg(Enum):
     INVALID_TARGET_SERVER_PROVIDED = (
         "Invalid target server provided. Valid values are 'primary' and 'secondary'."
     )
+    CERT_IMPORT_SUCCESS = (
+        "Root certificate for External Auth Server is imported successfully."
+    )
+    CERT_DOWNLOAD_SUCCESS = (
+        "Successfully downloaded External Auth Server root certificate to {}."
+    )
+    NO_EXTERNAL_AUTH_SERVER_FOUND = (
+        "No existing external authentication server settings found to update."
+    )

@@ -11,6 +11,7 @@ except ImportError:
 class ChapUserFactSpec:
     id: Optional[str] = None
     target_chap_user_name: Optional[str] = None
+    comments: Optional[str] = None
 
 
 @dataclass
@@ -20,6 +21,7 @@ class ChapUserSpec:
     target_chap_secret: Optional[str] = None
     initiator_chap_user_name: Optional[str] = None
     initiator_chap_secret: Optional[str] = None
+    comments: Optional[str] = None
 
 
 @dataclass

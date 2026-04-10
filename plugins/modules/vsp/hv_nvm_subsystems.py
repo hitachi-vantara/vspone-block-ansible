@@ -97,7 +97,7 @@ options:
         type: bool
         required: false
         default: true
-      ports:
+      port_ids:
         description: The ports of the NVM subsystem.
           Required for the Create an NVM Subsystem with a specific ID
           /Create an NVM Subsystem with a free ID
@@ -107,6 +107,7 @@ options:
         type: list
         elements: str
         required: false
+        aliases: [ports]
       host_nqns:
         description: The host NQNs of the NVM subsystem.
           Required for the Create an NVM Subsystem with a specific ID
@@ -209,7 +210,7 @@ EXAMPLES = """
       id: 1000
       host_mode: "VMWARE_EX"
       enable_namespace_security: true
-      ports: ["CL1-D"]
+      port_ids: ["CL1-D"]
       host_nqns:
         - nqn: "nqn.2014-08.org.example:uuid:4b73e622-ddc1-449a-99f7-412c0d3baa40"
           nickname: "my_host_nqn_40"

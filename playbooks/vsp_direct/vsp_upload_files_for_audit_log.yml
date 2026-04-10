@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Uploading the files required to set the transfer destination of audit log files
-####################################################################
+# ###################################################################
 - name: Uploading the files required to set the transfer destination of audit log files
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Upload a primary client certificate file to the Storage System for audit log
-    ####################################################################
+    # ###################################################################
     - name: Upload a primary client certificate file to the Storage System for audit log
       hitachivantara.vspone_block.vsp.hv_upload_file:
         connection_info: "{{ connection_info }}"

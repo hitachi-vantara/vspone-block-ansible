@@ -21,6 +21,11 @@ class SDSBUserSpec:
     is_enabled: Optional[bool] = None
     vps_id: Optional[str] = None
     vps_name: Optional[str] = None
+    comments: Optional[str] = None
+
+    def __post_init__(self):
+        if self.user_id is None:
+            self.user_id = self.id
 
 
 @dataclass

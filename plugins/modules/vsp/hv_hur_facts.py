@@ -75,11 +75,12 @@ options:
           Optional for the Get HUR pair using secondary volume ID task.
         type: str
         required: false
-      mirror_unit_id:
-        description: The mirror unit identifier. If not provided, it will be omitted.
+      mirror_unit_number:
+        description: The mirror unit number. If not provided, it will be omitted.
         type: int
         required: false
         choices: [0, 1, 2, 3]
+        aliases: [mirror_unit_id]
       copy_group_name:
         description: The copy group name. If not provided, it will be omitted.
           Required for the Get HUR pair using copy group
@@ -129,7 +130,7 @@ EXAMPLES = """
       password: "secret"
     spec:
       primary_volume_id: 111
-      mirror_unit_id: 10
+      mirror_unit_number: 10
 
 - name: Gather HUR facts for a specific primary volume
   hitachivantara.vspone_block.vsp.hv_hur_facts:
@@ -183,15 +184,32 @@ ansible_facts:
           type: str
           sample: "spc-7331-6442"
         copy_rate:
-          description: Copy rate.
+          description:  Deprecated. Copy rate.
           type: int
-          sample: ""
+          sample: -1
+        fence_level:
+          description: Fence level.
+          type: str
+          sample: "ASYNC"
+        local_device_group_name:
+          description:
+            - Name of the local device group to retrieve TrueCopy pair information for.
+          type: str
+          sample: "hur_bulk_cg_1P_"
         mirror_unit_id:
-          description: Mirror unit ID.
+          description: Deprecated. Use mirror_unit_number instead
           type: int
           sample: 1
+        mirror_unit_number:
+          description: Mirror unit number.
+          type: int
+          sample: 1
+        primary_journal_id:
+          description: Primary journal Id.
+          type: int
+          sample: 25
         primary_journal_pool:
-          description: Primary journal pool.
+          description: Deprecated. Use primary_journal_id instead.
           type: int
           sample: 25
         primary_volume_id:
@@ -202,24 +220,41 @@ ansible_facts:
           description: Hexadecimal representation of the primary volume ID.
           type: str
           sample: "00:19:2A"
+        primary_volume_status:
+          description: Primary volume status.
+          type: str
+          sample: "PAIR"
         primary_volume_storage_id:
-          description: Primary volume storage ID.
+          description: Deprecated. Use primary_volume_storage_serial_number instead.
+          type: str
+          sample: "810050"
+        primary_volume_storage_serial_number:
+          description: Storage serial number of the primary volume.
           type: str
           sample: "810050"
         pvol_status:
-          description: PVOL status.
+          description: Deprecated. Use primary_volume_status instead.
           type: str
           sample: "PAIR"
         pvol_storage_device_id:
-          description: PVOL storage device ID.
+          description: Deprecated. PVOL storage device ID.
           type: str
           sample: "A34000810050"
+        remote_device_group_name:
+          description:
+            - Name of the remote device group to retrieve TrueCopy pair information for.
+          type: str
+          sample: "hur_bulk_cg_1S_"
         remote_mirror_copy_pair_id:
-          description: Remote mirror copy pair ID.
+          description: Deprecated. Remote mirror copy pair ID.
           type: str
           sample: "A34000810050,spcA34000810045A34000810050,spcA34000810045A34000810050,spcA34000810050A34000810045,spc-7331-6442"
+        secondary_journal_id:
+          description: Secondary journal ID.
+          type: int
+          sample: 25
         secondary_journal_pool:
-          description: Secondary journal pool.
+          description: Deprecated. Use secondary_journal_id instead.
           type: int
           sample: 25
         secondary_volume_id:
@@ -231,7 +266,11 @@ ansible_facts:
           type: str
           sample: "00:1C:A3"
         secondary_volume_storage_id:
-          description: Secondary volume storage ID.
+          description: Deprecated. Use secondary_volume_storage_serial_number instead.
+          type: str
+          sample: "810045"
+        secondary_volume_storage_serial_number:
+          description: Storage serial number of the secondary volume.
           type: str
           sample: "810045"
         svol_status:
@@ -239,7 +278,7 @@ ansible_facts:
           type: str
           sample: "PAIR"
         svol_storage_device_id:
-          description: SVOL storage device ID.
+          description: Deprecated. SVOL storage device ID.
           type: str
           sample: "A34000810045"
 """
@@ -275,13 +314,13 @@ class VSPHurFactManager:
         )
         try:
             self.params_manager = VSPParametersManager(self.module.params)
-            self.connection_info = self.params_manager.connection_info
-            # sng20241115 for the secondary_connection_info remote_connection_manager
-            self.secondary_connection_info = (
-                self.params_manager.secondary_connection_info
-            )
+            self.connection_info = self.params_manager.get_connection_info()
             self.storage_serial_number = self.params_manager.storage_system_info.serial
             self.spec = self.params_manager.get_hur_fact_spec()
+            self.state = self.params_manager.get_state()
+            self.secondary_connection_info = (
+                self.params_manager.get_secondary_connection_info()
+            )
         except Exception as e:
             self.logger.writeException(e)
             self.module.fail_json(msg=str(e))
@@ -309,7 +348,10 @@ class VSPHurFactManager:
 
     def get_hur_facts(self):
         reconciler = VSPHurReconciler(
-            self.connection_info, self.storage_serial_number, None
+            self.connection_info,
+            self.storage_serial_number,
+            self.state,
+            self.secondary_connection_info,
         )
         self.spec.secondary_connection_info = self.secondary_connection_info
         result = reconciler.get_hur_facts(self.spec)

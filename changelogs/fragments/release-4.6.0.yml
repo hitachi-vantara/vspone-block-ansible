@@ -19,13 +19,14 @@ minor_changes:
   - Added a new "hv_sds_block_license_facts" module to retrieve license from VSP One SDS Block and Cloud systems.
   - Added a new "hv_sds_block_license_setting" module to modify license warning threshold settings for VSP One SDS Block and Cloud systems.
   - Added a new "hv_sds_block_license_setting_facts" module to retrieve license setting from VSP One SDS Block and Cloud systems.
-  - Added a new "hv_sds_block_login_message" module to update the message configured to be displayed on the GUI login window and CLI warning banner of the VSP One
-    SDS Block and Cloud systems.
-  - Added a new "hv_sds_block_login_message_facts" module to retrieve the message configured to be displayed on the GUI login window and CLI warning banner of the
-    VSP One SDS Block and Cloud systems.
-  - Added a new "hv_sds_block_storage_external_auth_server_setting" module to configure external authentication server settings on VSP One SDS Block and Cloud systems.
-  - Added a new "hv_sds_block_storage_external_auth_server_setting_facts" module to retrieve external authentication server settings from the VSP One SDS Block and
-    Cloud systems.
+  - Added a new "hv_sds_block_login_message" module to update the message configured to be displayed on the GUI login window and CLI warning banner of the VSP
+    One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_login_message_facts" module to retrieve the message configured to be displayed on the GUI login window and CLI warning banner of
+    the VSP One SDS Block and Cloud systems.
+  - Added a new "hv_sds_block_storage_external_auth_server_setting" module to configure external authentication server settings on VSP One SDS Block and Cloud
+    systems.
+  - Added a new "hv_sds_block_storage_external_auth_server_setting_facts" module to retrieve external authentication server settings from the VSP One SDS Block
+    and Cloud systems.
   - Added a new "hv_sds_block_storage_user_auth_setting" module to configure external authentication server settings on VSP One SDS Block and Cloud systems.
   - Added a new "hv_sds_block_storage_user_auth_setting_facts" module to retrieve user authentication settings from VSP One SDS Block and Cloud systems.
   - Added a new "hv_pav_alias" module to manage PAV (Parallel Access Volume) alias assignments for Mainframe based VSP block storage systems.
@@ -33,7 +34,8 @@ minor_changes:
   - Added a new "hv_session" module to generate and discard session on VSP block storage systems.
   - Added a new "hv_session_facts" module to retrieve information about sessions on VSP block storage systems.
   - Added a new "hv_snapshot_family_facts" module to retrieve information about snapshot family of the provided LDEV ID from VSP block storage systems.
-  - Added a new "hv_supported_host_mode_facts" module to retrieve detailed information about supported host mode options available in a given VSP block storage system.
+  - Added a new "hv_supported_host_mode_facts" module to retrieve detailed information about supported host mode options available in a given VSP block storage
+    system.
   - Added a new "hv_vclone_parent_volume_facts" module to retrieve information about virtual clone parent volume from VSP block storage systems.
   - Added support to "hv_storagepool" module to shrink a storage pool using list of pool volume IDs.
   - Added support to "hv_storagepool" module to shrink a storage pool using list of pool volume IDs and delete pool volumes.

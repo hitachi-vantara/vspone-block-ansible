@@ -276,59 +276,54 @@ class VSPParityGroupProvisioner:
 
     @log_entry_exit
     def get_all_drives(self):
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            drives = self.gateway.get_all_drives()
-            self.logger.writeDebug(f"get_all_drives result: {drives}")
-            for drive in drives["data"]:
-                if "totalCapacity" in drive:
-                    drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
-                    mb_capacity = convert_to_mb(drive["totalCapacity"])
-                    drive["totalCapacity_mb"] = mb_capacity
-            return drives
+        drives = self.gateway.get_all_drives()
+        self.logger.writeDebug(f"get_all_drives result: {drives}")
+        for drive in drives["data"]:
+            if "totalCapacity" in drive:
+                drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
+                mb_capacity = convert_to_mb(drive["totalCapacity"])
+                drive["totalCapacity_mb"] = mb_capacity
+        return drives
 
     @log_entry_exit
     def get_one_drive(self, spec):
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            try:
-                drive = self.gateway.get_one_drive(spec)
-                self.logger.writeDebug(f"get_one_drive result: {drive}")
-                if "totalCapacity" in drive:
-                    drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
-                    mb_capacity = convert_to_mb(drive["totalCapacity"])
-                    drive["totalCapacity_mb"] = mb_capacity
-                return drive
-            except Exception as e:
-                if "Specified object does not exist" in str(e):
-                    err_msg = VSPParityGroupValidateMsg.NO_DISK_DRIVE_ID.value.format(
-                        spec.drive_location_id
-                    )
-                    self.logger.writeError(err_msg)
-                    raise ValueError(err_msg)
-                else:
-                    raise (e)
+        try:
+            drive = self.gateway.get_one_drive(spec)
+            self.logger.writeDebug(f"get_one_drive result: {drive}")
+            if "totalCapacity" in drive:
+                drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
+                mb_capacity = convert_to_mb(drive["totalCapacity"])
+                drive["totalCapacity_mb"] = mb_capacity
+            return drive
+        except Exception as e:
+            if "Specified object does not exist" in str(e):
+                err_msg = VSPParityGroupValidateMsg.NO_DISK_DRIVE_ID.value.format(
+                    spec.drive_location_id
+                )
+                self.logger.writeError(err_msg)
+                raise ValueError(err_msg)
+            else:
+                raise (e)
 
     @log_entry_exit
     def change_drive_setting(self, spec):
-        if self.connection_info.connection_type == ConnectionTypes.DIRECT:
-            drive_exits = self.get_one_drive(spec)
-            if drive_exits is None:
-                return VSPParityGroupValidateMsg.NO_DISK_DRIVE_ID.value.format(
-                    spec.drive_location_id
-                )
-            try:
-                response = self.gateway.change_drive_setting(spec)
-                self.logger.writeDebug(f"change_drive_setting result: {response}")
-                self.connection_info.changed = True
-                drive = self.get_one_drive(spec)
-                if "totalCapacity" in drive:
-                    drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
-                return drive
-            except Exception as e:
-                if "The API is not supported for the specified storage system" in str(
-                    e
-                ):
-                    err_msg = VSPParityGroupValidateMsg.FEATURE_NOT_SUPPORTED.value
-                    self.logger.writeError(err_msg)
-                    raise ValueError(err_msg)
-                else:
-                    raise (e)
+        drive_exits = self.get_one_drive(spec)
+        if drive_exits is None:
+            return VSPParityGroupValidateMsg.NO_DISK_DRIVE_ID.value.format(
+                spec.drive_location_id
+            )
+        try:
+            response = self.gateway.change_drive_setting(spec)
+            self.logger.writeDebug(f"change_drive_setting result: {response}")
+            self.connection_info.changed = True
+            drive = self.get_one_drive(spec)
+            if "totalCapacity" in drive:
+                drive["totalCapacity"] = f"{drive['totalCapacity']} GB"
+            return drive
+        except Exception as e:
+            if "The API is not supported for the specified storage system" in str(e):
+                err_msg = VSPParityGroupValidateMsg.FEATURE_NOT_SUPPORTED.value
+                self.logger.writeError(err_msg)
+                raise ValueError(err_msg)
+            else:
+                raise (e)

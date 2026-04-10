@@ -12,3 +12,5 @@ class CommonMessage(Enum):
     )
     FAILED_CONNECTION = "Failed to establish a connection, please check the Management System address or the credentials."
     PORTS_JOURNALS_LUNS = "Ports, Journals, Pools, Quorum disks and LUNs information are not supported for storage system facts."
+
+    JOB_TIMEOUT = "Timeout Error! The tasks was not completed in 10 minutes."

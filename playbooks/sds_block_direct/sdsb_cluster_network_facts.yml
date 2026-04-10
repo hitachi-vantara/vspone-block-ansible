@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Cluster Network Facts Playbook
-####################################################################
+# ###################################################################
 - name: Cluster Network Facts Playbook
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-  ####################################################################
+  # ###################################################################
   # Task Name : Get Cluster Network Information
-  ####################################################################
+  # ###################################################################
     - name: Get Cluster Network Information
       hitachivantara.vspone_block.sds_block.hv_sds_block_storage_network_setting_facts:
         connection_info: "{{ connection_info }}"

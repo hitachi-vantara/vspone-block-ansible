@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : SDSB Web Server Playbook
-####################################################################
+# ###################################################################
 - name: SDSB Web Server settings
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Configure web server client address allowlist
-    ####################################################################
+    # ###################################################################
     - name: Configure web server client address allowlist
       hitachivantara.vspone_block.sds_block.hv_sds_block_web_server:
         connection_info: "{{ connection_info }}"

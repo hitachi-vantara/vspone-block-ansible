@@ -96,6 +96,7 @@ class ExternalIscsiTarget:
 @dataclass
 class ChangePortSettingSpec:
     port: Optional[str] = None
+    port_id: Optional[str] = None
     port_attribute: Optional[str] = None
     port_mode: Optional[str] = None
     port_speed: Optional[str] = None
@@ -105,10 +106,15 @@ class ChangePortSettingSpec:
     host_ip_address: Optional[str] = None
     external_iscsi_targets: Optional[List[ExternalIscsiTarget]] = None
 
+    def __post_init__(self):
+        if self.port_id:
+            self.port = self.port_id
+
 
 @dataclass
 class PortFactSpec:
     ports: Optional[List] = None
+    port_ids: Optional[List] = None
     query: Optional[List[str]] = None
     external_iscsi_ip_address: Optional[str] = None
     external_iscsi_name: Optional[str] = None
@@ -123,35 +129,5 @@ class PortFactSpec:
                     f"Invalid port_type: {self.port_type}. Must be one of {PORT_TYPE_CHOICES} and case insensitive."
                 )
             self.port_type = self.port_type.upper()
-
-
-@dataclass
-class PortInfoUAIG:
-    portType: str = None
-    portId: str = None
-    speed: str = None
-    resourceGroupId: int = 0
-    isSecurityEnabled: bool = False
-    attribute: str = None
-    connectionType: str = None
-    mode: str = None
-    iscsiPortIpAddress: str = None
-
-
-@dataclass
-class VSPPortInfoUAIG(SingleBaseClass):
-    resourceId: str = None
-    type: str = None
-    storageId: str = None
-    entitlementStatus: str = None
-    partnerId: str = None
-    subscriberId: str = None
-    portInfo: PortInfoUAIG = None
-
-    # tags: List[str] = None
-    # fabricOn: bool = False
-
-
-@dataclass
-class VSPPortsInfoUAIG(BaseDataClass):
-    data: List[VSPPortInfoUAIG] = None
+        if self.port_ids:
+            self.ports = self.port_ids

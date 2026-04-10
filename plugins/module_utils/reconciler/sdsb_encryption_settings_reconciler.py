@@ -5,6 +5,7 @@ try:
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from ..common.hv_constants import StateValue
+    from ..message.sdsb_encryption_key_setting_msgs import SDSBEncryptionKeySettingMsg
 
 except ImportError:
     from provisioner.sdsb_encryption_settings_provisioner import (
@@ -13,6 +14,7 @@ except ImportError:
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from common.hv_constants import StateValue
+    from message.sdsb_encryption_key_setting_msgs import SDSBEncryptionKeySettingMsg
 
 logger = Log()
 
@@ -29,7 +31,9 @@ class SDSBEncryptionSettingsReconciler:
 
         if state == StateValue.PRESENT:
             return self._handle_update_encryption_settings(spec)
-        raise Exception(f"Unsupported state: {state}")
+        raise ValueError(
+            SDSBEncryptionKeySettingMsg.UNSUPPORTED_STATE.value.format(state)
+        )
 
     def _handle_update_encryption_settings(self, spec):
         current_settings = self.provisioner.get_encryption_environment_settings()

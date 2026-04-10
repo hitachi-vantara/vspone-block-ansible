@@ -14,9 +14,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-  ####################################################################
+  # ###################################################################
   # Task Name : Get all Sessions
-  ####################################################################
+  # ###################################################################
     - name: Get all Sessions
       hitachivantara.vspone_block.vsp.hv_session_facts:
         connection_info: "{{ connection_info }}"

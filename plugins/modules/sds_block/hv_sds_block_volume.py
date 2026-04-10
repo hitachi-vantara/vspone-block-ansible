@@ -396,9 +396,7 @@ volumes:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_constants import (
-    StateValue,
-)
+
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_volume import (
     SDSBVolumeReconciler,
 )
@@ -446,13 +444,10 @@ class SDSBVolumeManager:
             volumes = sdsb_reconciler.reconcile_volume(self.state, self.spec)
 
             self.logger.writeDebug(f"MOD:hv_sds_block_volume:volumes= {volumes}")
-            if self.state.lower() == StateValue.ABSENT:
-                volumes_data_extracted = volumes
-            else:
-                output_dict = volumes.to_dict()
-                volumes_data_extracted = VolumePropertiesExtractor().extract_dict(
-                    output_dict
-                )
+            output_dict = volumes.to_dict() if volumes else {}
+            volumes_data_extracted = VolumePropertiesExtractor().extract_dict(
+                output_dict
+            )
 
         except Exception as e:
             self.logger.writeException(e)
@@ -463,6 +458,8 @@ class SDSBVolumeManager:
             "changed": self.connection_info.changed,
             "volumes": volumes_data_extracted,
         }
+        if self.spec.comments:
+            response["comments"] = self.spec.comments
         if registration_message:
             response["user_consent_required"] = registration_message
         self.logger.writeInfo("=== End of SDSB Volume Operation ===")

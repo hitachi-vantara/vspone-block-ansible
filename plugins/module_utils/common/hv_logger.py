@@ -51,7 +51,7 @@ class Logger:
             if os.path.exists(resources):
                 with open(resources) as file:
                     for line in file.readlines():
-                        (key, value) = line.split("=")
+                        key, value = line.split("=")
                         self.messageIDs[key.strip()] = value.strip()
 
     def getMessageIDString(self, messageID):

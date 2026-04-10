@@ -4,7 +4,6 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 
@@ -49,11 +48,12 @@ options:
           Required for the Edit compute port settings task.
         type: str
         required: false
-      nick_name:
+      nickname:
         description: The nickname of the compute port.
           Required for the Edit compute port settings task.
         type: str
         required: false
+        aliases: ['nick_name']
       protocol:
         description: The protocol of the compute port.
           Required for the Change the compute port protocol (Bare metal only) task.
@@ -252,6 +252,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
 )
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.sdsb_module_message_catalog import (
+    SdsbMessageCatalog,
+)
 
 
 class SDSBComputePortManager:
@@ -295,12 +298,9 @@ class SDSBComputePortManager:
     def get_message(self):
         msg = ""
         if self.state == "present":
-            msg = "Successfully completed the compute port operation."
+            msg = SdsbMessageCatalog.COMPUTE_PORT_OPERATION_SUCCESS.value
             if self.connection_info.changed and self.spec.protocol:
-                msg = (
-                    msg
-                    + " You must also carry out operations, including restarting the storage cluster, to apply the protocol setting change. "
-                )
+                msg = msg + " " + SdsbMessageCatalog.COMPUTE_PORT_PROTOCOL_CHANGED.value
 
         return msg
 

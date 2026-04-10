@@ -68,7 +68,7 @@ class VSPHtiSnapshotReconciler:
         # self.logger.writeDebug(f"20250324 port_info: {port_info}")
         for port in port_info:
             self.port_type_dict[port["portId"]] = port["portType"]
-        self.logger.writeDebug(f"20250324 self.port_type_dict: {self.port_type_dict}")
+        # self.logger.writeDebug(f"20250324 self.port_type_dict: {self.port_type_dict}")
 
     def get_snapshot_facts(self, spec: Any) -> Any:
         """
@@ -87,9 +87,11 @@ class VSPHtiSnapshotReconciler:
             result = self.provisioner.get_snapshot_facts(
                 pvol=spec.pvol, mirror_unit_id=spec.mirror_unit_id
             )
+            self.logger.writeDebug(f"20250324 result: {result}")
         result2 = SnapshotCommonPropertiesExtractor(self.storage_serial_number).extract(
             result, self.port_type_dict
         )
+        self.logger.writeDebug(f"20250324 result2: {result2}")
         return result2
 
     def get_storage_serial_number(self):
@@ -110,6 +112,11 @@ class VSPHtiSnapshotReconciler:
         grp_snapshots = self.provisioner.get_snapshots_by_grp_name(grp_name)
         if not grp_snapshots:
             return
+        grp_snapshots.snapshots.data = [
+            snap
+            for snap in grp_snapshots.snapshots.data
+            if snap.status.lower() != "smpp"
+        ]
         result = {
             "snapshot_group_name": grp_snapshots.snapshotGroupName,
             "snapshot_group_id": grp_snapshots.snapshotGroupId,
@@ -127,8 +134,11 @@ class VSPHtiSnapshotReconciler:
         )
         if not existing_snapshot:
             raise ValueError(
-                f"Snapshot with primary volume ID {spec.primary_volume_id} and mirror unit ID {spec.mirror_unit_id} does not exist."
+                VSPSnapShotValidateMsg.SNAPSHOT_DOES_NOT_EXIST.value.format(
+                    spec.primary_volume_id, spec.mirror_unit_id
+                )
             )
+
         self.logger.writeDebug(
             f"RC:create_convert_to_vclone_snapshot:existing_snapshot= {existing_snapshot}"
         )
@@ -148,7 +158,9 @@ class VSPHtiSnapshotReconciler:
                 f"Snapshot with primary volume ID {spec.primary_volume_id} and mirror unit ID {spec.mirror_unit_id} is already a VClone."
             )
             raise ValueError(
-                f"Snapshot with primary volume ID {spec.primary_volume_id} and mirror unit ID {spec.mirror_unit_id} is not in a valid state to create a VClone."
+                VSPVcloneValidateMsg.NOT_CORRECT_STATE_FOR_VCLONE.value.format(
+                    spec.primary_volume_id, spec.mirror_unit_id
+                )
             )
 
     def process_vclone_operations(self, spec: Any) -> None:
@@ -156,9 +168,8 @@ class VSPHtiSnapshotReconciler:
         if not is_vclone_supported:
             raise ValueError(VSPVcloneValidateMsg.NOT_SUPPORTED_ON_THIS_STORAGE.value)
         if spec.primary_volume_id is None or spec.mirror_unit_id is None:
-            raise ValueError(
-                "primary_volume_id and mirror_unit_id are required for operation_type = vclone"
-            )
+            raise ValueError(VSPVcloneValidateMsg.VCLONE_REQD_PARAMS_MISSING.value)
+
         operation_type = spec.operation_type
         if operation_type == "vclone":
             return self.create_vclone_from_snapshot(spec)
@@ -173,7 +184,9 @@ class VSPHtiSnapshotReconciler:
 
         else:
             raise ValueError(
-                f"Invalid operation_type: {spec.operation_type}. Supported operations are 'vclone' and 'restore'."
+                VSPVcloneValidateMsg.INVALID_OPERATION_TYPE.value.format(
+                    spec.operation_type
+                )
             )
 
     def validate_operation_type(self, spec: Any) -> None:
@@ -181,8 +194,11 @@ class VSPHtiSnapshotReconciler:
             valid_operations = ["start", "stop", "vclone", "restore"]
             if spec.operation_type.lower() not in valid_operations:
                 raise ValueError(
-                    f"Invalid operation_type: {spec.operation_type}. Supported operations are: {valid_operations}."
+                    VSPSnapShotValidateMsg.INVALID_OPERATION_TYPE_2.value.format(
+                        spec.operation_type, "', '".join(valid_operations)
+                    )
                 )
+
             spec.operation_type = spec.operation_type.lower()
 
     def validate_operation_type_for_snapshot_group(self, spec: Any) -> None:
@@ -190,7 +206,9 @@ class VSPHtiSnapshotReconciler:
             valid_operations = ["vclone", "restore"]
             if spec.operation_type.lower() not in valid_operations:
                 raise ValueError(
-                    f"Invalid operation_type: {spec.operation_type}. Supported operations are: {valid_operations}."
+                    VSPSnapShotValidateMsg.INVALID_OPERATION_TYPE_2.value.format(
+                        spec.operation_type, "', '".join(valid_operations)
+                    )
                 )
             spec.operation_type = spec.operation_type.lower()
 
@@ -258,12 +276,12 @@ class VSPHtiSnapshotReconciler:
         if isinstance(resp_data, str):
             return resp_data
         elif resp_data:
-            # self.logger.writeError(f"20240719 resp_data: {resp_data}")
+            self.logger.writeError(f"20240719 resp_data: {resp_data}")
             resp_in_dict = resp_data.to_dict()
             # self.logger.writeDebug(f"20240801 resp_data.to_dict: {resp_in_dict}")
             return SnapshotCommonPropertiesExtractor(
                 self.storage_serial_number
-            ).extract([resp_in_dict], self.port_type_dict)[0]
+            ).extract([resp_in_dict], self.port_type_dict)
 
     def snapshot_group_id_reconcile(self, spec: Any, state: str) -> Any:
 
@@ -292,7 +310,7 @@ class VSPHtiSnapshotReconciler:
         return (
             self.get_snapshots_using_grp_name(spec.snapshot_group_name)
             if state != StateValue.ABSENT
-            else "Snapshot group deleted successfully"
+            else VSPSnapShotValidateMsg.SNAPSHOT_GROUP_DELETE_SUCCESS.value
         )
 
     def process_vclone_operations_for_snapshot_group(self, spec: Any) -> None:
@@ -301,8 +319,9 @@ class VSPHtiSnapshotReconciler:
             raise ValueError(VSPVcloneValidateMsg.NOT_SUPPORTED_ON_THIS_STORAGE.value)
         if spec.snapshot_group_name is None:
             raise ValueError(
-                "snapshot_group_name is required for operation_type = restore"
+                VSPSnapShotValidateMsg.RESTORE_REQD_PARAMS_MISSING_FOR_GROUP.value
             )
+
         operation_type = spec.operation_type.lower()
         if operation_type == "vclone":
             return self.create_vclone_from_snapshot_group_name(spec)
@@ -310,7 +329,9 @@ class VSPHtiSnapshotReconciler:
             return self.restore_snapshot_group_from_vclone(spec)
         else:
             raise ValueError(
-                f"Invalid operation_type: {spec.operation_type}. Supported operations are 'vclone' and 'restore'."
+                VSPSnapShotValidateMsg.INVALID_OPERATION_TYPE.value.format(
+                    spec.operation_type
+                )
             )
 
     def restore_snapshot_group_from_vclone(self, spec: Any) -> None:
@@ -319,8 +340,11 @@ class VSPHtiSnapshotReconciler:
         )
         if not existing_snapshot_grp:
             raise ValueError(
-                f"Snapshot group {spec.snapshot_group_name} does not exist."
+                VSPSnapShotValidateMsg.SNAPSHOT_GROUP_DOES_NOT_EXIST.value.format(
+                    spec.snapshot_group_name
+                )
             )
+
         self.logger.writeDebug(
             f"RC:restore_snapshot_group_from_vclone:existing_snapshot= {existing_snapshot_grp}"
         )
@@ -338,8 +362,11 @@ class VSPHtiSnapshotReconciler:
         )
         if not existing_snapshot_grp:
             raise ValueError(
-                f"Snapshot group {spec.snapshot_group_name} does not exist."
+                VSPSnapShotValidateMsg.SNAPSHOT_GROUP_DOES_NOT_EXIST.value.format(
+                    spec.snapshot_group_name
+                )
             )
+
         self.logger.writeDebug(
             f"RC:create_convert_to_vclone_snapshot:existing_snapshot= {existing_snapshot_grp}"
         )
@@ -347,8 +374,11 @@ class VSPHtiSnapshotReconciler:
             existing_snapshot_grp.snapshots.data
         ):
             raise ValueError(
-                f"Not all snapshots in snapshot group {spec.snapshot_group_name} are in the same status."
+                VSPSnapShotValidateMsg.NOT_ALL_SNAPSHOTS_IN_SAME_STATUS.value.format(
+                    spec.snapshot_group_name
+                )
             )
+
         sn_pair_status = existing_snapshot_grp.snapshots.data[0].status
         primary_volume_id = existing_snapshot_grp.snapshots.data[0].pvolLdevId
         if sn_pair_status == "PAIR" or sn_pair_status == "PSUS":
@@ -367,7 +397,9 @@ class VSPHtiSnapshotReconciler:
                 f"Snapshot with snapshot group name {spec.snapshot_group_name} is not in a valid state to create a VClone."
             )
             raise ValueError(
-                f"Snapshot with snapshot group name {spec.snapshot_group_name} is not in a valid state to create a VClone."
+                VSPSnapShotValidateMsg.NOT_CORRECT_STATE_FOR_SNAPSHOT_GROUP.value.format(
+                    spec.snapshot_group_name
+                )
             )
 
     def is_status_same_for_all_snapshots(self, snapshots: Any) -> bool:
@@ -407,14 +439,12 @@ class SnapshotCommonPropertiesExtractor:
     def __init__(self, serial):
         self.storage_serial_number = serial
         self.common_properties = {
+            "snapshotGroupName": str,
             # "primaryOrSecondary":str,
-            "primaryVolumeId": int,
-            "primaryVolumeIdHex": str,
-            "secondaryVolumeId": int,
-            "secondaryVolumeIdHex": str,
-            # "svolAccessMode": str,
+            "pvolLdevId": int,
+            "svolLdevId": int,
             "poolId": int,
-            "mirrorUnitId": int,
+            "muNumber": int,
             "copyRate": int,
             "copyPaceTrackSize": str,
             "status": str,
@@ -425,7 +455,6 @@ class SnapshotCommonPropertiesExtractor:
             "canCascade": bool,
             "isRedirectOnWrite": bool,
             "isSnapshotDataReadOnly": bool,
-            "snapshotGroupName": str,
             "svolProcessingStatus": str,
             "pvolNvmSubsystemName": str,
             "svolNvmSubsystemName": str,
@@ -439,23 +468,24 @@ class SnapshotCommonPropertiesExtractor:
             "isWrittenInSvol": bool,
             "isVirtualCloneParentVolume": bool,
             "isVirtualCloneVolume": bool,
+            "primary_volume_nvm_subsystem_name": str,
+            "secondary_volume_nvm_subsystem_name": str,
+            "pvol_iscsi_targets": list,
+            "svol_iscsi_targets": list,
+            "primary_volume_iscsi_targets": list,
+            "secondary_volume_iscsi_targets": list,
+            "primary_volume_host_groups": list,
+            "secondary_volume_host_groups": list,
+            "is_written_in_secondary_volume": bool,
+            "primary_volume_processing_status": str,
+            "secondary_volume_processing_status": str,
         }
 
         self.parameter_mapping = {
-            "primaryVolumeId": "pvolLdevId",
-            "secondaryVolumeId": "svolLdevId",
-            "poolId": "snapshotPoolId",
-            # "poolId": "snapshotReplicationId", # duplicate key
-            "isConsistencyGroup": "isCTG",
-            # 20240801 "poolId": "snapshotPoolId",
-            "mirrorUnitId": "muNumber",
-            "thinImagePropertiesDto": "properties",
-            # "isCloned": "isClone",
-            "retentionPeriodInHours": "retentionPeriod",
-        }
-        self.hex_values = {
-            "primaryVolumeIdHex": "pvolLdevId",
-            "secondaryVolumeIdHex": "svolLdevId",
+            "pvol_ldev_id": "primary_volume_id",
+            "svol_ldev_id": "secondary_volume_id",
+            "mu_number": "mirror_unit_id",
+            "retention_period": "retention_period_in_hours",
         }
 
     def extract(self, responses, port_type_dict):
@@ -464,102 +494,85 @@ class SnapshotCommonPropertiesExtractor:
         for response in responses:
             new_dict = {}
             for key, value_type in self.common_properties.items():
-
                 # Get the corresponding key from the response or its mapped key
-                response_key = (
-                    response.get(key)
-                    if response.get(key) is not None
-                    else response.get(self.parameter_mapping.get(key))
-                )
-
+                response_key = response.get(key)
                 # Assign the value based on the response key and its data type
                 cased_key = camel_to_snake_case(key)
+                if cased_key in self.parameter_mapping.keys():
+                    cased_key = self.parameter_mapping[cased_key]
                 if response_key is not None:
-                    new_dict[cased_key] = value_type(response_key)
-
-                elif key in self.hex_values:
-                    raw_key = self.hex_values.get(key)
-                    new_dict[cased_key] = (
-                        response_key
-                        if response_key
-                        else volume_id_to_hex_format(response.get(raw_key)).upper()
-                    )
+                    new_dict[cased_key] = response_key
                 else:
                     # Handle missing keys by assigning default values
                     default_value = get_default_value(value_type)
                     new_dict[cased_key] = default_value
 
-                if value_type == list:
+                if value_type == list and response_key:
                     # logger.writeDebug(f"20250324 response_key: {response_key}")
-                    if response_key:
-                        # logger.writeDebug(f"20250324 key: {key}")
-                        new_dict[key] = self.process_list(response_key)
-                        # logger.writeDebug(f"20250324 new_dict[key]: {new_dict[key]}")
+                    new_dict[cased_key] = self.process_list(response_key)
+                    # logger.writeDebug(f"20250324 new_dict[key]: {new_dict[key]}")
 
-            if new_dict.get("pvolHostGroups"):
+            if new_dict.get("pvol_host_groups"):
                 self.split_host_groups(
-                    new_dict["pvolHostGroups"],
+                    new_dict["pvol_host_groups"],
                     new_dict,
                     "pvolHostGroups",
                     port_type_dict,
                 )
-                # new_dict["pvol_host_groups"] = new_dict["pvolHostGroups"]
-                del new_dict["pvolHostGroups"]
-            if new_dict.get("svolHostGroups"):
+
+            if new_dict.get("svol_host_groups"):
                 self.split_host_groups(
-                    new_dict["svolHostGroups"],
+                    new_dict["svol_host_groups"],
                     new_dict,
                     "svolHostGroups",
                     port_type_dict,
                 )
-                # new_dict["svol_host_groups"] = new_dict["svolHostGroups"]
-                del new_dict["svolHostGroups"]
+
             if not new_dict.get("snapshot_id"):
                 new_dict["snapshot_id"] = (
                     str(response.get("primaryVolumeId"))
                     + ","
                     + str(response.get("mirrorUnitId"))
                 )
+            new_dict["mirror_unit_number"] = new_dict.get("mirror_unit_id", -1)
+            if (
+                new_dict.get("primary_volume_id_hex") is None
+                and new_dict.get("primary_volume_id") is not None
+            ):
+                new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
+                    new_dict.get("primary_volume_id")
+                )
+            if (
+                new_dict.get("secondary_volume_id_hex") is None
+                and new_dict.get("secondary_volume_id") is not None
+            ):
+                new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
+                    new_dict.get("secondary_volume_id")
+                )
+            if new_dict.get("primary_volume_nvm_subsystem_name"):
+                new_dict["primary_volume_nvm_subsystem_name"] = new_dict.get(
+                    "pvol_nvm_subsystem_name"
+                )
+
+            if new_dict.get("secondary_volume_nvm_subsystem_name"):
+                new_dict["secondary_volume_nvm_subsystem_name"] = new_dict.get(
+                    "svol_nvm_subsystem_name"
+                )
+            if new_dict.get("is_written_in_svol") is not None:
+                new_dict["is_written_in_secondary_volume"] = new_dict.get(
+                    "is_written_in_svol"
+                )
+            if new_dict.get("pvol_processing_status") is not None:
+                new_dict["primary_volume_processing_status"] = new_dict.get(
+                    "pvol_processing_status"
+                )
+            if new_dict.get("svol_processing_status") is not None:
+                new_dict["secondary_volume_processing_status"] = new_dict.get(
+                    "svol_processing_status"
+                )
             new_items.append(new_dict)
         return new_items
 
-    # this func assume an ldev can only be in
-    # hgs or its only, not both
-    def split_host_groups_one(self, items, new_dict, key, port_type_dict):
-        logger = Log()
-        # logger.writeDebug(f"20250324 key: {key}")
-        # logger.writeDebug(f"20250324 items: {items}")
-        # logger.writeDebug(f"20250324 port_type_dict: {port_type_dict}")
-        if items is None:
-            return
-
-        for item in items:
-            if item is None:
-                continue
-            # logger.writeDebug(f"20250324 item: {item}")
-            port_id = item["port_id"]
-            port_type = port_type_dict[port_id]
-            logger.writeDebug(f"20250324 port_id: {port_id}")
-            logger.writeDebug(f"20250324 port_type: {port_type}")
-            if port_type == "ISCSI":
-                if key == "pvolHostGroups":
-                    new_dict["pvol_iscsi_targets"] = items
-                    del new_dict["pvol_host_groups"]
-                else:
-                    new_dict["svol_iscsi_targets"] = items
-                    del new_dict["svol_host_groups"]
-            else:
-                if key == "pvolHostGroups":
-                    new_dict["pvol_host_groups"] = items
-                else:
-                    new_dict["svol_host_groups"] = items
-            return
-
-        return
-
-    # this is a more general version,
-    # it handles an item belongs to both hgs and its,
-    # use this if it applies
     def split_host_groups(self, items, new_dict, key, port_type_dict):
         logger = Log()
         # logger.writeDebug(f"20250324 key: {key}")
@@ -572,25 +585,24 @@ class SnapshotCommonPropertiesExtractor:
         for item in items:
             if item is None:
                 continue
-            # logger.writeDebug(f"20250324 item: {item}")
+
             port_id = item["port_id"]
             port_type = port_type_dict[port_id]
-            # logger.writeDebug(f"20250324 port_id: {port_id}")
-            # logger.writeDebug(f"20250324 port_type: {port_type}")
             if port_type == "ISCSI":
                 its.append(item)
             else:
                 hgs.append(item)
-            # if self.port_type_dict[item[]]
-            # new_dict["pvol_host_groups"] = items
-            # new_dict["pvol_iscsi_targets"] = items
 
         if key == "pvolHostGroups":
             new_dict["pvol_iscsi_targets"] = its
+            new_dict["primary_volume_iscsi_targets"] = its
             new_dict["pvol_host_groups"] = hgs
+            new_dict["primary_volume_host_groups"] = hgs
         else:
             new_dict["svol_iscsi_targets"] = its
+            new_dict["secondary_volume_iscsi_targets"] = its
             new_dict["svol_host_groups"] = hgs
+            new_dict["secondary_volume_host_groups"] = hgs
 
         return
 

@@ -13,6 +13,7 @@ try:
         ClprSpec,
     )
     from ..provisioner.vsp_volume_prov import VSPVolumeProvisioner
+    from ..message.vsp_clpr_msgs import VSPClprMsg
 except ImportError:
     from common.ansible_common import (
         log_entry_exit,
@@ -24,6 +25,8 @@ except ImportError:
     )
     from ..model.vsp_clpr_models import ClprInfo, ClprInfoList, ClprSpec
     from provisioner.vsp_volume_prov import VSPVolumeProvisioner
+    from message.vsp_clpr_msgs import VSPClprMsg
+
 logger = Log()
 
 
@@ -67,7 +70,7 @@ class VSPClprReconciler:
         self.logger.writeDebug("RC:get_clpr_facts={}", clprs)
 
         if clprs is None:
-            return "CLPRs not found for {}".format(spec.clpr_id)
+            raise ValueError(VSPClprMsg.CLPRS_NOT_FOUND.value.format(spec.clpr_id))
         elif isinstance(clprs, ClprInfo):
             clprs = self._convert_clpr_capacities(clprs.to_dict())
             return clprs

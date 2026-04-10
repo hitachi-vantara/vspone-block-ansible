@@ -11,3 +11,8 @@ class VSPSessionValidationMsg(Enum):
         "You must specify 'token' for the 'get by id' operation."
     )
     TOKEN_MISSING_FOR_DELETE = "You must specify 'token' for the 'delete' operation."
+    SESSION_DELETE_SUCCESS = "Session with ID '{}' has been successfully deleted."
+    SESSION_DELETE_FAILURE = (
+        "Could not delete session, ensure session ID '{}' is valid. Cause: '{}'"
+    )
+    FAILED_TO_GENERATE_TOKEN = "Failed to generate session token. Please check the error message for details: {}"

@@ -1,5 +1,6 @@
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import copy
 
 try:
     from ..common.ansible_common import (
@@ -30,10 +31,12 @@ try:
     from ..provisioner.vsp_volume_prov import VSPVolumeProvisioner
     from ..provisioner.vsp_nvme_provisioner import VSPNvmeProvisioner
     from ..provisioner.vsp_storage_port_provisioner import VSPStoragePortProvisioner
+    from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..provisioner.vsp_snapshot_provisioner import VSPHtiSnapshotProvisioner
-    from ..message.vsp_lun_msgs import VSPVolValidationMsg
+    from ..message.vsp_lun_msgs import VSPVolValidationMsg, VSPVolumeMSG
     from ..provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
     from ..common.ansible_common_constants import MAX_WORKER_THREADS
+    from ..common.vsp_errors import VspVolumeCreationError
 
 except ImportError:
     from common.ansible_common import (
@@ -64,10 +67,12 @@ except ImportError:
     from provisioner.vsp_volume_prov import VSPVolumeProvisioner
     from provisioner.vsp_nvme_provisioner import VSPNvmeProvisioner
     from provisioner.vsp_storage_port_provisioner import VSPStoragePortProvisioner
+    from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from provisioner.vsp_snapshot_provisioner import VSPHtiSnapshotProvisioner
-    from message.vsp_lun_msgs import VSPVolValidationMsg
+    from message.vsp_lun_msgs import VSPVolValidationMsg, VSPVolumeMSG
     from provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
-
+    from common.vsp_errors import VspVolumeCreationError
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 logger = Log()
 
@@ -84,7 +89,7 @@ class VSPVolumeSubstates:
 class VSPVolumeReconciler:
     """_summary_"""
 
-    def __init__(self, connection_info: ConnectionInfo, serial: str):
+    def __init__(self, connection_info: ConnectionInfo, serial: str = None):
         self.connection_info = connection_info
         self.serial = serial
         self.provisioner = VSPVolumeProvisioner(self.connection_info)
@@ -92,6 +97,14 @@ class VSPVolumeReconciler:
         self.nvme_provisioner = VSPNvmeProvisioner(self.connection_info, self.serial)
         self.hg_prov = VSPHostGroupProvisioner(self.connection_info)
         self.snapshots = None
+        if self.serial is None:
+            self.serial = self.get_storage_serial_number()
+
+    @log_entry_exit
+    def get_storage_serial_number(self):
+        storage_gw = VSPStorageSystemDirectGateway(self.connection_info)
+        storage_system = storage_gw.get_current_storage_system_info()
+        return storage_system.serialNumber
 
     @log_entry_exit
     def volume_reconcile(self, state: str, spec: CreateVolumeSpec):
@@ -101,7 +114,15 @@ class VSPVolumeReconciler:
             if spec.should_stop_all_volume_format:
                 self.provisioner.stop_all_volume_format()
                 logger.writeInfo("RC:volume_reconcile:stop_all_volume_format finished")
-                return "Stop all volume format operation initiated successfully."
+                return VSPVolumeMSG.STOP_ALL_VOLUME_FORMAT.value
+            if (
+                spec.ldev_ids is not None
+                and len(spec.ldev_ids) > 1
+                or (spec.start_ldev_id is not None and spec.end_ldev_id is not None)
+            ):
+                return self._handle_multiple_ldev_update_operations(spec)
+            if spec.number_of_ldevs is not None and spec.number_of_ldevs > 1:
+                return self._create_multiple_volumes(spec)
             if (
                 spec.ldev_id is None
                 and spec.name is None
@@ -111,7 +132,7 @@ class VSPVolumeReconciler:
             ):
                 # ldev_id and name not present in the spec, but nvm_subsystem_name present
                 self.update_nvm_subsystem(spec)
-                return "NVM subsystem updated successfully."
+                return VSPVolumeMSG.NVM_UPDATE_SUCCESS.value
 
             volume = None
             new_vol = False
@@ -135,118 +156,342 @@ class VSPVolumeReconciler:
 
                 volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
                 new_vol = True
-
-            self.update_volume(volume, spec, new_vol)
-
-            # Check if the ldev is a command device
-            if volume.attributes and "CMD" in volume.attributes:
-                self.provisioner.fill_cmd_device_info(volume)
-
-            additional_change = False
-            if spec.should_shred_volume_enable:
-                unused = self.provisioner.shredding_volume(
-                    spec.ldev_id, spec.should_shred_volume_enable
-                )
-                logger.writeInfo("RC:volume_reconcile:shredding_volume finished")
-
-            if spec.qos_settings:
-                self.provisioner.change_qos_settings(spec.ldev_id, spec.qos_settings)
-                logger.writeInfo("RC:volume_reconcile:qos_settings finished")
-                self.connection_info.changed = True
-                additional_change = True
-
-            if spec.mp_blade_id is not None and spec.mp_blade_id != volume.mpBladeId:
-                self.provisioner.change_mp_blade(spec.ldev_id, spec.mp_blade_id)
-                self.connection_info.changed = True
-                additional_change = True
-
-            if spec.clpr_id is not None and spec.clpr_id != volume.clprId:
-                self.provisioner.assign_ldev_to_clpr(spec.ldev_id, spec.clpr_id)
-                self.connection_info.changed = True
-                additional_change = True
-
-            if spec.should_reclaim_zero_pages:
-                self.provisioner.reclaim_zero_pages(spec.ldev_id)
-                logger.writeInfo("RC:volume_reconcile:reclaim_zero_pages finished")
-                self.connection_info.changed = True
-                additional_change = True
-
-            if spec.is_ese_volume is not None:
-                self.provisioner.set_ese_volume(spec.ldev_id, spec.is_ese_volume)
-                logger.writeInfo("RC:volume_reconcile:set_ese_volume finished")
-                additional_change = True
-
-            # Keep this logic always at the end of the volume creation
-
-            if spec.should_format_volume:
-                if volume.status.upper() != VolumePayloadConst.BLOCK:
-                    logger.writeDebug(
-                        "RC:volume_reconcile:formatting volume as it is not in BLOCK state"
-                    )
-                    self.provisioner.change_volume_status(spec.ldev_id, True)
-
-                force_format = (
-                    True
-                    if volume.dataReductionMode
-                    and volume.dataReductionMode.lower() != VolumePayloadConst.DISABLED
-                    else False
-                )
-                try:
-                    self.provisioner.format_volume(
-                        spec.ldev_id,
-                        force_format=force_format,
-                        format_type=spec.format_type,
-                    )
-                except Exception as e:
-                    if "Timeout Error!" in str(e):
-                        spec.is_task_timeout = True
-                    else:
-                        self.provisioner.change_volume_status(spec.ldev_id, False)
-                        raise e
-
-                logger.writeInfo("RC:volume_reconcile:format volume finished")
-                self.connection_info.changed = True
-
-            if additional_change or self.connection_info.changed is True:
-                volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
-
-            if new_vol:
-                if spec and hasattr(spec, "comment") is not None:
-                    spec.comment = "Volume created successfully."
-            create_qos_settings = True if spec.qos_settings else False
-            return self.get_volume_detail_info(
-                volume, create_qos_setting=create_qos_settings
-            )
+            return self._handle_additional_volume_operations(spec, volume, new_vol)
 
         elif state == StateValue.ASSIGN_VIRTUAL_LDEV:
-            if spec.ldev_id is None and spec.vldev_id is None:
-                raise ValueError(VSPVolValidationMsg.BOTH_LDEV_VLDEV_ID_REQD.value)
-            volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
-            logger.writeDebug("RC:volume_reconcile:state=absent:volume={}", volume)
-            changed = self.provisioner.change_volume_settings_vldev(spec, volume)
-            self.connection_info.changed = changed
-            return self.get_volume_detail_info(volume)
+            return self._handle_vartual_ldev_id_assignment(spec)
 
         elif state == StateValue.ABSENT:
-            volume = self.provisioner.get_volume_by_ldev(spec.ldev_id)
+            return self._handle_ldev_delete_operations(spec)
+
+    def _handle_vartual_ldev_id_assignment(self, spec):
+        spec.comments = []
+        if (spec.ldev_id is None and spec.vldev_id is None) and spec.ldev_ids is None:
+            raise ValueError(VSPVolValidationMsg.BOTH_LDEV_VLDEV_ID_REQD.value)
+
+        elif spec.ldev_ids is None and spec.vldev_id is None:
+            raise ValueError(VSPVolValidationMsg.BOTH_LDEVS_VLDEV_IDS_REQD.value)
+        ldev_ids = spec.ldev_ids if spec.ldev_ids else [spec.ldev_id]
+        vldev_ids = spec.vldev_ids if spec.vldev_ids else [spec.vldev_id]
+
+        if len(ldev_ids) != len(vldev_ids):
+            raise ValueError(
+                VSPVolValidationMsg.COUNT_LDEVS_VLDEVS_SHOULD_BE_SAME.value
+            )
+
+        updated_volumes = []
+
+        def assign_virtual_ldev(ldev_id, spec):
+            volume = self.provisioner.get_volume_by_ldev(ldev_id)
             logger.writeDebug("RC:volume_reconcile:state=absent:volume={}", volume)
+            try:
+                changed = self.provisioner.change_volume_settings_vldev(spec, volume)
+                self.connection_info.changed = changed
+                return self.get_volume_detail_info(volume), None
+            except Exception as e:
+                logger.writeError("RC:volume_reconcile:state=absent:error={}", e)
+                return None, str(e)
+
+        executor = ThreadPoolExecutor(max_workers=MAX_WORKER_THREADS)
+        futures = []
+        try:
+            for ldev_id, vldev_id in zip(ldev_ids, vldev_ids):
+                # Set the ids for each thread
+                thread_spec = copy.deepcopy(spec)
+                thread_spec.ldev_id = ldev_id
+                thread_spec.vldev_id = vldev_id
+                futures.append(
+                    executor.submit(assign_virtual_ldev, ldev_id, thread_spec)
+                )
+            for future in as_completed(futures):
+                result, error = future.result()
+                if result:
+                    updated_volumes.append(result)
+                if error:
+                    spec.comments.append(error)
+        except KeyboardInterrupt:
+            executor.shutdown(wait=False, cancel_futures=True)
+
+        finally:
+            executor.shutdown(wait=True)
+        if not updated_volumes:
+            return []
+        return updated_volumes if len(updated_volumes) > 1 else updated_volumes[0]
+
+    def _handle_multiple_ldev_update_operations(self, spec):
+
+        ldev_ids = spec.ldev_ids if spec.ldev_ids else [spec.ldev_id]
+        spec.comments = []
+        updated_ldevs = []
+        logger.writeDebug("RC:volume_reconcile:multiple_ldevs:ldev_ids={}", ldev_ids)
+
+        def update_single_volume(ldev_id):
+            new_vol = False
+            volume = self.provisioner.get_volume_by_ldev_id(ldev_id)
+            volume_spec = copy.deepcopy(spec)
+            volume_spec.ldev_id = ldev_id
+            logger.writeDebug("RC:volume_reconcile:state=absent:volume={}", volume)
+            name = (
+                f"{spec.name}-{ldev_id}"
+                if spec.name
+                else f"{spec.names.base_name}-{ldev_id}"
+            )
+            volume_spec.name = name
             if not volume or volume.emulationType == VolumePayloadConst.NOT_DEFINED:
-                return None
-            if spec.force is not None and spec.force is True:
-                self.delete_volume_force(volume)
-            else:
-                if (
-                    volume.numOfPorts
-                    and volume.numOfPorts > 0
-                    and volume.cylinder is None
-                ):
-                    raise ValueError(VSPVolValidationMsg.PATH_EXIST.value)
-                if spec.should_shred_volume_enable:
-                    unused = self.provisioner.shredding_volume(
-                        spec.ldev_id, spec.should_shred_volume_enable
+                try:
+                    volume_id = self._plugin_create_volume(volume_spec)
+                    volume = self.provisioner.get_volume_by_ldev(volume_id)
+                    new_vol = True
+
+                except Exception as e:
+                    return (
+                        None,
+                        f"Volume with ldev_id {ldev_id} does not exist or failed to create with error: {str(e)}",
                     )
-                    logger.writeInfo("RC:volume_reconcile:shredding_volume finished")
-                self.delete_volume(volume)
+
+            try:
+                new_data = self._handle_additional_volume_operations(
+                    volume_spec, volume, new_vol
+                )
+                return new_data if new_data else volume, None
+            except Exception as e:
+                return None, e
+
+        executor = ThreadPoolExecutor(max_workers=MAX_WORKER_THREADS)
+        futures = []
+        try:
+            for ldev_id in ldev_ids:
+                futures.append(executor.submit(update_single_volume, ldev_id))
+            for future in as_completed(futures):
+                response, error = future.result()
+                if response:
+                    updated_ldevs.append(response)
+                if error:
+                    spec.comments.append(str(error))
+        except KeyboardInterrupt:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        except Exception as e:
+            executor.shutdown(wait=False, cancel_futures=True)
+            spec.comments.append(f"Volume update failed with error: {str(e)}")
+        finally:
+            executor.shutdown(wait=True)
+        return updated_ldevs
+
+    def _handle_additional_volume_operations(self, spec, volume, new_vol=False):
+
+        self.update_volume(volume, spec, new_vol)
+
+        # Check if the ldev is a command device
+        if volume.attributes and "CMD" in volume.attributes:
+            self.provisioner.fill_cmd_device_info(volume)
+
+        additional_change = False
+        if spec.should_shred_volume_enable:
+            unused = self.provisioner.shredding_volume(
+                spec.ldev_id, spec.should_shred_volume_enable
+            )
+            logger.writeInfo("RC:volume_reconcile:shredding_volume finished")
+
+        if spec.qos_settings:
+            self.provisioner.change_qos_settings(spec.ldev_id, spec.qos_settings)
+            logger.writeInfo("RC:volume_reconcile:qos_settings finished")
+            self.connection_info.changed = True
+            additional_change = True
+
+        if spec.mp_blade_id is not None and spec.mp_blade_id != volume.mpBladeId:
+            self.provisioner.change_mp_blade(spec.ldev_id, spec.mp_blade_id)
+            self.connection_info.changed = True
+            additional_change = True
+
+        if spec.clpr_id is not None and spec.clpr_id != volume.clprId:
+            self.provisioner.assign_ldev_to_clpr(spec.ldev_id, spec.clpr_id)
+            self.connection_info.changed = True
+            additional_change = True
+
+        if spec.should_reclaim_zero_pages:
+            self.provisioner.reclaim_zero_pages(spec.ldev_id)
+            logger.writeInfo("RC:volume_reconcile:reclaim_zero_pages finished")
+            self.connection_info.changed = True
+            additional_change = True
+
+        if spec.is_ese_volume is not None:
+            self.provisioner.set_ese_volume(spec.ldev_id, spec.is_ese_volume)
+            logger.writeInfo("RC:volume_reconcile:set_ese_volume finished")
+            additional_change = True
+
+        # Keep this logic always at the end of the volume creation
+
+        if spec.should_format_volume:
+            if volume.status.upper() != VolumePayloadConst.BLOCK:
+                logger.writeDebug(
+                    "RC:volume_reconcile:formatting volume as it is not in BLOCK state"
+                )
+                logger.writeDebug("RC:volume_reconcile:spec={}", spec)
+                self.provisioner.change_volume_status(spec.ldev_id, True)
+
+            force_format = (
+                True
+                if volume.dataReductionMode
+                and volume.dataReductionMode.lower() != VolumePayloadConst.DISABLED
+                else False
+            )
+            try:
+                self.provisioner.format_volume(
+                    spec.ldev_id,
+                    force_format=force_format,
+                    format_type=spec.format_type,
+                )
+            except Exception as e:
+                if "Timeout Error!" in str(e):
+                    spec.is_task_timeout = True
+                else:
+                    self.provisioner.change_volume_status(spec.ldev_id, False)
+                    raise e
+
+            logger.writeInfo("RC:volume_reconcile:format volume finished")
+            self.connection_info.changed = True
+
+        if additional_change or self.connection_info.changed is True:
+            volume = self.provisioner.get_volume_by_ldev(volume.ldevId)
+
+        if new_vol:
+            if spec and hasattr(spec, "comment") is not None:
+                spec.comment = VSPVolumeMSG.VOLUME_CREATE_SUCCESS.value
+        create_qos_settings = True if spec.qos_settings else False
+        return self.get_volume_detail_info(
+            volume, create_qos_setting=create_qos_settings
+        )
+
+    def _handle_ldev_delete_operations(self, spec):
+
+        ldev_ids = spec.ldev_ids if spec.ldev_ids else [spec.ldev_id]
+        spec.comments = []
+
+        def delete_single_volume(ldev_id):
+            try:
+                volume = self.provisioner.get_volume_by_ldev(ldev_id)
+                logger.writeDebug("RC:volume_reconcile:state=absent:volume={}", volume)
+                if not volume or volume.emulationType == VolumePayloadConst.NOT_DEFINED:
+                    return f"Volume with ldev_id {ldev_id} does not exist or already deleted."
+                if spec.force is not None and spec.force is True:
+                    self.delete_volume_force(volume)
+                else:
+                    if (
+                        volume.numOfPorts
+                        and volume.numOfPorts > 0
+                        and volume.cylinder is None
+                    ):
+                        raise ValueError(VSPVolValidationMsg.PATH_EXIST.value)
+                    if spec.should_shred_volume_enable:
+                        unused = self.provisioner.shredding_volume(
+                            spec.ldev_id, spec.should_shred_volume_enable
+                        )
+                        logger.writeInfo(
+                            "RC:volume_reconcile:shredding_volume finished"
+                        )
+                    self.delete_volume(volume)
+                return "Volume with ldev_id {} deleted successfully.".format(ldev_id)
+
+            except Exception as e:
+                logger.writeError("RC:volume_reconcile:state=absent:error={}", e)
+                return f"Volume with ldev_id {ldev_id} deletion failed with error: {str(e)}"
+
+        executor = ThreadPoolExecutor(max_workers=MAX_WORKER_THREADS)
+        futures = []
+        try:
+            for ldev_id in ldev_ids:
+                futures.append(executor.submit(delete_single_volume, ldev_id))
+            for future in as_completed(futures):
+                result = future.result()
+                if result:
+                    spec.comments.append(result)
+                else:
+                    spec.comments.append(
+                        f"Volume with ldev_id {ldev_id} deleted successfully."
+                    )
+        except KeyboardInterrupt:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        finally:
+            executor.shutdown(wait=True)
+
+    def _create_multiple_volumes(self, spec: CreateVolumeSpec):
+        created_volumes = []
+        spec.comments = []
+        ldev_ids = self.provisioner.get_free_ldevs_from_meta(
+            start_ldev=spec.start_ldev_id,
+            end_ldev=spec.end_ldev_id,
+            resource_grp_id=spec.resource_group_id,
+        )
+        ldev_ids = ldev_ids[: spec.number_of_ldevs]
+        logger.writeDebug(
+            "RC:_create_multiple_volumes:free_ldev_ids={} - {}", ldev_ids, spec
+        )
+        if (
+            not ldev_ids
+            or len(ldev_ids) < spec.number_of_ldevs
+            or isinstance(ldev_ids, str)
+        ):
+            if not isinstance(ldev_ids, str):
+                raise ValueError(
+                    VSPVolValidationMsg.INSUFFICIENT_FREE_LDEVS.value.format(
+                        spec.number_of_ldevs, len(ldev_ids) if ldev_ids else 0
+                    )
+                )
+            else:
+                raise ValueError(ldev_ids)
+
+        def create_single_volume(i):
+            number = str(spec.names.start_number + i).zfill(spec.names.number_of_digits)
+            volume_spec = copy.deepcopy(spec)
+            volume_spec.ldev_id = ldev_ids[i]
+            volume_spec.name = (
+                f"{spec.names.base_name}{ldev_ids[i]}"
+                if spec.names.base_name is DEFAULT_NAME_PREFIX
+                else f"{spec.names.base_name}{number}"
+            )
+            logger.writeDebug("RC:create_single_volume:volume_spec={}", volume_spec)
+            try:
+
+                volume_id = self._plugin_create_volume(volume_spec)
+                new_vol = True
+
+                volume = self.provisioner.get_volume_by_ldev(volume_id)
+                new_data = self._handle_additional_volume_operations(
+                    volume_spec, volume, new_vol
+                )
+                return new_data, None
+            except Exception as e:
+                return (
+                    None,
+                    f"Volume creation failed for ldev_id {volume_spec.ldev_id} with error: {str(e)}",
+                )
+
+        executor = ThreadPoolExecutor(max_workers=MAX_WORKER_THREADS)
+        futures = []
+        try:
+            for i in range(spec.number_of_ldevs):
+                futures.append(executor.submit(create_single_volume, i))
+            for future in as_completed(futures):
+                response, error = future.result()
+                if response:
+                    created_volumes.append(response)
+                if error:
+                    raise VspVolumeCreationError(error)
+        except KeyboardInterrupt:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        except Exception as e:
+            executor.shutdown(wait=False, cancel_futures=True)
+            spec.comments.append(f"Volume creation failed with error: {str(e)}")
+        finally:
+            executor.shutdown(wait=True)
+
+        return created_volumes
+
+    def ldev_batch_operation(self, spec: CreateVolumeSpec):
+        return self._create_multiple_volumes(spec)
 
     @log_entry_exit
     def update_nvm_subsystem(self, spec):
@@ -357,6 +602,14 @@ class VSPVolumeReconciler:
             return ret_value
         else:
             return False
+
+    @log_entry_exit
+    def _plugin_create_volume(self, volume_spec):
+        volume_id = self.create_volume(volume_spec)
+        if volume_spec.cylinder is None:
+            if volume_spec.name:
+                self.update_volume_name(volume_id, volume_spec.name)
+        return volume_id
 
     @log_entry_exit
     def process_create_nvme(self, nvme_subsystem, spec):
@@ -629,8 +882,8 @@ class VSPVolumeReconciler:
                 and tier_level_for_new_page_allocation.lower() != "middle"
                 and tier_level_for_new_page_allocation.lower() != "low"
             ):
-                raise Exception(
-                    "tier_level_for_new_page_allocation must be High, Middle or Low"
+                raise ValueError(
+                    VSPVolValidationMsg.INVALID_NEW_PAGE_ALLOCATION_FOR_TIERING.value
                 )
 
         tiering_policy = spec.tiering_policy
@@ -639,17 +892,19 @@ class VSPVolumeReconciler:
 
         if not spec.is_relocation_enabled:
             raise ValueError(
-                "If tiering_policy is specified then is_relocation_enabled must be true."
+                VSPVolValidationMsg.RELOCATION_ENABLED_MISSING_TIERING_POLICY.value
             )
 
         tier_level = tiering_policy.get("tier_level", None)
         if not tier_level:
             raise ValueError(
-                "If tiering_policy is specified then tier_level must be specified."
+                VSPVolValidationMsg.TIER_LEVEL_MISSING_FOR_TIERING_POLICY.value
             )
 
         if tier_level < 0 or tier_level > 31:
-            raise ValueError("Specify a value from 0 to 31 for tier_level.")
+            raise ValueError(
+                VSPVolValidationMsg.INVALID_TIER_LEVEL_FOR_TIERING_POLICY.value
+            )
 
         tier1AllocationRateMin = tiering_policy.get("tier1_allocation_rate_min", None)
         tier1AllocationRateMax = tiering_policy.get("tier1_allocation_rate_max", None)
@@ -668,14 +923,14 @@ class VSPVolumeReconciler:
         ):
             if is0to5:
                 raise ValueError(
-                    "Any other of the tiering policy attributes must not be specified for tier_level between 0 and 5."
+                    VSPVolValidationMsg.INVALID_TIERING_POLICY_ATTRS_FOR_TIER_LEVEL_0_TO_5.value
                 )
         else:
             if is0to5:
                 return
 
             raise ValueError(
-                "All four of the tiering policy attributes must be specified."
+                VSPVolValidationMsg.ALL_FOUR_ATTRS_REQUIRED_FOR_TIER_LEVEL_ABOVE_5.value
             )
 
         isTier1AllocRateMinSet = (
@@ -700,35 +955,32 @@ class VSPVolumeReconciler:
             pass
         else:
             raise ValueError(
-                "All four of the tiering policy attributes must be from 1 to 100."
+                VSPVolValidationMsg.INVALID_TIERING_POLICY_ATTRS_VALUES.value
             )
 
         if isTier1AllocRateMinSet and isTier1AllocRateMaxSet:
             if tier1AllocationRateMin > tier1AllocationRateMax:
                 raise ValueError(
-                    "Tier1AllocationRateMin can not be greater than Tier1AllocationRateMax."
+                    VSPVolValidationMsg.TIER1_ALLOC_RATE_MIN_LESS_MAX.value
                 )
+
             # Validation check: The difference between the values of the tier1AllocationRateMax and tier1AllocationRateMin attributes is a multiple of 10.
             if (tier1AllocationRateMax - tier1AllocationRateMin) % 10 != 0:
-                raise ValueError(
-                    "Difference between Tier1AllocationRateMax and Tier1AllocationRateMin is not a multiple of 10."
-                )
+                raise ValueError(VSPVolValidationMsg.INVALID_TIER1_DIFFERENCE.value)
 
         if isTier3AllocRateMinSet and isTier3AllocRateMaxSet:
             if tier3AllocationRateMin > tier3AllocationRateMax:
                 raise ValueError(
-                    "Tier3AllocationRateMin can not be greater than Tier3AllocationRateMax."
+                    VSPVolValidationMsg.TIER3_ALLOC_RATE_MIN_LESS_MAX.value
                 )
             if (tier3AllocationRateMax - tier3AllocationRateMin) % 10 != 0:
-                raise ValueError(
-                    "Difference between Tier3AllocationRateMax and Tier3AllocationRateMin is not a multiple of 10."
-                )
+                raise ValueError(VSPVolValidationMsg.INVALID_TIER3_DIFFERENCE.value)
 
         if isTier1AllocRateMinSet and isTier3AllocRateMinSet:
             # Validation check: The sum of the values of the tier1AllocationRateMin and tier3AllocationRateMin attributes is equal to or less than 100.
             if (tier1AllocationRateMin + tier3AllocationRateMin) > 100:
                 raise ValueError(
-                    "Sum of Tier1AllocationRateMin and Tier3AllocationRateMin exceeds 100."
+                    VSPVolValidationMsg.SUM_OF_TIER1_AND_TIER3_MIN_EXCEEDS_100.value
                 )
 
     @log_entry_exit
@@ -774,8 +1026,9 @@ class VSPVolumeReconciler:
         spec.block_size = (
             convert_decimal_size_to_bytes(spec.size) if spec.size else None
         )
-        self.connection_info.changed = True
         volume_created = self.provisioner.create_volume(spec)
+        self.connection_info.changed = True
+
         if found:
             self.process_create_nvme(found, spec)
         return volume_created

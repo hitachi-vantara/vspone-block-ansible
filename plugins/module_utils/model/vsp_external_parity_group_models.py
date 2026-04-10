@@ -14,6 +14,7 @@ class ExternalParityGroupSpec:
     clpr_id: Optional[int] = None
     force: Optional[bool] = None
     external_path_group_id: Optional[int] = None
+    port: Optional[str] = None
     port_id: Optional[str] = None
     external_wwn: Optional[str] = None
     lun_id: Optional[int] = None
@@ -21,11 +22,18 @@ class ExternalParityGroupSpec:
     is_external_attribute_migration: Optional[bool] = None
     command_device_ldev_id: Optional[int] = None
 
+    def __post_init__(self):
+        if self.port_id and self.port is None:
+            self.port = self.port_id
+        if self.port is None and self.port_id is not None:
+            self.port = self.port_id
+
 
 @dataclass
 class CreateExternalParityGroupObject:
     external_parity_group_id: Optional[str] = None
     external_path_group_id: Optional[int] = None
+    port: Optional[str] = None
     port_id: Optional[str] = None
     external_wwn: Optional[str] = None
     lun_id: Optional[int] = None
@@ -33,3 +41,9 @@ class CreateExternalParityGroupObject:
     clpr_id: Optional[int] = None
     is_external_attribute_migration: Optional[bool] = None
     command_device_ldev_id: Optional[int] = None
+
+    def __post_init__(self):
+        if self.port_id and self.port is None:
+            self.port = self.port_id
+        if self.port is None and self.port_id is not None:
+            self.port = self.port_id

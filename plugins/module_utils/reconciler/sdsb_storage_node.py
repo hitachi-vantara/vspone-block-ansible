@@ -8,6 +8,7 @@ try:
         log_entry_exit,
         camel_to_snake_case,
     )
+    from ..common.sdsb_errors import SdsbRestApiError
     from ..message.sdsb_storage_node_msgs import SDSBStorageNodeValidationMsg
     from ..model.sdsb_storage_node_models import SDSBStorageNodeInfo
 except ImportError:
@@ -78,7 +79,7 @@ class SDSBStorageNodeReconciler:
                 if "HTTP Error 404: Not Found" in str(e):
                     raise ValueError(SDSBStorageNodeValidationMsg.WRONG_NODE_ID.value)
                 else:
-                    raise Exception(e)
+                    raise SdsbRestApiError(e)
 
         if spec.id is None:
             raise ValueError(
@@ -115,7 +116,7 @@ class SDSBStorageNodeReconciler:
                 if "HTTP Error 404: Not Found" in str(e):
                     raise ValueError(SDSBStorageNodeValidationMsg.WRONG_NODE_ID.value)
                 else:
-                    raise Exception(e)
+                    raise SdsbRestApiError(e)
         if spec.id is None:
             raise ValueError(
                 SDSBStorageNodeValidationMsg.STORAGE_NODE_NOT_FOUND.value.format(
@@ -141,7 +142,7 @@ class SDSBStorageNodeReconciler:
                 if "HTTP Error 404: Not Found" in str(e):
                     raise ValueError(SDSBStorageNodeValidationMsg.WRONG_NODE_ID.value)
                 else:
-                    raise Exception(e)
+                    raise SdsbRestApiError(e)
         if spec.id is None:
             raise ValueError(
                 SDSBStorageNodeValidationMsg.STORAGE_NODE_NOT_FOUND.value.format(

@@ -4,12 +4,20 @@ try:
     )
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
+    from ..common.sdsb_errors import (
+        SdsbAuditLogFileCreationError,
+    )
+    from ..message.sdsb_audit_log_msgs import SDSBAuditLogMsg
 except ImportError:
     from provisioner.sdsb_audit_log_setting_provisioner import (
         SDSBAuditLogSettingProvisioner,
     )
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
+    from ..common.sdsb_errors import (
+        SdsbAuditLogFileCreationError,
+    )
+    from message.sdsb_audit_log_msgs import SDSBAuditLogMsg
 
 logger = Log()
 
@@ -158,7 +166,7 @@ class SDSBAuditLogSettingsReconciler:
             self.connection_info.changed = True
             return self.modify_audit_log_settings(audit_log_setting)
         else:
-            raise ValueError(f"Unsupported state: {state}")
+            raise ValueError(SDSBAuditLogMsg.UNSUPPORTED_STATE.value.format(state))
 
     @log_entry_exit
     def download_audit_log_file(self, file_name):
@@ -175,9 +183,7 @@ class SDSBAuditLogSettingsReconciler:
         import time
 
         if not spec or not spec.audit_log_file_location:
-            raise ValueError(
-                "audit_log_file_location is required for download_audit_log state"
-            )
+            raise ValueError(SDSBAuditLogMsg.AUDIT_LOG_FILE_LOCATION_REQD.value)
 
         file_location = spec.audit_log_file_location
 
@@ -192,12 +198,15 @@ class SDSBAuditLogSettingsReconciler:
             try:
                 self.provisioner.create_audit_log_file(None)
                 self.connection_info.changed = True
-                ret_msg += "Audit log file created successfully. "
+                ret_msg += SDSBAuditLogMsg.AUDIT_LOG_FILE_CREATED.value
                 logger.writeDebug("RC:=== Audit log file created successfully ===")
             except Exception as e:
-                logger.writeError(f"RC:=== Failed to create audit log file: {e} ===")
-                raise Exception(
-                    f"Failed to create audit log file on storage system: {e}"
+                err_msg = str(e)
+                logger.writeError(
+                    f"RC:=== Failed to create audit log file: {err_msg} ==="
+                )
+                raise SdsbAuditLogFileCreationError(
+                    SDSBAuditLogMsg.AUDIT_LOG_FILE_CREATE_FAILED.value.format(err_msg)
                 )
 
         # Generate filename with timestamp
@@ -213,9 +222,9 @@ class SDSBAuditLogSettingsReconciler:
             if not spec.refresh:
                 self.connection_info.changed = False
 
-            ret_msg += f"Successfully downloaded audit log file to {file_name}."
+            ret_msg += SDSBAuditLogMsg.AUDIT_LOG_FILE_DOWNLODED.value.format(file_name)
             return ret_msg
         except Exception as e:
             logger.writeError("GW:download_audit_log_file:error={}", e)
-            ret_msg += "The file could not be downloaded. The target file does not exist. Please create the audit log file first."
+            ret_msg += SDSBAuditLogMsg.AUDIT_LOG_FILE_DOWNLOAD_FAILED.value
             return ret_msg

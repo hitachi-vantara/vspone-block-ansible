@@ -139,8 +139,8 @@ options:
           Required for the Create snapshot pair with a new consistency group task.
         required: false
         type: bool
-      mirror_unit_id:
-        description: ID of the mirror unit.
+      mirror_unit_number:
+        description: Number of the mirror unit.
           Required for the Split a snapshot pair
           /Resync a snapshot pair
           /Restore a snapshot pair
@@ -153,6 +153,7 @@ options:
           /Assign floating snapshot pair tasks.
         required: false
         type: int
+        aliases: ['mirror_unit_id']
       auto_split:
         description: Specify whether to automatically split the pair.
         required: false
@@ -356,7 +357,7 @@ EXAMPLES = """
       secondary_volume_id: -1
       pool_id: 5
       snapshot_group_name: "snapshot-group-name-1"
-      mirror_unit_id: 4
+      mirror_unit_number: 4
 
 - name: Assign floating snapshot pair
   hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -368,7 +369,7 @@ EXAMPLES = """
     spec:
       primary_volume_id: 100
       secondary_volume_id: 200
-      mirror_unit_id: 1
+      mirror_unit_number: 1
 
 - name: Unassign floating snapshot pair
   hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -380,7 +381,7 @@ EXAMPLES = """
     spec:
       primary_volume_id: 100
       secondary_volume_id: -1
-      mirror_unit_id: 1
+      mirror_unit_number: 1
 
 - name: Deleting garbage data of all Thin Image pairs in a snapshot tree
   hitachivantara.vspone_block.vsp.hv_snapshot:
@@ -446,7 +447,11 @@ snapshot_data:
       type: bool
       sample: false
     mirror_unit_id:
-      description: ID of the mirror unit.
+      description: Deprecated. Use mirror_unit_number instead. Identifier of the mirror unit.
+      type: int
+      sample: 3
+    mirror_unit_number:
+      description: Number of the mirror unit.
       type: int
       sample: 3
     pool_id:

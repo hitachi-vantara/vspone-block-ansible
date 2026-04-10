@@ -104,16 +104,17 @@ options:
           Optional for the Create and auto-split a ShadowImage pair task.
         type: int
         required: false
-      copy_pace_track_size:
+      copy_pace:
         description: Copy pace track size.
           Optional for the Create a ShadowImage pair for an existing secondary volume
+          / Supports "SMALL", "MEDIUM", "LARGE" values or 1 to 15.
           /Create ShadowImage pair for non-existing secondary volume
           /Resync ShadowImage pair
           /Create and auto-split a ShadowImage pair
           /Restore a ShadowImage pair tasks.
         type: str
         required: false
-        choices: ['SLOW', 'MEDIUM', 'FAST']
+        aliases: ['copy_pace_track_size']
       enable_quick_mode:
         description: Enable quick mode.
           Optional for the Create a ShadowImage pair for an existing secondary volume
@@ -200,11 +201,12 @@ options:
           /Create ShadowImage pair for non-existing secondary volume for migration tasks.
         type: bool
         required: false
-      pvol_mu_number:
+      mirror_unit_number:
         description: Primary volume mirror unit number.
           Optional for the Create a ShadowImage pair.
         type: int
         required: false
+        aliases: ['pvol_mu_number']
 """
 
 EXAMPLES = """
@@ -219,7 +221,7 @@ EXAMPLES = """
       primary_volume_id: 274
       secondary_pool_id: 1
       allocate_new_consistency_group: true
-      copy_pace_track_size: "MEDIUM"
+      copy_pace: "MEDIUM"
       enable_quick_mode: false
       auto_split: true
       copy_group_name: "CGTest"
@@ -255,7 +257,11 @@ data:
       type: int
       sample: 100
     mirror_unit_id:
-      description: Mirror unit id.
+      description: Deprecated. Use mirror_unit_number instead.
+      type: int
+      sample: 0
+    mirror_unit_number:
+      description: Mirror unit number.
       type: int
       sample: 0
     primary_volume_id:
@@ -266,7 +272,7 @@ data:
       description: Primary hex volume id.
       type: str
       sample: "00:00:AC"
-    pvol_host_groups:
+    primary_volume_host_groups:
       description: Primary volume host groups.
       type: list
       elements: dict
@@ -275,13 +281,31 @@ data:
           host_group_number: 189
           lun: 0
           port_id: "CL2-B"
-    pvol_iscsi_targets:
+    pvol_host_groups:
+      description: Deprecated. Use primary_volume_host_groups instead.
+      type: list
+      elements: dict
+      sample:
+        - host_group_name: "hostserver1153"
+          host_group_number: 189
+          lun: 0
+          port_id: "CL2-B"
+    primary_volume_iscsi_targets:
       description: Primary volume iSCSI targets.
       type: list
       elements: dict
       sample: []
-    pvol_nvm_subsystem_name:
+    pvol_iscsi_targets:
+      description: Deprecated. Use primary_volume_iscsi_targets instead.
+      type: list
+      elements: dict
+      sample: []
+    primary_volume_nvm_subsystem_name:
       description: Primary volume's nvm subsystem name.
+      type: str
+      sample: ""
+    pvol_nvm_subsystem_name:
+      description: Deprecated. Use primary_volume_nvm_subsystem_name instead.
       type: str
       sample: ""
     secondary_volume_id:
@@ -300,7 +324,7 @@ data:
       description: Storage serial number.
       type: str
       sample: "810050"
-    svol_host_groups:
+    secondary_volume_host_groups:
       description: Secondary volume host groups.
       type: list
       elements: dict
@@ -309,13 +333,31 @@ data:
           host_group_number: 189
           lun: 1
           port_id: "CL2-B"
-    svol_iscsi_targets:
+    svol_host_groups:
+      description: Deprecated. Use secondary_volume_host_groups instead.
+      type: list
+      elements: dict
+      sample:
+        - host_group_name: "hostserver1153"
+          host_group_number: 189
+          lun: 1
+          port_id: "CL2-B"
+    secondary_volume_iscsi_targets:
       description: Secondary volume iSCSI targets.
       type: list
       elements: dict
       sample: []
-    svol_nvm_subsystem_name:
+    svol_iscsi_targets:
+      description: Deprecated. Use secondary_volume_iscsi_targets instead.
+      type: list
+      elements: dict
+      sample: []
+    secondary_volume_nvm_subsystem_name:
       description: Secondary volume's nvm subsystem name.
+      type: str
+      sample: ""
+    svol_nvm_subsystem_name:
+      description: Deprecated. Use secondary_volume_nvm_subsystem_name instead.
       type: str
       sample: ""
 """

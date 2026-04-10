@@ -59,8 +59,12 @@ options:
         elements: dict
         required: false
         suboptions:
+          port_id:
+            description: Port ID of the local storage system. Required for the Add/Remove tasks.
+            type: str
+            required: true
           port:
-            description: Number of the port on the local storage system. Required for the Add/Remove tasks.
+            description: Deprecated. Use port_id instead.
             type: str
             required: true
           external_wwn:
@@ -73,8 +77,12 @@ options:
         elements: dict
         required: false
         suboptions:
+          port_id:
+            description: Port ID of the local storage system. Required for the Add/Remove tasks.
+            type: str
+            required: true
           port:
-            description: Number of the port on the local storage system. Required for the Add/Remove tasks.
+            description: Deprecated. Use port_id instead.
             type: str
             required: true
           external_iscsi_ip_address:
@@ -98,10 +106,10 @@ EXAMPLES = """
     spec:
       external_path_group_id: 1
       external_fc_paths:
-        - port: "CL6-A"
+        - port_id: "CL6-A"
           external_wwn: "50060e8012277d61"
       external_iscsi_target_paths:
-        - port: "CL1-C"
+        - port_id: "CL1-C"
           external_iscsi_ip_address: "172.25.59.214"
           external_iscsi_name: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10045.1c020"
 
@@ -115,10 +123,10 @@ EXAMPLES = """
     spec:
       external_path_group_id: 1
       external_fc_paths:
-        - port: "CL6-A"
+        - port_id: "CL6-A"
           external_wwn: "50060e8012277d61"
       external_iscsi_target_paths:
-        - port: "CL1-C"
+        - port_id: "CL1-C"
           external_iscsi_ip_address: "172.25.59.214"
           external_iscsi_name: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10045.1c020"
 """

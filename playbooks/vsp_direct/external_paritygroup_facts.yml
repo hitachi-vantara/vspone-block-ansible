@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : External Parity Group facts Playbook
-####################################################################
+# ###################################################################
 - name: External Parity Group facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Get all External Parity Groups
-    ####################################################################
+    # ###################################################################
     - name: Get all External Parity Groups
       hitachivantara.vspone_block.vsp.hv_external_paritygroup_facts:
         connection_info: "{{ connection_info }}"

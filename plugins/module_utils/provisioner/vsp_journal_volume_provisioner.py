@@ -46,7 +46,7 @@ class VSPJournalVolumeProvisioner:
 
         if spec and spec.is_free_journal_pool_id and spec.is_mirror_not_used:
             err_msg = (
-                VSPSJournalVolumeValidateMsg.BOTH__FREE_POOL_ID_AND_USED_PARAM.value
+                VSPSJournalVolumeValidateMsg.BOTH_FREE_POOL_ID_AND_USED_PARAM.value
             )
             self.logger.writeError(err_msg)
             raise ValueError(err_msg)
@@ -225,7 +225,7 @@ class VSPJournalVolumeProvisioner:
 
     @log_entry_exit
     def get_free_journal_pool_ids(self, count=1):
-        pools = self.gateway.get_all_journal_info()
+        pools = self.gateway.get_all_journal_basic_info()
         pool_ids = set(jp.journalPoolId for jp in pools.data)
         available_pool = [
             id
@@ -233,9 +233,7 @@ class VSPJournalVolumeProvisioner:
             if id and id not in pool_ids
         ]
         self.logger.writeDebug(f"PV:journal_volume: available_pool =  {available_pool}")
-        return (
-            available_pool[:count] if count <= len(available_pool) else available_pool
-        )
+        return available_pool[:count] if count < len(available_pool) else available_pool
 
     @log_entry_exit
     def get_unused_journal_pools(self):

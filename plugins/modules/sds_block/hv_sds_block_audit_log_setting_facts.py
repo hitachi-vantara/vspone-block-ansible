@@ -93,7 +93,6 @@ class SDSBAuditLogSettingFactsManager:
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB Audit Log Setting Facts ===")
         audit_log_settings = None
-        audit_log_settings_data_extracted = None
         registration_message = validate_ansible_product_registration()
 
         try:
@@ -105,17 +104,11 @@ class SDSBAuditLogSettingFactsManager:
             )
             output_dict = audit_log_settings
 
-            # we may not need this
-            # audit_log_settings_data_extracted = AuditLogSettingPropertiesExtractor().extract_dict(
-            #     output_dict
-            # )
-
         except Exception as e:
             self.logger.writeException(e)
             self.logger.writeInfo("=== End of SDSB Audit Log Setting Facts ===")
             self.module.fail_json(msg=str(e))
 
-        # data = {"audit_log_settings": audit_log_settings_data_extracted}
         data = {"audit_log_settings": output_dict}
         if registration_message:
             data["user_consent_required"] = registration_message

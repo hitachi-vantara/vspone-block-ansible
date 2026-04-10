@@ -1,10 +1,6 @@
 from enum import Enum
 
 
-class SDSBVolumeMessage(Enum):
-    pass
-
-
 class SDSBVolValidationMsg(Enum):
 
     SAVING_SETTING = (
@@ -34,3 +30,10 @@ class SDSBVolValidationMsg(Enum):
     QOS_UPPER_ALERT_ALLOWABLE_TIME_OUT_OF_RANGE = (
         "upper_alert_allowable_time_in_sec must be -1 or 1 to 600."
     )
+    DELETE_VOLUME_SUCCESS = "Volume with ID '{}' has been successfully deleted."
+    DELETE_VOLUME_FAILED = "Could not delete volume with ID '{}'."
+    FAILED_TO_CREATE_VOLUME = "Failed to create volume."
+    INVALID_STATE = (
+        "Invalid state provided in the spec. Valid states in the spec are: {}, and {}."
+    )
+    VOLUME_CREATION_SUCCESS = "Volume with ID '{}' has been successfully created."

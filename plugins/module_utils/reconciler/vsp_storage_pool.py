@@ -8,7 +8,10 @@ try:
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..model.vsp_storage_pool_models import StoragePoolSpec
     from ..common.hv_constants import StateValue
-    from ..message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
+    from ..message.vsp_storage_pool_msgs import (
+        VSPStoragePoolValidateMsg,
+        StoragePoolInfoMsg,
+    )
     from ..model.common_base_models import BaseDataClass
 except ImportError:
     from common.ansible_common import (
@@ -20,7 +23,10 @@ except ImportError:
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from model.vsp_storage_pool_models import StoragePoolSpec
     from common.hv_constants import StateValue
-    from ..message.vsp_storage_pool_msgs import VSPStoragePoolValidateMsg
+    from ..message.vsp_storage_pool_msgs import (
+        VSPStoragePoolValidateMsg,
+        StoragePoolInfoMsg,
+    )
     from model.common_base_models import BaseDataClass
 
 logger = Log()
@@ -53,7 +59,7 @@ class VSPStoragePoolReconciler:
             #     ret_value["total_capacity_in_units"] = convert_mb_to_gb(
             #         total_capacity_mb
             #     )
-            msg = "Storage pool created/updated successfully." if msg is None else msg
+            msg = StoragePoolInfoMsg.POOL_CREATED_UPDATED.value if msg is None else msg
             ret_value = ret_value.camel_to_snake_dict()
             return self.inject_ldev_hex(ret_value), msg
             # return self.create_update_storage_pool(spec).to_dict()

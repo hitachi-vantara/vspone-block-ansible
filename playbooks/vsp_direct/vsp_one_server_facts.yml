@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : VSP One Server facts Playbook
-####################################################################
+# ###################################################################
 - name: VSP One Server facts Module
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Get all servers
-    ####################################################################
+    # ###################################################################
     - name: Get all servers
       hitachivantara.vspone_block.vsp.hv_vsp_one_server_facts:
         connection_info: "{{ connection_info }}"
@@ -50,7 +50,7 @@
       hitachivantara.vspone_block.vsp.hv_vsp_one_server_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          nick_name: "WebServer01"
+          nickname: "WebServer01"
       register: result
 
     - name: Debug the result variable

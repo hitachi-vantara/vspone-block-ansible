@@ -68,6 +68,7 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
     SDSBParametersManager,
+    SDSBNoSpecArguments,
 )
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
@@ -85,25 +86,10 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 class SDSBTimeSettingsFactsManager:
     def __init__(self):
         self.logger = Log()
-        argument_spec = {
-            "connection_info": {
-                "required": True,
-                "type": "dict",
-                "options": {
-                    "address": {"required": True, "type": "str"},
-                    "username": {"required": True, "type": "str"},
-                    "password": {"required": True, "type": "str", "no_log": True},
-                    "connection_type": {
-                        "required": False,
-                        "type": "str",
-                        "choices": ["direct"],
-                        "default": "direct",
-                    },
-                },
-            }
-        }
+        self.argument_spec = SDSBNoSpecArguments.get_no_spec_fact_arguments()
+
         self.module = AnsibleModule(
-            argument_spec=argument_spec,
+            argument_spec=self.argument_spec,
             supports_check_mode=True,
         )
 

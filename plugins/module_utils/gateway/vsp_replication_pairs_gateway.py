@@ -8,7 +8,6 @@ try:
     from ..common.ansible_common import (
         dicts_to_dataclass_list,
         log_entry_exit,
-        convert_block_capacity,
         convert_decimal_size_to_bytes,
     )
     from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
@@ -22,7 +21,6 @@ except ImportError:
     from common.ansible_common import (
         dicts_to_dataclass_list,
         log_entry_exit,
-        convert_block_capacity,
         convert_decimal_size_to_bytes,
     )
     from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
@@ -32,19 +30,19 @@ except ImportError:
 
 CREATE_REMOTE_COPY_PAIR_DIRECT = "v1/objects/storages/{}/remote-mirror-copypairs"
 SPLIT_REMOTE_COPY_PAIR_DIRECT = (
-    "v1/objects/storages/{}/remote-mirror-copypairs/{}/actions/split/invoke"
+    "v1/objects/remote-mirror-copypairs/{}/actions/split/invoke"
 )
 SECONDARY_TAKEOVER_COPY_PAIR_DIRECT = (
-    "v1/objects/storages/{}/remote-mirror-copypairs/{}/actions/takeover/invoke"
+    "v1/objects/remote-mirror-copypairs/{}/actions/takeover/invoke"
 )
 RESYNC_REMOTE_COPY_PAIR_DIRECT = (
-    "v1/objects/storages/{}/remote-mirror-copypairs/{}/actions/resync/invoke"
+    "v1/objects/remote-mirror-copypairs/{}/actions/resync/invoke"
 )
 GET_REMOTE_STORAGES_DIRECT = "v1/objects/remote-storages"
 GET_STORAGES_DIRECT = "v1/objects/storages"
 GET_REMOTE_COPY_PAIRS_DIRECT = "v1/objects/remote-copypairs?replicationType={}"
-DELETE_REMOTE_COPY_PAIR_DIRECT = "v1/objects/storages/{}/remote-mirror-copypairs/{}"
-GET_ONE_REMOTE_COPY_PAIRS_DIRECT = "v1/objects/storages/{}/remote-mirror-copypairs/{}"
+DELETE_REMOTE_COPY_PAIR_DIRECT = "v1/objects/remote-mirror-copypairs/{}"
+GET_ONE_REMOTE_COPY_PAIRS_DIRECT = "v1/objects/remote-mirror-copypairs/{}"
 
 logger = Log()
 
@@ -194,7 +192,7 @@ class VSPReplicationPairsDirectGateway:
         headers = self.get_remote_token(spec.secondary_connection_info)
         headers["Remote-Authorization"] = headers.pop("Authorization")
         headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
-        end_point = SPLIT_REMOTE_COPY_PAIR_DIRECT.format(storage_deviceId, object_id)
+        end_point = SPLIT_REMOTE_COPY_PAIR_DIRECT.format(object_id)
         start_time = time.time()
         response = self.connection_manager.update(
             end_point, payload, headers_input=headers
@@ -242,7 +240,7 @@ class VSPReplicationPairsDirectGateway:
         headers = self.get_remote_token(spec.secondary_connection_info)
         headers["Remote-Authorization"] = headers.pop("Authorization")
         headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
-        end_point = SPLIT_REMOTE_COPY_PAIR_DIRECT.format(storage_deviceId, object_id)
+        end_point = SPLIT_REMOTE_COPY_PAIR_DIRECT.format(object_id)
         start_time = time.time()
 
         response = self.connection_manager.update(
@@ -291,7 +289,7 @@ class VSPReplicationPairsDirectGateway:
         headers = self.get_remote_token(spec.secondary_connection_info)
         headers["Remote-Authorization"] = headers.pop("Authorization")
         headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
-        end_point = RESYNC_REMOTE_COPY_PAIR_DIRECT.format(storage_deviceId, object_id)
+        end_point = RESYNC_REMOTE_COPY_PAIR_DIRECT.format(object_id)
         start_time = time.time()
         response = self.connection_manager.update(
             end_point, payload, headers_input=headers
@@ -335,7 +333,7 @@ class VSPReplicationPairsDirectGateway:
         headers = self.get_remote_token(spec.secondary_connection_info)
         headers["Remote-Authorization"] = headers.pop("Authorization")
         headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
-        end_point = RESYNC_REMOTE_COPY_PAIR_DIRECT.format(storage_deviceId, object_id)
+        end_point = RESYNC_REMOTE_COPY_PAIR_DIRECT.format(object_id)
         start_time = time.time()
         if self.remote_connection_manager is None:
             self.init_remote_connection_manager(spec.secondary_connection_info)
@@ -384,7 +382,7 @@ class VSPReplicationPairsDirectGateway:
 
         headers = self.get_remote_token(spec.secondary_connection_info)
         headers["Remote-Authorization"] = headers.pop("Authorization")
-        end_point = DELETE_REMOTE_COPY_PAIR_DIRECT.format(storage_deviceId, object_id)
+        end_point = DELETE_REMOTE_COPY_PAIR_DIRECT.format(object_id)
         start_time = time.time()
         response = self.connection_manager.delete(
             end_point, None, headers_input=headers
@@ -422,50 +420,9 @@ class VSPReplicationPairsDirectGateway:
         if object_id is None:
             return None  # this means hur pair is absent
 
-        copy_group = self.copy_group_gateway.get_copy_group_by_name(spec)
-        logger.writeDebug("GW:get_replication_pair:copy_group={}", copy_group)
-        headers = self.get_remote_token(spec.secondary_connection_info)
-        headers["Remote-Authorization"] = headers.pop("Authorization")
-        headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
-        end_point = GET_ONE_REMOTE_COPY_PAIRS_DIRECT.format(storage_deviceId, object_id)
-        start_time = time.time()
-        response = self.connection_manager.get_with_headers(
-            end_point, headers_input=headers
+        return self.copy_group_gateway.get_one_copy_pair_by_id(
+            object_id, spec.secondary_connection_info
         )
-        snake_case_journal_pool = {
-            self.camel_to_snake(k): v for k, v in response.items()
-        }
-        if copy_group.muNumber is not None:
-            snake_case_journal_pool["mirror_unit_number"] = copy_group.muNumber
-        snake_case_journal_pool["pvol_storage_device_id"] = storage_deviceId
-        snake_case_journal_pool["svol_storage_device_id"] = svol_storage_device_id
-        snake_case_journal_pool["pvol_storage_serial_number"] = str(
-            self.storage_serial_number
-        )
-        snake_case_journal_pool["svol_storage_serial_number"] = (
-            secondary_storage_info.get("serialNumber")
-        )
-        if spec.new_volume_size is not None:
-            p_volume_data = VSPVolumeDirectGateway(
-                self.connection_info
-            ).get_volume_by_id(snake_case_journal_pool["pvol_ldev_id"])
-            s_volume_data = VSPVolumeDirectGateway(
-                spec.secondary_connection_info
-            ).get_volume_by_id(snake_case_journal_pool["svol_ldev_id"])
-            pvol_size = convert_block_capacity(p_volume_data.blockCapacity)
-            svol_size = convert_block_capacity(s_volume_data.blockCapacity)
-            snake_case_journal_pool["pvol_ldev_size"] = pvol_size
-            snake_case_journal_pool["svol_ldev_size"] = svol_size
-            logger.writeDebug("PF_REST:get_remote_copy zm_size = {}", pvol_size)
-
-        if spec.is_svol_readwriteable is not None:
-            snake_case_journal_pool["is_svol_readwriteable"] = (
-                spec.is_svol_readwriteable
-            )
-
-        end_time = time.time()
-        logger.writeDebug("PF_REST:get_remote_copy:time={:.2f}", end_time - start_time)
-        return snake_case_journal_pool
 
     @log_entry_exit
     def split_replication_pair_by_object_id(
@@ -487,7 +444,7 @@ class VSPReplicationPairsDirectGateway:
         headers = self.get_remote_token(secondary_connection_info)
         headers["Remote-Authorization"] = headers.pop("Authorization")
         headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
-        end_point = SPLIT_REMOTE_COPY_PAIR_DIRECT.format(storage_deviceId, object_id)
+        end_point = SPLIT_REMOTE_COPY_PAIR_DIRECT.format(object_id)
         start_time = time.time()
         response = self.connection_manager.update(
             end_point, payload, headers_input=headers
@@ -511,7 +468,7 @@ class VSPReplicationPairsDirectGateway:
         headers = self.get_remote_token(secondary_connection_info)
         headers["Remote-Authorization"] = headers.pop("Authorization")
         headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
-        end_point = SPLIT_REMOTE_COPY_PAIR_DIRECT.format(storage_deviceId, object_id)
+        end_point = SPLIT_REMOTE_COPY_PAIR_DIRECT.format(object_id)
         start_time = time.time()
 
         response = self.connection_manager.update(
@@ -537,7 +494,7 @@ class VSPReplicationPairsDirectGateway:
         headers = self.get_remote_token(secondary_connection_info)
         headers["Remote-Authorization"] = headers.pop("Authorization")
         headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
-        end_point = RESYNC_REMOTE_COPY_PAIR_DIRECT.format(storage_deviceId, object_id)
+        end_point = RESYNC_REMOTE_COPY_PAIR_DIRECT.format(object_id)
         start_time = time.time()
         response = self.connection_manager.update(
             end_point, payload, headers_input=headers
@@ -560,7 +517,7 @@ class VSPReplicationPairsDirectGateway:
         headers = self.get_remote_token(secondary_connection_info)
         headers["Remote-Authorization"] = headers.pop("Authorization")
         headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
-        end_point = RESYNC_REMOTE_COPY_PAIR_DIRECT.format(storage_deviceId, object_id)
+        end_point = RESYNC_REMOTE_COPY_PAIR_DIRECT.format(object_id)
         start_time = time.time()
 
         response = self.connection_manager.update(
@@ -695,9 +652,7 @@ class VSPReplicationPairsDirectGateway:
         # headers = self.get_remote_token(spec.secondary_connection_info)
         # headers["Remote-Authorization"] = headers.pop("Authorization")
         # headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
-        end_point = SECONDARY_TAKEOVER_COPY_PAIR_DIRECT.format(
-            storage_deviceId, object_id
-        )
+        end_point = SECONDARY_TAKEOVER_COPY_PAIR_DIRECT.format(object_id)
         start_time = time.time()
 
         response = self.connection_manager.post(
@@ -709,7 +664,7 @@ class VSPReplicationPairsDirectGateway:
             end_time - start_time,
         )
         response = self.connection_manager.get(
-            GET_ONE_REMOTE_COPY_PAIRS_DIRECT.format(storage_deviceId, object_id)
+            GET_ONE_REMOTE_COPY_PAIRS_DIRECT.format(object_id)
         )
         logger.writeDebug(f"GW:get_storage_device_id:response={response}")
         # Inline code to convert all keys to snake_case

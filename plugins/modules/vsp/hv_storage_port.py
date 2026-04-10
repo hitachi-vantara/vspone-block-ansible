@@ -49,7 +49,7 @@ options:
     type: dict
     required: false
     suboptions:
-      port:
+      port_id:
         description: The port id of the specific port to retrieve.
           Required for the Change port security setting of the storage port by port ID
           /Change port mode setting of the storage port by port ID
@@ -61,6 +61,7 @@ options:
           /Sending the ping command to a specified host tasks.
         type: str
         required: true
+        aliases: ["port"]
       port_attribute:
         description: Specify the port attribute of the port. The specifiable values are 'TAR' or 'ALL'. Use 'TAR' for Fibre Target port,
           use 'ALL' for Bidirectional port. This attribute cannot be specified at the same time as any other attribute.
@@ -138,7 +139,7 @@ EXAMPLES = """
       username: "admin"
       password: "secret"
     spec:
-      port: "CL8-B"
+      port_id: "CL8-B"
       port_attribute: "TAR"  # Options: "TAR", "ALL"
 
 - name: Change port mode setting of the storage port by port id
@@ -148,7 +149,7 @@ EXAMPLES = """
       username: "admin"
       password: "secret"
     spec:
-      port: "CL8-B"
+      port_id: "CL8-B"
       port_mode: "FC-NVMe"  # Options: "FC-NVMe", "FCP-SCSI"
 
 - name: Change port security setting of the storage port by port id
@@ -158,7 +159,7 @@ EXAMPLES = """
       username: "admin"
       password: "secret"
     spec:
-      port: "CL1-A"
+      port_id: "CL1-A"
       enable_port_security: true
 
 - name: Perform a login test
@@ -166,7 +167,7 @@ EXAMPLES = """
     connection_info: "{{ connection_info }}"
     state: "login_test"
     spec:
-      port: "CL1-C"
+      port_id: "CL1-C"
       external_iscsi_target:
         ip_address: "172.25.59.213"
         name: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10045.1c019"

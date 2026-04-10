@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Event Log Syslog Setting Update Playbook
-####################################################################
+# ###################################################################
 - name: Update Event Log Syslog Settings
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ##########################################################################
+    # #########################################################################
     # Task Name : Configure or update email reporting settings for event logs
-    ##########################################################################
+    # #########################################################################
     - name: Configure or update email reporting settings for event logs
       hitachivantara.vspone_block.sds_block.hv_sds_block_event_log_setting:
         state: present

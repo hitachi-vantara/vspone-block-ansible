@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Shadow Image Pair Playbook
-####################################################################
+# ###################################################################
 - name: Shadow Image Pair Module
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ########################################################################
+    # #######################################################################
     # Task Name : Create shadow image pair for an existing secondary volume
-    #######################################################################
+    # ######################################################################
     - name: Create shadow image pair for an existing secondary volume
       hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
         connection_info: "{{ connection_info }}"
@@ -28,7 +28,7 @@
           primary_volume_id: 274
           secondary_volume_id: 277
           allocate_new_consistency_group: true
-          copy_pace_track_size: "MEDIUM"
+          copy_pace: 10
           enable_quick_mode: false
           auto_split: true
           copy_group_name: "CGTest"
@@ -52,7 +52,7 @@
           primary_volume_id: 274
           secondary_pool_id: 1
           allocate_new_consistency_group: true
-          copy_pace_track_size: "MEDIUM"
+          copy_pace: 10
           enable_quick_mode: false
           auto_split: true
           copy_group_name: "CGTest"
@@ -96,7 +96,7 @@
           primary_volume_id: 274
           secondary_volume_id: 277
           enable_quick_mode: false
-          copy_pace_track_size: "MEDIUM"
+          copy_pace: 10
           copy_group_name: "CGTest"
           copy_pair_name: "CPTest"
       register: result
@@ -117,7 +117,7 @@
           secondary_volume_id: 277
           allocate_new_consistency_group: true
           consistency_group_id: 1
-          copy_pace_track_size: "MEDIUM"
+          copy_pace: 10
           copy_group_name: "CGTest"
           copy_pair_name: "CPTest"
       register: result
@@ -137,7 +137,7 @@
           primary_volume_id: 274
           secondary_volume_id: 277
           enable_quick_mode: true
-          copy_pace_track_size: "MEDIUM"
+          copy_pace: 10
           copy_group_name: "CGTest"
           copy_pair_name: "CPTest"
       register: result
@@ -260,16 +260,15 @@
         var: result
 
     #########################################################################
-    # Task Name : Create shadow image pair with available pvol_mu_number
+    # Task Name : Create shadow image pair with available mirror_unit_number
     #########################################################################
-    - name: Create shadow image pair with available pvol_mu_number
+    - name: Create shadow image pair with available mirror_unit_number
       hitachivantara.vspone_block.vsp.hv_shadow_image_pair:
         connection_info: "{{ connection_info }}"
         state: "present"
         spec:
           primary_volume_id: 274
-          secondary_pool_id: 1
-          pvol_mu_number: 0
+          mirror_unit_number: 0
           copy_group_name: "CGTest"
           copy_pair_name: "CPTest"
           secondary_volume_id: 277

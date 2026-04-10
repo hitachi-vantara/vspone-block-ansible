@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : NVM Subsystems  Playbook
-####################################################################
+# ###################################################################
 - name: NVM Subsystems Management
   hosts: localhost
   gather_facts: false
@@ -17,15 +17,15 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Create an NVM Subsystem with a specific ID
-    ####################################################################
+    # ###################################################################
     - name: Create an NVM Subsystem
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
         spec:
           id: 222
-          ports: ["CL1-B", "CL1-D"]
+          port_ids: ["CL1-B", "CL1-D"]
           host_mode: "VMWARE_EX"
           enable_namespace_security: true
           host_nqns:
@@ -53,7 +53,7 @@
       hitachivantara.vspone_block.vsp.hv_nvm_subsystems:
         connection_info: "{{ connection_info }}"
         spec:
-          ports: ["CL1-B", "CL1-D"]
+          port_ids: ["CL1-B", "CL1-D"]
           name: "test_nvm_subsystem_222"
           host_mode: "VMWARE_EX"
           enable_namespace_security: true
@@ -162,7 +162,7 @@
         spec:
           state: "add_port"
           id: 222
-          ports: ["CL1-B", "CL1-D"]
+          port_ids: ["CL1-B", "CL1-D"]
       register: result
 
     - name: Debug the result variable
@@ -178,7 +178,7 @@
         spec:
           state: "add_port"
           name: "test_nvm_subsystem_222"
-          ports: ["CL1-B", "CL1-D"]
+          port_ids: ["CL1-B", "CL1-D"]
       register: result
 
     - name: Debug the result variable
@@ -197,7 +197,7 @@
           state: "remove_port"
           # id: 222
           name: "test_nvm_subsystem_222"
-          ports: ["CL1-B", "CL1-D"]
+          port_ids: ["CL1-B", "CL1-D"]
       register: result
 
     - name: Debug the result variable

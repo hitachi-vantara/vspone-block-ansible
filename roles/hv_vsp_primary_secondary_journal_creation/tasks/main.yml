@@ -1,0 +1,348 @@
+---
+# ###################################################################
+# Role: hv_vsp_primary_secondary_journal_creation
+# Description: Create journal on Hitachi VSP One Block storage
+#              for both primary and secondary storages
+# ###################################################################
+
+# ###################################################################
+# Task: Validate required variables
+# ###################################################################
+- name: Validate required fields
+  ansible.builtin.assert:
+    that:
+      - hv_vsp_primary_secondary_journal_creation_connection_info is defined
+      - hv_vsp_primary_secondary_journal_creation_connection_info | length > 0
+      - hv_vsp_primary_secondary_journal_creation_secondary_connection_info is defined
+      - hv_vsp_primary_secondary_journal_creation_secondary_connection_info | length > 0
+      - hv_vsp_primary_secondary_journal_creation_size_in_gb is defined
+      - hv_vsp_primary_secondary_journal_creation_size_in_gb | int >= 8
+    fail_msg: >
+      "connection_info, secondary_connection_info, and size_in_gb are required and must be valid."
+
+- name: Validate Pool IDs or Parity Group IDs
+  ansible.builtin.assert:
+    that:
+      - >
+        (
+          hv_vsp_primary_secondary_journal_creation_primary_pool_id is defined
+          and hv_vsp_primary_secondary_journal_creation_primary_pool_id != ""
+          and hv_vsp_primary_secondary_journal_creation_secondary_pool_id is defined
+          and hv_vsp_primary_secondary_journal_creation_secondary_pool_id != ""
+        )
+        or
+        (
+          hv_vsp_primary_secondary_journal_creation_primary_parity_group_id is defined
+          and hv_vsp_primary_secondary_journal_creation_primary_parity_group_id != ""
+          and hv_vsp_primary_secondary_journal_creation_secondary_parity_group_id is defined
+          and hv_vsp_primary_secondary_journal_creation_secondary_parity_group_id != ""
+        )
+    fail_msg: >
+      "Either both primary_pool_id and secondary_pool_id OR both primary_parity_group_id and secondary_parity_group_id must be specified."
+
+- name: Validate number of journals or existing journal IDs
+  ansible.builtin.assert:
+    that:
+      - >
+        (hv_vsp_primary_secondary_journal_creation_number_of_journals is defined and hv_vsp_primary_secondary_journal_creation_number_of_journals | int > 0)
+        or
+        (
+          hv_vsp_primary_secondary_journal_creation_primary_journal_ids is defined
+          and hv_vsp_primary_secondary_journal_creation_primary_journal_ids | length > 0
+          and hv_vsp_primary_secondary_journal_creation_secondary_journal_ids is defined
+          and hv_vsp_primary_secondary_journal_creation_secondary_journal_ids | length > 0
+        )
+    fail_msg: >
+      "Either number_of_journals must be specified OR both primary_journal_ids and secondary_journal_ids must be provided."
+
+- name: Validate number of journals or existing journal IDs
+  ansible.builtin.assert:
+    that:
+      - >
+        (hv_vsp_primary_secondary_journal_creation_number_of_journals is defined and hv_vsp_primary_secondary_journal_creation_number_of_journals | int > 0)
+        or
+        (
+          hv_vsp_primary_secondary_journal_creation_primary_journal_ids is defined
+          and hv_vsp_primary_secondary_journal_creation_primary_journal_ids | length > 0
+          and hv_vsp_primary_secondary_journal_creation_secondary_journal_ids is defined
+          and hv_vsp_primary_secondary_journal_creation_secondary_journal_ids | length > 0
+        )
+    fail_msg: >
+      "Either number_of_journals must be specified OR both primary_journal_ids and secondary_journal_ids must be provided."
+
+- name: Validate lengths of primary and secondary journal ID lists match
+  ansible.builtin.assert:
+    that:
+      - >
+        hv_vsp_primary_secondary_journal_creation_primary_journal_ids is not defined
+        or hv_vsp_primary_secondary_journal_creation_secondary_journal_ids is not defined
+        or hv_vsp_primary_secondary_journal_creation_primary_journal_ids | length
+           == hv_vsp_primary_secondary_journal_creation_secondary_journal_ids | length
+    fail_msg: >
+      "The number of primary_journal_ids must match the number of secondary_journal_ids."
+
+- name: Set journal count fact
+  ansible.builtin.set_fact:
+    hv_vsp_primary_secondary_journal_creation_count: >-
+      {% if hv_vsp_primary_secondary_journal_creation_number_of_journals is defined
+            and hv_vsp_primary_secondary_journal_creation_number_of_journals | int > 0 %}
+        {{ hv_vsp_primary_secondary_journal_creation_number_of_journals | int }}
+      {% elif hv_vsp_primary_secondary_journal_creation_primary_journal_ids is defined %}
+        {{ hv_vsp_primary_secondary_journal_creation_primary_journal_ids | length }}
+      {% else %}
+        1
+      {% endif %}
+
+####################################################################
+# Task Name : Create Session on primary storage
+####################################################################
+- name: Create Session on primary storage
+  hitachivantara.vspone_block.vsp.hv_session:
+    connection_info: "{{ hv_vsp_primary_secondary_journal_creation_connection_info }}"
+  register: hv_vsp_primary_secondary_journal_creation_primary_session
+  ignore_errors: false
+
+##########################################################################
+# Task: Create volumes on primary storage when primary_pool_id is provided
+##########################################################################
+- name: Create volumes on primary storage when primary_pool_id is provided
+  hitachivantara.vspone_block.vsp.hv_ldev:
+    connection_info:
+      address: "{{ hv_vsp_primary_secondary_journal_creation_connection_info.address }}"
+      api_token: "{{ hv_vsp_primary_secondary_journal_creation_primary_session.session.token }}"
+    spec:
+      pool_id: "{{ hv_vsp_primary_secondary_journal_creation_primary_pool_id }}"
+      size: "{{ hv_vsp_primary_secondary_journal_creation_size_in_gb }}GB"
+      capacity_saving: "disabled"
+  register: hv_vsp_primary_secondary_journal_creation_primary_volume_result_pool
+  loop: "{{ range(0, hv_vsp_primary_secondary_journal_creation_count | int) | list }}"
+  loop_control:
+    index_var: volume_index
+  when:
+    hv_vsp_primary_secondary_journal_creation_primary_pool_id is defined and hv_vsp_primary_secondary_journal_creation_primary_pool_id | default('') | trim
+    != ''
+
+##################################################################################
+# Task: Create volumes on primary storage when primary_parity_group_id is provided
+##################################################################################
+- name: Create volumes on primary storage when primary_parity_group_id is provided
+  hitachivantara.vspone_block.vsp.hv_ldev:
+    connection_info:
+      address: "{{ hv_vsp_primary_secondary_journal_creation_connection_info.address }}"
+      api_token: "{{ hv_vsp_primary_secondary_journal_creation_primary_session.session.token }}"
+    spec:
+      parity_group: "{{ hv_vsp_primary_secondary_journal_creation_primary_parity_group_id }}"
+      size: "{{ hv_vsp_primary_secondary_journal_creation_size_in_gb }}GB"
+      capacity_saving: "disabled"
+  register: hv_vsp_primary_secondary_journal_creation_primary_volume_result_parity
+  loop: "{{ range(0, hv_vsp_primary_secondary_journal_creation_count | int) | list }}"
+  loop_control:
+    index_var: volume_index
+  when:
+    hv_vsp_primary_secondary_journal_creation_primary_parity_group_id is defined and hv_vsp_primary_secondary_journal_creation_primary_parity_group_id |
+    default('') | trim != ''
+
+######################################################################################
+# Task: Set fact for primary ldev_ids
+######################################################################################
+- name: Set fact for primary ldev_ids (pool)
+  ansible.builtin.set_fact:
+    hv_vsp_primary_secondary_journal_creation_primary_ldev_ids: "{{ hv_vsp_primary_secondary_journal_creation_primary_volume_result_pool.results | map(attribute='volume.ldev_id') | list }}"
+  when: >
+    hv_vsp_primary_secondary_journal_creation_primary_pool_id is defined and
+    hv_vsp_primary_secondary_journal_creation_primary_volume_result_pool is defined and
+    hv_vsp_primary_secondary_journal_creation_primary_volume_result_pool.results is defined and
+    hv_vsp_primary_secondary_journal_creation_primary_volume_result_pool.results | selectattr('skipped', 'undefined') | list | length > 0
+
+- name: Set fact for primary ldev_ids (parity)
+  ansible.builtin.set_fact:
+    hv_vsp_primary_secondary_journal_creation_primary_ldev_ids: "{{ hv_vsp_primary_secondary_journal_creation_primary_volume_result_parity.results | map(attribute='volume.ldev_id') | list }}"
+  when: >
+    hv_vsp_primary_secondary_journal_creation_primary_parity_group_id is defined and
+    hv_vsp_primary_secondary_journal_creation_primary_parity_group_id | default('') | trim != '' and
+    hv_vsp_primary_secondary_journal_creation_primary_ldev_ids is not defined and
+    hv_vsp_primary_secondary_journal_creation_primary_volume_result_parity is defined and
+    hv_vsp_primary_secondary_journal_creation_primary_volume_result_parity.results is defined and
+    hv_vsp_primary_secondary_journal_creation_primary_volume_result_parity.results | selectattr('skipped', 'undefined') | list | length > 0
+
+- name: Get free primary journals if number_of_journals is defined
+  hitachivantara.vspone_block.vsp.hv_journal_facts:
+    connection_info: "{{ hv_vsp_primary_secondary_journal_creation_connection_info }}"
+    spec:
+      is_free_journal_pool_id: true
+      free_journal_pool_id_count: "{{ hv_vsp_primary_secondary_journal_creation_number_of_journals }}"
+  register: hv_vsp_primary_secondary_journal_creation_primary_result
+  when: hv_vsp_primary_secondary_journal_creation_number_of_journals is defined and hv_vsp_primary_secondary_journal_creation_number_of_journals | int > 0
+
+- name: Set final primary journal IDs from free journals
+  ansible.builtin.set_fact:
+    hv_vsp_primary_secondary_journal_creation_final_primary_journal_ids: "{{ hv_vsp_primary_secondary_journal_creation_primary_result.ansible_facts.journal_volume.free_journal_pool_ids | list }}"
+  when: hv_vsp_primary_secondary_journal_creation_number_of_journals is defined and hv_vsp_primary_secondary_journal_creation_number_of_journals | int > 0
+
+- name: Use provided primary_journal_ids if number_of_journals is not defined
+  ansible.builtin.set_fact:
+    hv_vsp_primary_secondary_journal_creation_final_primary_journal_ids: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_ids }}"
+  when: hv_vsp_primary_secondary_journal_creation_number_of_journals is not defined or hv_vsp_primary_secondary_journal_creation_number_of_journals | int == 0
+
+####################################################################
+# Task: Create journals on primary storage
+####################################################################
+- name: Create journals on primary storage
+  hitachivantara.vspone_block.vsp.hv_journal:
+    connection_info:
+      address: "{{ hv_vsp_primary_secondary_journal_creation_connection_info.address }}"
+      api_token: "{{ hv_vsp_primary_secondary_journal_creation_primary_session.session.token }}"
+    spec:
+      journal_id: "{{ hv_vsp_primary_secondary_journal_creation_final_primary_journal_ids[volume_index] }}"
+      ldev_ids:
+        [
+          "{{ hv_vsp_primary_secondary_journal_creation_primary_ldev_ids[volume_index] | int }}",
+        ]
+  loop: "{{ range(0, hv_vsp_primary_secondary_journal_creation_final_primary_journal_ids | length) | list }}"
+  loop_control:
+    index_var: volume_index
+  register: hv_vsp_primary_secondary_journal_creation_primary_journal_result
+
+####################################################################
+# Task Name : Create Session on secondary storage
+####################################################################
+- name: Create Session on secondary storage
+  hitachivantara.vspone_block.vsp.hv_session:
+    connection_info: "{{ hv_vsp_primary_secondary_journal_creation_secondary_connection_info }}"
+  register: hv_vsp_primary_secondary_journal_creation_secondary_session
+  ignore_errors: false
+
+###############################################################################
+# Task: Create volumes on secondary storage when secondary_pool_id is provided
+###############################################################################
+- name: Create volumes on secondary storage when secondary_pool_id is provided
+  hitachivantara.vspone_block.vsp.hv_ldev:
+    connection_info:
+      address: "{{ hv_vsp_primary_secondary_journal_creation_secondary_connection_info.address }}"
+      api_token: "{{ hv_vsp_primary_secondary_journal_creation_secondary_session.session.token }}"
+    spec:
+      pool_id: "{{ hv_vsp_primary_secondary_journal_creation_secondary_pool_id }}"
+      size: "{{ hv_vsp_primary_secondary_journal_creation_size_in_gb }}GB"
+      capacity_saving: "disabled"
+  register: hv_vsp_primary_secondary_journal_creation_secondary_volume_result_pool
+  loop: "{{ range(0, hv_vsp_primary_secondary_journal_creation_count | int) | list }}"
+  loop_control:
+    index_var: volume_index
+  when: hv_vsp_primary_secondary_journal_creation_secondary_pool_id is defined
+
+######################################################################################
+# Task: Create volumes on secondary storage when secondary_parity_group_id is provided
+######################################################################################
+- name: Create volumes on secondary storage when secondary_parity_group_id is provided
+  hitachivantara.vspone_block.vsp.hv_ldev:
+    connection_info:
+      address: "{{ hv_vsp_primary_secondary_journal_creation_secondary_connection_info.address }}"
+      api_token: "{{ hv_vsp_primary_secondary_journal_creation_secondary_session.session.token }}"
+    state: "present"
+    spec:
+      parity_group: "{{ hv_vsp_primary_secondary_journal_creation_secondary_parity_group_id }}"
+      size: "{{ hv_vsp_primary_secondary_journal_creation_size_in_gb }}GB"
+      capacity_saving: "disabled"
+  register: hv_vsp_primary_secondary_journal_creation_secondary_volume_result_parity
+  loop: "{{ range(0, hv_vsp_primary_secondary_journal_creation_count | int) | list }}"
+  loop_control:
+    index_var: volume_index
+  when: hv_vsp_primary_secondary_journal_creation_secondary_parity_group_id is defined
+
+######################################################################################
+# Task: Set fact for secondary ldev_ids
+######################################################################################
+- name: Set fact for secondary ldev_ids (pool)
+  ansible.builtin.set_fact:
+    hv_vsp_primary_secondary_journal_creation_secondary_ldev_ids: "{{ hv_vsp_primary_secondary_journal_creation_secondary_volume_result_pool.results | map(attribute='volume.ldev_id') | list }}"
+  when: >
+    hv_vsp_primary_secondary_journal_creation_secondary_volume_result_pool is defined and
+    hv_vsp_primary_secondary_journal_creation_secondary_volume_result_pool.results is defined and
+    hv_vsp_primary_secondary_journal_creation_secondary_volume_result_pool.results | selectattr('skipped', 'undefined') | list | length > 0
+
+- name: Set fact for secondary ldev_ids (parity)
+  ansible.builtin.set_fact:
+    hv_vsp_primary_secondary_journal_creation_secondary_ldev_ids: "{{ hv_vsp_primary_secondary_journal_creation_secondary_volume_result_parity.results | map(attribute='volume.ldev_id') | list }}"
+  when: >
+    hv_vsp_primary_secondary_journal_creation_secondary_ldev_ids is not defined and
+    hv_vsp_primary_secondary_journal_creation_secondary_volume_result_parity is defined and
+    hv_vsp_primary_secondary_journal_creation_secondary_volume_result_parity.results is defined and
+    hv_vsp_primary_secondary_journal_creation_secondary_volume_result_parity.results | selectattr('skipped', 'undefined') | list | length > 0
+
+- name: Get free secondary journals if number_of_journals is defined
+  hitachivantara.vspone_block.vsp.hv_journal_facts:
+    connection_info: "{{ hv_vsp_primary_secondary_journal_creation_secondary_connection_info }}"
+    spec:
+      is_free_journal_pool_id: true
+      free_journal_pool_id_count: "{{ hv_vsp_primary_secondary_journal_creation_number_of_journals }}"
+  register: hv_vsp_primary_secondary_journal_creation_secondary_result
+  when: hv_vsp_primary_secondary_journal_creation_number_of_journals is defined and hv_vsp_primary_secondary_journal_creation_number_of_journals | int > 0
+
+- name: Set final secondary journal IDs from free journals
+  ansible.builtin.set_fact:
+    hv_vsp_primary_secondary_journal_creation_final_secondary_journal_ids: "{{ hv_vsp_primary_secondary_journal_creation_secondary_result.ansible_facts.journal_volume.free_journal_pool_ids | list }}"
+  when: hv_vsp_primary_secondary_journal_creation_number_of_journals is defined and hv_vsp_primary_secondary_journal_creation_number_of_journals | int > 0
+
+- name: Use provided secondary_journal_ids if number_of_journals is not defined
+  ansible.builtin.set_fact:
+    hv_vsp_primary_secondary_journal_creation_final_secondary_journal_ids: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_ids }}"
+  when: hv_vsp_primary_secondary_journal_creation_number_of_journals is not defined or hv_vsp_primary_secondary_journal_creation_number_of_journals | int == 0
+
+####################################################################
+# Task: Create journal on secondary storage
+####################################################################
+- name: Create journals on secondary storage
+  hitachivantara.vspone_block.vsp.hv_journal:
+    connection_info:
+      address: "{{ hv_vsp_primary_secondary_journal_creation_secondary_connection_info.address }}"
+      api_token: "{{ hv_vsp_primary_secondary_journal_creation_secondary_session.session.token }}"
+    state: "present"
+    spec:
+      journal_id: "{{ hv_vsp_primary_secondary_journal_creation_final_secondary_journal_ids[volume_index] }}"
+      ldev_ids:
+        [
+          "{{ hv_vsp_primary_secondary_journal_creation_secondary_ldev_ids[volume_index] | int }}",
+        ]
+  loop: "{{ range(0, hv_vsp_primary_secondary_journal_creation_final_secondary_journal_ids | length) | list }}"
+  loop_control:
+    index_var: volume_index
+  register: hv_vsp_primary_secondary_journal_creation_secondary_journal_result
+
+####################################################################
+# Task: Generate Journal Creation Report
+####################################################################
+- name: Generate journal creation report
+  ansible.builtin.debug:
+    msg:
+      journal_creation_report:
+        primary_storage:
+          changed: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_result.results[volume_index].changed }}"
+          journal_details:
+            journal_pool_id: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_result.results[volume_index].journal.journal_pool_id }}"
+            journal_status: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_result.results[volume_index].journal.journal_status }}"
+            total_capacity: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_result.results[volume_index].journal.total_capacity }}"
+            ldev_ids: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_result.results[volume_index].journal.ldev_ids }}"
+            ldev_ids_hex: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_result.results[volume_index].journal.ldev_ids_hex }}"
+            mp_blade_id: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_result.results[volume_index].journal.mp_blade_id }}"
+            cache_mode_enabled: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_result.results[volume_index].journal.is_cache_mode_enabled }}"
+            data_overflow_watch_seconds: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_result.results[volume_index].journal.data_overflow_watch_seconds }}"
+            timer_type: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_result.results[volume_index].journal.timer_type }}"
+            type: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_result.results[volume_index].journal.type }}"
+          mirrors: "{{ hv_vsp_primary_secondary_journal_creation_primary_journal_result.results[volume_index].journal.mirrors }}"
+        secondary_storage:
+          changed: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_result.results[volume_index].changed }}"
+          journal_details:
+            journal_pool_id: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_result.results[volume_index].journal.journal_pool_id }}"
+            journal_status: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_result.results[volume_index].journal.journal_status }}"
+            total_capacity: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_result.results[volume_index].journal.total_capacity }}"
+            ldev_ids: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_result.results[volume_index].journal.ldev_ids }}"
+            ldev_ids_hex: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_result.results[volume_index].journal.ldev_ids_hex }}"
+            mp_blade_id: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_result.results[volume_index].journal.mp_blade_id }}"
+            cache_mode_enabled: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_result.results[volume_index].journal.is_cache_mode_enabled }}"
+            data_overflow_watch_seconds: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_result.results[volume_index].journal.data_overflow_watch_seconds }}"
+            timer_type: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_result.results[volume_index].journal.timer_type }}"
+            type: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_result.results[volume_index].journal.type }}"
+          mirrors: "{{ hv_vsp_primary_secondary_journal_creation_secondary_journal_result.results[volume_index].journal.mirrors }}"
+  loop: "{{ range(0, hv_vsp_primary_secondary_journal_creation_final_primary_journal_ids | length) | list }}"
+  loop_control:
+    index_var: volume_index

@@ -29,5 +29,8 @@ class SDSBPlatformInfoGateway:
             end_point = GET_STORAGE_DRIVES
             drives = self.connection_manager.get(end_point)
             logger.writeDebug("GW:get_drives:data={}", drives)
-            self._platform = drives["data"][0]["vendorName"]
+            if len(drives["data"]) == 0:
+                self._platform = "Unknown"
+            else:
+                self._platform = drives["data"][0]["vendorName"]
         return self._platform

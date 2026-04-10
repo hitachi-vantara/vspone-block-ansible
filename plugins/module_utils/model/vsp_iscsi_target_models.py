@@ -21,11 +21,15 @@ except ImportError:
 
 @dataclass
 class IscsiTargetFactSpec:
-    subscriber_id: Optional[str] = None
     ports: Optional[List[str]] = None
+    port_ids: Optional[List[str]] = None
     name: Optional[str] = None
     iscsi_id: Optional[int] = None
     lun: Optional[int] = None
+
+    def __post_init__(self):
+        if self.port_ids:
+            self.ports = self.ports
 
 
 @dataclass
@@ -35,41 +39,74 @@ class IscsiTargetChapUserSpec:
 
 
 @dataclass
-class IscsiTarget(SingleBaseClass):
+class IscsiTarget:
     iqn: str = None
     nick_name: str = None
+    nickname: str = None
+
+    def __post_init__(self, **kwargs):
+        if self.nickname is not None:
+            self.nick_name = self.nickname
+
+
+IscsiTargetIqnSpec = IscsiTarget
 
 
 @dataclass
-class IscsiTargetSpec(SingleBaseClass):
+class IscsiTargetLunPathSpec:
+    ldev: int = None
+    lun: int = None
+
+    def __post_init__(self):
+        if self.ldev:
+            self.ldev = normalize_ldev_id(self.ldev)
+
+
+@dataclass
+class IscsiTargetSpec:
     state: Optional[str] = None
     name: Optional[str] = None
     port: Optional[str] = None
+    port_id: Optional[str] = None
     host_mode: Optional[str] = None
     host_mode_options: Optional[List[int]] = None
     ldevs: Optional[List[int]] = None
-    iqn_initiators: Optional[List[IscsiTarget]] = None
+    iqn_initiators: Optional[List[IscsiTargetIqnSpec]] = None
     chap_users: Optional[List[IscsiTargetChapUserSpec]] = None
     should_delete_all_ldevs: Optional[bool] = None
+    should_delete_all_volumes: Optional[bool] = None
     lun: Optional[int] = None
     should_release_host_reserve: Optional[bool] = None
     iscsi_id: Optional[int] = None
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if "chap_users" in kwargs and kwargs.get("chap_users") is not None:
-            self.chap_users = dicts_to_dataclass_list(
-                kwargs.get("chap_users"), IscsiTargetChapUserSpec
-            )
-        if "iqn_initiators" in kwargs and kwargs.get("iqn_initiators") is not None:
-            self.iqn_initiators = [
-                IscsiTarget(**target) for target in kwargs.get("iqn_initiators")
-            ]
-        self.__post_init__()
+    port_ids: Optional[str] = None
+    lun_paths: Optional[List[IscsiTargetLunPathSpec]] = None
 
     def __post_init__(self):
+        if self.chap_users:
+            self.chap_users = [IscsiTargetChapUserSpec(**x) for x in self.chap_users]
+        if self.iqn_initiators:
+            self.iqn_initiators = [IscsiTargetIqnSpec(**x) for x in self.iqn_initiators]
         if self.ldevs:
             self.ldevs = [normalize_ldev_id(ldev) for ldev in self.ldevs]
+        if self.port_id:
+            self.port = self.port_id
+        if self.should_delete_all_volumes:
+            self.should_delete_all_ldevs = self.should_delete_all_volumes
+
+        if self.lun_paths:
+            self.lun_paths = [IscsiTargetLunPathSpec(**x) for x in self.lun_paths]
+
+
+@dataclass
+class IscsiTargetBulkSpec(IscsiTargetSpec):
+    id: Optional[int] = None
+    comments: Optional[List[str]] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+        if self.id:
+            self.iscsi_id = self.id
 
 
 @dataclass
@@ -204,13 +241,14 @@ class VSPLogicalUnitInfoDetails(SingleBaseClass):
 class IscsiIqn(SingleBaseClass):
     iqn: str = None
     nick_name: str = None
+    nickname: str = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
 
 @dataclass
-class VSPAuthParamInfo:
+class VSPAuthParamInfo(SingleBaseClass):
     isChapEnabled: bool = None
     isChapRequired: bool = None
     isMutualAuth: bool = None
@@ -219,7 +257,6 @@ class VSPAuthParamInfo:
 
 @dataclass
 class VSPIscsiTargetInfo(SingleBaseClass):
-    resourceId: str = None
     portId: str = None
     hostMode: VSPHostModeInfo = None
     resourceGroupId: int = None
@@ -227,14 +264,11 @@ class VSPIscsiTargetInfo(SingleBaseClass):
     iqnInitiators: List[IscsiIqn] = None
     logicalUnits: List[VSPLogicalUnitInfo] = None
     authParam: VSPAuthParamInfo = None
-    subscriberId: str = None
-    partnerId: str = None
-    storageId: str = None
     chapUsers: List[str] = None
     iscsiName: str = None
     iscsiId: int = None
-    entitlementStatus: str = None
-    type: str = None
+    port: Optional[str] = None
+    hostGroupId: Optional[int] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -277,6 +311,11 @@ class VSPIscsiTargetInfo(SingleBaseClass):
             self.iscsiName = kwargs.get("iSCSIName")
         if kwargs.get("iSCSIId"):
             self.iscsiId = kwargs.get("iSCSIId")
+        if kwargs.get("portId"):
+            self.port = kwargs.get("portId")
+            self.portId = kwargs.get("portId")
+        if kwargs.get("iSCSIId"):
+            self.hostGroupId = kwargs.get("iSCSIId")
 
 
 @dataclass

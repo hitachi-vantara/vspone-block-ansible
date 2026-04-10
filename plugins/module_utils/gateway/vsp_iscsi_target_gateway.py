@@ -117,15 +117,17 @@ class VSPIscsiTargetDirectGateway:
             connection_info.password,
             connection_info.api_token,
         )
+        self.ports = None
 
     def get_ports(self, serial=None):
-        Log()
+        if self.ports is not None:
+            return self.ports
         end_point = Endpoints.GET_PORTS
         resp = self.connectionManager.get(end_point)
-        return VSPPortsInfo(dicts_to_dataclass_list(resp["data"], VSPPortInfo))
+        self.ports = VSPPortsInfo(dicts_to_dataclass_list(resp["data"], VSPPortInfo))
+        return self.ports
 
     def get_one_port(self, port_id):
-        Log()
         end_point = Endpoints.GET_ONE_PORT.format(port_id)
         resp = self.connectionManager.read(end_point)
         return VSPPortInfo(**resp)
@@ -183,6 +185,7 @@ class VSPIscsiTargetDirectGateway:
                     {
                         "iqn": iqn_initiator.iscsiName,
                         "nick_name": iqn_initiator.iscsiNickname,
+                        "nickname": iqn_initiator.iscsiNickname,
                     }
                 )
 
@@ -417,7 +420,7 @@ class VSPIscsiTargetDirectGateway:
         self, iscsi_target_payload: IscsiTargetPayLoad, serial=None
     ):
         if not self.check_valid_port(iscsi_target_payload.port):
-            raise Exception(VSPIscsiTargetMessage.PORT_TYPE_INVALID.value)
+            raise ValueError(VSPIscsiTargetMessage.PORT_TYPE_INVALID.value)
         logger = Log()
         end_point = Endpoints.POST_HOST_GROUPS
         data = {}
@@ -456,6 +459,10 @@ class VSPIscsiTargetDirectGateway:
                 self.add_luns_to_iscsi_target(
                     iscsi_target_info, iscsi_target_payload.luns
                 )
+            elif iscsi_target_payload.lun_paths is not None:
+                self.add_lun_paths_to_iscsi_target(
+                    iscsi_target_info, iscsi_target_payload.lun_paths
+                )
             if iscsi_target_payload.iqn_initiators is not None:
                 self.add_iqn_initiators_to_iscsi_target(
                     iscsi_target_info, iscsi_target_payload.iqn_initiators
@@ -482,7 +489,7 @@ class VSPIscsiTargetDirectGateway:
             port_type = port.portType
             logger.writeInfo("port_type = {}", port_type)
             if port_type != VSPIscsiTargetConstant.PORT_TYPE_ISCSI:
-                raise Exception("The port type is not valid for this operation.")
+                raise ValueError(VSPIscsiTargetMessage.PORT_TYPE_INVALID.value)
             self.create_one_iscsi_target(
                 IscsiTargetPayLoad(
                     name=spec.name,
@@ -492,6 +499,7 @@ class VSPIscsiTargetDirectGateway:
                     luns=spec.ldevs,
                     iqn_initiators=spec.iqn_initiators,
                     chap_users=spec.chap_users,
+                    lun_paths=spec.lun_paths,
                 )
             )
 
@@ -518,6 +526,40 @@ class VSPIscsiTargetDirectGateway:
                 )
                 errors.append(
                     VSPIscsiTargetMessage.ADD_LUN_FAILED.value.format(lun, str(e))
+                )
+                raise ValueError(errors)
+            logger.writeInfo(resp)
+
+    def add_lun_paths_to_iscsi_target(
+        self, iscsi_target: VSPIscsiTargetInfo, lun_paths
+    ):
+        logger = Log()
+        errors = []
+        for lp in lun_paths:
+            end_point = Endpoints.POST_LUNS
+            data = {}
+            # data["ldevId"] = lp.ldev_id
+            data["ldevId"] = lp.ldev
+            data["portId"] = iscsi_target.portId
+            data["hostGroupNumber"] = iscsi_target.iscsiId
+            if lp.lun is not None:
+                data["lun"] = lp.lun
+            # if lp.lun_id is not None:
+            #     data["lun"] = lp.lun_id
+            # resp = self.connectionManager.post(end_point, data)
+            try:
+                resp = self.connectionManager.post(end_point, data)
+                logger.writeInfo(resp)
+            except Exception as e:
+                logger.writeError(
+                    VSPIscsiTargetMessage.ADD_LUN_PATH_FAILED.value.format(
+                        lp.ldev, lp.lun, str(e)
+                    )
+                )
+                errors.append(
+                    VSPIscsiTargetMessage.ADD_LUN_PATH_FAILED.value.format(
+                        lp.ldev, lp.lun, str(e)
+                    )
                 )
                 raise ValueError(errors)
             logger.writeInfo(resp)
@@ -688,7 +730,7 @@ class VSPIscsiTargetDirectGateway:
             iscsi_target.portId, iscsi_target.iscsiId
         )
         resp = self.connectionManager.delete(end_point)
-        logger.writeInfo(resp)
+        logger.writeDebug(resp)
 
     def release_host_reservation_status(self, port_id, iscsi_id, lun=None):
         end_point = Endpoints.RELEASE_HOST_RES_STATUS.format(port_id, iscsi_id)

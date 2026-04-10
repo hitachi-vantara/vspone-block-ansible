@@ -25,3 +25,4 @@ class VspNvmValidationMsg(Enum):
     NO_NVM_SUBSYSTEM_FOUND = "No NVM Subsystem found on this storage."
     NVM_SUBSYSTEM_NOT_FOUND = "Given NVM Subsystem does not exist."
     NVME_ALREADY_PRESENT = "The NVMe port is already present."
+    NVM_SUBSYSTEM_DELETE_SUCCESS = "NVM Subsystem deleted successfully."

@@ -195,6 +195,7 @@ options:
           /Swap-Resync Remote Copy Group for TC tasks.
         type: int
         required: false
+        default: 3
       do_failback:
         description: Specify whether to perform a failback if a failure occurs in a 3DC cascade configuration.
           If set to true, the failback is performed. If set to false, the failback is not performed.

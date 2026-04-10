@@ -4,6 +4,9 @@ try:
     from ..common.hv_log import Log
     from ..common.hv_messages import MessageID
     from ..common.ansible_common import log_entry_exit
+    from ..common.vsp_errors import (
+        VspLocalCopyGroupNotFoundError,
+    )
     from ..message.vsp_copy_group_msgs import (
         VSPCopyGroupsValidateMsg,
     )
@@ -13,6 +16,9 @@ except ImportError:
     from common.hv_log import Log
     from common.hv_messages import MessageID
     from common.ansible_common import log_entry_exit
+    from common.vsp_errors import (
+        VspLocalCopyGroupNotFoundError,
+    )
     from message.vsp_copy_group_msgs import VSPCopyGroupsValidateMsg
 
 logger = Log()
@@ -124,7 +130,7 @@ class VSPLocalCopyGroupProvisioner:
                 spec.copy_group_name
             )
             logger.writeError(msg)
-            raise Exception(msg)
+            raise VspLocalCopyGroupNotFoundError(msg)
         elif found_copy_group is not None and spec.should_force_split is None:
             if found_copy_group.copyPairs:
                 for copy_pair in found_copy_group.copyPairs:
@@ -180,7 +186,7 @@ class VSPLocalCopyGroupProvisioner:
                 spec.copy_group_name
             )
             logger.writeError(msg)
-            raise Exception(msg)
+            raise VspLocalCopyGroupNotFoundError(msg)
         elif found_copy_group is not None:
             if found_copy_group.copyPairs:
                 for copy_pair in found_copy_group.copyPairs:
@@ -236,7 +242,7 @@ class VSPLocalCopyGroupProvisioner:
             msg = VSPCopyGroupsValidateMsg.LOCAL_COPY_GROUP_NOT_FOUND.value.format(
                 spec.copy_group_name
             )
-            raise Exception(msg)
+            raise VspLocalCopyGroupNotFoundError(msg)
 
         if found_copy_group.localCloneCopygroupId is not None:
             pair_elements = found_copy_group.localCloneCopygroupId.split(",")
@@ -279,7 +285,7 @@ class VSPLocalCopyGroupProvisioner:
                 spec.copy_group_name
             )
             logger.writeError(msg)
-            raise Exception(msg)
+            raise VspLocalCopyGroupNotFoundError(msg)
 
         if found_copy_group.localCloneCopygroupId is not None:
             pair_elements = found_copy_group.localCloneCopygroupId.split(",")

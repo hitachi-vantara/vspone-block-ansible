@@ -4,7 +4,6 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 
@@ -129,6 +128,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
 )
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.sdsb_module_message_catalog import (
+    SdsbMessageCatalog,
+)
 
 
 class SDSBStorageNodeManager:
@@ -147,8 +149,9 @@ class SDSBStorageNodeManager:
             self.spec = parameter_manager.get_storage_node_bmc_access_setting_spec()
             self.state = parameter_manager.get_state()
         except Exception as e:
-            self.logger.writeError(f"An error occurred during initialization: {str(e)}")
-            self.module.fail_json(msg=str(e))
+            err_msg = SdsbMessageCatalog.MODULE_INIT_ERROR.value.format(str(e))
+            self.logger.writeError(err_msg)
+            self.module.fail_json(msg=err_msg)
 
     def apply(self):
         self.logger.writeInfo(

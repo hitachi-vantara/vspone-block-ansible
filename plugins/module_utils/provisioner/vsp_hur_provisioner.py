@@ -1,5 +1,5 @@
+import threading
 from typing import Optional
-import time
 
 try:
     from ..gateway.gateway_factory import GatewayFactory
@@ -54,6 +54,7 @@ class VSPHurProvisioner:
         )
         self.connection_info = connection_info
         self.serial = serial
+        self.hur_lock = threading.Lock()
         self.gateway.set_storage_serial_number(serial)
 
     @log_entry_exit
@@ -376,70 +377,92 @@ class VSPHurProvisioner:
 
     # 20240808 delete_hur_pair
     @log_entry_exit
-    def delete_hur_pair(self, primary_volume_id, mirror_unit_id, spec=None):
-        pair_exiting = self.gateway.get_replication_pair(spec)
-        if pair_exiting is None:
+    def delete_hur_pair(self, spec):
+        pair_existing = self.gateway.get_replication_pair(spec)
+        if pair_existing is None:
             return VSPHurValidateMsg.NO_HUR_PAIR_FOUND.value.format(spec.copy_pair_name)
         if spec.copy_group_name and spec.copy_pair_name:
             pair_id = self.gateway.delete_hur_pair_by_pair_id(spec)
             if spec.should_delete_svol is True:
-                spec.secondary_volume_id = pair_exiting["svol_ldev_id"]
+                spec.secondary_volume_id = pair_existing.svolLdevId
                 rr_prov = RemoteReplicationHelperForSVol(
                     spec.secondary_connection_info,
                     self.gateway.get_secondary_serial(spec),
                 )
                 rr_prov.delete_volume_and_all_mappings(spec.secondary_volume_id)
+                spec.comments = (
+                    VSPHurValidateMsg.HUR_PAIR_AND_SVOL_DELETED.value.format(
+                        spec.copy_pair_name, spec.secondary_volume_id
+                    )
+                )
+            else:
+                spec.comments = VSPHurValidateMsg.HUR_PAIR_DELETED.value.format(
+                    spec.copy_pair_name
+                )
             self.connection_info.changed = True
             return None
 
     @log_entry_exit
-    def resync_hur_pair(self, primary_volume_id, mirror_unit_id, spec=None):
-        pair_exiting = self.gateway.get_replication_pair(spec)
-        if (
-            pair_exiting["pvol_status"] == "PAIR"
-            and pair_exiting["svol_status"] == "PAIR"
-        ):
-            return pair_exiting
+    def resync_hur_pair(self, spec):
+        pair_existing = self.gateway.get_replication_pair(spec)
+        if pair_existing.pvolStatus == "PAIR" and pair_existing.svolStatus == "PAIR":
+            spec.comments = VSPHurValidateMsg.PAIR_ALREADY_IN_SYNC.value.format(
+                spec.copy_pair_name
+            )
+            return pair_existing
         pair_id = self.gateway.resync_hur_pair(spec)
         self.logger.writeDebug(f"PV:resync_hur_pair: pair_id=  {pair_id}")
-        pair = self.gateway.get_replication_pair(spec)
+        # pair = self.gateway.get_replication_pair(spec)
+        pair = self.cg_gw.get_one_copy_pair_by_id(
+            pair_id, spec.secondary_connection_info
+        )
+        spec.comments = VSPHurValidateMsg.PAIR_RESYNCED.value.format(
+            spec.copy_pair_name
+        )
         self.connection_info.changed = True
         return pair
 
     @log_entry_exit
-    def swap_resync_hur_pair(self, primary_volume_id, spec=None):
-        pair_exiting = self.gateway.get_replication_pair(spec)
-        if pair_exiting is None:
+    def swap_resync_hur_pair(self, spec):
+        pair_existing = self.gateway.get_replication_pair(spec)
+        if pair_existing is None:
             err_msg = (
                 HurFailedMsg.PAIR_SWAP_RESYNC_FAILED.value
                 + VSPHurValidateMsg.NO_HUR_PAIR_FOUND.value.format(spec.copy_pair_name)
             )
             logger.writeError(err_msg)
             raise ValueError(err_msg)
-        if (
-            pair_exiting["pvol_status"] == "PAIR"
-            and pair_exiting["svol_status"] == "PAIR"
-        ):
-            return pair_exiting
+        if pair_existing.pvolStatus == "PAIR" and pair_existing.svolStatus == "PAIR":
+            spec.comments = VSPHurValidateMsg.PAIR_ALREADY_IN_SYNC.value.format(
+                spec.copy_pair_name
+            )
+            return pair_existing
         pair_id = self.gateway.swap_resync_hur_pair(spec)
         self.logger.writeDebug(f"PV:swap_resync_hur_pair: pair_id=  {pair_id}")
-        pair = self.gateway.get_replication_pair(spec)
+        # pair = self.gateway.get_replication_pair(spec)
+        pair = self.cg_gw.get_one_copy_pair_by_id(
+            pair_id, spec.secondary_connection_info
+        )
+        spec.comments = VSPHurValidateMsg.PAIR_SWAP_RESYNCED.value.format(
+            spec.copy_pair_name
+        )
         self.connection_info.changed = True
         return pair
 
     @log_entry_exit
-    def split_hur_pair(self, primary_volume_id, mirror_unit_id, spec=None):
+    def split_hur_pair(self, spec):
         err_msg = ""
-        pair_exiting = self.gateway.get_replication_pair(spec)
-        if pair_exiting is None:
+        pair_existing = self.gateway.get_replication_pair(spec)
+        self.logger.writeDebug(f"PV:split_hur_pair: pair_existing=  {pair_existing}")
+        if pair_existing is None:
             err_msg = (
                 HurFailedMsg.PAIR_SPLIT_FAILED.value
                 + VSPHurValidateMsg.NO_HUR_PAIR_FOUND.value.format(spec.copy_pair_name)
             )
             logger.writeError(err_msg)
             raise ValueError(err_msg)
-        if pair_exiting["remote_mirror_copy_pair_id"] is not None:
-            pair_elements = pair_exiting["remote_mirror_copy_pair_id"].split(",")
+        if pair_existing.remoteMirrorCopyPairId is not None:
+            pair_elements = pair_existing.remoteMirrorCopyPairId.split(",")
             if (
                 spec.local_device_group_name is not None
                 or spec.remote_device_group_name is not None
@@ -462,43 +485,58 @@ class VSPHurProvisioner:
                     )
                     logger.writeError(err_msg)
                     raise ValueError(err_msg)
-        if (
-            pair_exiting["pvol_status"] == "PSUS"
-            and pair_exiting["svol_status"] == "SSUS"
-        ):
-            return pair_exiting
+        if pair_existing.pvolStatus == "PSUS" and pair_existing.svolStatus == "SSUS":
+            spec.comments = VSPHurValidateMsg.PAIR_ALREADY_SPLIT.value.format(
+                spec.copy_pair_name
+            )
+            return pair_existing
         pair_id = self.gateway.split_hur_pair(spec)
         self.logger.writeDebug(f"PV:split_hur_pair: pair_id=  {pair_id}")
-        pair = self.gateway.get_replication_pair(spec)
+        # pair = self.gateway.get_replication_pair(spec)
+        pair = self.cg_gw.get_one_copy_pair_by_id(
+            pair_id, spec.secondary_connection_info
+        )
+        spec.comments = VSPHurValidateMsg.PAIR_SPLIT.value.format(spec.copy_pair_name)
         self.connection_info.changed = True
         return pair
 
     @log_entry_exit
-    def swap_split_hur_pair(self, primary_volume_id, spec=None):
+    def swap_split_hur_pair(self, spec):
         err_msg = ""
-        pair_exiting = self.gateway.get_replication_pair(spec)
-        if pair_exiting is None:
+        pair_existing = self.gateway.get_replication_pair(spec)
+        if pair_existing is None:
             err_msg = (
                 HurFailedMsg.PAIR_SWAP_SPLIT_FAILED.value
                 + VSPHurValidateMsg.NO_HUR_PAIR_FOUND.value.format(spec.copy_pair_name)
             )
             logger.writeError(err_msg)
             raise ValueError(err_msg)
-        if (
-            pair_exiting["pvol_status"] == "PSUS"
-            and pair_exiting["svol_status"] == "SSWS"
-        ):
-            return pair_exiting
+        if pair_existing.pvolStatus == "PSUS" and pair_existing.svolStatus == "SSWS":
+            spec.comments = (
+                VSPHurValidateMsg.PAIR_ALREADY_SPLIT_AND_SWAPPED.value.format(
+                    spec.copy_pair_name
+                )
+            )
+            return pair_existing
         pair_id = self.gateway.swap_split_hur_pair(spec)
         self.logger.writeDebug(f"PV:swap_split_hur_pair: pair_id=  {pair_id}")
-        pair = self.gateway.get_replication_pair(spec)
+        # pair = self.gateway.get_replication_pair(spec)
+        pair = self.cg_gw.get_one_copy_pair_by_id(
+            pair_id, spec.secondary_connection_info
+        )
+        spec.comments = VSPHurValidateMsg.PAIR_SWAP_SPLIT.value.format(
+            spec.copy_pair_name
+        )
         self.connection_info.changed = True
         return pair
 
     @log_entry_exit
-    def secondary_takeover_hur_pair(self, spec=None):
+    def secondary_takeover_hur_pair(self, spec):
         pair = self.gateway.secondary_takeover_hur_pair(spec)
         self.logger.writeDebug(f"PV:secondary_takeover_hur_pair: pair=  {pair}")
+        spec.comments = VSPHurValidateMsg.SECONDARY_TAKEOVER_COMPLETED.value.format(
+            spec.copy_pair_name
+        )
         self.connection_info.changed = True
         return pair
 
@@ -524,7 +562,7 @@ class VSPHurProvisioner:
         pair_id = None
         if spec.copy_group_name and spec.copy_pair_name:
             hur = self.cg_gw.get_remote_pairs_by_copy_group_and_copy_pair_name(spec)
-            logger.writeDebug(f"PV:resize_true_copy_copy_pair: hur=  {hur}")
+            logger.writeDebug(f"PV:resize_hur_copy_pair: hur=  {hur}")
             if hur is not None and len(hur) > 0:
                 pvol_id = hur[0].pvolLdevId
                 pvol_data = self.vol_gw.get_volume_by_id(pvol_id)
@@ -539,7 +577,13 @@ class VSPHurProvisioner:
                 else:
                     pair_id = self.gateway.resize_hur_pair(hur[0], spec)
                     logger.writeDebug(f"PV:resize_hur_copy_pair: pair_id=  {pair_id}")
-                    pair = self.gateway.get_replication_pair(spec)
+                    # pair = self.gateway.get_replication_pair(spec)
+                    pair = self.cg_gw.get_one_copy_pair_by_id(
+                        pair_id, spec.secondary_connection_info
+                    )
+                    spec.comments = VSPHurValidateMsg.PAIR_RESIZED.value.format(
+                        spec.copy_pair_name
+                    )
                     self.connection_info.changed = True
                     return pair
             else:
@@ -552,38 +596,36 @@ class VSPHurProvisioner:
                 logger.writeError(err_msg)
                 raise ValueError(err_msg)
 
-    #  20240830 convert HostGroupTC to HostGroupHUR
-    def convert_secondary_hostgroups(self, secondary_hostgroups):
-        hgs = []
-        for hg in secondary_hostgroups:
-            #  we just take the first one
-            #  not expect more than one
-            del hg["hostGroupID"]
-            del hg["resourceGroupID"]
-            hgs.append(hg)
-            return hgs
-
     @log_entry_exit
     def get_copy_group_by_name(self, spec):
         return self.cg_gw.get_copy_group_by_name(spec)
 
     @log_entry_exit
     def create_hur_pair(self, spec):
-        pair_exiting = self.gateway.get_replication_pair(spec)
+        pair_existing = self.gateway.get_replication_pair(spec)
 
-        if pair_exiting is not None:
-            if pair_exiting["pvol_ldev_id"] != spec.primary_volume_id:
-                return "Copy pair name : {} already exits in copy group: {}".format(
-                    spec.copy_pair_name, spec.copy_group_name
-                )
-            else:
-                return pair_exiting
-        secondary_storage_connection_info = spec.secondary_connection_info
+        if pair_existing is not None:
+            spec.comments = VSPHurValidateMsg.HUR_PAIR_ALREADY_EXISTS.value.format(
+                spec.copy_pair_name
+            )
+            return pair_existing
+
         copy_group = self.get_copy_group_by_name(spec)
+        logger.writeDebug(
+            f"PV:create_hur_pair: copy_group={copy_group} new_group={spec.is_new_group_creation}"
+        )
         if copy_group is None:
-            spec.is_new_group_creation = True
+            spec.is_new_group_creation = (
+                True
+                if spec.is_new_group_creation is None
+                else spec.is_new_group_creation
+            )
         else:
-            spec.is_new_group_creation = False
+            spec.is_new_group_creation = (
+                False
+                if spec.is_new_group_creation is None
+                else spec.is_new_group_creation
+            )
             if (
                 spec.local_device_group_name is not None
                 and spec.local_device_group_name != copy_group.localDeviceGroupName
@@ -604,16 +646,12 @@ class VSPHurProvisioner:
                 err_msg = (
                     HurFailedMsg.PAIR_CREATION_FAILED.value
                     + VSPHurValidateMsg.NO_REMOTE_DEVICE_NAME_FOUND.value.format(
-                        spec.copy_group_name, copy_group.localDeviceGroupName
+                        spec.copy_group_name, copy_group.remoteDeviceGroupName
                     )
                 )
                 logger.writeError(err_msg)
                 raise ValueError(err_msg)
 
-        secondary_storage_connection_info.connection_type = ConnectionTypes.DIRECT
-        rr_prov = RemoteReplicationHelperForSVol(
-            secondary_storage_connection_info, self.gateway.get_secondary_serial(spec)
-        )
         pvol = self.get_volume_by_id(spec.primary_volume_id)
         if pvol is None:
             err_msg = (
@@ -625,6 +663,11 @@ class VSPHurProvisioner:
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
+        secondary_storage_connection_info = spec.secondary_connection_info
+        secondary_storage_connection_info.connection_type = ConnectionTypes.DIRECT
+        rr_prov = RemoteReplicationHelperForSVol(
+            secondary_storage_connection_info, self.gateway.get_secondary_serial(spec)
+        )
         secondary_vol_id = None
         try:
             if spec.secondary_nvm_subsystem is not None:
@@ -633,16 +676,23 @@ class VSPHurProvisioner:
                 secondary_vol_id = rr_prov.get_secondary_volume_id(pvol, spec, True)
             else:
                 secondary_vol_id = rr_prov.get_secondary_volume_id(pvol, spec, False)
-            spec.secondary_volume_id = secondary_vol_id
-            spec.is_data_reduction_force_copy = pvol.isDataReductionShareEnabled
-            result = self.gateway.create_hur_pair(spec)
-            self.logger.writeDebug(f"create_hur result: {result}")
 
-            # get immediately after create returning Unable to find the resource. give 5 secs
-            time.sleep(5)
-            pair = self.gateway.get_replication_pair(spec)
-            self.connection_info.changed = True
-            return pair
+            spec.secondary_volume_id = secondary_vol_id
+            if spec.is_data_reduction_force_copy is None:
+                spec.is_data_reduction_force_copy = pvol.isDataReductionShareEnabled
+            with self.hur_lock:
+                result = self.gateway.create_hur_pair(spec)
+                self.logger.writeDebug(f"create_hur result: {result}")
+                pair = self.cg_gw.get_one_copy_pair_by_id(
+                    result, spec.secondary_connection_info
+                )
+                spec.comments = VSPHurValidateMsg.HUR_PAIR_CREATED.value.format(
+                    spec.copy_pair_name
+                )
+                self.connection_info.changed = True
+                self.logger.writeDebug(f"create_hur pair: {pair}")
+                return pair
+
         except Exception as ex:
             logger.writeDebug(f"HUR create failed: {ex}")
             # if the HUR creation fails, delete the secondary volume

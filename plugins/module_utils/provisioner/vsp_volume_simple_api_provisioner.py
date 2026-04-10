@@ -6,6 +6,10 @@ try:
     from ..gateway.vsp_volume_simple_api_gateway import VspSimpleApiGateway
     from ..model.vsp_volume_models import SalamanderCreateVolumeRequestSpec
     from ..message.vsp_lun_msgs import VSPVolumeMSG
+    from ..common.vsp_errors import (
+        VspFeatureNotSupportedError,
+        VspVolumeNotFoundError,
+    )
 except ImportError:
     from common.ansible_common import log_entry_exit
     from common.hv_log import (
@@ -13,7 +17,10 @@ except ImportError:
     )
     from gateway.vsp_volume_simple_api_gateway import VspSimpleApiGateway
     from model.vsp_volume_models import SalamanderCreateVolumeRequestSpec
-
+    from ..common.vsp_errors import (
+        VspFeatureNotSupportedError,
+        VspVolumeNotFoundError,
+    )
 
 logger = Log()
 
@@ -28,7 +35,9 @@ class VSPVolumeSimpleApiProvisioner:
         self.connection_info = connection_info
 
         if not self.gateway.is_pegasus:
-            raise Exception(VSPVolumeMSG.ONLY_SUPPORTED_ON_PEGASUS.value)
+            raise VspFeatureNotSupportedError(
+                VSPVolumeMSG.ONLY_SUPPORTED_ON_PEGASUS.value
+            )
 
     @log_entry_exit
     def salamander_get_volumes(self):
@@ -43,7 +52,7 @@ class VSPVolumeSimpleApiProvisioner:
     def salamander_delete_volume(self, spec: SalamanderCreateVolumeRequestSpec):
 
         if not spec.volume_id:
-            raise Exception(VSPVolumeMSG.MISSING_VOLUME_ID_FOR_DELETION.value)
+            raise ValueError(VSPVolumeMSG.MISSING_VOLUME_ID_FOR_DELETION.value)
 
         try:
             unused = self.gateway.salamander_delete_volume(spec.volume_id)
@@ -100,25 +109,24 @@ class VSPVolumeSimpleApiProvisioner:
         Create a volume using the Salamander API.
         """
         if spec.pool_id is None:
-            raise Exception(VSPVolumeMSG.POOL_ID_REQUIRED.value)
+            raise ValueError(VSPVolumeMSG.POOL_ID_REQUIRED.value)
         if spec.capacity is None:
-            raise Exception(VSPVolumeMSG.CAPACITY_REQUIRED.value)
+            raise ValueError(VSPVolumeMSG.CAPACITY_REQUIRED.value)
         if spec.volume_name is None or spec.volume_name.base_name is None:
-            raise Exception(VSPVolumeMSG.NICKNAME_REQUIRED.value)
-
+            raise ValueError(VSPVolumeMSG.NICKNAME_REQUIRED.value)
         # Create the volume
         return self.gateway.salamander_create_volume(spec)
 
     @log_entry_exit
     def update_qos_settings(self, spec: SalamanderCreateVolumeRequestSpec):
         if not spec.volume_id:
-            raise Exception(VSPVolumeMSG.VOLUME_ID_REQUIRED_FOR_QOS.value)
+            raise ValueError(VSPVolumeMSG.VOLUME_ID_REQUIRED_FOR_QOS.value)
         if not spec.qos_settings:
-            raise Exception(VSPVolumeMSG.QOS_SETTINGS_REQUIRED.value)
+            raise ValueError(VSPVolumeMSG.QOS_SETTINGS_REQUIRED.value)
 
         volume = self.gateway.salamander_get_volume_by_id(spec.volume_id)
         if not volume:
-            raise Exception(
+            raise ValueError(
                 VSPVolumeMSG.VOLUME_NOT_FOUND.value.format(volume_id=spec.volume_id)
             )
         # Compare and update only if there are changes
@@ -196,10 +204,10 @@ class VSPVolumeSimpleApiProvisioner:
     def attach_servers_to_volumes(self, spec):
 
         if not spec.volume_ids or len(spec.volume_ids) == 0:
-            raise Exception(VSPVolumeMSG.MISSING_VOLUME_ID_FOR_OPERATION.value)
+            raise ValueError(VSPVolumeMSG.MISSING_VOLUME_ID_FOR_OPERATION.value)
 
         if not spec.server_ids or len(spec.server_ids) == 0:
-            raise Exception(VSPVolumeMSG.MISSING_SERVER_ISD_FOR_OPERATION.value)
+            raise ValueError(VSPVolumeMSG.MISSING_SERVER_IDS_FOR_OPERATION.value)
         try:
             affected_resource, failed_job = self.gateway.attach_servers_to_volumes(
                 spec.volume_ids, spec.server_ids
@@ -220,11 +228,11 @@ class VSPVolumeSimpleApiProvisioner:
     def attach_server_to_volume(self, spec, server_ids):
 
         if not spec.volume_id:
-            raise Exception(VSPVolumeMSG.MISSING_VOLUME_ID_FOR_OPERATION.value)
+            raise ValueError(VSPVolumeMSG.MISSING_VOLUME_ID_FOR_OPERATION.value)
 
         volume = self.gateway.salamander_get_volume_by_id(spec.volume_id)
         if not volume:
-            raise Exception(
+            raise VspVolumeNotFoundError(
                 VSPVolumeMSG.VOLUME_NOT_FOUND.value.format(volume_id=spec.volume_id)
             )
         existing_server_ids = set(
@@ -262,10 +270,10 @@ class VSPVolumeSimpleApiProvisioner:
     @log_entry_exit
     def detach_server_from_volume(self, spec, server_ids):
         if not spec.volume_id:
-            raise Exception(VSPVolumeMSG.MISSING_VOLUME_ID_FOR_OPERATION.value)
+            raise ValueError(VSPVolumeMSG.MISSING_VOLUME_ID_FOR_OPERATION.value)
         volume = self.gateway.salamander_get_volume_by_id(spec.volume_id)
         if not volume:
-            raise Exception(
+            raise VspVolumeNotFoundError(
                 VSPVolumeMSG.VOLUME_NOT_FOUND.value.format(volume_id=spec.volume_id)
             )
         existing_server_ids = set(

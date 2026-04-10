@@ -8,6 +8,9 @@ try:
         VSPCopyGroupsValidateMsg,
         CopyGroupFailedMsg,
     )
+    from ..common.vsp_errors import (
+        VspLocalCopyGroupNotFoundError,
+    )
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
@@ -15,6 +18,9 @@ except ImportError:
     from common.hv_messages import MessageID
     from common.ansible_common import log_entry_exit
     from message.vsp_copy_group_msgs import VSPCopyGroupsValidateMsg, CopyGroupFailedMsg
+    from common.vsp_errors import (
+        VspLocalCopyGroupNotFoundError,
+    )
 
 logger = Log()
 
@@ -86,7 +92,7 @@ class VSPCopyGroupsProvisioner:
                 spec.copy_group_name
             )
             logger.writeError(msg)
-            raise Exception(msg)
+            raise VspLocalCopyGroupNotFoundError(msg)
         elif found_copy_group is not None:
             if found_copy_group.copyPairs:
                 for copy_pair in found_copy_group.copyPairs:
@@ -112,7 +118,7 @@ class VSPCopyGroupsProvisioner:
             msg = VSPCopyGroupsValidateMsg.COPY_GROUP_NOT_FOUND.value.format(
                 spec.copy_group_name
             )
-            raise Exception(msg)
+            raise VspLocalCopyGroupNotFoundError(msg)
         swap_splitted_copy_group = self.gateway.swap_split_copy_group(spec)
         self.logger.writeDebug(f"swap_splitted_copy_group=  {swap_splitted_copy_group}")
         self.connection_info.changed = True
@@ -126,7 +132,7 @@ class VSPCopyGroupsProvisioner:
                 spec.copy_group_name
             )
             logger.writeError(msg)
-            raise Exception(msg)
+            raise VspLocalCopyGroupNotFoundError(msg)
         elif found_copy_group is not None:
             if found_copy_group.copyPairs:
                 for copy_pair in found_copy_group.copyPairs:
@@ -153,7 +159,7 @@ class VSPCopyGroupsProvisioner:
             msg = VSPCopyGroupsValidateMsg.COPY_GROUP_NOT_FOUND.value.format(
                 spec.copy_group_name
             )
-            raise Exception(msg)
+            raise VspLocalCopyGroupNotFoundError(msg)
         swap_resync_copy_group = self.gateway.swap_resync_copy_group(spec)
         self.logger.writeDebug(f"swap_resync_copy_group=  {swap_resync_copy_group}")
         self.connection_info.changed = True
@@ -166,7 +172,7 @@ class VSPCopyGroupsProvisioner:
                 "takeover"
             )
             logger.writeError(err_msg)
-            raise Exception(err_msg)
+            raise ValueError(err_msg)
         takenover_copy_group = self.gateway.takeover_copy_group(spec)
         self.logger.writeDebug(f"takenover_copy_group=  {takenover_copy_group}")
         self.connection_info.changed = True

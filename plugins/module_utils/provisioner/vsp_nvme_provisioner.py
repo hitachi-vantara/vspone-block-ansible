@@ -50,15 +50,17 @@ class VSPNvmeProvisioner:
         )
         self.port_prov = VSPStoragePortProvisioner(connection_info)
         self.connection_info = connection_info
-
+        self.nvme_subsystems = None
         if serial:
             self.serial = serial
 
     @log_entry_exit
     def get_nvme_subsystem_by_name(self, name):
 
-        nvme_subsystems = self.gateway.get_nvme_subsystems()
-        for nvme in nvme_subsystems.data:
+        if self.nvme_subsystems is None:
+            self.nvme_subsystems = self.gateway.get_nvme_subsystems()
+
+        for nvme in self.nvme_subsystems.data:
             if nvme.nvmSubsystemName == name:
                 return nvme
         return None
@@ -102,8 +104,9 @@ class VSPNvmeProvisioner:
     @log_entry_exit
     def get_nvme_subsystems_basic(self):
         try:
-            nvme_subsystems = self.gateway.get_nvme_subsystems()
-            return nvme_subsystems
+            if self.nvme_subsystems is None:
+                self.nvme_subsystems = self.gateway.get_nvme_subsystems()
+            return self.nvme_subsystems
         except Exception as err:
             # Older storage models do not support nvm subsystem.
             # So catch the exception and send user friendly msg.
@@ -118,7 +121,9 @@ class VSPNvmeProvisioner:
 
         nvme_subsystems = None
         try:
-            nvme_subsystems = self.gateway.get_nvme_subsystems()
+            if self.nvme_subsystems is None:
+                self.nvme_subsystems = self.gateway.get_nvme_subsystems()
+            nvme_subsystems = self.nvme_subsystems
         except Exception as err:
             # Older storage models do not support nvm subsystem.
             # So catch the exception and send user friendly msg.

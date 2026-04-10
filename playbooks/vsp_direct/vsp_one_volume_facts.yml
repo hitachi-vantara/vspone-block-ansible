@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : VSP Volume facts Playbook
-####################################################################
+# ###################################################################
 - name: VSP Volume facts Module
   hosts: localhost
   gather_facts: false
@@ -17,11 +17,11 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    #######################################################################################
+    # ######################################################################################
     # Task Name : Get all volumes
     # Note: With this task, you can obtain information for a maximum of 500 volumes.
     #       To obtain information for more than 500 volumes, execute the task several
-    #       times by using a combination of the count and start_volume_id parameters.
+    #       times by using a combination of the count and begin_volume_id parameters.
     #       By specifying the count parameter, you can also filter the volume information.
     # ######################################################################################
     - name: Get all volumes
@@ -115,13 +115,13 @@
         var: result
 
     ####################################################################
-    # Task Name : Get facts for a range of volumes by start_volume_id and count
+    # Task Name : Get facts for a range of volumes by begin_volume_id and count
     ####################################################################
-    - name: Get facts for a range of volumes by start_volume_id and count
+    - name: Get facts for a range of volumes by begin_volume_id and count
       hitachivantara.vspone_block.vsp.hv_vsp_one_volume_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          start_volume_id: 1000
+          begin_volume_id: 1000
           count: 10
       register: result
     - name: Debug the result variable

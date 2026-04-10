@@ -74,7 +74,6 @@ class VSPHurDirectGateway(VSPReplicationPairsDirectGateway):
             spec.secondary_connection_info
         )
         remote_storage_deviceId = secondary_storage_info.get("storageDeviceId")
-
         payload = {
             "copyGroupName": spec.copy_group_name,
             "copyPairName": spec.copy_pair_name,
@@ -91,6 +90,8 @@ class VSPHurDirectGateway(VSPReplicationPairsDirectGateway):
             )
             payload["pvolJournalId"] = spec.primary_volume_journal_id
             payload["svolJournalId"] = spec.secondary_volume_journal_id
+        else:
+            payload["isNewGroupCreation"] = False
 
         if spec.local_device_group_name:
             payload["localDeviceGroupName"] = spec.local_device_group_name
@@ -111,12 +112,13 @@ class VSPHurDirectGateway(VSPReplicationPairsDirectGateway):
 
         # storage_deviceId = self.get_storage_device_id(str(self.storage_serial_number))
         # logger.writeDebug("GW-Direct:create_hur_copy:storage_deviceId={}", storage_deviceId)
-        headers = self.get_remote_token(spec.remote_connection_info)
+        headers = self.get_remote_token(spec.secondary_connection_info)
         headers["Remote-Authorization"] = headers.pop("Authorization")
         headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
         logger.writeDebug("GW-Direct:create_hur_copy:remote_header={}", headers)
         end_point = CREATE_REMOTE_COPY_PAIR_DIRECT  # .format(storage_deviceId)
         logger.writeDebug("GW-Direct:create_hur_copy:end_point={}", end_point)
+        logger.writeDebug("GW-Direct:create_hur_copy:payload={}", payload)
         start_time = time.time()
         response = self.connection_manager.post(
             end_point, payload, headers_input=headers
@@ -135,10 +137,12 @@ class VSPHurDirectGateway(VSPReplicationPairsDirectGateway):
 
     @log_entry_exit
     def resync_hur_pair(self, spec):
+        spec.copy_pace = None
         return super().resync_replication_pair(spec, "UR")
 
     @log_entry_exit
     def swap_resync_hur_pair(self, spec):
+        spec.copy_pace = None
         return super().swap_resync_replication_pair(spec, "UR")
 
     @log_entry_exit

@@ -1,0 +1,72 @@
+---
+- name: Create HUR Pairs using hv_vsp_hur_pairs_creation role
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+  vars:
+    # Primary storage connection info
+    hv_vsp_hur_pairs_creation_connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+    # Secondary storage connection info
+    hv_vsp_hur_pairs_creation_secondary_connection_info:
+      address: "{{ secondary_storage_address }}"
+      username: "{{ vault_secondary_storage_username }}"
+      password: "{{ vault_secondary_storage_secret }}"
+
+    # Mandatory HUR batch parameters
+    hv_vsp_hur_pairs_creation_number_of_pairs: 5
+    hv_vsp_hur_pairs_creation_primary_pool_id: 1
+    hv_vsp_hur_pairs_creation_secondary_pool_id: 1
+    hv_vsp_hur_pairs_creation_volume_size: "10GB"
+    hv_vsp_hur_pairs_creation_copy_group_name: "batch_hur_cg"
+    hv_vsp_hur_pairs_creation_copy_pair_base_name: "batch_hur_pair"
+
+    # Optional HUR batch parameters
+    hv_vsp_hur_pairs_creation_capacity_saving: "compression"
+    hv_vsp_hur_pairs_creation_primary_volume_base_name: "hur_vol"
+    hv_vsp_hur_pairs_creation_primary_volume_base_name_start_number: 1
+    # hv_vsp_hur_pairs_creation_is_new_group_creation: true
+
+    # hv_vsp_hur_pairs_creation_copy_pace: 3
+    # hv_vsp_hur_pairs_creation_fence_level: "NEVER"
+
+    # Optional: Primary host groups
+    hv_vsp_hur_pairs_creation_primary_hostgroups:
+      - name: "hg_rd_hur_batch_1"
+        port_id: "CL1-A"
+
+    # Optional: Secondary host groups
+    hv_vsp_hur_pairs_creation_secondary_hostgroups:
+      - name: "snewar-common-hg-01"
+        port_id: "CL2-A"
+
+    hv_vsp_hur_pairs_creation_primary_journal_pool_id: 1
+    hv_vsp_hur_pairs_creation_secondary_journal_pool_id: 1
+    hv_vsp_hur_pairs_creation_number_of_journals: 1
+    hv_vsp_hur_pairs_creation_journal_size_gb: 8
+
+    # hv_vsp_hur_pairs_creation_primary_journal_id: ~
+    # hv_vsp_hur_pairs_creation_secondary_journal_id: ~
+    # Optional: For existing volumes
+    # hv_vsp_hur_pairs_creation_begin_primary_ldev_id: 1000
+    # hv_vsp_hur_pairs_creation_end_primary_ldev_id: 1004
+
+    # Optional: For iSCSI targets
+    # hv_vsp_hur_pairs_creation_secondary_iscsi_targets:
+    #   - name: "iscsi_target_1"
+    #     port_id: "CL3-A"
+
+    # Optional: For NVMe subsystems
+    # hv_vsp_hur_pairs_creation_secondary_nvm_subsystem:
+    #   name: "nvme-subsystem-1"
+    #   paths:
+    #     - "nqn.2014-08.com.example:nvme:host1"
+
+  tasks:
+    - name: Create HUR pairs using hv_vsp_hur_pairs_creation role
+      ansible.builtin.include_role:
+        name: hitachivantara.vspone_block.hv_vsp_hur_pairs_creation

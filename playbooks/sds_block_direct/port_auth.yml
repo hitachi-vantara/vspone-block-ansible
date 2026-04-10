@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Set Port Authentication Playbook
-####################################################################
+# ###################################################################
 - name: Set Port Authentication
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    #########################################################################
+    # ########################################################################
     # Task Name : Set port authentication mode
-    #########################################################################
+    # ########################################################################
     - name: Set port authentication mode
       hitachivantara.vspone_block.sds_block.hv_sds_block_compute_port_authentication:
         connection_info: "{{ connection_info }}"

@@ -70,6 +70,14 @@ class VSPSJournalVolumeDirectGateway:
         Returns:
             VSPJournalPool: The journal pool data with logical unit IDs populated, or None if not found.
         """
+        single_pool = None
+        try:
+            end_point = Endpoints.GET_JOURNAL_POOL.format(pool_id)
+            single_pool = self.connectionManager.get(end_point)
+        except Exception as e:
+            self.logger.writeError(f"Error retrieving journal pool by ID: {e}")
+            return None
+
         end_point = f"{Endpoints.GET_JOURNAL_POOLS}?journalInfo=detail"
         pool_dict = self.connectionManager.get(end_point)
 
@@ -80,9 +88,10 @@ class VSPSJournalVolumeDirectGateway:
         )
         if not pool:
             return None
-        end_point = Endpoints.GET_JOURNAL_POOL.format(pool_id)
-        single_pool = self.connectionManager.get(end_point)
-        pool.update(single_pool)
+
+        pool.update(
+            single_pool
+        )  # Update the pool dictionary with the single pool details
         # Initialize and populate the journal pool object
         data = VSPJournalPool(**pool)
         ldevs = self.get_journal_ldevs_info(pool_id)
@@ -97,7 +106,15 @@ class VSPSJournalVolumeDirectGateway:
         return VSPVolumesInfo().dump_to_object(ldevs)
 
     @log_entry_exit
+    def get_all_journal_basic_info(self):
+        endPoint = Endpoints.GET_JOURNAL_POOLS + "?journalInfo=basic"
+        journal_pools_basic = self.connectionManager.get(endPoint)
+        return VSPJournalPools().dump_to_object(journal_pools_basic)
+
+    @log_entry_exit
     def get_all_journal_info(self):
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
         endPoint = Endpoints.GET_JOURNAL_POOLS + "?journalInfo=detail"
         journal_pools_details = self.connectionManager.get(endPoint)
         endPoint = Endpoints.GET_JOURNAL_POOLS + "?journalInfo=basic"
@@ -113,11 +130,27 @@ class VSPSJournalVolumeDirectGateway:
         )
         jp_data = VSPJournalPools().dump_to_object(journal_pools_details)
 
-        for jp in jp_data.data:
-            logger.writeDebug(f"GW:journal_volume: jp =  {jp}")
-            ldevs = self.get_journal_ldevs_info(jp.journalPoolId)
-            if ldevs:
-                jp.logicalUnitIds = [ldev.ldevId for ldev in ldevs.data]
+        try:
+            with ThreadPoolExecutor(
+                max_workers=min(8, len(jp_data.data) or 1)
+            ) as executor:
+                future_to_jp = {
+                    executor.submit(self.get_journal_ldevs_info, jp.journalPoolId): jp
+                    for jp in jp_data.data
+                }
+                for future in as_completed(future_to_jp):
+                    jp = future_to_jp[future]
+                    logger.writeDebug(f"GW:journal_volume: jp =  {jp}")
+                    ldevs = future.result()
+                    if ldevs:
+                        jp.logicalUnitIds = [ldev.ldevId for ldev in ldevs.data]
+        except KeyboardInterrupt:
+            logger.writeError(
+                "GW:journal_volume: get_all_journal_info interrupted by user"
+            )
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+
         return jp_data
 
     @log_entry_exit
@@ -151,13 +184,16 @@ class VSPSJournalVolumeDirectGateway:
             or spec.path_blockade_watch_in_minutes is not None
         ):
             if spec.mirror_unit_number is None:
-                raise ValueError(
-                    "Mirror unit number is required when copy pace or path blockade watch is specified."
+                # raise ValueError(
+                #     "Mirror unit number is required when copy pace or path blockade watch is specified."
+                # )
+                spec.mirror_unit_number = (
+                    1  # default mirror unit number to 1 if not provided
                 )
         payload[VSPJournalVolumeReq.mirrorUnit] = {
             VSPJournalVolumeReq.muNumber: spec.mirror_unit_number,
-            VSPJournalVolumeReq.copyPace: {"SLOW": "L", "MEDIUM": "M", "FAST": "H"}.get(
-                spec.copy_pace, "L"
+            VSPJournalVolumeReq.copyPace: self.convert_copy_pace_to_api_value(
+                spec.copy_pace
             ),
             VSPJournalVolumeReq.pathBlockadeWatchInMinutes: (
                 spec.path_blockade_watch_in_minutes
@@ -176,6 +212,16 @@ class VSPSJournalVolumeDirectGateway:
             }
             url = self.connectionManager.post(endPointMPBlade, payloadMPBlade)
         return url.split("/")[-1]
+
+    def convert_copy_pace_to_api_value(self, copy_pace):
+        if copy_pace is None:
+            return "L"
+        if copy_pace < 3:
+            return "L"
+        elif 3 <= copy_pace <= 7:
+            return "M"
+        else:
+            return "H"
 
     @log_entry_exit
     def expand_journal_volume(self, pool_id, spec):
