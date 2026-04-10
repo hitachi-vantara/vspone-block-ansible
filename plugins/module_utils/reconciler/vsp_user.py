@@ -53,9 +53,8 @@ class VSPUserReconciler:
                 user, comment = self.get_user_by_id(spec.id)
                 if user is None:
                     err_msg = VSPUserValidateMsg.USER_NOT_FOUND.value
-                    if comment:
-                        err_msg = err_msg + comment
-                    return None, comment
+                    spec.comments = err_msg + comment
+                    return None
             else:
                 if spec.name:
                     user = self.provisioner.get_user_by_name(spec.name)
@@ -65,10 +64,11 @@ class VSPUserReconciler:
             if not user:
                 user_id = self.create_user(spec)
             else:
-                user_id, comment = self.update_user(user, spec)
+                user_id = self.update_user(user, spec)
 
             if user_id is None:
-                return None, comment
+                spec.comments = comment
+                return None
 
             user = self.provisioner.get_user_by_id(user_id)
             extracted_data = UserInfoExtractor().extract([user.to_dict()])
@@ -80,12 +80,14 @@ class VSPUserReconciler:
                     err_msg = VSPUserValidateMsg.USER_NOT_FOUND.value
                     if comment:
                         err_msg = err_msg + comment
-                    return None, comment
+                    spec.comments = err_msg
+                    return None, spec.comments
             else:
                 if spec.name:
                     user = self.provisioner.get_user_by_name(spec.name)
             if not user:
-                return None, VSPUserValidateMsg.USER_NOT_FOUND.value
+                spec.comments = VSPUserValidateMsg.USER_NOT_FOUND.value
+                return None, spec.comments
             logger.writeDebug("RC:reconcile_user:state=absent:user={}", user)
             comment = self.delete_user(user, spec)
             return None, comment
@@ -112,8 +114,9 @@ class VSPUserReconciler:
         try:
             user_id = self.provisioner.update_user(user, spec)
             logger.writeDebug("RC:update_user:user_id={}", user_id)
-            return user_id, None
+            return user_id
         except Exception as e:
+            err_msg = None
             if "error code = 30662-200156" in str(e):
                 err_msg = (
                     VSPUserFailedMsg.UPDATE_FAILED.value
@@ -122,17 +125,20 @@ class VSPUserReconciler:
             else:
                 err_msg = VSPUserFailedMsg.UPDATE_FAILED.value + str(e)
             logger.writeError(err_msg)
-            return None, err_msg
+            spec.comments = err_msg
+            return None
 
     @log_entry_exit
     def delete_user(self, user, spec):
         try:
             ret_value = self.provisioner.delete_user(user, spec)
             logger.writeDebug("RC:delete_user:ret_value={}", ret_value)
-            return VSPUserValidateMsg.USER_DELETE_SUCCSESS.value
+            spec.comments = VSPUserValidateMsg.USER_DELETE_SUCCSESS.value
+            return None
         except Exception as e:
             err_msg = VSPUserFailedMsg.DELETE_FAILED.value + str(e)
             logger.writeError(err_msg)
+            spec.comments = err_msg
             return err_msg
 
     @log_entry_exit

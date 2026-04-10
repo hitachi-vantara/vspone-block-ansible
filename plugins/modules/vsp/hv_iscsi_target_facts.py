@@ -46,16 +46,17 @@ options:
     type: dict
     required: true
     suboptions:
-      ports:
-        description: List of ports of the iscsi target.
-          Required for the Get iSCSI targets by ports
-          /Get iSCSI targets by ports and name tasks.
+      port_ids:
+        description: List of port IDs of the iscsi target.
+          Required for the Get iSCSI targets by port_ids
+          /Get iSCSI targets by port_ids and name tasks.
         required: false
         type: list
         elements: str
+        aliases: [ports]
       name:
         description: Name of the iscsi target.
-          Required for the Get iSCSI targets by ports and name task.
+          Required for the Get iSCSI targets by port_ids and name task.
         required: false
         type: str
       iscsi_id:
@@ -73,16 +74,16 @@ EXAMPLES = """
       username: "dummy_username"
       password: "dummy_password"
 
-- name: Get iscsi targets by ports
+- name: Get iscsi targets by port_ids
   hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       address: storage1.example.com
       username: "dummy_username"
       password: "dummy_password"
     spec:
-      ports: ['CL4-C']
+      port_ids: ['CL4-C']
 
-- name: Get iscsi targets by ports and name
+- name: Get iscsi targets by port_ids and name
   hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
     connection_info:
       address: storage1.example.com
@@ -90,7 +91,7 @@ EXAMPLES = """
       password: "dummy_password"
     spec:
       name: 'iscsi-target-server-1'
-      ports: ['CL4-C']
+      port_ids: ['CL4-C']
 
 - name: Get iscsi targets by iscsi_id
   hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:

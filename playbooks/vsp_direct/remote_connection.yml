@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example :  Remote connection management Playbook
-####################################################################
+# ###################################################################
 - name: Remote Connection add/remove/update
   hosts: localhost
   gather_facts: false
@@ -17,11 +17,11 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ######################################################################################
+    # #####################################################################################
     # Task Name : Create a new remote connection
     # To create/add a remote path for an iSCSI port,
     # register in advance the iSCSI port using iscsi_remote_connection.yml playbook
-    ######################################################################################
+    # #####################################################################################
     - name: Create a new remote connection
       hitachivantara.vspone_block.vsp.hv_remote_connection:
         connection_info: "{{ connection_info }}"

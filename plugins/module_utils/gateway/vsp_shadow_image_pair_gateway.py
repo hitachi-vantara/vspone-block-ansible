@@ -1,5 +1,3 @@
-import hashlib
-
 try:
     from ..common.vsp_constants import Endpoints
     from ..common.ansible_common import dicts_to_dataclass_list
@@ -29,9 +27,7 @@ except ImportError:
 class VSPShadowImagePairDirectGateway:
 
     def __init__(self, connection_info):
-        funcName = "VSPShadowImagePairDirectGateway: init"
         self.logger = Log()
-        self.logger.writeEnterSDK(funcName)
         self.connectionManager = VSPConnectionManager(
             connection_info.address,
             connection_info.username,
@@ -43,18 +39,15 @@ class VSPShadowImagePairDirectGateway:
 
     @log_entry_exit
     def get_all_shadow_image_pairs(self, serial, refresh=None):
-        funcName = "VSPShadowImagePairDirectGateway: get_all_shadow_image_pairs"
-        self.logger.writeEnterSDK(funcName)
         if self.all_si_pairs is not None:
             return self.all_si_pairs
         response = self.get_all_shadow_image_pairs_by_copy_group(serial, refresh)
-        self.logger.writeDebug("{} Response={}", funcName, response)
+        self.logger.writeDebug(f"GW:get_all_shadow_image_pairs:Response={response}")
         shadow_image_list = []
         for shadow_image_item in response["data"]:
             shadow_image = self.parse_shadow_image_data(serial, shadow_image_item)
             if shadow_image is not None:
                 shadow_image_list.append(shadow_image)
-        self.logger.writeExitSDK(funcName)
         si_pais = VSPShadowImagePairsInfo(
             dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo)
         )
@@ -71,9 +64,6 @@ class VSPShadowImagePairDirectGateway:
         pm_device_grp_name=None,
         sec_device_grp_name=None,
     ):
-        funcName = "VSPShadowImagePairDirectGateway: get_specific_cg_pair_by_pvol_svol"
-        self.logger.writeEnterSDK(funcName)
-
         copy_group_name = (
             self.generate_copy_group_name(pvol, svol) if cg_name is None else cg_name
         )
@@ -96,8 +86,9 @@ class VSPShadowImagePairDirectGateway:
             shadow_image_pair = self.parse_shadow_image_data(
                 serial=None, response=response
             )
-            self.logger.writeDebug("{} Response={}", funcName, shadow_image_pair)
-            self.logger.writeExitSDK(funcName)
+            self.logger.writeDebug(
+                f"GW:get_specific_cg_pair_by_pvol_svol:Response={shadow_image_pair}"
+            )
 
             return VSPShadowImagePairInfo(**shadow_image_pair)
         except Exception as e:
@@ -106,55 +97,49 @@ class VSPShadowImagePairDirectGateway:
 
     @log_entry_exit
     def get_shadow_image_pair_by_pvol(self, serial, pvol):
-        funcName = "VSPShadowImagePairDirectGateway: get_shadow_image_pair_by_pvol"
-        self.logger.writeEnterSDK(funcName)
         response = self.get_all_shadow_image_pairs_by_copy_group(serial)
-        self.logger.writeDebug("{} Response={}", funcName, response)
+        self.logger.writeDebug(f"GW:get_shadow_image_pair_by_pvol:Response={response}")
         shadow_image_list = []
         for shadow_image_item in response["data"]:
             if shadow_image_item["pvolLdevId"] == pvol:
                 shadow_image = self.parse_shadow_image_data(serial, shadow_image_item)
                 if shadow_image is not None:
                     shadow_image_list.append(shadow_image)
-        self.logger.writeExitSDK(funcName)
         return VSPShadowImagePairsInfo(
             dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo)
         )
 
     @log_entry_exit
     def create_shadow_image_pair(self, serial, createShadowImagePairSpec):
-        funcName = "VSPShadowImagePairDirectGateway: create_shadow_image_pair"
-        self.logger.writeDebug(f"{funcName}: spec = {createShadowImagePairSpec}")
+        self.logger.writeDebug(
+            f"GW:create_shadow_image_pair: spec = {createShadowImagePairSpec}"
+        )
         end_point = Endpoints.DIRECT_CREATE_SHADOW_IMAGE_PAIR
         self.populateHeader()
         payload = self.generate_create_payload(serial, createShadowImagePairSpec)
         response = self.connectionManager.post(end_point, payload)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
+        self.logger.writeDebug(f"GW:create_shadow_image_pair:Response={response}")
         return response
 
     @log_entry_exit
     def get_shadow_image_pair_by_id(self, serial, pairId):
-        funcName = "VSPShadowImagePairDirectGateway: get_shadow_image_pair_by_id"
-        self.logger.writeEnterSDK(funcName)
         end_point = Endpoints.DIRECT_GET_SHADOW_IMAGE_PAIR_BY_ID.format(pairId=pairId)
         response = self.connectionManager.read(end_point)
-        self.logger.writeDebug("{} Response={}", funcName, response)
+        self.logger.writeDebug(f"GW:get_shadow_image_pair_by_id:Response={response}")
         shadow_image_pair = self.parse_shadow_image_data(
             serial=serial, response=response
         )
-        self.logger.writeDebug("{} Response={}", funcName, shadow_image_pair)
-        self.logger.writeExitSDK(funcName)
+        self.logger.writeDebug(
+            f"GW:get_shadow_image_pair_by_id:ShadowImagePair={shadow_image_pair}"
+        )
         if shadow_image_pair is None:
             raise ValueError(
                 VSPShadowImagePairValidateMsg.PAIR_NOT_FOUND.value.format(pairId)
             )
         return VSPShadowImagePairInfo(**shadow_image_pair)
 
+    @log_entry_exit
     def split_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-
-        funcName = "VSPShadowImagePairDirectGateway: split_shadow_image_pair"
-        self.logger.writeEnterSDK(funcName)
         end_point = Endpoints.DIRECT_SPLIT_SHADOW_IMAGE_PAIR.format(
             pairId=updateShadowImagePairSpec.pair_id
         )
@@ -162,29 +147,22 @@ class VSPShadowImagePairDirectGateway:
         payload = self.generate_update_payload(updateShadowImagePairSpec)
         self.logger.writeDebug(f"GW:split_shadow_image_pair:payload={payload}")
         response = self.connectionManager.post(end_point, payload)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
+        self.logger.writeDebug(f"GW:split_shadow_image_pair:Response={response}")
         return response
 
+    @log_entry_exit
     def resync_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-
-        funcName = "VSPShadowImagePairDirectGateway: resync_shadow_image_pair"
-        self.logger.writeEnterSDK(funcName)
         end_point = Endpoints.DIRECT_RESYNC_SHADOW_IMAGE_PAIR.format(
             pairId=updateShadowImagePairSpec.pair_id
         )
-        # headers = self.populateHeader()
         payload = self.generate_update_payload(updateShadowImagePairSpec)
         self.logger.writeDebug(payload)
         response = self.connectionManager.post(end_point, payload)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
+        self.logger.writeDebug(f"GW:resync_shadow_image_pair:Response={response}")
         return response
 
+    @log_entry_exit
     def restore_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-
-        funcName = "VSPShadowImagePairDirectGateway: restore_shadow_image_pair"
-        self.logger.writeEnterSDK(funcName)
         end_point = Endpoints.DIRECT_RESTORE_SHADOW_IMAGE_PAIR.format(
             pairId=updateShadowImagePairSpec.pair_id
         )
@@ -192,35 +170,29 @@ class VSPShadowImagePairDirectGateway:
         payload = self.generate_update_payload(updateShadowImagePairSpec)
         self.logger.writeDebug(payload)
         response = self.connectionManager.post(end_point, payload)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
+        self.logger.writeDebug(f"GW:restore_shadow_image_pair:Response={response}")
         return response
 
+    @log_entry_exit
     def migrate_shadow_image_pair(self, serial, updateShadowImagePairSpec):
-
-        funcName = "VSPShadowImagePairDirectGateway: migrate_shadow_image_pair"
-        self.logger.writeEnterSDK(funcName)
         end_point = Endpoints.DIRECT_MIGRATE_SHADOW_IMAGE_PAIR.format(
             pairId=updateShadowImagePairSpec.pair_id
         )
         # headers = self.populateHeader()
         response = self.connectionManager.post(end_point, data=None)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
+        self.logger.writeDebug(f"GW:migrate_shadow_image_pair:Response={response}")
         return response
 
+    @log_entry_exit
     def delete_shadow_image_pair(self, serial, deleteShadowImagePairSpec):
-
-        funcName = "VSPShadowImagePairDirectGateway: delete_shadow_image_pair"
-        self.logger.writeEnterSDK(funcName)
         end_point = Endpoints.DIRECT_DELETE_SHADOW_IMAGE_PAIR.format(
             pairId=deleteShadowImagePairSpec.pair_id
         )
         response = self.connectionManager.delete(end_point)
-        self.logger.writeDebug("{} Response={}", funcName, response)
-        self.logger.writeExitSDK(funcName)
+        self.logger.writeDebug(f"GW:delete_shadow_image_pair:Response={response}")
         return response
 
+    @log_entry_exit
     def generate_create_payload(self, serial, createShadowImagePairSpec):
         pvol_mu_number = 0
         if (
@@ -245,9 +217,8 @@ class VSPShadowImagePairDirectGateway:
             copy_pair_name = self.generate_copy_pair_name(
                 createShadowImagePairSpec.pvol, createShadowImagePairSpec.svol
             )
-        copy_pace = self.get_copy_pace_value(
-            createShadowImagePairSpec.copy_pace_track_size
-        )
+        copy_pace = createShadowImagePairSpec.copy_pace
+
         createShadowImagePairSpec.is_new_group_creation = (
             False if self.__check_group_exists(copy_group_name) else True
         )
@@ -327,11 +298,11 @@ class VSPShadowImagePairDirectGateway:
         self.logger.writeDebug(payload)
         return payload
 
+    @log_entry_exit
     def generate_update_payload(self, updateShadowImagePairSpec):
 
-        copy_pace = self.get_copy_pace_value(
-            updateShadowImagePairSpec.copy_pace_track_size
-        )
+        copy_pace = updateShadowImagePairSpec.copy_pace
+
         payload = {}
         parameters = {
             "copyPace": copy_pace,
@@ -379,16 +350,6 @@ class VSPShadowImagePairDirectGateway:
             + copyPairName
         )
         return local_clone_copy_pair_id
-
-    def get_copy_pace_value(self, copy_pace):
-        copy_pace_value = 1
-        if copy_pace == "SLOW":
-            copy_pace_value = 1
-        elif copy_pace == "FAST":
-            copy_pace_value = 10
-        else:
-            copy_pace_value = 3
-        return copy_pace_value
 
     def get_pvol_mu_number(self, serial, pvol):
         pvol_mu_number = None
@@ -438,6 +399,7 @@ class VSPShadowImagePairDirectGateway:
 
         pvol = int(response["pvolLdevId"])
         svol = int(response["svolLdevId"])
+        shadow_image_obj["localCloneCopypairId"] = response["localCloneCopypairId"]
         shadow_image_obj["resourceId"] = response["localCloneCopypairId"]
 
         shadow_image_obj["type"] = (
@@ -464,25 +426,57 @@ class VSPShadowImagePairDirectGateway:
         shadow_image_obj["copyPairName"] = response.get("copyPairName", None)
         return shadow_image_obj
 
-    def get_md5_hash(self, data):
-        # nosec: No security issue here as it is does not exploit any security vulnerability only used for generating unique resource id for UAIG
-        md5_hash = hashlib.md5()
-        md5_hash.update(data.encode("utf-8"))
-        return md5_hash.hexdigest()
+    @log_entry_exit
+    def get_all_local_copy_groups(self):
+        end_point = Endpoints.DIRECT_GET_ALL_COPY_PAIR_GROUP
+        response = self.connectionManager.read(end_point)
+        return response
+
+    @log_entry_exit
+    def get_local_copy_group_by_name(self, copy_group_name):
+        all_copy_groups = self.get_all_local_copy_groups()
+        for copy_group in all_copy_groups.get("data", []):
+            if copy_group.get("copyGroupName") == copy_group_name:
+                return copy_group
+        return None
+
+    @log_entry_exit
+    def get_shadow_image_pairs_by_cg_name(self, serial, copy_group_name):
+        cp_grp_info = self.get_local_copy_group_by_name(copy_group_name)
+        if cp_grp_info is None:
+            self.logger.writeInfo(
+                f"GW:get_shadow_image_pairs_by_cg_name: No copy group found with name {copy_group_name}"
+            )
+            return None
+        else:
+            copy_group_id = cp_grp_info.get("localCloneCopygroupId")
+            end_point = Endpoints.DIRECT_GET_SI_BY_CPG.format(copy_group_id)
+            response = self.connectionManager.read(end_point)
+            shadow_image_list = response.get("data", [])
+            self.logger.writeDebug(
+                f"GW:get_shadow_image_pairs_by_cg_name: Shadow image pairs fetched for copy group {copy_group_name} is {shadow_image_list}"
+            )
+            shadow_image_list = []
+            for shadow_image_item in response["data"]:
+                shadow_image = self.parse_shadow_image_data(serial, shadow_image_item)
+                if shadow_image is not None:
+                    shadow_image_list.append(shadow_image)
+            si_pais = VSPShadowImagePairsInfo(
+                dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo)
+            )
+            return si_pais
 
     @log_entry_exit
     def get_all_shadow_image_pairs_by_copy_group(self, serial, refresh=None):
-        funcName = (
-            "VSPShadowImagePairDirectGateway: get_all_shadow_image_pairs_by_copy_pair"
-        )
         if self.all_pairs:
             return {"data": self.all_pairs}
 
-        self.logger.writeEnterSDK(funcName)
         end_point = Endpoints.DIRECT_GET_ALL_COPY_PAIR_GROUP
         local_cp_pairs = Endpoints.DIRECT_GET_SI_BY_CPG
         response = self.connectionManager.read(end_point)
-        self.logger.writeDebug("{} Copy Group Response={}", funcName, response)
+        self.logger.writeDebug(
+            f"GW:get_all_shadow_image_pairs_by_copy_pair: Copy Group Response={response}"
+        )
         shadow_image_list = []
 
         import concurrent.futures
@@ -524,7 +518,6 @@ class VSPShadowImagePairDirectGateway:
             raise
         finally:
             executor.shutdown(wait=True)
-        self.logger.writeExitSDK(funcName)
         data = {"data": shadow_image_list}
         self.all_pairs = shadow_image_list
         return data

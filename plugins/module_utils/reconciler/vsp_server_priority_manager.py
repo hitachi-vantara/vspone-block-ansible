@@ -16,6 +16,7 @@ try:
         SpmChangeObject,
     )
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
+    from ..message.vsp_spm_msgs import VSPSpmValidateMsg
 
 except ImportError:
     from common.hv_log import Log
@@ -35,6 +36,7 @@ except ImportError:
         SpmChangeObject,
     )
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
+    from message.vsp_spm_msgs import VSPSpmValidateMsg
 
 logger = Log()
 
@@ -112,19 +114,19 @@ class VSPServerPriorityManagerReconciler:
         if state == StateValue.PRESENT:
             if spm is None:
                 rsp = self.set_spm(spec)
-                msg = "Server Priority Manager information set successfully."
+                msg = VSPSpmValidateMsg.SPM_INFO_SET_SUCCESS.value
             else:
                 rsp = self.change_spm(spm, spec)
                 if self.connection_info.changed:
-                    msg = "Server Priority Manager information changed successfully."
+                    msg = VSPSpmValidateMsg.SPM_INFO_CHANGE_SUCCESS.value
                 else:
-                    msg = "Server Priority Manager information change not needed."
+                    msg = VSPSpmValidateMsg.SPM_INFO_CHANGE_NOT_NEEDED.value
             rsp = self.get_one_spm_extracted(spec)
             return rsp, msg
         elif state == StateValue.ABSENT:
             rsp = self.delete_spm(spec)
             self.connection_info.changed = True
-            return "Server Priority Manager information deleted successfully.", None
+            return VSPSpmValidateMsg.SPM_INFO_DELETE_SUCCESS.value, None
 
     @log_entry_exit
     def set_spm(self, spec):

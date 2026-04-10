@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : User Auth Settings Facts Playbook
-####################################################################
+# ###################################################################
 - name: User Auth Settings Facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-  ####################################################################
+  # ###################################################################
   # Task Name : Get user auth settings
-  ####################################################################
+  # ###################################################################
     - name: Get user auth settings
       hitachivantara.vspone_block.sds_block.hv_sds_block_storage_user_auth_setting_facts:
         connection_info: "{{ connection_info }}"

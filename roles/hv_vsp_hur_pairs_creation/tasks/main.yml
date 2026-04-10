@@ -1,0 +1,176 @@
+---
+# - name: Debug all HUR and journal variables
+#   ansible.builtin.debug:
+#     msg:
+#       # - "Primary Connection: {{ hv_vsp_hur_pairs_creation_connection_info }}"
+#       # - "Secondary Connection: {{ hv_vsp_hur_pairs_creation_secondary_connection_info }}"
+#       - "Number of HUR Pairs: {{ hv_vsp_hur_pairs_creation_number_of_pairs }}"
+#       - "Primary Pool ID: {{ hv_vsp_hur_pairs_creation_primary_pool_id }}"
+#       - "Secondary Pool ID: {{ hv_vsp_hur_pairs_creation_secondary_pool_id }}"
+#       - "Volume Size: {{ hv_vsp_hur_pairs_creation_volume_size }}"
+#       - "Copy Group Name: {{ hv_vsp_hur_pairs_creation_copy_group_name }}"
+#       - "Copy Pair Base Name: {{ hv_vsp_hur_pairs_creation_copy_pair_base_name }}"
+#       - "Primary Journal Pool ID: {{ hv_vsp_hur_pairs_creation_primary_journal_pool_id }}"
+#       - "Secondary Journal Pool ID: {{ hv_vsp_hur_pairs_creation_secondary_journal_pool_id }}"
+#       - "Journal Size (GB): {{ hv_vsp_hur_pairs_creation_journal_size_gb }}"
+#       - "Primary Journal ID: {{ hv_vsp_hur_pairs_creation_primary_journal_id | default('undefined') }}"
+#       - "Secondary Journal ID: {{ hv_vsp_hur_pairs_creation_secondary_journal_id | default('undefined') }}"
+#       - "Primary Journal Pool ID: {{ hv_vsp_hur_pairs_creation_primary_journal_pool_id | default('undefined') }}"
+#       - "Secondary Journal Pool ID: {{ hv_vsp_hur_pairs_creation_secondary_journal_pool_id | default('undefined') }}"
+#       - value: "{{ hv_vsp_hur_pairs_creation_primary_journal_pool_id }}"
+#       - type: "{{ hv_vsp_hur_pairs_creation_primary_journal_pool_id | type_debug }}"
+#       - is_none: "{{ hv_vsp_hur_pairs_creation_primary_journal_pool_id is none }}"
+#       - is_defined: "{{ hv_vsp_hur_pairs_creation_primary_journal_pool_id is defined }}"
+#       - value: "{{ hv_vsp_hur_pairs_creation_secondary_journal_pool_id }}"
+#       - type: "{{ hv_vsp_hur_pairs_creation_secondary_journal_pool_id | type_debug }}"
+#       - is_none: "{{ hv_vsp_hur_pairs_creation_secondary_journal_pool_id is none }}"
+#       - is_defined: "{{ hv_vsp_hur_pairs_creation_secondary_journal_pool_id is defined }}"
+
+# ###################################################################
+# Task: Validate journal logic
+# ###################################################################
+- name: Validate journal logic
+  ansible.builtin.assert:
+    that:
+      - >
+        (
+          hv_vsp_hur_pairs_creation_primary_journal_id is none and
+          hv_vsp_hur_pairs_creation_secondary_journal_id is none
+        )
+        or
+        (
+          hv_vsp_hur_pairs_creation_journal_size_gb is none and
+          hv_vsp_hur_pairs_creation_primary_journal_pool_id is none and
+          hv_vsp_hur_pairs_creation_secondary_journal_pool_id is none
+        )
+    fail_msg: "Provide either journal IDs OR all three journal creation inputs (size_gb, primary_pool_id, secondary_pool_id)."
+
+####################################################################
+# Task: Create journals if required
+# - uses local role path to prevent Ansible from resolving the role
+#   from the hitachivantara.vspone_block collection instead of the
+#   local roles directory
+####################################################################
+- name: Create Journal if required
+  ansible.builtin.include_role:
+    name: hitachivantara.vspone_block.hv_vsp_primary_secondary_journal_creation
+  vars:
+    hv_vsp_primary_secondary_journal_creation_connection_info: "{{ hv_vsp_hur_pairs_creation_connection_info }}"
+    hv_vsp_primary_secondary_journal_creation_secondary_connection_info: "{{ hv_vsp_hur_pairs_creation_secondary_connection_info }}"
+    hv_vsp_primary_secondary_journal_creation_primary_pool_id: "{{ hv_vsp_hur_pairs_creation_primary_journal_pool_id }}"
+    hv_vsp_primary_secondary_journal_creation_secondary_pool_id: "{{ hv_vsp_hur_pairs_creation_secondary_journal_pool_id }}"
+    hv_vsp_primary_secondary_journal_creation_size_gb: "{{ hv_vsp_hur_pairs_creation_journal_size_gb }}"
+    hv_vsp_primary_secondary_journal_creation_number_of_journals: 1
+  when:
+    - hv_vsp_hur_pairs_creation_primary_journal_id is not defined or hv_vsp_hur_pairs_creation_primary_journal_id is none
+    - hv_vsp_hur_pairs_creation_secondary_journal_id is not defined or hv_vsp_hur_pairs_creation_secondary_journal_id is none
+    - hv_vsp_hur_pairs_creation_primary_journal_pool_id is not none
+    - hv_vsp_hur_pairs_creation_secondary_journal_pool_id is not none
+    - hv_vsp_hur_pairs_creation_journal_size_gb is not none
+    - hv_vsp_hur_pairs_creation_journal_size_gb | int >= 8
+
+# - name: Debug all vars after journal role
+#   debug:
+#     msg: "{{ vars | dict2items | selectattr('key', 'match', 'hv_vsp_primary_secondary.*') | list }}"
+
+####################################################################
+# Task: Set final IDs — either from user input OR from role output
+####################################################################
+- name: Set final journal IDs
+  ansible.builtin.set_fact:
+    hv_vsp_hur_pairs_creation_final_primary_journal_id: >-
+      {{ hv_vsp_hur_pairs_creation_primary_journal_id
+         if (hv_vsp_hur_pairs_creation_primary_journal_id is defined and
+             hv_vsp_hur_pairs_creation_primary_journal_id is not none)
+         else hv_vsp_primary_secondary_journal_creation_final_primary_journal_ids | first }}
+    hv_vsp_hur_pairs_creation_final_secondary_journal_id: >-
+      {{ hv_vsp_hur_pairs_creation_secondary_journal_id
+         if (hv_vsp_hur_pairs_creation_secondary_journal_id is defined and
+             hv_vsp_hur_pairs_creation_secondary_journal_id is not none)
+         else hv_vsp_primary_secondary_journal_creation_final_secondary_journal_ids | first }}
+
+####################################################################
+# Task: Validate final journal IDs were resolved
+####################################################################
+- name: Validate final journal IDs were resolved
+  ansible.builtin.assert:
+    that:
+      - hv_vsp_hur_pairs_creation_final_primary_journal_id is defined
+      - hv_vsp_hur_pairs_creation_final_secondary_journal_id is defined
+    fail_msg: >
+      "Could not resolve final journal IDs. Either provide hv_vsp_hur_pairs_creation_primary_journal_id
+      and hv_vsp_hur_pairs_creation_secondary_journal_id, or ensure the journal creation role ran successfully."
+
+####################################################################
+# Task: Create HUR pairs in batch
+####################################################################
+- name: Create batch HUR pairs
+  hitachivantara.vspone_block.vsp.hv_hur_bulk:
+    connection_info: "{{ hv_vsp_hur_pairs_creation_connection_info }}"
+    secondary_connection_info: "{{ hv_vsp_hur_pairs_creation_secondary_connection_info }}"
+    spec:
+      number_of_pairs: "{{ hv_vsp_hur_pairs_creation_number_of_pairs }}"
+      primary_pool_id: "{{ hv_vsp_hur_pairs_creation_primary_pool_id }}"
+      secondary_pool_id: "{{ hv_vsp_hur_pairs_creation_secondary_pool_id }}"
+      volume_size: "{{ hv_vsp_hur_pairs_creation_volume_size }}"
+      copy_group_name: "{{ hv_vsp_hur_pairs_creation_copy_group_name }}"
+      copy_pair_base_name: "{{ hv_vsp_hur_pairs_creation_copy_pair_base_name }}"
+      primary_journal_id: "{{ hv_vsp_hur_pairs_creation_final_primary_journal_id }}"
+      secondary_journal_id: "{{ hv_vsp_hur_pairs_creation_final_secondary_journal_id }}"
+
+      capacity_saving: "{{ hv_vsp_hur_pairs_creation_capacity_saving if hv_vsp_hur_pairs_creation_capacity_saving is not none else omit }}"
+      primary_volume_base_name: "{{ hv_vsp_hur_pairs_creation_primary_volume_base_name if hv_vsp_hur_pairs_creation_primary_volume_base_name is not none else omit
+        }}"
+      primary_volume_base_name_start_number: "{{ hv_vsp_hur_pairs_creation_primary_volume_base_name_start_number if hv_vsp_hur_pairs_creation_primary_volume_base_name_start_number
+        is not none else omit }}"
+      consistency_group_id: "{{ hv_vsp_hur_pairs_creation_consistency_group_id if hv_vsp_hur_pairs_creation_consistency_group_id is not none else omit }}"
+      allocate_new_consistency_group: "{{ hv_vsp_hur_pairs_creation_allocate_new_consistency_group if hv_vsp_hur_pairs_creation_allocate_new_consistency_group is
+        not none else omit }}"
+
+      primary_hostgroups: "{{ hv_vsp_hur_pairs_creation_primary_hostgroups if hv_vsp_hur_pairs_creation_primary_hostgroups | length > 0 else omit }}"
+      secondary_hostgroups: "{{ hv_vsp_hur_pairs_creation_secondary_hostgroups if hv_vsp_hur_pairs_creation_secondary_hostgroups | length > 0 else omit }}"
+      primary_iscsi_targets: "{{ hv_vsp_hur_pairs_creation_primary_iscsi_targets if hv_vsp_hur_pairs_creation_primary_iscsi_targets | length > 0 else omit }}"
+      secondary_iscsi_targets: "{{ hv_vsp_hur_pairs_creation_secondary_iscsi_targets if hv_vsp_hur_pairs_creation_secondary_iscsi_targets | length > 0 else omit }}"
+      primary_nvm_subsystem: "{{ hv_vsp_hur_pairs_creation_primary_nvm_subsystem if hv_vsp_hur_pairs_creation_primary_nvm_subsystem | length > 0 else omit }}"
+      secondary_nvm_subsystem: "{{ hv_vsp_hur_pairs_creation_secondary_nvm_subsystem if hv_vsp_hur_pairs_creation_secondary_nvm_subsystem | length > 0 else omit }}"
+
+      local_device_group_name: "{{ hv_vsp_hur_pairs_creation_local_device_group_name if hv_vsp_hur_pairs_creation_local_device_group_name is not none else omit }}"
+      remote_device_group_name: "{{ hv_vsp_hur_pairs_creation_remote_device_group_name if hv_vsp_hur_pairs_creation_remote_device_group_name is not none else omit
+        }}"
+      path_group_id: "{{ hv_vsp_hur_pairs_creation_path_group_id if hv_vsp_hur_pairs_creation_path_group_id is not none else omit }}"
+      fence_level: "{{ hv_vsp_hur_pairs_creation_fence_level if hv_vsp_hur_pairs_creation_fence_level is not none else omit }}"
+      mirror_unit_number: "{{ hv_vsp_hur_pairs_creation_mirror_unit_number if hv_vsp_hur_pairs_creation_mirror_unit_number is not none else omit }}"
+      is_data_reduction_force_copy: "{{ hv_vsp_hur_pairs_creation_is_data_reduction_force_copy if hv_vsp_hur_pairs_creation_is_data_reduction_force_copy is not none
+        else omit }}"
+      do_initial_copy: "{{ hv_vsp_hur_pairs_creation_do_initial_copy if hv_vsp_hur_pairs_creation_do_initial_copy is not none else omit }}"
+      is_consistency_group: "{{ hv_vsp_hur_pairs_creation_is_consistency_group if hv_vsp_hur_pairs_creation_is_consistency_group is not none else omit }}"
+      is_new_group_creation: "{{ hv_vsp_hur_pairs_creation_is_new_group_creation if hv_vsp_hur_pairs_creation_is_new_group_creation is not none else omit }}"
+      begin_secondary_volume_id: "{{ hv_vsp_hur_pairs_creation_begin_secondary_volume_id if hv_vsp_hur_pairs_creation_begin_secondary_volume_id is not none else omit
+        }}"
+      end_secondary_volume_id: "{{ hv_vsp_hur_pairs_creation_end_secondary_volume_id if hv_vsp_hur_pairs_creation_end_secondary_volume_id is not none else omit }}"
+      begin_primary_volume_id: "{{ hv_vsp_hur_pairs_creation_begin_primary_volume_id if hv_vsp_hur_pairs_creation_begin_primary_volume_id is not none else omit }}"
+      end_primary_volume_id: "{{ hv_vsp_hur_pairs_creation_end_primary_volume_id if hv_vsp_hur_pairs_creation_end_primary_volume_id is not none else omit }}"
+  register: hv_vsp_hur_pairs_creation_batch_result
+
+####################################################################
+# Task: Display HUR Pairs Creation Report
+# - `register` always sets the variable even on failure so
+#   `is defined` is always true — `is not failed` is the correct guard
+####################################################################
+- name: Display HUR Pairs Creation Report
+  ansible.builtin.debug:
+    msg:
+      - "==============================================="
+      - "    HUR PAIRS CREATION REPORT"
+      - "==============================================="
+      - "Number of Pairs Created: {{ hv_vsp_hur_pairs_creation_batch_result.hur_bulk_info | default([]) | length }}"
+      - "Copy Group Name: {{ hv_vsp_hur_pairs_creation_copy_group_name }}"
+      - "-----------------------------------------------"
+      - "HUR Pairs Details:"
+      - "{{ hv_vsp_hur_pairs_creation_batch_result.hur_bulk_info | default([]) | to_nice_yaml }}"
+      - "-----------------------------------------------"
+      - "Comments: {{ hv_vsp_hur_pairs_creation_batch_result.comments | default([]) }}"
+      - "==============================================="
+  # when:
+  #   - hv_vsp_hur_pairs_creation_batch_result is defined
+  #   - hv_vsp_hur_pairs_creation_batch_result is not failed

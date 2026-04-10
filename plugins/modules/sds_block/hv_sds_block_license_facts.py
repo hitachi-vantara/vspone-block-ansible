@@ -161,7 +161,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 
 class SDSBLicensesFactsManager:
     def __init__(self):
-
         self.logger = Log()
         self.argument_spec = SDSBLicenseSettingArguments().license_facts()
         self.module = AnsibleModule(
@@ -185,7 +184,9 @@ class SDSBLicensesFactsManager:
             self.logger.writeInfo("=== End of SDSB Licenses Facts ===")
             self.module.fail_json(msg=str(e))
 
-        data = {"licenses": licenses}
+        data = {"licenses": licenses if licenses is not None else []}
+        if self.spec.comments:
+            data["message"] = self.spec.comments
         if registration_message:
             data["user_consent_required"] = registration_message
 

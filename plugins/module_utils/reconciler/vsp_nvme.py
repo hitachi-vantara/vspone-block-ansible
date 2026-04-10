@@ -116,7 +116,7 @@ class VSPNvmeReconciler:
                         spec.name
                     )
             if not nvme_subsystem:
-                return "NVM Subsystem not found."
+                return VspNvmValidationMsg.NO_NVM_SUBSYSTEM_FOUND.value
             logger.writeDebug(
                 "RC:reconcile_nvm_subsystem:state=absent:nvme_subsystem={}",
                 nvme_subsystem,
@@ -566,7 +566,7 @@ class VSPNvmeReconciler:
         )
         self.connection_info.changed = True
         logger.writeDebug("RC:delete_nvme_subsystem:ret_value={}", ret_value)
-        return "NVM Subsystem deleted successfully."
+        return VspNvmValidationMsg.NVM_SUBSYSTEM_DELETE_SUCCESS.value
 
     @log_entry_exit
     def delete_nvme_subsystem_force(self, nvme_subsystem):
@@ -577,7 +577,7 @@ class VSPNvmeReconciler:
         )
         self.connection_info.changed = True
         logger.writeDebug("RC:delete_nvme_subsystem:ret_value={}", ret_value)
-        return "NVM Subsystem deleted successfully."
+        return VspNvmValidationMsg.NVM_SUBSYSTEM_DELETE_SUCCESS.value
 
     @log_entry_exit
     def remove_all_namespace_paths(self, nvme_subsystem_id):
@@ -607,9 +607,6 @@ class VSPNvmeReconciler:
     @log_entry_exit
     def get_nvme_subsystems(self, spec):
         nvme_subsystems = self.provisioner.get_nvme_subsystems(spec)
-        # extracted_data = TrueCopyInfoExtractor(self.storage_serial_number).extract(tc_pairs)
-        # return extracted_data
-
         return nvme_subsystems
 
     @log_entry_exit

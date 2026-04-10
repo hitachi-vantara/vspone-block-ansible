@@ -1,6 +1,5 @@
 import os
 
-
 # PROJECT DETAILS
 NAMESPACE = "hitachivantara"
 PROJECT_NAME = "vspone_block"
@@ -45,3 +44,4 @@ APIG_URL = os.getenv(
     "https://5v56roefvl.execute-api.us-west-2.amazonaws.com/api/update_telemetry",
 )
 MAX_WORKER_THREADS = 10
+MAX_BULK_PAIRS = 32

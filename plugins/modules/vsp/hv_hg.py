@@ -76,13 +76,14 @@ options:
           /Remove WWNs from a host group/Present LDEVS/Unpresent LDEVS/Delete/Change or unset nick name of a WWN tasks.
         type: str
         required: false
-      port:
-        description: FC Port. Required for the Create a host group/Update host mode and host mode options/Add WWNs to a host group
+      port_id:
+        description: FC Port ID. Required for the Create a host group/Update host mode and host mode options/Add WWNs to a host group
           /Remove WWNs from a host group/Present LDEVS/Unpresent LDEVS/Delete/Change or unset nick name of a WWN
           /Asymmetric access priority level for ALUA host group/Release the host reservation status by specifying a host group
           /Release the host reservation status by specifying the LU path tasks.
         type: str
         required: false
+        aliases: [port]
       wwns:
         description: List of host WWN to add or remove. Required for the Create a host group/Add WWNs to a host group
           /Remove WWNs from a host group tasks.
@@ -94,11 +95,12 @@ options:
               /Remove WWNs from a host group/Change or unset nick name of a WWN tasks.
             type: str
             required: true
-          nick_name:
+          nickname:
             description: Nickname of the host. Optional for the Create a host group/Add WWNs to a host group
               /Remove WWNs from a host group tasks. Required for the Change or unset nick name of a WWN task.
             type: str
             required: false
+            aliases: ["nick_name"]
         required: false
       ldevs:
         description: LDEVs to be mapped/unmapped with the host group. Supported format can be decimal or HEX.
@@ -169,10 +171,13 @@ options:
         type: list
         elements: int
         required: false
-      should_delete_all_ldevs:
-        description: If the value is true, destroy the logical devices that are no longer attached to any host group or iSCSI target.
-        required: false
+      should_delete_all_volumes:
+        description:
+          - If true, all volumes mapped to the host group will be deleted when the host group is deleted.
+            Optional for the Delete host group task. Default is false.
         type: bool
+        required: false
+        aliases: ["should_delete_all_ldevs"]
       host_group_number:
         description: The host group number. Required for the Asymmetric access priority level for ALUA host group
           /Release the host reservation status by specifying a host group
@@ -210,11 +215,12 @@ options:
             description: LUN number.
             type: str
             required: false
-      ports:
-        description: List of ports associated with the host group.
+      port_ids:
+        description: List of port IDs associated with the host group.
         type: list
         elements: str
         required: false
+        aliases: [ports]
 """
 
 EXAMPLES = """
@@ -227,14 +233,14 @@ EXAMPLES = """
       password: "dummy_password"
     spec:
       name: 'testhg26dec'
-      port: 'CL1-A'
+      port_id: 'CL1-A'
       host_mode: 'VMWARE_EXTENSION'
       host_mode_options: [40]
       wwns:
         - wwn: '100000109B583B2D'
-          nick_name: 'test1'
+          nickname: 'test1'
         - wwn: '100000109B583B2C'
-          nick_name: 'test2'
+          nickname: 'test2'
       ldevs: [393, 851]
 
 - name: Delete host group
@@ -246,7 +252,7 @@ EXAMPLES = """
       password: "dummy_password"
     spec:
       name: 'testhg26dec'
-      port: 'CL1-A'
+      port_id: 'CL1-A'
 
 - name: Present LDEVs to hostgroup
   hitachivantara.vspone_block.vsp.hv_hg:
@@ -258,7 +264,7 @@ EXAMPLES = """
     spec:
       state: present_ldev
       name: 'testhg26dec'
-      port: 'CL1-A'
+      port_id: 'CL1-A'
       ldevs: [300, 400]
 
 - name: Unpresent LDEVs from hostgroup
@@ -271,7 +277,7 @@ EXAMPLES = """
     spec:
       state: unpresent_ldev
       name: 'testhg26dec'
-      port: 'CL1-A'
+      port_id: 'CL1-A'
       ldevs: [800, 801]
 
 - name: Add WWNs to hostgroup
@@ -284,10 +290,10 @@ EXAMPLES = """
     spec:
       state: add_wwn
       name: 'testhg26dec'
-      port: 'CL1-A'
+      port_id: 'CL1-A'
       wwns:
         - wwn: '200000109B3C0FD3'
-          nick_name: 'test1'
+          nickname: 'test1'
         - wwn: '200000109B3C0FD4'
         - wwn: '200000109B3C0FD5'
 
@@ -301,7 +307,7 @@ EXAMPLES = """
     spec:
       state: remove_wwn
       name: 'testhg26dec'
-      port: 'CL1-A'
+      port_id: 'CL1-A'
       wwns:
         - wwn: '200000109B3C0FD3'
 
@@ -315,7 +321,7 @@ EXAMPLES = """
     spec:
       state: set_host_mode_and_hmo
       name: 'testhg26dec'
-      port: 'CL1-A'
+      port_id: 'CL1-A'
       host_mode: 'VMWARE_EXTENSION'
       host_mode_options: [54, 63]
 
@@ -328,7 +334,7 @@ EXAMPLES = """
       password: "dummy_password"
     spec:
       host_group_number: 208
-      port: 'CL1-A'
+      port_id: 'CL1-A'
       asymmetric_access_priority: 'high'
 
 - name: Release the host reservation status by specifying the LU path.
@@ -340,7 +346,7 @@ EXAMPLES = """
       password: "dummy_password"
     spec:
       host_group_number: 150
-      port: 'CL1-A'
+      port_id: 'CL1-A'
       should_release_host_reserve: true
       lun: 0
 """
@@ -460,6 +466,10 @@ host_group:
           type: str
           sample: "100000109B583B2D"
         nick_name:
+          description: Deprecated. Use C(nickname) instead.
+          type: str
+          sample: "app-server-1"
+        nickname:
           description: Optional human readable nickname assigned to the WWN.
           type: str
           sample: "app-server-1"
@@ -502,6 +512,7 @@ class VSPHostGroupManager:
             self.serial_number = params_manager.get_serial()
             self.state = params_manager.get_state()
             self.spec = params_manager.host_group_spec()
+            self.logger.writeDebug(f"spec: {self.spec}")
         except Exception as e:
             self.logger.writeError(str(e))
             self.module.fail_json(msg=str(e))

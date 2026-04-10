@@ -19,3 +19,4 @@ class SDSBDriveSpec:
 
     id: Optional[str] = None
     should_drive_locator_led_on: Optional[bool] = None
+    comments: Optional[str] = None

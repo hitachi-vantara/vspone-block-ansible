@@ -50,7 +50,7 @@ class SDSBDumpLogGateway:
     def download_dump_file(self, spec: DownloadDumpFileSpec):
         end_point = DOWNLOAD_DUMP_FILE
         file_name = self.generate_file_name()
-        file_name_path = os.path.join(spec.file_path, file_name)        # nosec
+        file_name_path = os.path.join(spec.file_path, file_name)  # nosec
         resp = self.connection_manager.download_file(end_point)
         with open(file_name_path, "wb") as file:
             file.write(resp)
@@ -61,7 +61,7 @@ class SDSBDumpLogGateway:
 
         end_point = DOWNLOAD_DUMP_FILE_BY_FILE.format(spec.file_name)
 
-        file_name_path = os.path.join(spec.file_path, spec.file_name)       # nosec
+        file_name_path = os.path.join(spec.file_path, spec.file_name)  # nosec
         try:
             response = self.connection_manager.download_file(end_point)
             with open(file_name_path, "wb") as file:

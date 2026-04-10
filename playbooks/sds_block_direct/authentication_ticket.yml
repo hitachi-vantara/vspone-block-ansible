@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Authentication Ticket Playbook
-####################################################################
+# ###################################################################
 - name: Authentication Ticket
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Issue a new authentication ticket
-    ####################################################################
+    # ###################################################################
     - name: Issue a new authentication ticket
       hitachivantara.vspone_block.sds_block.hv_sds_block_authentication_ticket:
         connection_info: "{{ connection_info }}"

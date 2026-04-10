@@ -1,7 +1,7 @@
 ---
-######################################################################################
+# #####################################################################################
 # Example :  Snapshot Facts Playbook
-######################################################################################
+# #####################################################################################
 - name: Snapshot Pair Facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ######################################################################################
+    # #####################################################################################
     # Task Name : Get all snapshot pairs
-    ######################################################################################
+    # #####################################################################################
     - name: Get all snapshot pairs
       hitachivantara.vspone_block.vsp.hv_snapshot_facts:
         connection_info: "{{ connection_info }}"
@@ -51,7 +51,7 @@
         connection_info: "{{ connection_info }}"
         spec:
           primary_volume_id: 101
-          mirror_unit_id: 1
+          mirror_unit_number: 1
       register: result
 
     - name: Debug the result variable

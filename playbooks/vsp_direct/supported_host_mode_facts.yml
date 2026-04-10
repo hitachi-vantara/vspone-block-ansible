@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Hostgroup Facts Playbook
-####################################################################
+# ###################################################################
 - name: Hostgroup Facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Get all host mode options from the storage
-    ####################################################################
+    # ###################################################################
     - name: Get all host mode options from the storage
       hitachivantara.vspone_block.vsp.hv_supported_host_mode_facts:
         connection_info: "{{ connection_info }}"

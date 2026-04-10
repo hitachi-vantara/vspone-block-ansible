@@ -1,17 +1,31 @@
 try:
     from ..common.ansible_common import log_entry_exit
+    from ..common.hv_constants import LdevConstants
     from ..common.vsp_constants import VolumePayloadConst
     from ..message.vsp_lun_msgs import VSPVolValidationMsg
     from ..common.hv_log import (
         Log,
     )
     from ..gateway.vsp_volume import VSPVolumeDirectGateway
+    from ..gateway.vsp_resource_group_gateway import VSPResourceGroupDirectGateway
+    from ..common.vsp_errors import (
+        VspVolumeNoFreeLdevError,
+        VspVolumeNotFoundError,
+    )
+    from ..model.vsp_resource_group_models import VSPResourceGroupSpec
+
+
 except ImportError:
     from common.ansible_common import log_entry_exit
+    from common.hv_constants import LdevConstants
     from common.vsp_constants import VolumePayloadConst
     from message.vsp_lun_msgs import VSPVolValidationMsg
     from common.hv_log import (
         Log,
+    )
+    from common.vsp_errors import (
+        VspVolumeNoFreeLdevError,
+        VspVolumeNotFoundError,
     )
 
 logger = Log()
@@ -21,6 +35,7 @@ class VSPVolumeProvisioner:
 
     def __init__(self, connection_info, serial=None):
         self.gateway = VSPVolumeDirectGateway(connection_info)
+        self.rg_gateway = VSPResourceGroupDirectGateway(connection_info)
         self.connection_info = connection_info
         if serial:
             self.serial = serial
@@ -29,6 +44,13 @@ class VSPVolumeProvisioner:
     @log_entry_exit
     def get_volume_by_ldev(self, ldev, include_drs=True):
         return self.gateway.get_volume_by_id(ldev, include_drs=include_drs)
+
+    @log_entry_exit
+    def get_volume_by_ldev_id(self, ldev, include_drs=True):
+        try:
+            return self.gateway.get_volume_by_id(ldev, include_drs=include_drs)
+        except Exception as e:
+            return None
 
     @log_entry_exit
     def get_volumes(
@@ -52,6 +74,10 @@ class VSPVolumeProvisioner:
             parity_group_id=parity_group_id,
         )
         return volumes
+
+    @log_entry_exit
+    def assign_vldev(self, ldev_id, vldev_id):
+        return self.gateway.assign_vldev(ldev_id, vldev_id)
 
     @log_entry_exit
     def unassign_vldev(self, ldev_id, vldev_id):
@@ -96,7 +122,10 @@ class VSPVolumeProvisioner:
         vldev_id_old = vol_info.virtualLdevId
 
         if vldev_id_old is not None and vldev_id_old >= 0:
-            if vldev_id_old != vldev_id and vldev_id_old != 65534:
+            if (
+                vldev_id_old != vldev_id
+                and vldev_id_old != LdevConstants.UNASSIGNED_LDEV_ID
+            ):
                 # need to unassign old first before you can assign new
                 self.unassign_vldev(vol_id, vldev_id_old)
                 # unassign only, we are done
@@ -111,7 +140,7 @@ class VSPVolumeProvisioner:
         logger.writeDebug("79 vldev_id={}", vldev_id)
         if (
             vldev_id != -1
-            # and vldev_id != 65534
+            # and vldev_id != LdevConstants.UNASSIGNED_LDEV_ID
             and vldev_id_old != vldev_id
         ):
             self.gateway.assign_vldev(vol_id, vldev_id)
@@ -127,7 +156,7 @@ class VSPVolumeProvisioner:
             and not spec.start_ldev_id
             and not spec.is_parallel_execution_enabled
         ):
-            free_ldev_object = self.get_free_ldev_object_from_meta()
+            free_ldev_object = self.get_free_ldev_object_from_meta(spec)
             spec.ldev_id = free_ldev_object.ldevId
             if free_ldev_object.ssid is not None:
                 spec.ssid = free_ldev_object.ssid
@@ -162,37 +191,51 @@ class VSPVolumeProvisioner:
         if not ldevs.data:
             err_msg = VSPVolValidationMsg.NO_FREE_LDEV.value
             logger.writeError(err_msg)
-            raise Exception(err_msg)
+            raise VspVolumeNoFreeLdevError(err_msg)
         return ldevs.data[0].ldevId
 
     @log_entry_exit
-    def get_free_ldev_object_from_meta(self):
-        ldevs = self.gateway.get_free_ldev_from_meta()
+    def get_free_ldev_object_from_meta(self, spec=None):
+        resource_group_id = (
+            spec.resource_group_id if spec and spec.resource_group_id is not None else 0
+        )
+        ldevs = self.gateway.get_free_ldev_from_meta_with_resource_group(
+            resource_group_id
+        )
         if not ldevs.data:
             err_msg = VSPVolValidationMsg.NO_FREE_LDEV.value
             logger.writeError(err_msg)
-            raise Exception(err_msg)
+            raise VspVolumeNoFreeLdevError(err_msg)
         return ldevs.data[0]
 
     @log_entry_exit
     def get_free_ldevs_from_meta(
         self, count=0, start_ldev=None, end_ldev=None, resource_grp_id=0
     ):
-        if count and count > 0 and end_ldev is not None:
-            err_msg = VSPVolValidationMsg.COUNT_END_LDEV_MUTUALLY_EXCLUSIVE.value
-            logger.writeError(err_msg)
-            return err_msg
+        logger.writeDebug(
+            "Requesting free LDEVs with count={}, start_ldev={}, end_ldev={}, resource_grp_id={}",
+            count,
+            start_ldev,
+            end_ldev,
+            resource_grp_id,
+        )
+        # if count and count > 0 and end_ldev is not None:
+        #     err_msg = VSPVolValidationMsg.COUNT_END_LDEV_MUTUALLY_EXCLUSIVE.value
+        #     logger.writeError(err_msg)
+        #     return err_msg
 
         if (end_ldev is not None and start_ldev is not None) and (
             end_ldev < start_ldev
         ):
             err_msg = VSPVolValidationMsg.END_LDEV_SHOULD_BE_GREATER.value
             logger.writeError(err_msg)
-            return err_msg
+            # return err_msg
+            raise ValueError(err_msg)
 
         count = (
             10
-            if (not count and not end_ldev) or (not count and end_ldev)
+            # if (not count and not end_ldev) or (not count and end_ldev)
+            if not count
             else int(count)
         )
         resource_grp_id = 0 if not resource_grp_id else int(resource_grp_id)
@@ -205,19 +248,32 @@ class VSPVolumeProvisioner:
             if start_ldev > 65279:
                 break
 
-            ldevs = self.gateway.get_free_ldevs_from_meta_chunks(start_ldev, each_count)
+            ldevs = self.gateway.get_free_ldevs_from_meta_chunks(
+                start_ldev, each_count, resource_grp_id
+            )
             raw_ldev_ids = [ldev.ldevId for ldev in ldevs.data]
+            logger.writeDebug("Received free LDEVs from meta: {}", raw_ldev_ids)
             ldevs_ids.extend(
                 [
                     ldev.ldevId
                     for ldev in ldevs.data
-                    if ldev.resourceGroupId == resource_grp_id
+                    if ldev.ldevId >= start_ldev
+                    and (end_ldev is None or ldev.ldevId <= end_ldev)
+                    and ldev.resourceGroupId == resource_grp_id
+                    and ldev.virtualLdevId is None
                 ]
             )
-
+            logger.writeDebug(
+                "Filtered free LDEVs based on start_ldev and end_ldev: {}", ldevs_ids
+            )
             if len(ldevs_ids) == 0:
                 start_ldev += each_count
+                if end_ldev is not None and start_ldev > end_ldev:
+                    return ldevs_ids
                 continue
+
+            if end_ldev is not None and start_ldev > end_ldev:
+                break
 
             if end_ldev is None:
                 if len(ldevs_ids) < count:
@@ -235,9 +291,11 @@ class VSPVolumeProvisioner:
         if len(ldevs_ids) < 1:
             err_msg = VSPVolValidationMsg.NO_FREE_LDEV.value
             logger.writeError(err_msg)
-            return err_msg
+            # return err_msg
+            raise ValueError(err_msg)
 
-        return ldevs_ids[:count] if not end_ldev else ldevs_ids
+        # return ldevs_ids[:count] if not end_ldev else ldevs_ids
+        return ldevs_ids[:count] if count and count > len(ldevs_ids) else ldevs_ids
 
     @log_entry_exit
     def expand_volume_capacity(self, ldev_id, payload, enhanced_expansion):
@@ -267,7 +325,7 @@ class VSPVolumeProvisioner:
             if "The specified volume is not found" in str(e):
                 err_msg = VSPVolValidationMsg.VOL_NOT_FOUND.value + str(e)
                 logger.writeError(err_msg)
-                raise Exception(err_msg)
+                raise VspVolumeNotFoundError(err_msg)
             elif spec and hasattr(spec, "comment") is not None:
                 spec.comment = "Failed to update volume settings: " + str(e)
             else:
@@ -365,3 +423,22 @@ class VSPVolumeProvisioner:
             raise e
         self.connection_info.changed = True
         return f"Set ESE volume operation for LDEV {ldev_id} initiated successfully."
+
+    @log_entry_exit
+    def move_volume_back_to_meta(self, volume_info):
+        logger.writeDebug(f"move_volume_back_to_meta: volume_info: {volume_info}")
+        if volume_info.virtualLdevId is None:
+            self.gateway.unassign_vldev(volume_info.ldevId, volume_info.ldevId)
+        if volume_info.virtualLdevId == 65535 or volume_info.virtualLdevId == 65534:
+            self.gateway.unassign_vldev(volume_info.ldevId, volume_info.virtualLdevId)
+
+        logger.writeDebug("PROV:move_volume_back_to_meta:sec_vol_id = {}", volume_info)
+
+        if volume_info.resourceGroupId != 0:
+            add_resource_spec = VSPResourceGroupSpec()
+            add_resource_spec.ldevs = [int(volume_info.ldevId)]
+            self.rg_gateway.remove_resource(
+                volume_info.resourceGroupId, add_resource_spec
+            )
+        # assign back vldev
+        self.gateway.assign_vldev(volume_info.ldevId, volume_info.ldevId)

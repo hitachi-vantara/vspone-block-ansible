@@ -25,11 +25,19 @@ class VSPIscsiTargetProvisioner:
     def get_ports(self, serial):
         return self.gateway.get_ports(serial)
 
-    def get_one_iscsi_target(self, port, name, serial):
+    def get_one_iscsi_target(self, port, name, serial=None):
         return self.gateway.get_one_iscsi_target(port, name, serial)
 
     def get_one_iscsi_target_using_id(self, port, id):
         return self.gateway.get_one_iscsi_target(port, None, iscsi_id=id)
+
+    def get_iscsi_target_by_name_or_id(self, port, name, id):
+        iscsi_target = None
+        if id:
+            iscsi_target = self.get_one_iscsi_target_using_id(port, id)
+        if not iscsi_target and name:
+            iscsi_target = self.get_one_iscsi_target(port, name)
+        return iscsi_target
 
     def get_iscsi_targets_by_scan_all_ports(self, name):
         logger = Log()
@@ -47,7 +55,7 @@ class VSPIscsiTargetProvisioner:
 
         return lstHg
 
-    def get_iscsi_target_using_name(self, name, serial):
+    def get_iscsi_target_using_name(self, name, serial=None):
         iscsi_targets = self.gateway.get_iscsi_targets(None, serial)
         for iscsi_target in iscsi_targets.data:
             if iscsi_target.name == name:
@@ -82,10 +90,17 @@ class VSPIscsiTargetProvisioner:
             iscsi_target, iqn_initiators, serial
         )
 
+    def add_ldevs_to_iscsi_target(self, iscsi_target, ldevs, lun_id=None):
+        return self.gateway.add_luns_to_iscsi_target(iscsi_target, ldevs, lun_id=lun_id)
+
+    def add_lun_paths_to_iscsi_target(self, iscsi_target, lun_paths):
+        self.gateway.add_lun_paths_to_iscsi_target(iscsi_target, lun_paths)
+        return True
+
     def add_luns_to_iscsi_target(self, iscsi_target, luns, serial):
         self.gateway.add_luns_to_iscsi_target(iscsi_target, luns, serial)
 
-    def delete_luns_from_iscsi_target(self, iscsi_target, luns, serial):
+    def delete_luns_from_iscsi_target(self, iscsi_target, luns, serial=None):
         self.gateway.delete_luns_from_iscsi_target(iscsi_target, luns, serial)
 
     def add_chap_users_to_iscsi_target(self, iscsi_target, chap_users, serial):

@@ -1,0 +1,85 @@
+---
+- name: Create GAD Pairs using hv_vsp_gad_pairs_creation role
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+  vars:
+    # Primary storage connection info
+    hv_vsp_gad_pairs_creation_connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+    # Secondary storage connection info
+    hv_vsp_gad_pairs_creation_secondary_connection_info:
+      address: "{{ secondary_storage_address }}"
+      username: "{{ vault_secondary_storage_username }}"
+      password: "{{ vault_secondary_storage_secret }}"
+
+    # Optional: Quorum storage connection info (for disk-based quorum)
+    # If not provided, diskless quorum will be created
+    # hv_vsp_gad_pairs_creation_quorum_storage_connection_info:
+    #   address: "192.168.1.102"
+    #   username: "admin"
+    #   password: "password123"
+
+    # Optional: Quorum storage host groups (required if quorum_storage_connection_info is provided)
+    # hv_vsp_gad_pairs_creation_quorum_storage_hostgroups:
+    #   - host_group_name: "HG_001"
+    #     port_id: "CL1-A"
+
+    # Optional: Quorum disk ID
+    # If not provided, a common available quorum disk will be found/created
+    # hv_vsp_gad_pairs_creation_quorum_id: ""
+
+    # Required for disk-based quorum creation (if quorum_storage_connection_info is provided)
+    # hv_vsp_gad_pairs_creation_external_pool_id: 0
+    # hv_vsp_gad_pairs_creation_quorum_disk_size: "12300MB"
+
+    # Mandatory GAD batch parameters
+    hv_vsp_gad_pairs_creation_number_of_pairs: 5
+    hv_vsp_gad_pairs_creation_primary_pool_id: 0
+    hv_vsp_gad_pairs_creation_secondary_pool_id: 0
+    hv_vsp_gad_pairs_creation_volume_size: "10GB"
+    hv_vsp_gad_pairs_creation_copy_group_name: "batch_gad_cg"
+    hv_vsp_gad_pairs_creation_copy_pair_base_name: "batch_pair"
+
+    # Optional GAD batch parameters
+    hv_vsp_gad_pairs_creation_capacity_saving: "compression_deduplication"
+    hv_vsp_gad_pairs_creation_primary_volume_base_name: "gad_vol"
+    hv_vsp_gad_pairs_creation_primary_volume_base_name_start_number: 1
+    # hv_vsp_gad_pairs_creation_copy_pace: 3
+    # hv_vsp_gad_pairs_creation_fence_level: "NEVER"
+
+    # Optional: Primary host groups
+    hv_vsp_gad_pairs_creation_primary_hostgroups:
+      - name: "primary_hg_1"
+        port_id: "CL1-A"
+
+    # Optional: Secondary host groups
+    hv_vsp_gad_pairs_creation_secondary_hostgroups:
+      - name: "secondary_hg_1"
+        port_id: "CL2-A"
+
+  # Optional: For existing volumes
+  # hv_vsp_gad_pairs_creation_begin_primary_ldev_id: 1000
+  # hv_vsp_gad_pairs_creation_end_primary_ldev_id: 1004
+
+  # Optional: For iSCSI targets
+  # hv_vsp_gad_pairs_creation_secondary_iscsi_targets:
+  #   - name: "iscsi_target_1"
+  #     port_id: "CL3-A"
+
+  # Optional: For NVMe subsystems
+  # hv_vsp_gad_pairs_creation_secondary_nvm_subsystem:
+  #   name: "nvme-subsystem-1"
+  #   paths:
+  #     - "nqn.2014-08.com.example:nvme:host1"
+
+  # Optional: For VSM replication
+  # hv_vsp_gad_pairs_creation_virtual_storage_serial_number: "900000"
+  tasks:
+    - name: Create GAD pairs using hv_vsp_gad_pairs_creation role
+      ansible.builtin.include_role:
+        name: hitachivantara.vspone_block.hv_vsp_gad_pairs_creation

@@ -10,6 +10,11 @@ try:
     from ..message.vsp_copy_group_msgs import (
         VSPCopyGroupsValidateMsg,
     )
+    from ..common.vsp_errors import (
+        VspClprIdNotFoundError,
+        VspLocalCopyGroupNotFoundError,
+    )
+    from ..message.vsp_clpr_msgs import VSPClprMsg
 except ImportError:
     from gateway.gateway_factory import GatewayFactory
     from common.hv_constants import GatewayClassTypes
@@ -17,6 +22,11 @@ except ImportError:
     from common.hv_messages import MessageID
     from common.ansible_common import log_entry_exit
     from message.vsp_copy_group_msgs import VSPCopyGroupsValidateMsg
+    from common.vsp_errors import (
+        VspClprIdNotFoundError,
+        VspLocalCopyGroupNotFoundError,
+    )
+    from message.vsp_clpr_msgs import VSPClprMsg
 
 logger = Log()
 
@@ -66,7 +76,7 @@ class VSPClprProvisioner:
                 spec.copy_group_name
             )
             logger.writeError(msg)
-            raise Exception(msg)
+            raise VspLocalCopyGroupNotFoundError(msg)
         elif found_copy_group is not None:
             if found_copy_group.copyPairs:
                 for copy_pair in found_copy_group.copyPairs:
@@ -146,7 +156,7 @@ class VSPClprProvisioner:
         """Update CLPR configuration"""
         try:
             if spec.clpr_id is None:
-                raise Exception("CLPR ID cannot be None for update operation")
+                raise ValueError(VSPClprMsg.CLPR_ID_REQD.value)
 
             # First check if CLPR exists
             all_clprs = self.gateway.get_all_clprs(spec)
@@ -159,7 +169,9 @@ class VSPClprProvisioner:
                         break
 
             if not existing_clpr:
-                raise Exception(f"CLPR with ID {spec.clpr_id} does not exist")
+                err_msg = VSPClprMsg.CLPR_ID_NOT_FOUND.value.format(spec.clpr_id)
+                logger.writeError(err_msg)
+                raise VspClprIdNotFoundError(err_msg)
 
             # Check if update is needed
             update_needed = False
@@ -206,7 +218,7 @@ class VSPClprProvisioner:
         """Delete a CLPR"""
         try:
             if spec.clpr_id is None:
-                raise Exception("CLPR ID cannot be None for delete operation")
+                raise ValueError(VSPClprMsg.CLPR_ID_REQD.value)
 
                 # First check if CLPR exists
             all_clprs = self.gateway.get_all_clprs(spec)
@@ -219,7 +231,9 @@ class VSPClprProvisioner:
                         break
 
             if not existing_clpr:
-                raise Exception(f"CLPR with ID {spec.clpr_id} does not exist")
+                err_msg = VSPClprMsg.CLPR_ID_NOT_FOUND.value.format(spec.clpr_id)
+                logger.writeError(err_msg)
+                raise VspClprIdNotFoundError(err_msg)
 
             response = self.gateway.delete_clpr(spec)
             if response:

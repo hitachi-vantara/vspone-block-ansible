@@ -36,6 +36,9 @@ class StateValue:
     QUERY = "query"
     PRESENT = "present"
     ABSENT = "absent"
+    ADDED = "added"
+    REMOVED = "removed"
+    UPDATED = "updated"
     SPLIT = "split"
     SYNC = "sync"
     RESTORE = "restore"
@@ -80,6 +83,7 @@ class StateValue:
     UPDATE_QOS = "change_qos_settings"
     ASSIGN_VIRTUAL_LDEV = "assign_virtual_ldev"
     SYNC_SERVER_NICK_NAME = "sync_server_nick_name"
+    SYNC_SERVER_NICKNAME = "sync_server_nickname"
     ADD_HG_TO_SERVER = "add_host_groups"
     ADD_HBA = "add_hba"
     REMOVE_HBA = "remove_hba"
@@ -253,3 +257,9 @@ IGNORED_APIS = [
     "tasks",
     "common/config/property/outofband",
 ]
+
+
+class LdevConstants:
+    UNASSIGNED_LDEV_ID = 65534
+    GAD_RESERVE_LDEV_ID = 65535
+    MAX_VALID_LDEV_ID = 65279

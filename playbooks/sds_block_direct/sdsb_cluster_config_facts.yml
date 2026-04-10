@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : SDSB Cluster Configuration Facts Playbook
-####################################################################
+# ###################################################################
 - name: SDSB Cluster Configuration Facts
   hosts: localhost
   gather_facts: false
@@ -17,11 +17,11 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Get cluster configuration information
     # Note: This task is supported for Bare Metal and Google Cloud.
     #       This task is not supported for AWS and Microsoft Azure.
-    ####################################################################
+    # ###################################################################
     - name: Get cluster configuration information
       hitachivantara.vspone_block.sds_block.hv_sds_block_cluster_config_facts:
         connection_info: "{{ connection_info }}"

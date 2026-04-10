@@ -16,6 +16,14 @@ try:
     from ..common.hv_api_constants import API
     from ..common.hv_log import Log
     from ..common.vsp_constants import Endpoints
+    from ..common.hv_errors import (
+        HvSocketTimeoutError,
+        HvHttpError,
+        HvJobError,
+        HvJobTimeoutError,
+        HvTokeenGenerationError,
+    )
+    from ..message.common_msgs import CommonMessage
     from .ansible_url import open_url
     from .vsp_session_manager import SessionManager
     from ..model.common_base_models import ConnectionInfo
@@ -24,6 +32,14 @@ except ImportError:
     from common.hv_api_constants import API
     from common.hv_log import Log
     from common.vsp_constants import Endpoints
+    from common.hv_errors import (
+        HvSocketTimeoutError,
+        HvHttpError,
+        HvJobError,
+        HvJobTimeoutError,
+        HvTokeenGenerationError,
+    )
+    from message.common_msgs import CommonMessage
     from .ansible_url import open_url
     from .vsp_session_manager import SessionManager
     from model.common_base_models import ConnectionInfo
@@ -79,6 +95,8 @@ class ConnectionManager(ABC):
                     else:
                         logger.writeDebug(f"{text[:5000]} ...")
                 msg = {}
+                if len(text) == 0:
+                    return msg
                 raw_message = json.loads(text)
                 if not len(raw_message):
                     if raw_message.get("errorSource"):
@@ -143,7 +161,7 @@ class ConnectionManager(ABC):
             )
         except socket.timeout as t_err:
             logger.writeError(f"ConnectionManager._make_request - TimeoutError {t_err}")
-            raise Exception(t_err)
+            raise HvSocketTimeoutError(t_err)
         except urllib_error.HTTPError as err:
             logger.writeError(f"ConnectionManager._make_request - HTTPError {err}")
 
@@ -174,15 +192,9 @@ class ConnectionManager(ABC):
                 if error_resp.get("solution"):
                     error_dtls = error_dtls + " " + error_resp.get("solution")
 
-                raise Exception(error_dtls)
-            # if err.code == 400:
-            #     error_resp = json.loads(err.read().decode())
-            #     logger.writeDebug(
-            #         f"ConnectionManager.error_resp - error_resp {error_resp}"
-            #     )
-            #     raise Exception(error_resp)
+                raise HvHttpError(error_dtls)
             else:
-                raise Exception(err)
+                raise HvHttpError(err)
         except Exception as err:
             logger.writeException(err)
             logger.writeDebug("Failed err: {}", err)
@@ -191,8 +203,7 @@ class ConnectionManager(ABC):
         if response.status not in (200, 201, 202, 204):
             error_msg = json.loads(response.read())
             logger.writeError("error_msg = {}", error_msg)
-            # raise Exception(error_msg, response.status)
-            raise Exception(error_msg)
+            raise HvHttpError(error_msg)
 
         # logger.writeDebug(f"response = {response}")
         if response.status == 204:
@@ -205,7 +216,8 @@ class ConnectionManager(ABC):
     def _process_job(self, job_id):
         response = None
         retryCount = 0
-        while response is None and retryCount < 600:
+        # removed the retry count to keep checking the job status always
+        while response is None:  # and retryCount < 180:
             job_response = self.get_job(job_id)
             logger.writeDebug("_process_job: job_response = {}", job_response)
             job_status = job_response[API.STATUS]
@@ -223,15 +235,16 @@ class ConnectionManager(ABC):
                     else:
                         response = job_response["self"]
                 else:
-                    raise Exception(self.job_exception_text(job_response))
+                    raise HvJobError(self.job_exception_text(job_response))
             else:
+                logger.writeInfo(
+                    f"Job {job_id} is still in progress, current status: {job_status}, state: {job_state} and retry count = {retryCount}"
+                )
                 retryCount = retryCount + 1
-                time.sleep(retryCount * 1)
+                time.sleep(10)
 
         if response is None:
-            raise Exception(
-                "Timeout Error! The tasks was not completed in 3005 minutes"
-            )
+            raise HvJobTimeoutError(CommonMessage.JOB_TIMEOUT.value)
 
         resourceId = response.split("/")[-1]
         logger.writeDebug("response = {}", response)
@@ -509,7 +522,7 @@ class SDSBConnectionManager(ConnectionManager):
             )
 
             if response.status not in (200, 201, 202, 204):
-                raise Exception(
+                raise HvHttpError(
                     f"Failed upload: status={response.status}, body={resp_body}"
                 )
 
@@ -608,7 +621,7 @@ class SDSBConnectionManager(ConnectionManager):
             )
         except socket.timeout as t_err:
             logger.writeError(f"ConnectionManager._make_request - TimeoutError {t_err}")
-            raise Exception(t_err)
+            raise HvSocketTimeoutError(t_err)
         except urllib_error.HTTPError as err:
             logger.writeError(f"ConnectionManager._make_request - HTTPError {err}")
 
@@ -641,8 +654,8 @@ class SDSBConnectionManager(ConnectionManager):
                         if error_resp.get("solution"):
                             error_dtls = error_dtls + " " + error_resp.get("solution")
 
-                        raise Exception(error_dtls)
-            raise Exception(err)
+                        raise HvHttpError(error_dtls)
+            raise HvHttpError(err)
         except Exception as err:
             logger.writeException(err)
             raise err
@@ -650,8 +663,7 @@ class SDSBConnectionManager(ConnectionManager):
         if response.status not in (200, 201, 202, 204):
             error_msg = json.loads(response.read())
             logger.writeError("error_msg = {}", error_msg)
-            # raise Exception(error_msg, response.status)
-            raise Exception(error_msg)
+            raise HvHttpError(error_msg)
 
         logger.writeDebug(f"response = {response}")
         return self._load_response(response, download)
@@ -690,7 +702,7 @@ class VSPConnectionManager(ConnectionManager):
                 "Failed to establish a connection, please check the Management System address or the credentials."
                 + str(e)
             )
-            raise Exception(err_msg)
+            raise HvTokeenGenerationError(err_msg)
 
         session_id = response.get(API.SESSION_ID)
         token = response.get(API.TOKEN)
@@ -818,13 +830,13 @@ class VSPConnectionManager(ConnectionManager):
                     # For PATCH port-auth-settings, affected resource is empty
                     response = job_response.get(API.AFFECTED_RESOURCES)[0]
                 else:
-                    raise Exception(job_response.get(API.ERROR_MESSAGE))
+                    raise HvJobError(job_response.get(API.ERROR_MESSAGE))
             else:
                 retryCount = retryCount + 1
                 time.sleep(10)
 
         if response is None:
-            raise Exception("Timeout Error! The tasks was not completed in 10 minutes")
+            raise HvJobTimeoutError(CommonMessage.JOB_TIMEOUT.value)
 
         resourceId = response.split("/")[-1]
         logger.writeDebug("response = {}", response)
@@ -977,7 +989,7 @@ class VSPConnectionManager(ConnectionManager):
             )
         except socket.timeout as t_err:
             logger.writeError(str(t_err))
-            raise Exception(t_err)
+            raise HvSocketTimeoutError(t_err)
         except urllib_error.HTTPError as err:
             logger.writeError(
                 f"VSPConnectionManager._make_vsp_request - HTTPError {err}"
@@ -1034,14 +1046,14 @@ class VSPConnectionManager(ConnectionManager):
 
                     else:
                         parsed_response = error_dtls if error_dtls else error_resp
-                        raise Exception(parsed_response)
-            raise Exception(err)
+                        raise HvHttpError(parsed_response)
+            raise HvHttpError(err)
         except Exception as err:
             logger.writeException(err)
             raise err
 
         if response.status not in (200, 201, 202, 204):
-            raise Exception(
+            raise HvHttpError(
                 f"Failed to make {method} request to {url}: {response.read()}"
             )
         return self._load_response(response)

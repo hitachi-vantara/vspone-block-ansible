@@ -76,6 +76,9 @@ class SDSBRemoteIscsiPortGateway:
         end_point = GET_REMOTE_ISCSI_PORT_BY_ID.format(id)
         response = self.connection_manager.get(end_point)
         converted = convert_keys_to_snake_case(response)
+        converted["remote_storage_port_ip_address"] = converted.pop(
+            "remote_ip_address", None
+        )
         return converted
 
     @log_entry_exit

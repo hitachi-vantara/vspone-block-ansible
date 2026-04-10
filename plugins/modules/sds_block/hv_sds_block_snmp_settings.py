@@ -4,7 +4,6 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 
@@ -269,6 +268,9 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
 )
+from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.message.sdsb_module_message_catalog import (
+    SdsbMessageCatalog,
+)
 
 
 class SDSBSnmpManager:
@@ -297,7 +299,7 @@ class SDSBSnmpManager:
 
         msg = ""
         if snmp_settings and self.connection_info.changed is True:
-            msg = "Successfully updated SNMP settings."
+            msg = SdsbMessageCatalog.SNMP_SETTINGS_UPDATE_SUCCESS.value
 
         data = {
             "changed": self.connection_info.changed,

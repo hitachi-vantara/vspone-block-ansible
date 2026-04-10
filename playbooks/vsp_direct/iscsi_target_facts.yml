@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : iSCSI Target Facts Playbook
-####################################################################
+# ###################################################################
 - name: Iscsi Target Facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Get all iscsi targets
-    ####################################################################
+    # ###################################################################
     - name: Get all iscsi targets
       hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
         connection_info: "{{ connection_info }}"
@@ -30,13 +30,13 @@
         var: result
 
     ####################################################################
-    # Task Name : Get iscsi targets by ports
+    # Task Name : Get iscsi targets by port_ids
     ####################################################################
-    - name: Get iscsi targets by ports
+    - name: Get iscsi targets by port_ids
       hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          ports: ["CL1-A", "CL1-B", "CL2-A", "CL2-B"]
+          port_ids: ["CL1-A", "CL1-B", "CL2-A", "CL2-B"]
       register: result
 
     - name: Debug the result variable
@@ -44,14 +44,14 @@
         var: result
 
     ####################################################################
-    # Task Name : Get iscsi targets by ports and name
+    # Task Name : Get iscsi targets by port_ids and name
     ####################################################################
-    - name: Get iscsi targets by ports and name
+    - name: Get iscsi targets by port_ids and name
       hitachivantara.vspone_block.vsp.hv_iscsi_target_facts:
         connection_info: "{{ connection_info }}"
         spec:
           name: "iscsi-target-server-1"
-          ports: ["CL1-A", "CL1-B"]
+          port_ids: ["CL1-A", "CL1-B"]
       register: result
 
     - name: Debug the result variable

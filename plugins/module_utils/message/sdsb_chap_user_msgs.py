@@ -1,10 +1,6 @@
 from enum import Enum
 
 
-class SDSBChapUserMessage(Enum):
-    pass
-
-
 class SDSBChapUserValidationMsg(Enum):
 
     NO_SPEC = "Specifications for the CHAP user are not provided."
@@ -17,6 +13,12 @@ class SDSBChapUserValidationMsg(Enum):
         "The target_chap_user_name must be different to update a CHAP user."
     )
     INVALID_CHAP_USER_ID = (
-        "Invalid CHAP user ID is provided, provide a valid CHAP user ID."
+        "Invalid CHAP user ID '{0}' is provided, provide a valid CHAP user ID."
     )
     CHAP_USER_NAME_ABSENT = "Could not find CHAP user with target_chap_user_name {0}."
+    FAILED_TO_CREATE_CHAP_USER = "Failed to create CHAP user."
+    FAILED_TO_DELETE_CHAP_USER = (
+        "Could not delete CHAP user, ensure CHAP user ID is valid. "
+    )
+    CHAP_USER_DELETE_SUCCESS = "CHAP user with ID {0} has been deleted successfully."
+    CHAP_USER_DELETE_FAILED = "Failed to delete CHAP user {0}."

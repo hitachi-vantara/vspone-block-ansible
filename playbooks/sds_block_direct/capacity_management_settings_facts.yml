@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Storage Controller Facts Playbook
-####################################################################
+# ###################################################################
 - name: Storage Controller Facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ################################################################################################
+    # ###############################################################################################
     # Task Name : Get capacity management settings for the cluster and for all storage controllers
-    ################################################################################################
+    # ###############################################################################################
     - name: Get capacity management settings for the cluster and for all storage controllers
       hitachivantara.vspone_block.sds_block.hv_sds_block_capacity_management_settings_facts:
         connection_info: "{{ connection_info }}"

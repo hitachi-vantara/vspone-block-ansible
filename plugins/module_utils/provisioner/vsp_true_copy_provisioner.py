@@ -220,8 +220,11 @@ class VSPTrueCopyProvisioner:
 
     @log_entry_exit
     def delete_true_copy_pair(self, spec=None):
-        self.connection_info.changed = False
-        comment = None
+        pair_existing = self.gateway.get_replication_pair(spec)
+        if pair_existing is None:
+            return VSPTrueCopyValidateMsg.NO_TRUE_COPY_PAIR_FOUND.value.format(
+                spec.copy_pair_name
+            )
 
         # tc_pair_id = "remoteStorageDeviceId,copyGroupName,localDeviceGroupName,remoteDeviceGroupName,copyPairName"
         # If we have both copy_group_name and copy_pair_name, we can delete the pair directly
@@ -237,8 +240,19 @@ class VSPTrueCopyProvisioner:
                     spec.secondary_connection_info, spec.secondary_storage_serial_number
                 )
                 rr_prov.delete_volume_and_all_mappings(spec.secondary_volume_id)
+                spec.comments = (
+                    VSPTrueCopyValidateMsg.TRUE_COPY_PAIR_AND_SVOL_DELETED.value.format(
+                        spec.copy_pair_name, spec.secondary_volume_id
+                    )
+                )
+            else:
+                spec.comments = (
+                    VSPTrueCopyValidateMsg.TRUE_COPY_PAIR_DELETED.value.format(
+                        spec.copy_pair_name
+                    )
+                )
             self.connection_info.changed = True
-            return pair_id, comment
+            return None
 
         # Deleting TC by primary_volume_id is only supported for VSP One
         if spec.primary_volume_id:
@@ -246,12 +260,11 @@ class VSPTrueCopyProvisioner:
             # storage_model = secondary_storage_info["model"]
             storage_model = self.get_storage_model(spec)
             if "VSP One" not in storage_model:
-                comment = VSPTrueCopyValidateMsg.DELETE_TC_BY_PRIMARY_VOLUME_ID_NOT_SUPPORTED.value.format(
+                spec.comments = VSPTrueCopyValidateMsg.DELETE_TC_BY_PRIMARY_VOLUME_ID_NOT_SUPPORTED.value.format(
                     storage_model
                 )
-                return None, comment
+                return None
             else:
-                comment = None
                 if spec.copy_group_name:
                     copy_group = self.get_copy_group_by_name(spec)
                     logger.writeDebug(
@@ -259,24 +272,18 @@ class VSPTrueCopyProvisioner:
                     )
                     if copy_group:
                         self.connection_info.changed = True
-                        return (
-                            self.gateway.delete_true_copy_pair_by_copy_group_and_pvol_id(
-                                spec.primary_volume_id
-                            ),
-                            comment,
+                        return self.gateway.delete_true_copy_pair_by_copy_group_and_pvol_id(
+                            spec.primary_volume_id
                         )
                     else:
-                        comment = VSPTrueCopyValidateMsg.COPY_GROUP_NAME_NOT_FOUND.value.format(
+                        spec.comments = VSPTrueCopyValidateMsg.COPY_GROUP_NAME_NOT_FOUND.value.format(
                             spec.copy_group_name
                         )
-                        return None, comment
+                        return None
                 else:
                     self.connection_info.changed = True
-                    return (
-                        self.gateway.delete_true_copy_pair_by_primary_volume_id(
-                            self.cg_gw, spec
-                        ),
-                        comment,
+                    return self.gateway.delete_true_copy_pair_by_primary_volume_id(
+                        self.cg_gw, spec
                     )
 
     @log_entry_exit
@@ -458,6 +465,9 @@ class VSPTrueCopyProvisioner:
                 and tc[0].svolStatus == "SSUS"
                 and tc[0].pvolStatus == "PSUS"
             ):
+                spec.comments = VSPTrueCopyValidateMsg.PAIR_ALREADY_SPLIT.value.format(
+                    spec.copy_pair_name
+                )
                 return tc[0]
             else:
                 pair_id = self.gateway.split_true_copy_pair(spec)
@@ -465,6 +475,9 @@ class VSPTrueCopyProvisioner:
                 if pair_id:
                     pair = self.cg_gw.get_one_copy_pair_by_id(
                         pair_id, spec.secondary_connection_info
+                    )
+                    spec.comments = VSPTrueCopyValidateMsg.PAIR_SPLIT.value.format(
+                        spec.copy_pair_name
                     )
                     self.connection_info.changed = True
                     return pair
@@ -474,12 +487,15 @@ class VSPTrueCopyProvisioner:
                 copy_group = self.get_copy_group_by_name(spec)
                 logger.writeDebug(f"PV:delete_true_copy_pair:copy_group={copy_group}")
                 if copy_group:
-                    self.connection_info.changed = True
                     pair_id = (
                         self.gateway.split_true_copy_pair_by_copy_group_and_pvol_id(
                             self.cg_gw, spec
                         )
                     )
+                    spec.comments = VSPTrueCopyValidateMsg.PAIR_SPLIT.value.format(
+                        spec.copy_pair_name
+                    )
+                    self.connection_info.changed = True
                 else:
                     err_msg = (
                         TrueCopyFailedMsg.PAIR_SPLIT_FAILED.value
@@ -502,10 +518,13 @@ class VSPTrueCopyProvisioner:
                     logger.writeError(err_msg)
                     raise ValueError(err_msg)
                 else:
-                    self.connection_info.changed = True
                     pair_id = self.gateway.split_true_copy_pair_by_primary_volume_id(
                         self.cg_gw, spec
                     )
+                    spec.comments = VSPTrueCopyValidateMsg.PAIR_SPLIT.value.format(
+                        spec.copy_pair_name
+                    )
+                    self.connection_info.changed = True
         if pair_id is None:
             err_msg = (
                 TrueCopyFailedMsg.PAIR_SPLIT_FAILED.value
@@ -536,6 +555,11 @@ class VSPTrueCopyProvisioner:
                 and tc[0].svolStatus == "SSWS"
                 and tc[0].pvolStatus == "PSUS"
             ):
+                spec.comments = (
+                    VSPTrueCopyValidateMsg.PAIR_ALREADY_SPLIT_AND_SWAPPED.value.format(
+                        spec.copy_pair_name
+                    )
+                )
                 return tc[0]
             else:
                 pair_id = self.gateway.swap_split_true_copy_pair(spec)
@@ -543,6 +567,9 @@ class VSPTrueCopyProvisioner:
                 if pair_id:
                     pair = self.cg_gw.get_one_copy_pair_by_id(
                         pair_id, spec.secondary_connection_info
+                    )
+                    spec.comments = VSPTrueCopyValidateMsg.PAIR_SWAP_SPLIT.value.format(
+                        spec.copy_pair_name
                     )
                     self.connection_info.changed = True
                     return pair
@@ -552,10 +579,13 @@ class VSPTrueCopyProvisioner:
                 copy_group = self.get_copy_group_by_name(spec)
                 logger.writeDebug(f"PV:delete_true_copy_pair:copy_group={copy_group}")
                 if copy_group:
-                    self.connection_info.changed = True
                     pair_id = self.gateway.swap_split_true_copy_pair_by_copy_group_and_pvol_id(
                         self.cg_gw, spec
                     )
+                    spec.comments = VSPTrueCopyValidateMsg.PAIR_SWAP_SPLIT.value.format(
+                        spec.copy_pair_name
+                    )
+                    self.connection_info.changed = True
                 else:
                     err_msg = (
                         TrueCopyFailedMsg.PAIR_SWAP_SPLIT_FAILED.value
@@ -577,12 +607,15 @@ class VSPTrueCopyProvisioner:
                     logger.writeError(err_msg)
                     raise ValueError(err_msg)
                 else:
-                    self.connection_info.changed = True
                     pair_id = (
                         self.gateway.swap_split_true_copy_pair_by_primary_volume_id(
                             self.cg_gw, spec
                         )
                     )
+                    spec.comments = VSPTrueCopyValidateMsg.PAIR_SWAP_SPLIT.value.format(
+                        spec.copy_pair_name
+                    )
+                    self.connection_info.changed = True
         if pair_id is None:
             err_msg = (
                 TrueCopyFailedMsg.PAIR_SWAP_SPLIT_FAILED.value
@@ -590,9 +623,6 @@ class VSPTrueCopyProvisioner:
             )
             logger.writeError(err_msg)
             raise ValueError(err_msg)
-        # swap_pair_id =  self.gateway.swap_split_true_copy_pair(spec)
-        # pair_id = self.gateway.get_pair_id_from_swap_pair_id(swap_pair_id, spec.secondary_connection_info)
-        # logger.writeDebug(f"PV:swap_resync_true_copy_pair: swap_pair_id = {swap_pair_id} pair_id = {pair_id}")
 
         pair = self.cg_gw.get_one_copy_pair_by_id(
             pair_id, spec.secondary_connection_info
@@ -662,7 +692,13 @@ class VSPTrueCopyProvisioner:
                     logger.writeDebug(
                         f"PV:resize_true_copy_copy_pair: pair_id=  {pair_id}"
                     )
-                    pair = self.gateway.get_replication_pair(spec)
+                    # pair = self.gateway.get_replication_pair(spec)
+                    pair = self.cg_gw.get_one_copy_pair_by_id(
+                        pair_id, spec.secondary_connection_info
+                    )
+                    spec.comments = VSPTrueCopyValidateMsg.PAIR_RESIZED.value.format(
+                        spec.copy_pair_name
+                    )
                     self.connection_info.changed = True
                     return pair
             else:
@@ -675,9 +711,57 @@ class VSPTrueCopyProvisioner:
 
     @log_entry_exit
     def create_true_copy(self, spec) -> Dict[str, Any]:
+        pair_existing = self.gateway.get_replication_pair(spec)
+
+        if pair_existing is not None:
+            spec.comments = VSPTrueCopyValidateMsg.TC_PAIR_ALREADY_EXISTS.value.format(
+                spec.copy_pair_name
+            )
+            return pair_existing
+
+        copy_group = self.get_copy_group_by_name(spec)
+        logger.writeDebug(
+            f"0326 copy_group: {copy_group}  spec.is_new_group_creation : {spec.is_new_group_creation}"
+        )
+        if copy_group is None:
+            spec.is_new_group_creation = (
+                True
+                if spec.is_new_group_creation is None
+                else spec.is_new_group_creation
+            )
+        else:
+            spec.is_new_group_creation = (
+                False
+                if spec.is_new_group_creation is None
+                else spec.is_new_group_creation
+            )
+            if (
+                spec.local_device_group_name is not None
+                and spec.local_device_group_name != copy_group.localDeviceGroupName
+            ):
+                err_msg = (
+                    TrueCopyFailedMsg.PAIR_CREATION_FAILED.value
+                    + VSPTrueCopyValidateMsg.NO_LOCAL_DEVICE_NAME_FOUND.value.format(
+                        spec.copy_group_name, copy_group.localDeviceGroupName
+                    )
+                )
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
+
+            if (
+                spec.remote_device_group_name is not None
+                and spec.remote_device_group_name != copy_group.remoteDeviceGroupName
+            ):
+                err_msg = (
+                    TrueCopyFailedMsg.PAIR_CREATION_FAILED.value
+                    + VSPTrueCopyValidateMsg.NO_REMOTE_DEVICE_NAME_FOUND.value.format(
+                        spec.copy_group_name, copy_group.remoteDeviceGroupName
+                    )
+                )
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
 
         pvol = self.get_volume_by_id(spec.primary_volume_id)
-        logger.writeDebug(f"PV:create_true_copy: pvol = {pvol}")
         if pvol is None:
             err_msg = (
                 TrueCopyFailedMsg.PAIR_CREATION_FAILED.value
@@ -687,32 +771,6 @@ class VSPTrueCopyProvisioner:
             )
             logger.writeError(err_msg)
             raise ValueError(err_msg)
-
-        if pvol.emulationType == "NOT DEFINED":
-            err_msg = (
-                TrueCopyFailedMsg.PAIR_CREATION_FAILED.value
-                + VSPTrueCopyValidateMsg.INVALID_EMULATION_TYPE.value.format(
-                    str(pvol.emulationType)
-                )
-            )
-            logger.writeError(err_msg)
-            raise ValueError(err_msg)
-
-        if pvol.numOfPorts is None or pvol.numOfPorts < 1:
-            raise ValueError(
-                VSPTrueCopyValidateMsg.PRIMARY_VOLUME_ID_NO_PATH.value.format(
-                    spec.primary_volume_id
-                )
-            )
-
-        tc_exits = self.get_tc_by_cp_group_and_primary_vol_id(spec)
-        if tc_exits:
-            return tc_exits
-        copy_group = self.get_copy_group_by_name(spec)
-        if copy_group is None:
-            spec.is_new_group_creation = True
-        else:
-            spec.is_new_group_creation = False
 
         secondary_connection_info = spec.secondary_connection_info
         secondary_connection_info.connection_type = ConnectionTypes.DIRECT
@@ -728,11 +786,14 @@ class VSPTrueCopyProvisioner:
             else:
                 secondary_vol_id = rr_prov.get_secondary_volume_id(pvol, spec, False)
             spec.secondary_volume_id = secondary_vol_id
-            # spec.is_data_reduction_force_copy = pvol.isDataReductionShareEnabled
+
             result = self.gateway.create_true_copy(spec)
             logger.writeDebug(f"create_true_copy: {result}")
             pair = self.cg_gw.get_one_copy_pair_by_id(
                 result, spec.secondary_connection_info
+            )
+            spec.comments = VSPTrueCopyValidateMsg.TRUE_COPY_PAIR_CREATED.value.format(
+                spec.copy_pair_name
             )
             self.connection_info.changed = True
             return pair
@@ -754,9 +815,9 @@ class VSPTrueCopyProvisioner:
             raise ValueError(err_msg)
 
     @log_entry_exit
-    def get_volume_by_id(self, primary_volume_id):
+    def get_volume_by_id(self, primary_volume_id, include_drs=False):
 
-        volume = self.vol_gw.get_volume_by_id(primary_volume_id)
+        volume = self.vol_gw.get_volume_by_id(primary_volume_id, include_drs)
         # return vol_gw.get_volume_by_id(device_id, primary_volume_id)
         logger.writeDebug(f"PROV:get_volume_by_id:volume: {volume}")
 

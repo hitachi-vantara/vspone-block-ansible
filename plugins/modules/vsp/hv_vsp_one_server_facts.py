@@ -41,11 +41,12 @@ options:
           Required for the Get server by server ID task
         type: int
         required: false
-      nick_name:
+      nickname:
         description: Server nickname to filter servers by name.
           Required for the Get servers by nickname task.
         type: str
         required: false
+        aliases: ['nick_name']
       hba_wwn:
         description: HBA WWN address to filter servers containing this WWN.
           Required for the Get servers containing specific HBA WWN task.
@@ -96,7 +97,7 @@ EXAMPLES = """
       username: "admin"
       password: "password"
     spec:
-      nick_name: "WebServer01"
+      nickname: "WebServer01"
 
 - name: Get servers containing specific HBA WWN
   hitachivantara.vspone_block.vsp.hv_vsp_one_server_facts:

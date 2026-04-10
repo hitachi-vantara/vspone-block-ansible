@@ -20,3 +20,11 @@ class VSPStoragePortValidateMsg(Enum):
     )
     PORT_MODE_LUN_SECURITY_COMBINATION = "The port_mode and enable_port_security parameters cannot be used together. Use one or the other."
     VALID_PORT_ID = "The port parameter is invalid. The value must be provided in the format of 'CLx-PORTx'."
+    INVALID_QUERY_PARAM = "Invalid query keys provided. Valid keys are: {}."
+    QUERY_PARAM_NEEDS_PORTS = "Query parameter cannot be used without specifying ports."
+    SINGLE_PORT_FOR_QUERY = "Query parameter can only be used with a single port."
+    EXTERNAL_TARGETS_NEED_IP = "External iSCSI IP address must be provided when using query parameter 'external_iscsi_targets'."
+    EXTERNAL_LUNS_NEED_WWN_OR_IP = (
+        "External WWN or external iSCSI IP address and external iSCSI name must be provided when using query parameter "
+        "'external_luns'"
+    )

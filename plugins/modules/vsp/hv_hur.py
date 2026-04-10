@@ -194,7 +194,7 @@ options:
           Required for the Secondary volume takeover HUR pair task.
         type: str
         required: false
-      mirror_unit_id:
+      mirror_unit_number:
         description: Mirror Unit Id.
           Optional for the Create HUR pair in new copy group
           /Create a HUR pair using a range for secondary volume ID
@@ -207,6 +207,7 @@ options:
         type: int
         choices: [0, 1, 2, 3]
         required: false
+        aliases: ['mirror_unit_id']
       secondary_pool_id:
         description: Id of dynamic pool on the secondary storage where the secondary volume will be created.
           Required for the Create HUR pair in new copy group
@@ -220,38 +221,21 @@ options:
         type: int
         required: false
       secondary_hostgroup:
-        description: Host group details of secondary volume.
-          Required for the Create HUR pair in new copy group
-          /Create HUR pair with existing copy group
-          /Create a HUR pair using a range for secondary volume ID
-          /Create HUR pair with provisioned_secondary_volume_id and hostgroups tasks.
-          Optional for the Create HUR pair and debug result task.
+        description: Deprecated. Use secondary_hostgroups instead.
         type: dict
         required: false
         suboptions:
           name:
             description: Name of the host group on the secondary storage system.
-              Required for the Create HUR pair in new copy group
-              /Create HUR pair with existing copy group
-              /Create a HUR pair using a range for secondary volume ID
-              /Create HUR pair with provisioned_secondary_volume_id and hostgroups
-              /Create HUR pair and debug result tasks.
             type: str
             required: true
-          port:
-            description: Port of the host group on the secondary storage system.
-              Required for the Create HUR pair in new copy group
-              /Create HUR pair with existing copy group
-              /Create a HUR pair using a range for secondary volume ID
-              /Create HUR pair with provisioned_secondary_volume_id and hostgroups
-              /Create HUR pair and debug result tasks.
+          port_id:
+            description: Port ID of the host group on the secondary storage system. port field is deprecated, port_id should be used instead.
             type: str
             required: true
+            aliases: ['port']
           lun_id:
             description: LUN ID can be provided along with host group on the secondary storage system.
-              Optional for the Create HUR pair in new copy group
-              /Create HUR pair with existing copy group tasks.
-              Required for the Create HUR pair with provisioned_secondary_volume_id and hostgroups task.
             type: int
             required: false
       secondary_hostgroups:
@@ -274,15 +258,17 @@ options:
               /Create HUR pair and debug result tasks.
             type: str
             required: true
-          port:
-            description: Port of the host group on the secondary storage system.
+          port_id:
+            description: Port ID of the host group on the secondary storage system.
               Required for the Create HUR pair in new copy group
               /Create HUR pair with existing copy group
               /Create a HUR pair using a range for secondary volume ID
               /Create HUR pair with provisioned_secondary_volume_id and hostgroups
               /Create HUR pair and debug result tasks.
+              port field is deprecated, port_id should be used instead.
             type: str
             required: true
+            aliases: ['port']
           lun_id:
             description: LUN ID of the host group on the secondary storage system.
               Optional for the Create HUR pair in new copy group
@@ -303,11 +289,13 @@ options:
               /Create HUR-iSCSI pair and debug result tasks.
             type: str
             required: true
-          port:
-            description: Port name. Required for the Create HUR-ISCSI pair
+          port_id:
+            description: Port ID. Required for the Create HUR-ISCSI pair
               /Create HUR-iSCSI pair and debug result tasks.
+              port field is deprecated, port_id should be used instead.
             type: str
             required: true
+            aliases: ['port']
           lun_id:
             description: LUN ID. Required for the Create HUR-ISCSI pair
               /Create HUR-iSCSI pair and debug result tasks.
@@ -421,7 +409,7 @@ options:
           /Create HUR-ISCSI pair tasks.
         type: bool
         required: false
-        default: false
+        default: true
       should_delete_svol:
         description: Specify true to delete the SVOL. Optional for the Delete HUR pair task.
         type: bool
@@ -451,11 +439,11 @@ EXAMPLES = """
       local_device_group_name: hur_copy_group_name_1P_
       remote_device_group_name: hur_copy_group_name_1S_
       consistency_group_id: 0
-      secondary_hostgroup:
-        name: hg_1
-        port: CL1-A
-        lun_id: 5
-      mirror_unit_id: 0
+      secondary_hostgroups:
+        - name: hg_1
+          port_id: CL1-A
+          lun_id: 5
+      mirror_unit_number: 0
 
 - name: Create a HUR pair in existing copy group
   hitachivantara.vspone_block.vsp.hv_hur:
@@ -475,7 +463,7 @@ EXAMPLES = """
       secondary_pool_id: 0
       secondary_hostgroups:
         - name: hg_1
-          port: CL1-A
+          port_id: CL1-A
 
 - name: Split HUR pair
   hitachivantara.vspone_block.vsp.hv_hur:
@@ -548,84 +536,102 @@ hur_info:
       description: Name of the copy pair.
       type: str
       sample: "snewar_hur_copy_pair_12"
+    copy_rate:
+      description:  Deprecated. Copy rate.
+      type: int
+      sample: -1
     fence_level:
       description: Fence level setting.
       type: str
       sample: "ASYNC"
+    local_device_group_name:
+      description:
+        - Name of the local device group to retrieve TrueCopy pair information for.
+      type: str
+      sample: "hur_bulk_cg_1P_"
     mirror_unit_id:
+      description: Deprecated. Use mirror_unit_number instead.
+      type: int
+      sample: 1
+    mirror_unit_number:
       description: Mirror unit number.
       type: int
       sample: 1
-    primary_journal_pool_id:
-      description: Journal ID for primary volume.
+    primary_journal_id:
+      description: Primary journal Id.
       type: int
-      sample: 3
-    primary_storage_serial:
-      description: Storage serial number for primary volume.
+      sample: 25
+    primary_journal_pool:
+      description: Deprecated. Use primary_journal_id instead.
+      type: int
+      sample: 25
+    primary_volume_id:
+      description: Primary volume ID.
+      type: int
+      sample: 6442
+    primary_volume_id_hex:
+      description: Hexadecimal representation of the primary volume ID.
+      type: str
+      sample: "00:19:2A"
+    primary_volume_status:
+      description: Primary volume status.
+      type: str
+      sample: "PAIR"
+    primary_volume_storage_id:
+      description: Deprecated. Use primary_volume_storage_serial_number instead.
       type: str
       sample: "810050"
-    primary_volume_difference_data_management:
-      description: Difference data management for primary volume.
+    primary_volume_storage_serial_number:
+      description: Storage serial number of the primary volume.
       type: str
-      sample: "D"
-    primary_volume_id:
-      description: LDEV ID for primary volume.
-      type: int
-      sample: 6622
-    primary_volume_id_hex:
-      description: Hexadecimal ID for primary volume.
-      type: str
-      sample: "00:19:DE"
-    primary_volume_processing_status:
-      description: Processing status for primary volume.
-      type: str
-      sample: "N"
-    primary_volume_status:
-      description: Status of primary volume.
+      sample: "810050"
+    pvol_status:
+      description: Deprecated. Use primary_volume_status instead.
       type: str
       sample: "PAIR"
-    primary_volume_storage_device_id:
-      description: Storage device ID for primary volume.
+    pvol_storage_device_id:
+      description: Deprecated. PVOL storage device ID.
       type: str
       sample: "A34000810050"
+    remote_device_group_name:
+      description:
+        - Name of the remote device group to retrieve TrueCopy pair information for.
+      type: str
+      sample: "hur_bulk_cg_1S_"
     remote_mirror_copy_pair_id:
-      description: Remote mirror copy pair ID.
+      description: Deprecated. Remote mirror copy pair ID.
       type: str
-      sample: "A34000810045,snewar_hur_copy_group_12,snewar_hur_copy_group_12P_,snewar_hur_copy_group_12S_,snewar_hur_copy_pair_12"
-    replication_type:
-      description: Replication type.
-      type: str
-      sample: "UR"
-    secondary_journal_pool_id:
-      description: Journal ID for secondary volume.
+      sample: "A34000810050,spcA34000810045A34000810050,spcA34000810045A34000810050,spcA34000810050A34000810045,spc-7331-6442"
+    secondary_journal_id:
+      description: Secondary journal ID.
       type: int
-      sample: 1
-    secondary_storage_serial:
-      description: Storage serial number for secondary volume.
+      sample: 25
+    secondary_journal_pool:
+      description: Deprecated. Use secondary_journal_id instead.
       type: int
-      sample: 810045
-    secondary_volume_difference_data_management:
-      description: Difference data management for secondary volume.
-      type: str
-      sample: "D"
+      sample: 25
     secondary_volume_id:
-      description: LDEV ID for secondary volume.
+      description: Secondary volume ID.
       type: int
-      sample: 6623
+      sample: 7331
     secondary_volume_id_hex:
-      description: Hexadecimal ID for secondary volume.
+      description: Hexadecimal representation of the secondary volume ID.
       type: str
-      sample: "00:19:DF"
-    secondary_volume_processing_status:
-      description: Processing status for secondary volume.
+      sample: "00:1C:A3"
+    secondary_volume_storage_id:
+      description: Deprecated. Use secondary_volume_storage_serial_number instead.
       type: str
-      sample: "N"
-    secondary_volume_status:
-      description: Status of secondary volume.
+      sample: "810045"
+    secondary_volume_storage_serial_number:
+      description: Storage serial number of the secondary volume.
+      type: str
+      sample: "810045"
+    svol_status:
+      description: SVOL status.
       type: str
       sample: "PAIR"
-    secondary_volume_storage_device_id:
-      description: Storage device ID for secondary volume.
+    svol_storage_device_id:
+      description: Deprecated. SVOL storage device ID.
       type: str
       sample: "A34000810045"
 """
@@ -684,7 +690,7 @@ class VSPSHurManager:
         registration_message = validate_ansible_product_registration()
         try:
 
-            unused, data = self.hur_module()
+            data = self.hur_module()
             if data is None:
                 data = []
 
@@ -693,19 +699,17 @@ class VSPSHurManager:
             self.logger.writeInfo("=== End of HUR operation. ===")
             self.module.fail_json(msg=str(e))
 
-        # msg = comment
-        # if msg is None:
-        msg = self.get_message()
-        if "already exits in copy group" in data:
-            msg = "Please specify unique copy pair name."
-
         resp = {
             "changed": self.connection_info.changed,
             "hur_info": data,
-            "msg": msg,
         }
+
+        if self.spec.comments:
+            resp["msg"] = self.spec.comments
+
         if registration_message:
             resp["user_consent_required"] = registration_message
+
         self.logger.writeInfo(f"{resp}")
         self.logger.writeInfo("=== End of HUR operation. ===")
         self.module.exit_json(**resp)
@@ -717,33 +721,8 @@ class VSPSHurManager:
             self.state,
             self.secondary_connection_info,
         )
-        comment, result = reconciler.reconcile_hur(
-            self.spec, self.secondary_connection_info
-        )
-        return comment, result
-
-    def get_message(self):
-
-        if self.state == "present":
-            return "HUR Pair created successfully."
-        elif self.state == "absent":
-            if self.spec.should_delete_svol is True:
-                return "HUR Pair and Secondary volume deleted successfully."
-            return "HUR Pair deleted successfully."
-        elif self.state == "resync":
-            return "HUR Pair resynced successfully."
-        elif self.state == "split":
-            return "HUR Pair split successfully."
-        elif self.state == "swap_split":
-            return "HUR Pair swapped split successfully."
-        elif self.state == "takeover":
-            return "HUR Pair secondary volume takeover successfully."
-        elif self.state == "swap_resync":
-            return "HUR Pair swapped resynced successfully"
-        elif self.state == "resize" or self.state == "expand":
-            return "HUR Pair expanded successfully"
-        else:
-            return "Unknown state provided."
+        result = reconciler.reconcile_hur(self.spec)
+        return result
 
 
 def main(module=None):

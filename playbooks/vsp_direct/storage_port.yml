@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example :  Storage Port  Playbook
-####################################################################
+# ###################################################################
 - name: Storage Port Module
   hosts: localhost
   gather_facts: false
@@ -17,14 +17,14 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ############################################################################
+    # ###########################################################################
     # Task Name : Change port security setting of the storage port by port id
-    ############################################################################
+    # ###########################################################################
     - name: Change port security setting of the storage port by port id
       hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info: "{{ connection_info }}"
         spec:
-          port: "CL8-B"
+          port_id: "CL8-B"
           enable_port_security: true
       register: result
 
@@ -39,7 +39,7 @@
       hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info: "{{ connection_info }}"
         spec:
-          port: "CL8-B"
+          port_id: "CL8-B"
           port_mode: "FC-NVMe" # Options: "FC-NVMe", "FCP-SCSI"
       register: result
 
@@ -54,7 +54,7 @@
       hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info: "{{ connection_info }}"
         spec:
-          port: "CL8-B"
+          port_id: "CL8-B"
           port_attribute: "TAR" # Options: "TAR", "ALL"
       register: result
 
@@ -69,7 +69,7 @@
       hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info: "{{ connection_info }}"
         spec:
-          port: "CL8-B"
+          port_id: "CL8-B"
           fabric_mode: true
           port_connection: "P2P" # Options: "FCAL", "P2P", "PtoP"
       register: result
@@ -87,7 +87,7 @@
         connection_info: "{{ connection_info }}"
         state: "login_test"
         spec:
-          port: "CL1-C"
+          port_id: "CL1-C"
           external_iscsi_targets:
             - ip_address: "172.25.59.213"
               name: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10045.1c019"
@@ -105,7 +105,7 @@
         connection_info: "{{ connection_info }}"
         state: "register_external_iscsi_target"
         spec:
-          port: "CL1-C"
+          port_id: "CL1-C"
           external_iscsi_targets:
             - ip_address: "172.25.59.213"
               name: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10045.1c019"
@@ -125,7 +125,7 @@
         connection_info: "{{ connection_info }}"
         state: "unregister_external_iscsi_target"
         spec:
-          port: "CL1-C"
+          port_id: "CL1-C"
           external_iscsi_targets:
             - ip_address: "172.25.59.214"
               name: "iqn.1994-04.jp.co.hitachi:rsd.has.t.10045.1c020"
@@ -142,7 +142,7 @@
       hitachivantara.vspone_block.vsp.hv_storage_port:
         connection_info: "{{ connection_info }}"
         spec:
-          port: "CL1-C"
+          port_id: "CL1-C"
           host_ip_address: "172.25.59.213"
       register: result
 

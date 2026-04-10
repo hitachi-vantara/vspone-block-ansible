@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Default variables for hv_vsp_one_create_gad_pair role
-####################################################################
+# ###################################################################
 
 # Strict mode - fail the playbook if any GAD pair creation fails
 hv_vsp_ndm_gad_migration_pairs_strict_mode: false

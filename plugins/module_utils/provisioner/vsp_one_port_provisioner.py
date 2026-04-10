@@ -11,6 +11,10 @@ from ..model.vsp_one_port_models import (
     VspOnePortResponse,
 )
 from ..common.ansible_common import is_valid_ip
+from ..common.vsp_errors import (
+    VspFeatureNotSupportedError,
+    VspPortNotFoundError,
+)
 
 logger = Log()
 
@@ -25,7 +29,9 @@ class VSPPortSimpleApiProvisioner:
         self.connection_info = connection_info
 
         if not self.gateway.is_pegasus:
-            raise Exception(VSPVolumeMSG.ONLY_SUPPORTED_ON_PEGASUS.value)
+            raise VspFeatureNotSupportedError(
+                VSPVolumeMSG.ONLY_SUPPORTED_ON_PEGASUS.value
+            )
 
     @log_entry_exit
     def get_ports_information(self):
@@ -54,7 +60,9 @@ class VSPPortSimpleApiProvisioner:
         """
         port = self.get_port_by_id(port_id)
         if not port:
-            raise Exception(VspOnePortMSG.PORT_NOT_FOUND.value.format(port_id=port_id))
+            raise VspPortNotFoundError(
+                VspOnePortMSG.PORT_NOT_FOUND.value.format(port_id=port_id)
+            )
         # Validate protocol
 
         self.__validate_input_data(spec, port)
@@ -79,17 +87,17 @@ class VSPPortSimpleApiProvisioner:
     def __validate_input_data(self, spec: VspOnePortSpec, port: VspOnePortResponse):
 
         if spec.fc_settings and spec.iscsi_settings and spec.nvme_tcp_settings:
-            raise Exception(VspOnePortMSG.MULTIPLE_SETTINGS_PROVIDED.value)
+            raise ValueError(VspOnePortMSG.MULTIPLE_SETTINGS_PROVIDED.value)
 
         if port.protocol == VspOnePortConst.FC:
             if spec.iscsi_settings or spec.nvme_tcp_settings:
-                raise Exception(VspOnePortMSG.FC_SETTINGS_REQUIRED_FOR_FC.value)
+                raise ValueError(VspOnePortMSG.FC_SETTINGS_REQUIRED_FOR_FC.value)
         elif port.protocol == VspOnePortConst.ISCSI:
             if spec.fc_settings or spec.nvme_tcp_settings:
-                raise Exception(VspOnePortMSG.ISCSI_SETTINGS_REQUIRED_FOR_ISCSI.value)
+                raise ValueError(VspOnePortMSG.ISCSI_SETTINGS_REQUIRED_FOR_ISCSI.value)
         elif port.protocol == VspOnePortConst.NVME_TCP:
             if spec.iscsi_settings or spec.fc_settings:
-                raise Exception(
+                raise ValueError(
                     VspOnePortMSG.NVME_TCP_SETTINGS_REQUIRED_FOR_NVME_TCP.value
                 )
 
@@ -99,7 +107,7 @@ class VSPPortSimpleApiProvisioner:
                 and spec.iscsi_settings.ipv4_configuration.address
                 and not is_valid_ip(spec.iscsi_settings.ipv4_configuration.address)
             ):
-                raise Exception(
+                raise ValueError(
                     VspOnePortMSG.INVALID_IP_ADDRESS.value.format(
                         address=spec.iscsi_settings.ipv4_configuration.address
                     )
@@ -109,7 +117,7 @@ class VSPPortSimpleApiProvisioner:
                 and spec.iscsi_settings.ipv4_configuration.subnet_mask
                 and not is_valid_ip(spec.iscsi_settings.ipv4_configuration.subnet_mask)
             ):
-                raise Exception(
+                raise ValueError(
                     VspOnePortMSG.INVALID_SUBNET_MASK.value.format(
                         subnet_mask=spec.iscsi_settings.ipv4_configuration.subnet_mask
                     )
@@ -121,7 +129,7 @@ class VSPPortSimpleApiProvisioner:
                     spec.iscsi_settings.ipv4_configuration.default_gateway
                 )
             ):
-                raise Exception(
+                raise ValueError(
                     VspOnePortMSG.INVALID_GATEWAY.value.format(
                         gateway=spec.iscsi_settings.ipv4_configuration.default_gateway
                     )
@@ -132,7 +140,7 @@ class VSPPortSimpleApiProvisioner:
                 and spec.nvme_tcp_settings.ipv4_configuration.address
                 and not is_valid_ip(spec.nvme_tcp_settings.ipv4_configuration.address)
             ):
-                raise Exception(
+                raise ValueError(
                     VspOnePortMSG.INVALID_IP_ADDRESS.value.format(
                         address=spec.nvme_tcp_settings.ipv4_configuration.address
                     )
@@ -144,7 +152,7 @@ class VSPPortSimpleApiProvisioner:
                     spec.nvme_tcp_settings.ipv4_configuration.subnet_mask
                 )
             ):
-                raise Exception(
+                raise ValueError(
                     VspOnePortMSG.INVALID_SUBNET_MASK.value.format(
                         subnet_mask=spec.nvme_tcp_settings.ipv4_configuration.subnet_mask
                     )
@@ -156,7 +164,7 @@ class VSPPortSimpleApiProvisioner:
                     spec.nvme_tcp_settings.ipv4_configuration.default_gateway
                 )
             ):
-                raise Exception(
+                raise ValueError(
                     VspOnePortMSG.INVALID_GATEWAY.value.format(
                         gateway=spec.nvme_tcp_settings.ipv4_configuration.default_gateway
                     )

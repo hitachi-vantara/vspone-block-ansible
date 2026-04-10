@@ -1,7 +1,7 @@
 ---
-#####################################################################
+# ####################################################################
 # Example: Create HUR Pair with First Available Journal Pool
-#####################################################################
+# ####################################################################
 
 - name: HUR - Hitachi Universal Replicator Pair
   hosts: localhost
@@ -22,9 +22,9 @@
       password: "{{ vault_secondary_storage_secret }}"
 
   tasks:
-    #####################################################################
+    # ####################################################################
     # Task Name : Get Specific Journal Volumes Primary Storage
-    #####################################################################
+    # ####################################################################
     - name: Get specific journal volumes Primary
       hitachivantara.vspone_block.vsp.hv_journal_volume_facts:
         connection_info: "{{ connection_info }}"
@@ -61,8 +61,8 @@
           consistency_group_id: 1
           secondary_hostgroup:
             name: "ansible-hostgroup-2"
-            port: "CL1-A"
-          mirror_unit_id: 2
+            port_id: "CL1-A"
+          mirror_unit_number: 2
       when:
         - primary_journal_volumes.ansible_facts.journal_volume | length > 1
         - secondary_journal_volumes.ansible_facts.journal_volume | length > 1
@@ -94,9 +94,9 @@
           consistency_group_id: 1
           secondary_iscsi_targets:
             - name: "test"
-              port: "CL1-A"
+              port_id: "CL1-A"
               lun_id: 5
-          mirror_unit_id: 2
+          mirror_unit_number: 2
       when:
         - primary_journal_volumes.ansible_facts.journal_volume | length > 1
         - secondary_journal_volumes.ansible_facts.journal_volume | length > 1
@@ -130,7 +130,7 @@
             name: gk-nvm-sub-75
             paths:
               - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
-          mirror_unit_id: 2
+          mirror_unit_number: 2
       when:
         - primary_journal_volumes.ansible_facts.journal_volume | length > 1
         - secondary_journal_volumes.ansible_facts.journal_volume | length > 1

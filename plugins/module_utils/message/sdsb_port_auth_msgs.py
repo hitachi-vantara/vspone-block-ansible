@@ -1,10 +1,6 @@
 from enum import Enum
 
 
-class SDSBPortAuthMessage(Enum):
-    pass
-
-
 class SDSBPortAuthValidationMsg(Enum):
 
     NO_SPEC = "Specifications for the CHAP user are not provided."

@@ -281,17 +281,13 @@ class SDSBUserManager:
             self.logger.writeInfo("=== End of SDSB User Operation ===")
             self.module.fail_json(msg=str(e))
 
-        msg = self.spec.comments
         data = {
             "changed": self.connection_info.changed,
             "users": users if users else [],
-            "comments": msg if msg else "",
         }
-        # if self.state == "present":
-        #     msg = "User created successfully."
-        # elif self.state == "update":
-        #     msg = "User password updated successfully."
-        # data["msg"] = msg
+        if self.spec.comments:
+            data["comments"] = self.spec.comments
+
         if registration_message:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo("=== End of SDSB User Operation ===")

@@ -211,7 +211,11 @@ snapshot_data:
           type: bool
           sample: false
         mirror_unit_id:
-          description: Identifier for the mirror unit.
+          description: Deprecated. Use mirror_unit_number instead. Identifier of the mirror unit.
+          type: int
+          sample: 3
+        mirror_unit_number:
+          description: Number of the mirror unit.
           type: int
           sample: 3
         pool_id:

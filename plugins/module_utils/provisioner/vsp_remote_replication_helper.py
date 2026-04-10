@@ -1,3 +1,5 @@
+import threading
+
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
@@ -5,6 +7,7 @@ try:
     from ..common.hv_log import Log
     from ..common.ansible_common import (
         log_entry_exit,
+        get_size_from_byte_format_capacity,
     )
     from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg, TrueCopyFailedMsg
     from ..model.vsp_volume_models import CreateVolumeSpec
@@ -17,6 +20,7 @@ except ImportError:
     from common.hv_log import Log
     from common.ansible_common import (
         log_entry_exit,
+        get_size_from_byte_format_capacity,
     )
     from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg, TrueCopyFailedMsg
     from model.vsp_volume_models import CreateVolumeSpec
@@ -51,6 +55,7 @@ class RemoteReplicationHelperForSVol:
         self.hg_gateway.set_serial(serial)
         self.sp_gateway.set_serial(serial)
         self.vol_gateway.set_serial(serial)
+        self.gad_lock = threading.Lock()
 
     @log_entry_exit
     def delete_lun_path(self, volume):
@@ -157,7 +162,7 @@ class RemoteReplicationHelperForSVol:
         sec_vol_spec = CreateVolumeSpec()
         sec_vol_spec.ldev_id = svol_id
         sec_vol_spec.pool_id = spec.secondary_pool_id
-        sec_vol_spec.size = self.get_size_from_byte_format_capacity(
+        sec_vol_spec.size = get_size_from_byte_format_capacity(
             pvol_info.byteFormatCapacity
         )
         sec_vol_spec.capacity_saving = pvol_info.dataReductionMode
@@ -201,13 +206,39 @@ class RemoteReplicationHelperForSVol:
         if spec.provisioned_secondary_volume_id is not None:
             svol_id = spec.provisioned_secondary_volume_id
             sec_vol_info = self.vol_gateway.get_volume_by_id(svol_id)
+            if sec_vol_info is None:
+                err_msg = VSPTrueCopyValidateMsg.NO_PROVISIONED_SECONDARY_VOLUME_FOUND.value.format(
+                    spec.provisioned_secondary_volume_id
+                )
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
+            if sec_vol_info.emulationType == "NOT DEFINED":
+                err_msg = VSPTrueCopyValidateMsg.INVALID_EMULATION_TYPE.value.format(
+                    str(sec_vol_info.emulationType)
+                )
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
+            if sec_vol_info.blockCapacity != vol_info.blockCapacity:
+                err_msg = (
+                    VSPTrueCopyValidateMsg.SEC_VOLUME_CAPACITY_NOT_MATCH.value.format(
+                        str(sec_vol_info.byteFormatCapacity),
+                        str(vol_info.byteFormatCapacity),
+                    )
+                )
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
             hgs_prov_svol = self.get_hgs_for_provisioned_svol(sec_vol_info, is_iscsi)
             logger.writeDebug(
                 "PROV:get_secondary_volume_id:hgs_prov_svol = {}", hgs_prov_svol
             )
-            host_groups = self.find_hgs_to_add_for_provisioned_svol(
-                host_groups, hgs_prov_svol
-            )
+            if is_iscsi:
+                host_groups = self.find_its_to_add_for_provisioned_svol(
+                    host_groups, hgs_prov_svol
+                )
+            else:
+                host_groups = self.find_hgs_to_add_for_provisioned_svol(
+                    host_groups, hgs_prov_svol
+                )
             logger.writeDebug(
                 "PROV:get_secondary_volume_id:host_groups = {}", host_groups
             )
@@ -239,38 +270,40 @@ class RemoteReplicationHelperForSVol:
                 # if setting the volume name fails, delete the secondary volume
                 self.delete_volume(sec_vol_id)
                 raise ValueError(err_msg)
-        try:
-            lun_ids = {}
-            if host_groups is not None and len(host_groups) > 0:
-                if is_iscsi:
-                    lun_ids = self.find_lun_ids_from_spec(
-                        host_groups, spec.secondary_iscsi_targets, is_iscsi
-                    )
-                    self.add_luns_to_iscsi_targets(sec_vol_id, host_groups, lun_ids)
-                else:
-                    lun_ids = self.find_lun_ids_from_spec(
-                        host_groups, spec.secondary_hostgroups
-                    )
-                    self.add_luns_to_host_groups(sec_vol_id, host_groups, lun_ids)
-        except Exception as ex:
-            err_msg = TrueCopyFailedMsg.SEC_VOLUME_OPERATION_FAILED.value + str(ex)
-            logger.writeError(err_msg)
-            if not spec.provisioned_secondary_volume_id:
-                # if attaching the volume to the host group fails, delete the secondary volume
-                try:
-                    self.delete_volume(sec_vol_id)
-                except Exception as e:
-                    logger.writeError(err_msg)
-            else:
-                # if attaching the volume to the host group fails, detach them
-                try:
+
+        with self.gad_lock:
+            try:
+                lun_ids = {}
+                if host_groups is not None and len(host_groups) > 0:
                     if is_iscsi:
-                        self.dettach_iscsi_targets(host_groups, lun_ids)
+                        lun_ids = self.find_lun_ids_from_spec(
+                            host_groups, spec.secondary_iscsi_targets, is_iscsi
+                        )
+                        self.add_luns_to_iscsi_targets(sec_vol_id, host_groups, lun_ids)
                     else:
-                        self.dettach_hostgroups(host_groups, lun_ids)
-                except Exception as e:
-                    logger.writeError(err_msg)
-            raise ValueError(err_msg)
+                        lun_ids = self.find_lun_ids_from_spec(
+                            host_groups, spec.secondary_hostgroups
+                        )
+                        self.add_luns_to_host_groups(sec_vol_id, host_groups, lun_ids)
+            except Exception as ex:
+                err_msg = TrueCopyFailedMsg.SEC_VOLUME_OPERATION_FAILED.value + str(ex)
+                logger.writeError(err_msg)
+                if not spec.provisioned_secondary_volume_id:
+                    # if attaching the volume to the host group fails, delete the secondary volume
+                    try:
+                        self.delete_volume(sec_vol_id)
+                    except Exception as e:
+                        logger.writeError(err_msg)
+                else:
+                    # if attaching the volume to the host group fails, detach them
+                    try:
+                        if is_iscsi:
+                            self.dettach_iscsi_targets(host_groups, lun_ids)
+                        else:
+                            self.dettach_hostgroups(host_groups, lun_ids)
+                    except Exception as e:
+                        logger.writeError(err_msg)
+                raise ValueError(err_msg)
 
         logger.writeDebug(
             "PROV:get_secondary_volume_id:sec_vol_name = {}", sec_vol_name
@@ -340,16 +373,6 @@ class RemoteReplicationHelperForSVol:
     def parse_hostgroup(self, hostgroup):
         hostgroup.port = hostgroup.portId
         return hostgroup
-
-    @log_entry_exit
-    def get_size_from_byte_format_capacity(self, byte_format):
-        logger.writeDebug(
-            "PROV:get_size_from_byte_format_capacity:hgs = {}", byte_format
-        )
-        value = byte_format.split(" ")[0]
-        unit = byte_format.split(" ")[1]
-        int_value = value.split(".")[0]
-        return f"{int_value}{unit}"
 
     def get_secondary_hostgroups_payload(self, secondary_hostgroups):
         hostgroups_list = self.validate_secondary_hostgroups(secondary_hostgroups)
@@ -654,6 +677,28 @@ class RemoteReplicationHelperForSVol:
                 hgs_to_attach.append(hg)
 
         return hgs_to_attach
+
+    @log_entry_exit
+    def find_its_to_add_for_provisioned_svol(self, its_from_spec, its_for_prov_svol):
+        its_to_attach = []
+        if its_from_spec is None:
+            return None
+
+        if its_for_prov_svol is None:
+            return None
+
+        hg_map = {}
+        for hg in its_for_prov_svol:
+            key = f"{hg.portId},{hg.hostGroupId}"
+            hg_map[key] = hg
+
+        for hg in its_from_spec:
+            key = f"{hg.portId},{hg.iscsiId}"
+            value = hg_map.get(key, None)
+            if value is None:
+                its_to_attach.append(hg)
+
+        return its_to_attach
 
     @log_entry_exit
     def find_lun_ids_from_spec(self, hostgroups, spec_sec_hgs, is_iscsi=False):

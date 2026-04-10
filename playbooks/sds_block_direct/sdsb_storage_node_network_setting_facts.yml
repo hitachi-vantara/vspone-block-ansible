@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Storage Node Network Setting Facts Playbook
-####################################################################
+# ###################################################################
 - name: Storage Node Network Setting Facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-  ####################################################################
+  # ###################################################################
   # Task Name : Get all Storage Node Networks Settings
-  ####################################################################
+  # ###################################################################
     - name: Get all Storage Node Networks Settings
       hitachivantara.vspone_block.sds_block.hv_sds_block_storage_node_network_settings_facts:
         connection_info: "{{ connection_info }}"

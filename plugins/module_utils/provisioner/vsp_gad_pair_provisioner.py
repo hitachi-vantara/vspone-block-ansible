@@ -1,3 +1,6 @@
+import threading
+import time
+
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
@@ -10,6 +13,7 @@ try:
     from ..message.vsp_gad_pair_msgs import GADFailedMsg
     from ..common.hv_constants import ConnectionTypes
     from ..common.hv_log import Log
+    from ..common.vsp_errors import VspGadSecondaryVolumeOperationError
     from ..model.vsp_resource_group_models import VSPResourceGroupSpec
     from ..model.vsp_copy_groups_models import (
         DirectCopyPairInfo,
@@ -24,6 +28,7 @@ try:
         log_entry_exit,
         convert_decimal_size_to_bytes,
     )
+    from ..common.hv_constants import LdevConstants
     from .vsp_remote_replication_helper import RemoteReplicationHelperForSVol
 
 except ImportError:
@@ -38,6 +43,7 @@ except ImportError:
     from message.vsp_gad_pair_msgs import GADFailedMsg
     from common.hv_constants import ConnectionTypes
     from common.hv_log import Log
+    from common.vsp_errors import VspGadSecondaryVolumeOperationError
     from model.vsp_resource_group_models import VSPResourceGroupSpec
     from model.vsp_copy_groups_models import (
         DirectCopyPairInfo,
@@ -52,9 +58,78 @@ except ImportError:
         log_entry_exit,
         convert_decimal_size_to_bytes,
     )
+    from common.hv_constants import LdevConstants
     from .vsp_remote_replication_helper import RemoteReplicationHelperForSVol
 
 logger = Log()
+
+# Retry configuration for storage operations
+RETRY_COUNT = 5
+RETRY_DELAY_SECONDS = 10
+RETRY_BACKOFF_MULTIPLIER = 1.5
+RETRYABLE_ERROR_MESSAGES = [
+    "Another application is in progress",
+    "(message = Another application is in progress.)",
+    "30000E-2-2E10-8000",  # Common error code for concurrent operations
+]
+
+
+def is_retryable_error(exception):
+    """Check if the exception is retryable based on error message."""
+    error_msg = str(exception).lower()
+    for retryable_msg in RETRYABLE_ERROR_MESSAGES:
+        if retryable_msg.lower() in error_msg:
+            return True
+    return False
+
+
+def retry_on_busy(
+    func, *args, max_retries=RETRY_COUNT, initial_delay=RETRY_DELAY_SECONDS, **kwargs
+):
+    """
+    Execute a function with retry logic for concurrent operation errors.
+
+    Args:
+        func: The function to execute
+        *args: Positional arguments to pass to the function
+        max_retries: Maximum number of retry attempts
+        initial_delay: Initial delay between retries in seconds
+        **kwargs: Keyword arguments to pass to the function
+
+    Returns:
+        The result of the function call
+
+    Raises:
+        The last exception if all retries are exhausted
+    """
+    last_exception = None
+    delay = initial_delay
+
+    for attempt in range(max_retries + 1):
+        try:
+            return func(*args, **kwargs)
+        except Exception as ex:
+            last_exception = ex
+            if not is_retryable_error(ex):
+                # Not a retryable error, raise immediately
+                raise
+
+            if attempt < max_retries:
+                logger.writeInfo(
+                    "Operation failed with retryable error (attempt {}/{}): {}. Retrying in {} seconds...",
+                    attempt + 1,
+                    max_retries + 1,
+                    str(ex),
+                    delay,
+                )
+                time.sleep(delay)
+                delay *= RETRY_BACKOFF_MULTIPLIER
+            else:
+                logger.writeError(
+                    "Operation failed after {} attempts: {}", max_retries + 1, str(ex)
+                )
+
+    raise last_exception
 
 
 class GADPairProvisioner:
@@ -76,7 +151,7 @@ class GADPairProvisioner:
         self.connection_info = connection_info
         self.connection_type = connection_info.connection_type
         self.serial = serial
-
+        self.gad_lock = threading.Lock()
         self.gateway.set_storage_serial_number(serial)
 
     @log_entry_exit
@@ -132,12 +207,19 @@ class GADPairProvisioner:
     @log_entry_exit
     def create_gad_pair(self, spec, pvol):
 
+        pair_existing = self.gateway.get_replication_pair(spec)
+
+        if pair_existing is not None:
+            spec.comments = VSPTrueCopyValidateMsg.GAD_PAIR_ALREADY_EXISTS.value.format(
+                spec.copy_pair_name
+            )
+            return pair_existing
         # if (
         #     pvol.isDataReductionShareEnabled is not None
         #     and pvol.isDataReductionShareEnabled is True
         #     and pvol.virtualLdevId is None
-        #     or pvol.virtualLdevId == 65534
-        #     or pvol.virtualLdevId == 65535
+        #     or pvol.virtualLdevId == LdevConstants.UNASSIGNED_LDEV_ID
+        #     or pvol.virtualLdevId == LdevConstants.GAD_RESERVE_LDEV_ID
         # ):
         #     err_msg = (
         #         GADFailedMsg.PAIR_CREATION_FAILED.value
@@ -199,13 +281,14 @@ class GADPairProvisioner:
             else:
                 secondary_vol_id = rr_prov.get_secondary_volume_id(pvol, spec)
             spec.secondary_volume_id = secondary_vol_id
-            result = self.gateway.create_gad_pair(spec)
-            logger.writeDebug(f"create_gad_pair result: {result}")
-            pair = self.cg_gw.get_one_copy_pair_by_id(
-                result, spec.secondary_connection_info
-            )
-            self.connection_info.changed = True
-            return pair
+            with self.gad_lock:
+                result = self.gateway.create_gad_pair(spec)
+                logger.writeDebug(f"create_gad_pair result: {result}")
+                pair = self.cg_gw.get_one_copy_pair_by_id(
+                    result, spec.secondary_connection_info
+                )
+                self.connection_info.changed = True
+                return pair
         except Exception as ex:
             # if the GAD creation fails, delete the secondary volume
             err_msg = GADFailedMsg.PAIR_CREATION_FAILED.value + str(ex)
@@ -1028,6 +1111,7 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
         self.rg_gateway = GatewayFactory.get_gateway(
             connection_info, GatewayClassTypes.VSP_RESOURCE_GROUP
         )
+        self.gad_lock = threading.Lock()
 
     @log_entry_exit
     def get_resource_group_by_id(self, resourceGroupId):
@@ -1048,7 +1132,11 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
             volume = self.vol_gateway.get_volume_by_id(secondary_vol_id)
 
         self.delete_lun_path(volume)
-        self.move_volume_back_to_meta(volume)
+        try:
+            self.move_volume_back_to_meta(volume)
+        except Exception as e:
+            logger.writeError(f"Error moving volume back to meta: {e}")
+
         self.delete_actual_volume(secondary_vol_id, volume)
 
     @log_entry_exit
@@ -1078,9 +1166,43 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
+        # if the host group is meta, throw error, because meta host group is not supported for GAD
+        if host_groups and len(host_groups) > 0:
+            logger.writeDebug(
+                "PROV:get_secondary_volume_id:host_groups= {}", host_groups
+            )
+            for hg in host_groups:
+                if hg.resourceGroupId == 0:
+                    err_msg = GADPairValidateMSG.SEC_HGS_IN_META_RG.value.format(
+                        hg.hostGroupName
+                    )
+                    logger.writeError(err_msg)
+                    raise ValueError(err_msg)
+
         if spec.provisioned_secondary_volume_id:
             svol_id = spec.provisioned_secondary_volume_id
             sec_vol_info = self.vol_gateway.get_volume_by_id(svol_id)
+            if sec_vol_info is None:
+                err_msg = VSPTrueCopyValidateMsg.NO_PROVISIONED_SECONDARY_VOLUME_FOUND.value.format(
+                    spec.provisioned_secondary_volume_id
+                )
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
+            if sec_vol_info.emulationType == "NOT DEFINED":
+                err_msg = VSPTrueCopyValidateMsg.INVALID_EMULATION_TYPE.value.format(
+                    str(sec_vol_info.emulationType)
+                )
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
+            if sec_vol_info.blockCapacity != vol_info.blockCapacity:
+                err_msg = (
+                    VSPTrueCopyValidateMsg.SEC_VOLUME_CAPACITY_NOT_MATCH.value.format(
+                        str(sec_vol_info.byteFormatCapacity),
+                        str(vol_info.byteFormatCapacity),
+                    )
+                )
+                logger.writeError(err_msg)
+                raise ValueError(err_msg)
             hgs_prov_svol = self.get_hgs_for_provisioned_svol(sec_vol_info)
             logger.writeDebug(
                 "PROV:get_secondary_volume_id:hgs_prov_svol = {}", hgs_prov_svol
@@ -1139,8 +1261,8 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
             if sec_vol_info.virtualLdevId is None:
                 self.vol_gateway.unassign_vldev(sec_vol_id, sec_vol_id)
             elif (
-                sec_vol_info.virtualLdevId != 65534
-                and sec_vol_info.virtualLdevId != 65535
+                sec_vol_info.virtualLdevId != LdevConstants.UNASSIGNED_LDEV_ID
+                and sec_vol_info.virtualLdevId != LdevConstants.GAD_RESERVE_LDEV_ID
             ):
                 self.vol_gateway.unassign_vldev(sec_vol_id, sec_vol_info.virtualLdevId)
 
@@ -1207,16 +1329,24 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
                 #  sng1104 - on the 2nd storage, find the hg.RG, move ldev to RG
 
             # GAD reserved
-            if sec_vol_info.virtualLdevId != 65535:
-                self.vol_gateway.assign_vldev(sec_vol_id, 65535)
-            vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
-            logger.writeDebug("PROV:813:sec_vol_id 1397 = {}", sec_vol_id)
+            with self.gad_lock:
+                if sec_vol_info.virtualLdevId != LdevConstants.GAD_RESERVE_LDEV_ID:
+                    retry_on_busy(
+                        self.vol_gateway.assign_vldev,
+                        sec_vol_id,
+                        LdevConstants.GAD_RESERVE_LDEV_ID,
+                    )
+                # vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
+                logger.writeDebug("PROV:813:sec_vol_id 1397 = {}", sec_vol_id)
 
-            if host_groups is not None and len(host_groups) > 0:
-                lun_ids = self.find_lun_ids_from_spec(
-                    host_groups, spec.secondary_hostgroups
-                )
-                self.add_luns_to_host_groups(sec_vol_id, host_groups, lun_ids)
+                if host_groups is not None and len(host_groups) > 0:
+                    lun_ids = self.find_lun_ids_from_spec(
+                        host_groups, spec.secondary_hostgroups
+                    )
+                    logger.writeDebug(
+                        "PROV:get_secondary_volume_id:lun_ids = {}", lun_ids
+                    )
+                    self.add_luns_to_host_groups(sec_vol_id, host_groups, lun_ids)
 
         except Exception as ex:
             err_msg = GADFailedMsg.SEC_VOLUME_OPERATION_FAILED.value + str(ex)
@@ -1230,9 +1360,9 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
             else:
                 # if attaching the volume to the host group fails, detach them
                 logger.writeDebug("PROV:062725:host_groups = {}", host_groups)
-                self.dettach_hostgroups(sec_vol_id, host_groups)
+                self.dettach_hostgroups(host_groups, sec_vol_id)
 
-            raise Exception(err_msg)
+            raise VspGadSecondaryVolumeOperationError(err_msg)
         return sec_vol_id
 
     @log_entry_exit
@@ -1257,27 +1387,33 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
             logger.writeError(err_msg)
             raise ValueError(err_msg)
 
+        if nvme_subsystem.resourceGroupId == 0:
+            err_msg = GADPairValidateMSG.SEC_NVM_SUBSYSTEM_IN_META_RG.value.format(
+                spec.secondary_nvm_subsystem.name
+            )
+            logger.writeError(err_msg)
+            raise ValueError(err_msg)
+
         if int(nvme_subsystem.nvmSubsystemId) != int(pvolNvmSubsystemId):
             err_msg = VSPTrueCopyValidateMsg.NVMSUBSYSTEM_DIFFER.value.format(
                 nvme_subsystem.nvmSubsystemId, pvolNvmSubsystemId
             )
             logger.writeError(err_msg)
             raise ValueError(err_msg)
-
+        sec_vol_name = None
         if spec.provisioned_secondary_volume_id:
-            svol_id = spec.provisioned_secondary_volume_id
+            sec_vol_id = spec.provisioned_secondary_volume_id
         else:
             svol_id = self.select_secondary_volume_id(vol_info.ldevId, spec)
 
-        sec_vol_spec = self.construct_svol_spec(svol_id, vol_info, spec)
+            sec_vol_spec = self.construct_svol_spec(svol_id, vol_info, spec)
 
-        sec_vol_id = self.vol_gateway.create_volume(sec_vol_spec)
-        sec_vol_name = None
-        # per UCA-2281
-        if vol_info.label is not None and vol_info.label != "":
-            sec_vol_name = vol_info.label
-        else:
-            sec_vol_name = f"{DEFAULT_NAME_PREFIX}-{vol_info.ldevId}"
+            sec_vol_id = self.vol_gateway.create_volume(sec_vol_spec)
+            # per UCA-2281
+            if vol_info.label is not None and vol_info.label != "":
+                sec_vol_name = vol_info.label
+            else:
+                sec_vol_name = f"{DEFAULT_NAME_PREFIX}-{vol_info.ldevId}"
 
         # the name change is done in the update_volume method
         logger.writeDebug("PROV:1221:sec_vol_name = {}", sec_vol_name)
@@ -1290,9 +1426,10 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
         try:
             logger.writeDebug("PROV:813:sec_vol_name = {}", sec_vol_name)
             logger.writeDebug("PROV:813:set_alua_mode = {}", set_alua_mode)
-            self.vol_gateway.change_volume_settings(
-                sec_vol_id, sec_vol_name, set_alua_mode
-            )
+            if sec_vol_name is not None or set_alua_mode is not None:
+                self.vol_gateway.change_volume_settings(
+                    sec_vol_id, sec_vol_name, set_alua_mode
+                )
 
             # verify the svol set label and set_alua_mode
             vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
@@ -1306,7 +1443,9 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
                 "PROV:813:sec_vol virtualLdevId= {}", vol_info.virtualLdevId
             )
 
-            if (vol_info.virtualLdevId != 65535) and (vol_info.virtualLdevId != 65534):
+            if (vol_info.virtualLdevId != LdevConstants.GAD_RESERVE_LDEV_ID) and (
+                vol_info.virtualLdevId != LdevConstants.UNASSIGNED_LDEV_ID
+            ):
                 logger.writeDebug(
                     "PROV: = unassigning vldev for sec_vol_id : {} having vldev {}",
                     sec_vol_id,
@@ -1337,8 +1476,10 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
                 self.rg_gateway.add_resource(resourceGroupId, add_resource_spec)
 
             # GAD reserved
-            if vol_info.virtualLdevId != 65535:
-                self.vol_gateway.assign_vldev(sec_vol_id, 65535)
+            if vol_info.virtualLdevId != LdevConstants.GAD_RESERVE_LDEV_ID:
+                self.vol_gateway.assign_vldev(
+                    sec_vol_id, LdevConstants.GAD_RESERVE_LDEV_ID
+                )
             self.create_namespace_for_svol(
                 nvme_subsystem.nvmSubsystemId, sec_vol_id, pvolNameSpaceId
             )
@@ -1359,12 +1500,15 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
                 spec.secondary_nvm_subsystem,
                 pvolNameSpaceId,
             )
-            raise Exception(err_msg)
+            raise VspGadSecondaryVolumeOperationError(err_msg)
         return sec_vol_id
 
     @log_entry_exit
     def validate_virtual_ldev_id(self, vol_info):
-        if vol_info.virtualLdevId == 65535 or vol_info.virtualLdevId == 65534:
+        if (
+            vol_info.virtualLdevId == LdevConstants.GAD_RESERVE_LDEV_ID
+            or vol_info.virtualLdevId == LdevConstants.UNASSIGNED_LDEV_ID
+        ):
             err_msg = VSPTrueCopyValidateMsg.PVOL_VLDEV_MISSING.value.format(
                 vol_info.ldevId
             )
@@ -1386,6 +1530,19 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
             err_msg = GADPairValidateMSG.NO_REMOTE_ISCSI_FOUND.value
             logger.writeError(err_msg)
             raise ValueError(err_msg)
+
+        # if the host group is meta, throw error, because meta host group is not supported for GAD
+        if iscsi_targets and len(iscsi_targets) > 0:
+            logger.writeDebug(
+                "PROV:get_secondary_volume_id:iscsi_targets= {}", iscsi_targets
+            )
+            for hg in iscsi_targets:
+                if hg.resourceGroupId == 0:
+                    err_msg = GADPairValidateMSG.SEC_IST_IN_META_RG.value.format(
+                        hg.iscsiName
+                    )
+                    logger.writeError(err_msg)
+                    raise ValueError(err_msg)
 
         if spec.provisioned_secondary_volume_id:
             svol_id = spec.provisioned_secondary_volume_id
@@ -1447,7 +1604,10 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
             )
             if vol_info.virtualLdevId is None:
                 self.vol_gateway.unassign_vldev(sec_vol_id, sec_vol_id)
-            elif vol_info.virtualLdevId != 65534 and vol_info.virtualLdevId != 65535:
+            elif (
+                vol_info.virtualLdevId != LdevConstants.UNASSIGNED_LDEV_ID
+                and vol_info.virtualLdevId != LdevConstants.GAD_RESERVE_LDEV_ID
+            ):
                 self.vol_gateway.unassign_vldev(sec_vol_id, vol_info.virtualLdevId)
 
             self.vol_gateway.unassign_vldev(sec_vol_id, sec_vol_id)
@@ -1481,8 +1641,10 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
             self.rg_gateway.add_resource(resourceGroupId, add_resource_spec)
 
             # GAD reserved
-            if vol_info.virtualLdevId != 65535:
-                self.vol_gateway.assign_vldev(sec_vol_id, 65535)
+            if vol_info.virtualLdevId != LdevConstants.GAD_RESERVE_LDEV_ID:
+                self.vol_gateway.assign_vldev(
+                    sec_vol_id, LdevConstants.GAD_RESERVE_LDEV_ID
+                )
             vol_info = self.vol_gateway.get_volume_by_id(sec_vol_id)
             logger.writeDebug("PROV:813:sec_vol_id 1397 = {}", sec_vol_id)
 
@@ -1505,7 +1667,7 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
                 # if attaching the volume to the host group fails, detach them
                 self.dettach_iscsi_targets(sec_vol_id, iscsi_targets)
 
-            raise Exception(err_msg)
+            raise VspGadSecondaryVolumeOperationError(err_msg)
         return sec_vol_id
 
     @log_entry_exit
@@ -1522,12 +1684,22 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
     @log_entry_exit
     def move_volume_back_to_meta(self, volume_info):
         logger.writeDebug(f"move_volume_back_to_meta: volume_info: {volume_info}")
-        if volume_info.virtualLdevId is None:
-            self.vol_gateway.unassign_vldev(volume_info.ldevId, volume_info.ldevId)
-        if volume_info.virtualLdevId == 65535 or volume_info.virtualLdevId == 65534:
-            self.vol_gateway.unassign_vldev(
-                volume_info.ldevId, volume_info.virtualLdevId
-            )
+
+        try:
+            if (
+                volume_info.virtualLdevId is None
+                or volume_info.virtualLdevId == volume_info.ldevId
+            ):
+                self.vol_gateway.unassign_vldev(volume_info.ldevId, volume_info.ldevId)
+            if (
+                volume_info.virtualLdevId == LdevConstants.GAD_RESERVE_LDEV_ID
+                or volume_info.virtualLdevId == LdevConstants.UNASSIGNED_LDEV_ID
+            ):
+                self.vol_gateway.unassign_vldev(
+                    volume_info.ldevId, volume_info.virtualLdevId
+                )
+        except Exception as e:
+            logger.writeError(f"Error unassigning vldev: {e}")
 
         logger.writeDebug("PROV:move_volume_back_to_meta:sec_vol_id = {}", volume_info)
 
@@ -1538,4 +1710,7 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
                 volume_info.resourceGroupId, add_resource_spec
             )
         # assign back vldev
-        self.vol_gateway.assign_vldev(volume_info.ldevId, volume_info.ldevId)
+        try:
+            self.vol_gateway.assign_vldev(volume_info.ldevId, volume_info.ldevId)
+        except Exception as e:
+            logger.writeError(f"Error assigning vldev: {e}")

@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Specifying the SNMP error notification destinations
-####################################################################
+# ###################################################################
 - name: Specifying the SNMP error notification destinations
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Specifying the SNMP error notification destinations with v2c version
-    ####################################################################
+    # ###################################################################
     - name: Specifying the SNMP error notification destinations with v2c version
       hitachivantara.vspone_block.vsp.hv_snmp_settings:
         connection_info: "{{ connection_info }}"

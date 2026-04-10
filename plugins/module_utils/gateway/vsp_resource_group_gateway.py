@@ -4,6 +4,7 @@ try:
     from ..common.hv_log import Log
     from ..common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from ..common.vsp_storage_models import VSPStorageModelsManager
+    from ..message.vsp_resource_group_msgs import VSPResourceGroupValidateMsg
     from ..model.vsp_resource_group_models import (
         VspResourceGroupInfo,
         VspResourceGroupInfoList,
@@ -15,6 +16,7 @@ except ImportError:
     from common.hv_log import Log
     from common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from common.vsp_storage_models import VSPStorageModelsManager
+    from message.vsp_resource_group_msgs import VSPResourceGroupValidateMsg
     from model.vsp_resource_group_models import (
         VspResourceGroupInfo,
         VspResourceGroupInfoList,
@@ -204,10 +206,12 @@ class VSPResourceGroupDirectGateway:
         # if spec.virtual_storage_id and spec.virtual_storage_device_id is None:
         #     payload["virtualStorageId"] = spec.virtual_storage_id
         if spec.virtual_storage_serial:
-            virtual_storage_device_id = self.get_vitual_storage_device_id(
-                spec.virtual_storage_serial
-            )
-            if virtual_storage_device_id is None:
+            # virtual_storage_device_id = self.get_vitual_storage_device_id(
+            #     spec.virtual_storage_serial
+            # )
+            vsm_device = self.get_vsm_by_serial(spec.virtual_storage_serial)
+            logger.writeDebug("create_resource_group: vsm_device= {}", vsm_device)
+            if vsm_device is None:
                 if spec.virtual_storage_model:
                     resource_group = self.create_vsm_resource_group(spec)
                     resource_group_id = self.get_rg_id_by_name(spec.name)
@@ -217,6 +221,32 @@ class VSPResourceGroupDirectGateway:
                 else:
                     raise ValueError("Virtual Model must be specified to create a VSM.")
             else:
+                virtual_storage_device_id = vsm_device["virtualStorageDeviceId"]
+                virtual_storage_model = vsm_device["virtualModel"]
+                logger.writeDebug(
+                    "create_resource_group: virtual_storage_model from vsm_device= {}",
+                    virtual_storage_model,
+                )
+                logger.writeDebug(
+                    "create_resource_group: virtual_storage_model from spec= {}",
+                    VSPStorageModelsManager.get_direct_storage_model(
+                        spec.virtual_storage_model
+                    ),
+                )
+                if (
+                    spec.virtual_storage_model
+                    and virtual_storage_model
+                    != VSPStorageModelsManager.get_direct_storage_model(
+                        spec.virtual_storage_model
+                    )
+                ):
+                    raise ValueError(
+                        VSPResourceGroupValidateMsg.VSM_MODEL_MISMATCH.value.format(
+                            spec.virtual_storage_model,
+                            virtual_storage_model,
+                            spec.virtual_storage_serial,
+                        )
+                    )
                 payload["virtualStorageDeviceId"] = virtual_storage_device_id
         # payload["virtualStorageDeviceId"] = True
         # commenting out canRunIfResourceLocked as it causes error when resource is not locked
@@ -240,10 +270,24 @@ class VSPResourceGroupDirectGateway:
         return device["data"][0]["storageDeviceId"]
 
     @log_entry_exit
+    def get_vsm_by_serial(self, virtual_storage_serial):
+        storage_device_id = self.get_storage_device_id()
+        end_point = GET_VIRTUAL_STORAGE_DEVICE_ID_DIRECT.format(storage_device_id)
+        virtual_devices = self.connection_manager.get(end_point)
+        logger.writeDebug("get_vsm_by_serial: virtual_devices= {}", virtual_devices)
+        for device in virtual_devices["data"]:
+            if device["virtualSerialNumber"] == virtual_storage_serial:
+                return device
+        return None
+
+    @log_entry_exit
     def get_vitual_storage_device_id(self, virtual_storage_serial):
         storage_device_id = self.get_storage_device_id()
         end_point = GET_VIRTUAL_STORAGE_DEVICE_ID_DIRECT.format(storage_device_id)
         virtual_devices = self.connection_manager.get(end_point)
+        logger.writeDebug(
+            "get_vitual_storage_device_id: virtual_devices= {}", virtual_devices
+        )
         for device in virtual_devices["data"]:
             if device["virtualSerialNumber"] == virtual_storage_serial:
                 return device["virtualStorageDeviceId"]
@@ -288,10 +332,10 @@ class VSPResourceGroupDirectGateway:
     def add_resource(self, rg_id, spec):
         parameters = {}
         logger.writeDebug("add_resource spec= {}", spec)
-        if spec.start_ldev:
-            parameters["startLdevId"] = spec.start_ldev
-        if spec.end_ldev:
-            parameters["endLdevId"] = spec.end_ldev
+        # if spec.start_ldev:
+        #     parameters["startLdevId"] = spec.start_ldev
+        # if spec.end_ldev:
+        #     parameters["endLdevId"] = spec.end_ldev
         if spec.ldevs:
             parameters["ldevIds"] = spec.ldevs
         if spec.parity_groups:
@@ -327,10 +371,10 @@ class VSPResourceGroupDirectGateway:
     def remove_resource(self, rg_id, spec):
         parameters = {}
 
-        if spec.start_ldev:
-            parameters["startLdevId"] = spec.start_ldev
-        if spec.end_ldev:
-            parameters["endLdevId"] = spec.end_ldev
+        # if spec.start_ldev:
+        #     parameters["startLdevId"] = spec.start_ldev
+        # if spec.end_ldev:
+        #     parameters["endLdevId"] = spec.end_ldev
         if spec.ldevs:
             parameters["ldevIds"] = spec.ldevs
         if spec.parity_groups:

@@ -3,6 +3,7 @@ from ..common.ansible_common import log_entry_exit
 from ..common.hv_log import (
     Log,
 )
+from ..common.vsp_errors import VspFeatureNotSupportedError
 from ..gateway.vsp_one_snapshot_gateway import VspOneSnapshotGateway
 from ..gateway.vsp_volume_simple_api_gateway import VspSimpleApiGateway
 from ..message.vsp_lun_msgs import VSPVolumeMSG
@@ -19,7 +20,9 @@ class VspOneSnapshotProvisioner:
         self.connection_info = connection_info
 
         if not self.gateway.is_pegasus:
-            raise Exception(VSPVolumeMSG.ONLY_SUPPORTED_ON_PEGASUS.value)
+            raise VspFeatureNotSupportedError(
+                VSPVolumeMSG.ONLY_SUPPORTED_ON_PEGASUS.value
+            )
 
     @log_entry_exit
     def get_snapshot_by_id(self, master_volume_id, snapshot_id):
@@ -47,7 +50,7 @@ class VspOneSnapshotProvisioner:
             and spec.snapshot_group_name is not None
             and spec.snapshot_group_name != ""
         ):
-            raise Exception(
+            raise ValueError(
                 "include_snapshots cannot be true when snapshot_group_name is provided."
             )
 

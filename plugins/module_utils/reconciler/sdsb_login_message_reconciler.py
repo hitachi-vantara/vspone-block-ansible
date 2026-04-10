@@ -2,11 +2,12 @@ try:
     from ..provisioner.sdsb_login_message_provisioner import SDSBLoginMessageProvisioner
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
+    from ..message.sdsb_login_message_msg import SDSBLoginMessageValidationMsg
 except ImportError:
     from provisioner.sdsb_login_message_provisioner import SDSBLoginMessageProvisioner
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
-    from message.sdsb_journal_msgs import SDSBLoginMessageProvisioner
+    from message.sdsb_login_message_msg import SDSBLoginMessageValidationMsg
 
 logger = Log()
 
@@ -26,4 +27,6 @@ class SDSBLoginMessageReconciler:
         if state == "present":
             return self.provisioner.update_login_message(spec)
         else:
-            raise ValueError(f"Unsupported state for login_message: {state}")
+            raise ValueError(
+                SDSBLoginMessageValidationMsg.UNSUPPORTED_STATE.value.format(state)
+            )

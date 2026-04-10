@@ -1,0 +1,154 @@
+---
+# ###################################################################
+# Example :  Global Active Device Pair (GAD) Playbook
+# ###################################################################
+- name: GAD - Global Active Device Pair Management
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+    secondary_connection_info:
+      address: "{{ secondary_storage_address }}"
+      username: "{{ vault_secondary_storage_username }}"
+      password: "{{ vault_secondary_storage_secret }}"
+
+  tasks:
+    # ###################################################################
+    # Task Name : Batch create GAD pairs with host groups
+    # Execution of the following task is not supported while any target
+    # storage system resources are locked.
+    # All resources must be unlocked prior to execution.
+    # ###################################################################
+    - name: Batch create GAD pairs with host groups
+      hitachivantara.vspone_block.vsp.hv_gad_bulk:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          number_of_pairs: 5
+          primary_pool_id: 0
+          secondary_pool_id: 0
+          volume_size: "10GB"
+          capacity_saving: "compression"
+          primary_volume_base_name: "gad_vol"
+          primary_volume_base_name_start_number: 1
+          copy_group_name: "batch_gad_cg"
+          copy_pair_base_name: "batch_pair"
+          quorum_disk_id: 0
+          primary_hostgroups:
+            - name: "primary_hg_1"
+              port_id: "CL1-A"
+          secondary_hostgroups:
+            - name: "secondary_hg_1"
+              port_id: "CL2-A"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Batch create GAD pairs with NVMe subsystems
+    # Execution of the following task is not supported while any target
+    # storage system resources are locked.
+    # All resources must be unlocked prior to execution.
+    ####################################################################
+    - name: Batch create GAD pairs with NVMe subsystems
+      hitachivantara.vspone_block.vsp.hv_gad_bulk:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          number_of_pairs: 3
+          primary_pool_id: 0
+          secondary_pool_id: 0
+          volume_size: "20GB"
+          copy_group_name: "nvme_gad_cg"
+          copy_pair_base_name: "nvme_pair"
+          capacity_saving: "compression_deduplication"
+          quorum_disk_id: 0
+          primary_nvm_subsystem:
+            name: "primary-nvme-subsystem"
+            paths:
+              - "nqn.2014-08.com.example:nvme:primary-host"
+          secondary_nvm_subsystem:
+            name: "secondary-nvme-subsystem"
+            paths:
+              - "nqn.2014-08.com.example:nvme:secondary-host"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Batch create GAD pairs with iSCSI targets
+    # Execution of the following task is not supported while any target
+    # storage system resources are locked.
+    # All resources must be unlocked prior to execution.
+    ####################################################################
+    - name: Batch create GAD pairs with iSCSI targets
+      hitachivantara.vspone_block.vsp.hv_gad_bulk:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          number_of_pairs: 4
+          primary_pool_id: 0
+          secondary_pool_id: 0
+          volume_size: "50GB"
+          copy_group_name: "iscsi_gad_cg"
+          capacity_saving: "compression_deduplication"
+          copy_pair_base_name: "iscsi_pair"
+          quorum_disk_id: 0
+          primary_iscsi_targets:
+            - name: "iscsi_hg_primary"
+              port_id: "CL3-A"
+          secondary_iscsi_targets:
+            - name: "iscsi_target_secondary"
+              port_id: "CL4-A"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Batch create GAD pairs with host groups using virtual_storage_serial_number
+    # Execution of the following task is not supported while any target
+    # storage system resources are locked.
+    # All resources must be unlocked prior to execution.
+    ####################################################################
+    - name: Batch create GAD pairs with host groups with ldev range
+      hitachivantara.vspone_block.vsp.hv_gad_bulk:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          begin_primary_volume_id: 1101
+          end_primary_volume_id: 1201
+          number_of_pairs: 5
+          primary_pool_id: 0
+          secondary_pool_id: 0
+          volume_size: "10GB"
+          capacity_saving: "compression"
+          primary_volume_base_name: "gad_vol"
+          primary_volume_base_name_start_number: 1
+          copy_group_name: "batch_gad_cg"
+          copy_pair_base_name: "batch_pair"
+          quorum_disk_id: 0
+          virtual_storage_serial_number: 40154
+          primary_hostgroups:
+            - name: "primary_hg_1"
+              port_id: "CL1-A"
+          secondary_hostgroups:
+            - name: "secondary_hg_1"
+              port_id: "CL2-A"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

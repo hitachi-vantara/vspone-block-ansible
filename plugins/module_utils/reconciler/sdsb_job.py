@@ -6,7 +6,7 @@ try:
         camel_to_snake_case,
         get_default_value,
     )
-    from ..message.sdsb_storage_node_msgs import SDSBStorageNodeValidationMsg
+    from ..message.sdsb_job_msgs import SDSBJobValidationMsg
 except ImportError:
     from provisioner.sdsb_job_provisioner import SDSBJobProvisioner
     from common.hv_log import Log
@@ -15,7 +15,7 @@ except ImportError:
         camel_to_snake_case,
         get_default_value,
     )
-    from message.sdsb_storage_node_msgs import SDSBStorageNodeValidationMsg
+    from message.sdsb_job_msgs import SDSBJobValidationMsg
 
 logger = Log()
 
@@ -33,16 +33,28 @@ class SDSBJobReconciler:
         try:
             if spec is not None and spec.id:
                 job = self.provisioner.get_job_by_id(spec.id)
-                extracted_data = SDSBJobExtractor().extract([job.to_dict()])
-                return extracted_data
+                if job is None:
+                    spec.comments = SDSBJobValidationMsg.NO_JOB_FOR_ID.value.format(
+                        spec.id
+                    )
+                    return None
+                else:
+                    extracted_data = SDSBJobExtractor().extract([job.to_dict()])
+                    return extracted_data
 
             jobs = self.provisioner.get_jobs(spec)
+            if jobs is None:
+                spec.comments = SDSBJobValidationMsg.NO_JOBS_FOUND.value
+                return None
             extracted_data = SDSBJobExtractor().extract(jobs.data_to_list())
             return extracted_data
 
         except Exception as e:
             if "HTTP Error 400: Bad Request" in str(e):
-                raise ValueError(SDSBStorageNodeValidationMsg.BAD_ENTRY.value)
+                spec.comments = SDSBJobValidationMsg.BAD_ENTRY.value
+            else:
+                spec.comments = str(e)
+            return None
 
 
 class SDSBJobExtractor:

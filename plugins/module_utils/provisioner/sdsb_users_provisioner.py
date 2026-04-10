@@ -2,10 +2,12 @@ try:
     from ..gateway.sdsb_user_gateway import SDSBUserGateway
     from ..common.ansible_common import log_entry_exit
     from ..common.hv_log import Log
+    from ..message.sdsb_user_msgs import SDSBUserValidationMsg
 except ImportError:
     from gateway.sdsb_user_gateway import SDSBUserGateway
     from common.ansible_common import log_entry_exit
     from common.hv_log import Log
+    from message.sdsb_user_msgs import SDSBUserValidationMsg
 
 logger = Log()
 
@@ -45,11 +47,17 @@ class SDSBUsersProvisioner:
         if spec and spec.id:
             try:
                 response = self.gateway.delete_user(spec.id)
-                spec.comments = f"Successfully deleted user with id = {spec.id}."
+                spec.comments = SDSBUserValidationMsg.DELETE_USER_SUCCESS.value.format(
+                    spec.id
+                )
                 return True
             except Exception as e:
                 logger.writeException(e)
-                spec.comments = f"Not able to delete user with id = {spec.id}. {str(e)}"
+                spec.comments = (
+                    SDSBUserValidationMsg.DELETE_USER_FAILURE.value.format(spec.id)
+                    + " "
+                    + str(e)
+                )
                 return False
 
     @log_entry_exit

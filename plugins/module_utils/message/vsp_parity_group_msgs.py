@@ -12,3 +12,9 @@ class VSPParityGroupValidateMsg(Enum):
     FEATURE_NOT_SUPPORTED = (
         "Changing drive settings feature is not supported on this storage system."
     )
+    CREATE_PARITY_GROUP_NOT_SUPPORTED = (
+        "Creating parity group is not supported on this storage system."
+    )
+    DELETE_PARITY_GROUP_NOT_SUPPORTED = (
+        "Deleting parity group is not supported on this storage system."
+    )

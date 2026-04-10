@@ -4,7 +4,6 @@ try:
     from ..common.ansible_common import (
         log_entry_exit,
         get_size_from_byte_format_capacity,
-        dicts_to_dataclass_list,
     )
     from ..common.hv_log import Log
     from ..common.vsp_constants import DEFAULT_NAME_PREFIX
@@ -26,7 +25,6 @@ except ImportError:
     from common.ansible_common import (
         log_entry_exit,
         get_size_from_byte_format_capacity,
-        dicts_to_dataclass_list,
     )
     from common.hv_log import Log
     from common.vsp_constants import DEFAULT_NAME_PREFIX
@@ -95,6 +93,8 @@ class VSPShadowImagePairProvisioner:
     @log_entry_exit
     def fill_additional_info_for_si_pairs(self, shadow_image_pairs):
         logger.writeDebug(f"20250324 shadow_image_pairs= {shadow_image_pairs}")
+        if isinstance(shadow_image_pairs, VSPShadowImagePairInfo):
+            shadow_image_pairs = [shadow_image_pairs]
         new_shadow_image_pairs = []
         for si in shadow_image_pairs:
             new_si_pair = self.fill_nvm_subsystem_info_for_one_si_pair(si)
@@ -262,7 +262,11 @@ class VSPShadowImagePairProvisioner:
     @log_entry_exit
     def get_shadow_image_pair_by_id(self, serial, pairId):
 
-        return self.gateway.get_shadow_image_pair_by_id(serial, pairId)
+        shadow_image_pairs = self.gateway.get_shadow_image_pair_by_id(serial, pairId)
+        shadow_image_pairs = self.fill_additional_info_for_si_pairs(
+            [shadow_image_pairs]
+        )
+        return shadow_image_pairs[0] if shadow_image_pairs else None
 
     @log_entry_exit
     def get_shadow_image_pair_by_pvol_and_svol(self, serial, pvol, svol=None):
@@ -293,30 +297,31 @@ class VSPShadowImagePairProvisioner:
         return shadow_image_list
 
     @log_entry_exit
+    def get_shadow_image_pairs_by_cg_name(self, serial, copy_group_name):
+        shadow_image_pairs = self.gateway.get_shadow_image_pairs_by_cg_name(
+            serial, copy_group_name
+        ).data
+        shadow_image_pairs = self.fill_additional_info_for_si_pairs(shadow_image_pairs)
+        return shadow_image_pairs.data_to_list()
+
+    @log_entry_exit
     def get_shadow_image_pair_by_copy_pair_name(
         self, serial, copy_pair_name, copy_group_name
     ):
         shadow_image_pairs = None
-
-        shadow_image_pairs = self.gateway.get_all_shadow_image_pairs(serial)
-
-        shadow_image_list = []
-        shadow_image_pair = None
-        for sip in shadow_image_pairs.data_to_list():
-            if sip.get("copyGroupName") == copy_group_name:
-                shadow_image_list.append(sip)
-            if copy_pair_name is not None:
-                if sip.get("copyPairName") == copy_pair_name:
-                    shadow_image_pair = sip
-                    return shadow_image_pair
-
-        if copy_pair_name is not None:
+        shadow_image_pairs = self.gateway.get_shadow_image_pairs_by_cg_name(
+            serial, copy_group_name
+        )
+        if shadow_image_pairs is None:
             return None
 
-        data = VSPShadowImagePairsInfo(
-            dicts_to_dataclass_list(shadow_image_list, VSPShadowImagePairInfo)
-        )
-        return data.data_to_list()
+        shadow_image_pair = None
+        for sip in shadow_image_pairs.data:
+            # if sip.get("copyPairName") == copy_pair_name:
+            if sip.copyPairName == copy_pair_name:
+                shadow_image_pair = self.fill_additional_info_for_si_pairs(sip)
+                return shadow_image_pair
+        return None
 
     @log_entry_exit
     def get_specific_cg_pair_by_pvol_svol(

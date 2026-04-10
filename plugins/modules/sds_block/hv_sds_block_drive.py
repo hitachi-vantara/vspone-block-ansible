@@ -4,7 +4,6 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
 
-
 __metaclass__ = type
 
 
@@ -179,20 +178,20 @@ class SDSBDriveManager:
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB Drive Operation ===")
         drive = None
-        msg = ""
         registration_message = validate_ansible_product_registration()
         try:
             sdsb_reconciler = SDSBDrivesReconciler(self.connection_info)
-            drive, msg = sdsb_reconciler.reconcile_drive(self.spec, self.state)
+            drive = sdsb_reconciler.reconcile_drive(self.spec, self.state)
         except Exception as e:
             self.logger.writeException(e)
             self.logger.writeInfo("=== End of SDSB Drive Operation ===")
             self.module.fail_json(msg=str(e))
         data = {
             "changed": self.connection_info.changed,
-            "drive": drive,
-            "message": msg,
+            "drive": drive if drive else {},
         }
+        if self.spec.comments:
+            data["comments"] = self.spec.comments
         if registration_message:
             data["user_consent_required"] = registration_message
         self.logger.writeInfo(f"{data}")

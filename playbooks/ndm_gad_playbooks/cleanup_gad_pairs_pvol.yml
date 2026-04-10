@@ -1,5 +1,5 @@
 ---
-####################################################################
+# ###################################################################
 # Cleanup Workflow: Remove Primary Volumes, Remote Connections, and Quorum Disks
 #
 # This playbook performs cleanup after GAD migration:
@@ -10,7 +10,7 @@
 # Prerequisites:
 # - Hitachi VSP One Block collection installed
 # - Valid credentials for storage systems
-####################################################################
+# ###################################################################
 - name: Cleanup Workflow - Remove Primary Volumes, Remote Connections, Quorum Disks
   hosts: localhost
   gather_facts: false
@@ -34,7 +34,7 @@
     path_group_id: 3 # Path group ID for remote connection deletion
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # STEP 1: Cleanup Phase - Remove Original Volumes After Migration
     #
     # Purpose: Clean up source volumes after successful migration
@@ -42,7 +42,7 @@
     # - Deletes original volumes from primary storage system
     # - Provides cleanup execution report
     # - Only executes if migration was successful
-    ####################################################################
+    # ###################################################################
     - name: "Step 4: Clean up original volumes from source storage"
       ansible.builtin.include_role:
         name: hitachivantara.vspone_block.hv_vsp_host_volume_deletion

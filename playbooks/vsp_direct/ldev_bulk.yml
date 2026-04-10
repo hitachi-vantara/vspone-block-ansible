@@ -1,0 +1,687 @@
+---
+# ###################################################################
+# Example : Multi-LDEV Creation Playbook
+# ###################################################################
+- name: Multi Logical Device Creation Module
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    # ###################################################################
+    # Task Name : Create multiple ldevs with sequential naming
+    # ###################################################################
+    - name: Create multiple ldevs with sequential naming
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          pool_id: 0
+          size: "400MB"
+          number_of_ldevs: 2
+          names:
+            base_name: "ansible-auto-volume"
+            start_number: 1
+            number_of_digits: 3
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Create multiple ldevs with capacity saving
+    ####################################################################
+    - name: Create multiple ldevs with capacity saving
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          pool_id: 15
+          size: "1GB"
+          capacity_saving: "compression_deduplication"
+          number_of_ldevs: 5
+          names:
+            base_name: "prod-vol"
+            start_number: 10
+            number_of_digits: 4
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Create multiple ldevs with QoS settings
+    ####################################################################
+    - name: Create multiple ldevs with QoS settings
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          pool_id: 10
+          size: "5GB"
+          number_of_ldevs: 3
+          names:
+            base_name: "qos-vol"
+            start_number: 1
+            number_of_digits: 3
+          qos_settings:
+            upper_iops: 1000
+            lower_iops: 500
+            upper_transfer_rate: 800
+            lower_transfer_rate: 400
+            upper_alert_allowable_time: 600
+            lower_alert_allowable_time: 500
+            response_priority: 2
+            response_alert_allowable_time: 400
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Create multiple ldevs with tiering policy
+    ####################################################################
+    - name: Create multiple ldevs with tiering policy
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          pool_id: 10
+          size: "10GB"
+          number_of_ldevs: 2
+          names:
+            base_name: "tier-vol"
+            start_number: 1
+            number_of_digits: 2
+          is_relocation_enabled: true
+          tier_level_for_new_page_allocation: "Low"
+          tiering_policy:
+            tier_level: 22
+            tier1_allocation_rate_min: 20
+            tier1_allocation_rate_max: 40
+            tier3_allocation_rate_min: 10
+            tier3_allocation_rate_max: 40
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Create multiple ldevs using parity group
+    ####################################################################
+    - name: Create multiple ldevs using parity group
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          parity_group_id: "1-1"
+          size: "10GB"
+          number_of_ldevs: 3
+          names:
+            base_name: "pg-volume"
+            start_number: 1
+            number_of_digits: 2
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Create multiple ldevs with ALUA and full allocation
+    ####################################################################
+    - name: Create multiple ldevs with ALUA and full allocation
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          pool_id: 10
+          size: "5GB"
+          number_of_ldevs: 2
+          names:
+            base_name: "alua-vol"
+            start_number: 1
+            number_of_digits: 3
+          is_alua_enabled: true
+          is_full_allocation_enabled: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Create multiple Mainframe LDEVs with cylinder and emulation type
+    # ssid: if not specified, the default SSID will be used. if specified, it will use the specified ssid if ssid id is not assigned
+    # It will use the existing SSID of the free LDEV if ssid is already assigned to any LDEV
+    #########################################################################################################
+    - name: Create multiple Mainframe LDEVs with cylinder and emulation type
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          pool_id: 15
+          cylinder: 65525
+          emulation_type: "3390-A"
+          ssid: "01"
+          number_of_ldevs: 3
+          names:
+            base_name: "mainframe-vol"
+            start_number: 1
+            number_of_digits: 3
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Update multiple ldevs settings
+    #########################################################################################################
+    - name: Update multiple ldevs settings
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_ids: [100, 101, 102]
+          data_reduction_process_mode: "post_process"
+          is_compression_acceleration_enabled: true
+          is_relocation_enabled: true
+          is_full_allocation_enabled: true
+          is_alua_enabled: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Format multiple volumes
+    #########################################################################################################
+    - name: Format multiple volumes
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_ids: [100, 101, 102]
+          should_format_volume: true
+          format_type: "quick"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Reclaim zero pages for multiple DP volumes
+    #########################################################################################################
+    - name: Reclaim zero pages for multiple DP volumes
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_ids: [100, 101, 102]
+          should_reclaim_zero_pages: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Set CLPR id for multiple volumes
+    #########################################################################################################
+    - name: Set CLPR id for multiple volumes
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_ids: [100, 101, 102]
+          clpr_id: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Set MP blade id for multiple volumes
+    #########################################################################################################
+    - name: Set MP blade id for multiple volumes
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_ids: [100, 101, 102]
+          mp_blade_id: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Assign virtual LDEV IDs to multiple ldevs
+    # Note: The length of ldev_ids and vldev_ids must be the same
+    #########################################################################################################
+    - name: Assign virtual LDEV IDs to multiple ldevs
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "assign_virtual_ldev"
+        spec:
+          ldev_ids: [100, 101, 102]
+          vldev_ids: [10, 11, 12]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Unassign virtual LDEV IDs from multiple ldevs
+    # Note: Use -1 for vldev_ids to unassign
+    #########################################################################################################
+    - name: Unassign virtual LDEV IDs from multiple ldevs
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "assign_virtual_ldev"
+        spec:
+          ldev_ids: [100, 101, 102]
+          vldev_ids: [-1, -1, -1]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Configure tiering policy for multiple ldevs
+    #########################################################################################################
+    - name: Configure tiering policy for multiple ldevs
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_ids: [100, 101, 102]
+          is_relocation_enabled: true
+          tier_level_for_new_page_allocation: "Low"
+          tiering_policy:
+            tier_level: 22
+            tier1_allocation_rate_min: 20
+            tier1_allocation_rate_max: 40
+            tier3_allocation_rate_min: 10
+            tier3_allocation_rate_max: 40
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Configure QoS settings for multiple ldevs
+    #########################################################################################################
+    - name: Configure QoS settings for multiple ldevs
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_ids: [100, 101, 102]
+          qos_settings:
+            upper_iops: 1000
+            lower_iops: 500
+            upper_transfer_rate: 800
+            lower_transfer_rate: 400
+            upper_alert_allowable_time: 600
+            lower_alert_allowable_time: 500
+            response_priority: 2
+            response_alert_allowable_time: 400
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Shred multiple ldevs
+    # Note: Overwrites the volumes with dummy data
+    #########################################################################################################
+    - name: Shred multiple ldevs
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_ids: [100, 101, 102]
+          should_shred_volume_enable: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Add multiple volumes to NVM subsystem
+    #########################################################################################################
+    - name: Add multiple volumes to NVM subsystem
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_ids: [100, 101, 102]
+          state: "add_host_nqn"
+          nvm_subsystem_name: "rd_nvm_tcp_01"
+          host_nqns:
+            - "nqn.2014-08.com.vmware:nvme:esxi-59-60"
+            - "nqn.2014-08.com.vmware:nvme:esxi-59-61"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Remove host nqns from multiple ldevs of NVM subsystem
+    #########################################################################################################
+    - name: Remove host nqns from multiple ldevs of NVM subsystem
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_ids: [100, 101, 102]
+          state: "remove_host_nqn"
+          nvm_subsystem_name: "rd_nvm_tcp_01"
+          host_nqns:
+            - "nqn.2014-08.com.vmware:nvme:esxi-59-60"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Expand size of multiple ldevs
+    #########################################################################################################
+    - name: Expand size of multiple ldevs
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          ldev_ids: [100, 101, 102]
+          size: "20GB"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Delete multiple ldevs
+    #########################################################################################################
+    - name: Delete multiple ldevs
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          ldev_ids: [3, 4, 5]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Force delete multiple ldevs
+    # Note: Removes the ldevs from hostgroups, iscsi targets or NVMe subsystem namespace before deleting
+    #########################################################################################################
+    - name: Force delete multiple ldevs
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          ldev_ids: [6, 7, 8]
+          force: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Shred and delete multiple ldevs
+    # Note: Shreds the volumes with dummy data before deleting them
+    #########################################################################################################
+    - name: Shred and delete multiple ldevs
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          ldev_ids: [9, 10, 11]
+          should_shred_volume_enable: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Create multiple ldevs using LDEV ID range
+    # Note: Uses start_ldev_id and end_ldev_id to specify the range
+    #########################################################################################################
+    - name: Create multiple ldevs using LDEV ID range
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          pool_id: 0
+          size: "10GB"
+          start_ldev_id: 200
+          end_ldev_id: 205
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Update multiple ldevs using LDEV ID range
+    # Note: Updates all ldevs from start_ldev_id to end_ldev_id
+    #########################################################################################################
+    - name: Update multiple ldevs using LDEV ID range
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          start_ldev_id: 200
+          end_ldev_id: 205
+          is_relocation_enabled: true
+          is_alua_enabled: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Update QoS settings for multiple ldevs using LDEV ID range
+    #########################################################################################################
+    - name: Update QoS settings for multiple ldevs using LDEV ID range
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          start_ldev_id: 200
+          end_ldev_id: 205
+          qos_settings:
+            upper_iops: 2000
+            lower_iops: 800
+            upper_transfer_rate: 1500
+            lower_transfer_rate: 600
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Update capacity saving settings for multiple ldevs using LDEV ID range
+    #########################################################################################################
+    - name: Update capacity saving settings for multiple ldevs using LDEV ID range
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          start_ldev_id: 200
+          end_ldev_id: 205
+          data_reduction_process_mode: "post_process"
+          is_compression_acceleration_enabled: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Format multiple volumes using LDEV ID range
+    #########################################################################################################
+    - name: Format multiple volumes using LDEV ID range
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          start_ldev_id: 200
+          end_ldev_id: 205
+          should_format_volume: true
+          format_type: "quick"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Expand size for multiple ldevs using LDEV ID range
+    #########################################################################################################
+    - name: Expand size for multiple ldevs using LDEV ID range
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          start_ldev_id: 200
+          end_ldev_id: 205
+          size: "50GB"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Set CLPR id for multiple volumes using LDEV ID range
+    #########################################################################################################
+    - name: Set CLPR id for multiple volumes using LDEV ID range
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          start_ldev_id: 200
+          end_ldev_id: 205
+          clpr_id: 2
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Configure tiering policy for multiple ldevs using LDEV ID range
+    #########################################################################################################
+    - name: Configure tiering policy for multiple ldevs using LDEV ID range
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "present"
+        spec:
+          start_ldev_id: 200
+          end_ldev_id: 205
+          is_relocation_enabled: true
+          tier_level_for_new_page_allocation: "Middle"
+          tiering_policy:
+            tier_level: 22
+            tier1_allocation_rate_min: 30
+            tier1_allocation_rate_max: 50
+            tier3_allocation_rate_min: 20
+            tier3_allocation_rate_max: 50
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Delete multiple ldevs using LDEV ID range
+    # Note: Deletes all ldevs from start_ldev_id to end_ldev_id
+    #########################################################################################################
+    - name: Delete multiple ldevs using LDEV ID range
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          start_ldev_id: 200
+          end_ldev_id: 205
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################################
+    # Task Name : Force delete multiple ldevs using LDEV ID range
+    # Note: Removes ldevs from hostgroups before deleting
+    #########################################################################################################
+    - name: Force delete multiple ldevs using LDEV ID range
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          start_ldev_id: 210
+          end_ldev_id: 215
+          force: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    # ###############################################################################
+    # Task Name : Create multiple ldevs with sequential naming using a resource group
+    # ###############################################################################
+    - name: Create multiple ldevs with sequential naming using a resource group
+      hitachivantara.vspone_block.vsp.hv_ldev_bulk:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          pool_id: 0
+          size: "400MB"
+          number_of_ldevs: 2
+          resource_group_id: 10
+          names:
+            base_name: "ansible-auto-volume"
+            start_number: 1
+            number_of_digits: 3
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

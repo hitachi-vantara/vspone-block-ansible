@@ -1,0 +1,53 @@
+---
+# ###################################################################
+# Default variables for hv_vsp_create_primary_and_secondary_quroum_disk role
+# ###################################################################
+
+# Connection information for the primary storage (Mandatory)
+# Example:
+# hv_vsp_create_primary_and_secondary_quorum_disk_primary_storage_connection:
+#   address: "192.168.1.100"
+#   username: "admin"
+#   password: "password"
+hv_vsp_create_primary_and_secondary_quorum_disk_primary_storage_connection: {}
+# Connection information for the secondary storage (Mandatory)
+# Example:
+# hv_vsp_create_primary_and_secondary_quorum_disk_secondary_storage_connection:
+#   address: "192.168.1.101"
+#   username: "admin"
+#   password: "password"
+hv_vsp_create_primary_and_secondary_quorum_disk_secondary_storage_connection: {}
+# Connection information for the storage provider for the quorum disk (Mandatory)
+# Example:
+# hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_storage_connection:
+#   address: "192.168.1.102"
+#   username: "admin"
+#   password: "password"
+hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_storage_connection: {}
+# Host groups of the storage provider for the quorum disk (Mandatory)
+# Type: list of host group input object
+# Example:
+# hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_storage_host_groups:
+#   - host_group_name: "HG_001"
+#     port: "CL1-A"
+#   - host_group_name: "HG_002"
+#     port: "CL1-B"
+hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_storage_host_groups: []
+# Quorum disk id (Optional)
+# Note: Return error if the quorum id is already defined
+# Example:
+# id: 100
+hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_id:
+# LDEV ID for the external volume in the primary storage (Optional)
+# Example:
+# hv_vsp_create_primary_and_secondary_quorum_disk_primary_ldev_id: 1000
+hv_vsp_create_primary_and_secondary_quorum_disk_primary_ldev_id:
+# LDEV ID for the external volume in the secondary storage (Optional)
+# Example:
+# hv_vsp_create_primary_and_secondary_quorum_disk_secondary_ldev_id: 2000
+hv_vsp_create_primary_and_secondary_quorum_disk_secondary_ldev_id:
+hv_vsp_create_primary_and_secondary_quorum_disk_external_pool_id: 0 # Pool ID for the external volume, default is 0
+
+hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_size: "12300MB" # 12300MB in bytes
+hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_ldev_id: 1 # LDEV ID for the quorum disk, if not provided, it will be created with free LDEV ID from storage provider
+hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_ldev_capacity_savings: null # Capacity saving option for the quorum disk, options are "compression", "deduplication", "compression_and_deduplication", or "" for none

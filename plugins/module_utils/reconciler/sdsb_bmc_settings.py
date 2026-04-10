@@ -5,6 +5,7 @@ try:
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from ..common.hv_constants import StateValue
+    from ..common.sdsb_errors import SdsbRestApiError
     from ..message.sdsb_bmc_connection_msgs import SDSBBmcConnectionValidationMsg
     from ..message.sdsb_storage_node_msgs import SDSBStorageNodeValidationMsg
 except ImportError:
@@ -14,6 +15,7 @@ except ImportError:
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from common.hv_constants import StateValue
+    from common.sdsb_errors import SdsbRestApiError
     from message.sdsb_bmc_connection_msgs import SDSBBmcConnectionValidationMsg
     from message.sdsb_storage_node_msgs import SDSBStorageNodeValidationMsg
 
@@ -82,7 +84,7 @@ class SDSBBmcSettingsReconciler:
                 if "HTTP Error 404: Not Found" in str(e):
                     raise ValueError(SDSBStorageNodeValidationMsg.WRONG_NODE_ID.value)
                 else:
-                    raise Exception(e)
+                    raise SdsbRestApiError(e)
 
         if spec.id is None:
             raise ValueError(

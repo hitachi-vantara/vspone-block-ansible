@@ -28,19 +28,18 @@ class SDSBDrivesReconciler:
 
     @log_entry_exit
     def reconcile_drive(self, spec=None, state=None):
-        msg = ""
         try:
             if state == StateValue.PRESENT:
                 resp_data = self.control_locator_led(spec)
-                msg = "Successfully completed the operation."
+                spec.comments = SDSBDriveValidationMsg.OPERATION_SUCCESS.value
             elif state == StateValue.ABSENT:
                 resp_data = self.remove_drive(spec)
-                msg = "Removed drive successfully."
-            return resp_data, msg
+                spec.comments = SDSBDriveValidationMsg.REMOVE_DRIVE_SUCCESS.value
+            return resp_data
         except Exception as e:
             if "Could not find the drive with id" in str(e):
-                msg = str(e)
-                return None, msg
+                spec.comments = str(e)
+                return None
             else:
                 raise e
 
@@ -48,24 +47,24 @@ class SDSBDrivesReconciler:
     def remove_drive(self, spec):
         drive = self.provisioner.get_drive_by_id(spec.id)
         if drive is None:
-            raise ValueError(
-                SDSBDriveValidationMsg.DRIVE_NOT_FOUND.value.format(spec.id)
-            )
+            spec.comments = SDSBDriveValidationMsg.DRIVE_NOT_FOUND.value.format(spec.id)
+            return None
+
         drive_id = self.provisioner.remove_drive(spec.id)
         logger.writeDebug("RC:reconcile_drive:drive={}", drive_id)
         if drive_id:
             self.connection_info.changed = True
             return self.provisioner.get_drive_by_id(drive_id)
         else:
-            raise ValueError(SDSBDriveValidationMsg.REMOVE_DRIVE_OPERATION_FAILED.value)
+            spec.comments = SDSBDriveValidationMsg.REMOVE_DRIVE_OPERATION_FAILED.value
+            return None
 
     @log_entry_exit
     def control_locator_led(self, spec):
         drive = self.provisioner.get_drive_by_id(spec.id)
         if drive is None:
-            raise ValueError(
-                SDSBDriveValidationMsg.DRIVE_NOT_FOUND.value.format(spec.id)
-            )
+            spec.comments = SDSBDriveValidationMsg.DRIVE_NOT_FOUND.value.format(spec.id)
+            return None
         if not self.is_control_locator_led_operation_needed(
             drive, spec.should_drive_locator_led_on
         ):
@@ -78,7 +77,8 @@ class SDSBDrivesReconciler:
             self.connection_info.changed = True
             return self.provisioner.get_drive_by_id(drive_id)
         else:
-            raise ValueError(SDSBDriveValidationMsg.LED_DRIVE_OPERATION_FAILED.value)
+            spec.comments = SDSBDriveValidationMsg.LED_DRIVE_OPERATION_FAILED.value
+            return None
 
     @log_entry_exit
     def is_control_locator_led_operation_needed(

@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example :  Global Active Device Pair (GAD) Playbook
-####################################################################
+# ###################################################################
 - name: GAD - Global Active Device Pair Management
   hosts: localhost
   gather_facts: false
@@ -20,12 +20,12 @@
       password: "{{ vault_secondary_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Create GAD pair with single server configuration
     # Execution of the following task is not supported while any target
     # storage system resources are locked.
     # All resources must be unlocked prior to execution.
-    ####################################################################
+    # ###################################################################
     - name: Create GAD pair
       hitachivantara.vspone_block.vsp.hv_gad:
         connection_info: "{{ connection_info }}"
@@ -39,11 +39,11 @@
           secondary_pool_id: 1
           secondary_hostgroups:
             - name: "test"
-              port: "CL1-A"
+              port_id: "CL1-A"
               enable_preferred_path: false
               lun_id: 1
           quorum_disk_id: 1
-          mu_number: 4
+          mirror_unit_number: 4
       register: result
 
     - name: Debug the result variable
@@ -66,18 +66,19 @@
           copy_pair_name: "copy_pair_name_2"
           primary_volume_id: 6
           secondary_pool_id: 1
+          copy_pace: 10
           secondary_hostgroups:
             - name: "test"
-              port: "CL1-A"
+              port_id: "CL1-A"
               enable_preferred_path: false
               lun_id: 1
           primary_hostgroups:
             - name: "test"
-              port: "CL1-A"
+              port_id: "CL1-A"
               enable_preferred_path: false
           quorum_disk_id: 1
           allocate_new_consistency_group: false
-          mu_number: 4
+          mirror_unit_number: 4
       register: result
 
     - name: Debug the result variable
@@ -103,18 +104,18 @@
           secondary_pool_id: 1
           secondary_hostgroups:
             - name: "test"
-              port: "CL1-A"
+              port_id: "CL1-A"
               enable_preferred_path: false
               lun_id: 1
           primary_hostgroups:
             - name: "test"
-              port: "CL1-A"
+              port_id: "CL1-A"
               enable_preferred_path: false
           primary_resource_group_name: "primary_resource_group_1"
           quorum_disk_id: 3
           set_alua_mode: false
           allocate_new_consistency_group: false
-          mu_number: 4
+          mirror_unit_number: 4
       register: result
 
     - name: Debug the result variable
@@ -141,9 +142,9 @@
           secondary_pool_id: 0
           secondary_hostgroups:
             - name: "hg_5242"
-              port: CL2-B
+              port_id: "CL2-B"
             - name: "hg_1"
-              port: "CL2-B"
+              port_id: "CL2-B"
       register: result
 
     - name: Debug result
@@ -198,7 +199,7 @@
           secondary_pool_id: 1
           secondary_iscsi_targets:
             - name: "test"
-              port: "CL1-A"
+              port_id: "CL1-A"
               enable_preferred_path: false
               lun_id: 1
           quorum_disk_id: 1

@@ -7,7 +7,7 @@ class SDSSnapShotsMsgs(Enum):
     SNAPSHOT_VOLUME_OPERATION_TYPE = "If a snapshot volume is specified, operation_type must be provided to change the status."
     MASTER_VOLUME_NAME_NOT_FOUND = "Master volume with name {} not found."
     SNAPSHOT_VOLUME_NAME_NOT_FOUND = "Snapshot volume with name {} not found."
-    SNAPSHOT_NOT_FOUND = "Given Snapshot details not found."
+    SNAPSHOT_NOT_FOUND = "No existing snapshot found for spec."
     VPS_NAME_NOT_FOUND = "VPS with name {} not found."
     SNAPSHOT_VOLUME_NOT_FOUND = "Snapshots volume with master_volume_id {} not found."
     MASTER_VOLUME_NAME_AND_ID = (

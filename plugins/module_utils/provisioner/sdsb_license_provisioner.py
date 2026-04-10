@@ -21,8 +21,10 @@ class SDSBLicenseProvisioner:
         return self.gateway.get_license_setting()
 
     @log_entry_exit
-    def modify_license_setting(self, warning_threshold_setting):
-        return self.gateway.modify_license_setting(warning_threshold_setting)
+    def modify_license_setting(self, spec):
+        return self.gateway.modify_license_setting(
+            spec.warning_threshold_setting, spec.allow_over_capacity
+        )
 
     @log_entry_exit
     def get_licenses(self, spec=None):
@@ -31,6 +33,7 @@ class SDSBLicenseProvisioner:
                 return self.gateway.get_license_by_id(spec.id)
             except Exception as e:
                 logger.writeException(e)
+                spec.comments = str(e)
                 return None
         response = self.gateway.get_licenses(spec)
         return response

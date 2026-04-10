@@ -83,7 +83,7 @@ class VSPRemoteCopyGroupsDirectGateway:
             spec.secondary_storage_serial_number
         )
         logger.writeDebug(f"GW:remote_storage_device_id={remote_storage_device_id}")
-        remote_connection_info = spec.remote_connection_info
+        remote_connection_info = spec.secondary_connection_info
         remote_connection_manager = VSPConnectionManager(
             remote_connection_info.address,
             remote_connection_info.username,
@@ -141,7 +141,7 @@ class VSPRemoteCopyGroupsDirectGateway:
             spec.secondary_storage_serial_number
         )
         logger.writeDebug(f"GW:remote_storage_device_id={remote_storage_device_id}")
-        remote_connection_info = spec.remote_connection_info
+        remote_connection_info = spec.secondary_connection_info
         remote_connection_manager = VSPConnectionManager(
             remote_connection_info.address,
             remote_connection_info.username,

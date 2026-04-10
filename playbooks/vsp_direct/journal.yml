@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example :  Journal  Playbook
-####################################################################
+# ###################################################################
 - name: Journal  Module
   hosts: localhost
   gather_facts: false
@@ -16,9 +16,9 @@
       username: "{{ vault_storage_username }}"
       password: "{{ vault_storage_secret }}"
   tasks:
-    ####################################################################
-    # Task 1 : Create a Journal  using required details
-    ####################################################################
+    # ###################################################################
+    # Task Name : Create a Journal using required details
+    # ###################################################################
     - name: Create a Journal  using required details
       hitachivantara.vspone_block.vsp.hv_journal:
         connection_info: "{{ connection_info }}"
@@ -33,7 +33,7 @@
         var: result
 
     ####################################################################
-    # Task 2 : Update a Journal  using more details
+    # Task Name : Update a Journal  using more details
     ####################################################################
     - name: Update a Journal  using other details
       hitachivantara.vspone_block.vsp.hv_journal:
@@ -45,7 +45,7 @@
           is_cache_mode_enabled: true
           mp_blade_id: 0
           mirror_unit_number: 0
-          copy_pace: "MEDIUM"
+          copy_pace: 3
           path_blockade_watch_in_minutes: 10
       register: result
 
@@ -54,7 +54,7 @@
         var: result
 
     ####################################################################
-    # Task 3 : Expand Journal
+    # Task Name : Expand Journal
     ####################################################################
     - name: Expand Journal
       hitachivantara.vspone_block.vsp.hv_journal:
@@ -70,7 +70,7 @@
         var: result
 
     ####################################################################
-    # Task 4 : Shrink Journal
+    # Task Name : Shrink Journal
     ####################################################################
     - name: Shrink Journal
       hitachivantara.vspone_block.vsp.hv_journal:
@@ -86,7 +86,7 @@
         var: result
 
     ####################################################################
-    # Task 5 : Delete Journal  by ID
+    # Task Name : Delete Journal  by ID
     ####################################################################
     - name: Delete Journal  by ID
       hitachivantara.vspone_block.vsp.hv_journal:

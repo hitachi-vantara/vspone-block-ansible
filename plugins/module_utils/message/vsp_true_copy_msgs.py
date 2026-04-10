@@ -130,3 +130,32 @@ class VSPTrueCopyValidateMsg(Enum):
         "Both secondary_hostgroups and secondary_hostgroup are specified. "
         "Use secondary_hostgroups only, secondary_hostgroup is there for backward compatibility."
     )
+    NO_PROVISIONED_SECONDARY_VOLUME_FOUND = (
+        "Could not find provisioned_secondary_volume_id {}."
+    )
+    SEC_VOLUME_CAPACITY_NOT_MATCH = (
+        "Provisioned secondary volume capacity {} does not match the primary volume capacity {}."
+        "Please ensure the provisioned secondary volume has the same capacity as the primary volume."
+    )
+    NO_TRUE_COPY_PAIR_FOUND = (
+        "Could not find the TrueCopy pair associated with copy_pair_name {}."
+    )
+    TRUE_COPY_PAIR_AND_SVOL_DELETED = "The TrueCopy pair {} and the secondary volume {} have been deleted successfully."
+    TRUE_COPY_PAIR_DELETED = "The TrueCopy pair {} has been deleted successfully."
+    TC_PAIR_ALREADY_EXISTS = "TrueCopy pair {} already exists."
+    GAD_PAIR_ALREADY_EXISTS = "GAD pair {} already exists."
+    NO_LOCAL_DEVICE_NAME_FOUND = "Incorrect local_device_group_name for existing copy_group {}. Provide correct existing value {}."
+    NO_REMOTE_DEVICE_NAME_FOUND = "Incorrect remote_device_group_name for existing copy_group {}. Provide correct existing value {}."
+    TRUE_COPY_PAIR_CREATED = "The TrueCopy pair {} has been created successfully."
+    PAIR_ALREADY_SPLIT = (
+        "TrueCopy pair with copy_pair_name {} is already a split pair. "
+        "Split is not needed."
+    )
+    PAIR_SPLIT = "The TrueCopy pair {} has been split successfully."
+    PAIR_ALREADY_SPLIT_AND_SWAPPED = (
+        "TrueCopy pair with copy_pair_name {} is already a split and swapped pair. "
+        "Swap split is not needed."
+    )
+    PAIR_SWAP_SPLIT = "The TrueCopy pair {} has been swap split successfully."
+    PAIR_RESIZED = "The TrueCopy pair {} has been resized successfully."
+    TC_BATCH_CREATION_ERROR = "Error occurred while creating TrueCopy pair for volume {} and secondary_volume_id = {}."

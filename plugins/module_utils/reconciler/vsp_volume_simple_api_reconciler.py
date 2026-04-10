@@ -9,6 +9,7 @@ try:
         VSPVolumeSimpleApiProvisioner,
     )
     from ..common.hv_constants import StateValue
+    from ..message.vsp_lun_msgs import VSPVolValidationMsg
 
 except ImportError:
     from common.ansible_common import (
@@ -19,6 +20,7 @@ except ImportError:
         VSPVolumeSimpleApiProvisioner,
     )
     from common.hv_constants import StateValue
+    from message.vsp_lun_msgs import VSPVolValidationMsg
 
 
 class VSPVolumeSimpleAPIReconciler:
@@ -54,7 +56,11 @@ class VSPVolumeSimpleAPIReconciler:
             volume = self.provisioner.gateway.salamander_get_volume_by_id_with_details(
                 spec.volume_id
             )
-            return volume.camel_to_snake_dict() if volume else "Volume not found."
+            return (
+                volume.camel_to_snake_dict()
+                if volume
+                else VSPVolValidationMsg.VOLUME_NOT_FOUND.value.format(spec.volume_id)
+            )
         else:
             return self.provisioner.volume_facts_request_calls(
                 spec

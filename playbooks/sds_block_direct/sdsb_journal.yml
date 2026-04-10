@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Journal Playbook
-####################################################################
+# ###################################################################
 - name: Journal Management
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Creates a journal and adds a journal volume to the journal
-    ####################################################################
+    # ###################################################################
     - name: Creates a journal and adds a journal volume to the journal
       hitachivantara.vspone_block.sds_block.hv_sds_block_journal:
         connection_info: "{{ connection_info }}"

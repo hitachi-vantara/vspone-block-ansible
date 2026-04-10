@@ -1,6 +1,5 @@
 import logging
 
-
 PEGASUS_MODELS = ["VSP One B", "VSP E"]
 VCLONE_SUPPORTED_MODELS = ["VSP One B"]
 
@@ -60,13 +59,18 @@ class Endpoints(object):
     #     "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0&count=1"
     # )
     GET_FREE_LDEV_FROM_META = "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0"
-    GET_FREE_LDEVS_FROM_META = "v1/objects/ldevs?ldevOption=undefined&resourceGroupId=0"
+    GET_FREE_LDEVS_FROM_META_RG = (
+        "v1/objects/ldevs?ldevOption=undefined&resourceGroupId={}"
+    )
     GET_FREE_LDEVS_FROM_META_RES = (
         "v1/objects/ldevs?ldevOption=undefined&resourceGroupId={}&count=16384"
     )
     GET_FREE_LDEVS_FROM_META_HEAD_LDEV = "v1/objects/ldevs?ldevOption=undefined&headLdevId={}&resourceGroupId={}&count=16384"
     GET_FREE_LDEVS_FROM_META_BASIC = (
         "v1/objects/ldevs?ldevOption=undefined&headLdevId={}&count={}"
+    )
+    GET_FREE_LDEVS_FROM_META_RG_CHUNK = (
+        "v1/objects/ldevs?ldevOption=undefined&resourceGroupId={}&count={}"
     )
     GET_FREE_LDEV_MATCHING_PVOL = (
         "v1/objects/ldevs?ldevOption=undefined&count=1&headLdevId={}"

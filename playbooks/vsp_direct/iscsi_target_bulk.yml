@@ -1,0 +1,275 @@
+---
+# ###################################################################
+# Example : iSCSI Target Bulk Playbook
+# ###################################################################
+- name: ISCSI Target Bulk Module
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+  tasks:
+    # ###################################################################
+    # Task Name : Create multiple iscsi targets
+    # ###################################################################
+    - name: Create multiple iscsi targets
+      hitachivantara.vspone_block.vsp.hv_iscsi_target_bulk:
+        connection_info: "{{ connection_info }}"
+        state: present
+        spec:
+          name: "rd-server-0324"
+          port_ids: ["CL1-C", "CL2-C"]
+          host_mode: "LINUX"
+          host_mode_options: [54, 63]
+          iqn_initiators:
+            - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254a
+              nickname: "nickname_1"
+            - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
+              nickname: "nickname_2"
+          lun_paths:
+            - lun: 5
+              ldev: 5150
+            - lun: 6
+              ldev: 5153
+          chap_users:
+            - chap_user_name: user1
+              chap_secret: Secret123456
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ######################################################################################################
+    # Task Name : Update host mode, host mode options and release host reserve for multiple iscsi targets
+    ######################################################################################################
+    - name: Update host mode, host mode options and release host reserve for multiple iscsi targets
+      hitachivantara.vspone_block.vsp.hv_iscsi_target_bulk:
+        connection_info: "{{ connection_info }}"
+        state: updated
+        spec:
+          name: "rd-server-0324"
+          port_ids: ["CL1-C", "CL2-C"]
+          host_mode: "LINUX"
+          host_mode_options: [54, 63, 94]
+          should_release_host_reserve: true
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Add IQN initiators to multiple iscsi targets
+    ####################################################################
+    - name: Add iqn initiators to multiple iscsi targets
+      hitachivantara.vspone_block.vsp.hv_iscsi_target_bulk:
+        connection_info: "{{ connection_info }}"
+        state: added
+        spec:
+          name: "rd-server-0324"
+          port_ids: ["CL1-C", "CL2-C"]
+          iqn_initiators:
+            - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254a
+              nickname: "nickname_1"
+            - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
+              nickname: "nickname_2"
+            - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254c
+              nickname: "nickname_3"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Remove IQN initiators from multiple iscsi targets
+    ####################################################################
+    - name: Remove iqn initiators from multiple iscsi targets
+      hitachivantara.vspone_block.vsp.hv_iscsi_target_bulk:
+        connection_info: "{{ connection_info }}"
+        state: removed
+        spec:
+          name: "rd-server-0324"
+          port_ids: ["CL1-C", "CL2-C"]
+          iqn_initiators:
+            - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254c
+              nickname: "nickname_3"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Add LUN paths to multiple iscsi targets
+    ####################################################################
+    - name: Add LUN paths to multiple iscsi targets
+      hitachivantara.vspone_block.vsp.hv_iscsi_target_bulk:
+        connection_info: "{{ connection_info }}"
+        state: added
+        spec:
+          name: "rd-server-0324"
+          port_ids: ["CL1-C", "CL2-C"]
+          lun_paths:
+            - lun: 5
+              ldev: 5150
+            - lun: 6
+              ldev: 5153
+            - lun: 7
+              ldev: 5154
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Add CHAP users to multiple iscsi targets
+    ####################################################################
+    - name: Add CHAP users to multiple iscsi targets
+      hitachivantara.vspone_block.vsp.hv_iscsi_target_bulk:
+        connection_info: "{{ connection_info }}"
+        state: added
+        spec:
+          name: "rd-server-0324"
+          port_ids: ["CL1-C", "CL2-C"]
+          chap_users:
+            - chap_user_name: user1
+              chap_secret: Secret123456
+            - chap_user_name: user2
+              chap_secret: Secret123456
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Remove CHAP users from multiple iscsi targets
+    ####################################################################
+    - name: Remove CHAP users from multiple iscsi targets
+      hitachivantara.vspone_block.vsp.hv_iscsi_target_bulk:
+        connection_info: "{{ connection_info }}"
+        state: removed
+        spec:
+          name: "rd-server-0324"
+          port_ids: ["CL1-C", "CL2-C"]
+          chap_users:
+            - chap_user_name: user1
+            - chap_user_name: user2
+
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #######################################################################################
+    # Task Name : Add IQN initiators, LUN paths and CHAP users to multiple iscsi targets
+    #######################################################################################
+    - name: Add iqn initiators, LUN paths and CHAP users to multiple iscsi targets
+      hitachivantara.vspone_block.vsp.hv_iscsi_target_bulk:
+        connection_info: "{{ connection_info }}"
+        state: added
+        spec:
+          name: "rd-server-0324"
+          port_ids: ["CL1-C", "CL2-C"]
+          iqn_initiators:
+            - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254a
+              nickname: "nickname_1"
+            - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
+              nickname: "nickname_2"
+            - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254c
+              nickname: "nickname_3"
+          lun_paths:
+            - lun: 5
+              ldev: 5150
+            - lun: 6
+              ldev: 5153
+            - lun: 7
+              ldev: 5154
+          chap_users:
+            - chap_user_name: user1
+              chap_secret: Secret123456
+            - chap_user_name: user2
+              chap_secret: Secret123456
+            - chap_user_name: user3
+              chap_secret: Secret123456
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ##########################################################################################
+    # Task Name : Remove IQN initiators, LUN paths and CHAP users from multiple iscsi targets
+    ##########################################################################################
+    - name: Remove iqn initiators, LUN paths and CHAP users from multiple iscsi targets
+      hitachivantara.vspone_block.vsp.hv_iscsi_target_bulk:
+        connection_info: "{{ connection_info }}"
+        state: removed
+        spec:
+          name: "rd-server-0324"
+          port_ids: ["CL1-C", "CL2-C"]
+          iqn_initiators:
+            - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254b
+              nickname: "nickname_2"
+            - iqn: iqn.1993-08.org.debian.iscsi:01:107dc7e4254c
+              nickname: "nickname_3"
+          lun_paths:
+            - lun: 6
+              ldev: 5153
+            - lun: 7
+              ldev: 5154
+          chap_users:
+            - chap_user_name: user2
+            - chap_user_name: user3
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    # ###################################################################
+    # Task Name : Delete multiple iscsi targets
+    # ###################################################################
+    - name: Delete multiple iscsi targets
+      hitachivantara.vspone_block.vsp.hv_iscsi_target_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          name: "rd-server-0324"
+          port_ids: ["CL1-C", "CL2-C"]
+          should_delete_all_ldevs: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    # ###################################################################
+    # Task Name : Delete multiple iscsi targets without deleting voluems
+    # ###################################################################
+    - name: Delete multiple iscsi targets without deleting voluems
+      hitachivantara.vspone_block.vsp.hv_iscsi_target_bulk:
+        connection_info: "{{ connection_info }}"
+        state: "absent"
+        spec:
+          name: "rd-server-0324"
+          port_ids: ["CL1-C", "CL2-C"]
+          should_delete_all_ldevs: false
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

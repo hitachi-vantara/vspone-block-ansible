@@ -5,12 +5,14 @@ try:
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
     from ..common.hv_constants import StateValue
+    from ..message.sdsb_encryption_key_msgs import SDSBEncryptionKeyValidationMsg
 
 except ImportError:
     from provisioner.sdsb_encryption_key_provisioner import SDSBEncryptionKeyProvisioner
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
     from common.hv_constants import StateValue
+    from message.sdsb_encryption_key_msgs import SDSBEncryptionKeyValidationMsg
 
 logger = Log()
 
@@ -33,7 +35,9 @@ class SDSBEncryptionKeyReconciler:
         handler = state_handlers.get(state)
         if handler:
             return handler(spec)
-        raise Exception(f"Unsupported state: {state}")
+        raise ValueError(
+            SDSBEncryptionKeyValidationMsg.UNSUPPORTED_STATE.value.format(state)
+        )
 
     def _handle_create_encryption_key(self, spec):
         try:
@@ -42,14 +46,17 @@ class SDSBEncryptionKeyReconciler:
             response = self.provisioner.create_encryption_key(spec)
             self.connection_info.changed = True
             if response != "encryption-keys":
-                return "Some thing went wrong, please check the log file."
+                return SDSBEncryptionKeyValidationMsg.OPERATION_FAILED.value
             else:
                 en_keys_after = self.get_encryption_keys()
                 id_set_after = {item["id"] for item in en_keys_after}
                 new_id_set = id_set_after - id_set_before
                 return self.get_encryption_keys_for_a_set(new_id_set)
         except Exception as e:
-            return f"Could not create Encryption key. Cause = {str(e)}"
+            err_msg = str(e)
+            return SDSBEncryptionKeyValidationMsg.NOT_ABLE_TO_CREATE_KEY.value.format(
+                err_msg
+            )
 
     def get_encryption_keys_for_a_set(self, id_set):
         ret_list = []
@@ -63,11 +70,15 @@ class SDSBEncryptionKeyReconciler:
             self.provisioner.get_encryption_key(spec.id)
             self.provisioner.delete_encryption_key(spec.id)
             self.connection_info.changed = True
-            return f"Encryption key {spec.id} deleted successfully."
+            return SDSBEncryptionKeyValidationMsg.DELETE_KEY_SUCCESS.value.format(
+                spec.id
+            )
         except Exception as e:
             if "404" in str(e) or "Not Found" in str(e):
                 self.connection_info.changed = False
-                return f"Encryption key {spec.id} does not exist."
+                return SDSBEncryptionKeyValidationMsg.KEY_DOSE_NOT_EXIST.value.format(
+                    spec.id
+                )
 
     @log_entry_exit
     def get_encryption_keys(self):

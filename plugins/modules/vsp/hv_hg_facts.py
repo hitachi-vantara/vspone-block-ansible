@@ -52,18 +52,19 @@ options:
           /Get hostgroup details using hostgroup name tasks.
         type: str
         required: false
-      ports:
+      port_ids:
         description: Filters the host groups to those associated with the specified Storage FC ports.
-          Required for the Get host groups of specific ports/Get host groups of specific ports with the same host group name
-          /Get host groups of specific ports, including WWNs and LDEVs/Get hostgroup details using hostgroup number
+          Required for the Get host groups of specific port_ids/Get host groups of specific port_ids with the same host group name
+          /Get host groups of specific port_ids, including WWNs and LDEVs/Get hostgroup details using hostgroup number
           /Get hostgroup details using hostgroup name/Get hostgroup details with specific LUN number tasks.
         type: list
         required: false
         elements: str
+        aliases: [ports]
       query:
         description: Determines what information to return about the host groups.
           Can specify 'wwns' for HBA WWNs, 'ldevs' for mapped LDEVs, or both.
-          Required for the Get host groups of specific ports, including WWNs and LDEVs task.
+          Required for the Get host groups of specific port_ids, including WWNs and LDEVs task.
         type: list
         elements: str
         required: false
@@ -96,7 +97,7 @@ EXAMPLES = """
       username: "dummy_user"
       password: "dummy_password"
     spec:
-      ports: ['CL1-A', 'CL2-B']
+      port_ids: ['CL1-A', 'CL2-B']
 """
 
 RETURN = """

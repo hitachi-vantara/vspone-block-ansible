@@ -216,8 +216,12 @@ class VSPStorageSystemDirectGateway:
     def get_total_efficiency_of_storage_system(self):
         # logger = Log()
         endPoint = Endpoints.GET_TOTAL_EFFICIENCY
-        totalEfficiency = self.connectionManager.get(endPoint)
-        return TotalEfficiency(**totalEfficiency)
+        try:
+            totalEfficiency = self.connectionManager.get(endPoint)
+            return TotalEfficiency(**totalEfficiency)
+        except Exception as e:
+            # If the endpoint is not available, return None
+            return None
 
     @log_entry_exit
     def get_journal_pools(self, journal_info_query):

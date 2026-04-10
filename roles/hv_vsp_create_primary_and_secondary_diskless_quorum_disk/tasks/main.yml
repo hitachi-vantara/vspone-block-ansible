@@ -1,0 +1,244 @@
+---
+# ###################################################################
+# Tasks for hv_vsp_create_primary_and_secondary_diskless_quorum_disk role
+# ###################################################################
+- name: Check if user has provided valid quorum_disk_id
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_is_valid: >-
+      {{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id is defined
+         and hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id is not none
+         and hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id | string | trim | length > 0 }}
+
+- name: Set quorum_disk_id to null if not valid
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id:
+  when: not (hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_is_valid | bool)
+
+- name: Convert quorum_disk_id to integer if valid
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id | int }}"
+  when: hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_is_valid | bool
+
+- name: Display provided quorum_disk_id
+  ansible.builtin.debug:
+    msg:
+      - "quorum_disk_id: {{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id }}"
+      - "quorum_disk_id_is_valid: {{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_is_valid }}"
+
+- name: Get Storage System facts of primary storage for quorum disk
+  hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
+    connection_info: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_connection }}"
+  register: hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_info
+
+- name: Extract storage model from primary storage facts
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_model: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_info.ansible_facts.storage_system.model
+      | regex_replace(' ', '_') | upper }}"
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_model_raw: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_info.ansible_facts.storage_system.model
+      }}"
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_serial: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_info.ansible_facts.storage_system.serial_number
+      }}"
+
+# query secondary storage information
+- name: Get Storage System facts of secondary storage for quorum disk
+  hitachivantara.vspone_block.vsp.hv_storagesystem_facts:
+    connection_info: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_connection }}"
+  register: hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_info
+
+- name: Extract storage model from secondary storage facts
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_model: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_info.ansible_facts.storage_system.model
+      | regex_replace(' ', '_') }}"
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_model_raw: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_info.ansible_facts.storage_system.model
+      }}"
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_serial: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_info.ansible_facts.storage_system.serial_number
+      }}"
+
+- name: Determine primary storage type based on model
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_type: >-
+      {%- set model_part = hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_model_raw.split('VSP')[1].strip() if 'VSP' in hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_model_raw
+      else hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_model_raw -%}
+      {%- if model_part.startswith('5') -%}
+      R9{%- elif model_part in ['G1000', 'G1500', 'F1500'] -%}
+      R8{%- elif model_part in ['B85'] -%}
+      RH20ETP{%- else -%}
+      M8{%- endif -%}
+
+- name: Determine secondary storage type based on model
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_type: >-
+      {%- set model_part = hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_model_raw.split('VSP')[1].strip() if 'VSP' in hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_model_raw
+      else hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_model_raw -%}
+      {%- if model_part.startswith('5') -%}
+      R9{%- elif model_part in ['G1000', 'G1500', 'F1500'] -%}
+      R8{%- elif model_part in ['B85'] -%}
+      RH20ETP{%- else -%}
+      M8{%- endif -%}
+
+###########################################################################################
+#### Create quorum disk
+###########################################################################################
+
+####################################################################
+# Task: Get quorum disk facts from both storage systems
+####################################################################
+- name: Retrieve information about all Quorum Disks from primary storage
+  hitachivantara.vspone_block.vsp.hv_quorum_disk_facts:
+    connection_info: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_connection }}"
+  register: hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_quorum_facts
+
+- name: Retrieve information about all Quorum Disks from secondary storage
+  hitachivantara.vspone_block.vsp.hv_quorum_disk_facts:
+    connection_info: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_connection }}"
+  register: hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_quorum_facts
+
+####################################################################
+# Task: Check if quorum disk already exists between storages
+####################################################################
+
+- name: Find existing quorum disk on primary with matching secondary serial
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_primary_quorum: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_quorum_facts.ansible_facts.quorum_disk
+      | default([]) | selectattr('remote_serial_number', 'defined') | selectattr('remote_serial_number', 'equalto', hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_serial
+      | string) | selectattr('status', 'equalto', 'NORMAL') | list | first | default(none) }}"
+
+- name: Find existing quorum disk on secondary with matching primary serial
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_secondary_quorum: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_quorum_facts.ansible_facts.quorum_disk
+      | default([]) | selectattr('remote_serial_number', 'defined') | selectattr('remote_serial_number', 'equalto', hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_serial
+      | string) | selectattr('status', 'equalto', 'NORMAL') | list | first | default(none) }}"
+
+- name: Set existing quorum disk ID if found
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_quorum_id: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_primary_quorum.quorum_disk_id
+      if hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_primary_quorum is not none else (hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_secondary_quorum.quorum_disk_id
+      if hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_secondary_quorum is not none else none) }}"
+
+- name: Display existing quorum disk information if found
+  ansible.builtin.debug:
+    msg: "Existing quorum disk found with ID {{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_quorum_id }} between primary ({{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_serial
+      }}) and secondary ({{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_serial }}) storage"
+
+- name: Set existing quorum disk ID
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_computed: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_quorum_id
+      | int }}"
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_is_create_required: false
+  when: hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_quorum_id is not none
+
+####################################################################
+# Task: Get available quorum disk IDs
+####################################################################
+
+- name: Extract existing quorum disk IDs from primary storage
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_existing_quorum_ids: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_quorum_facts.ansible_facts.quorum_disk
+      | default([]) | map(attribute='quorum_disk_id') | list }}"
+
+  when:
+    - not (hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_is_valid | bool) or
+      hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_quorum_id is not none
+
+- name: Extract existing quorum disk IDs from secondary storage
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_existing_quorum_ids: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_quorum_facts.ansible_facts.quorum_disk
+      | default([]) | map(attribute='quorum_disk_id') | list }}"
+  when:
+    - not (hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_is_valid | bool) or
+      hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_quorum_id is not none
+
+- name: Find available quorum disk IDs for both storages (0-31)
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_available_primary_quorum_ids: "{{ range(0, 32) | list | difference(hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_existing_quorum_ids)
+      }}"
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_available_secondary_quorum_ids: "{{ range(0, 32) | list | difference(hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_existing_quorum_ids)
+      }}"
+  when:
+    - not (hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_is_valid | bool) or
+      hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_quorum_id is not none
+
+- name: Find common available quorum disk IDs
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_common_available_quorum_ids: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_available_primary_quorum_ids
+      | intersect(hv_vsp_create_primary_and_secondary_diskless_quorum_disk_available_secondary_quorum_ids) }}"
+  when:
+    - not (hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_is_valid | bool) or
+      hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_quorum_id is not none
+
+- name: Assert that at least one common available quorum disk ID exists
+  ansible.builtin.assert:
+    that:
+      - hv_vsp_create_primary_and_secondary_diskless_quorum_disk_common_available_quorum_ids | length > 0
+    fail_msg: |
+      No common available quorum disk IDs found between primary and secondary storage.
+      Please ensure both systems have at least one available quorum disk ID (0-31).
+  when:
+    - not (hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_is_valid | bool) or
+      hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_quorum_id is not none
+
+- name: Validate provided quorum_disk_id is available in both storages
+  ansible.builtin.assert:
+    that:
+      - hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id | int in
+        hv_vsp_create_primary_and_secondary_diskless_quorum_disk_common_available_quorum_ids
+    fail_msg: |
+      The provided quorum_disk_id ({{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id }}) is not available in both primary and secondary storage.
+      Common available IDs: {{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_common_available_quorum_ids | default([]) }}
+      Please choose a quorum_disk_id that is available on both systems.
+  when:
+    - hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_is_valid | bool
+    - hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id | int not in
+      hv_vsp_create_primary_and_secondary_diskless_quorum_disk_common_available_quorum_ids
+
+####################################################################
+# Task: Set quorum_id for consistent usage across tasks
+####################################################################
+- name: Set Need to create quorum disk
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_is_create_required: true
+  when: (hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_is_valid | bool) or
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_existing_quorum_id is none
+
+- name: Set quorum_id for consistent usage across tasks
+  ansible.builtin.set_fact:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_computed: "{{ (hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id
+      | int) if (hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_is_valid | bool) else (hv_vsp_create_primary_and_secondary_diskless_quorum_disk_common_available_quorum_ids
+      | first | int) }}"
+  when: hv_vsp_create_primary_and_secondary_diskless_quorum_disk_is_create_required | default(false) | bool
+
+# Create quorum disk on primary storage
+- name: Create quorum disk on primary storage
+  hitachivantara.vspone_block.vsp.hv_quorum_disk:
+    connection_info: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_connection }}"
+    state: present
+    spec:
+      remote_storage_serial_number: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_serial }}"
+      id: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_computed }}"
+      remote_storage_type: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_type }}"
+
+  register: hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_quorum_disk_result
+  when: hv_vsp_create_primary_and_secondary_diskless_quorum_disk_is_create_required | default(false) | bool
+
+# Create quorum disk on secondary storage
+- name: Create quorum disk on secondary storage
+  hitachivantara.vspone_block.vsp.hv_quorum_disk:
+    connection_info: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_connection }}"
+    state: present
+    spec:
+      remote_storage_serial_number: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_serial }}"
+      id: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_computed }}"
+      remote_storage_type: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_type }}"
+  register: hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_quorum_disk_result
+  when: hv_vsp_create_primary_and_secondary_diskless_quorum_disk_is_create_required | default(false) | bool
+
+- name: Generate report of created quorum disk
+  ansible.builtin.debug:
+    msg:
+      - "Quorum Disk Creation Report:"
+      - "Quorum Disk ID: {{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_computed }}"
+      - "Primary Storage Serial: {{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_serial }}"
+      - "Secondary Storage Serial: {{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_serial }}"
+      - "Primary Storage Type: {{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_type }}"
+      - "Primary Quorum Disk Result: {{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_quorum_disk_result }}"
+      - "Secondary Quorum Disk Result: {{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_quorum_disk_result }}"

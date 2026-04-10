@@ -2,6 +2,7 @@ from ..common.ansible_common import log_entry_exit
 from ..common.hv_log import (
     Log,
 )
+from ..common.vsp_errors import VspFeatureNotSupportedError
 from ..gateway.vsp_one_server_gateway import VspServerSimpleApiGateway
 from ..message.vsp_lun_msgs import VSPVolumeMSG
 from ..message.vsp_one_server_msgs import VSPOneServerMSG
@@ -102,7 +103,9 @@ class VSPServerSimpleApiProvisioner:
         self.gateway = VspServerSimpleApiGateway(connection_info)
         self.connection_info = connection_info
         if not self.gateway.is_pegasus:
-            raise Exception(VSPVolumeMSG.ONLY_SUPPORTED_ON_PEGASUS.value)
+            raise VspFeatureNotSupportedError(
+                VSPVolumeMSG.ONLY_SUPPORTED_ON_PEGASUS.value
+            )
 
     @log_entry_exit
     def create_update_server(self, spec: CreateServerSpec):

@@ -97,3 +97,9 @@ class SDSBClusterValidationMsg(Enum):
         "Successfully initiated the task to stop the storage cluster. Job ID = {}"
     )
     STOP_CLUSTER_FAILURE_MSG = "Failed to stop storage cluster. Cause = {}"
+    CONFIG_FILE_DOWNLOAD_SUCCESS = (
+        "Successfully downloaded SystemConfigurationFile.csv in the directory {}."
+    )
+    CONFIG_FILE_DOWNLOAD_FAILURE = (
+        "Failed to  downloaded SystemConfigurationFile.csv in the directory."
+    )

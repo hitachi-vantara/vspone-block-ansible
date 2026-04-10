@@ -1,7 +1,7 @@
 ---
-######################################################################################
+# #####################################################################################
 # Example : Snapshot  Playbook
-######################################################################################
+# #####################################################################################
 - name: Snapshot Pair Module
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ######################################################################################
+    # #####################################################################################
     # Task Name : Create snapshot pair
-    ######################################################################################
+    # #####################################################################################
     - name: Create snapshot pair
       hitachivantara.vspone_block.vsp.hv_snapshot:
         connection_info: "{{ connection_info }}"
@@ -62,7 +62,7 @@
         state: "split"
         spec:
           primary_volume_id: 100
-          mirror_unit_id: 1
+          mirror_unit_number: 1
       register: result
 
     - name: Debug the result variable
@@ -78,7 +78,7 @@
         state: "sync"
         spec:
           primary_volume_id: 100
-          mirror_unit_id: 1
+          mirror_unit_number: 1
       register: result
 
     - name: Debug the result variable
@@ -111,7 +111,7 @@
         state: "restore"
         spec:
           primary_volume_id: 100
-          mirror_unit_id: 5
+          mirror_unit_number: 5
       register: result
 
     - name: Debug the result variable
@@ -145,7 +145,7 @@
         state: "absent"
         spec:
           primary_volume_id: 100
-          mirror_unit_id: 5
+          mirror_unit_number: 5
       register: result
 
     - name: Debug the result variable
@@ -161,7 +161,7 @@
         state: "absent"
         spec:
           primary_volume_id: 100
-          mirror_unit_id: 5
+          mirror_unit_number: 5
           should_delete_svol: true
       register: result
 
@@ -194,7 +194,7 @@
         state: "clone"
         spec:
           primary_volume_id: 100
-          mirror_unit_id: 5
+          mirror_unit_number: 5
       register: result
 
     - name: Debug the result variable
@@ -251,7 +251,7 @@
           secondary_volume_id: -1
           pool_id: 5
           snapshot_group_name: "snapshot-group-name-1"
-          mirror_unit_id: 4
+          mirror_unit_number: 4
       register: result
 
     - name: Debug the result variable
@@ -268,7 +268,7 @@
         spec:
           primary_volume_id: 100
           secondary_volume_id: 200
-          mirror_unit_id: 1
+          mirror_unit_number: 1
       register: result
 
     - name: Debug the result variable
@@ -285,7 +285,7 @@
         spec:
           primary_volume_id: 100
           secondary_volume_id: -1
-          mirror_unit_id: 1
+          mirror_unit_number: 1
       register: result
 
     - name: Debug the result variable
@@ -302,7 +302,7 @@
         spec:
           primary_volume_id: 100
           secondary_volume_id: -1
-          mirror_unit_id: 1
+          mirror_unit_number: 1
           should_delete_svol: true
       register: result
 
@@ -339,7 +339,7 @@
         state: "present"
         spec:
           primary_volume_id: 3111
-          mirror_unit_id: 1
+          mirror_unit_number: 1
           retention_period: 30
       register: result
 
@@ -356,7 +356,7 @@
         state: "split"
         spec:
           primary_volume_id: 3111
-          mirror_unit_id: 1
+          mirror_unit_number: 1
           retention_period: 30
       register: result
 
@@ -407,7 +407,7 @@
         state: "present"
         spec:
           primary_volume_id: 1341
-          mirror_unit_id: 4
+          mirror_unit_number: 4
           operation_type: "vclone"
       register: result
 
@@ -426,7 +426,7 @@
         state: "present"
         spec:
           primary_volume_id: 1341
-          mirror_unit_id: 4
+          mirror_unit_number: 4
           operation_type: "restore"
       register: result
 

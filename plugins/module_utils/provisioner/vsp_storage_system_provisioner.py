@@ -415,8 +415,9 @@ class VSPStorageSystemProvisioner:
                         raise  # Retrow the exception
                 # Get syslog servers
                 tmp_storage_info["syslog_config"] = self.get_syslog_servers()
+                total_efficiency = self.gateway.get_total_efficiency_of_storage_system()
                 tmp_storage_info["total_efficiency"] = (
-                    self.gateway.get_total_efficiency_of_storage_system().camel_to_snake_dict()
+                    total_efficiency.camel_to_snake_dict() if total_efficiency else None
                 )
                 date_time = self.gateway.get_storage_systems_date_and_time()
                 tmp_storage_info["system_date_time"] = (

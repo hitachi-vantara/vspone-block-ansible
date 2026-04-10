@@ -16,3 +16,14 @@ class VSPShadowImagePairValidateMsg(Enum):
     PVOL_SVOL_SIZE_MISMATCH = "Primary volume and secondary volume size mismatch."
     PAIR_NOT_FOUND = "Shadow image pair not found with pair id = {}."
     PVOL_NO_HG_PRESENTATION = "Cannot create shadow image pair. Primary volume has no host group presentation."
+    NOT_REQD_PARAAMS_PROVIDED = (
+        "Either pvol and svol or copy_pair_name and copy_group_name must be provided."
+    )
+    ANOTHER_PAIR_EXISTS = (
+        "Another copy pair might already be using the specified primary volume {} and secondary volume {}. "
+        "Please verify and try again with correct copy group name and copy pair name."
+    )
+    SI_NOT_AVAILABLE = "Shadow image pair is not available."
+    PVOL_REQD_FOR_CREATE = (
+        "Primary volume ID (pvol) must be provided when creating a shadow image pair."
+    )

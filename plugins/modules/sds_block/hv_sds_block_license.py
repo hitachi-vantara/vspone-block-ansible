@@ -128,122 +128,34 @@ class SDSBLicenseManager:
             argument_spec=self.argument_spec,
             supports_check_mode=True,
         )
-
         parameter_manager = SDSBParametersManager(self.module.params)
         self.connection_info = parameter_manager.get_connection_info()
         self.state = parameter_manager.get_state()
-
-        # Get license parameters from spec
-        spec = self.module.params.get("spec", {})
-        self.license_id = spec.get("id")
-        self.key_code = spec.get("key_code")
-
-        self.logger.writeDebug(f"MOD:license:state= {self.state}")
-        self.logger.writeDebug(f"MOD:license:spec= {spec}")
-        self.logger.writeDebug(f"MOD:license:license_id= {self.license_id}")
-        if self.key_code:
-            self.logger.writeDebug(f"MOD:license:key_code= {self.key_code[:20]}...")
-
-        # Validate parameters based on state
-        if self.state == "present" and not self.key_code:
-            self.module.fail_json(msg="key_code is required when state is 'present'")
-        if self.state == "absent" and not self.license_id:
-            self.module.fail_json(msg="id is required when state is 'absent'")
-
-        # Validate key_code format if provided
-        if self.state == "present" and self.key_code:
-            self._validate_key_code(self.key_code)
-
-    def _validate_key_code(self, key_code):
-        """
-        Validate the license key code format.
-        Must be between 1 and 75 uppercase alphanumeric characters.
-        """
-        import re
-
-        # Check length
-        if not (1 <= len(key_code) <= 75):
-            self.module.fail_json(
-                msg=f"key_code must be between 1 and 75 characters. Got: {len(key_code)} characters"
-            )
-
-        # Check if it contains only uppercase alphanumeric characters
-        if not re.match(r"^[A-Z0-9]+$", key_code):
-            self.module.fail_json(
-                msg="key_code must contain only uppercase alphanumeric characters (A-Z, 0-9)"
-            )
+        self.spec = parameter_manager.get_license_spec()
 
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB License Management ===")
         registration_message = validate_ansible_product_registration()
 
-        if self.module.check_mode:
-            self.logger.writeInfo("=== Check mode: no changes will be made ===")
-            if self.state == "present":
-                result = {
-                    "changed": True,
-                    "message": "Check mode: License would be created",
-                }
-            else:
-                result = {
-                    "changed": True,
-                    "license_id": self.license_id,
-                    "message": "Check mode: License would be deleted",
-                }
-            if registration_message:
-                result["user_consent_required"] = registration_message
-            self.module.exit_json(**result)
-
-        changed = False
         result_data = {}
-
         try:
             sdsb_reconciler = SDSBLicenseReconciler(self.connection_info)
-
+            license = sdsb_reconciler.reconcile_license(self.spec, self.state)
             if self.state == "present":
-                # Create a new license
-                self.logger.writeInfo("Creating license with key code")
-                create_result = sdsb_reconciler.create_license(self.key_code)
-                self.logger.writeDebug(
-                    f"MOD:hv_sds_block_license:create_result= {create_result}"
-                )
-
-                changed = True
                 result_data = {
-                    "changed": True,
-                    "message": "License created successfully",
-                    "license": create_result,
+                    "changed": self.connection_info.changed,
+                    "license": license,
                 }
-                if create_result and isinstance(create_result, dict):
-                    if "id" in create_result:
-                        result_data["license_id"] = create_result["id"]
-
+                if license and isinstance(license, dict):
+                    if "id" in license:
+                        result_data["license_id"] = license["id"]
             elif self.state == "absent":
-                # Verify license exists before attempting to delete
-                existing_license = sdsb_reconciler.get_license(self.license_id)
-
-                if existing_license is None:
-                    self.logger.writeInfo(f"License {self.license_id} not found")
-                    result_data = {
-                        "changed": False,
-                        "license_id": self.license_id,
-                        "message": "License not found - no action taken",
-                    }
-                else:
-                    # Delete the license
-                    self.logger.writeInfo(f"Deleting license: {self.license_id}")
-                    delete_result = sdsb_reconciler.delete_license(self.license_id)
-                    self.logger.writeDebug(
-                        f"MOD:hv_sds_block_license:delete_result= {delete_result}"
-                    )
-
-                    changed = True
-                    result_data = {
-                        "changed": True,
-                        "license_id": self.license_id,
-                        "message": "License deleted successfully",
-                    }
-
+                result_data = {
+                    "changed": self.connection_info.changed,
+                    "license_id": self.spec.id,
+                }
+            if self.spec.comments:
+                result_data["message"] = self.spec.comments
         except Exception as e:
             self.logger.writeException(e)
             self.logger.writeInfo("=== End of SDSB License Management ===")

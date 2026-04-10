@@ -13,6 +13,7 @@ except ImportError:
 class SnapshotFactSpec:
     pvol: Optional[int] = None
     mirror_unit_id: Optional[int] = None
+    mirror_unit_number: Optional[int] = None
     snapshot_group_name: Optional[str] = None
     primary_volume_id: Optional[int] = None
 
@@ -28,6 +29,8 @@ class SnapshotFactSpec:
             self.primary_volume_id = normalize_ldev_id(self.primary_volume_id)
         if self.pvol:
             self.pvol = normalize_ldev_id(self.pvol)
+        if self.mirror_unit_number is not None:
+            self.mirror_unit_id = self.mirror_unit_number
 
 
 @dataclass
@@ -59,6 +62,7 @@ class SnapshotReconcileSpec:
     enable_quick_mode: Optional[bool] = False
     consistency_group_id: Optional[int] = -1
     mirror_unit_id: Optional[int] = None
+    mirror_unit_number: Optional[int] = None
     state: Optional[str] = "present"
     snapshot_group_name: Optional[str] = None
     auto_split: Optional[bool] = None
@@ -100,6 +104,8 @@ class SnapshotReconcileSpec:
             self.primary_volume_id = normalize_ldev_id(self.secondary_volume_id)
         if self.svol:
             self.svol = normalize_ldev_id(self.svol)
+        if self.mirror_unit_number is not None:
+            self.mirror_unit_id = self.mirror_unit_number
 
 
 @dataclass

@@ -4,8 +4,6 @@ from typing import List, Dict
 
 try:
     from ..common.ansible_common import log_entry_exit
-    from ..gateway.gateway_factory import GatewayFactory
-    from ..common.hv_constants import GatewayClassTypes
     from ..common.hv_log import Log
     from ..common.vsp_constants import AutomationConstants
     from ..common.vsp_constants import (
@@ -28,10 +26,9 @@ try:
     from .vsp_volume_prov import VSPVolumeProvisioner
     from .vsp_host_group_provisioner import VSPHostGroupProvisioner
     from .vsp_storage_port_provisioner import VSPStoragePortProvisioner
+    from ..gateway.vsp_snapshot_gateway import VSPHtiSnapshotDirectGateway
 
 except ImportError:
-    from gateway.gateway_factory import GatewayFactory
-    from common.hv_constants import GatewayClassTypes
     from common.hv_log import Log
     from common.vsp_constants import AutomationConstants
     from common.vsp_constants import PairStatus, VolumePayloadConst, DEFAULT_NAME_PREFIX
@@ -56,9 +53,7 @@ except ImportError:
 class VSPHtiSnapshotProvisioner:
     def __init__(self, connection_info, serial=None):
         self.logger = Log()
-        self.gateway = GatewayFactory.get_gateway(
-            connection_info, GatewayClassTypes.VSP_SNAPSHOT
-        )
+        self.gateway = VSPHtiSnapshotDirectGateway(connection_info)
         self.connection_info = connection_info
         self.vol_provisioner = VSPVolumeProvisioner(self.connection_info)
         self.hg_prov = VSPHostGroupProvisioner(self.connection_info)
@@ -296,8 +291,11 @@ class VSPHtiSnapshotProvisioner:
 
     @log_entry_exit
     def check_for_pegasus(self, ssp):
-        if self.gateway.is_pegasus() and ssp.status != PairStatus.PSUS:
-            err_msg = "For VSP One B Series, assigning VVOL to ThinImage pair requires PSUS status."
+        if self.gateway.is_pegasus() and ssp.status not in (
+            PairStatus.PSUS,
+            PairStatus.PFUS,
+        ):
+            err_msg = "For VSP One B Series, assigning VVOL to ThinImage pair requires PSUS or PFUS status."
             self.logger.writeError(err_msg)
             raise ValueError(err_msg)
 
@@ -315,7 +313,21 @@ class VSPHtiSnapshotProvisioner:
             self.gateway.assign_svol_to_snapshot(
                 spec.pvol, spec.mirror_unit_id, svol_id
             )
+            retryCount = 0
+            while retryCount < 30:
+                ssp = self.gateway.get_one_snapshot(spec.pvol, spec.mirror_unit_id)
+                if ssp.status in (
+                    PairStatus.PAIR,
+                    PairStatus.PSUS,
+                    PairStatus.PFUS,
+                    PairStatus.PFUL,
+                ):
+                    break
+                retryCount = retryCount + 1
+                self.logger.writeDebug(f"Polling for PAIR status: {retryCount}")
+                time.sleep(20)
             self.connection_info.changed = True
+
         elif (
             ssp.svolLdevId is not None
             and spec.svol is not None
@@ -327,9 +339,24 @@ class VSPHtiSnapshotProvisioner:
             if spec.should_delete_svol:
                 self.delete_svol_force(ssp)
             #  assign the new svol to the snapshot
+
             self.gateway.assign_svol_to_snapshot(
                 spec.pvol, spec.mirror_unit_id, spec.svol
             )
+
+            retryCount = 0
+            while retryCount < 30:
+                ssp = self.gateway.get_one_snapshot(spec.pvol, spec.mirror_unit_id)
+                if ssp.status in (
+                    PairStatus.PAIR,
+                    PairStatus.PSUS,
+                    PairStatus.PFUS,
+                    PairStatus.PFUL,
+                ):
+                    break
+                retryCount = retryCount + 1
+                self.logger.writeDebug(f"Polling for PAIR status: {retryCount}")
+                time.sleep(20)
             self.connection_info.changed = True
 
         if spec.retention_period is not None:
@@ -362,7 +389,7 @@ class VSPHtiSnapshotProvisioner:
             ) or "No resource exists at the specified URL. (URL" in str(e):
                 msg = (
                     f"Add retention period failed for snapshot id {snapshot_id} or group id {group_id}",
-                    "Check if the storage system is VSP One B20 and the pair status is PSUS.",
+                    "Check if the storage system is VSP One B20 and the pair status is PSUS or PFUS.",
                 )
                 self.logger.writeWarning(msg)
 
@@ -438,7 +465,7 @@ class VSPHtiSnapshotProvisioner:
                 # changed = False
                 resp = self.fill_nvm_subsystem_info_for_one_snapshot(ssp)
                 return self.fill_host_group_info_for_one_snapshot(resp)
-
+        spec.exiting_svol = True
         return self.create_snapshot_auto_svol(spec)
 
     @log_entry_exit
@@ -465,7 +492,7 @@ class VSPHtiSnapshotProvisioner:
 
             # fix uca-3157, we want to show the error message from create_snapshot
             try:
-                if port:
+                if port and not spec.exiting_svol:
                     self.vol_provisioner.delete_lun_path(port)
                 self.vol_provisioner.delete_volume(
                     svol_id, spec.is_data_reduction_force_copy
@@ -660,6 +687,7 @@ class VSPHtiSnapshotProvisioner:
         mirror_unit_id = (
             ssp.mirrorUnitId if isinstance(ssp, UAIGSnapshotInfo) else ssp.muNumber
         )
+
         enable_quick_mode = spec.enable_quick_mode or False
         resp = self.split_snapshot(
             spec.pvol,
@@ -675,12 +703,16 @@ class VSPHtiSnapshotProvisioner:
     def delete_snapshot(
         self, pvol: int, mirror_unit_id: int, should_delete_svol: bool = False
     ):
+        ssp = None
         try:
             ssp = self.get_one_snapshot(pvol, mirror_unit_id)
         except ValueError as e:
             return str(e)
         self.logger.writeDebug(f"20250324 ssp.svolLdevId: {ssp.svolLdevId}")
         self.gateway.delete_snapshot(pvol, mirror_unit_id)
+
+        self.__check_snapshot_delete_status(ssp.snapshotGroupName, pvol, mirror_unit_id)
+
         if should_delete_svol:
             self.delete_svol_force(ssp)
         self.connection_info.changed = True
@@ -704,19 +736,19 @@ class VSPHtiSnapshotProvisioner:
 
     @log_entry_exit
     def resync_snapshot(self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool):
-        ssp = self.get_one_snapshot(pvol, mirror_unit_id)
-        if ssp.status == PairStatus.PAIR:
+        ssp = self.gateway.get_one_snapshot(pvol, mirror_unit_id)
+        if ssp.status in (PairStatus.PAIR, PairStatus.PFUL):
             return ssp
         enable_quick_mode = enable_quick_mode or False
         unused = self.gateway.resync_snapshot(pvol, mirror_unit_id, enable_quick_mode)
 
         retryCount = 0
         while retryCount < 30:
-            ssp = self.get_one_snapshot(pvol, mirror_unit_id)
-            if ssp.status == PairStatus.PAIR:
+            ssp = self.gateway.get_one_snapshot(pvol, mirror_unit_id)
+            if ssp.status in (PairStatus.PAIR, PairStatus.PFUL):
                 break
             retryCount = retryCount + 1
-            self.logger.writeDebug(f"Polling for resync status: {retryCount}")
+            self.logger.writeDebug(f"Polling for PAIR status: {retryCount}")
             time.sleep(20)
 
         self.connection_info.changed = True
@@ -744,10 +776,15 @@ class VSPHtiSnapshotProvisioner:
 
     @log_entry_exit
     def get_snapshots_by_grp_name(self, grp_name):
-        sgs = self.gateway.get_snapshot_groups()
-        for sg in sgs.data:
-            if sg.snapshotGroupName == grp_name:
-                return self.get_snapshots_by_gid(sg.snapshotGroupId)
+        # sgs = self.gateway.get_snapshot_groups()
+        # for sg in sgs.data:
+        #     if sg.snapshotGroupName == grp_name:
+        #         return self.get_snapshots_by_gid(sg.snapshotGroupId)
+        try:
+            return self.get_snapshots_by_gid(grp_name)
+        except Exception as e:
+            self.logger.writeError(f"An error occurred: {str(e)}")
+            return None
 
     @log_entry_exit
     def get_snapshots_by_gid(self, gid):
@@ -762,7 +799,7 @@ class VSPHtiSnapshotProvisioner:
 
     @log_entry_exit
     def split_snapshots_by_gid(self, spec, first_snapshot):
-        if first_snapshot.status == PairStatus.PSUS:
+        if first_snapshot.status in (PairStatus.PSUS, PairStatus.PFUS):
             # UCA-2602 for the case where the snapshot is already in PAIR status, do nothing, removed the check
             pass
         try:
@@ -780,11 +817,13 @@ class VSPHtiSnapshotProvisioner:
                 raise e
 
         if spec.wait_for_final_state:
-            self.__check_snapshot_group_status(spec, PairStatus.PSUS)
+            self.__check_snapshot_group_status(spec, (PairStatus.PSUS, PairStatus.PFUS))
 
         if spec.retention_period is not None:
             if spec.wait_for_final_state is None:
-                self.__check_snapshot_group_status(spec, PairStatus.PSUS)
+                self.__check_snapshot_group_status(
+                    spec, (PairStatus.PSUS, PairStatus.PFUS)
+                )
             self.add_retention_period(
                 spec.retention_period, group_id=spec.snapshot_group_id
             )
@@ -795,7 +834,7 @@ class VSPHtiSnapshotProvisioner:
     @log_entry_exit
     def restore_snapshots_by_gid(self, spec, first_snapshot):
 
-        if first_snapshot.status == PairStatus.PAIR:
+        if first_snapshot.status in (PairStatus.PAIR, PairStatus.PFUL):
             # UCA-2602 for the case where the snapshot is already in PAIR status, do nothing, removed the check
             pass
         data = self.gateway.restore_snapshot_using_ssg(
@@ -803,7 +842,7 @@ class VSPHtiSnapshotProvisioner:
         )
 
         if spec.wait_for_final_state:
-            self.__check_snapshot_group_status(spec, PairStatus.PAIR)
+            self.__check_snapshot_group_status(spec, (PairStatus.PAIR, PairStatus.PFUL))
 
         self.connection_info.changed = True
         return data
@@ -811,13 +850,13 @@ class VSPHtiSnapshotProvisioner:
     @log_entry_exit
     def resync_snapshots_by_gid(self, spec, first_snapshot):
 
-        if first_snapshot.status == PairStatus.PAIR:
+        if first_snapshot.status in (PairStatus.PAIR, PairStatus.PFUL):
             # UCA-2602 for the case where the snapshot is already in PAIR status, do nothing, removed the check
             pass
         data = self.gateway.resync_snapshot_using_ssg(spec.snapshot_group_id)
 
         if spec.wait_for_final_state:
-            self.__check_snapshot_group_status(spec, PairStatus.PAIR)
+            self.__check_snapshot_group_status(spec, (PairStatus.PAIR, PairStatus.PFUL))
 
         self.connection_info.changed = True
         return data
@@ -825,6 +864,7 @@ class VSPHtiSnapshotProvisioner:
     @log_entry_exit
     def delete_snapshots_by_gid(self, spec, *args):
         data = self.gateway.delete_snapshot_using_ssg(spec.snapshot_group_id)
+        self.__check_snapshot_delete_status(spec.snapshot_group_id)
         self.connection_info.changed = True
         return data
 
@@ -845,9 +885,9 @@ class VSPHtiSnapshotProvisioner:
         retention_period=None,
     ):
 
-        ssp = self.get_one_snapshot(pvol, mirror_unit_id)
+        ssp = self.gateway.get_one_snapshot(pvol, mirror_unit_id)
 
-        if ssp.status != PairStatus.PSUS:
+        if ssp.status not in (PairStatus.PSUS, PairStatus.PFUS):
             enable_quick_mode = enable_quick_mode or False
             unused = self.gateway.split_snapshot(
                 pvol, mirror_unit_id, enable_quick_mode
@@ -856,8 +896,8 @@ class VSPHtiSnapshotProvisioner:
             #  20240816 - SPLIT: poll every 20 seconds for 10 mins for split status before returning
             retryCount = 0
             while retryCount < 30:
-                ssp = self.get_one_snapshot(pvol, mirror_unit_id)
-                if ssp.status == PairStatus.PSUS:
+                ssp = self.gateway.get_one_snapshot(pvol, mirror_unit_id)
+                if ssp.status in (PairStatus.PSUS, PairStatus.PFUS):
                     break
                 retryCount = retryCount + 1
                 self.logger.writeDebug(f"Polling for split status: {retryCount}")
@@ -879,7 +919,7 @@ class VSPHtiSnapshotProvisioner:
         self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool, auto_split: bool
     ):
         ssp = self.get_one_snapshot(pvol, mirror_unit_id)
-        if ssp.status == PairStatus.PAIR and auto_split is not True:
+        if ssp.status in (PairStatus.PAIR, PairStatus.PFUL) and auto_split is not True:
             return ssp
         enable_quick_mode = enable_quick_mode or False
         unused = self.gateway.restore_snapshot(
@@ -892,7 +932,7 @@ class VSPHtiSnapshotProvisioner:
         retryCount = 0
         while retryCount < 3:
             ssp = self.get_one_snapshot(pvol, mirror_unit_id)
-            if ssp.status == PairStatus.PAIR:
+            if ssp.status in (PairStatus.PAIR, PairStatus.PFUL):
                 break
             retryCount = retryCount + 1
             self.logger.writeDebug(f"Polling for restore status: {retryCount}")
@@ -947,10 +987,37 @@ class VSPHtiSnapshotProvisioner:
         while retryCount < 30:
             snapshots = self.get_snapshots_by_grp_name(spec.snapshot_group_name)
             all_in_pair = all(
-                snapshot.status == status for snapshot in snapshots.snapshots.data
+                snapshot.status in status for snapshot in snapshots.snapshots.data
             )
             if all_in_pair:
                 break
             retryCount = retryCount + 1
             self.logger.writeDebug(f"Polling for restore by gid status: {retryCount}")
+            time.sleep(20)
+
+    def __check_snapshot_delete_status(
+        self, snapshot_group_name, pvol=None, mirror_unit_id=None
+    ):
+        retryCount = 0
+        while retryCount < 30:
+            try:
+                snapshots = self.get_snapshots_by_grp_name(snapshot_group_name)
+                if pvol and mirror_unit_id:
+                    snapshots = [
+                        snapshot
+                        for snapshot in snapshots.snapshots.data
+                        if (
+                            snapshot.pvolLdevId == pvol
+                            and snapshot.muNumber == mirror_unit_id
+                        )
+                    ]
+            except Exception as e:
+                self.logger.writeError(
+                    f"An error occurred while fetching snapshots: {str(e)}"
+                )
+                snapshots = None
+            if snapshots is None:
+                break
+            retryCount = retryCount + 1
+            self.logger.writeDebug(f"Checking snapshot deletion status: {retryCount}")
             time.sleep(20)

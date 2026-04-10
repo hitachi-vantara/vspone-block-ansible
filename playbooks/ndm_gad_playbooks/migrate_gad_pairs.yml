@@ -1,5 +1,5 @@
 ---
-####################################################################
+# ###################################################################
 # Playbook: Migrate Existing GAD Pairs (Non-Destructive Migration Only)
 #
 # This playbook performs migration of already created GAD pairs:
@@ -12,7 +12,7 @@
 # - Hitachi VSP One Block collection installed
 # - Valid credentials for both primary and secondary storage systems
 # - Proper network connectivity between storage systems
-####################################################################
+# ###################################################################
 - name: Migrate Existing GAD Pairs - Discovery, Migration, Cleanup
   hosts: localhost
   gather_facts: false
@@ -34,7 +34,7 @@
     gad_status_file: "~/logs/hitachivantara/ansible/vspone_block/gad_status_role_test.json"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # STEP 1: Migration Phase - Non-Destructive GAD Migration
     #
     # Purpose: Migrate GAD pairs using swap-split operation
@@ -42,7 +42,7 @@
     # - Preserves data integrity throughout the migration process
     # - Deletes original GAD pairs from source system after migration
     # - Generates comprehensive migration report
-    ####################################################################
+    # ###################################################################
     - name: "Step 3: Perform non-destructive GAD pair migration"
       ansible.builtin.include_role:
         name: hitachivantara.vspone_block.hv_vsp_ndm_gad_migration_volumes

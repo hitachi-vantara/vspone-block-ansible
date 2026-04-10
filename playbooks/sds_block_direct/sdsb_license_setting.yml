@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : License Setting Update Playbook
-####################################################################
+# ###################################################################
 - name: Update License Settings
   hosts: localhost
   gather_facts: false
@@ -17,14 +17,33 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Modify License Settings
+    # ###################################################################
+    - name: Modify license settings
+      hitachivantara.vspone_block.sds_block.hv_sds_block_license_setting:
+        state: present
+        connection_info: "{{ connection_info }}"
+        spec:
+          warning_threshold_setting:
+            remaining_days: 6
+            total_pool_capacity_rate: -1
+      register: result
+
+    - name: Display result
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Modify License Settings for SDS Block on AWS cloud
+    # Attribute "allow_over_capacity" is only for SDS Block on AWS cloud
     ####################################################################
     - name: Modify license settings
       hitachivantara.vspone_block.sds_block.hv_sds_block_license_setting:
         state: present
         connection_info: "{{ connection_info }}"
         spec:
+          allow_over_capacity: false
           warning_threshold_setting:
             remaining_days: 6
             total_pool_capacity_rate: -1

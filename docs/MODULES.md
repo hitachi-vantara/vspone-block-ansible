@@ -48,6 +48,44 @@ This collection includes modules for managing both VSP One SDS Block and Cloud s
 - **hv_sds_block_volume_facts:** Retrieves information about storage system volumes.
 - **hv_sds_block_vps:** Manages VPS volume ADR settings.
 - **hv_sds_block_vps_facts:** Retrieves information about Virtual Private Storages (VPS).
+- **hv_sds_block_audit_log_setting:** Manages audit log settings for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_audit_log_setting_facts:** Retrieves audit log setting information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_dump_log_file:** Manages dump log file operations for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_dump_log_status_facts:** Retrieves dump log status information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_encryption_environment_setting_facts:** Retrieves encryption environment setting information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_encryption_environment_settings:** Manages encryption environment settings for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_encryption_key:** Manages encryption keys for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_encryption_key_count_facts:** Retrieves encryption key count information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_encryption_key_facts:** Retrieves encryption key information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_event_log_setting:** Manages event log settings for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_event_log_setting_facts:** Retrieves event log setting information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_internode_port_facts:** Retrieves information about internode ports in VSP One SDS Block and Cloud systems.
+- **hv_sds_block_journal:** Manages journals for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_journal_facts:** Retrieves journal information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_license:** Manages licenses for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_license_facts:** Retrieves license information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_license_setting:** Manages license settings for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_license_setting_facts:** Retrieves license setting information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_login_message:** Manages login message settings for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_login_message_facts:** Retrieves login message information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_protection_domain:** Manages protection domains in VSP One SDS Block and Cloud systems.
+- **hv_sds_block_remote_path_group:** Manages remote path groups for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_remote_path_group_facts:** Retrieves remote path group information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_session:** Manages sessions for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_session_facts:** Retrieves session information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_snmp_settings:** Manages SNMP settings for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_snmp_settings_facts:** Retrieves SNMP settings information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_spare_node:** Manages spare nodes in VSP One SDS Block and Cloud systems.
+- **hv_sds_block_spare_node_facts:** Retrieves spare node information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_storage_external_auth_server_setting:** Manages external authentication server settings for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_storage_external_auth_server_setting_facts:** Retrieves external authentication server setting information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_storage_system:** Manages VSP One SDS Block and Cloud storage system settings.
+- **hv_sds_block_storage_user_auth_setting:** Manages user authentication settings for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_storage_user_auth_setting_facts:** Retrieves user authentication setting information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_user_group:** Manages user groups in VSP One SDS Block and Cloud systems.
+- **hv_sds_block_user_group_facts:** Retrieves user group information from VSP One SDS Block and Cloud systems.
+- **hv_sds_block_web_server:** Manages web server settings for VSP One SDS Block and Cloud systems.
+- **hv_sds_block_web_server_facts:** Retrieves web server setting information from VSP One SDS Block and Cloud systems.
 
 ## VSP Block Ansible Modules
 
@@ -136,3 +174,16 @@ This collection includes modules for managing both VSP One SDS Block and Cloud s
 - **hv_vsp_one_snapshot_facts:** Retrieves snapshot information from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 - **hv_vsp_one_snapshot_group:** Manages snapshot groups including creation, modification, deletion, and coordinated operations on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 - **hv_vsp_one_snapshot_group_facts:** Retrieves snapshot group information from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
+- **hv_gad_bulk:** Manages GAD (Global-Active Device) pairs in bulk operations.
+- **hv_hg_bulk:** Manages host groups in bulk operations.
+- **hv_hur_bulk:** Manages HUR (Hitachi Universal Replicator) pairs in bulk operations.
+- **hv_iscsi_target_bulk:** Manages iSCSI targets in bulk operations.
+- **hv_ldev_bulk:** Manages logical devices (LDEVs) in bulk operations.
+- **hv_truecopy_bulk:** Manages TrueCopy pairs in bulk operations.
+- **hv_pav_alias:** Manages PAV (Parallel Access Volumes) alias configurations.
+- **hv_pav_alias_facts:** Retrieves information about PAV alias configurations.
+- **hv_session:** Manages sessions for VSP block storage systems.
+- **hv_session_facts:** Retrieves session information from VSP block storage systems.
+- **hv_snapshot_family_facts:** Retrieves snapshot family information including related snapshot trees.
+- **hv_supported_host_mode_facts:** Retrieves supported host mode information from VSP block storage systems.
+- **hv_vclone_parent_volume_facts:** Retrieves parent volume information for Volume Clone operations.

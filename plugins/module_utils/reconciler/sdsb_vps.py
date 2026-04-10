@@ -66,7 +66,7 @@ class SDSBVpsReconciler:
 
         vps_id = self.create_vps(spec)
         if not vps_id:
-            raise Exception("Failed to create VPS")
+            raise ValueError(SDSBVpsValidationMsg.VPS_CREATE_FAILED.value)
 
         vps_info = self.get_vps_by_id(vps_id)
         logger.writeDebug("RC:create_sdsb_vps:vps_info = {}", vps_info)
@@ -91,7 +91,7 @@ class SDSBVpsReconciler:
 
         vps_id = self.update_vps(vps.id, spec)
         if not vps_id:
-            raise Exception("Failed to update VPS.")
+            raise ValueError(SDSBVpsValidationMsg.VPS_UPDATE_FAILED.value)
 
         vps_info = self.get_vps_by_id(vps_id)
         logger.writeDebug("RC:update_sdsb_vps:vps_info = {}", vps_info)
@@ -237,10 +237,10 @@ class SDSBVpsReconciler:
 
             vps_id = self.delete_vps_by_id(vps_id)
             if vps_id is not None:
-                return f"VPS with id {vps_id} is deleted successfully."
+                return SDSBVpsValidationMsg.VPS_DELETE_SUCCESS.value.format(vps_id)
             else:
                 self.connection_info.changed = False
-                return f"Could not delete VPS, ensure VPS ID {vps_id} is valid. "
+                return SDSBVpsValidationMsg.VPS_DELETE_FAILED.value.format(vps_id)
 
 
 class VpsPropertiesExtractor:

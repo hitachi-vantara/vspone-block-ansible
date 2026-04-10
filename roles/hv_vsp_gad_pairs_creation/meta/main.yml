@@ -1,0 +1,9 @@
+---
+
+# You can add role metadata here, such as author, license, min_ansible_version, etc.
+galaxy_info:
+  author: Hitachi Vantara
+  description: Role to manage batch GAD pairs creation on VSP block storage systems
+  company: Hitachi Vantara
+  license: GPL-3.0-or-later
+  min_ansible_version: 2.9 - storage - hitachi - vsp - gad - batch

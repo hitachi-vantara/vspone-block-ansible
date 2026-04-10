@@ -23,3 +23,4 @@ class VSPCopyGroupsValidateMsg(Enum):
 
     LOCAL_COPY_GROUP_NAME_REQD = "When primary_volume_device_group_name and secondary_volume_device_group_name are specified, you must specify name."
     LOCAL_COPY_GROUP_BOTH_PVOL_SVOL_DEVICE_REQD = "Both primary_volume_device_group_name and secondary_volume_device_group_name must be specified together."
+    OPERATION_CANNOT_BE_PERFORMED = "Operations cannot be performed for the specified copy group {}. ErrorCode: 30000E-0."

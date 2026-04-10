@@ -16,8 +16,12 @@ class ServerFactsSpec(SingleBaseClass):
     hba_wwn: Optional[str] = None
     iscsi_name: Optional[int] = None
     server_id: Optional[int] = None
-    nick_name: Optional[str] = None
+    nickname: Optional[str] = None
     include_details: Optional[bool] = None
+
+    def __post_init__(self, **kwargs):
+        if self.nickname is not None:
+            self.nick_name = self.nickname
 
 
 @dataclass
@@ -26,6 +30,11 @@ class ServerHBAFactsSpec(SingleBaseClass):
     nick_name: Optional[str] = None
     hba_wwn: Optional[str] = None
     iscsi_name: Optional[int] = None
+    nickname: Optional[str] = None
+
+    def __post_init__(self, **kwargs):
+        if self.nickname is not None:
+            self.nick_name = self.nickname
 
 
 @dataclass
@@ -185,6 +194,7 @@ class IscsiTargetNameSpec(SingleBaseClass):
 class CreateServerSpec(SingleBaseClass):
     server_id: Optional[int] = None
     nick_name: Optional[int] = None
+    nickname: Optional[int] = None
     protocol: Optional[int] = None
     os_type: Optional[str] = None
     host_hba_wwn: Optional[str] = None
@@ -223,6 +233,8 @@ class CreateServerSpec(SingleBaseClass):
             self.iscsi_target_settings = [
                 IscsiTargetNameSpec(**target) for target in self.iscsi_target_settings
             ]
+        if self.nickname is not None:
+            self.nick_name = self.nickname
 
     def generate_create_payload(self):
         payload = {}

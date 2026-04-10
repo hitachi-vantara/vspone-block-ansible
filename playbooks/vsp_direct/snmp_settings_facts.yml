@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Get the SNMP settings for a storage system.
-####################################################################
+# ###################################################################
 - name: Get the SNMP settings for a storage system.
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Get SNMP settings for a storage system
-    ####################################################################
+    # ###################################################################
     - name: Get SNMP settings for a storage system
       hitachivantara.vspone_block.vsp.hv_snmp_settings_facts:
         connection_info: "{{ connection_info }}"

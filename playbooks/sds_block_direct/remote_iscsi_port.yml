@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Remote iSCSI Port Playbook
-####################################################################
+# ###################################################################
 - name: Remote iSCSI Port Module
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-  ################################################################################################
+  # ###############################################################################################
   # Task Name : Register a remote iscsi port
-  ################################################################################################
+  # ###############################################################################################
     - name: Register a remote iscsi port
       hitachivantara.vspone_block.sds_block.hv_sds_block_remote_iscsi_port:
         connection_info: "{{ connection_info }}"
@@ -29,7 +29,7 @@
           remote_serial: "810045"
           remote_storage_system_type: "M8"
           remote_port: "CL1-C"
-          remote_ip_address: "172.25.59.213"
+          remote_storage_port_ip_address: "172.25.59.213"
 
       register: result
 

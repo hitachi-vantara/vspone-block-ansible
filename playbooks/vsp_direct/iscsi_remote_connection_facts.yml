@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example :  Remote connection using iSCSI ports facts Playbook
-####################################################################
+# ###################################################################
 - name: Retrieves remote Connection information
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ######################################################################################
+    # #####################################################################################
     # Task Name : Get all iSCSI remote connection information
-    ######################################################################################
+    # #####################################################################################
     - name: Get all iSCSI remote connection information
       hitachivantara.vspone_block.vsp.hv_iscsi_remote_connection_facts:
         connection_info: "{{ connection_info }}"

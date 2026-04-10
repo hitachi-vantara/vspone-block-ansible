@@ -34,6 +34,7 @@ notes:
   - If any resource is locked in the target storage system, the operations
     related to resource groups cannot be performed. In such cases, unlock the
     resources before running resource group related operations.
+  - Few parameters will be deprecated in future releases. Please refer to the documentation for details and original name instead of aliases.
 options:
   state:
     description: The desired state of the resource group task.
@@ -73,7 +74,6 @@ options:
           - Delete a Resource Group by Name
         type: str
         required: false
-
       id:
         description: >
           The ID of the resource group.
@@ -151,32 +151,33 @@ options:
         type: list
         required: false
         elements: str
-
-      start_ldev:
+      begin_ldev_id:
         description: >
-          First LDEV number. If you specify this attribute, you must also specify end_ldev.
+          First LDEV number. If you specify this attribute, you must also specify end_ldev_id.
           If you specify ldevs, you cannot specify this attribute.
           Required for add/remove LDEVs using LDEV range by ID.
         type: str
         required: false
-
-      end_ldev:
+        aliases: ["start_ldev"]
+      end_ldev_id:
         description: >
-          Last LDEV number. If you specify this attribute, you must also specify start_ldev.
+          Last LDEV number. If you specify this attribute, you must also specify start_ldev_id.
           If you specify ldevs, you cannot specify this attribute.
           Required for add/remove LDEVs using LDEV range by ID.
         type: str
         required: false
+        aliases: ["end_ldev"]
 
-      ports:
+      port_ids:
         description: >
           List of ports to be added or removed from the resource group.
           Optional for Create or Add/Remove operations by ID or Name.
         type: list
         required: false
         elements: str
+        aliases: ["ports"]
 
-      parity_groups:
+      parity_group_ids:
         description: >
           List of parity groups to be added or removed from the resource group.
           Optional for the Create a Resource Group with LDEVs, parity groups, ports,
@@ -184,6 +185,7 @@ options:
         type: list
         required: false
         elements: str
+        aliases: ["parity_groups"]
 
       external_parity_groups:
         description: >
@@ -202,16 +204,36 @@ options:
         suboptions:
           name:
             description: >
-              Name of the host group.
-              Required for create/add/remove operations involving host groups.
+              Name of the host group. One of 'name', 'ids', or 'begin_id/end_id' must be provided
+              for create/add/remove operations involving host groups.
             type: str
-            required: true
-          port:
+            required: false
+          ids:
             description: >
-              Port name associated with the host group.
+              List of host group IDs. One of 'name', 'ids', or 'begin_id/end_id' must be provided
+              for create/add/remove operations involving host groups.
+            type: list
+            required: false
+            elements: int
+          begin_id:
+            description: >
+              First host group ID. If you specify this attribute, you must also specify end_id.
+              One of 'name', 'ids', or 'begin_id/end_id' must be provided for create/add/remove operations involving host groups.
+            type: int
+            required: false
+          end_id:
+            description: >
+              Last host group ID. If you specify this attribute, you must also specify begin_id.
+              One of 'name', 'ids', or 'begin_id/end_id' must be provided for create/add/remove operations involving host groups.
+            type: int
+            required: false
+          port_id:
+            description: >
+              Port ID associated with the host group.
               Required for create/add/remove operations involving host groups.
             type: str
             required: true
+            aliases: ["port"]
 
       iscsi_targets:
         description: >
@@ -223,16 +245,36 @@ options:
         suboptions:
           name:
             description: >
-              Name of the iSCSI target.
-              Required for add/remove operations by Name.
+              Name of the iSCSI target. One of 'name', 'ids', or 'begin_id/end_id' must be provided
+              for add/remove operations.
             type: str
-            required: true
-          port:
+            required: false
+          ids:
             description: >
-              Port name associated with the iSCSI target.
+              List of iSCSI target IDs. One of 'name', 'ids', or 'begin_id/end_id' must be provided
+              for create/add/remove operations involving iSCSI targets.
+            type: list
+            required: false
+            elements: int
+          begin_id:
+            description: >
+              First iSCSI target ID. If you specify this attribute, you must also specify end_id.
+              One of 'name', 'ids', or 'begin_id/end_id' must be provided for create/add/remove operations involving iSCSI targets.
+            type: int
+            required: false
+          end_id:
+            description: >
+              Last iSCSI target ID. If you specify this attribute, you must also specify begin_id.
+              One of 'name', 'ids', or 'begin_id/end_id' must be provided for create/add/remove operations involving iSCSI targets.
+            type: int
+            required: false
+          port_id:
+            description: >
+              Port ID associated with the iSCSI target.
               Required for add/remove operations by Name.
             type: str
             required: true
+            aliases: ["port"]
 
       nvm_subsystem_ids:
         description: >
@@ -298,7 +340,7 @@ EXAMPLES = """
     spec:
       name: "my_resource_group"
 
-- name: Create a Resource Group with LDEVs, parity groups, ports, and host groups
+- name: Create a Resource Group with LDEVs, parity groups, port_ids, and host groups
   hitachivantara.vspone_block.vsp.hv_resource_group:
     connection_info:
       address: storage1.company.com
@@ -307,11 +349,11 @@ EXAMPLES = """
     spec:
       ldevs: [1, 2, 3]
       parity_groups: ["PG1", "PG2"]
-      ports: ["CL1-A", "CL1-C"]
+      port_ids: ["CL1-A", "CL1-C"]
       host_groups:
-        - port: "CL1-A"
+        - port_id: "CL1-A"
           name: "my_host_group_1"
-        - port: "CL1-A"
+        - port_id: "CL1-A"
           name: "my_host_group_2"
 
 - name: Add resources to an existing Resource Group by ID
@@ -392,8 +434,12 @@ resource_groups:
                 description: The name of the host group.
                 type: str
                 sample: "my_host_group_1"
+              port_id:
+                description: The port ID associated with the host group.
+                type: str
+                sample: "CL1-A"
               port:
-                description: The port name associated with the host group.
+                description: Deprecated. Use port_id instead.
                 type: str
                 sample: "CL1-A"
         iscsi_targets:
@@ -429,7 +475,12 @@ resource_groups:
             elements: str
             sample: ["PG1", "PG2"]
         ports:
-            description: List of ports in the resource group.
+            description: Deprecated. Use port_ids instead.
+            type: list
+            elements: str
+            sample: ["CL1-A", "CL1-C"]
+        port_ids:
+            description: List of port IDs in the resource group.
             type: list
             elements: str
             sample: ["CL1-A", "CL1-C"]

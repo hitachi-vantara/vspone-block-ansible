@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : SDSB Software Update Playbook
-####################################################################
+# ###################################################################
 - name: SDSB Software Update Module
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-  ####################################################################
+  # ###################################################################
   # Task Name : Update the storage software
-  ####################################################################
+  # ###################################################################
     - name: Update the storage software
       hitachivantara.vspone_block.sds_block.hv_sds_block_storage_software_update:
         connection_info: "{{ connection_info }}"

@@ -16,6 +16,11 @@ try:
     from ..common.hv_log import Log
     from ..common.hv_constants import ConnectionTypes
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
+    from ..message.vsp_shadow_image_pair_msgs import VSPShadowImagePairValidateMsg
+    from ..common.vsp_errors import (
+        VspShadowImageDuplicateError,
+        VspShadowImageUnexpectedError,
+    )
 except ImportError:
     from ..provisioner.vsp_storage_port_provisioner import VSPStoragePortProvisioner
     from provisioner.vsp_shadow_image_pair_provisioner import (
@@ -32,6 +37,11 @@ except ImportError:
     from common.hv_log import Log
     from common.hv_constants import ConnectionTypes
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
+    from message.vsp_shadow_image_pair_msgs import VSPShadowImagePairValidateMsg
+    from common.vsp_errors import (
+        VspShadowImageDuplicateError,
+        VspShadowImageUnexpectedError,
+    )
 logger = Log()
 
 
@@ -74,17 +84,22 @@ class VSPShadowImagePairReconciler:
             data = self.provisioner.get_all_shadow_image_pairs(
                 self.serial, None, shadowImagePairSpec.refresh
             )
-        elif shadowImagePairSpec.copy_pair_name and shadowImagePairSpec.copy_group_name:
-            data = self.get_shadow_image_pair_by_copy_pair_name(
-                shadowImagePairSpec.copy_pair_name,
-                shadowImagePairSpec.copy_group_name,
-            )
-            data = (
-                ShadowImagePairPropertyExtractor(self.serial).extract(
-                    [data], self.get_port_type_dict()
-                )[0]
-                if isinstance(data, dict)
-                else data
+        elif shadowImagePairSpec.copy_group_name:
+            if shadowImagePairSpec.copy_pair_name:
+                data = self.get_shadow_image_pair_by_copy_pair_name(
+                    shadowImagePairSpec.copy_pair_name,
+                    shadowImagePairSpec.copy_group_name,
+                )
+            else:
+                data = self.provisioner.get_shadow_image_pairs_by_cg_name(
+                    self.serial, shadowImagePairSpec.copy_group_name
+                )
+            if data is None:
+                return None
+            if isinstance(data, dict):
+                data = [data]
+            data = ShadowImagePairPropertyExtractor(self.serial).extract(
+                data, self.get_port_type_dict()
             )
             return data
         else:
@@ -115,14 +130,16 @@ class VSPShadowImagePairReconciler:
             and state == StateValue.PRESENT
         ):
             shadow_image_data = None
-        elif (
-            self.shadowImagePairSpec.copy_pair_name is not None
-            and self.shadowImagePairSpec.copy_group_name is not None
-        ):
-            shadow_image_data = self.get_shadow_image_pair_by_copy_pair_name(
-                self.shadowImagePairSpec.copy_pair_name,
-                self.shadowImagePairSpec.copy_group_name,
-            )
+        elif self.shadowImagePairSpec.copy_group_name:
+            if self.shadowImagePairSpec.copy_pair_name:
+                shadow_image_data = self.get_shadow_image_pair_by_copy_pair_name(
+                    self.shadowImagePairSpec.copy_pair_name,
+                    self.shadowImagePairSpec.copy_group_name,
+                )
+            else:
+                shadow_image_data = self.provisioner.get_shadow_image_pairs_by_cg_name(
+                    self.shadowImagePairSpec.copy_group_name
+                )
         elif (
             self.shadowImagePairSpec.pvol is not None
             and self.shadowImagePairSpec.svol is not None
@@ -135,12 +152,15 @@ class VSPShadowImagePairReconciler:
             )
         else:
             raise ValueError(
-                "Either pvol and svol or copy_pair_name and copy_group_name must be provided."
+                VSPShadowImagePairValidateMsg.NOT_REQD_PARAAMS_PROVIDED.value
             )
 
         pairId = None
         if shadow_image_data is not None:
-            pairId = shadow_image_data.get("resourceId")
+            logger.writeDebug(f"20260302 shadow_image_data: {shadow_image_data}")
+            if isinstance(shadow_image_data, list) and len(shadow_image_data) > 0:
+                shadow_image_data = shadow_image_data[0]
+            pairId = shadow_image_data.get("localCloneCopypairId")
             pvolId = shadow_image_data.get("primaryVolumeId")
             svolId = shadow_image_data.get("secondaryVolumeId")
             copy_group_name = shadow_image_data.get("copyGroupName")
@@ -178,10 +198,11 @@ class VSPShadowImagePairReconciler:
                             "Another copy pair might already be using the specified LDEV"
                             in str(e)
                         ):
-                            raise Exception(
-                                f"Another copy pair might already be using the specified primary volume {self.shadowImagePairSpec.primary_volume_id}. "
-                                f"and secondary volume {self.shadowImagePairSpec.secondary_volume_id}. "
-                                "Please verify and try again with correct copy group name and copy pair name."
+                            raise VspShadowImageDuplicateError(
+                                VSPShadowImagePairValidateMsg.ANOTHER_PAIR_EXISTS.value.format(
+                                    self.shadowImagePairSpec.primary_volume_id,
+                                    self.shadowImagePairSpec.secondary_volume_id,
+                                )
                             )
                         elif (
                             "specified for the object (copyPairName) is already being used by the chosen copy group"
@@ -228,7 +249,9 @@ class VSPShadowImagePairReconciler:
                         )
                         self.connectionInfo.changed = True
                 else:
-                    shadow_image_response = "Shadow image pair is not available."
+                    shadow_image_response = (
+                        VSPShadowImagePairValidateMsg.SI_NOT_AVAILABLE.value
+                    )
                     self.connectionInfo.changed = False
             elif state == StateValue.RESTORE:
                 if pairId is not None:
@@ -241,7 +264,9 @@ class VSPShadowImagePairReconciler:
                         )
                         self.connectionInfo.changed = True
                 else:
-                    shadow_image_response = "Shadow image pair is not available."
+                    shadow_image_response = (
+                        VSPShadowImagePairValidateMsg.SI_NOT_AVAILABLE.value
+                    )
                     self.connectionInfo.changed = False
             elif state == StateValue.ABSENT:
                 if pairId is not None:
@@ -250,7 +275,9 @@ class VSPShadowImagePairReconciler:
                     )
                     self.connectionInfo.changed = True
                 else:
-                    shadow_image_response = "Shadow image pair is not available."
+                    shadow_image_response = (
+                        VSPShadowImagePairValidateMsg.SI_NOT_AVAILABLE.value
+                    )
                     self.connectionInfo.changed = False
             elif state == StateValue.MIGRATE:
                 if pairId is not None:
@@ -259,7 +286,9 @@ class VSPShadowImagePairReconciler:
                     )
                     self.connectionInfo.changed = True
                 else:
-                    shadow_image_response = "Shadow image pair is not available."
+                    shadow_image_response = (
+                        VSPShadowImagePairValidateMsg.SI_NOT_AVAILABLE.value
+                    )
                     self.connectionInfo.changed = False
 
         except Exception as e:
@@ -271,24 +300,14 @@ class VSPShadowImagePairReconciler:
                 if e.args is not list:
                     for elm in e.args[0]:
                         if "message" == elm:
-                            raise Exception(e.args[0]["message"])
-                    raise Exception(e.args[0])
-                    # if e.args[0]['message'] is not None:
-                    #     raise Exception(e.args[0]['message'])
-                    # else:
-                    #     raise Exception(e.args[0])
-                    # try:
-                    #     if e.args[0]['message'] is not None:
-                    #         raise Exception(e.args[0]['message'])
-                    # except Exception as ex:
-                    #     raise Exception(ex.args)
+                            raise VspShadowImageUnexpectedError(e.args[0]["message"])
+                    raise VspShadowImageUnexpectedError(e.args[0])
                 elif "message" in e.args[0]:
-                    raise Exception(e.args[0].get("message"))
-
+                    raise VspShadowImageUnexpectedError(e.args[0].get("message"))
                 else:
-                    raise Exception(e)
+                    raise VspShadowImageUnexpectedError(str(e))
             logger.writeError(f"An error occurred: {str(e)}")
-            raise Exception(str(e))
+            raise VspShadowImageUnexpectedError(str(e))
 
         shadow_image_response = (
             ShadowImagePairPropertyExtractor(self.serial).extract(
@@ -302,9 +321,8 @@ class VSPShadowImagePairReconciler:
     @log_entry_exit
     def shadow_image_pair_create(self, shadowImagePairSpec):
         if shadowImagePairSpec.pvol is None:
-            raise ValueError(
-                "Primary volume ID (pvol) must be provided when creating a shadow image pair."
-            )
+            raise ValueError(VSPShadowImagePairValidateMsg.PVOL_REQD_FOR_CREATE.value)
+
         data = self.provisioner.create_shadow_image_pair(
             self.serial, shadowImagePairSpec
         )
@@ -358,7 +376,7 @@ class VSPShadowImagePairReconciler:
             data = self.provisioner.get_shadow_image_pair_by_copy_pair_name(
                 self.serial, copy_pair_name, copy_group_name
             )
-            return data
+            return data.to_dict() if data is not None else None
 
     @log_entry_exit
     def shadow_image_pair_delete(self, shadowImagePairSpec):
@@ -371,22 +389,23 @@ class VSPShadowImagePairReconciler:
 class ShadowImagePairPropertyExtractor:
     def __init__(self, serial):
         self.common_properties = {
-            # "resource_id": str,
             "consistency_group_id": int,
-            # "copy_pace_track_size": str,
+            "copy_group_name": str,
+            "copy_pair_name": str,
             "copy_rate": int,
             "mirror_unit_id": int,
-            "primary_volume_id_hex": str,
+            "mirror_unit_number": int,
             "primary_volume_id": int,
+            "primary_volume_id_hex": str,
             "storage_serial_number": str,
             "secondary_volume_id_hex": str,
             "secondary_volume_id": int,
             "status": str,
-            "copy_group_name": str,
-            "copy_pair_name": str,
-            "pvol_nvm_subsystem_name": str,
-            "svol_nvm_subsystem_name": str,
             "pvol_host_groups": list,
+            "pvol_nvm_subsystem_name": str,
+            "primary_volume_nvm_subsystem_name": str,
+            "svol_nvm_subsystem_name": str,
+            "secondary_volume_nvm_subsystem_name": str,
             "svol_host_groups": list,
         }
         self.serial = serial
@@ -432,6 +451,9 @@ class ShadowImagePairPropertyExtractor:
                     port_type_dict,
                 )
                 # del new_dict["svolHostGroups"]
+
+            new_dict["mirror_unit_number"] = new_dict.get("mirror_unit_id", -1)
+
             if new_dict.get("primary_volume_id_hex") == "":
                 new_dict["primary_volume_id_hex"] = volume_id_to_hex_format(
                     new_dict.get("primary_volume_id")
@@ -439,6 +461,15 @@ class ShadowImagePairPropertyExtractor:
             if new_dict.get("secondary_volume_id_hex") == "":
                 new_dict["secondary_volume_id_hex"] = volume_id_to_hex_format(
                     new_dict.get("secondary_volume_id")
+                )
+            if new_dict.get("primary_volume_nvm_subsystem_name"):
+                new_dict["primary_volume_nvm_subsystem_name"] = new_dict.get(
+                    "pvol_nvm_subsystem_name"
+                )
+
+            if new_dict.get("secondary_volume_nvm_subsystem_name"):
+                new_dict["secondary_volume_nvm_subsystem_name"] = new_dict.get(
+                    "svol_nvm_subsystem_name"
                 )
             new_items.append(new_dict)
         return new_items
@@ -467,10 +498,14 @@ class ShadowImagePairPropertyExtractor:
 
         if key == "pvolHostGroups":
             new_dict["pvol_iscsi_targets"] = its
+            new_dict["primary_volume_iscsi_targets"] = its
             new_dict["pvol_host_groups"] = hgs
+            new_dict["primary_volume_host_groups"] = hgs
         else:
             new_dict["svol_iscsi_targets"] = its
+            new_dict["secondary_volume_iscsi_targets"] = its
             new_dict["svol_host_groups"] = hgs
+            new_dict["secondary_volume_host_groups"] = hgs
 
         return
 

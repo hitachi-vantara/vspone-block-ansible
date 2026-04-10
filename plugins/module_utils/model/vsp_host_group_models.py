@@ -8,6 +8,8 @@ try:
         normalize_ldev_id,
         volume_id_to_hex_format,
     )
+    from ..common.ansible_common_constants import MAX_BULK_PAIRS
+    from ..message.vsp_host_group_msgs import VSPHostGroupValidationMsg
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass
     from common.ansible_common import (
@@ -15,21 +17,32 @@ except ImportError:
         normalize_ldev_id,
         volume_id_to_hex_format,
     )
+    from message.vsp_host_group_msgs import VSPHostGroupValidationMsg
 
 
 @dataclass
 class GetHostGroupSpec:
     name: Optional[str] = None
     ports: Optional[List[str]] = None
+    port_ids: Optional[List[str]] = None
     lun: Optional[int] = None
     query: Optional[List[str]] = None
     host_group_number: Optional[int] = None
 
+    def __post_init__(self):
+        if self.port_ids and not self.ports:
+            self.ports = self.port_ids
+
 
 @dataclass
-class HostWWN(SingleBaseClass):
+class HostWWN:
     wwn: str = None
     nick_name: str = None
+    nickname: str = None
+
+    def __post_init__(self, **kwargs):
+        if self.nickname is not None:
+            self.nick_name = self.nickname
 
 
 @dataclass
@@ -47,6 +60,7 @@ class HostGroupSpec(SingleBaseClass):
     state: Optional[str] = None
     name: Optional[str] = None
     port: Optional[str] = None
+    port_id: Optional[str] = None
     host_mode: Optional[str] = None
     host_mode_options: Optional[List[int]] = None
     ldevs: Optional[List[int]] = None
@@ -58,11 +72,19 @@ class HostGroupSpec(SingleBaseClass):
     lun: Optional[int] = None
     lun_paths: Optional[List[HostGroupPaths]] = None
     ports: Optional[List[str]] = None
+    port_ids: Optional[List[str]] = None
+    should_delete_all_volumes: Optional[bool] = None
+    comments: Optional[List[str]] = None
+    errors: Optional[List[str]] = None
 
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():
             setattr(self, field, kwargs.get(field, None))
         self.delete_all_luns = kwargs.get("should_delete_all_ldevs", None)
+
+        if kwargs.get("should_delete_all_volumes", None) is not None:
+            self.delete_all_luns = kwargs.get("should_delete_all_volumes", None)
+
         self.__post_init__()
 
     def __post_init__(self):
@@ -70,7 +92,9 @@ class HostGroupSpec(SingleBaseClass):
             self.wwns = [HostWWN(**wwn) for wwn in self.wwns]
 
         if self.ldevs is not None and self.lun_paths is not None:
-            raise ValueError("Specify either 'ldevs' or 'lun_paths', not both.")
+            raise ValueError(
+                VSPHostGroupValidationMsg.LDEVS_OR_LUN_PATHS_NOT_BOTH.value
+            )
 
         if self.ldevs:
             self.ldevs = [normalize_ldev_id(ldev_id) for ldev_id in self.ldevs]
@@ -80,11 +104,33 @@ class HostGroupSpec(SingleBaseClass):
         if self.port is not None and self.ports is not None:
             raise ValueError("Specify either 'port' or 'ports', not both.")
 
-        if self.port is None and self.ports is None:
-            raise ValueError("'port' must be specified for hostgroup operation.")
+        if self.port_id is not None and self.port_ids is not None:
+            raise ValueError(
+                VSPHostGroupValidationMsg.PORT_ID_OR_PORT_IDS_NOT_BOTH.value
+            )
+
+        if self.port_ids is not None and not (
+            1 <= len(self.port_ids) <= MAX_BULK_PAIRS
+        ):
+            raise ValueError(VSPHostGroupValidationMsg.PORT_IDS_LIST_RANGE.value)
+        if (
+            self.port is None
+            and self.ports is None
+            and self.port_id is None
+            and self.port_ids is None
+        ):
+            raise ValueError(VSPHostGroupValidationMsg.PORT_OR_PORT_ID_REQUIRED.value)
 
         if self.ports is not None and len(self.ports) > 6:
-            raise ValueError("Ports list cannot contain more than 6 entries.")
+            raise ValueError(VSPHostGroupValidationMsg.PORTS_LIST_MAX_EXCEEDED.value)
+
+        if self.port_ids is not None and len(self.port_ids) > 6:
+            raise ValueError(VSPHostGroupValidationMsg.PORT_IDS_LIST_MAX_EXCEEDED.value)
+
+        if self.port_id:
+            self.port = self.port_id
+        if self.port_ids:
+            self.ports = self.port_ids
 
 
 @dataclass
@@ -200,6 +246,11 @@ class VSPLunPath(SingleBaseClass):
 class VSPWwn(SingleBaseClass):
     id: int = None
     nick_name: str = None
+    nickname: str = None
+
+    def __post_init__(self):
+        if self.nickname is None:
+            self.nickname = self.nick_name
 
 
 @dataclass
@@ -243,7 +294,9 @@ class VSPHostGroupInfo(SingleBaseClass):
         if "wwns" in kwargs:
             self.wwns = [VSPWwn(**wwn) for wwn in kwargs.get("wwns")]
         self.port = kwargs.get("port")
-        self.portId = kwargs.get("port")
+        self.portId = kwargs.get("portId")
+        if self.port is not None and self.portId is None:
+            self.portId = self.port
         self.resourceGroupId = kwargs.get("resourceGroupId")
         self.__post__init__()
 
@@ -284,45 +337,6 @@ class VSPModifyHostGroupProvResponse(SingleBaseClass):
         if not data.get("errors"):
             data.pop("errors")
         return data
-
-
-@dataclass
-class VSPHostGroupUAIGInfo(SingleBaseClass):
-    hostGroupName: str = None
-    hostGroupId: int = 0
-    resourceGroupId: int = 0
-    port: str = None
-    hostMode: str = None
-
-
-@dataclass
-class VSPHostGroupUAIG(SingleBaseClass):
-    resourceId: str = None
-    type: str = None
-    storageId: str = None
-    entitlementStatus: str = None
-    hostGroupInfo: VSPHostGroupUAIGInfo = None
-    # 20240830 - without these, the create hur was breaking
-    partnerId: str = None
-    subscriberId: str = None
-    hostGroupName: str = None
-    hostGroupId: int = 0
-    resourceGroupId: int = 0
-    port: str = None
-    hostMode: str = None
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        hg_info = kwargs.get("hostGroupInfo")
-        if hg_info:
-            for field in hg_info:
-                if getattr(self, field) is None:
-                    setattr(self, field, hg_info.get(field, None))
-
-
-@dataclass
-class VSPHostGroupsUAIG(BaseDataClass):
-    data: List[VSPHostGroupUAIG] = None
 
 
 @dataclass

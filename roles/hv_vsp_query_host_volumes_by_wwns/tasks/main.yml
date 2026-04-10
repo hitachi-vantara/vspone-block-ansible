@@ -1,8 +1,8 @@
 ---
-####################################################################
+# ###################################################################
 # Role: hv_vsp_one_query_host_volumes_by_wwns
 # Description: Query host volumes by WWNs and return matching LDEV IDs
-####################################################################
+# ###################################################################
 
 - name: Validate required variables
   ansible.builtin.assert:
@@ -15,9 +15,9 @@
 
 - name: Initialize variables
   ansible.builtin.set_fact:
-    matched_ldev_ids: []
-    host_volumes: []
-    all_hostgroups: []
+    hv_vsp_query_host_volumes_by_wwns_matched_ldev_ids: []
+    hv_vsp_query_host_volumes_by_wwns_host_volumes: []
+    hv_vsp_query_host_volumes_by_wwns_all_hostgroups: []
 
 - name: Debug ports (showing omit when undefined)
   ansible.builtin.debug:
@@ -31,21 +31,23 @@
       query:
         - wwns
         - ldevs
-  register: hostgroup_result
+  register: hv_vsp_query_host_volumes_by_wwns_hostgroup_result
 
 - name: Set hostgroup data variable
   ansible.builtin.set_fact:
-    hostgroup_data: "{{ hostgroup_result.ansible_facts.hostGroups | default([]) }}"
+    hv_vsp_query_host_volumes_by_wwns_hostgroup_data: "{{ hv_vsp_query_host_volumes_by_wwns_hostgroup_result.ansible_facts.hostGroups | default([]) }}"
 
 - name: Convert host WWNs to uppercase
   ansible.builtin.set_fact:
-    host_wwns: "{{ host_wwns | map('upper') | list }}"
+    hv_vsp_query_host_volumes_by_wwns_host_wwns: "{{ host_wwns | map('upper') | list }}"
 
 - name: Build detailed host volumes data for matching WWNs
   ansible.builtin.set_fact:
-    host_volumes: "{{ host_volumes + temp_volumes }}"
-    matched_ldev_ids: "{{ (matched_ldev_ids + (item.lun_paths | map(attribute='ldev_id') | list)) | list }}"
-    ports: "{{ ports | default([]) + [item.port_id] if item.port_id is defined and (ports is not defined or item.port_id not in ports) else ports }}"
+    hv_vsp_query_host_volumes_by_wwns_host_volumes: "{{ hv_vsp_query_host_volumes_by_wwns_host_volumes + (temp_volumes | from_json) }}"
+    hv_vsp_query_host_volumes_by_wwns_matched_ldev_ids: "{{ (hv_vsp_query_host_volumes_by_wwns_matched_ldev_ids + (item.lun_paths | map(attribute='ldev_id') | list))
+      | list }}"
+    hv_vsp_query_host_volumes_by_wwns_ports: "{{ hv_vsp_query_host_volumes_by_wwns_ports | default([]) + [item.port_id] if item.port_id is defined and (hv_vsp_query_host_volumes_by_wwns_ports
+      is not defined or item.port_id not in hv_vsp_query_host_volumes_by_wwns_ports) else hv_vsp_query_host_volumes_by_wwns_ports }}"
   vars:
     temp_volumes: |
       [
@@ -57,86 +59,156 @@
       "host_group_name": "{{ item.host_group_name }}",
       "host_mode": "{{ item.host_mode }}",
       "host_mode_options": {{ item.host_mode_options | map(attribute='host_mode_option_number') | list | to_json }},
-      "host_wwns": {{ (item.wwns | map(attribute='id') | list) | intersect(host_wwns) | to_json }},
-      "host_group_id": {{ item.host_group_id }}
+      "host_wwns": {{ (item.wwns | map(attribute='id') | list) | intersect(hv_vsp_query_host_volumes_by_wwns_host_wwns) | to_json }},
+      "host_group_id": {{ item.host_group_id }},
+      "resource_group_id": {{ item.resource_group_id }}
       }{% if not loop.last %},{% endif %}
       {% endfor %}
       ]
-  loop: "{{ hostgroup_data }}"
+  loop: "{{ hv_vsp_query_host_volumes_by_wwns_hostgroup_data }}"
   when:
     - item.wwns is defined
     - item.wwns | length > 0
     - item.lun_paths is defined
     - item.lun_paths | length > 0
-    - (item.wwns | map(attribute='id') | list) | intersect(host_wwns) | length > 0
+    - (item.wwns | map(attribute='id') | list) | intersect(hv_vsp_query_host_volumes_by_wwns_host_wwns) | length > 0
   loop_control:
     label: "{{ item.host_group_name | default('N/A') }} (Port: {{ item.port_id | default('N/A') }})"
 
 - name: Check host mode and host mode options consistency
   ansible.builtin.set_fact:
-    unique_host_modes: "{{ host_volumes | map(attribute='host_mode') | unique | list }}"
-    unique_host_mode_options: "{{ host_volumes | map(attribute='host_mode_options') | unique | list }}"
-    host_mode_consistent: "{{ (host_volumes | map(attribute='host_mode') | unique | list | length) == 1 }}"
-    host_mode_options_consistent: "{{ (host_volumes | map(attribute='host_mode_options') | unique | list | length) == 1 }}"
-  when: host_volumes | length > 0
+    hv_vsp_query_host_volumes_by_wwns_unique_host_modes: "{{ hv_vsp_query_host_volumes_by_wwns_host_volumes | map(attribute='host_mode') | unique | list }}"
+    hv_vsp_query_host_volumes_by_wwns_unique_host_mode_options: "{{ hv_vsp_query_host_volumes_by_wwns_host_volumes | map(attribute='host_mode_options') | unique |
+      list }}"
+    hv_vsp_query_host_volumes_by_wwns_host_mode_consistent: "{{ (hv_vsp_query_host_volumes_by_wwns_host_volumes | map(attribute='host_mode') | unique | list | length)
+      == 1 }}"
+    hv_vsp_query_host_volumes_by_wwns_host_mode_options_consistent: "{{ (hv_vsp_query_host_volumes_by_wwns_host_volumes | map(attribute='host_mode_options') | unique
+      | list | length) == 1 }}"
+  when: hv_vsp_query_host_volumes_by_wwns_host_volumes | length > 0
+
+- name: Check resource_group_id consistency
+  ansible.builtin.set_fact:
+    hv_vsp_query_host_volumes_by_wwns_resource_group_ids: "{{ hv_vsp_query_host_volumes_by_wwns_host_volumes | map(attribute='resource_group_id') | unique | list
+      }}"
+    hv_vsp_query_host_volumes_by_wwns_resource_group_consistency_error: >-
+      {% set unique_ids = hv_vsp_query_host_volumes_by_wwns_host_volumes | map(attribute='resource_group_id') | unique | list %}
+      {% if unique_ids | length > 1 and 0 in unique_ids %}
+      Inconsistent resource group IDs found: {{ unique_ids }}.
+      Resource group ID 0 is a meta resource group and cannot be mixed with others.
+      {% endif %}
+  when: hv_vsp_query_host_volumes_by_wwns_host_volumes | length > 0
+
+- name: Fail if resource group ID inconsistency detected
+  ansible.builtin.fail:
+    msg: "{{ hv_vsp_query_host_volumes_by_wwns_resource_group_consistency_error }}"
+  when:
+    - hv_vsp_query_host_volumes_by_wwns_resource_group_consistency_error is defined
+    - hv_vsp_query_host_volumes_by_wwns_resource_group_consistency_error | trim | length > 0
+
+- name: Query resource group facts for each resource_group_id
+  hitachivantara.vspone_block.vsp.hv_resource_group_facts:
+    connection_info: "{{ connection_info }}"
+    spec:
+      id: "{{ item }}"
+      query:
+        - ldevs
+  loop: "{{ hv_vsp_query_host_volumes_by_wwns_resource_group_ids }}"
+  loop_control:
+    label: "Resource Group ID: {{ item }}"
+  register: hv_vsp_query_host_volumes_by_wwns_resource_group_facts_result
+  when:
+    - hv_vsp_query_host_volumes_by_wwns_resource_group_ids | length > 0
+    - item != 0
 
 - name: Build hostgroup LDEV summary
   ansible.builtin.set_fact:
-    hostgroup_ldev_summary: "{{ hostgroup_ldev_summary | default([]) + [{'hg_id': item.host_group_id, 'hg_name': item.host_group_name, 'port_id': item.port_id, 'ldevs':
-      item.lun_paths | map(attribute='ldev_id') | list}] }}"
-  loop: "{{ hostgroup_data }}"
+    hv_vsp_query_host_volumes_by_wwns_hostgroup_ldev_summary: "{{ hv_vsp_query_host_volumes_by_wwns_hostgroup_ldev_summary | default([]) + [{'hg_id': item.host_group_id,
+      'hg_name': item.host_group_name, 'port_id': item.port_id, 'ldevs': item.lun_paths | map(attribute='ldev_id') | list}] }}"
+  loop: "{{ hv_vsp_query_host_volumes_by_wwns_hostgroup_data }}"
   when:
     - item.wwns is defined
     - item.wwns | length > 0
     - item.lun_paths is defined
     - item.lun_paths | length > 0
-    - (item.wwns | map(attribute='id') | list) | intersect(host_wwns) | length > 0
+    - (item.wwns | map(attribute='id') | list) | intersect(hv_vsp_query_host_volumes_by_wwns_host_wwns) | length > 0
 
 - name: Display host mode consistency check results
   ansible.builtin.debug:
     msg:
       - "=== Host Mode Consistency Check ==="
-      - "Host modes found: {{ unique_host_modes | default([]) }}"
-      - "Host mode options found: {{ unique_host_mode_options | default([]) }}"
-      - "Host mode consistent: {{ host_mode_consistent | default(true) }}"
-      - "Host mode options consistent: {{ host_mode_options_consistent | default(true) }}"
-      - "Overall consistency: {{ (host_mode_consistent | default(true)) and (host_mode_options_consistent | default(true)) }}"
+      - "Host modes found: {{ hv_vsp_query_host_volumes_by_wwns_unique_host_modes | default([]) }}"
+      - "Host mode options found: {{ hv_vsp_query_host_volumes_by_wwns_unique_host_mode_options | default([]) }}"
+      - "Host mode consistent: {{ hv_vsp_query_host_volumes_by_wwns_host_mode_consistent | default(true) }}"
+      - "Host mode options consistent: {{ hv_vsp_query_host_volumes_by_wwns_host_mode_options_consistent | default(true) }}"
+      - "Overall consistency: {{ (hv_vsp_query_host_volumes_by_wwns_host_mode_consistent | default(true)) and (hv_vsp_query_host_volumes_by_wwns_host_mode_options_consistent
+        | default(true)) }}"
   when: debug_mode | default(false) | bool
 
 - name: Clear host volumes if host modes or options are inconsistent
   ansible.builtin.set_fact:
-    host_volumes: []
-    matched_ldev_ids: []
-    consistency_error: "Host modes or host mode options are not consistent across host groups. Found host modes: {{ unique_host_modes | default([]) }}, Found host
-      mode options: {{ unique_host_mode_options | default([]) }}"
+    hv_vsp_query_host_volumes_by_wwns_host_volumes: []
+    hv_vsp_query_host_volumes_by_wwns_matched_ldev_ids: []
+    hv_vsp_query_host_volumes_by_wwns_consistency_error: "Host modes or host mode options are not consistent across host groups. Found host modes: {{ hv_vsp_query_host_volumes_by_wwns_unique_host_modes
+      | default([]) }}, Found host mode options: {{ hv_vsp_query_host_volumes_by_wwns_unique_host_mode_options | default([]) }}"
   when:
-    - host_volumes | length > 0
-    - not ((host_mode_consistent | default(true)) and (host_mode_options_consistent | default(true)))
+    - hv_vsp_query_host_volumes_by_wwns_host_volumes | length > 0
+    - not ((hv_vsp_query_host_volumes_by_wwns_host_mode_consistent | default(true)) and (hv_vsp_query_host_volumes_by_wwns_host_mode_options_consistent |
+      default(true)))
 
 - name: Display consistency error warning
   ansible.builtin.debug:
     msg:
-      - "WARNING: {{ consistency_error }}"
+      - "WARNING: {{ hv_vsp_query_host_volumes_by_wwns_consistency_error }}"
       - "Returning empty response due to inconsistent host configuration."
-  when: consistency_error is defined
+  when: hv_vsp_query_host_volumes_by_wwns_consistency_error is defined
+
+- name: Extract virtual serial numbers and models from resource group facts
+  ansible.builtin.set_fact:
+    hv_vsp_query_host_volumes_by_wwns_virtual_serials: "{{ hv_vsp_query_host_volumes_by_wwns_resource_group_facts_result.results | map(attribute='ansible_facts.resource_groups')
+      | flatten | map(attribute='virtual_serial_number') | unique | list }}"
+    hv_vsp_query_host_volumes_by_wwns_virtual_models: "{{ hv_vsp_query_host_volumes_by_wwns_resource_group_facts_result.results | map(attribute='ansible_facts.resource_groups')
+      | flatten | map(attribute='virtual_model') | unique | list }}"
+  when:
+    - hv_vsp_query_host_volumes_by_wwns_resource_group_facts_result is defined
+    - not hv_vsp_query_host_volumes_by_wwns_resource_group_facts_result.skipped | default(false)
+    - hv_vsp_query_host_volumes_by_wwns_resource_group_facts_result.results | selectattr('ansible_facts', 'defined') | list | length > 0
+
+- name: Check virtual serial number and model consistency
+  ansible.builtin.fail:
+    msg: "Inconsistent virtual serial numbers or models found across resource groups. Virtual serial numbers: {{ hv_vsp_query_host_volumes_by_wwns_virtual_serials
+      }}, Virtual models: {{ hv_vsp_query_host_volumes_by_wwns_virtual_models }}"
+  when:
+    - hv_vsp_query_host_volumes_by_wwns_virtual_serials is defined
+    - hv_vsp_query_host_volumes_by_wwns_virtual_models is defined
+    - (hv_vsp_query_host_volumes_by_wwns_virtual_serials | length > 1) or (hv_vsp_query_host_volumes_by_wwns_virtual_models | length > 1)
+
+- name: Add virtual serial number to host volumes
+  ansible.builtin.set_fact:
+    hv_vsp_query_host_volumes_by_wwns_host_volumes: "{{ hv_vsp_query_host_volumes_by_wwns_host_volumes | list | map('combine', {'virtual_storage_serial': hv_vsp_query_host_volumes_by_wwns_virtual_serials[0],
+      'virtual_storage_model': hv_vsp_query_host_volumes_by_wwns_virtual_models[0]}) | list }}"
+  when:
+    - hv_vsp_query_host_volumes_by_wwns_virtual_serials is defined
+    - hv_vsp_query_host_volumes_by_wwns_virtual_serials | length == 1
+    - hv_vsp_query_host_volumes_by_wwns_host_volumes | length > 0
 
 - name: Get current timestamp
   ansible.builtin.command: date -u +"%Y-%m-%dT%H:%M:%SZ"
-  register: current_timestamp
+  register: hv_vsp_query_host_volumes_by_wwns_current_timestamp
   changed_when: false
 
 - name: Set role output facts
   ansible.builtin.set_fact:
-    host_volumes_result:
-      input_wwns: "{{ host_wwns }}"
-      hostgroup_ldev_summary: "{{ hostgroup_ldev_summary | default([]) }}"
-      matched_ldev_ids: "{{ matched_ldev_ids }}"
-      total_ldevs_found: "{{ matched_ldev_ids | length }}"
-      host_volumes: "{{ host_volumes }}"
-      ports: "{{ ports | default([]) }}"
-      total_host_volume_entries: "{{ host_volumes | length }}"
-      host_mode_consistent: "{{ host_mode_consistent | default(true) }}"
-      host_mode_options_consistent: "{{ host_mode_options_consistent | default(true) }}"
-      overall_consistency: "{{ (host_mode_consistent | default(true)) and (host_mode_options_consistent | default(true)) }}"
-      consistency_error: "{{ consistency_error | default('') }}"
-      timestamp: "{{ current_timestamp.stdout }}"
+    hv_vsp_query_host_volumes_by_wwns_host_volumes_result:
+      input_wwns: "{{ hv_vsp_query_host_volumes_by_wwns_host_wwns }}"
+      hostgroup_ldev_summary: "{{ hv_vsp_query_host_volumes_by_wwns_hostgroup_ldev_summary | default([]) }}"
+      matched_ldev_ids: "{{ hv_vsp_query_host_volumes_by_wwns_matched_ldev_ids }}"
+      total_ldevs_found: "{{ hv_vsp_query_host_volumes_by_wwns_matched_ldev_ids | length }}"
+      host_volumes: "{{ hv_vsp_query_host_volumes_by_wwns_host_volumes }}"
+      ports: "{{ hv_vsp_query_host_volumes_by_wwns_ports | default([]) }}"
+      total_host_volume_entries: "{{ hv_vsp_query_host_volumes_by_wwns_host_volumes | length }}"
+      host_mode_consistent: "{{ hv_vsp_query_host_volumes_by_wwns_host_mode_consistent | default(true) }}"
+      host_mode_options_consistent: "{{ hv_vsp_query_host_volumes_by_wwns_host_mode_options_consistent | default(true) }}"
+      overall_consistency: "{{ (hv_vsp_query_host_volumes_by_wwns_host_mode_consistent | default(true)) and (hv_vsp_query_host_volumes_by_wwns_host_mode_options_consistent
+        | default(true)) }}"
+      consistency_error: "{{ hv_vsp_query_host_volumes_by_wwns_consistency_error | default('') }}"
+      timestamp: "{{ hv_vsp_query_host_volumes_by_wwns_current_timestamp.stdout }}"

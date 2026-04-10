@@ -98,6 +98,11 @@ plugins:
       name: hv_gad
       namespace: vsp
       version_added: 3.1.0
+    hv_gad_bulk:
+      description: Manages batch GAD pairs on VSP block storage systems.
+      name: hv_gad_bulk
+      namespace: vsp
+      version_added: 4.7.0
     hv_gad_facts:
       description: Retrieves GAD pairs information from VSP block storage systems.
       name: hv_gad_facts
@@ -108,6 +113,12 @@ plugins:
       name: hv_hg
       namespace: vsp
       version_added: 3.0.0
+    hv_hg_bulk:
+      description: Manages host groups in bulk on VSP block storage system with parallel
+        processing.
+      name: hv_hg_bulk
+      namespace: vsp
+      version_added: 4.7.0
     hv_hg_facts:
       description: Retrieves host group information from a specified VSP block storage
         system.
@@ -117,6 +128,11 @@ plugins:
     hv_hur:
       description: Manages HUR pairs on VSP block storage systems.
       name: hv_hur
+      namespace: vsp
+      version_added: 3.1.0
+    hv_hur_bulk:
+      description: Manages bulk HUR pairs on VSP block storage systems.
+      name: hv_hur_bulk
       namespace: vsp
       version_added: 3.1.0
     hv_hur_facts:
@@ -140,6 +156,11 @@ plugins:
       name: hv_iscsi_target
       namespace: vsp
       version_added: 3.0.0
+    hv_iscsi_target_bulk:
+      description: Manages iscsi targets in bulk mode on VSP block storage systems.
+      name: hv_iscsi_target_bulk
+      namespace: vsp
+      version_added: 4.7.0
     hv_iscsi_target_facts:
       description: Retrieves information about iscsi targets from VSP block storage
         systems.
@@ -175,6 +196,12 @@ plugins:
       name: hv_ldev
       namespace: vsp
       version_added: 3.0.0
+    hv_ldev_bulk:
+      description: Manages multiple logical devices (LDEVs) in bulk on VSP block storage
+        systems.
+      name: hv_ldev_bulk
+      namespace: vsp
+      version_added: 4.7.0
     hv_ldev_facts:
       description: Retrieves information about logical devices (LDEVs) from VSP block
         storage systems.
@@ -849,6 +876,11 @@ plugins:
       name: hv_truecopy
       namespace: vsp
       version_added: 3.1.0
+    hv_truecopy_bulk:
+      description: Manages bulk TrueCopy pairs on VSP block storage systems.
+      name: hv_truecopy_bulk
+      namespace: vsp
+      version_added: 4.7.0
     hv_truecopy_facts:
       description: Retrieves TrueCopy pairs information from VSP block storage systems.
       name: hv_truecopy_facts
@@ -957,4 +989,4 @@ plugins:
   strategy: {}
   test: {}
   vars: {}
-version: 4.6.1
+version: 4.7.0

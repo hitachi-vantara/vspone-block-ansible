@@ -1,0 +1,122 @@
+---
+# - name: Debug print of connection info
+#   ansible.builtin.debug:
+#     msg:
+#       - "Primary Storage Connection Info: {{ hv_vsp_gad_pairs_creation_connection_info }}"
+#       - "Secondary Storage Connection Info: {{ hv_vsp_gad_pairs_creation_secondary_connection_info }}"
+#       - "Quorum Storage Connection Info: {{ hv_vsp_gad_pairs_creation_quorum_storage_connection_info }}"
+# Validate required parameters for disk-based quorum creation
+- name: Fail if required parameters for disk-based quorum are missing
+  ansible.builtin.fail:
+    msg: "For disk-based quorum creation, both hv_vsp_gad_pairs_creation_external_pool_id and hv_vsp_gad_pairs_creation_quorum_disk_size must be provided."
+  when:
+    - hv_vsp_gad_pairs_creation_quorum_storage_connection_info | default({}) | length > 0
+    - (hv_vsp_gad_pairs_creation_external_pool_id is not defined or hv_vsp_gad_pairs_creation_external_pool_id == '') or
+      (hv_vsp_gad_pairs_creation_quorum_disk_size is not defined or hv_vsp_gad_pairs_creation_quorum_disk_size == '')
+
+# Create disk-based quorum disk
+- name: Create quorum disk (disk-based)
+  ansible.builtin.include_role:
+    name: hitachivantara.vspone_block.hv_vsp_create_primary_and_secondary_quorum_disk
+  vars:
+    hv_vsp_create_primary_and_secondary_quorum_disk_primary_storage_connection: "{{ hv_vsp_gad_pairs_creation_connection_info }}"
+    hv_vsp_create_primary_and_secondary_quorum_disk_secondary_storage_connection: "{{ hv_vsp_gad_pairs_creation_secondary_connection_info }}"
+    hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_storage_connection: "{{ hv_vsp_gad_pairs_creation_quorum_storage_connection_info }}"
+    hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_storage_host_groups: "{{ hv_vsp_gad_pairs_creation_quorum_storage_hostgroups | default(omit) }}"
+    hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_id: "{{ hv_vsp_gad_pairs_creation_quorum_id | default(omit) }}"
+    hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_external_pool_id: "{{ hv_vsp_gad_pairs_creation_external_pool_id }}"
+    hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_size: "{{ hv_vsp_gad_pairs_creation_quorum_disk_size }}"
+  when:
+    - hv_vsp_gad_pairs_creation_quorum_storage_connection_info | default({}) | length > 0
+    - hv_vsp_gad_pairs_creation_external_pool_id is defined and hv_vsp_gad_pairs_creation_external_pool_id != ''
+    - hv_vsp_gad_pairs_creation_quorum_disk_size is defined and hv_vsp_gad_pairs_creation_quorum_disk_size != ''
+
+- name: Set created quorum disk ID from disk-based creation
+  ansible.builtin.set_fact:
+    hv_vsp_gad_pairs_creation_created_quorum_disk: "{{ hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_id_computed }}"
+  when:
+    - hv_vsp_gad_pairs_creation_quorum_storage_connection_info | default({}) | length > 0
+    - hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_id_computed is defined
+
+# Create diskless quorum disk
+- name: Create diskless quorum disk
+  ansible.builtin.include_role:
+    name: hitachivantara.vspone_block.hv_vsp_create_primary_and_secondary_diskless_quorum_disk
+  vars:
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_connection: "{{ hv_vsp_gad_pairs_creation_connection_info }}"
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_connection: "{{ hv_vsp_gad_pairs_creation_secondary_connection_info }}"
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id: "{{ hv_vsp_gad_pairs_creation_quorum_id | default(omit) }}"
+  when: hv_vsp_gad_pairs_creation_quorum_storage_connection_info | default({}) | length == 0
+
+- name: Set created quorum disk ID from diskless creation
+  ansible.builtin.set_fact:
+    hv_vsp_gad_pairs_creation_created_quorum_disk: "{{ hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_computed }}"
+  when:
+    - hv_vsp_gad_pairs_creation_quorum_storage_connection_info | default({}) | length == 0
+    - hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id_computed is defined
+
+# Create GAD pairs in batch
+- name: Create batch GAD pairs
+  hitachivantara.vspone_block.vsp.hv_gad_bulk:
+    connection_info: "{{ hv_vsp_gad_pairs_creation_connection_info }}"
+    secondary_connection_info: "{{ hv_vsp_gad_pairs_creation_secondary_connection_info }}"
+    spec:
+      number_of_pairs: "{{ hv_vsp_gad_pairs_creation_number_of_pairs }}"
+      primary_pool_id: "{{ hv_vsp_gad_pairs_creation_primary_pool_id }}"
+      secondary_pool_id: "{{ hv_vsp_gad_pairs_creation_secondary_pool_id }}"
+      volume_size: "{{ hv_vsp_gad_pairs_creation_volume_size }}"
+      copy_group_name: "{{ hv_vsp_gad_pairs_creation_copy_group_name }}"
+      copy_pair_base_name: "{{ hv_vsp_gad_pairs_creation_copy_pair_base_name }}"
+      quorum_disk_id: "{{ hv_vsp_gad_pairs_creation_created_quorum_disk }}"
+      capacity_saving: "{{ hv_vsp_gad_pairs_creation_capacity_saving if hv_vsp_gad_pairs_creation_capacity_saving != '' else none }}"
+      primary_volume_base_name: "{{ hv_vsp_gad_pairs_creation_primary_volume_base_name if hv_vsp_gad_pairs_creation_primary_volume_base_name != '' else none }}"
+      primary_volume_base_name_start_number: "{{ hv_vsp_gad_pairs_creation_primary_volume_base_name_start_number if hv_vsp_gad_pairs_creation_primary_volume_base_name_start_number
+        != '' else none }}"
+      consistency_group_id: "{{ hv_vsp_gad_pairs_creation_consistency_group_id if hv_vsp_gad_pairs_creation_consistency_group_id != '' else none }}"
+      allocate_new_consistency_group: "{{ hv_vsp_gad_pairs_creation_allocate_new_consistency_group if hv_vsp_gad_pairs_creation_allocate_new_consistency_group !=
+        '' else none }}"
+      set_alua_mode: "{{ hv_vsp_gad_pairs_creation_set_alua_mode if hv_vsp_gad_pairs_creation_set_alua_mode != '' else none }}"
+      primary_resource_group_name: "{{ hv_vsp_gad_pairs_creation_primary_resource_group_name if hv_vsp_gad_pairs_creation_primary_resource_group_name != '' else none
+        }}"
+      secondary_resource_group_name: "{{ hv_vsp_gad_pairs_creation_secondary_resource_group_name if hv_vsp_gad_pairs_creation_secondary_resource_group_name != ''
+        else none }}"
+      primary_hostgroups: "{{ hv_vsp_gad_pairs_creation_primary_hostgroups if hv_vsp_gad_pairs_creation_primary_hostgroups | length > 0 else none }}"
+      secondary_hostgroups: "{{ hv_vsp_gad_pairs_creation_secondary_hostgroups if hv_vsp_gad_pairs_creation_secondary_hostgroups | length > 0 else none }}"
+      secondary_iscsi_targets: "{{ hv_vsp_gad_pairs_creation_secondary_iscsi_targets if hv_vsp_gad_pairs_creation_secondary_iscsi_targets | length > 0 else none }}"
+      secondary_nvm_subsystem: "{{ hv_vsp_gad_pairs_creation_secondary_nvm_subsystem if hv_vsp_gad_pairs_creation_secondary_nvm_subsystem | length > 0 else none }}"
+      local_device_group_name: "{{ hv_vsp_gad_pairs_creation_local_device_group_name if hv_vsp_gad_pairs_creation_local_device_group_name != '' else none }}"
+      remote_device_group_name: "{{ hv_vsp_gad_pairs_creation_remote_device_group_name if hv_vsp_gad_pairs_creation_remote_device_group_name != '' else none }}"
+      path_group_id: "{{ hv_vsp_gad_pairs_creation_path_group_id if hv_vsp_gad_pairs_creation_path_group_id != '' else none }}"
+      copy_pace: "{{ hv_vsp_gad_pairs_creation_copy_pace if hv_vsp_gad_pairs_creation_copy_pace != '' else none }}"
+      fence_level: "{{ hv_vsp_gad_pairs_creation_fence_level if hv_vsp_gad_pairs_creation_fence_level != '' else none }}"
+      mirror_unit_number: "{{ hv_vsp_gad_pairs_creation_mirror_unit_number if hv_vsp_gad_pairs_creation_mirror_unit_number != '' else none }}"
+      is_data_reduction_force_copy: "{{ hv_vsp_gad_pairs_creation_is_data_reduction_force_copy if hv_vsp_gad_pairs_creation_is_data_reduction_force_copy != '' else
+        none }}"
+      do_initial_copy: "{{ hv_vsp_gad_pairs_creation_do_initial_copy if hv_vsp_gad_pairs_creation_do_initial_copy != '' else none }}"
+      is_consistency_group: "{{ hv_vsp_gad_pairs_creation_is_consistency_group if hv_vsp_gad_pairs_creation_is_consistency_group != '' else none }}"
+      is_new_group_creation: "{{ hv_vsp_gad_pairs_creation_is_new_group_creation if hv_vsp_gad_pairs_creation_is_new_group_creation != '' else none }}"
+      begin_secondary_volume_id: "{{ hv_vsp_gad_pairs_creation_begin_secondary_volume_id if hv_vsp_gad_pairs_creation_begin_secondary_volume_id != '' else none }}"
+      end_secondary_volume_id: "{{ hv_vsp_gad_pairs_creation_end_secondary_volume_id if hv_vsp_gad_pairs_creation_end_secondary_volume_id != '' else none }}"
+      virtual_storage_serial_number: "{{ hv_vsp_gad_pairs_creation_virtual_storage_serial_number if hv_vsp_gad_pairs_creation_virtual_storage_serial_number != ''
+        else none }}"
+      begin_primary_volume_id: "{{ hv_vsp_gad_pairs_creation_begin_primary_ldev_id if hv_vsp_gad_pairs_creation_begin_primary_ldev_id != '' else none }}"
+      end_primary_volume_id: "{{ hv_vsp_gad_pairs_creation_end_primary_ldev_id if hv_vsp_gad_pairs_creation_end_primary_ldev_id != '' else none }}"
+  register: hv_vsp_gad_pairs_creation_batch_result
+
+# Display batch GAD pairs creation report
+- name: Display GAD Pairs Creation Report
+  ansible.builtin.debug:
+    msg:
+      - "==============================================="
+      - "    GAD PAIRS CREATION REPORT"
+      - "==============================================="
+      - "Quorum Disk ID: {{ hv_vsp_gad_pairs_creation_created_quorum_disk | default('N/A') }}"
+      - "Number of Pairs Created: {{ hv_vsp_gad_pairs_creation_batch_result.gad_pairs | default([]) | length }}"
+      - "Copy Group Name: {{ hv_vsp_gad_pairs_creation_copy_group_name }}"
+      - "-----------------------------------------------"
+      - "GAD Pairs Details:"
+      - "{{ hv_vsp_gad_pairs_creation_batch_result.gad_pairs | default([]) | to_nice_yaml }}"
+      - "-----------------------------------------------"
+      - "Comments: {{ hv_vsp_gad_pairs_creation_batch_result.comments | default([]) }}"
+      - "==============================================="
+  when: hv_vsp_gad_pairs_creation_batch_result is defined

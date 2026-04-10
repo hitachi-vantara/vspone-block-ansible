@@ -30,6 +30,7 @@ class VSPNvmeSubsystemSpec(SingleBaseClass):
     # host_mode_options: Optional[List[int]] = None
     enable_namespace_security: Optional[bool] = True
     ports: Optional[List[str]] = None
+    port_ids: Optional[List[str]] = None
     host_nqns: Optional[List[VSPNvmHostNqnSpec]] = None
     namespaces: Optional[List[VSPNvmNamespaceSpec]] = None
     force: Optional[bool] = False
@@ -42,6 +43,8 @@ class VSPNvmeSubsystemSpec(SingleBaseClass):
             self.namespaces = [VSPNvmNamespaceSpec(**x) for x in self.namespaces]
             for x in self.namespaces:
                 x.ldev_id = normalize_ldev_id(x.ldev_id)
+        if self.port_ids:
+            self.ports = self.port_ids
 
 
 @dataclass

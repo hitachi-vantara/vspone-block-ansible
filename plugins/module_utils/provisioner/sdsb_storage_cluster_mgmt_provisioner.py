@@ -13,6 +13,7 @@ from ..model.sdsb_storage_controller_model import (
 )
 from ..message.sdsb_controller_msgs import SDSBControllerValidationMsg
 from ..common.ansible_common import is_valid_ip
+from ..common.sdsb_errors import SdsbSnmpUpdateError
 
 logger = Log()
 
@@ -38,7 +39,7 @@ class SDSBStorageClusterMgmtProvisioner:
             self.connection_info.changed = True
 
         except Exception as e:
-            raise Exception(str(e))
+            raise SdsbSnmpUpdateError(str(e))
 
         return self.get_snmp_settings().camel_to_snake_dict()
 
@@ -69,7 +70,7 @@ class SDSBStorageClusterMgmtProvisioner:
                     ip_addresses.extend(setting.send_trap_to)
 
         if not spec.system_group_information:
-            raise Exception(
+            raise ValueError(
                 SDSBControllerValidationMsg.REQUIRED_SYSTEM_GROUP_INFO.value
             )
 
@@ -105,7 +106,7 @@ class SDSBStorageClusterMgmtProvisioner:
         """
         valid_domain = self.gateway.get_protection_domain_settings_by_id(spec.id)
         if not valid_domain:
-            raise Exception(
+            raise ValueError(
                 SDSBControllerValidationMsg.INVALID_PROTECTION_DOMAIN_ID.value.format(
                     spec.id
                 )
@@ -128,7 +129,7 @@ class SDSBStorageClusterMgmtProvisioner:
         """
         valid_domain = self.gateway.get_protection_domain_settings_by_id(spec.id)
         if not valid_domain:
-            raise Exception(
+            raise ValueError(
                 SDSBControllerValidationMsg.INVALID_PROTECTION_DOMAIN_ID.value.format(
                     spec.id
                 )
@@ -150,7 +151,7 @@ class SDSBStorageClusterMgmtProvisioner:
         """
         valid_domain = self.gateway.get_protection_domain_settings_by_id(spec.id)
         if not valid_domain:
-            raise Exception(
+            raise ValueError(
                 SDSBControllerValidationMsg.INVALID_PROTECTION_DOMAIN_ID.value.format(
                     spec.id
                 )
@@ -174,7 +175,7 @@ class SDSBStorageClusterMgmtProvisioner:
         if spec.control_port_ipv4_address is not None and not is_valid_ip(
             spec.control_port_ipv4_address
         ):
-            raise Exception(
+            raise ValueError(
                 SDSBControllerValidationMsg.INVALID_IP_ADDRESS_IN_CONTROL_PORT.value.format(
                     spec.control_port_ipv4_address
                 )
@@ -190,7 +191,7 @@ class SDSBStorageClusterMgmtProvisioner:
         if spec.fault_domain_id is not None:
             fault_domain = self.gateway.get_fault_domain_using_id(spec.fault_domain_id)
             if not fault_domain:
-                raise Exception(
+                raise ValueError(
                     SDSBControllerValidationMsg.INVALID_FAULT_DOMAIN_ID.value.format(
                         spec.fault_domain_id
                     )
@@ -248,7 +249,7 @@ class SDSBStorageClusterMgmtProvisioner:
         :return: Response from the API call.
         """
         if spec.root_certificate_file_path is None:
-            raise Exception(
+            raise ValueError(
                 SDSBControllerValidationMsg.REQUIRED_ROOT_CERTIFICATE_FILE_PATH.value
             )
 
@@ -313,7 +314,7 @@ class SDSBStorageClusterMgmtProvisioner:
             spec.enable_client_address_allowlist
             and spec.client_address_allowlist is None
         ):
-            raise Exception(
+            raise ValueError(
                 SDSBControllerValidationMsg.REQUIRED_CLIENT_ADDRESS_ALLOWLIST.value
             )
 
@@ -344,17 +345,17 @@ class SDSBStorageClusterMgmtProvisioner:
             spec.server_certificate_file_path is None
             and spec.server_certificate_secret_key_file_path is None
         ):
-            raise Exception(
+            raise ValueError(
                 SDSBControllerValidationMsg.REQUIRED_SERVER_CERTIFICATE_FILE_PATH.value
             )
 
         if os.path.isfile(spec.server_certificate_file_path) is False:
-            raise Exception(
+            raise ValueError(
                 f"Server certificate file '{spec.server_certificate_file_path}' does not exist."
             )
 
         if os.path.isfile(spec.server_certificate_secret_key_file_path) is False:
-            raise Exception(
+            raise ValueError(
                 f"Secret key file '{spec.server_certificate_secret_key_file_path}' does not exist."
             )
 
@@ -374,11 +375,11 @@ class SDSBStorageClusterMgmtProvisioner:
 
     def __is_exists_spare_node(self, spec):
         if spec.id is None:
-            raise Exception(SDSBControllerValidationMsg.REQUIRED_SPARE_NODE_ID.value)
+            raise ValueError(SDSBControllerValidationMsg.REQUIRED_SPARE_NODE_ID.value)
         try:
             spare_node = self.gateway.get_spare_node_by_id(spec.id)
             if spare_node is None:
-                raise Exception(
+                raise ValueError(
                     SDSBControllerValidationMsg.INVALID_SPARE_NODE_ID.value.format(
                         spec.id
                     )

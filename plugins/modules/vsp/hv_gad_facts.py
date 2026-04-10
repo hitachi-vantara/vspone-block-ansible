@@ -132,17 +132,21 @@ ansible_facts:
           type: str
           sample: "cp_group_840"
         copy_pace_track_size:
-          description: Copy pace track size.
-          type: str
+          description: Deprecated. Copy pace track size.
+          type: int
           sample: ""
         copy_pair_name:
           description: Pair name.
           type: str
           sample: "gad_pair_840"
         copy_rate:
-          description: Copy rate.
+          description: Deprecated. Copy rate.
           type: str
           sample: ""
+        fence_level:
+          description: Fence level.
+          type: str
+          sample: "NEVER"
         is_alua_enabled:
           description: Whether ALUA is enabled or not.
           type: bool
@@ -152,7 +156,11 @@ ansible_facts:
           type: str
           sample: "cp_group_840S_"
         mirror_unit_id:
-          description: Mirror unit ID.
+          description: Deprecated. Use mirror_unit_number instead. Mirror unit ID.
+          type: int
+          sample: 0
+        mirror_unit_number:
+          description: Mirror unit number.
           type: int
           sample: 0
         primary_virtual_serial_number:
@@ -171,12 +179,20 @@ ansible_facts:
           description: Primary volume ID in hexadecimal format.
           type: str
           sample: "00:03:48"
+        primary_volume_size:
+          description: Size of the primary volume. Display only for single GAD pair query.
+          type: str
+          sample: "4.00GB"
         primary_volume_status:
           description: Status of the GAD pair.
           type: str
           sample: "PSUE"
         primary_volume_storage_id:
-          description: Primary volume storage ID.
+          description: Deprecated. Use primary_volume_storage_serial_number instead.
+          type: str
+          sample: "810050"
+        primary_volume_storage_serial_number:
+          description: Primary volume storage serial number.
           type: str
           sample: "810050"
         primary_vsm_resource_group_name:
@@ -192,11 +208,11 @@ ansible_facts:
           type: str
           sample: "cp_group_840P_"
         remote_mirror_copy_pair_id:
-          description: Remote mirror copy pair ID.
+          description: Deprecated. Remote mirror copy pair ID.
           type: str
           sample: "A34000810050,cp_group_840,cp_group_840S_,cp_group_840P_,gad_pair_840"
         secondary_virtual_serial_number:
-          description: Secondary virtual storage ID.
+          description: Secondary virtual storage serial number.
           type: int
           sample: -1
         secondary_virtual_volume_id:
@@ -211,12 +227,20 @@ ansible_facts:
           description: Secondary volume ID in hexadecimal format.
           type: str
           sample: "00:03:3F"
+        secondary_volume_size:
+          description: Size of the secondary volume. Display only for single GAD pair query.
+          type: str
+          sample: "4.00GB"
         secondary_volume_status:
           description: Status of the GAD pair.
           type: str
           sample: "PSUE"
         secondary_volume_storage_id:
-          description: Secondary volume storage ID.
+          description: Deprecated. Use secondary_volume_storage_serial_number instead.
+          type: str
+          sample: "810045"
+        secondary_volume_storage_serial_number:
+          description: Secondary volume storage serial number.
           type: str
           sample: "810045"
         secondary_vsm_resource_group_name:

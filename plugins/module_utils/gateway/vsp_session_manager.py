@@ -11,15 +11,20 @@ try:
     from ..common.hv_api_constants import API
     from ..common.hv_log import Log
     from ..common.vsp_constants import Endpoints
-
-    # from .ansible_url import open_url
+    from ..message.vsp_session_msgs import VSPSessionValidationMsg
+    from ..common.vsp_errors import (
+        VspSessionTokenGenerationError,
+        VspRestApiError,
+    )
 except ImportError:
     from common.ansible_common import mask_token
     from common.hv_api_constants import API
     from common.hv_log import Log
     from common.vsp_constants import Endpoints
-
-    # from .ansible_url import open_url
+    from common.vsp_errors import (
+        VspSessionTokenGenerationError,
+        VspRestApiError,
+    )
 
 logger = Log()
 
@@ -176,11 +181,10 @@ class SessionManager:
             )
         except Exception as e:
             logger.writeException(e)
-            err_msg = (
-                "Failed to establish a connection, please check the Management System address or the credentials."
-                + str(e)
+            err_msg = VSPSessionValidationMsg.FAILED_TO_GENERATE_TOKEN.value.format(
+                str(e)
             )
-            raise Exception(err_msg)
+            raise VspSessionTokenGenerationError(err_msg)
 
         session_id = response.get(API.SESSION_ID)
         token = response.get(API.TOKEN)
@@ -261,8 +265,8 @@ class SessionManager:
                         if error_resp.get("solution"):
                             error_dtls = error_dtls + " " + error_resp.get("solution")
 
-                        raise Exception(error_dtls)
-            raise Exception(err)
+                        raise VspRestApiError(error_dtls)
+            raise VspRestApiError(err)
         except Exception as err:
             logger.writeException(err)
             raise err
@@ -273,7 +277,7 @@ class SessionManager:
             except Exception:
                 error_msg = response.read().decode()
             logger.writeError("error_msg = {}", error_msg)
-            raise Exception(error_msg, response.status)
+            raise VspRestApiError(error_msg, response.status)
 
         return self._load_response(response)
 

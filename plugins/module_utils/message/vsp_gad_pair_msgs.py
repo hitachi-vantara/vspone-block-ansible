@@ -67,3 +67,54 @@ class GADPairValidateMSG(Enum):
     )
     QUORUM_DISK_ID = "quorum_disk_id is a required field, which is missing."
     VLDEV_ID_NOT_SET_FOR_DRS_PVOL = "Virtual LDEV ID is not set for the data reduction share primary volume {}, which is required for GAD pair creation."
+    CREATE_GAD_PAIR_FAILED = "Failed to create the GAD pair for primary_volume_id {}."
+    BATCH_CREATE_PRIMARY_VOLUME_FAILED = (
+        "Failed to create primary volumes for batch GAD pair creation. "
+        "Please check the error details for more information."
+    )
+    SEC_HGS_IN_META_RG = (
+        "Secondary host groups cannot be part of a meta resource group for GAD pair creation. "
+        "Secondary host group '{}' is part of meta resource group."
+    )
+    SEC_IST_IN_META_RG = (
+        "Secondary iSCSI target groups cannot be part of a meta resource group for GAD pair creation. "
+        "Secondary iSCSI target group '{}' is part of meta resource group."
+    )
+    SEC_NVM_SUBSYSTEM_IN_META_RG = (
+        "Secondary NVM subsystems cannot be part of a meta resource group for GAD pair creation. "
+        "Secondary NVM subsystem '{}' is part of meta resource group."
+    )
+    NUMBER_OF_PAIRS_RANGE = (
+        "number_of_pairs must be a positive integer between 1 and {}."
+    )
+    NUMBER_OF_PAIRS_POSITIVE = "number_of_pairs must be a positive integer."
+    PRIMARY_HG_IST_NVM_REQUIRED = (
+        "At least one of primary_hostgroups, primary_iscsi_targets, "
+        "or primary_nvm_subsystems must be provided."
+    )
+    SECONDARY_HG_REQUIRED = (
+        "secondary_hostgroups must be provided if primary_hostgroups is present."
+    )
+    SECONDARY_IST_REQUIRED = (
+        "secondary_iscsi_targets must be provided if primary_iscsi_targets is present."
+    )
+    SECONDARY_NVM_REQUIRED = (
+        "secondary_nvm_subsystem must be provided if primary_nvm_subsystem is present."
+    )
+    BEGIN_PRIMARY_GREATER_THAN_END = (
+        "begin_primary_volume_id cannot be greater than end_primary_volume_id."
+    )
+    BEGIN_SECONDARY_GREATER_THAN_END = (
+        "begin_secondary_volume_id cannot be greater than end_secondary_volume_id."
+    )
+    PRIMARY_VOLUME_RANGE_MISMATCH = (
+        "The range defined by begin_primary_volume_id and end_primary_volume_id "
+        "must match or be greater than number_of_pairs. Expected {} but got {}."
+    )
+    SECONDARY_VOLUME_RANGE_MISMATCH = (
+        "The range defined by begin_secondary_volume_id and end_secondary_volume_id "
+        "must match or be greater than number_of_pairs. Expected {} but got {}."
+    )
+    GAD_PAIR_DOES_NOT_EXIST = (
+        "GAD pair with copy group name '{}' and copy pair name '{}' does not exist."
+    )

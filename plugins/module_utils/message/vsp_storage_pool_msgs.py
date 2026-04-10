@@ -58,3 +58,4 @@ class StoragePoolInfoMsg(Enum):
         "Tier relocation is already stopped. "
         "Please start it before trying to stop it again."
     )
+    POOL_CREATED_UPDATED = "Storage pool created/updated successfully."

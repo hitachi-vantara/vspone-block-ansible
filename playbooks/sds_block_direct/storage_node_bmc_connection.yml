@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Storage Node BMC Connection Information Playbook
-####################################################################
+# ###################################################################
 - name: Storage Node BMC Connection Information Playbook
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ###########################################################################
+    # ##########################################################################
     # Task Name : Update BMC connection information for one storage node by id
-    ###########################################################################
+    # ##########################################################################
     - name: Update BMC connection information for one storage node by id
       hitachivantara.vspone_block.sds_block.hv_sds_block_storage_node_bmc_connection:
         connection_info: "{{ connection_info }}"

@@ -32,7 +32,7 @@ class SDSBStoragePoolReconciler:
     def get_storage_pools(self, spec=None):
         try:
             extracted_data = None
-            if spec is None:
+            if spec.is_empty():
                 s_pools = self.provisioner.get_storage_pools()
                 logger.writeDebug("RC:get_storage_pools:s_pools={}", s_pools)
                 extracted_data = SDSBStoragePoolExtractor().extract(
@@ -74,11 +74,15 @@ class SDSBStoragePoolReconciler:
         if state == StateValue.PRESENT:
             resp_data = self.edit_storage_pool_settings(spec=spec)
             if resp_data:
-                spec.comments = SDSBStoragePoolValidationMsg.STORAGE_POOL_EDIT_SUCCESS.value
+                spec.comments = (
+                    SDSBStoragePoolValidationMsg.STORAGE_POOL_EDIT_SUCCESS.value
+                )
         elif state == StateValue.EXPAND:
             resp_data = self.expand_storage_pool(spec=spec)
             if resp_data:
-                spec.comments = SDSBStoragePoolValidationMsg.STORAGE_POOL_EXPAND_SUCCESS.value
+                spec.comments = (
+                    SDSBStoragePoolValidationMsg.STORAGE_POOL_EXPAND_SUCCESS.value
+                )
 
         if resp_data:
             s_pool = self.provisioner.get_storage_pool_by_id(resp_data)
@@ -107,8 +111,10 @@ class SDSBStoragePoolReconciler:
                     spec.comments = str(e)
                 return None
         if spec.id is None:
-            spec.comments = SDSBStoragePoolValidationMsg.STORAGE_POOL_NOT_FOUND.value.format(
-                spec.name
+            spec.comments = (
+                SDSBStoragePoolValidationMsg.STORAGE_POOL_NOT_FOUND.value.format(
+                    spec.name
+                )
             )
             return None
         if not self.is_edit_pool_needed(pool, spec):
@@ -162,8 +168,10 @@ class SDSBStoragePoolReconciler:
                     spec.comments = str(e)
                 return None
         if spec.id is None:
-            spec.comments = SDSBStoragePoolValidationMsg.STORAGE_POOL_NOT_FOUND.value.format(
-                spec.name
+            spec.comments = (
+                SDSBStoragePoolValidationMsg.STORAGE_POOL_NOT_FOUND.value.format(
+                    spec.name
+                )
             )
             return None
         resp = self.provisioner.expand_storage_pool(spec.id, spec.drive_ids)

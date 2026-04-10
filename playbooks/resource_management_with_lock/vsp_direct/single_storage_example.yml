@@ -1,5 +1,5 @@
 ---
-###########################################################################
+# ##########################################################################
 # This playbook demonstrates how to lock resource groups, and do operations
 # on storage resources.
 # The playbook demonstrates the following operations:
@@ -11,7 +11,7 @@
 # 6. Unlock Resource Groups
 # Operation # 4 is not affected by the lock, so for this operation can be done
 # with or without the lock token. Here we did it without the lock token.
-###########################################################################
+# ##########################################################################
 - name: Resource Group Lock Management
   hosts: localhost
   gather_facts: false
@@ -27,9 +27,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task 1 : Lock Resource Groups
-    ####################################################################
+    # ###################################################################
     - name: Lock Resource Group
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info: "{{ connection_info }}"

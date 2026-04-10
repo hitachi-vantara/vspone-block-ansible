@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example :  Hitachi Universal Replicator (HUR) Playbook
-####################################################################
+# ###################################################################
 - name: HUR
   hosts: localhost
   gather_facts: false
@@ -20,9 +20,9 @@
       password: "{{ vault_secondary_storage_secret }}"
 
   tasks:
-    #####################################################################
+    # ####################################################################
     # Task Name : Create HUR pair in new copy group
-    ######################################################################
+    # #####################################################################
     - name: Create HUR pair in new copy group
       hitachivantara.vspone_block.vsp.hv_hur:
         connection_info: "{{ connection_info }}"
@@ -40,9 +40,9 @@
           consistency_group_id: 1
           secondary_hostgroups:
             - name: "ansible-hostgroup-2"
-              port: "CL1-A"
+              port_id: "CL1-A"
               lun_id: 5
-          mirror_unit_id: 0
+          mirror_unit_number: 0
           is_data_reduction_force_copy: false
           path_group_id: 5
 
@@ -67,7 +67,7 @@
           secondary_pool_id: 0
           secondary_hostgroups:
             - name: "ansible-hostgroup-2"
-              port: "CL1-A"
+              port_id: "CL1-A"
               lun_id: 5
       register: result
 
@@ -95,8 +95,8 @@
           consistency_group_id: 1
           secondary_hostgroups:
             - name: "smrha-5565537478"
-              port: CL1-A
-          mirror_unit_id: 0
+              port_id: "CL1-A"
+          mirror_unit_number: 0
           begin_secondary_volume_id: 4720
           end_secondary_volume_id: 4730
       register: result
@@ -127,7 +127,7 @@
             name: gk-nvm-sub-75
             paths:
               - "nqn.2014-08.com.ucpa-sc-hv:nvme:gk-test-12346"
-          mirror_unit_id: 0
+          mirror_unit_number: 0
           is_data_reduction_force_copy: false
           path_group_id: 5
 
@@ -157,9 +157,9 @@
           consistency_group_id: 1
           secondary_iscsi_targets:
             - name: "test"
-              port: "CL1-A"
+              port_id: "CL1-A"
               lun_id: 5
-          mirror_unit_id: 0
+          mirror_unit_number: 0
           is_data_reduction_force_copy: false
           path_group_id: 5
 
@@ -183,10 +183,9 @@
           copy_group_name: "hur_copy_group_name_0604"
           copy_pair_name: "hur_copy_pair_name_0604"
           primary_volume_id: 75
-          secondary_pool_id: 0
           primary_volume_journal_id: 11
           secondary_volume_journal_id: 13
-          mirror_unit_id: 3
+          mirror_unit_number: 3
           provisioned_secondary_volume_id: 5612
       register: result
 
@@ -208,16 +207,15 @@
           copy_group_name: "hur_copy_group_name_0604"
           copy_pair_name: "hur_copy_pair_name_0604"
           primary_volume_id: 75
-          secondary_pool_id: 0
           primary_volume_journal_id: 11
           secondary_volume_journal_id: 13
-          mirror_unit_id: 3
+          mirror_unit_number: 3
           provisioned_secondary_volume_id: 5612
           secondary_hostgroups:
             - name: "smrha-2449965918"
-              port: CL2-B
+              port_id: "CL2-B"
             - name: "smrha-1840203863"
-              port: CL2-B
+              port_id: "CL2-B"
               lun_id: 3
       register: result
 

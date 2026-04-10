@@ -14,6 +14,10 @@ try:
         log_entry_exit,
         unzip_targz,
     )
+    from ..common.sdsb_errors import (
+        SdsbError,
+        SdsbDownloadConfigFileError,
+    )
     from ..model.sdsb_cluster_models import ControlInternodeNetworkSpec
     from ..message.sdsb_cluster_msgs import SDSBClusterValidationMsg
 except ImportError:
@@ -26,6 +30,10 @@ except ImportError:
     from common.ansible_common import (
         log_entry_exit,
         unzip_targz,
+    )
+    from common.sdsb_errors import (
+        SdsbError,
+        SdsbDownloadConfigFileError,
     )
     from model.sdsb_cluster_models import ControlInternodeNetworkSpec
     from message.sdsb_cluster_msgs import SDSBClusterValidationMsg
@@ -586,7 +594,7 @@ class SDSBClusterReconciler:
             return msg
         except Exception as e:
             logger.writeException(e)
-            raise Exception(e)
+            raise SdsbError(e)
 
     @log_entry_exit
     def create_config_file(self, spec=None):
@@ -808,7 +816,7 @@ class SDSBClusterReconciler:
             return file_name
         except Exception as e:
             logger.writeException(e)
-            raise Exception(e)
+            raise SdsbDownloadConfigFileError(e)
 
     @log_entry_exit
     def download_and_unzip_config_file(self, spec=None):
@@ -829,7 +837,7 @@ class SDSBClusterReconciler:
                 return None
         except Exception as e:
             logger.writeException(e)
-            raise Exception(e)
+            raise SdsbDownloadConfigFileError(e)
 
     @log_entry_exit
     def download_config_file(self, spec):
@@ -839,12 +847,16 @@ class SDSBClusterReconciler:
                 self.connection_info.changed = True
             resp = self.download_and_unzip_config_file(spec)
             if resp:
-                return f"Successfully downloaded SystemConfigurationFile.csv in the directory {resp}."
+                return (
+                    SDSBClusterValidationMsg.CONFIG_FILE_DOWNLOAD_SUCCESS.value.format(
+                        resp
+                    )
+                )
             else:
-                return "Failed to  downloaded SystemConfigurationFile.csv in the directory."
+                return SDSBClusterValidationMsg.CONFIG_FILE_DOWNLOAD_FAILURE.value
         except Exception as e:
             logger.writeException(e)
-            raise Exception(e)
+            raise SdsbDownloadConfigFileError(e)
 
     @log_entry_exit
     def replace_storage_node(self, spec):

@@ -7,12 +7,14 @@ try:
     from ..common.ansible_common import (
         log_entry_exit,
     )
+    from ..message.sdsb_snapshot_msgs import SDSSnapShotsMsgs
 except ImportError:
     from provisioner.sdsb_snapshot_provisioner import SDSBSnapshotProvisioner
     from common.hv_log import Log
     from common.ansible_common import (
         log_entry_exit,
     )
+    from message.sdsb_snapshot_msgs import SDSSnapShotsMsgs
 
 logger = Log()
 
@@ -36,7 +38,7 @@ class SDSBSnapshotReconciler:
             logger.writeDebug(
                 "RC:get_snapshots:No existing snapshot found for spec: {}", spec
             )
-            raise ValueError("No existing snapshot found for spec.")
+            raise ValueError(SDSSnapShotsMsgs.SNAPSHOT_NOT_FOUND.value)
 
         if state == StateValue.PRESENT:
             if not existing_snapshot:

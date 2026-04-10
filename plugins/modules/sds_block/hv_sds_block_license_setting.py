@@ -53,6 +53,10 @@ options:
               - Use -1 to disable the warning.
               - Valid range is -1 or 0 to 100.
             type: int
+      allow_over_capacity:
+        description:
+          - This option is valid only for the AWS cloud model. It specifies whether to allow overcapacity when the license capacity is exceeded.
+        type: bool
 extends_documentation_fragment:
   - hitachivantara.vspone_block.common.sdsb_connection_info
 """
@@ -138,97 +142,33 @@ class SDSBLicenseSettingManager:
 
         parameter_manager = SDSBParametersManager(self.module.params)
         self.connection_info = parameter_manager.get_connection_info()
-        self.state = self.module.params.get("state")
-        self.spec = self.module.params.get("spec", {})
+        self.state = parameter_manager.get_state()
+        self.spec = parameter_manager.get_license_setting_spec()
         self.logger.writeDebug(f"MOD:license_setting:state= {self.state}")
         self.logger.writeDebug(f"MOD:license_setting:spec= {self.spec}")
 
     def apply(self):
         self.logger.writeInfo("=== Start of SDSB License Setting Management ===")
         license_setting = None
-        changed = False
         registration_message = validate_ansible_product_registration()
 
         try:
             sdsb_reconciler = SDSBLicenseReconciler(self.connection_info)
-
-            if self.state == "present":
-                # Get current settings
-                current_setting = sdsb_reconciler.get_license_setting()
-                self.logger.writeDebug(
-                    f"MOD:current_license_setting= {current_setting}"
-                )
-
-                # Check if modification is needed
-                warning_threshold = self.spec.get("warning_threshold_setting", {})
-
-                if warning_threshold:
-                    # Validate remaining_days
-                    remaining_days = warning_threshold.get("remaining_days")
-                    if remaining_days is not None:
-                        if not (-1 <= remaining_days <= 60):
-                            raise ValueError(
-                                f"remaining_days must be between -1 and 60. Got: {remaining_days}"
-                            )
-
-                    # Validate total_pool_capacity_rate
-                    total_pool_capacity_rate = warning_threshold.get(
-                        "total_pool_capacity_rate"
-                    )
-                    if total_pool_capacity_rate is not None:
-                        if total_pool_capacity_rate != -1 and not (
-                            0 <= total_pool_capacity_rate <= 100
-                        ):
-                            raise ValueError(
-                                f"total_pool_capacity_rate must be -1 or between 0 and 100. Got: {total_pool_capacity_rate}"
-                            )
-
-                    # Convert snake_case to camelCase for the gateway
-                    warning_threshold_camel = {
-                        "remainingDays": (
-                            remaining_days if remaining_days is not None else -1
-                        ),
-                        "totalPoolCapacityRate": (
-                            total_pool_capacity_rate
-                            if total_pool_capacity_rate is not None
-                            else -1
-                        ),
-                    }
-
-                    # Check if settings need to be changed
-                    current_warning = current_setting.get("warningThresholdSetting", {})
-                    needs_update = warning_threshold_camel.get(
-                        "remainingDays"
-                    ) != current_warning.get(
-                        "remainingDays"
-                    ) or warning_threshold_camel.get(
-                        "totalPoolCapacityRate"
-                    ) != current_warning.get(
-                        "totalPoolCapacityRate"
-                    )
-
-                    if needs_update and not self.module.check_mode:
-                        license_setting = sdsb_reconciler.modify_license_setting(
-                            warning_threshold_camel
-                        )
-                        changed = True
-                    else:
-                        license_setting = current_setting
-                        if needs_update:
-                            changed = True  # Would have changed in non-check mode
-                else:
-                    license_setting = current_setting
-
-                self.logger.writeDebug(
-                    f"MOD:hv_sds_block_license_setting:license_setting= {license_setting}"
-                )
-
+            license_setting = sdsb_reconciler.reconcile_license_setting(
+                self.spec, self.state
+            )
+            self.logger.writeDebug(
+                f"MOD:hv_sds_block_license_setting:license_setting= {license_setting}"
+            )
         except Exception as e:
             self.logger.writeException(e)
             self.logger.writeInfo("=== End of SDSB License Setting Management ===")
             self.module.fail_json(msg=str(e))
 
-        result = {"changed": changed, "license_setting": license_setting}
+        result = {
+            "changed": self.connection_info.changed,
+            "license_setting": license_setting,
+        }
 
         if registration_message:
             result["user_consent_required"] = registration_message

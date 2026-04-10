@@ -1,0 +1,29 @@
+---
+- name: Create Primary and Secondary Quorum Disk
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+  vars:
+    # Connection information for primary storage
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_storage_connection:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+    # Connection information for secondary storage
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_storage_connection:
+      address: "{{ secondary_storage_address }}"
+      username: "{{ vault_secondary_storage_username }}"
+      password: "{{ vault_secondary_storage_secret }}"
+
+    # Optional: Specify quorum disk ID (0-31), if not specified, first available will be used
+    hv_vsp_create_primary_and_secondary_diskless_quorum_disk_quorum_disk_id: 1
+
+  # Optional: Specific LDEV IDs, if not specified, free IDs will be auto-selected
+  # hv_vsp_create_primary_and_secondary_diskless_quorum_disk_primary_ldev_id: 1000
+  # hv_vsp_create_primary_and_secondary_diskless_quorum_disk_secondary_ldev_id: 2000
+  tasks:
+    - name: Create Primary and Secondary diskless Quorum Disk
+      ansible.builtin.include_role:
+        name: hitachivantara.vspone_block.hv_vsp_create_primary_and_secondary_diskless_quorum_disk

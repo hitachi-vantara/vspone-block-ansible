@@ -47,7 +47,7 @@ AUDIT_THREADS = []
 
 USER_CONSENT, CONSENT_FILE_PRESENT = False, False
 SITE_ID = "common_site_id"
-
+MODULE_NAME = None
 logger = Log()
 
 
@@ -86,9 +86,12 @@ class OpenUrlWithTelemetry:
         self.ignore_apis = IGNORED_APIS
 
     def _extract_module_name(self, file_names):
+        global MODULE_NAME
         """
         Extracts the module name from a list of file paths based on specific criteria.
         """
+        if MODULE_NAME:
+            return MODULE_NAME
         valid_subdirs = ["/vsp/", "/sds_block/"]
 
         for file in file_names:
@@ -100,7 +103,8 @@ class OpenUrlWithTelemetry:
             ):
                 match = re.search(r"/([^/]+)\.py$", file)
                 if match:
-                    return match.group(1)
+                    MODULE_NAME = match.group(1)
+                    return MODULE_NAME
         return None
 
     def _dig_calling_class(self, stack):
@@ -471,12 +475,12 @@ def get_consent_flag():
         os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)  # nosec
     ):  # nosec
         CONSENT_FILE_PRESENT = True
-    if not USER_CONSENT and os.path.exists(                      # nosec
+    if not USER_CONSENT and os.path.exists(  # nosec
         os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)  # nosec
-    ):                                                           # nosec
-        with open(                                                          # nosec
-            os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME), "r"    # nosec
-        ) as file:                                                          # nosec
+    ):  # nosec
+        with open(  # nosec
+            os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME), "r"  # nosec
+        ) as file:  # nosec
             consent_data = json.load(file)
             if consent_data.get("user_consent_accepted", False):
                 SITE_ID = consent_data.get("site_id")

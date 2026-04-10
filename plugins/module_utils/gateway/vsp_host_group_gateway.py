@@ -19,6 +19,11 @@ try:
     from ..common.hv_constants import VSPHostGroupConstant
     from ..message.vsp_host_group_msgs import VSPHostGroupMessage
     from ..common.ansible_common_constants import MAX_WORKER_THREADS
+    from ..common.vsp_errors import (
+        VspNoFreeHostGroupError,
+        VspHostModelNotSupportedError,
+    )
+    from ..gateway.vsp_volume import VSPVolumeDirectGateway
 except ImportError:
     from common.vsp_constants import Endpoints
     from .gateway_manager import VSPConnectionManager
@@ -37,6 +42,10 @@ except ImportError:
     )
     from common.hv_constants import VSPHostGroupConstant
     from message.vsp_host_group_msgs import VSPHostGroupMessage
+    from common.vsp_errors import (
+        VspNoFreeHostGroupError,
+        VspHostModelNotSupportedError,
+    )
 
 logger = Log()
 
@@ -120,6 +129,7 @@ class VSPHostGroupDirectGateway:
         )
         self.end_points = Endpoints
         self.serial = None
+        self.volume_gw = VSPVolumeDirectGateway(connection_info)
 
     @log_entry_exit
     def set_serial(self, serial):
@@ -196,7 +206,11 @@ class VSPHostGroupDirectGateway:
             tmpHg["wwns"] = []
             for wwn in wwns:
                 tmpHg["wwns"].append(
-                    {"id": wwn.hostWwn.upper(), "nick_name": wwn.wwnNickname}
+                    {
+                        "id": wwn.hostWwn.upper(),
+                        "nickname": wwn.wwnNickname,
+                        "nick_name": wwn.wwnNickname,
+                    }
                 )
 
         if is_ldev_detail:
@@ -450,6 +464,9 @@ class VSPHostGroupDirectGateway:
         for hg in resp["data"]:
             # logger.writeDebug("20250324 hg = {}", hg)
             if name == hg["hostGroupName"]:
+                logger.writeDebug(
+                    "20250324 Found the host group with name: {}, {}", name, hg
+                )
                 retHg = self.parse_host_group(hg, True, True, False)
                 return VSPOneHostGroupInfo(VSPHostGroupInfo(**retHg))
 
@@ -470,13 +487,15 @@ class VSPHostGroupDirectGateway:
 
         errors, comments = [], []
         if not self.check_valid_port(port):
-            raise Exception(VSPHostGroupMessage.PORT_TYPE_INVALID.value)
+            raise ValueError(VSPHostGroupMessage.PORT_TYPE_INVALID.value)
 
         logger = Log()
         hostGroupNumber = self.get_host_groups_from_meta_resource(port)
         logger.writeDebug("HostGroup List = {}", hostGroupNumber)
         if len(hostGroupNumber) == 0:
-            raise Exception(VSPHostGroupMessage.HG_IN_META_NOT_AVAILABLE.value)
+            raise VspNoFreeHostGroupError(
+                VSPHostGroupMessage.HG_IN_META_NOT_AVAILABLE.value
+            )
 
         end_point = self.end_points.POST_HOST_GROUPS
         data = {}
@@ -690,14 +709,18 @@ class VSPHostGroupDirectGateway:
     @log_entry_exit
     def delete_one_volume(self, ldev_id):
         logger = Log()
-        end_point = self.end_points.DELETE_LDEVS.format(ldev_id)
-        resp = self.rest_api.delete(end_point)
+        volume_info = self.volume_gw.get_volume_by_id(ldev_id)
+        force = False
+        if volume_info and volume_info.dataReductionMode.lower() != "disabled":
+            force = True
+        resp = self.volume_gw.delete_volume(ldev_id=ldev_id, force_execute=force)
         logger.writeInfo(resp)
 
     @log_entry_exit
     def unpresent_lun_from_hg_and_delete_lun(self, hg, lun):
         self.delete_one_lun_from_host_group(hg, lun.lun)
         if self.is_volume_not_associated_with_hgs(lun.ldevId):
+
             self.delete_one_volume(lun.ldevId)
 
     @log_entry_exit
@@ -851,7 +874,7 @@ class VSPHostGroupDirectGateway:
             return HostModeOptionsResponse(**resp)
         except Exception as e:
             if "The API is not supported for the specified storage system" in str(e):
-                raise Exception(
+                raise VspHostModelNotSupportedError(
                     VSPHostGroupMessage.HOST_MODE_OPTION_NOT_SUPPORTED.value
                 )
             else:

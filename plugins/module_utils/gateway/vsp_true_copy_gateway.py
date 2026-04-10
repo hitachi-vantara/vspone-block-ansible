@@ -20,12 +20,12 @@ except ImportError:
         DirectTrueCopyPairInfoList,
     )
 
-CREATE_TRUE_COPY_PAIR_DIRECT = "v1/objects/storages/{}/remote-mirror-copypairs"
+CREATE_TRUE_COPY_PAIR_DIRECT = "v1/objects/remote-mirror-copypairs"
 SPLIT_TRUE_COPY_PAIR_DIRECT = (
-    "v1/objects/storages/{}/remote-mirror-copypairs/{}/actions/split/invoke"
+    "v1/objects/remote-mirror-copypairs/{}/actions/split/invoke"
 )
 RESYNC_TRUE_COPY_PAIR_DIRECT = (
-    "v1/objects/storages/{}/remote-mirror-copypairs/{}/actions/resync/invoke"
+    "v1/objects/remote-mirror-copypairs/{}/actions/resync/invoke"
 )
 GET_REMOTE_STORAGES_DIRECT = "v1/objects/remote-storages"
 GET_STORAGES_DIRECT = "v1/objects/storages"
@@ -67,6 +67,9 @@ class VSPTrueCopyDirectGateway(VSPReplicationPairsDirectGateway):
         )
         remote_storage_device_id = secondary_storage_info.get("storageDeviceId")
 
+        logger.writeDebug(
+            f"0326 spec.is_new_group_creation : {spec.is_new_group_creation}"
+        )
         payload = {
             "copyGroupName": spec.copy_group_name,
             "copyPairName": spec.copy_pair_name,
@@ -100,7 +103,7 @@ class VSPTrueCopyDirectGateway(VSPReplicationPairsDirectGateway):
                 payload["consistencyGroupId"] = spec.consistency_group_id
 
         if spec.copy_pace:
-            payload["copyPace"] = self.get_copy_pace_value(spec.copy_pace)
+            payload["copyPace"] = spec.copy_pace
         if spec.do_initial_copy is not None:
             payload["doInitialCopy"] = spec.do_initial_copy
         if spec.is_data_reduction_force_copy is not None:
@@ -115,7 +118,7 @@ class VSPTrueCopyDirectGateway(VSPReplicationPairsDirectGateway):
         headers["Remote-Authorization"] = headers.pop("Authorization")
         headers["Job-Mode-Wait-Configuration-Change"] = "NoWait"
         logger.writeDebug("GW-Direct:create_true_copy:remote_header={}", headers)
-        end_point = CREATE_TRUE_COPY_PAIR_DIRECT.format(storage_deviceId)
+        end_point = CREATE_TRUE_COPY_PAIR_DIRECT
         logger.writeDebug("GW-Direct:create_true_copy:end_point={}", end_point)
         start_time = time.time()
         response = self.connection_manager.post(
@@ -319,15 +322,3 @@ class VSPTrueCopyDirectGateway(VSPReplicationPairsDirectGateway):
                 object_id, spec.secondary_connection_info, "TC"
             )
         return None
-
-    def get_copy_pace_value(self, copy_pace=None):
-        copy_pace_value = 1
-        if copy_pace:
-            copy_pace = copy_pace.strip().upper()
-        if copy_pace == "SLOW":
-            copy_pace_value = 1
-        elif copy_pace == "FAST":
-            copy_pace_value = 10
-        else:
-            copy_pace_value = 3
-        return copy_pace_value

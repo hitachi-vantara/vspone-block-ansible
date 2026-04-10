@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Audit Log Setting Update Playbook
-####################################################################
+# ###################################################################
 - name: Update Audit Log Settings
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Create Audit Log File on Storage System and Download it
-    ####################################################################
+    # ###################################################################
     - name: Create and download audit log file
       hitachivantara.vspone_block.sds_block.hv_sds_block_audit_log_setting:
         state: download_audit_log

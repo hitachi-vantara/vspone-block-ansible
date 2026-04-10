@@ -1,8 +1,5 @@
 from enum import Enum
-
-
-class VSPVolumeMessage(Enum):
-    pass
+from ..common.hv_constants import LdevConstants
 
 
 class VSPVolumeMSG(Enum):
@@ -31,7 +28,7 @@ class VSPVolumeMSG(Enum):
     FAILED_TO_EXPAND_VOLUME_CAPACITY = "Failed to expand volume capacity: "
     VOLUME_CAPACITY_EXPANDED_SUCCESS = "Volume capacity expanded successfully."
     MISSING_VOLUME_ID_FOR_OPERATION = "Missing volume ID to perform the operation."
-    MISSING_SERVER_ISD_FOR_OPERATION = (
+    MISSING_SERVER_IDS_FOR_OPERATION = (
         "server_ids is required to attach servers to volumes."
     )
     VOLUME_NOT_FOUND = "Volume with ID {volume_id} not found."
@@ -50,7 +47,10 @@ class VSPVolumeMSG(Enum):
 
     # Example usage in the class (replace string literals with enum values):
     # spec.comments.append(VSPVolumeMSG.VOLUME_DELETED_SUCCESS.value)
-    # raise Exception(VSPVolumeMSG.POOL_ID_REQUIRED.value)
+    # raise ValueError(VSPVolumeMSG.POOL_ID_REQUIRED.value)
+    STOP_ALL_VOLUME_FORMAT = "Stop all volume format operation initiated successfully."
+    NVM_UPDATE_SUCCESS = "NVM subsystem updated successfully."
+    VOLUME_CREATE_SUCCESS = "Volume created successfully."
 
 
 class VSPVolValidationMsg(Enum):
@@ -66,13 +66,9 @@ class VSPVolValidationMsg(Enum):
         "provide integer value for the size with unit. e.g. 5GB, 2TB, etc."
     )
     VALID_SIZE = "size is less than actual volume size of the ldev, Please provide with more than the actual size."
-    LDEV_ID_OUT_OF_RANGE = "ldev id is out of range to create, Please specify within the range of 0 to 65535."
-    VLDEV_ID_OUT_OF_RANGE = (
-        "vldev id is out of range, Please specify within the range of 0 to 65535."
-    )
-    MAX_LDEV_ID_OUT_OF_RANGE = (
-        "ldev id is out of range, Please specify within the range of 0 to 65535."
-    )
+    LDEV_ID_OUT_OF_RANGE = f"ldev id is out of range to create, Please specify within the range of 0 to {LdevConstants.MAX_VALID_LDEV_ID}."
+    VLDEV_ID_OUT_OF_RANGE = f"vldev id is out of range, Please specify within the range of 0 to {LdevConstants.MAX_VALID_LDEV_ID}."
+    MAX_LDEV_ID_OUT_OF_RANGE = f"ldev id is out of range, Please specify within the range of 0 to {LdevConstants.MAX_VALID_LDEV_ID}."
     START_LDEV_LESS_END = "end_ldev_id can't be less then start_ldev_id."
     BOTH_API_TOKEN_USER_DETAILS = (
         "either api_token or user credential is required, both can't be provided"
@@ -118,9 +114,7 @@ class VSPVolValidationMsg(Enum):
         "Invalid start_ldev_id provided. Supported values are 0 to 65278."
     )
     END_LDEV_ID_REQUIRED = "end_ldev_id is required when start_ldev_id is provided."
-    INVALID_END_LDEV_ID = (
-        "Invalid end_ldev_id provided. Supported values are 1 to 65279."
-    )
+    INVALID_END_LDEV_ID = f"Invalid end_ldev_id provided. Supported values are 1 to {LdevConstants.MAX_VALID_LDEV_ID}."
     END_LDEV_LESS_START_LDEV = "end_ldev_id should be greater than start_ldev_id."
     START_LDEV_ID_REQUIRED = "start_ldev_id is required when end_ldev_id is provided."
 
@@ -139,3 +133,44 @@ class VSPVolValidationMsg(Enum):
         "Both ldev_id and vldev_id are required for this operation."
     )
     STOP_ALL_FORMAT_REQD = "should_stop_all_volume_format and should_format_volume both can't be declared together."
+    INSUFFICIENT_FREE_LDEVS = "Insufficient free ldevs available to create the requested number of volumes. Requested: {}, Available: {}."
+    BOTH_LDEVS_VLDEV_IDS_REQD = "Both ldev_ids and vldev_ids are required for this operation, when multi ldevs operation is performed"
+    COUNT_LDEVS_VLDEVS_SHOULD_BE_SAME = "The number of ldevs and vldevs specified should be same as count value for multi ldevs operation"
+    INVALID_NEW_PAGE_ALLOCATION_FOR_TIERING = (
+        "tier_level_for_new_page_allocation must be High, Middle or Low."
+    )
+    RELOCATION_ENABLED_MISSING_TIERING_POLICY = (
+        "If tiering_policy is specified then is_relocation_enabled must be true."
+    )
+    TIER_LEVEL_MISSING_FOR_TIERING_POLICY = (
+        "If tiering_policy is specified then tier_level must be specified."
+    )
+    INVALID_TIER_LEVEL_FOR_TIERING_POLICY = "tier_level must be between 0 and 31."
+    INVALID_TIERING_POLICY_ATTRS_FOR_TIER_LEVEL_0_TO_5 = (
+        "tier1_allocation_rate_min, tier1_allocation_rate_max, "
+        "tier3_allocation_rate_min, tier3_allocation_rate_max "
+        "must not be specified for tier_level between 0 and 5."
+    )
+    ALL_FOUR_ATTRS_REQUIRED_FOR_TIER_LEVEL_ABOVE_5 = (
+        "tier1_allocation_rate_min, tier1_allocation_rate_max, "
+        "tier3_allocation_rate_min, tier3_allocation_rate_max "
+        "must be specified for tier_level above 5."
+    )
+    INVALID_TIERING_POLICY_ATTRS_VALUES = (
+        "tier1_allocation_rate_min, tier1_allocation_rate_max, "
+        "tier3_allocation_rate_min, tier3_allocation_rate_max "
+        "values must be between 1 and 100."
+    )
+    TIER1_ALLOC_RATE_MIN_LESS_MAX = "tier1_allocation_rate_min must be less than or equal to tier1_allocation_rate_max."
+    TIER3_ALLOC_RATE_MIN_LESS_MAX = "tier3_allocation_rate_min must be less than or equal to tier3_allocation_rate_max."
+    INVALID_TIER1_DIFFERENCE = "The difference between tier1_allocation_rate_max and tier1_allocation_rate_min must be a multiple of 10."
+    INVALID_TIER3_DIFFERENCE = "The difference between tier3_allocation_rate_max and tier3_allocation_rate_min must be a multiple of 10."
+    SUM_OF_TIER1_AND_TIER3_MIN_EXCEEDS_100 = "The sum of tier1_allocation_rate_min and tier3_allocation_rate_min must be less than or equal to 100."
+    LDEV_IDS_START_LDEV_RANGE = "Both ldev_ids and start_ldev_id/end_ldev_id range are provided. Please provide only one of them."
+    END_LDEV_LESS_THAN_START_LDEV = (
+        "end_ldev_id should be greater than or equal to start_ldev_id."
+    )
+    NAME_SPEC_LENGTH_EXCEEDED = "Total length of base_name ({}) plus start_number, ('{}') exceeds 32 characters (got {})."
+    NUMBER_OF_DIGITS_INVALID = "number_of_digits should be a positive integer, it should be less than or equal to 5."
+    NUMBER_OF_LDEVS_INVALID = "number_of_ldevs should be a positive integer, it should be less than or equal to 500."
+    CAPACITY_SAVING_INVALID = "capacity_saving should be one of the following values: Compression, Compression_Deduplication, or Disabled."

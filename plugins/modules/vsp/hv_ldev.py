@@ -21,6 +21,8 @@ description:
       `hv_ldev` module.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/ldev.yml)
+  - For examples to create multiple LDEVs, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/ldev_bulk.yml)
 version_added: '3.0.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -36,6 +38,8 @@ extends_documentation_fragment:
 notes:
   - The output parameters C(entitlement_status), C(subscriber_id) and C(partner_id) were removed in version 3.4.0.
     They were also deprecated due to internal API simplification and are no longer supported.
+  - The input parameter C(parity_group) will be removed in version 5.0.0. It is recommended to use
+    C(parity_group_id) instead, which provides the same functionality.
 options:
   state:
     description: The desired state of the LDEV.
@@ -68,11 +72,12 @@ options:
           /Create new volume with virtual ldev tasks.
         type: int
         required: false
-      parity_group:
+      parity_group_id:
         description: ID of the parity_group where the LDEV will be created. Options pool_id and parity_group_id are mutually exclusive.
           Required for the Create LDEV using a parity group and auto-free LDEV ID selection task.
         type: str
         required: false
+        aliases: ['parity_group']
       size:
         description: Size of the LDEV. Can be specified in units such as GB, TB, or MB (e.g., '10GB', '5TB', '100MB', 200).
           Required for the Create LDEV with a specific LDEV ID
@@ -317,20 +322,6 @@ options:
         required: false
         choices: ["quick", "normal"]
         default: "quick"
-      start_ldev_id:
-        description: >
-          The starting LDEV ID for the range of LDEVs to be created. This is used when creating multiple LDEVs.
-          If not specified, a free LDEV ID will be assigned. Can be decimal or hexadecimal.
-          Required for the Create LDEV within a range of LDEV IDs using parallel execution task.
-        type: str
-        required: false
-      end_ldev_id:
-        description: >
-          The ending LDEV ID for the range of LDEVs to be created. This is used when creating multiple LDEVs.
-          If not specified, only one LDEV will be created. Can be decimal or hexadecimal.
-          Required for the Create LDEV within a range of LDEV IDs using parallel execution task.
-        type: str
-        required: false
       mp_blade_id:
         description: >
           The MP blade ID to which the LDEV will be assigned. This is used for specifying the MP blade for the LDEV.
@@ -399,6 +390,11 @@ options:
           if not specified, the default SSID will be used. if specified, it will use the specified ssid if ssid id is not assigned
           It will use the existing SSID of the free LDEV if ssid is already assigned to any LDEV.
         type: str
+        required: false
+      resource_group_id:
+        description: >
+          The resource group ID for the LDEV. This is used for specifying the resource group for the LDEV.
+        type: int
         required: false
 """
 
@@ -852,6 +848,8 @@ class VSPVolume:
         response = {"changed": self.connection_info.changed, "volume": volume_response}
         if comment:
             response["comment"] = comment
+        if self.spec.comments:
+            response["comments"] = self.spec.comments
 
         if registration_message:
             response["user_consent_required"] = registration_message
@@ -873,17 +871,24 @@ class VSPVolume:
             return None
 
         # self.logger.writeDebug('20240726 volume_data={}',volume_data)
-        self.logger.writeDebug("115 type={}", type(volume_data))
-        if isinstance(volume_data, dict):
-            volume_dict = volume_data.get("lun")
+        if isinstance(volume_data, list):
+            volume_in_dict = [volume.to_dict() for volume in volume_data]
+        elif isinstance(volume_data, dict):
+            volume_in_dict = volume_data.get("lun")
         else:
-            volume_dict = volume_data.to_dict() if volume_data else {}
-        return vsp_volume.VolumeCommonPropertiesExtractor(self.serial).extract(
-            [volume_dict]
-        )[0]
+            volume_in_dict = volume_data.to_dict() if volume_data else {}
+
+        if not isinstance(volume_in_dict, list):
+            return vsp_volume.VolumeCommonPropertiesExtractor(self.serial).extract(
+                [volume_in_dict]
+            )[0]
+        else:
+            return vsp_volume.VolumeCommonPropertiesExtractor(self.serial).extract(
+                volume_in_dict
+            )
 
 
-def main(module=None):
+def main():
     """
     :return: None
     """

@@ -115,6 +115,11 @@ class VSPGadPairDirectGateway(VSPReplicationPairsDirectGateway):
         )
         logger.writeDebug(f"115 spec.mu_number : {spec.mu_number}")
 
+        if "append_svol_id_for_uniqueness" in spec.copy_pair_name:
+            spec.copy_pair_name = spec.copy_pair_name.replace(
+                "append_svol_id_for_uniqueness", str(spec.secondary_volume_id)
+            )
+
         payload = {
             "copyGroupName": spec.copy_group_name,
             "copyPairName": spec.copy_pair_name,
@@ -169,8 +174,8 @@ class VSPGadPairDirectGateway(VSPReplicationPairsDirectGateway):
             payload["isConsistencyGroup"] = spec.is_consistency_group
         if spec.is_consistency_group and spec.consistency_group_id:
             payload["consistencyGroupId"] = spec.consistency_group_id
-        if spec.copy_pace:
-            payload["copyPace"] = self.get_copy_pace_value(spec.copy_pace)
+        if spec.copy_pace is not None:
+            payload["copyPace"] = spec.copy_pace
         if spec.do_initial_copy is not None:
             payload["doInitialCopy"] = spec.do_initial_copy
         if spec.is_data_reduction_force_copy is not None:
@@ -186,18 +191,6 @@ class VSPGadPairDirectGateway(VSPReplicationPairsDirectGateway):
         logger.writeDebug("GW-Direct:create_gad:end_point={}", end_point)
         logger.writeDebug("GW-Direct:create_gad:payload={}", payload)
         return self.connection_manager.post(end_point, payload, headers_input=headers)
-
-    def get_copy_pace_value(self, copy_pace=None):
-        copy_pace_value = 1
-        if copy_pace:
-            copy_pace = copy_pace.strip().upper()
-        if copy_pace == "SLOW":
-            copy_pace_value = 1
-        elif copy_pace == "FAST":
-            copy_pace_value = 10
-        else:
-            copy_pace_value = 3
-        return copy_pace_value
 
     @log_entry_exit
     def split_gad_pair(self, spec):

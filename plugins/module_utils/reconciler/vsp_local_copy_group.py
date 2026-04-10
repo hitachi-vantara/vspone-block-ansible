@@ -17,6 +17,7 @@ try:
         LocalCopyGroupInfoList,
         LocalSpecificCopyGroupInfo,
     )
+    from ..message.vsp_copy_group_msgs import VSPCopyGroupsValidateMsg
 
 except ImportError:
     from common.ansible_common import (
@@ -36,6 +37,7 @@ except ImportError:
         LocalCopyGroupInfoList,
         LocalSpecificCopyGroupInfo,
     )
+    from message.vsp_copy_group_msgs import VSPCopyGroupsValidateMsg
 
 
 logger = Log()
@@ -60,7 +62,7 @@ class VSPLocalCopyGroupReconciler:
         self.logger.writeDebug("RC:local_copy_groups={}", copy_groups)
 
         if copy_groups is None:
-            return "Operations cannot be performed for the specified copy group {}. ErrorCode: 30000E-0".format(
+            return VSPCopyGroupsValidateMsg.OPERATION_CANNOT_BE_PERFORMED.format(
                 spec.name
             )
         elif isinstance(copy_groups, LocalSpecificCopyGroupInfo):
@@ -133,9 +135,27 @@ class VSPLocalCopyGroupReconciler:
                 logger.writeDebug(
                     "copy group dict={}", camel_dict_to_snake_case(copy_groups)
                 )
-                return camel_dict_to_snake_case(copy_groups)
+                copy_group_info = camel_dict_to_snake_case(copy_groups)
+                return self.fix_output_for_local_copy_group_info(copy_group_info)
         else:
             return None
+
+    def fix_output_for_local_copy_group_info(self, copy_group_info):
+
+        copy_group_info["primary_volume_device_group_name"] = copy_group_info.get(
+            "pvol_device_group_name"
+        )
+        copy_group_info["secondary_volume_device_group_name"] = copy_group_info.get(
+            "svol_device_group_name"
+        )
+        for x in copy_group_info.get("copy_pairs", []):
+            x["primary_volume_id"] = x.get("pvol_ldev_id")
+            x["secondary_volume_id"] = x.get("svol_ldev_id")
+            x["mirror_unit_number"] = x.get("pvol_mu_number")
+            x["primary_volume_status"] = x.get("pvol_status")
+            x["secondary_volume_status"] = x.get("svol_status")
+
+        return copy_group_info
 
 
 class LocalCopyGroupInfoExtractor:
@@ -146,6 +166,8 @@ class LocalCopyGroupInfoExtractor:
             "localCloneCopygroupId": str,
             "pvolDeviceGroupName": str,
             "svolDeviceGroupName": str,
+            "primaryVolumeDeviceGroupName": str,
+            "secondaryVolumeDeviceGroupName": str,
         }
 
         self.parameter_mapping = {

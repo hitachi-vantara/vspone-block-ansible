@@ -8,6 +8,7 @@ from ..provisioner.vsp_one_server_provisioner import (
     VSPServerSimpleApiProvisioner,
 )
 from ..common.hv_constants import StateValue
+from ..message.vsp_one_server_msgs import VSPOneServerMSG
 
 
 class VSPServerSimpleAPIReconciler:
@@ -26,6 +27,7 @@ class VSPServerSimpleAPIReconciler:
         state_handlers = {
             StateValue.PRESENT: self.provisioner.create_update_server,
             StateValue.SYNC_SERVER_NICK_NAME: self.provisioner.sync_server_nick_name,
+            StateValue.SYNC_SERVER_NICKNAME: self.provisioner.sync_server_nick_name,
             StateValue.ADD_HG_TO_SERVER: self.provisioner.add_hg_to_server,
             StateValue.ADD_HBA: self.provisioner.add_wwn_of_hba,
             StateValue.REMOVE_HBA: self.provisioner.remove_wwn_of_hba,
@@ -39,7 +41,7 @@ class VSPServerSimpleAPIReconciler:
         if handler:
             return handler(spec)
         else:
-            spec.errors.append(f"Unsupported state: {state}")
+            spec.errors.append(VSPOneServerMSG.UNSUPPORTED_STATE.value.format(state))
             return spec
 
     @log_entry_exit
@@ -51,7 +53,11 @@ class VSPServerSimpleAPIReconciler:
             server = self.provisioner.gateway.get_server_by_id_with_details(
                 spec.server_id
             )
-            return server.camel_to_snake_dict() if server else "Server not found."
+            return (
+                server.camel_to_snake_dict()
+                if server
+                else VSPOneServerMSG.SERVER_NOT_FOUND.value
+            )
         else:
             return self.provisioner.gateway.get_all_servers_with_filter(
                 spec.nick_name, spec.hba_wwn, spec.iscsi_name, spec.include_details

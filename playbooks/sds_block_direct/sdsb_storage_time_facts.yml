@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Cluster Time Facts Playbook
-####################################################################
+# ###################################################################
 - name: Cluster Time Facts Playbook
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-  ####################################################################
+  # ###################################################################
   # Task Name : Get Cluster Time Information
-  ####################################################################
+  # ###################################################################
     - name: Get Cluster Time Information
       hitachivantara.vspone_block.sds_block.hv_sds_block_storage_time_facts:
         connection_info: "{{ connection_info }}"

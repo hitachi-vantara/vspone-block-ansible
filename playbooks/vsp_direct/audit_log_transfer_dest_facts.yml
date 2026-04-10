@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example :  Getting information about the transfer destinations of audit log files
-####################################################################
+# ###################################################################
 - name: Getting information about the transfer destinations of audit log files
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Getting information about the transfer destinations of audit log files
-    ####################################################################
+    # ###################################################################
     - name: Getting information about the transfer destinations of audit log files
       hitachivantara.vspone_block.vsp.hv_audit_log_transfer_dest_facts:
         connection_info: "{{ connection_info }}"

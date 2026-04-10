@@ -6,6 +6,7 @@ try:
     from ..provisioner.sdsb_storage_pool_provisioner import SDSBStoragePoolProvisioner
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
+    from ..common.sdsb_errors import SdsbRestApiError
     from ..message.sdsb_estimated_capacity_msgs import SDSBEstimatedCapacityValidateMsg
 except ImportError:
     from provisioner.sdsb_estimated_capacity_provisioner import (
@@ -15,6 +16,7 @@ except ImportError:
     from provisioner.sdsb_storage_pool_provisioner import SDSBStoragePoolProvisioner
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
+    from common.sdsb_errors import SdsbRestApiError
     from message.sdsb_estimated_capacity_msgs import SDSBEstimatedCapacityValidateMsg
 
 logger = Log()
@@ -65,7 +67,7 @@ class SDSBEstimatedCapacityReconciler:
             elif "HTTP Error 400: Bad Request" in str(e):
                 raise ValueError(SDSBEstimatedCapacityValidateMsg.WRONG_POOL_ID.value)
             else:
-                raise Exception(e)
+                raise SdsbRestApiError(e)
 
     @log_entry_exit
     def get_estimated_capacity_for_specified_configuration(self, spec=None):

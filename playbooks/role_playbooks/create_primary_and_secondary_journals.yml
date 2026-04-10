@@ -1,0 +1,54 @@
+---
+- name: Create journal on primary and secondary storages using role
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Connection information for primary storage
+    hv_vsp_primary_secondary_journal_creation_connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+    # Connection information for secondary storage
+    hv_vsp_primary_secondary_journal_creation_secondary_connection_info:
+      address: "{{ secondary_storage_address }}"
+      username: "{{ vault_secondary_storage_username }}"
+      password: "{{ vault_secondary_storage_secret }}"
+
+    # Size of journal in GB
+    hv_vsp_primary_secondary_journal_creation_size_in_gb: 8
+
+    # Optional: Specify number of journal pairs to create, if specific journal IDs are not provided.
+    hv_vsp_primary_secondary_journal_creation_number_of_journals: 2
+
+    # Optional: Specify journal IDs for the primary storage. Specify a decimal (base 10) number in the range from 0 to 255.
+    # hv_vsp_primary_secondary_journal_creation_primary_journal_ids: []
+
+    # Optional: Specify journal IDs for the secondary storage. Specify a decimal (base 10) number in the range from 0 to 255.
+    # hv_vsp_primary_secondary_journal_creation_secondary_journal_ids: []
+
+    # Optional: Specify Pool ID on primary storage to create journal LDEVs. Use either pool_id or parity_group_id for primary and secondary storages.
+    hv_vsp_primary_secondary_journal_creation_primary_pool_id: 1
+
+    # Optional: Specify Pool ID on secondary storage to create journal LDEVs. Use either pool_id or parity_group_id for primary and secondary storages.
+    hv_vsp_primary_secondary_journal_creation_secondary_pool_id: 1
+
+    # Optional: ID of parity group for the ldev creation on primary storage. Uncomment this line and comment out primary_pool_id if you want
+    # to use parity group instead of pool for journal creation on primary storage
+    # hv_vsp_primary_secondary_journal_creation_primary_parity_group_id: "1-1"
+
+    # Optional: ID of parity group for the ldev creation on secondary storage. Uncomment this line and comment out secondary_pool_id if you want
+    # to use parity group instead of pool for journal creation on secondary storage
+    # hv_vsp_primary_secondary_journal_creation_secondary_parity_group_id: "1-1"
+
+    hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_ldev_capacity_savings: "compression_and_deduplication" # Capacity saving option for the quorum disk, options are "compression", "compression_and_deduplication", or "" for none
+  tasks:
+    # #############################################################################
+    # Task Name : Create journal on primary and secondary storages using role
+    # #############################################################################
+    - name: Create journal on primary and secondary storage and debug result
+      ansible.builtin.include_role:
+        name: hitachivantara.vspone_block.hv_vsp_primary_secondary_journal_creation

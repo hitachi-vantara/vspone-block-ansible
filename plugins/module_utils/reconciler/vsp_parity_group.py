@@ -4,9 +4,11 @@ try:
         snake_to_camel_case,
         get_response_key,
         get_default_value,
+        match_api_not_supported,
     )
     from ..common.hv_log import Log
     from ..common.hv_constants import StateValue
+    from ..message.vsp_parity_group_msgs import VSPParityGroupValidateMsg
     from ..model.vsp_parity_group_models import ParityGroupSpec
     from ..provisioner.vsp_parity_group_provisioner import VSPParityGroupProvisioner
 except ImportError:
@@ -15,6 +17,7 @@ except ImportError:
         snake_to_camel_case,
         get_response_key,
         get_default_value,
+        match_api_not_supported,
     )
     from provisioner.vsp_parity_group_provisioner import VSPParityGroupProvisioner
     from common.hv_log import Log
@@ -37,13 +40,37 @@ class VSPParityGroupReconciler:
         # reconcile the parity group based on the desired state in the specification
         state = state.lower()
         if state == StateValue.ABSENT:
-            return self.provisioner.delete_parity_group(spec)
+            return self.delete_parity_group(spec)
         elif state == StateValue.PRESENT:
-            return self.provisioner.create_parity_group(spec)
+            return self.create_parity_group(spec)
         elif state == StateValue.UPDATE:
             return self.provisioner.update_parity_group(spec)
         elif state == StateValue.ASSIGN_CLPR_ID:
             return self.provisioner.assign_parity_group_to_clpr(spec)
+
+    @log_entry_exit
+    def create_parity_group(self, spec: ParityGroupSpec):
+        try:
+            return self.provisioner.create_parity_group(spec)
+        except Exception as e:
+            self.logger.error(f"Error occurred while creating parity group: {e}")
+            if match_api_not_supported(str(e)):
+                raise Exception(
+                    VSPParityGroupValidateMsg.CREATE_PARITY_GROUP_NOT_SUPPORTED.value
+                )
+            raise
+
+    @log_entry_exit
+    def delete_parity_group(self, spec: ParityGroupSpec):
+        try:
+            return self.provisioner.delete_parity_group(spec)
+        except Exception as e:
+            self.logger.error(f"Error occurred while deleting parity group: {e}")
+            if match_api_not_supported(str(e)):
+                raise Exception(
+                    VSPParityGroupValidateMsg.DELETE_PARITY_GROUP_NOT_SUPPORTED.value
+                )
+            raise
 
     @log_entry_exit
     def get_all_parity_groups(self):

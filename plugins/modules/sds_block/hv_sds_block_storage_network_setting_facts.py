@@ -68,13 +68,12 @@ ansible_facts:
 from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.sdsb_utils import (
+    SDSBNoSpecArguments,
     SDSBParametersManager,
 )
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
     Log,
 )
-
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.reconciler.sdsb_cluster_information_reconciler import (
     SDSBClusterInformationReconciler,
 )
@@ -86,26 +85,11 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 class SDSBNetworkSettingsFactsManager:
     def __init__(self):
         self.logger = Log()
-        argument_spec = {
-            "connection_info": {
-                "required": True,
-                "type": "dict",
-                "options": {
-                    "address": {"required": True, "type": "str"},
-                    "username": {"required": True, "type": "str"},
-                    "password": {"required": True, "type": "str", "no_log": True},
-                    "connection_type": {
-                        "required": False,
-                        "type": "str",
-                        "choices": ["direct"],
-                        "default": "direct",
-                    },
-                },
-            }
-        }
-
+        self.argument_spec = self.argument_spec = (
+            SDSBNoSpecArguments.get_no_spec_fact_arguments()
+        )
         self.module = AnsibleModule(
-            argument_spec=argument_spec,
+            argument_spec=self.argument_spec,
             supports_check_mode=True,
         )
 

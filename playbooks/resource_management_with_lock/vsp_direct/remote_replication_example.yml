@@ -1,5 +1,5 @@
 ---
-##########################################################################
+# #########################################################################
 # This playbook demonstrates how to lock resource groups, and do
 # operations on replication pairs.
 # TrueCopy operations are demonstrated in this playbook.
@@ -14,7 +14,7 @@
 
 # Operation # 3 and # 4 are not affected by the locks, so these operations
 # can be done with or without the lock tokens. Here we used the lock tokens.
-#############################################################################
+# ############################################################################
 - name: Resource Group Lock Playbook
   hosts: localhost
   gather_facts: false
@@ -35,9 +35,9 @@
       password: "{{ vault_secondary_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task 1 : Lock Resource Groups
-    ####################################################################
+    # ###################################################################
     - name: Lock Resource Groups
       hitachivantara.vspone_block.vsp.hv_resource_group_lock:
         connection_info: "{{ connection_info }}"

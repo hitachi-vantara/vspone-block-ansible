@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Hostgroup Facts Playbook
-####################################################################
+# ###################################################################
 - name: Hostgroup Facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Get all hostgroups
-    ####################################################################
+    # ###################################################################
     - name: Get all hostgroups
       hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
@@ -36,7 +36,7 @@
       hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          ports: ["CL1-A"]
+          port_ids: ["CL1-A"]
       register: result
 
     - name: Debug the result variable
@@ -50,7 +50,7 @@
       hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          ports: ["CL1-A", "CL2-A"]
+          port_ids: ["CL1-A", "CL2-A"]
           name: "hatestdummy5"
       register: result
 
@@ -65,7 +65,7 @@
       hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          ports: ["CL2-B"]
+          port_ids: ["CL2-B"]
           query:
             - wwns
             - ldevs
@@ -82,7 +82,7 @@
       hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          ports: ["CL2-B"]
+          port_ids: ["CL2-B"]
           host_group_number: 208
       register: result
 
@@ -97,7 +97,7 @@
       hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          ports: ["CL2-B"]
+          port_ids: ["CL2-B"]
           name: "name_of_hostgroup"
       register: result
 
@@ -112,7 +112,7 @@
       hitachivantara.vspone_block.vsp.hv_hg_facts:
         connection_info: "{{ connection_info }}"
         spec:
-          ports: ["CL2-B"]
+          port_ids: ["CL2-B"]
           lun: 0
       register: result
 

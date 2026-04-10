@@ -1,5 +1,5 @@
 ---
-####################################################################
+# ###################################################################
 # Example: Complete GAD Migration Workflow with Non-Destructive Migration
 #
 # This playbook demonstrates a complete storage migration workflow:
@@ -13,7 +13,7 @@
 # - Valid credentials for both primary and secondary storage systems
 # - Proper network connectivity between storage systems
 # - Existing volumes assigned to host groups with specified WWNs
-####################################################################
+# ###################################################################
 - name: Complete GAD Migration Workflow - Query, Create, Migrate, Cleanup
   hosts: localhost
   gather_facts: false
@@ -65,14 +65,14 @@
     debug_mode: true # Enable detailed debug output
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # STEP 1: Discovery Phase - Query Host Volumes by WWNs
     #
     # Purpose: Discover existing volumes assigned to specified host WWNs
     # - Validates host mode consistency across discovered volumes
     # - Extracts LDEV IDs for GAD pair creation
     # - Provides detailed volume mapping information
-    ####################################################################
+    # ###################################################################
     - name: "Step 1: Discover existing volumes by host WWNs"
       ansible.builtin.include_role:
         name: hitachivantara.vspone_block.hv_vsp_query_host_volumes_by_wwns
@@ -84,12 +84,13 @@
       ansible.builtin.debug:
         msg:
           - "=== STEP 1 COMPLETED: Volume Discovery ==="
-          - "Input WWNs queried: {{ host_volumes_result.input_wwns }}"
-          - "Total unique LDEVs discovered: {{ host_volumes_result.total_ldevs_found }}"
-          - "LDEV IDs found: {{ host_volumes_result.matched_ldev_ids }}"
-          - "Host mode consistency check: {{ host_volumes_result.overall_consistency }}"
-          - "Total host volume mappings: {{ host_volumes_result.total_host_volume_entries }}"
-          - "Ready for GAD pair creation: {{ host_volumes_result.overall_consistency and (host_volumes_result.total_ldevs_found | int > 0) }}"
+          - "Input WWNs queried: {{ hv_vsp_query_host_volumes_by_wwns_host_volumes_result.input_wwns }}"
+          - "Total unique LDEVs discovered: {{ hv_vsp_query_host_volumes_by_wwns_host_volumes_result.total_ldevs_found }}"
+          - "LDEV IDs found: {{ hv_vsp_query_host_volumes_by_wwns_host_volumes_result.matched_ldev_ids }}"
+          - "Host mode consistency check: {{ hv_vsp_query_host_volumes_by_wwns_host_volumes_result.overall_consistency }}"
+          - "Total host volume mappings: {{ hv_vsp_query_host_volumes_by_wwns_host_volumes_result.total_host_volume_entries }}"
+          - "Ready for GAD pair creation: {{ hv_vsp_query_host_volumes_by_wwns_host_volumes_result.overall_consistency and (hv_vsp_query_host_volumes_by_wwns_host_volumes_result.total_ldevs_found
+            | int > 0) }}"
       tags:
         - discovery
         - reporting
@@ -107,10 +108,10 @@
       ansible.builtin.include_role:
         name: hitachivantara.vspone_block.hv_vsp_ndm_gad_migration_pairs
       vars:
-        host_volumes: "{{ host_volumes_result.host_volumes }}"
+        host_volumes: "{{ hv_vsp_query_host_volumes_by_wwns_host_volumes_result.host_volumes }}"
       when:
-        - host_volumes_result.overall_consistency
-        - host_volumes_result.total_ldevs_found | int > 0
+        - hv_vsp_query_host_volumes_by_wwns_host_volumes_result.overall_consistency
+        - hv_vsp_query_host_volumes_by_wwns_host_volumes_result.total_ldevs_found | int > 0
       tags:
         - gad_creation
         - replication
@@ -120,8 +121,8 @@
         msg:
           - "=== STEP 2 COMPLETED: GAD Pair Creation ==="
       when:
-        - host_volumes_result.overall_consistency
-        - host_volumes_result.total_ldevs_found | int > 0
+        - hv_vsp_query_host_volumes_by_wwns_host_volumes_result.overall_consistency
+        - hv_vsp_query_host_volumes_by_wwns_host_volumes_result.total_ldevs_found | int > 0
       tags:
         - gad_creation
         - reporting

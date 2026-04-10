@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : StorageSystem Playbook
-####################################################################
+# ###################################################################
 - name: SDSB StorageSystem
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Configure storage system with write-back cache protection
-    ####################################################################
+    # ###################################################################
     - name: Configure storage system with write-back cache protection
       hitachivantara.vspone_block.sds_block.hv_sds_block_storage_system:
         connection_info: "{{ connection_info }}"

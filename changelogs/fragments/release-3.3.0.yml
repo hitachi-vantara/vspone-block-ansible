@@ -18,7 +18,7 @@ minor_changes:
   - Added NVMe-TCP and NVMe-FC support for GAD, TrueCopy, HUR, ShadowImage, and Snapshot/ThinImage modules.
 bugfixes:
   - Made storage_system_info optional field for direct connection type modules.
-  - For remote replication pairs, if the free LDEV ID for SVOL was not part of the meta resource group, the pair creation failed. Now the module will automatically
-    select a free LDEV ID from the metadata resource group.
+  - For remote replication pairs, if the free LDEV ID for SVOL was not part of the meta resource group, the pair creation failed. Now the module will
+    automatically select a free LDEV ID from the metadata resource group.
   - Done some enhancements related to the module documentation like formatting, examples, and descriptions.
   - Added ansible_facts parameter to all the facts modules as per the ansible facts module standard.

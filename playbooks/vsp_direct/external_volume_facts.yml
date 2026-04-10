@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : External Volume facts Playbook
-####################################################################
+# ###################################################################
 - name: External Volume facts
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Get all External Volume for specific ldev_id
-    ####################################################################
+    # ###################################################################
     - name: Get all External Volume for specific ldev_id
       hitachivantara.vspone_block.vsp.hv_external_volume_facts:
         connection_info: "{{ connection_info }}"

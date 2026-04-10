@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example :  Remote Storage Registration/Unregistration Playbook
-####################################################################
+# ###################################################################
 - name: Remote Storage Registration/Unregistration
   hosts: localhost
   gather_facts: false
@@ -21,9 +21,9 @@
       password: "{{ vault_secondary_storage_secret }}"
 
   tasks:
-    ######################################################################################
+    # #####################################################################################
     # Task Name : Register Remote Storage
-    ######################################################################################
+    # #####################################################################################
     - name: Register Remote Storage
       hitachivantara.vspone_block.vsp.hv_remote_storage_registration:
         connection_info: "{{ connection_info }}"

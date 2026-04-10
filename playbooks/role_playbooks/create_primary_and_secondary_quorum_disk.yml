@@ -1,0 +1,46 @@
+---
+- name: Create Primary and Secondary Quorum Disk
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+  vars:
+    # Connection information for primary storage
+    hv_vsp_create_primary_and_secondary_quorum_disk_primary_storage_connection:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+    # Connection information for secondary storage
+    hv_vsp_create_primary_and_secondary_quorum_disk_secondary_storage_connection:
+      address: "{{ secondary_storage_address }}"
+      username: "{{ vault_secondary_storage_username }}"
+      password: "{{ vault_secondary_storage_secret }}"
+
+    # Connection information for quorum disk storage provider
+    hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_storage_connection:
+      address: "127.0.1.0"
+      username: "user"
+      password: "password"
+
+    # Host groups on quorum disk storage where LDEV will be presented
+    hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_storage_host_groups:
+      - host_group_name: "VSP_OneB"
+        port_id: "CL7-B"
+
+    # Optional: Specify quorum disk ID (0-31), if not specified, first available will be used
+    hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_id: 1
+
+    # Optional: Size of quorum disk LDEV
+    hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_size: "12300MB"
+
+    # Optional: Pool ID on quorum disk storage
+    hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_external_pool_id: 0
+
+  # Optional: Specific LDEV IDs, if not specified, free IDs will be auto-selected
+  # hv_vsp_create_primary_and_secondary_quorum_disk_primary_ldev_id: 1000
+  # hv_vsp_create_primary_and_secondary_quorum_disk_secondary_ldev_id: 2000
+  tasks:
+    - name: Create Primary and Secondary Quorum Disk
+      ansible.builtin.include_role:
+        name: hitachivantara.vspone_block.hv_vsp_create_primary_and_secondary_quorum_disk

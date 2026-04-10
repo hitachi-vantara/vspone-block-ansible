@@ -3,12 +3,14 @@ try:
     from ..common.hv_constants import StateValue
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
+    from ..common.sdsb_errors import SdsbChapUserCreationError
     from ..message.sdsb_chap_user_msgs import SDSBChapUserValidationMsg
 except ImportError:
     from provisioner.sdsb_chap_user_provisioner import SDSBChapUserProvisioner
     from common.hv_constants import StateValue
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
+    from common.sdsb_errors import SdsbChapUserCreationError
     from message.sdsb_chap_user_msgs import SDSBChapUserValidationMsg
 
 logger = Log()
@@ -43,7 +45,9 @@ class SDSBChapUserReconciler:
             raise ValueError(SDSBChapUserValidationMsg.UPDATE_REQD_FIELD.value)
 
         if spec.target_chap_user_name == chap_user.targetChapUserName:
-            raise ValueError(SDSBChapUserValidationMsg.SAME_TARGET_CHAP_NAME.value)
+            spec.comments = SDSBChapUserValidationMsg.SAME_TARGET_CHAP_NAME.value
+            self.connection_info.changed = False
+            return chap_user
 
         ret_val = self.update_chap_user(spec)
         logger.writeDebug("RC:update_sdsb_chap_user:ret_val={}", ret_val)
@@ -76,7 +80,9 @@ class SDSBChapUserReconciler:
 
         chap_user_id = self.create_chap_user(spec)
         if not chap_user_id:
-            raise Exception("Failed to create CHAP user")
+            raise SdsbChapUserCreationError(
+                SDSBChapUserValidationMsg.FAILED_TO_CREATE_CHAP_USER.value
+            )
 
         return self.get_chap_user_by_id(chap_user_id)
 
@@ -93,9 +99,13 @@ class SDSBChapUserReconciler:
                 # user provided an id of the chap user, so this must be an update
                 chap_user = self.get_chap_user_by_id(spec.id)
                 if chap_user is None:
-                    raise ValueError(
-                        SDSBChapUserValidationMsg.INVALID_CHAP_USER_ID.value
+                    spec.comments = (
+                        SDSBChapUserValidationMsg.CHAP_USER_ID_ABSENT.value.format(
+                            spec.id
+                        )
                     )
+                    self.connection_info.changed = False
+                    return None
                 else:
                     logger.writeDebug("RC:chap_user={}", chap_user)
                     return self.update_sdsb_chap_user(chap_user, spec)
@@ -142,7 +152,17 @@ class SDSBChapUserReconciler:
 
             cu_id = self.delete_chap_user_by_id(chap_user_id)
             if cu_id is not None:
-                return "CHAP user has been deleted successfully."
+                spec.comments = (
+                    SDSBChapUserValidationMsg.CHAP_USER_DELETE_SUCCESS.value.format(
+                        cu_id
+                    )
+                )
+                return None
             else:
                 self.connection_info.changed = False
-                return "Could not delete CHAP user, ensure CHAP user ID is valid. "
+                spec.comments = (
+                    SDSBChapUserValidationMsg.CHAP_USER_DELETE_FAILED.value.format(
+                        spec.id if spec.id is not None else spec.target_chap_user_name
+                    )
+                )
+                return None

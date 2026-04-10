@@ -127,31 +127,39 @@ class VSPExternalParityGroupReconciler:
         msg = ""
         if state == StateValue.PRESENT:
             rsp = self.create_or_update_external_parity_group(spec)
-            msg = "External parity group created successfully."
+            msg = (
+                VSPSExternalParityGroupValidateMsg.EXTERNAL_PARITY_GROUP_CREATE_SUCCESS.value
+            )
         elif state == StateValue.ASSIGN_EXTERNAL_PARITY_GROUP:
             rsp = self.assign_external_parity_group(spec)
             logger.writeDebug(
                 f"external_pg_reconcile:ASSIGN_EXTERNAL_PARITY_GROUP={rsp}"
             )
             if self.connection_info.changed:
-                msg = "Assigned external parity group to a CLPR successfully."
+                msg = (
+                    VSPSExternalParityGroupValidateMsg.ASSIGN_EXTERNAL_PARITY_GROUP_SUCCESS.value
+                )
             else:
-                msg = "External parity group is already assigned to the same CLPR."
+                msg = (
+                    VSPSExternalParityGroupValidateMsg.EXTERNAL_PARITY_GROUP_ALREADY_ASSIGNED.value
+                )
         elif state == StateValue.CHANGE_MP_BLADE:
             rsp = self.change_mp_blade(spec)
             logger.writeDebug(f"external_pg_reconcile:CHANGE_MP_BLADE={rsp}")
             self.connection_info.changed = True
-            msg = "Changed the MP blade assigned to an external parity group."
+            msg = VSPSExternalParityGroupValidateMsg.CHANGE_MP_BLADE_SUCCESS.value
         elif state == StateValue.DISCONNECT:
             rsp = self.disconnect_from_a_volume_on_external_storage(spec)
             logger.writeDebug(f"external_pg_reconcile:DISCONNECT = {rsp} ")
             self.connection_info.changed = True
-            msg = "Volume disconnected from the external parity group."
+            msg = VSPSExternalParityGroupValidateMsg.DISCONNECT_SUCCESS.value
         elif state == StateValue.ABSENT:
             rsp = self.delete_external_parity_group(spec)
             logger.writeDebug(f"external_pg_reconcile:DELETE = {rsp} ")
             self.connection_info.changed = True
-            msg = "External parity group deleted successfully."
+            msg = (
+                VSPSExternalParityGroupValidateMsg.EXTERNAL_PARITY_GROUP_DELETE_SUCCESS.value
+            )
             return None, msg
         response = self.get_one_external_parity_group_extracted(rsp)
         logger.writeDebug(f"external_pg_reconcile:response={response}")

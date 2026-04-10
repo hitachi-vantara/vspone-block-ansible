@@ -1,10 +1,6 @@
 from enum import Enum
 
 
-class VSPOneServerMessage(Enum):
-    pass
-
-
 class VSPOneServerMSG(Enum):
     # Server existence validation messages
     SERVER_WITH_NICKNAME_NOT_FOUND = "Server with nick_name '{nickname}' not found"
@@ -82,6 +78,8 @@ class VSPOneServerMSG(Enum):
     PATHS_LIST_REQUIRED = (
         "paths list cannot be empty when adding or removing paths to/from server."
     )
+    UNSUPPORTED_STATE = "Unsupported state: {}"
+    SERVER_NOT_FOUND = "Server not found."
 
 
 class VSPOneServerValidationMsg(Enum):

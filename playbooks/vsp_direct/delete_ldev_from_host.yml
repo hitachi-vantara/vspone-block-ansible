@@ -1,7 +1,7 @@
 ---
-####################################################################
+# ###################################################################
 # Example : Delete/Detach ldev(s) from host
-####################################################################
+# ###################################################################
 - name: Delete ldevs from host
   hosts: localhost
   gather_facts: false
@@ -17,9 +17,9 @@
       password: "{{ vault_storage_secret }}"
 
   tasks:
-    ####################################################################
+    # ###################################################################
     # Task Name : Detach ldevs from host group with direct connection
-    ####################################################################
+    # ###################################################################
     - name: Detach ldevs from host group with direct connection
       hitachivantara.vspone_block.vsp.hv_hg:
         connection_info: "{{ connection_info }}"
@@ -27,7 +27,7 @@
         spec:
           state: "unpresent_ldev"
           name: "hostgroup-server1"
-          port: "CL1-A"
+          port_id: "CL1-A"
           ldevs: [345]
       register: result
 
