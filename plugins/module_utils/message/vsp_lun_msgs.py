@@ -1,5 +1,8 @@
 from enum import Enum
-from ..common.hv_constants import LdevConstants
+try:
+    from ..common.hv_constants import LdevConstants
+except (ImportError, ValueError):
+    from common.hv_constants import LdevConstants
 
 
 class VSPVolumeMSG(Enum):

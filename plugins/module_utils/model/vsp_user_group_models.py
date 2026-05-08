@@ -26,6 +26,7 @@ class VSPUserGroupSpec(SingleBaseClass):
     resource_group_ids: Optional[List[int]] = None
     state: Optional[str] = None
     has_all_resource_groups: Optional[bool] = False
+    comments: Optional[str] = None
 
 
 @dataclass

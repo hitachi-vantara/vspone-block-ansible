@@ -24,6 +24,7 @@ class VSPSnapShotValidateMsg(Enum):
     PVOL_IS_NOT_IN_HG = "P-VOL is not in the host group, please add the P-VOL to the host group and try again."
     SNAPSHOT_NOT_FOUND = "Snapshot not found."
     SNAPSHOT_GROUP_NOT_FOUND = "Snapshot group not found."
+    SNAPSHOT_GROUP_NAME_MISSING = "snapshot_group_name is required and is missing."
     NO_SNAPSHOTS_FOUND = "No snapshots found."
     MU_ID_NOT_FOUND_IN_TASK = "Mirror Unit ID not found in task information."
     MIRROR_UNIT_ID_NOT_FOUND = "Mirror Unit ID not found."

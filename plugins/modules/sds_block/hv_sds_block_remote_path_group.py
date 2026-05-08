@@ -43,10 +43,12 @@ options:
         description: The ID of the remote path group. Required for update and delete operation.
         type: str
         required: false
-      local_port:
+      local_port_id:
         description: Port number of the local storage system in CLx-y format. Required for create operation.
+          local_port is deprecated. Use C(local_port_id) instead.
         type: str
         required: false
+        aliases: ['local_port']
       remote_serial:
         description: Serial number of the remote storage system. Required for create operation.
         type: str
@@ -56,10 +58,12 @@ options:
         type: str
         required: false
         choices: ['R9', 'M8']
-      remote_port:
+      remote_port_id:
         description: Port number of the remote storage system in CLx-y format. Required for create operation.
+          remote_port is deprecated. Use C(remote_port_id) instead.
         type: str
         required: false
+        aliases: ['remote_port']
       path_group_id:
         description: Path group ID. Required for create operation. Value must be between 1 and 255.
         type: int
@@ -83,8 +87,8 @@ EXAMPLES = """
     spec:
       remote_serial: "810045"
       remote_storage_system_type: "M8"
-      local_port: "CL1-C"
-      remote_port: "CL2-C"
+      local_port_id: "CL1-C"
+      remote_port_id: "CL2-C"
       path_group_id: 20
       remote_io_timeout_in_sec: 200
 

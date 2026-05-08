@@ -25,7 +25,9 @@ class SDSBRemotePathGroupSpec(SingleBaseClass):
     remote_storage_system_type: Optional[str] = None
     path_group_id: Optional[int] = None
     local_port: Optional[str] = None
+    local_port_id: Optional[str] = None
     remote_port: Optional[str] = None
+    remote_port_id: Optional[str] = None
     remote_io_timeout_in_sec: Optional[int] = None
 
     comments: Optional[str] = None
@@ -36,6 +38,10 @@ class SDSBRemotePathGroupSpec(SingleBaseClass):
             10 <= self.remote_io_timeout_in_sec <= 80
         ):
             raise ValueError("remote_io_timeout_in_sec must be between 10-80.")
+        if self.local_port_id is not None:
+            self.local_port = self.local_port_id
+        if self.remote_port_id is not None:
+            self.remote_port = self.remote_port_id
 
 
 @dataclass

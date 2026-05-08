@@ -258,6 +258,19 @@ class VSPGadPairReconciler:
                     f"Virtual Storage with id {spec.virtual_storage_serial_number} is locked"
                 )
 
+        matching_free_vols = None
+        if spec.should_match_volume_ids is not None and spec.should_match_volume_ids:
+            primary_vol_prov = VSPVolumeProvisioner(self.connection_info)
+            matching_free_vols = primary_vol_prov.get_matching_free_ldevs(
+                spec.number_of_pairs,
+                spec.begin_primary_volume_id,
+                spec.end_primary_volume_id,
+                spec.begin_secondary_volume_id,
+                spec.end_secondary_volume_id,
+                secondary_connection_info,
+            )
+            logger.writeDebug("RC:create_gad_batch:matching_free_vols={}", matching_free_vols)
+
         primary_vol_rec = VSPVolumeReconciler(
             self.connection_info, self.storage_serial_number
         )
@@ -289,6 +302,12 @@ class VSPGadPairReconciler:
         secondary_volume_spec.start_ldev_id = spec.begin_secondary_volume_id
         if spec.number_of_pairs is None:
             secondary_volume_spec.end_ldev_id = spec.end_secondary_volume_id
+
+        if matching_free_vols:
+            primary_volume_spec.start_ldev_id = matching_free_vols[0]
+            primary_volume_spec.end_ldev_id = matching_free_vols[-1]
+            secondary_volume_spec.start_ldev_id = matching_free_vols[0]
+            secondary_volume_spec.end_ldev_id = matching_free_vols[-1]
 
         primary_ldevs = primary_vol_rec.ldev_batch_operation(primary_volume_spec)
         primary_ldev_ids = [ldev.ldevId for ldev in primary_ldevs]
@@ -426,6 +445,8 @@ class VSPGadPairReconciler:
         try:
             # Run the first pair synchronously (wait for completion)
             if primary_ldev_ids and secondary_ldev_ids:
+                primary_ldev_ids.sort()
+                secondary_ldev_ids.sort()
                 create_gad_pair(primary_ldev_ids[0], secondary_ldev_ids[0])
                 # Remove the first ids since they are already processed
                 if len(gad_response) == 0:

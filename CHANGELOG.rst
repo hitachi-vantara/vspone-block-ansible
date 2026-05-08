@@ -4,6 +4,37 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.8.0
+======
+
+Release Summary
+---------------
+
+This release adds support for SVOS 10.5.3 for VSP One BHE storage models. It introduces
+new GAD management modules specifically for VSP One BHE storage systems.
+
+Minor Changes
+-------------
+
+- Added a new "hv_vsp_one_gad" module for creation, suspend, resync and delete of GAD pairs on VSP one BHE storages.
+- Added a new "hv_vsp_one_gad_consistency_group" module for suspend and resync of GAD pairs in a consistency group on VSP one BHE storages.
+- Added a new "hv_vsp_one_gad_consistency_group_facts" module for getting the GAD pair details in a consistency group on VSP one BHE Storages.
+- Added a new "hv_vsp_one_gad_facts" module for getting the GAD pair details on VSP one BHE Storages.
+- Added following tasks to "hv_gad_bulk" module - Batch create GAD pairs with host groups with matching volume IDs
+- Added following tasks to "hv_hur_bulk" module - Create HUR pair in bulk mode with matching volume IDs
+- Added support for SVOS 10.5.3 for VSP One BHE storage models.
+
+New Modules
+-----------
+
+Vsp
+~~~
+
+- hitachivantara.vspone_block.vsp.hv_vsp_one_gad - Manages GAD pairs on VSP One block storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_gad_consistency_group - Manages GAD pairs in a consistency group on VSP One block storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_gad_consistency_group_facts - Retrieves consistency group of GAD pairs from VSP One storage systems.
+- hitachivantara.vspone_block.vsp.hv_vsp_one_gad_facts - Retrieves GAD (Global\-Active Device) information from VSP One storage systems.
+
 v4.7.0
 ======
 

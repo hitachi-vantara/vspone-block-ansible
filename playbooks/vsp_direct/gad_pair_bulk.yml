@@ -20,17 +20,51 @@
       password: "{{ vault_secondary_storage_secret }}"
 
   tasks:
-    # ###################################################################
+    ####################################################################
     # Task Name : Batch create GAD pairs with host groups
     # Execution of the following task is not supported while any target
     # storage system resources are locked.
     # All resources must be unlocked prior to execution.
-    # ###################################################################
+    ####################################################################
     - name: Batch create GAD pairs with host groups
       hitachivantara.vspone_block.vsp.hv_gad_bulk:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
         spec:
+          number_of_pairs: 5
+          primary_pool_id: 0
+          secondary_pool_id: 0
+          volume_size: "10GB"
+          capacity_saving: "compression"
+          primary_volume_base_name: "gad_vol"
+          primary_volume_base_name_start_number: 1
+          copy_group_name: "batch_gad_cg"
+          copy_pair_base_name: "batch_pair"
+          quorum_disk_id: 0
+          primary_hostgroups:
+            - name: "primary_hg_1"
+              port_id: "CL1-A"
+          secondary_hostgroups:
+            - name: "secondary_hg_1"
+              port_id: "CL2-A"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ###############################################################################
+    # Task Name : Batch create GAD pairs with host groups with matching volume IDs
+    # Execution of the following task is not supported while any target
+    # storage system resources are locked.
+    # All resources must be unlocked prior to execution.
+    ################################################################################
+    - name: Batch create GAD pairs with host groups with matching volume IDs
+      hitachivantara.vspone_block.vsp.hv_gad_bulk:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          should_match_volume_ids: true
           number_of_pairs: 5
           primary_pool_id: 0
           secondary_pool_id: 0

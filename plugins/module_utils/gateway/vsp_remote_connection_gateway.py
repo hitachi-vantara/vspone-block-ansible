@@ -8,6 +8,9 @@ try:
         VSPRemoteConnection,
         RemoteConnectionSpec,
     )
+    from ..model.vsp_remote_storage_registration_models import (
+        VSPRemoteStorageSystemsInfoPfrestList,
+    )
 
 except ImportError:
     from .gateway_manager import VSPConnectionManager
@@ -171,3 +174,12 @@ class VSPRemoteConnectionDirectGateway:
         response = self.connection_manager.delete(end_point)
         logger.writeDebug("GW:delete_remote_connection:response={}", response)
         return response
+
+    @log_entry_exit
+    def get_all_remote_storages(self):
+        end_point = Endpoints.REMOTE_STORAGES
+        remote_storages = self.connection_manager.get(end_point)
+        logger.writeDebug(
+            "GW:get_all_remote_storages:remote storages={}", remote_storages
+        )
+        return VSPRemoteStorageSystemsInfoPfrestList().dump_to_object(remote_storages)

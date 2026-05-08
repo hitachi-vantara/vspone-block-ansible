@@ -163,6 +163,10 @@ This collection includes modules for managing both VSP One SDS Block and Cloud s
 - **hv_user_facts:** Retrieves information about users.
 - **hv_user_group:** Manages user groups for role-based access control.
 - **hv_user_group_facts:** Retrieves information about user groups.
+- **hv_vsp_one_gad:** Manages GAD pairs on VSP One block storage systems.
+- **hv_vsp_one_gad_consistency_group:** Manages GAD pairs in a consistency group on VSP One block storage systems.
+- **hv_vsp_one_gad_consistency_group_facts:** Retrieves consistency group of GAD pairs from VSP One storage systems.
+- **hv_vsp_one_gad_facts:** Retrieves GAD (Global-Active Device) information from VSP One storage systems.
 - **hv_vsp_one_port:** Manages ports on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 - **hv_vsp_one_port_facts:** Retrieves port information from VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.
 - **hv_vsp_one_server:** Manages servers including creation, modification, deletion, and configuration on VSP E series, VSP One Block 20 series, and VSP One Block 80 series storage systems.

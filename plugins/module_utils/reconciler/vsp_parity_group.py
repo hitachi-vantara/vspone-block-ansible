@@ -55,7 +55,7 @@ class VSPParityGroupReconciler:
         except Exception as e:
             self.logger.error(f"Error occurred while creating parity group: {e}")
             if match_api_not_supported(str(e)):
-                raise Exception(
+                raise ValueError(
                     VSPParityGroupValidateMsg.CREATE_PARITY_GROUP_NOT_SUPPORTED.value
                 )
             raise
@@ -67,7 +67,7 @@ class VSPParityGroupReconciler:
         except Exception as e:
             self.logger.error(f"Error occurred while deleting parity group: {e}")
             if match_api_not_supported(str(e)):
-                raise Exception(
+                raise ValueError(
                     VSPParityGroupValidateMsg.DELETE_PARITY_GROUP_NOT_SUPPORTED.value
                 )
             raise

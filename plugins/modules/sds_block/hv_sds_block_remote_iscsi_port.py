@@ -45,10 +45,11 @@ options:
         description: The ID of the remote iSCSI port. Required for delete operation.
         type: str
         required: false
-      local_port:
+      local_port_id:
         description: Port number of the local storage system in CLx-y format. Required for create operation.
         type: str
         required: false
+        aliases: ['local_port']
       remote_serial:
         description: Serial number of the remote storage system. Required for create operation.
         type: str
@@ -58,10 +59,11 @@ options:
         type: str
         required: false
         choices: ['R9', 'M8']
-      remote_port:
+      remote_port_id:
         description: Port number of the remote storage system in CLx-y format. Required for create operation.
         type: str
         required: false
+        aliases: ['remote_port']
       remote_storage_port_ip_address:
         description: iSCSI port IP address for the remote storage system. Required for create operation.
         type: str
@@ -83,10 +85,10 @@ EXAMPLES = """
       password: "secret"
     state: "present"
     spec:
-      local_port: "CL1-C"
+      local_port_id: "CL1-C"
       remote_serial: "810045"
       remote_storage_system_type: "M8"
-      remote_port: "CL1-C"
+      remote_port_id: "CL1-C"
       remote_storage_ip_address: "172.25.59.213"
 
 - name: Restore storage node from maintenance

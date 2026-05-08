@@ -3,6 +3,7 @@ try:
     from ..common.hv_constants import LdevConstants
     from ..common.vsp_constants import VolumePayloadConst
     from ..message.vsp_lun_msgs import VSPVolValidationMsg
+    from ..message.vsp_hur_msgs import VspRemoteReplicationMsg
     from ..common.hv_log import (
         Log,
     )
@@ -20,6 +21,7 @@ except ImportError:
     from common.hv_constants import LdevConstants
     from common.vsp_constants import VolumePayloadConst
     from message.vsp_lun_msgs import VSPVolValidationMsg
+    from message.vsp_hur_msgs import VspRemoteReplicationMsg
     from common.hv_log import (
         Log,
     )
@@ -260,33 +262,54 @@ class VSPVolumeProvisioner:
                     if ldev.ldevId >= start_ldev
                     and (end_ldev is None or ldev.ldevId <= end_ldev)
                     and ldev.resourceGroupId == resource_grp_id
-                    and ldev.virtualLdevId is None
+                    and (
+                        (ldev.resourceGroupId == 0 and ldev.virtualLdevId is None)
+                        or (
+                            ldev.resourceGroupId != 0
+                            and ldev.virtualLdevId == ldev.ldevId
+                            or ldev.virtualLdevId == LdevConstants.UNASSIGNED_LDEV_ID
+                        )
+                    )
                 ]
             )
             logger.writeDebug(
                 "Filtered free LDEVs based on start_ldev and end_ldev: {}", ldevs_ids
             )
-            if len(ldevs_ids) == 0:
-                start_ldev += each_count
-                if end_ldev is not None and start_ldev > end_ldev:
-                    return ldevs_ids
-                continue
+            # if len(ldevs_ids) == 0:
+            #     start_ldev += each_count
+            #     if end_ldev is not None and start_ldev > end_ldev:
+            #         return ldevs_ids
+            #     continue
 
-            if end_ldev is not None and start_ldev > end_ldev:
+            # if end_ldev is not None and start_ldev > end_ldev:
+            #     break
+
+            # if end_ldev is None:
+            #     if len(ldevs_ids) < count:
+            #         start_ldev = max(raw_ldev_ids) + 1
+            #     else:
+            #         break
+            # else:
+
+            #     if max(ldevs_ids) < end_ldev:
+            #         start_ldev = max(raw_ldev_ids) + 1
+            #     else:
+            #         ldevs_ids = [ldev for ldev in ldevs_ids if ldev <= end_ldev]
+            #         break
+
+            # Check if we have gathered enough IDs to satisfy the count
+            if count and len(ldevs_ids) >= count:
                 break
 
-            if end_ldev is None:
-                if len(ldevs_ids) < count:
-                    start_ldev = max(raw_ldev_ids) + 1
-                else:
-                    break
+            # Advance the cursor past the raw data we just fetched
+            if raw_ldev_ids:
+                start_ldev = max(raw_ldev_ids) + 1
             else:
+                start_ldev += each_count
 
-                if max(ldevs_ids) < end_ldev:
-                    start_ldev = max(raw_ldev_ids) + 1
-                else:
-                    ldevs_ids = [ldev for ldev in ldevs_ids if ldev <= end_ldev]
-                    break
+            # Boundary Check: Stop if the next chunk starts beyond our limit
+            if end_ldev is not None and start_ldev > end_ldev:
+                break
 
         if len(ldevs_ids) < 1:
             err_msg = VSPVolValidationMsg.NO_FREE_LDEV.value
@@ -295,7 +318,131 @@ class VSPVolumeProvisioner:
             raise ValueError(err_msg)
 
         # return ldevs_ids[:count] if not end_ldev else ldevs_ids
-        return ldevs_ids[:count] if count and count > len(ldevs_ids) else ldevs_ids
+        # return ldevs_ids[:count] if count and count > len(ldevs_ids) else ldevs_ids
+        return ldevs_ids[:count] if count else ldevs_ids
+
+    @log_entry_exit
+    def get_matching_free_ldevs(
+        self,
+        number_of_pairs=1,
+        begin_primary_volume_id=None,
+        end_primary_volume_id=None,
+        begin_secondary_volume_id=None,
+        end_secondary_volume_id=None,
+        secondary_connection_info=None
+    ):
+        """
+        Finds matching free LDEV IDs across primary and secondary storage.
+        Iteratively searches until the requested count is satisfied.
+        """
+
+        # Immediate check for secondary connection info
+        if not secondary_connection_info:
+            err_msg = "Secondary connection information is missing or None."
+            logger.writeError(f"RC: {err_msg}")
+            raise ValueError(err_msg)
+
+        matching_ids = []
+        count_needed = number_of_pairs
+        primary_connection_info = self.connection_info
+
+        # Optimization: Fetch twice the requested count. Cap at 1000.
+        batch_size = min(max(500, count_needed * 2), 1000)
+
+        # Synchronize starting point: must start at the higher of the two
+        effective_min = max(
+            begin_primary_volume_id if begin_primary_volume_id is not None else 0,
+            begin_secondary_volume_id if begin_secondary_volume_id is not None else 0
+        )
+        current_cursor = effective_min
+
+        # Synchronize end point: stop at the lower (most restrictive) value
+        p_limit = int(end_primary_volume_id) if end_primary_volume_id is not None else LdevConstants.MAX_VALID_LDEV_ID
+        s_limit = int(end_secondary_volume_id) if end_secondary_volume_id is not None else LdevConstants.MAX_VALID_LDEV_ID
+        effective_max = min(p_limit, s_limit)
+
+        # Check for NO overlap at all (Disjoint ranges)
+        if effective_min > effective_max:
+            err_msg = (
+                f"No overlapping LDEV range found between Primary "
+                f"[{begin_primary_volume_id}-{end_primary_volume_id}] and Secondary "
+                f"[{begin_secondary_volume_id}-{end_secondary_volume_id}]."
+            )
+            logger.writeError(f"RC: {err_msg}")
+            raise ValueError(err_msg)
+
+        # Check for INSUFFICIENT capacity within the overlap
+        overlap_count = effective_max - effective_min + 1
+        if overlap_count < number_of_pairs:
+            err_msg = (
+                f"The overlapping LDEV range [{effective_min}-{effective_max}] only provides "
+                f"{overlap_count} possible IDs, but {number_of_pairs} pairs were requested."
+            )
+            logger.writeError(f"RC: {err_msg}")
+            raise ValueError(err_msg)
+
+        logger.writeInfo(
+            f"RC: Starting synchronized LDEV search. Target: {count_needed}. "
+            f"Range: [{effective_min}-{effective_max}]"
+        )
+
+        try:
+            vol_prov_p = VSPVolumeProvisioner(primary_connection_info)
+            vol_prov_s = VSPVolumeProvisioner(secondary_connection_info)
+
+            iteration = 0
+            while len(matching_ids) < count_needed:
+                iteration += 1
+
+                # Fetch chunks using the synchronized cursor and max
+                p_free = vol_prov_p.get_free_ldevs_from_meta(batch_size, current_cursor, effective_max)
+                s_free = vol_prov_s.get_free_ldevs_from_meta(batch_size, current_cursor, effective_max)
+
+                if not p_free or not s_free:
+                    logger.writeWarning(
+                        f"RC: Search exhausted at iteration {iteration}. "
+                        f"P_found: {len(p_free)}, S_found: {len(s_free)}"
+                    )
+                    break
+
+                # Intersection for this batch
+                current_matches = sorted(list(set(p_free) & set(s_free)))
+
+                for ldev_id in current_matches:
+                    if ldev_id not in matching_ids:
+                        matching_ids.append(ldev_id)
+
+                    if len(matching_ids) == count_needed:
+                        logger.writeInfo(f"RC: Found matching IDs: {', '.join(map(str, matching_ids))}")
+                        return matching_ids
+
+                # Advance the shared cursor past the highest ID processed by either system
+                highest_processed_id = max(p_free + s_free, default=0)
+                current_cursor = highest_processed_id + 1
+
+                logger.writeDebug(
+                    f"RC: Iteration {iteration} complete. Matches: {len(matching_ids)}/{count_needed}. "
+                    f"Next start: {current_cursor}"
+                )
+
+                # Boundary check
+                if current_cursor > effective_max:
+                    logger.writeInfo(f"RC: Reached the synchronized range limit: {effective_max}")
+                    break
+
+            if len(matching_ids) < count_needed:
+                err_msg = VspRemoteReplicationMsg.INSUFFICIENT_FREE_LDEVS.value.format(count_needed, len(matching_ids))
+                if matching_ids:
+                    logger.writeDebug(f"RC: Partial matches: {', '.join(map(str, matching_ids))}")
+                logger.writeError(f"RC: {err_msg}")
+                raise ValueError(err_msg)
+
+            return matching_ids
+
+        except Exception as e:
+            logger.writeException(e)
+            # Re-raise with the original message to preserve the VspRemoteReplicationMsg text
+            raise ValueError(str(e))
 
     @log_entry_exit
     def expand_volume_capacity(self, ldev_id, payload, enhanced_expansion):

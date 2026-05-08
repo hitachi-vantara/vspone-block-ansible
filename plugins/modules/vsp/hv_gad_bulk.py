@@ -65,6 +65,10 @@ options:
     type: dict
     required: true
     suboptions:
+      should_match_volume_ids:
+        description: Specify whether the primary volume ID and secondary volume ID should match in gad pairs. Default value is false.
+        type: bool
+        required: false
       secondary_pool_id:
         description: Pool ID of the secondary storage system for creating secondary volumes.
         type: int
@@ -307,6 +311,38 @@ EXAMPLES = """
       password: "secret"
     spec:
       number_of_pairs: 5
+      primary_pool_id: 0
+      secondary_pool_id: 0
+      volume_size: "10GB"
+      capacity_saving: "compression"
+      primary_volume_base_name: "gad_vol"
+      primary_volume_base_name_start_number: 1
+      copy_group_name: "batch_gad_cg"
+      copy_pair_base_name: "batch_pair"
+      quorum_disk_id: 0
+      is_new_group_creation: true
+      primary_hostgroups:
+        - name: "primary_hg_1"
+          port_id: "CL1-A"
+          enable_preferred_path: true
+      secondary_hostgroups:
+        - name: "secondary_hg_1"
+          port_id: "CL2-A"
+          enable_preferred_path: false
+
+- name: Batch create GAD pairs with host groups
+  hitachivantara.vspone_block.vsp.hv_gad_bulk:
+    connection_info:
+      address: storage1.company.com
+      username: "username"
+      password: "password"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
+    spec:
+      number_of_pairs: 5
+      should_match_volume_ids: true
       primary_pool_id: 0
       secondary_pool_id: 0
       volume_size: "10GB"

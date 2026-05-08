@@ -102,6 +102,9 @@ class VspOneSnapshotProvisioner:
                 logger.writeError(e)
                 spec.errors.append(str(e))
 
+        logger.writeInfo(f"Created/Updated {result_list} snapshots successfully.")
+        if len(result_list) == 0:
+            return []
         ret_result_list = VspOneSnapshotList(data=result_list)
         return ret_result_list.data_to_snake_case_list()
 
@@ -183,7 +186,7 @@ class VspOneSnapshotProvisioner:
                 )
                 raise ValueError(display_msg + " " + err_msg)
 
-    pattern = re.compile(r"^(?! )(?!.* $)(?!-)[0-9A-Za-z ,\-\./:@\\_]{1,32}$")
+    pattern = re.compile(r"^(?! )(?!.* $)(?!-)[0-9A-Za-z ,\-\./:@\\_]{0,32}$")
 
     def is_valid_snapshot_group_name(self, name: str):
         """

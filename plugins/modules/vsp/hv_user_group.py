@@ -253,7 +253,7 @@ class VSPUserManager:
             reconciler = VSPUserGroupReconciler(
                 self.connection_info, self.storage_serial_number, self.state
             )
-            user_group, comment = reconciler.reconcile_user_group(self.spec)
+            user_group = reconciler.reconcile_user_group(self.spec)
 
         except Exception as e:
             self.logger.writeError(str(e))
@@ -265,8 +265,8 @@ class VSPUserManager:
         }
         if user_group:
             resp["user_groups"] = user_group
-        if comment:
-            resp["comment"] = comment
+        if self.spec.comments:
+            resp["comment"] = self.spec.comments
         if registration_message:
             resp["user_consent_required"] = registration_message
 

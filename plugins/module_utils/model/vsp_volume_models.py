@@ -582,6 +582,26 @@ class PavAttribute(SingleBaseClass):
 
 
 @dataclass
+class ActiveActiveMirroringInfo(SingleBaseClass):
+    ssid: Optional[int] = None
+    portNumber: Optional[int] = None
+    absoluteLun: Optional[int] = None
+    storageTypeNumber: Optional[int] = None
+
+
+@dataclass
+class VirtualizationInfo(SingleBaseClass):
+    id: Optional[int] = None
+    isVirtualStorageAutoAssigned: Optional[bool] = None
+    storageType: Optional[str] = None
+    storageSerial: Optional[str] = None
+    activeActiveMirroringPairReserved: Optional[str] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
+@dataclass
 class SalamanderSimpleVolumeInfo(SingleBaseClass):
     id: Optional[int] = None
     nickname: Optional[str] = None
@@ -616,6 +636,8 @@ class SalamanderSimpleVolumeInfo(SingleBaseClass):
     currentMpu: Optional[int] = None
     currentMpuLocId: Optional[str] = None
     pav: Optional[PavAttribute] = None
+    activeActiveMirroringInfo: Optional[ActiveActiveMirroringInfo] = None
+    virtualization: Optional[VirtualizationInfo] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -640,6 +662,13 @@ class SalamanderSimpleVolumeInfo(SingleBaseClass):
         if self.pav is not None:
             self.pav = PavAttribute(**self.pav)
 
+        if self.activeActiveMirroringInfo is not None:
+            self.activeActiveMirroringInfo = ActiveActiveMirroringInfo(
+                **self.activeActiveMirroringInfo
+            )
+        if self.virtualization is not None:
+            self.virtualization = VirtualizationInfo(**self.virtualization)
+
     def camel_to_snake_dict(self):
         camel_dict = super().camel_to_snake_dict()
         camel_dict.pop("saving_setting")
@@ -647,6 +676,10 @@ class SalamanderSimpleVolumeInfo(SingleBaseClass):
         camel_dict["parent_volume_id_hex"] = volume_id_to_hex_format(
             self.parentVolumeId
         )
+        if self.activeActiveMirroringInfo is not None:
+            camel_dict.pop("active_active_mirroring_info")
+        if self.virtualization is not None:
+            camel_dict.pop("virtualization")
         return camel_dict
 
 
@@ -806,3 +839,66 @@ class SimpleAPIVolumeFactsSpec(SingleBaseClass):
 
         if self.volume_id is not None:
             self.volume_id = normalize_ldev_id(self.volume_id)
+
+
+@dataclass
+class VolumeDetailItemSpec:
+    capacity: Optional[int] = None
+    nickname: Optional[str] = None
+    saving_setting: Optional[str] = None
+    is_data_reduction_share_enabled: Optional[bool] = None
+    resource_id: Optional[str] = None
+
+    def to_dict(self):
+        item = {}
+        if self.capacity is not None:
+            item["capacity"] = self.capacity
+        if self.resource_id is not None:
+            item["extraDetail"] = {"resourceId": self.resource_id}
+        if self.nickname is not None:
+            item["nickname"] = self.nickname
+        if self.saving_setting is not None:
+            item["savingSetting"] = self.saving_setting
+        if self.is_data_reduction_share_enabled is not None:
+            item["isDataReductionShareEnabled"] = self.is_data_reduction_share_enabled
+        return item
+
+
+@dataclass
+class CreateVolumeSpecwithDeatilsSetting(SingleBaseClass):
+    create_volume_details: Optional[List[VolumeDetailItemSpec]] = None
+    capacity_unit: Optional[str] = None
+    id_range_start_id: Optional[str] = None
+    id_range_end_id: Optional[str] = None
+    pool_id: Optional[str] = None
+    virtualization_active_active_mirroring_pair_reserved: Optional[str] = None
+
+    def __post_init__(self):
+        if self.create_volume_details:
+            self.create_volume_details = [
+                VolumeDetailItemSpec(**v) if isinstance(v, dict) else v
+                for v in self.create_volume_details
+            ]
+
+    def create_payload(self):
+        payload = {}
+        if self.create_volume_details is not None:
+            payload["createVolumeDetails"] = [
+                v.to_dict() for v in self.create_volume_details
+            ]
+        if self.capacity_unit is not None:
+            payload["capacityUnit"] = self.capacity_unit
+        if self.id_range_start_id is not None or self.id_range_end_id is not None:
+            id_range = {}
+            if self.id_range_start_id is not None:
+                id_range["startId"] = self.id_range_start_id
+            if self.id_range_end_id is not None:
+                id_range["endId"] = self.id_range_end_id
+            payload["idRange"] = id_range
+        if self.pool_id is not None:
+            payload["poolId"] = self.pool_id
+        if self.virtualization_active_active_mirroring_pair_reserved is not None:
+            payload["virtualization"] = {
+                "activeActiveMirroringPairReserved": self.virtualization_active_active_mirroring_pair_reserved
+            }
+        return payload

@@ -224,6 +224,7 @@ class HurBatchSpec(HurSpec):
     volume_size: Optional[str] = None
     primary_pool_id: Optional[int] = None
     is_compression_acceleration_enabled: Optional[bool] = None
+    should_match_volume_ids: Optional[bool] = None
 
     primary_hostgroups: Optional[List[HurHostGroupSpec]] = None
     primary_iscsi_targets: Optional[List[HurHostGroupSpec]] = None

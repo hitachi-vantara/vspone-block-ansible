@@ -711,7 +711,11 @@ class VSPHostGroupDirectGateway:
         logger = Log()
         volume_info = self.volume_gw.get_volume_by_id(ldev_id)
         force = False
-        if volume_info and volume_info.dataReductionMode.lower() != "disabled":
+        if (
+            volume_info
+            and volume_info.dataReductionMode
+            and volume_info.dataReductionMode.lower() != "disabled"
+        ):
             force = True
         resp = self.volume_gw.delete_volume(ldev_id=ldev_id, force_execute=force)
         logger.writeInfo(resp)

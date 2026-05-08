@@ -91,12 +91,14 @@ class VSPUserGroupReconciler:
                 if spec.name:
                     user_group = self.provisioner.get_user_group_by_name(spec.name)
             if not user_group:
-                return None, VSPUserGroupValidateMsg.USER_GROUP_NOT_FOUND.value
+                spec.comments = VSPUserGroupValidateMsg.USER_GROUP_NOT_FOUND.value
+                return None
             logger.writeDebug(
                 "RC:reconcile_user:state=absent:user_group={}", user_group
             )
             comment = self.delete_user_group(user_group, spec)
-            return None, comment
+            spec.comments = comment
+            return None
 
     @log_entry_exit
     def get_user_group_by_id(self, id):
