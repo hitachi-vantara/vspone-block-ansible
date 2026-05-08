@@ -10,7 +10,7 @@ try:
     from ..model.common_base_models import ConnectionInfo
     from ..common.ansible_common import normalize_copy_pace
     from ..common.ansible_common_constants import MAX_BULK_PAIRS
-    from ..message.vsp_gad_pair_msgs import GADPairValidateMSG
+    from ..message.vsp_gad_pair_msgs import GADPairValidateMSG, VspOneGadValidationMsg
 
 except ImportError:
     from .common_base_models import BaseDataClass, SingleBaseClass, base_dict_converter
@@ -19,7 +19,21 @@ except ImportError:
         normalize_ldev_id,
     )
     from model.common_base_models import ConnectionInfo
-    from message.vsp_gad_pair_msgs import GADPairValidateMSG
+    from message.vsp_gad_pair_msgs import GADPairValidateMSG, VspOneGadValidationMsg
+
+
+@dataclass
+class VspOneGadCtgFactSpec:
+    consistency_group_id: Optional[int] = None
+
+    def __post_init__(self, **kwargs):
+        if self.consistency_group_id:
+            if self.consistency_group_id < 0 or self.consistency_group_id > 1023:
+                raise ValueError(
+                    VspOneGadValidationMsg.CONSISTENCY_GROUP_ID_RANGE.value.format(
+                        self.consistency_group_id
+                    )
+                )
 
 
 @dataclass
@@ -32,16 +46,6 @@ class GADPairFactSpec:
     copy_pair_name: Optional[str] = None
     local_device_group_name: Optional[str] = None
     remote_device_group_name: Optional[str] = None
-
-    def __post_init__(self, **kwargs):
-        if self.secondary_connection_info:
-            self.secondary_connection_info = ConnectionInfo(
-                **self.secondary_connection_info
-            )
-        if self.primary_volume_id:
-            self.primary_volume_id = normalize_ldev_id(self.primary_volume_id)
-        if self.secondary_volume_id:
-            self.secondary_volume_id = normalize_ldev_id(self.secondary_volume_id)
 
 
 @dataclass
@@ -181,6 +185,7 @@ class VspBatchGadPairSpec(BaseGadPairSpec):
     capacity_saving: Optional[str] = None
     copy_pair_base_name: Optional[str] = None
     copy_pace: Optional[int] = None
+    should_match_volume_ids: Optional[bool] = None
     comments: Optional[List[str]] = None
 
     def __post_init__(self):
@@ -335,3 +340,284 @@ class DirectGadPairInfo(SingleBaseClass):
 @dataclass
 class DirectGadPairInfoList(BaseDataClass):
     data: List[DirectGadPairInfo]
+
+
+@dataclass
+class RemoteConnectionIdInfo(SingleBaseClass):
+    pathGroupId: Optional[int] = None
+    storageModel: Optional[str] = None
+    storageSerialNumber: Optional[str] = None
+
+    def camel_to_snake_dict(self):
+        return super().camel_to_snake_dict()
+
+
+@dataclass
+class VspGadCtgInfo(SingleBaseClass):
+    id: int
+    ioPreference: Optional[str] = None
+    localVolumeIoModes: Optional[List[str]] = None
+    localVolumePositions: Optional[List[str]] = None
+    localVolumeStatuses: Optional[List[str]] = None
+    muNumber: Optional[int] = None
+    numberOfPairs: Optional[int] = None
+    pairOperationModesForBlockedQuorumDisk: Optional[List[str]] = None
+    quorumDiskId: Optional[int] = None
+    remoteConnectionId: Optional[RemoteConnectionIdInfo] = None
+
+    def __post_init__(self):
+        if self.remoteConnectionId:
+            self.remoteConnectionId = RemoteConnectionIdInfo(**self.remoteConnectionId)
+
+    def camel_to_snake_dict(self):
+        new_dict = super().camel_to_snake_dict()
+        new_dict["mirror_unit_number"] = new_dict.pop("mu_number", None)
+        return new_dict
+
+
+@dataclass
+class VspGadCtgInfoList(BaseDataClass):
+    data: List[VspGadCtgInfo] = None
+
+    def camel_to_snake_dict(self):
+        new_data = (
+            [item.camel_to_snake_dict() for item in self.data] if self.data else []
+        )
+        return new_data
+
+
+@dataclass
+class VspOneGadCtgSpec(SingleBaseClass):
+    consistency_group_ids: Optional[List[int]] = None
+    is_swap_resynced: Optional[bool] = None
+    copy_pace: Optional[int] = None
+    io_preference_mode: Optional[str] = None
+    continue_io_volume: Optional[List[str]] = None
+    comments: Optional[str] = None
+
+    def __post_init__(self):
+        if self.consistency_group_ids is not None:
+            for cg_id in self.consistency_group_ids:
+                if cg_id < 0 or cg_id > 1023:
+                    raise ValueError(
+                        VspOneGadValidationMsg.CONSISTENCY_GROUP_ID_RANGE.value.format(
+                            cg_id
+                        )
+                    )
+        if self.copy_pace is not None:
+            if self.copy_pace < 1 or self.copy_pace > 15:
+                raise ValueError(
+                    VspOneGadValidationMsg.COPY_PACE_RANGE.value.format(self.copy_pace)
+                )
+        else:
+            self.copy_pace = 3
+
+        if self.io_preference_mode is not None:
+            valid_modes = ["KEEP_CURRENT_SETTING", "DISABLED", "PRIMARY_ENABLED"]
+            if self.io_preference_mode.upper() not in valid_modes:
+                raise ValueError(
+                    VspOneGadValidationMsg.IO_PREFERENCE_MODE_INVALID.value.format(
+                        self.io_preference_mode, valid_modes
+                    )
+                )
+            self.io_preference_mode = self.io_preference_mode.upper()
+        else:
+            self.io_preference_mode = "KEEP_CURRENT_SETTING"
+
+        if self.continue_io_volume is not None:
+            if self.continue_io_volume.upper() not in ["PRIMARY", "SECONDARY"]:
+                raise ValueError(
+                    VspOneGadValidationMsg.CONTINUE_IO_VOLUMES_INVALID.value.format(
+                        self.continue_io_volume
+                    )
+                )
+            self.continue_io_volume = self.continue_io_volume.upper()
+
+
+@dataclass
+class VspGadVolumePairInfo(SingleBaseClass):
+    id: Optional[str] = None
+    localVolumeId: Optional[int] = None
+    muNumber: Optional[int] = None
+    localVolumeNickname: Optional[str] = None
+    localVolumeProvisioningType: Optional[str] = None
+    remoteConnectionId: Optional[RemoteConnectionIdInfo] = None
+    remoteVolumeId: Optional[int] = None
+    localVolumeStatus: Optional[str] = None
+    localVolumeProcessingStatus: Optional[str] = None
+    failureFactor: Optional[str] = None
+    localVolumePosition: Optional[str] = None
+    localVolumeIoMode: Optional[str] = None
+    copySpeed: Optional[int] = None
+    ioPreference: Optional[str] = None
+    pairOperationModeForBlockedQuorumDisk: Optional[str] = None
+    dataSynchronizationRate: Optional[int] = None
+    copyTime: Optional[int] = None
+    localVolumeDifferentialDataManagement: Optional[str] = None
+    quorumId: Optional[int] = None
+    consistencyGroupId: Optional[int] = None
+    copyProgressRate: Optional[int] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.__post_init__()
+
+    def __post_init__(self):
+        if self.remoteConnectionId and isinstance(self.remoteConnectionId, dict):
+            self.remoteConnectionId = RemoteConnectionIdInfo(**self.remoteConnectionId)
+
+    def camel_to_snake_dict(self):
+        new_dict = super().camel_to_snake_dict()
+        new_dict["mirror_unit_number"] = new_dict.pop("mu_number", None)
+        return new_dict
+
+
+@dataclass
+class VspGadVolumePairInfoList(BaseDataClass):
+    data: List[VspGadVolumePairInfo] = None
+
+
+@dataclass
+class RemoteVolumeActiveActiveMirroringInfo:
+    ssid: Optional[str] = None
+    port_number: Optional[str] = None
+    absolute_lun: Optional[str] = None
+    storage_type_number: Optional[str] = None
+
+    def to_dict(self):
+        payload = {}
+        if self.ssid is not None:
+            payload["ssid"] = self.ssid
+        if self.port_number is not None:
+            payload["portNumber"] = self.port_number
+        if self.absolute_lun is not None:
+            payload["absoluteLun"] = self.absolute_lun
+        if self.storage_type_number is not None:
+            payload["storageTypeNumber"] = self.storage_type_number
+        return payload
+
+
+@dataclass
+class GadPairConfigInput:
+    primary_volume_id: int = None
+    provisioned_secondary_volume_id: Optional[int] = None
+    mirror_unit_number: int = None
+
+    remote_volume_active_active_mirroring_info: Optional[
+        RemoteVolumeActiveActiveMirroringInfo
+    ] = None
+    already_exists: Optional[bool] = False
+
+    def __post_init__(self):
+        if self.primary_volume_id is not None:
+            self.primary_volume_id = normalize_ldev_id(self.primary_volume_id)
+        if self.provisioned_secondary_volume_id is not None:
+            self.provisioned_secondary_volume_id = normalize_ldev_id(
+                self.provisioned_secondary_volume_id
+            )
+        if self.remote_volume_active_active_mirroring_info and isinstance(
+            self.remote_volume_active_active_mirroring_info, dict
+        ):
+            self.remote_volume_active_active_mirroring_info = (
+                RemoteVolumeActiveActiveMirroringInfo(
+                    **self.remote_volume_active_active_mirroring_info
+                )
+            )
+
+
+VSP_ONE_PRIORITY_MODE_VALUES = ["DISABLE", "PRIMARY_ENABLE"]
+
+
+@dataclass
+class VspGadCtgCreateSpec:
+    consistency_group_id: int = None
+    gad_pairs: List[GadPairConfigInput] = None
+    path_group_id: int = None
+    quorum_id: int = None
+    secondary_servers: Optional[List] = None
+    should_replicate_from_primary_to_secondary: Optional[bool] = True
+    copy_pace: Optional[int] = None
+    io_priority_mode: Optional[str] = None
+    secondary_storage_pool_id: Optional[int] = None
+    secondary_servers: Optional[List] = None
+    comments: Optional[List[str]] = None
+    remote_storage_serial_number: Optional[str] = None
+    remote_storage_model: Optional[str] = None
+    mirror_unit_number: int = None
+
+    def __post_init__(self):
+        if self.consistency_group_id is not None and not (
+            0 <= self.consistency_group_id <= 1023
+        ):
+            raise ValueError(
+                f"consistency_group_id must be in range 0-1023, got {self.consistency_group_id}"
+            )
+        if self.path_group_id is not None and not (0 <= self.path_group_id <= 255):
+            raise ValueError(
+                f"path_group_id must be in range 0-255, got {self.path_group_id}"
+            )
+        if self.quorum_id is not None and not (0 <= self.quorum_id <= 32):
+            raise ValueError(f"quorum_id must be in range 0-32, got {self.quorum_id}")
+        if self.copy_pace is not None:
+            self.copy_pace = normalize_copy_pace(self.copy_pace)
+        if self.io_priority_mode is not None:
+            if self.io_priority_mode.upper() not in VSP_ONE_PRIORITY_MODE_VALUES:
+                raise ValueError(
+                    f"io_priority_mode must be one of {VSP_ONE_PRIORITY_MODE_VALUES}, got {self.io_priority_mode}"
+                )
+            self.io_priority_mode = self.io_priority_mode.upper()
+
+        if self.gad_pairs:
+            self.gad_pairs = [
+                GadPairConfigInput(
+                    primary_volume_id=p.get("primary_volume_id"),
+                    provisioned_secondary_volume_id=p.get(
+                        "provisioned_secondary_volume_id"
+                    ),
+                    mirror_unit_number=self.mirror_unit_number,  # Use mirror_unit_number from the main spec
+                )
+                for p in self.gad_pairs
+            ]
+
+    def create_payload(self):
+        payload = {}
+        if self.consistency_group_id is not None:
+            payload["consistencyGroupId"] = self.consistency_group_id
+        if self.gad_pairs is not None:
+            pair_list = []
+            for pair in self.gad_pairs:
+                if pair.already_exists is False:
+                    pair_entry = {}
+                    if pair.primary_volume_id is not None:
+                        pair_entry["localVolumeId"] = pair.primary_volume_id
+                    pair_entry["muNumber"] = self.mirror_unit_number
+                    if pair.provisioned_secondary_volume_id is not None:
+                        pair_entry["remoteVolumeId"] = (
+                            pair.provisioned_secondary_volume_id
+                        )
+                    if pair.remote_volume_active_active_mirroring_info is not None:
+                        pair_entry["remoteVolumeActiveActiveMirroringInfo"] = (
+                            pair.remote_volume_active_active_mirroring_info.to_dict()
+                        )
+                    pair_list.append(pair_entry)
+            payload["createActiveActiveMirroringPairParamList"] = pair_list
+        if self.path_group_id is not None:
+            payload["remoteConnectionId"] = {
+                "pathGroupId": self.path_group_id,
+                "storageModel": self.remote_storage_model,
+                "storageSerialNumber": self.remote_storage_serial_number,
+            }
+        if self.quorum_id is not None:
+            payload["quorumId"] = self.quorum_id
+        if self.should_replicate_from_primary_to_secondary is not None:
+            payload["doCopy"] = self.should_replicate_from_primary_to_secondary
+        if self.copy_pace is not None:
+            payload["copySpeed"] = self.copy_pace
+        if self.io_priority_mode is not None:
+            payload["ioPreference"] = self.io_priority_mode
+
+        return (
+            payload
+            if len(payload["createActiveActiveMirroringPairParamList"]) > 0
+            else {}
+        )

@@ -296,15 +296,14 @@ class VSPHtiSnapshotReconciler:
             StateValue.RESTORE: self.provisioner.restore_snapshots_by_gid,
             StateValue.CLONE: self.provisioner.clone_snapshots_by_gid,
         }
-        sng = self.provisioner.get_snapshot_grp_by_name(spec.snapshot_group_name)
-        if not sng:
+        if spec.snapshot_group_name is None:
+            return VSPSnapShotValidateMsg.SNAPSHOT_GROUP_NAME_MISSING.value
+        grp_snapshots = self.provisioner.get_snapshots_by_grp_name(spec.snapshot_group_name)
+
+        if not grp_snapshots:
             return VSPSnapShotValidateMsg.SNAPSHOT_GROUP_NOT_FOUND.value
-        grp_snapshots = self.provisioner.get_snapshots_by_grp_name(sng.snapshotGroupId)
 
-        # if len(snapshots.snapshots) == 0:
-        #     return VSPSnapShotValidateMsg.NO_SNAPSHOTS_FOUND.value
-
-        spec.snapshot_group_id = sng.snapshotGroupId
+        spec.snapshot_group_id = grp_snapshots.snapshotGroupId
         first_snapshot = grp_snapshots.snapshots.data[0]
         grp_functions[state](spec, first_snapshot)
         return (

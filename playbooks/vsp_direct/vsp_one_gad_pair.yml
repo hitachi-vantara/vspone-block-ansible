@@ -1,0 +1,214 @@
+---
+# ###################################################################
+# Example : VSP One GAD Pair Playbook
+# ###################################################################
+- name: VSP One GAD Pair Management
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+    # Common connection info for all tasks
+    connection_info:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+
+    secondary_connection_info:
+      address: "{{ secondary_storage_address }}"
+      username: "{{ vault_secondary_storage_username }}"
+      password: "{{ vault_secondary_storage_secret }}"
+
+  tasks:
+    ####################################################################
+    # Task Name : Create GAD pair using required parameters
+    ####################################################################
+    - name: Create GAD pair using required parameters
+      hitachivantara.vspone_block.vsp.hv_vsp_one_gad:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: present
+        spec:
+          consistency_group_id: 6
+          secondary_storage_pool_id: 2
+          gad_pairs:
+            - primary_volume_id: 385
+            - primary_volume_id: 386
+          secondary_servers:
+            - 4
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Create GAD pair using all parameters
+    ####################################################################
+    - name: Create GAD pair using all parameters
+      hitachivantara.vspone_block.vsp.hv_vsp_one_gad:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: present
+        spec:
+          consistency_group_id: 6
+          secondary_storage_pool_id: 2
+          gad_pairs:
+            - primary_volume_id: 385
+            - primary_volume_id: 386
+            - primary_volume_id: 387
+          secondary_servers:
+            - 4
+          path_group_id: 0
+          quorum_id: 22
+          should_replicate_from_primary_to_secondary: true
+          copy_pace: 12
+          io_priority_mode: DISABLE
+          mirror_unit_number: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Create GAD pair with provisioned secondary volumes
+    ####################################################################
+    - name: Create GAD pair with provisioned secondary volumes
+      hitachivantara.vspone_block.vsp.hv_vsp_one_gad:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        state: present
+        spec:
+          consistency_group_id: 6
+          secondary_storage_pool_id: 2
+          gad_pairs:
+            - primary_volume_id: 385
+              provisioned_secondary_volume_id: 128
+            - primary_volume_id: 386
+              provisioned_secondary_volume_id: 129
+          secondary_servers:
+            - 4
+          path_group_id: 0
+          quorum_id: 22
+          should_replicate_from_primary_to_secondary: true
+          copy_pace: 12
+          io_priority_mode: DISABLE
+          mirror_unit_number: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Standard Split (Defaults to Primary)
+    ####################################################################
+    - name: Split GAD pair (Standard)
+      hitachivantara.vspone_block.vsp.hv_vsp_one_gad:
+        connection_info: "{{ connection_info }}"
+        state: splitted
+        spec:
+          primary_volume_mirrors:
+            - primary_volume_id: 100
+              mirror_unit_number: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Split with I/O continuing on the Secondary volume
+    ####################################################################
+    - name: Split GAD pair with Secondary I/O
+      hitachivantara.vspone_block.vsp.hv_vsp_one_gad:
+        connection_info: "{{ secondary_connection_info }}"
+        state: splitted
+        spec:
+          primary_volume_mirrors:
+            - primary_volume_id: 200 # secondary volume
+              mirror_unit_number: 0
+          continue_io_volume: "SECONDARY"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Standard Resync with high copy speed
+    ####################################################################
+    - name: Standard GAD Resync
+      hitachivantara.vspone_block.vsp.hv_vsp_one_gad:
+        connection_info: "{{ connection_info }}"
+        state: resynced
+        spec:
+          primary_volume_mirrors:
+            - primary_volume_id: 100
+              mirror_unit_number: 1
+          copy_pace: 15  # Maximum speed
+          io_preference: "KEEP_CURRENT_SETTING"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Normal Delete (Pair must be in a specific state)
+    ####################################################################
+    - name: Delete GAD pair normally
+      hitachivantara.vspone_block.vsp.hv_vsp_one_gad:
+        connection_info: "{{ connection_info }}"
+        state: absent
+        spec:
+          primary_volume_mirrors:
+            - primary_volume_id: 500
+              mirror_unit_number: 1
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Force Delete with Host Access Allowed
+    # Use this if the secondary storage is unavailable.
+    ####################################################################
+    - name: Force Delete GAD pair with host access
+      hitachivantara.vspone_block.vsp.hv_vsp_one_gad:
+        connection_info: "{{ connection_info }}"
+        state: absent
+        spec:
+          primary_volume_mirrors:
+            - primary_volume_id: 600
+              mirror_unit_number: 0
+          delete_mode: "FORCE"
+          allow_volume_access_after_force_delete: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Force Delete and Block Host Access (Deny)
+    ####################################################################
+    - name: Force Delete GAD pair and deny access
+      hitachivantara.vspone_block.vsp.hv_vsp_one_gad:
+        connection_info: "{{ connection_info }}"
+        state: absent
+        spec:
+          primary_volume_mirrors:
+            - primary_volume_id: 700
+              mirror_unit_number: 0
+          delete_mode: "FORCE"
+          allow_volume_access_after_force_delete: false
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result

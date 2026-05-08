@@ -7,3 +7,5 @@ skip_list:
   - yaml[line-length]
   - args[module]
   - yaml[indentation]
+exclude_paths:
+  - internal/

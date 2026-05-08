@@ -38,10 +38,12 @@ options:
           Required for the Get remote iSCSI port by ID task.
         type: str
         required: false
-      local_port:
+      local_port_id:
         description: Port number of the local storage system in CLx-y format.
+          local_port is deprecated. Use C(local_port_id) instead.
         type: str
         required: false
+        aliases: ['local_port']
       remote_serial:
         description: Serial number of the remote storage system.
         type: str
@@ -53,10 +55,12 @@ options:
         choices:
           - R9
           - M8
-      remote_port:
+      remote_port_id:
         description: Port number of the remote storage system in CLx-y format.
-        type: int
+          remote_port is deprecated. Use C(remote_port_id) instead.
         required: false
+        type: str
+        aliases: ['remote_port']
 """
 
 EXAMPLES = """

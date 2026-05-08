@@ -140,3 +140,21 @@ class QuorumDiskSpec:
 @dataclass
 class QuorumDiskFactSpec:
     id: Optional[int] = None
+
+
+@dataclass
+class VspOneQuorumDiskInfo(SingleBaseClass):
+    quorumId: int
+    externalVolumeId: int
+    externalVolumeNickname: str
+    externalVolumeStatus: str
+    pairedStorageModel: str
+    pairedStorageSerial: str
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+@dataclass
+class VspOneQuorumDiskInfoList(BaseDataClass):
+    data: List[VspOneQuorumDiskInfo] = None

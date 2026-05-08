@@ -95,7 +95,7 @@ class VSPRemoteStorageSystemsInfoPfrest:
 
 @dataclass
 class VSPRemoteStorageSystemsInfoPfrestList(BaseDataClass):
-    data: List[VSPRemoteStorageSystemsInfoPfrest]
+    data: List[VSPRemoteStorageSystemsInfoPfrest] = None
 
 
 @dataclass

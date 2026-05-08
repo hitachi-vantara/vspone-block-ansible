@@ -14,6 +14,7 @@ try:
         SalamanderVolumeServerConnectionInfo,
         SalamanderVolumeServerInfo,
         SimpleAPIVolumeFactsSpec,
+        CreateVolumeSpecwithDeatilsSetting,
     )
     from ..common.hv_log import Log
 
@@ -215,6 +216,12 @@ class VspSimpleApiGateway:
         return self.rest_api.pegasus_delete(end_point, None)
 
     @log_entry_exit
+    def salamander_delete_volumes(self, volume_ids):
+        volume_ids_str = ",".join(str(id) for id in volume_ids)
+        end_point = self.end_points.SALAMENDER_DELETE_VOLUMES.format(volume_ids_str)
+        return self.rest_api.pegasus_delete_multi_job(end_point, None)
+
+    @log_entry_exit
     def salamander_update_volume(
         self,
         volume_id,
@@ -403,3 +410,43 @@ class VspSimpleApiGateway:
         pegasus_model = any(sub in storage_info.model for sub in PEGASUS_MODELS)
         logger.writeDebug(f"Storage Model: {storage_info.model}")
         return pegasus_model
+
+    @log_entry_exit
+    def get_volume_by_id_with_mirroring_n_virtualization(
+        self, volume_id
+    ) -> SalamanderSimpleVolumeInfo:
+
+        end_point = self.end_points.GET_LDEVS_ONE_BY_DETAILS.format(volume_id)
+        vol_data = None
+        headers = {}
+        headers["X-Agent-Type"] = "SEA"
+        try:
+            vol_data = self.rest_api.pegasus_get(end_point, headers_input=headers)
+        except Exception:
+            return None
+
+        volume_info = SalamanderSimpleVolumeInfo(**vol_data)
+        return volume_info
+
+    @log_entry_exit
+    def create_volume_with_details(self, spec: CreateVolumeSpecwithDeatilsSetting):
+        payload = spec.create_payload()
+        end_point = self.end_points.CREATE_BY_DETAILS_SETTINGS
+        headers = {}
+        headers["X-Agent-Type"] = "SEA"
+        volume_ids, failed_jobs = self.rest_api.pegasus_post_multi_jobs(
+            end_point, payload, headers_input=headers
+        )
+        logger.writeDebug(f"Created volume IDs with details: {volume_ids}")
+        if failed_jobs:
+            try:
+                for id in volume_ids:
+                    self.salamander_delete_volume(id)
+            except Exception as e:
+                logger.writeError(
+                    f"Failed to rollback created volumes after failure in creating some volumes with details: {e}"
+                )
+            raise ValueError(
+                f"Failed to create some volumes with details: {failed_jobs}"
+            )
+        return volume_ids

@@ -1,4 +1,4 @@
-# Hitachi Virtual Storage Platform One Block Storage Modules for Red Hat® Ansible® 4.7.0
+# Hitachi Virtual Storage Platform One Block Storage Modules for Red Hat® Ansible® 4.8.0
 
 The Hitachi Virtual Storage Platform One Block Storage Modules provide a comprehensive set of Ansible modules for managing VSP block storage systems (VSP One Block, VSP 5000 series, VSP E series, VSP F series, and VSP G series) and VSP One SDS Block and Cloud systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
@@ -9,17 +9,17 @@ The Hitachi Virtual Storage Platform One Block Storage Modules provide a compreh
 | VSP One Block 24 | A3-05-21-40/00 SVOS 10.5.2 |
 | VSP One Block 26 | A3-05-21-40/00 SVOS 10.5.2 |
 | VSP One Block 28 | A3-05-21-40/00 SVOS 10.5.2 |
-| VSP One Block High End | A0-05-21-00/05 SVOS 10.5.1 |
-| VSP 5100, 5500, 5100H, 5500H (SAS) | 90-09-30-00/00 SVOS 9.8.7 |
-| VSP 5200, 5600, 5200H, 5600H (SAS) | 90-09-30-00/00 SVOS 9.8.7 |
-| VSP 5100, 5500, 5100H, 5500H (NVMe) | 90-09-30-00/00 SVOS 9.8.7 |
-| VSP 5200, 5600, 5200H, 5600H (NVMe) | 90-09-30-00/00 SVOS 9.8.7 |
-| VSP E590, VSP E790 | 93-07-29-40/00 SVOS 9.8.7 |
-| VSP E990 | 93-07-29-60/00 SVOS 9.8.7 |
-| VSP E1090 | 93-07-29-80/00 SVOS 9.8.7 |
-| VSP F350, VSP F370, VSP F700, VSP F900 | 88-08-14-x0/00 SVOS 9.6.0 |
-| VSP G370, VSP G700, VSP G900 | 88-08-14-x0/00 SVOS 9.6.0 |
-| VSP G350 | 88-08-15-20/01 |
+| VSP One Block High End | A0-05-41-00_01 SVOS 10.5.3 |
+| VSP 5100, 5500, 5100H, 5500H (SAS) | 90-09-31-00/00 SVOS 9.8.7 |
+| VSP 5200, 5600, 5200H, 5600H (SAS) | 90-09-31-00/00 SVOS 9.8.7 |
+| VSP 5100, 5500, 5100H, 5500H (NVMe) | 90-09-31-00/00 SVOS 9.8.7 |
+| VSP 5200, 5600, 5200H, 5600H (NVMe) | 90-09-31-00/00 SVOS 9.8.7 |
+| VSP E590, VSP E790 | 93-07-30-x0/00 SVOS 9.8.7 |
+| VSP E990 | 93-07-30-x0/00 SVOS 9.8.7 |
+| VSP E1090 | 93-07-30-x0/00 SVOS 9.8.7 |
+| VSP F350, VSP F370, VSP F700, VSP F900 | 88-08-20-x0/00 SVOS 9.6.0 |
+| VSP G370, VSP G700, VSP G900 | 88-08-20-x0/00 SVOS 9.6.0 |
+| VSP G350 | 88-08-20-x0/00 SVOS 9.6.0 |
 
 The listed microcode versions are the minimum versions.
 
@@ -84,10 +84,10 @@ To upgrade the collection to the latest available version, run the following com
 ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 ```
 
-If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.7.0:
+If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.8.0:
 
 ```bash
-ansible-galaxy collection install hitachivantara.vspone_block:==4.7.0
+ansible-galaxy collection install hitachivantara.vspone_block:==4.8.0
 ```
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
@@ -149,7 +149,7 @@ For additional support, please use one of the following channels:
 
 ### Release Notes
 
-Version **4.7.0** highlights:
+Version **4.8.0** highlights:
 
 - General performance enhancements and bug fixes
 

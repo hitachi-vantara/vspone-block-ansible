@@ -1386,6 +1386,13 @@ class SDSBPortArguments:
                 "required": False,
                 "type": "str",
                 "aliases": ["nick_name"],
+                "deprecated_aliases": [
+                    {
+                        "name": "nick_name",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ],
             },
             "protocol": {
                 "required": False,
@@ -2174,7 +2181,18 @@ class SDSBUserArguments:
     @classmethod
     def users(cls):
         spec_options = {
-            "id": {"required": False, "type": "str", "aliases": ["user_id"]},
+            "id": {
+                "required": False,
+                "type": "str",
+                "aliases": ["user_id"],
+                "deprecated_aliases": [
+                    {
+                        "name": "user_id",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
+            },
             # "user_id": {
             #     "required": False,
             #     "type": "str",
@@ -2600,9 +2618,17 @@ class SDSBRemoteIscsiPortArguments:
                 "required": False,
                 "type": "str",
             },
-            "local_port": {
+            "local_port_id": {
                 "required": False,
                 "type": "str",
+                "aliases": ["local_port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "local_port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "remote_serial": {
                 "required": False,
@@ -2613,14 +2639,29 @@ class SDSBRemoteIscsiPortArguments:
                 "type": "str",
                 "choices": ["R9", "M8"],
             },
-            "remote_port": {
+            "remote_port_id": {
                 "required": False,
                 "type": "str",
+                "aliases": ["remote_port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "remote_port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "remote_storage_port_ip_address": {
                 "required": False,
                 "type": "str",
                 "aliases": ["remote_ip_address"],
+                "deprecated_aliases": [
+                    {
+                        "name": "remote_ip_address",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "remote_tcp_port": {
                 "required": False,
@@ -2637,9 +2678,17 @@ class SDSBRemoteIscsiPortArguments:
                 "required": False,
                 "type": "str",
             },
-            "local_port": {
+            "local_port_id": {
                 "required": False,
                 "type": "str",
+                "aliases": ["local_port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "local_port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "remote_serial": {
                 "required": False,
@@ -2650,9 +2699,17 @@ class SDSBRemoteIscsiPortArguments:
                 "type": "str",
                 "choices": ["R9", "M8"],
             },
-            "remote_port": {
+            "remote_port_id": {
                 "required": False,
-                "type": "int",
+                "type": "str",
+                "aliases": ["remote_port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "remote_port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
         }
         cls.common_arguments["spec"]["options"] = spec_options
@@ -2685,9 +2742,17 @@ class SDSBRemotePathGroupArguments:
                 "required": False,
                 "type": "str",
             },
-            "local_port": {
+            "local_port_id": {
                 "required": False,
                 "type": "str",
+                "aliases": ["local_port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "local_port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "remote_serial": {
                 "required": False,
@@ -2698,9 +2763,17 @@ class SDSBRemotePathGroupArguments:
                 "type": "str",
                 "choices": ["R9", "M8"],
             },
-            "remote_port": {
+            "remote_port_id": {
                 "required": False,
                 "type": "str",
+                "aliases": ["remote_port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "remote_port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "path_group_id": {
                 "required": False,

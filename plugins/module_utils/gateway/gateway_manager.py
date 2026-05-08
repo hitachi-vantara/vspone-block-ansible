@@ -754,18 +754,34 @@ class VSPConnectionManager(ConnectionManager):
         job_id = response[API.JOB_ID]
         return self._process_job(job_id)
 
-    def pegasus_get(self, endpoint):
-        return self._make_vsp_request("GET", endpoint)
+    def pegasus_get(self, endpoint, headers_input=None, token=None):
+        return self._make_vsp_request(
+            "GET", endpoint, headers_input=headers_input, token=token
+        )
 
-    def pegasus_post(self, endpoint, data):
-        post_response = self._make_vsp_request("POST", endpoint, data)
-        if isinstance(post_response, list):
-            post_response = post_response[0]
-        job_id = post_response.get("statusResource").split("/")[-1]
-        return self._process_pegasus_job(job_id)
+    def pegasus_post(self, endpoint, data, headers_input=None, token=None):
+        post_response = self._make_vsp_request(
+            "POST", endpoint, data, headers_input=headers_input, token=token
+        )
+        # if isinstance(post_response, list):
+        #     post_response = post_response[0]
+        # job_id = post_response.get("statusResource").split("/")[-1]
+        # return self._process_pegasus_job(job_id)
+        return self._handle_pegasus_response(post_response)
 
-    def pegasus_post_multi_resource(self, endpoint, data):
-        post_response = self._make_vsp_request("POST", endpoint, data)
+    def pegasus_post_without_job(self, endpoint, data, headers_input=None, token=None):
+        post_response = self._make_vsp_request(
+            "POST", endpoint, data, headers_input=headers_input, token=token
+        )
+
+        return post_response
+
+    def pegasus_post_multi_resource(
+        self, endpoint, data, headers_input=None, token=None
+    ):
+        post_response = self._make_vsp_request(
+            "POST", endpoint, data, headers_input=headers_input, token=token
+        )
         affected_resources = []
         if isinstance(post_response, list):
             for response in post_response:
@@ -777,8 +793,10 @@ class VSPConnectionManager(ConnectionManager):
             job_id = response.get("statusResource").split("/")[-1]
             return self._process_pegasus_job(job_id)
 
-    def pegasus_post_multi_jobs(self, endpoint, data):
-        post_response = self._make_vsp_request("POST", endpoint, data)
+    def pegasus_post_multi_jobs(self, endpoint, data, headers_input=None, token=None):
+        post_response = self._make_vsp_request(
+            "POST", endpoint, data, headers_input=headers_input, token=token
+        )
         affected_resources = []
         error_responses = []
         if isinstance(post_response, list):
@@ -793,28 +811,110 @@ class VSPConnectionManager(ConnectionManager):
 
             return affected_resources, error_responses
         else:
-            job_id = response.get("statusResource").split("/")[-1]
+            job_id = post_response.get("statusResource").split("/")[-1]
             return self._process_pegasus_job(job_id), error_responses
 
-    def pegasus_patch(self, endpoint, data):
-        patch_response = self._make_vsp_request("PATCH", endpoint, data)
+    def pegasus_patch(self, endpoint, data, headers_input=None, token=None):
+        patch_response = self._make_vsp_request(
+            "PATCH", endpoint, data, headers_input=headers_input, token=token
+        )
 
         if patch_response.get("statusResource") is None:
             return patch_response
         job_id = patch_response.get("statusResource").split("/")[-1]
         return self._process_pegasus_job(job_id)
 
-    def pegasus_delete(self, endpoint, data):
-        delete_response = self._make_vsp_request("DELETE", endpoint, data)
+    def pegasus_delete(self, endpoint, data, headers_input=None, token=None):
+        delete_response = self._make_vsp_request(
+            "DELETE", endpoint, data, headers_input=headers_input, token=token
+        )
 
         job_id = delete_response.get("statusResource").split("/")[-1]
         return self._process_pegasus_job(job_id)
+
+    def pegasus_delete_multi_job(self, endpoint, data, headers_input=None, token=None):
+        delete_response = self._make_vsp_request(
+            "DELETE", endpoint, data, headers_input=headers_input, token=token
+        )
+
+        affected_resources = []
+        error_responses = []
+        if isinstance(delete_response, list):
+            for response in delete_response:
+                try:
+                    job_id = response.get("statusResource").split("/")[-1]
+                    job_res = self._process_pegasus_job(job_id)
+                    affected_resources.append(job_res.split("/")[-1])
+                except Exception as e:
+                    logger.writeError(f"Failed to process job: {e}")
+                    error_responses.append(str(e))
+
+            return affected_resources, error_responses
+        else:
+            job_id = delete_response.get("statusResource").split("/")[-1]
+            return self._process_pegasus_job(job_id), error_responses
 
     def pegasus_post_header(self, endpoint, data, headers_input):
         post_response = self._make_vsp_request("POST", endpoint, data, headers_input)
 
         job_id = post_response.get("statusResource").split("/")[-1]
         return self._process_pegasus_job(job_id)
+
+    def _handle_pegasus_response(self, response):
+        """
+        Routes the response to the job processor.
+        Handles lists, nested statusResource lists, and single job strings.
+        """
+        if not response:
+            return None
+
+        # 1. Handle if the entire response is a list
+        if isinstance(response, list):
+            # This handles cases where the API returns [ {"statusResource": "..."}, {"statusResource": "..."} ]
+            logger.writeDebug(f"Handling list response of size {len(response)}")
+            return [self._handle_pegasus_response(item) for item in response]
+
+        # 2. Check for Job-based (Async)
+        # We check both 'statusResource' (string or list) and 'statusResources' (list)
+        job_links = []
+
+        # Some endpoints return a list in statusResource
+        s_res = response.get("statusResource")
+        if isinstance(s_res, list):
+            job_links.extend(s_res)
+        elif isinstance(s_res, str):
+            job_links.append(s_res)
+
+        # Others use the plural statusResources
+        s_res_plural = response.get("statusResources")
+        if isinstance(s_res_plural, list):
+            job_links.extend(s_res_plural)
+
+        # Process all found job links
+        if job_links:
+            results = []
+            for link in job_links:
+                job_id = link.split("/")[-1]
+                logger.writeDebug(f"Processing job: {job_id}")
+                results.append(self._process_pegasus_job(job_id))
+
+            # Return a single string if only one job, else the list
+            return results[0] if len(results) == 1 else results
+
+        # 3. Check for Simple API (Sync) results in 'data'
+        if "data" in response:
+            data_list = response.get("data", [])
+            results = []
+            for result in data_list:
+                if result.get("status") != "normal":
+                    error_info = result.get("error", {})
+                    msg = error_info.get("message", "Operation failed")
+                    raise HvJobError(f"Sync error for {result.get('id')}: {msg}")
+                results.append(result.get("id"))
+            return results[0] if len(results) == 1 else results
+
+        # 4. Fallback for immediate responses
+        return response
 
     def _process_pegasus_job(self, job_id):
         response = None
@@ -828,7 +928,16 @@ class VSPConnectionManager(ConnectionManager):
             if job_progress == API.PEGASUS_COMPLETED:
                 if job_status == API.PEGASUS_NORMAL:
                     # For PATCH port-auth-settings, affected resource is empty
-                    response = job_response.get(API.AFFECTED_RESOURCES)[0]
+                    # response = job_response.get(API.AFFECTED_RESOURCES)[0]
+                    affected_resources = job_response.get(API.AFFECTED_RESOURCES, [])
+
+                    if affected_resources and len(affected_resources) > 0:
+                        # Success case: Get the first affected resource URL
+                        response = affected_resources[0]
+                    else:
+                        # Fallback: Some tasks (like port settings) don't return an affected resource
+                        logger.writeDebug("Job completed normally but affectedResources is empty.")
+                        return job_id
                 else:
                     raise HvJobError(job_response.get(API.ERROR_MESSAGE))
             else:
@@ -1094,4 +1203,4 @@ class VSPConnectionManager(ConnectionManager):
 # This class is added to use Administrator API for Storage Management
 class AdministratorConnectionManager(VSPConnectionManager):
     def form_base_url(self):
-        self.base_url = "https://{self.address}/ConfigurationManager/simple"
+        return f"https://{self.address}/ConfigurationManager/simple"

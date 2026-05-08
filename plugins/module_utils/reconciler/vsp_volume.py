@@ -420,6 +420,7 @@ class VSPVolumeReconciler:
         created_volumes = []
         spec.comments = []
         ldev_ids = self.provisioner.get_free_ldevs_from_meta(
+            count=spec.number_of_ldevs,
             start_ldev=spec.start_ldev_id,
             end_ldev=spec.end_ldev_id,
             resource_grp_id=spec.resource_group_id,

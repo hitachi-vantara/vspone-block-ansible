@@ -70,6 +70,7 @@ options:
         required: false
       port_mode:
         description: Specify the operating mode of the port. The specifiable values are 'FC-NVMe' or 'FCP-SCSI'.
+          For VSP One B85, you cannot specify 'FC-NVMe' for the port mode.
           This attribute cannot be specified at the same time as any other attribute.
           Required for the Change port mode setting of the storage port by port ID task.
         type: str

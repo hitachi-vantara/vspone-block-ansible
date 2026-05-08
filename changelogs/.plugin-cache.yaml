@@ -1,12 +1,10 @@
-objects:
-  role: {}
+objects: {}
 plugins:
   become: {}
   cache: {}
   callback: {}
   cliconf: {}
   connection: {}
-  filter: {}
   httpapi: {}
   inventory: {}
   lookup: {}
@@ -918,6 +916,28 @@ plugins:
       name: hv_vclone_parent_volume_facts
       namespace: vsp
       version_added: 4.6.0
+    hv_vsp_one_gad:
+      description: Manages GAD pairs on VSP One block storage systems.
+      name: hv_vsp_one_gad
+      namespace: vsp
+      version_added: 4.8.0
+    hv_vsp_one_gad_consistency_group:
+      description: Manages GAD pairs in a consistency group on VSP One block storage
+        systems.
+      name: hv_vsp_one_gad_consistency_group
+      namespace: vsp
+      version_added: 4.8.0
+    hv_vsp_one_gad_consistency_group_facts:
+      description: Retrieves consistency group of GAD pairs from VSP One storage systems.
+      name: hv_vsp_one_gad_consistency_group_facts
+      namespace: vsp
+      version_added: 4.8.0
+    hv_vsp_one_gad_facts:
+      description: Retrieves GAD (Global-Active Device) information from VSP One storage
+        systems.
+      name: hv_vsp_one_gad_facts
+      namespace: vsp
+      version_added: 4.8.0
     hv_vsp_one_port:
       description: Manages ports on VSP E series, VSP One Block 20 series, and VSP
         One Block 80 series storage systems.
@@ -987,6 +1007,5 @@ plugins:
   netconf: {}
   shell: {}
   strategy: {}
-  test: {}
   vars: {}
-version: 4.7.0
+version: 4.8.0

@@ -656,13 +656,26 @@ class VSPHurReconciler:
 
     @log_entry_exit
     def create_hur_batch(self, spec):
+        # get free ldev ids
+        if spec.should_match_volume_ids is not None and spec.should_match_volume_ids:
+            primary_vol_prov = VSPVolumeProvisioner(self.connection_info)
+            matching_free_vols = primary_vol_prov.get_matching_free_ldevs(
+                spec.number_of_pairs,
+                spec.begin_primary_volume_id,
+                spec.end_primary_volume_id,
+                spec.begin_secondary_volume_id,
+                spec.end_secondary_volume_id,
+                spec.secondary_connection_info,
+            )
+            logger.writeDebug("RC:create_hur_batch:matching_free_vols={}", matching_free_vols)
+            primary_free_vols = matching_free_vols
+            secondary_free_vols = matching_free_vols
+        else:
+            primary_free_vols = self.get_free_ldevs_for_storage(spec, is_primary=True)
+            logger.writeDebug("RC:create_hur_batch:primary_free_vols={}", primary_free_vols)
+            secondary_free_vols = self.get_free_ldevs_for_storage(spec, is_primary=False)
+            logger.writeDebug("RC:create_hur_batch:secondary_free_vols={}", secondary_free_vols)
 
-        primary_free_vols = self.get_free_ldevs_for_storage(spec, is_primary=True)
-        logger.writeDebug("RC:create_hur_batch:primary_free_vols={}", primary_free_vols)
-        secondary_free_vols = self.get_free_ldevs_for_storage(spec, is_primary=False)
-        logger.writeDebug(
-            "RC:create_hur_batch:secondary_free_vols={}", secondary_free_vols
-        )
         if spec.primary_journal_id is None:
             primary_journal = self.get_free_journal_id(spec, is_primary=True)
             spec.primary_journal_id = primary_journal
@@ -733,6 +746,8 @@ class VSPHurReconciler:
             raise ValueError(
                 VspRemoteReplicationMsg.HOST_GROUPS_OR_IST_OR_NVME_MISSING.value
             )
+
+        # Provision Primary Volumes
         primary_vol_rec = VSPVolumeReconciler(
             self.connection_info, self.storage_serial_number
         )
@@ -748,6 +763,8 @@ class VSPHurReconciler:
             raise ValueError(
                 VspRemoteReplicationMsg.FAILED_TO_CREATE_LDEVS.value.format("primary")
             )
+
+        # Provision Secondary Volumes
         secondary_vol_rec = VSPVolumeReconciler(
             self.secondary_connection_info, self.storage_serial_number
         )
@@ -765,6 +782,23 @@ class VSPHurReconciler:
             raise ValueError(
                 VspRemoteReplicationMsg.FAILED_TO_CREATE_LDEVS.value.format("secondary")
             )
+
+        if spec.should_match_volume_ids is not None and spec.should_match_volume_ids:
+            # --- Strict ID Validation and Sorting ---
+            # Sort both to ensure a consistent baseline for comparison
+            primary_ldev_ids.sort()
+            secondary_ldev_ids.sort()
+            # Strict Equality Check (Checks length, values, and order)
+            if primary_ldev_ids != secondary_ldev_ids:
+                err_msg = (
+                    f"LDEV ID mismatch detected! HUR requires identical IDs on both sides. "
+                    f"Primary created: {primary_ldev_ids}, "
+                    f"Secondary created: {secondary_ldev_ids}"
+                )
+                logger.writeError(f"RC: {err_msg}")
+                raise ValueError(err_msg)
+            logger.writeInfo("RC: Validated identical LDEV IDs on Primary and Secondary.")
+
         if primary_hostgroups and secondary_hostgroups:
             self.add_ldevs_to_hostgroups(
                 spec, primary_hostgroups, primary_ldev_ids, is_primary=True
@@ -837,6 +871,8 @@ class VSPHurReconciler:
         try:
             # Run the first pair synchronously (wait for completion)
             if primary_ldev_ids and secondary_ldev_ids:
+                primary_ldev_ids.sort()
+                secondary_ldev_ids.sort()
                 create_hur_pair(primary_ldev_ids[0], secondary_ldev_ids[0])
                 # Remove the first ids since they are already processed
                 if len(hur_response) == 0:

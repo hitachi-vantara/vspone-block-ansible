@@ -20,14 +20,45 @@
       password: "{{ vault_secondary_storage_secret }}"
 
   tasks:
-    # ########################################################################################
+    ##########################################################################################
     # Task Name : Create HUR pair in bulk mode with hostgroups and minimum required parameters
-    # #######################################################################################
+    ##########################################################################################
     - name: Create HUR pairs in bulk mode with hostgroups and minimum required parameters
       hitachivantara.vspone_block.vsp.hv_hur_bulk:
         connection_info: "{{ connection_info }}"
         secondary_connection_info: "{{ secondary_connection_info }}"
         spec:
+          number_of_pairs: 2
+          copy_group_name: "rd_hur_cg_12"
+          copy_pair_base_name: "rd_hur_cp_12"
+          primary_pool_id: 0
+          secondary_pool_id: 0
+          volume_size: "10GB"
+          primary_hostgroups:
+            - name: "hg_rd_hur_bulk_01"
+              port_id: "CL2-A"
+            - name: "hg_rd_hur_bulk_02"
+              port_id: "CL2-B"
+          secondary_hostgroups:
+            - name: "hg_rd_hur_bulk_01"
+              port_id: "CL2-A"
+            - name: "hg_rd_hur_bulk_02"
+              port_id: "CL2-B"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    #########################################################################################
+    # Task Name : Create HUR pair in bulk mode with matching volume IDs
+    ########################################################################################
+    - name: Create HUR pairs in bulk mode with hostgroups and minimum required parameters
+      hitachivantara.vspone_block.vsp.hv_hur_bulk:
+        connection_info: "{{ connection_info }}"
+        secondary_connection_info: "{{ secondary_connection_info }}"
+        spec:
+          should_match_volume_ids: true
           number_of_pairs: 2
           copy_group_name: "rd_hur_cg_12"
           copy_pair_base_name: "rd_hur_cp_12"
@@ -87,9 +118,9 @@
       ansible.builtin.debug:
         var: result
 
-    # ########################################################################################
+    #########################################################################################
     # Task Name : Create HUR pair in bulk mode with iSCSI targets
-    # #######################################################################################
+    ########################################################################################
     - name: Create HUR pairs in bulk mode with iSCSI targets
       hitachivantara.vspone_block.vsp.hv_hur_bulk:
         connection_info: "{{ connection_info }}"
@@ -113,9 +144,9 @@
       ansible.builtin.debug:
         var: result
 
-    # ########################################################################################
+    ########################################################################################
     # Task Name : Create HUR pair in bulk mode with NVMe subsystems
-    # #######################################################################################
+    ########################################################################################
     - name: Create HUR pairs in bulk mode with NVMe subsystems
       hitachivantara.vspone_block.vsp.hv_hur_bulk:
         connection_info: "{{ connection_info }}"

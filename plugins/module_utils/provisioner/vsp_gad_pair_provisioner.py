@@ -71,6 +71,7 @@ RETRYABLE_ERROR_MESSAGES = [
     "Another application is in progress",
     "(message = Another application is in progress.)",
     "30000E-2-2E10-8000",  # Common error code for concurrent operations
+    "Another LDEV is already mapped",  # LUN auto-assignment conflict
 ]
 
 
@@ -1346,7 +1347,12 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
                     logger.writeDebug(
                         "PROV:get_secondary_volume_id:lun_ids = {}", lun_ids
                     )
-                    self.add_luns_to_host_groups(sec_vol_id, host_groups, lun_ids)
+                    retry_on_busy(
+                        self.add_luns_to_host_groups,
+                        sec_vol_id,
+                        host_groups,
+                        lun_ids,
+                    )
 
         except Exception as ex:
             err_msg = GADFailedMsg.SEC_VOLUME_OPERATION_FAILED.value + str(ex)

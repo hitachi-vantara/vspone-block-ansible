@@ -253,6 +253,10 @@ options:
         type: int
         required: false
         choices: [1, 2, 3, 4, 5]
+      should_match_volume_ids:
+        description: Specify whether the primary volume ID and secondary volume ID should match in hur pairs. Default value is false.
+        type: bool
+        required: false
       begin_primary_volume_id:
         description: Beginning primary volume ID for batch creation using existing volumes.
         type: str
@@ -310,6 +314,35 @@ EXAMPLES = """
       username: "admin"
       password: "secret"
     spec:
+      number_of_pairs: 2
+      copy_group_name: "rd_hur_cg_123"
+      copy_pair_base_name: "rd_hur_cp_123_"
+      primary_pool_id: 0
+      secondary_pool_id: 0
+      volume_size: "1GB"
+      primary_hostgroups:
+        - name: "snewar-common-hg-01"
+          port_id: "CL2-A"
+        - name: "snewar-common-hg-01"
+          port_id: "CL2-B"
+      secondary_hostgroups:
+        - name: "snewar-common-hg-01"
+          port_id: "CL2-A"
+        - name: "snewar-common-hg-01"
+          port_id: "CL2-B"
+
+- name: Create a HUR pairs in bulk mode with matching primary and secondary volume IDs
+  hitachivantara.vspone_block.vsp.hv_hur_bulk:
+    connection_info:
+      address: storage1.company.com
+      username: "admin"
+      password: "secret"
+    secondary_connection_info:
+      address: storage2.company.com
+      username: "admin"
+      password: "secret"
+    spec:
+      should_match_volume_ids: true
       number_of_pairs: 2
       copy_group_name: "rd_hur_cg_123"
       copy_pair_base_name: "rd_hur_cp_123_"

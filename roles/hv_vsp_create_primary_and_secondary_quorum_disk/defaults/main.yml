@@ -50,4 +50,4 @@ hv_vsp_create_primary_and_secondary_quorum_disk_external_pool_id: 0 # Pool ID fo
 
 hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_size: "12300MB" # 12300MB in bytes
 hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_ldev_id: 1 # LDEV ID for the quorum disk, if not provided, it will be created with free LDEV ID from storage provider
-hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_ldev_capacity_savings: null # Capacity saving option for the quorum disk, options are "compression", "deduplication", "compression_and_deduplication", or "" for none
+hv_vsp_create_primary_and_secondary_quorum_disk_quorum_disk_ldev_capacity_savings: null # Capacity saving option for the quorum disk, options are "compression", "deduplication", "compression_deduplication", or "" for none

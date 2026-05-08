@@ -27,8 +27,8 @@
         spec:
           remote_serial: "810045" # required
           remote_storage_system_type: "M8" # required
-          local_port: "CL1-C" # required
-          remote_port: "CL2-C" # required
+          local_port_id: "CL1-C" # required
+          remote_port_id: "CL2-C" # required
           path_group_id: 15 # required
           remote_io_timeout_in_sec: 20
       register: result
@@ -77,8 +77,8 @@
         state: "add_remote_path"
         spec:
           id: "ebd7dece-5c69-4536-9fd3-50c57a99a401"
-          local_port: "CL1-C"
-          remote_port: "CL2-C"
+          local_port_id: "CL1-C"
+          remote_port_id: "CL2-C"
       register: result
 
     - name: Debug the result variable
@@ -94,8 +94,8 @@
         state: "remove_remote_path"
         spec:
           id: "72b765af-5159-405d-9d60-a899ad8f751c"
-          local_port: "CL1-C"
-          remote_port: "CL2-C"
+          local_port_id: "CL1-C"
+          remote_port_id: "CL2-C"
       register: result
 
     - name: Debug the result variable

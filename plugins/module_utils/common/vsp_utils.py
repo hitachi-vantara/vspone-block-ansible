@@ -72,6 +72,9 @@ try:
         VspGadPairSpec,
         GADPairFactSpec,
         VspBatchGadPairSpec,
+        VspOneGadCtgFactSpec,
+        VspOneGadCtgSpec,
+        VspGadCtgCreateSpec,
     )
     from ..model.vsp_nvme_models import VSPNvmeSubsystemFactSpec, VSPNvmeSubsystemSpec
     from ..model.uaig_subscriber_models import UnsubscribeSpec
@@ -120,6 +123,12 @@ try:
     from ..model.vsp_mp_blade_models import MPBladeFactsSpec
     from ..model.vsp_server_priority_manager_models import SpmFactSpec, SpmSpec
     from ..model.vsp_pav_models import VSPPavLdevFactsSpec, VSPPavLdevRequestSpec
+    from ..model.vsp_one_gad_models import (
+        VspOneGadFactSpec,
+        VspOneResyncGadSpec,
+        VspOneSuspendGadSpec,
+        VspOneDeleteGadSpec,
+    )
     from ..common.hv_constants import ConnectionTypes, StateValue
     from ..common.vsp_constants import AutomationConstants
     from ..common.ansible_common import (
@@ -236,6 +245,8 @@ except ImportError:
         VspGadPairSpec,
         GADPairFactSpec,
         VspBatchGadPairSpec,
+        VspOneGadCtgFactSpec,
+        VspOneGadCtgSpec,
     )
     from model.vsp_nvme_models import VSPNvmeSubsystemFactSpec, VSPNvmeSubsystemSpec
     from model.uaig_subscriber_models import UnsubscribeSpec
@@ -289,6 +300,12 @@ except ImportError:
     )
     from model.vsp_vclone_models import VSPVcloneParentVolumeFactSpec
     from model.vsp_snapshot_family_models import VSPSnapshotFamilyFactSpec
+    from model.vsp_one_gad_models import (
+        VspOneGadFactSpec,
+        VspOneResyncGadSpec,
+        VspOneSuspendGadSpec,
+        VspOneDeleteGadSpec,
+    )
     from common.hv_constants import ConnectionTypes, StateValue
     from common.vsp_constants import AutomationConstants
     from common.ansible_common import camel_to_snake_case, check_range
@@ -698,6 +715,18 @@ class VSPParametersManager:
         )
         return self.spec
 
+    def get_vsp_one_gad_ctg_facts_spec(self):
+        self.spec = VspOneGadCtgFactSpec(
+            **self.params["spec"] if self.params["spec"] else {}
+        )
+        return self.spec
+
+    def get_vsp_one_gad_ctg_spec(self):
+        self.spec = VspOneGadCtgSpec(
+            **self.params["spec"] if self.params["spec"] else {}
+        )
+        return self.spec
+
     def snapshot_grp_spec(self):
         self.spec = SnapshotGroupSpec(**self.params["spec"])
         return self.spec
@@ -980,6 +1009,66 @@ class VSPParametersManager:
         return VSPPavLdevFactsSpec(
             **self.params["spec"] if self.params.get("spec") else {}
         )
+
+    def get_vsp_one_gad_ctg_create_spec(self):
+        return VspGadCtgCreateSpec(**self.params["spec"])
+
+    def get_vsp_one_gad_facts_spec(self):
+        """
+        This method is used to get the VSP One GAD facts spec.
+        :return: VSP One GAD facts spec
+        """
+        return VspOneGadFactSpec(
+            **self.params["spec"] if self.params.get("spec") else {}
+        )
+
+    def get_vsp_one_gad_spec(self, state):
+        """
+        Parses Ansible parameters while ensuring only state-relevant keys
+        are passed to the Spec constructors.
+        """
+        spec_data = self.params.get("spec", {}).copy()
+        state = state.lower()
+
+        # --- BRANCHING & FILTERING ---
+        # We pass the list of dicts as-is. The 'str' object error suggests
+        # the classes below expect to call .get() on the list elements.
+        if state == StateValue.PRESENT:
+            create_keys = [
+                "primary_volume_mirrors",
+                "consistency_group_id",
+                "remote_storage_serial_number",
+                "quorum_disk_id",
+            ]
+            filtered = {k: v for k, v in spec_data.items() if k in create_keys}
+            return VspGadCtgCreateSpec(**filtered)
+
+        elif state == StateValue.ABSENT:
+            delete_keys = [
+                "primary_volume_mirrors",
+                "delete_mode",
+                "allow_volume_access_after_force_delete",
+            ]
+            filtered = {k: v for k, v in spec_data.items() if k in delete_keys}
+            return VspOneDeleteGadSpec(**filtered)
+
+        elif self.state in [StateValue.SPLITTED]:
+            split_keys = ["primary_volume_mirrors", "continue_io_volume"]
+            filtered = {k: v for k, v in spec_data.items() if k in split_keys}
+            return VspOneSuspendGadSpec(**filtered)
+
+        elif self.state in [StateValue.RE_SYNCED]:
+            sync_keys = [
+                "primary_volume_mirrors",
+                "is_swap_resynced",
+                "copy_pace",
+                "io_preference",
+            ]
+            filtered = {k: v for k, v in spec_data.items() if k in sync_keys}
+            return VspOneResyncGadSpec(**filtered)
+
+        else:
+            raise ValueError(f"Unsupported state '{state}' provided for GAD operation.")
 
 
 # Arguments Managements ##
@@ -1318,6 +1407,13 @@ class VSPVolumeArguments:
                 "required": False,
                 "type": "str",
                 "aliases": ["parity_group"],
+                "deprecated_aliases": [
+                    {
+                        "name": "parity_group",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "data_reduction_share": {
                 "required": False,
@@ -1732,6 +1828,13 @@ class VSPHostGroupArguments:
                 "type": "list",
                 "elements": "str",
                 "aliases": ["ports"],
+                "deprecated_aliases": [
+                    {
+                        "name": "ports",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "lun": {
                 "required": False,
@@ -1772,12 +1875,26 @@ class VSPHostGroupArguments:
                 "required": False,
                 "type": "str",
                 "aliases": ["port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "port_ids": {
                 "required": False,
                 "type": "list",
                 "elements": "str",
                 "aliases": ["ports"],
+                "deprecated_aliases": [
+                    {
+                        "name": "ports",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "host_mode": {
                 "required": False,
@@ -1824,6 +1941,13 @@ class VSPHostGroupArguments:
                         "required": False,
                         "type": "str",
                         "aliases": ["nick_name"],
+                        "deprecated_aliases": [
+                            {
+                                "name": "nick_name",
+                                "version": "5.0.0",
+                                "collection_name": "hitachivantara.vspone_block",
+                            },
+                        ]
                     },
                 },
             },
@@ -1831,6 +1955,13 @@ class VSPHostGroupArguments:
                 "required": False,
                 "type": "bool",
                 "aliases": ["should_delete_all_ldevs"],
+                "deprecated_aliases": [
+                    {
+                        "name": "should_delete_all_ldevs",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "asymmetric_access_priority": {
                 "required": False,
@@ -1886,6 +2017,13 @@ class VSPHostGroupArguments:
                 "type": "list",
                 "elements": "str",
                 "aliases": ["ports"],
+                "deprecated_aliases": [
+                    {
+                        "name": "ports",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "host_mode": {
                 "required": False,
@@ -1927,6 +2065,13 @@ class VSPHostGroupArguments:
                         "required": False,
                         "type": "str",
                         "aliases": ["nick_name"],
+                        "deprecated_aliases": [
+                            {
+                                "name": "nick_name",
+                                "version": "5.0.0",
+                                "collection_name": "hitachivantara.vspone_block",
+                            },
+                        ]
                     },
                 },
             },
@@ -2035,6 +2180,13 @@ class VSPShadowImagePairArguments:
                 "required": False,
                 "type": "str",
                 "aliases": ["copy_pace_track_size"],
+                "deprecated_aliases": [
+                    {
+                        "name": "copy_pace_track_size",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             # "is_new_group_creation": {
             #     "required": False,
@@ -2088,6 +2240,13 @@ class VSPShadowImagePairArguments:
                 "required": False,
                 "type": "int",
                 "aliases": ["pvol_mu_number"],
+                "deprecated_aliases": [
+                    {
+                        "name": "pvol_mu_number",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
         }
 
@@ -2296,6 +2455,13 @@ class VSPSnapshotArguments:
                 "required": False,
                 "type": "int",
                 "aliases": ["mirror_unit_id"],
+                "deprecated_aliases": [
+                    {
+                        "name": "mirror_unit_id",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
         }
         args = copy.deepcopy(cls.common_arguments)
@@ -2335,6 +2501,13 @@ class VSPSnapshotArguments:
                 "required": False,
                 "type": "int",
                 "aliases": ["mirror_unit_id"],
+                "deprecated_aliases": [
+                    {
+                        "name": "mirror_unit_id",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "snapshot_group_name": {
                 "required": False,
@@ -2452,6 +2625,13 @@ class VSPIscsiTargetArguments:
                 "type": "list",
                 "elements": "str",
                 "aliases": ["ports"],
+                "deprecated_aliases": [
+                    {
+                        "name": "ports",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "name": {
                 "required": False,
@@ -2494,6 +2674,13 @@ class VSPIscsiTargetArguments:
                 "required": True,
                 "type": "str",
                 "aliases": ["port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "host_mode": {
                 "required": False,
@@ -2536,6 +2723,13 @@ class VSPIscsiTargetArguments:
                 "required": False,
                 "type": "bool",
                 "aliases": ["should_delete_all_ldevs"],
+                "deprecated_aliases": [
+                    {
+                        "name": "should_delete_all_ldevs",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "iqn_initiators": {
                 "required": False,
@@ -2550,6 +2744,13 @@ class VSPIscsiTargetArguments:
                         "required": False,
                         "type": "str",
                         "aliases": ["nick_name"],
+                        "deprecated_aliases": [
+                            {
+                                "name": "nick_name",
+                                "version": "5.0.0",
+                                "collection_name": "hitachivantara.vspone_block",
+                            },
+                        ]
                     },
                 },
             },
@@ -2624,6 +2825,13 @@ class VSPIscsiTargetArguments:
                 "required": False,
                 "type": "bool",
                 "aliases": ["should_delete_all_ldevs"],
+                "deprecated_aliases": [
+                    {
+                        "name": "should_delete_all_ldevs",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "lun_paths": {
                 "required": False,
@@ -3037,11 +3245,25 @@ class VSPJournalVolumeArguments:
                 "required": False,
                 "type": "str",
                 "aliases": ["startLdevId"],
+                "deprecated_aliases": [
+                    {
+                        "name": "startLdevId",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "end_ldev_id": {
                 "required": False,
                 "type": "str",
                 "aliases": ["endLdevId"],
+                "deprecated_aliases": [
+                    {
+                        "name": "endLdevId",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "is_cache_mode_enabled": {
                 "required": False,
@@ -3051,6 +3273,13 @@ class VSPJournalVolumeArguments:
                 "required": False,
                 "type": "int",
                 "aliases": ["data_overflow_watchIn_seconds"],
+                "deprecated_aliases": [
+                    {
+                        "name": "data_overflow_watchIn_seconds",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "mp_blade_id": {
                 "required": False,
@@ -3143,11 +3372,25 @@ class VSPJournalArguments:
                 "required": False,
                 "type": "str",
                 "aliases": ["startLdevId"],
+                "deprecated_aliases": [
+                    {
+                        "name": "startLdevId",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "end_ldev_id": {
                 "required": False,
                 "type": "str",
                 "aliases": ["endLdevId"],
+                "deprecated_aliases": [
+                    {
+                        "name": "endLdevId",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "is_cache_mode_enabled": {
                 "required": False,
@@ -3157,6 +3400,13 @@ class VSPJournalArguments:
                 "required": False,
                 "type": "int",
                 "aliases": ["data_overflow_watchIn_seconds"],
+                "deprecated_aliases": [
+                    {
+                        "name": "data_overflow_watchIn_seconds",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "mp_blade_id": {
                 "required": False,
@@ -3557,6 +3807,13 @@ class VSPStoragePortArguments:
                 "type": "list",
                 "elements": "str",
                 "aliases": ["ports"],
+                "deprecated_aliases": [
+                    {
+                        "name": "ports",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "query": {
                 "required": False,
@@ -3595,6 +3852,13 @@ class VSPStoragePortArguments:
                 "required": True,
                 "type": "str",
                 "aliases": ["port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "port_attribute": {
                 "required": False,
@@ -4162,6 +4426,13 @@ class VSPTrueCopyArguments:
                 "required": True,
                 "type": "str",
                 "aliases": ["port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "lun_id": {
                 "required": False,
@@ -4442,6 +4713,10 @@ class VSPHurBatchArguments:
                 "required": True,
                 "type": "int",
             },
+            "should_match_volume_ids": {
+                "required": False,
+                "type": "bool",
+            },
             "begin_primary_volume_id": {
                 "required": False,
                 "type": "str",
@@ -4667,6 +4942,13 @@ class VSPHurArguments:
                 "required": True,
                 "type": "str",
                 "aliases": ["port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "lun_id": {
                 "required": False,
@@ -4688,6 +4970,13 @@ class VSPHurArguments:
                 "choices": [0, 1, 2, 3],
                 "type": "int",
                 "aliases": ["mirror_unit_id"],
+                "deprecated_aliases": [
+                    {
+                        "name": "mirror_unit_id",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "consistency_group_id": {
                 "required": False,
@@ -4869,6 +5158,13 @@ class VSPHurArguments:
                 "type": "int",
                 "choices": [0, 1, 2, 3],
                 "aliases": ["mirror_unit_id"],
+                "deprecated_aliases": [
+                    {
+                        "name": "mirror_unit_id",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
         }
         args = copy.deepcopy(cls.common_arguments)
@@ -5066,6 +5362,13 @@ class VSPNvmeSubsystemArguments:
                 "type": "list",
                 "elements": "str",
                 "aliases": ["ports"],
+                "deprecated_aliases": [
+                    {
+                        "name": "ports",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "host_nqns": {
                 "required": False,
@@ -5165,6 +5468,13 @@ class VSPResourceGroupArguments:
                 "required": True,
                 "type": "str",
                 "aliases": ["port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "ids": {
                 "required": False,
@@ -5247,23 +5557,51 @@ class VSPResourceGroupArguments:
                 "required": False,
                 "type": "str",
                 "aliases": ["start_ldev"],
+                "deprecated_aliases": [
+                    {
+                        "name": "start_ldev",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "end_ldev_id": {
                 "required": False,
                 "type": "str",
                 "aliases": ["end_ldev"],
+                "deprecated_aliases": [
+                    {
+                        "name": "end_ldev",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "port_ids": {
                 "required": False,
                 "type": "list",
                 "elements": "str",
                 "aliases": ["ports"],
+                "deprecated_aliases": [
+                    {
+                        "name": "ports",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "parity_group_ids": {
                 "required": False,
                 "type": "list",
                 "elements": "str",
                 "aliases": ["parity_groups"],
+                "deprecated_aliases": [
+                    {
+                        "name": "parity_groups",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "external_parity_groups": {
                 "required": False,
@@ -5397,6 +5735,13 @@ class VSPGADArguments:
                 "required": True,
                 "type": "str",
                 "aliases": ["port"],
+                "deprecated_aliases": [
+                    {
+                        "name": "port",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "lun_id": {
                 "required": False,
@@ -5492,6 +5837,13 @@ class VSPGADArguments:
                 "required": False,
                 "type": "int",
                 "aliases": ["mu_number"],
+                "deprecated_aliases": [
+                    {
+                        "name": "mu_number",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "fence_level": {
                 "required": False,
@@ -5746,6 +6098,10 @@ class VSPGADArguments:
             "primary_pool_id": {
                 "required": False,
                 "type": "int",
+            },
+            "should_match_volume_ids": {
+                "required": False,
+                "type": "bool",
             },
             "volume_size": {
                 "required": False,
@@ -6963,6 +7319,13 @@ class VSPVolumeSimpleAPIArguments:
                 "required": False,
                 "type": "str",
                 "choices": ["compression", "deduplication_and_compression", "disable"],
+                "deprecated_aliases": [
+                    {
+                        "name": "saving_setting",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "compression_acceleration": {
                 "required": False,
@@ -7016,6 +7379,13 @@ class VSPVolumeSimpleAPIArguments:
                 "required": False,
                 "type": "str",
                 "aliases": ["start_volume_id"],
+                "deprecated_aliases": [
+                    {
+                        "name": "start_volume_id",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "count": {
                 "required": False,
@@ -7214,6 +7584,13 @@ class VSPOneServerArguments:
                 "required": False,
                 "type": "str",
                 "aliases": ["nick_name"],
+                "deprecated_aliases": [
+                    {
+                        "name": "nick_name",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "protocol": {
                 "required": False,
@@ -7351,6 +7728,13 @@ class VSPOneServerArguments:
                 "required": False,
                 "type": "str",
                 "aliases": ["nick_name"],
+                "deprecated_aliases": [
+                    {
+                        "name": "nick_name",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
             "hba_wwn": {
                 "required": False,
@@ -7391,6 +7775,13 @@ class VSPOneServerArguments:
                 "required": False,
                 "type": "str",
                 "aliases": ["nick_name"],
+                "deprecated_aliases": [
+                    {
+                        "name": "nick_name",
+                        "version": "5.0.0",
+                        "collection_name": "hitachivantara.vspone_block",
+                    },
+                ]
             },
         }
         args = copy.deepcopy(cls.common_arguments)
@@ -7431,6 +7822,111 @@ class VSPOnePortArguments:
     @classmethod
     def get_vsp_one_port_args(cls):
         spec_options = vsp_one_port_args()
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        return args
+
+
+class VSPOneGadCtgArguments:
+    ssi = copy.deepcopy(VSPCommonParameters.connection_info())
+    ssi["options"].pop("connection_type")
+    ssi["required"] = True
+    common_arguments = {
+        "connection_info": VSPCommonParameters.connection_info(),
+        "secondary_connection_info": ssi,
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "absent",
+                "suspended",
+                "resynced",
+                # "swap_resynced",
+            ],
+            "default": "present",
+        },
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+
+    @classmethod
+    def vsp_one_gad_ctg_facts(cls):
+        spec_options = {
+            "consistency_group_id": {
+                "required": False,
+                "type": "int",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False
+        args.pop("state")
+        return args
+
+    @classmethod
+    def vsp_one_gad_ctg(cls):
+        spec_options = {
+            "consistency_group_ids": {
+                "required": True,
+                "type": "list",
+                "elements": "int",
+            },
+            # "is_swap_resynced": {
+            #     "required": False,
+            #     "type": "bool",
+            #     "default": False,
+            # },
+            "copy_pace": {
+                "required": False,
+                "type": "int",
+                "default": 3,
+            },
+            "io_preference_mode": {
+                "required": False,
+                "type": "str",
+            },
+            "continue_io_volume": {
+                "required": False,
+                "type": "str",
+            },
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        return args
+
+    @classmethod
+    def get_vsp_one_gad_ctg_args(cls):
+        gad_pair_options = {
+            "primary_volume_id": {"required": True, "type": "int"},
+            "provisioned_secondary_volume_id": {"required": False, "type": "int"},
+        }
+        spec_options = {
+            "consistency_group_id": {"required": True, "type": "int"},
+            "gad_pairs": {
+                "required": True,
+                "type": "list",
+                "elements": "dict",
+                "options": gad_pair_options,
+            },
+            "path_group_id": {"required": False, "type": "int"},
+            "quorum_id": {"required": False, "type": "int"},
+            "secondary_storage_pool_id": {"required": False, "type": "int"},
+            "secondary_servers": {"required": False, "type": "list", "elements": "int"},
+            "should_replicate_from_primary_to_secondary": {
+                "required": False,
+                "type": "bool",
+            },
+            "copy_pace": {"required": False, "type": "int"},
+            "io_priority_mode": {
+                "required": False,
+                "type": "str",
+            },
+            "mirror_unit_number": {"required": False, "type": "int", "choices": [0, 1, 2, 3]},
+        }
         args = copy.deepcopy(cls.common_arguments)
         args["spec"]["options"] = spec_options
         return args
@@ -7493,6 +7989,143 @@ class VSPPavLdevArguments:
         }
         args = copy.deepcopy(cls.common_arguments)
         args["spec"]["options"] = spec_options
+        return args
+
+
+class VSPOneGadArguments:
+    common_arguments = {
+        "connection_info": VSPCommonParameters.connection_info(),
+        "state": {
+            "required": False,
+            "type": "str",
+            "choices": [
+                "present",
+                "absent",
+            ],
+            "default": "present",
+        },
+        "spec": {
+            "required": True,
+            "type": "dict",
+            "options": {},
+        },
+    }
+    # Remove connection_type if your VSP One modules use a simplified connection spec
+    common_arguments["connection_info"]["options"].pop("connection_type", None)
+
+    @classmethod
+    def get_vsp_one_gad_facts_args(cls):
+        """
+        Argument spec for hv_vsp_one_gad_facts module.
+        """
+        spec_options = {
+            "consistency_group_id": {
+                "required": False,
+                "type": "int",
+            },
+            "primary_volume_id": {
+                "required": False,
+                "type": "int",
+            },
+            "mirror_unit_number": {
+                "required": False,
+                "type": "int",
+            },
+            "count": {
+                "required": False,
+                "type": "int",
+                "default": 500,
+            },
+        }
+        # Deep copy to avoid mutating the base common_arguments dictionary
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        args["spec"]["required"] = False  # Facts usually don't require a spec
+        args.pop("state", None)  # Facts don't need 'state'
+        return args
+
+    @classmethod
+    def get_vsp_one_gad_args(cls):
+        """
+        Argument spec for hv_vsp_one_gad module (Management/Provisioning).
+        """
+        spec_options = {
+            "primary_volume_id": {
+                "required": True,
+                "type": "int",
+            },
+            "secondary_volume_id": {
+                "required": False,
+                "type": "int",
+            },
+            "mirror_unit_number": {
+                "required": False,
+                "type": "int",
+            },
+            "remote_storage_serial": {
+                "required": False,
+                "type": "str",
+            },
+            # Add other provisioning fields here (quorum_id, etc.)
+        }
+        args = copy.deepcopy(cls.common_arguments)
+        args["spec"]["options"] = spec_options
+        return args
+
+    @classmethod
+    def get_vsp_one_gad_action_args(cls):
+        """
+        Argument spec for the main GAD action module.
+        Includes parameters for split, resync, and delete.
+        """
+        spec_options = {
+            # The list of mirror pairs (Mandatory for actions)
+            "primary_volume_mirrors": {
+                "required": True,
+                "type": "list",
+                "elements": "dict",
+                "options": {
+                    "primary_volume_id": {"required": True, "type": "int"},
+                    "mirror_unit_number": {"required": True, "type": "int", "choices": [0, 1, 2, 3]},
+                },
+            },
+            # Suspend/Split parameters
+            "continue_io_volume": {
+                "required": False,
+                "type": "str",
+            },
+            # Resync parameters
+            "is_swap_resynced": {"required": False, "type": "bool", "default": False},
+            "copy_pace": {"required": False, "type": "int"},
+            "io_preference": {
+                "required": False,
+                "type": "str",
+            },
+            # Delete parameters
+            "delete_mode": {
+                "required": False,
+                "type": "str",
+            },
+            "allow_volume_access_after_force_delete": {
+                "required": False,
+                "type": "bool",
+            },
+        }
+
+        args = copy.deepcopy(cls.common_arguments)
+
+        # Define the spec dictionary with its own internal validation
+        args["spec"] = {
+            "type": "dict",
+            "required": True,
+            "options": spec_options,
+        }
+
+        args["state"] = {
+            "required": True,
+            "type": "str",
+            "choices": ["present", "absent", "splitted", "resynced"],
+        }
         return args
 
 

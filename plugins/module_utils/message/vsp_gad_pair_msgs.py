@@ -118,3 +118,55 @@ class GADPairValidateMSG(Enum):
     GAD_PAIR_DOES_NOT_EXIST = (
         "GAD pair with copy group name '{}' and copy pair name '{}' does not exist."
     )
+
+
+class VspOneGadValidationMsg(Enum):
+    """
+    Enum class for VSP One GAD validation messages
+    """
+
+    CONSISTENCY_GROUP_ID_REQUIRED = (
+        "consistency_group_id is required in the spec to create GAD pairs"
+    )
+    GAD_PAIR_DEFINITION_REQUIRED = (
+        "At least one gad pair definition is required in the spec to create GAD pairs"
+    )
+    SECONDARY_STORAGE_POOL_ID_REQUIRED = ("secondary_storage_pool_id is required in the spec to create GAD pairs or "
+                                          "few secondary volumes in gad_pairs are not provisioned")
+
+    PATH_GROUP_ID_REQUIRED = "path_group_id is required in the spec to create GAD pairs"
+    QUORUM_ID_REQUIRED = "quorum_id is required in the spec to create GAD pairs"
+    SECONDARY_SERVER_REQUIRED = (
+        "At least one secondary server is required in the spec to create GAD pairs or few secondary volumes in gad_pairs are not provisioned"
+    )
+    SECONDARY_STORAGE_NOT_FOUND = (
+        "Secondary storage with IP {} not found in remote storages"
+    )
+    PATH_GROUP_NOT_FOUND = "Path group not found in secondary storage with IP {}"
+    PRIMARY_VOLUME_NOT_FOUND = "Primary volume with ID {} not found"
+    PRIMARY_VOLUME_NOT_MAPPED = (
+        "Primary volume with ID {} is not mapped to any server, "
+        "it needs to be mapped to at least one server to be used in GAD"
+    )
+    FAILED_TO_CREATE_GAD_CTG = "Failed to create GAD CTG with ID {}: {}"
+    FAILED_TO_CREATE_SECONDARY_VOLUMES = "Failed to create secondary volumes: {}"
+    FAILED_TO_ATTACH_SERVERS_TO_VOLUMES = "Failed to add primary volumes to server: {}"
+    FAILED_TO_DETACH_SECONDARY_VOLUME = (
+        "Failed to detach secondary volume with ID {} from server {} during cleanup: {}"
+    )
+    FAILED_TO_DELETE_SECONDARY_VOLUMES = (
+        "Failed to delete secondary volumes during cleanup: {}"
+    )
+    CONSISTENCY_GROUP_ID_RANGE = (
+        "consistency_group_id must be between 0 and 1023. Provided value is {}."
+    )
+    COPY_PACE_RANGE = "copy_pace must be between 1 and 15. Provided value is {}."
+    CONTINUE_IO_VOLUMES_INVALID = "Invalid continue_io_volume value '{}'. It must be one of 'PRIMARY', or 'SECONDARY'."
+    IO_PREFERENCE_MODE_INVALID = (
+        "Invalid io_preference_mode value '{}'. It must be one of {}."
+    )
+    MIRROR_UNIT_NUMBER_MISMATCH = "mirror_unit_number {} for for consistency group {} must be the same across all GAD pairs. Existing ID is: {}"
+    SECONDARY_VOLUME_NOT_FOUND = "Secondary volume with ID {} not found."
+    DELETE_MODE_INVALID = "Invalid delete_mode value '{}'. It must be one of 'NORMAL', or 'FORCE'."
+    ALLOW_VOLUME_ACCESS_REQUIRED = "allow_volume_access_after_force_delete is required when delete_mode is FORCE."
+    COUNT_INVALID = "count must be a positive integer between 1 and 500. Provided value is {}."

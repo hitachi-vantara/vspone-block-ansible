@@ -29,7 +29,7 @@ class IscsiTargetFactSpec:
 
     def __post_init__(self):
         if self.port_ids:
-            self.ports = self.ports
+            self.ports = self.port_ids
 
 
 @dataclass

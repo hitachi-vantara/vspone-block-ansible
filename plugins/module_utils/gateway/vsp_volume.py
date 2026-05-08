@@ -27,6 +27,7 @@ try:
     )
     from ..common.hv_log import Log
     from ..common.vsp_constants import PEGASUS_MODELS
+    from ..common.hv_constants import LdevConstants
     from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 except ImportError:
     from common.ansible_common import (
@@ -54,6 +55,7 @@ except ImportError:
     )
     from common.hv_log import Log
     from common.vsp_constants import PEGASUS_MODELS
+    from common.hv_constants import LdevConstants
     from .vsp_storage_system_gateway import VSPStorageSystemDirectGateway
 
 
@@ -171,9 +173,9 @@ class VSPVolumeDirectGateway:
                 raise
             finally:
                 executor.shutdown(wait=True)
-
+            unique_volumes = {vol["ldevId"]: vol for vol in all_volumes}.values()
             volumes = VSPVolumesInfo(
-                dicts_to_dataclass_list(all_volumes, VSPVolumeInfo)
+                dicts_to_dataclass_list(unique_volumes, VSPVolumeInfo)
             )
         return volumes
 
@@ -443,7 +445,11 @@ class VSPVolumeDirectGateway:
         vol_data = self.rest_api.get(end_point)
         # logger.writeDebug(f"Free Ldevs from meta: {vol_data}")
         for item in vol_data["data"]:
-            if "virtualLdevId" not in item:
+            if (
+                "virtualLdevId" not in item
+                or item["virtualLdevId"] == item["ldevId"]
+                or item["virtualLdevId"] == LdevConstants.UNASSIGNED_LDEV_ID
+            ):
                 undefined_vol_info = VSPUndefinedVolumeInfo(**item)
                 return VSPUndefinedVolumeInfoList(data=[undefined_vol_info])
         raise VspVolumeNoFreeLdevError(
