@@ -4,6 +4,21 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.8.1
+======
+
+Release Summary
+---------------
+
+Documentation and metadata updates required for Red Hat certification.
+
+Minor Changes
+-------------
+
+- Adjusted galaxy.yml to exclude development configurations (like .ansible-lint) from the collection tarball.
+- Modified .ansible-lint configuration to remove the 'command-instead-of-module' skip-list rule to comply with Red Hat standards.
+- Updated README.md to reference meta/runtime.yml for ansible-core versioning.
+
 v4.8.0
 ======
 

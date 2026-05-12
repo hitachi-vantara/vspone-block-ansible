@@ -1,7 +1,7 @@
 ---
 namespace: hitachivantara
 name: vspone_block
-version: 4.8.0
+version: 4.8.1
 readme: README.md
 authors:
   - Hitachi Vantara Ansible Team
@@ -49,3 +49,4 @@ build_ignore:
   - test_modules_individually.sh
   - mcp_tools
   - .ansible
+  - .ansible-lint

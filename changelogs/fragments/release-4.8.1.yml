@@ -1,0 +1,8 @@
+---
+release_summary: |
+  Documentation and metadata updates required for Red Hat certification.
+
+minor_changes:
+  - Updated README.md to reference meta/runtime.yml for ansible-core versioning.
+  - Adjusted galaxy.yml to exclude development configurations (like .ansible-lint) from the collection tarball.
+  - Modified .ansible-lint configuration to remove the 'command-instead-of-module' skip-list rule to comply with Red Hat standards.
