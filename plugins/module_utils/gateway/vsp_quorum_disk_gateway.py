@@ -167,8 +167,13 @@ class VSPQuorumDiskDirectGateway:
         )
 
         for epg in epglist.data:
+            valid_paths = [
+                path
+                for path in (epg.externalPaths or [])
+                if path.get("portId") and path.get("externalWwn")
+            ]
             epg.externalPaths = ExternalPathInfoList(
-                dicts_to_dataclass_list(epg.externalPaths, ExternalPathInfo)
+                dicts_to_dataclass_list(valid_paths, ExternalPathInfo)
             )
 
         return epglist

@@ -86,8 +86,11 @@ class DrivesFactSpec:
 
 @dataclass
 class VSPPfrestParityGroupSpace(SingleBaseClass):
-    lbaSize: str = None
+    partitionNumber: int = None
     ldevId: int = None
+    status: str = None
+    lbaLocation: str = None
+    lbaSize: str = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

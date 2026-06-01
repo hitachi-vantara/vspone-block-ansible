@@ -246,6 +246,10 @@ port_info:
       description: Port ID.
       type: str
       sample: "CL8-A"
+    port:
+      description: Deprecated. Use C(port_id) instead.
+      type: str
+      sample: "CL8-A"
     port_mode:
       description: Operating mode of the port.
       type: str

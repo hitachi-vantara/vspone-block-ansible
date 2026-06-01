@@ -13,6 +13,10 @@ module: hv_vsp_one_gad_facts
 short_description: Retrieves GAD (Global-Active Device) information from VSP One storage systems.
 description:
   - This module retrieves GAD pair information from VSP One Block 20/80 series and VSP E series storage systems.
+  - This module is only compatible with VSP One B85 systems.
+  - For examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_gad_facts.yml)
+
 version_added: '4.8.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)

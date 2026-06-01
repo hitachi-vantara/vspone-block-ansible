@@ -33,10 +33,6 @@ class SDSBExternalAuthServerReconciler:
         self.provisioner = SDSBExternalAuthServerProvisioner(self.connection_info)
 
     @log_entry_exit
-    def get_user_auth_setting(self):
-        return self.provisioner.get_user_auth_setting()
-
-    @log_entry_exit
     def get_external_auth_server_settings(self):
         return self.provisioner.get_external_auth_server_settings()
 
@@ -57,7 +53,7 @@ class SDSBExternalAuthServerReconciler:
             return self.import_root_certificate(spec)
         else:
             raise ValueError(
-                SDSBExternalAuthServerValidationMsg.INVALID_STATE_PROVIDED.format(state)
+                SDSBExternalAuthServerValidationMsg.INVALID_STATE_PROVIDED.value.format(state)
             )
 
     @log_entry_exit

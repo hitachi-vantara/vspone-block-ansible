@@ -72,7 +72,6 @@ except ImportError:
     from message.vsp_lun_msgs import VSPVolValidationMsg, VSPVolumeMSG
     from provisioner.vsp_host_group_provisioner import VSPHostGroupProvisioner
     from common.vsp_errors import VspVolumeCreationError
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 logger = Log()
 
@@ -1027,8 +1026,19 @@ class VSPVolumeReconciler:
         spec.block_size = (
             convert_decimal_size_to_bytes(spec.size) if spec.size else None
         )
-        volume_created = self.provisioner.create_volume(spec)
-        self.connection_info.changed = True
+
+        try:
+            # Attempt to provision the storage hardware volume
+            volume_created = self.provisioner.create_volume(spec)
+            self.connection_info.changed = True
+            logger.writeInfo(f"Successfully created volume: {getattr(volume_created, 'volume_id', '')}")
+
+        except Exception as err:
+            # Catch API routing drops, locking timeouts, or block-storage conflicts
+            self.connection_info.changed = False
+            logger.writeError(f"Failed to create volume. Error details: {str(err)}")
+            # Choose whether to raise or handle depending on your recovery logic
+            raise err
 
         if found:
             self.process_create_nvme(found, spec)

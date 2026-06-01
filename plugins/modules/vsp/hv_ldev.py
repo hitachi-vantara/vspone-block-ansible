@@ -656,6 +656,10 @@ volume:
       description: Parity group ID.
       type: str
       sample: "1-8"
+    parity_group:
+      description: Deprecated in a future release. Use C(parity_group_id) instead.
+      type: str
+      sample: "1-8"
     path_count:
       description: Path count to the volume.
       type: int

@@ -428,6 +428,14 @@ iscsi_target:
       description: Port ID.
       type: str
       sample: "CL4-C"
+    port:
+      description: Deprecated. Use C(port_id) instead.
+      type: str
+      sample: "CL4-C"
+    nick_name:
+      description: Deprecated. Use C(nickname) instead.
+      type: str
+      sample: "iscsi-target-1"
     resource_group_id:
       description: Resource group ID.
       type: int

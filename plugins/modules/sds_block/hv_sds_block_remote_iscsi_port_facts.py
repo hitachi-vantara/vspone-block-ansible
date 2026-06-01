@@ -107,6 +107,10 @@ ansible_facts:
               description: Port number of the local storage system in CLx-y format.
               type: str
               sample: "CL1-C"
+            local_port:
+              description: Deprecated. Use C(local_port_id) instead.
+              type: str
+              sample: "CL1-C"
             remote_serial_number:
               description: Serial number of the remote storage system.
               type: str
@@ -119,8 +123,12 @@ ansible_facts:
               description: Port number of the remote storage system in CLx-y format.
               type: str
               sample: "CL1-C"
+            remote_port:
+              description: Deprecated. Use C(remote_port_id) instead.
+              type: str
+              sample: "CL1-C"
             remote_ip_address:
-              description: iSCSI port IP address (IPv4/IPv6) for the remote storage system.
+              description: Deprecated. Use C(remote_storage_port_ip_address) instead.
               type: str
               sample: "172.25.59.213"
             remote_tcp_port:

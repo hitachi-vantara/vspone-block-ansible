@@ -201,6 +201,10 @@ compute_ports:
       description: Nickname of the port.
       type: str
       sample: "000-iSCSI-000"
+    nick_name:
+      description: Deprecated. Use C(nickname) instead.
+      type: str
+      sample: "000-iSCSI-000"
     nvme_tcp_information:
       description: NVMe over TCP information.
       type: dict

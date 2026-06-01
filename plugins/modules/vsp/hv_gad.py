@@ -15,6 +15,7 @@ short_description: Manages GAD pairs on VSP block storage systems.
 description:
   - This module allows for the creation, deletion, splitting, and resynchronization of GAD pairs on VSP block storage systems.
   - It supports various GAD pairs operations based on the specified task level.
+  - For VSP One B85 systems use vsp.hv_vsp_one_gad or vsp.hv_vsp_one_gad_consistency_group.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/gad_pair.yml)
 version_added: '3.1.0'
@@ -32,10 +33,15 @@ extends_documentation_fragment:
 - hitachivantara.vspone_block.common.gad_note
 options:
   state:
-    description: The level of the GAD pairs task.
+    description:
+      - Specifies the desired lifecycle management state of the GAD pairs task.
+      - Use C(present) to create a standard GAD pair configuration.
+      - Use C(forced_present) to force creation when resource is locked by hv_resource_group_lock module.
+      - Use C(absent) to delete the GAD pair.
+      - Use C(split), C(resync), C(swap_split), C(swap_resync), or C(expand) to manage active pair operations.
     type: str
     required: false
-    choices: ['present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync', 'resize', 'expand']
+    choices: ['present', 'forced_present', 'absent', 'split', 'resync', 'swap_split', 'swap_resync', 'resize', 'expand']
     default: 'present'
   storage_system_info:
     description: Information about the storage system. This field is an optional field.
@@ -443,6 +449,14 @@ data:
       description: Local device group name.
       type: str
       sample: "cp_group_840S_"
+    port:
+      description: Deprecated. Use port_id instead.
+      type: str
+      sample: 0
+    mu_number:
+      description: Deprecated. Use mirror_unit_number instead.
+      type: int
+      sample: 0
     mirror_unit_id:
       description: Deprecated. Use mirror_unit_number instead.
       type: int
@@ -566,6 +580,7 @@ class VSPGADPairManager:
             argument_spec=self.argument_spec,
             supports_check_mode=False,
         )
+
         try:
             self.params_manager = VSPParametersManager(self.module.params)
             self.spec = self.params_manager.gad_pair_spec()

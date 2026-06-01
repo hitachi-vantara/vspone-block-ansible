@@ -120,9 +120,6 @@ from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common
 from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.ansible_common import (
     validate_ansible_product_registration,
 )
-from ansible_collections.hitachivantara.vspone_block.plugins.module_utils.common.hv_log import (
-    Log,
-)
 
 
 class VSPSessionManager:

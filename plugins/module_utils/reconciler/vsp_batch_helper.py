@@ -9,7 +9,7 @@ class VspRemoteReplicationBatchHelper:
     @staticmethod
     def check_and_get_host_groups(hg_provisioner, host_groups):
         if not host_groups:
-            logger.error("No host groups provided for remote replication.")
+            logger.writeError("No host groups provided for remote replication.")
             raise ValueError(VspRemoteReplicationMsg.NO_HG_PROVIDED.value)
 
         valid_host_groups = []
@@ -28,7 +28,7 @@ class VspRemoteReplicationBatchHelper:
                 valid_host_groups.append(host_group_info.data)
 
         if not valid_host_groups or len(valid_host_groups) == 0:
-            logger.error(
+            logger.writeError(
                 f"No valid host groups found for provisioner: {hg_provisioner}."
             )
             raise ValueError(VspRemoteReplicationMsg.NO_VALID_HG_PROVIDED.value)
@@ -38,7 +38,7 @@ class VspRemoteReplicationBatchHelper:
     @staticmethod
     def check_and_get_iscsi_targets(hg_provisioner, iscsi_targets):
         if not iscsi_targets:
-            logger.error("No iscsi_target provided for remote replication.")
+            logger.writeError("No iscsi_target provided for remote replication.")
             raise ValueError(VspRemoteReplicationMsg.NO_ISCSI_TARGET_PROVIDED.value)
 
         valid_iscsi_targets = []
@@ -59,7 +59,7 @@ class VspRemoteReplicationBatchHelper:
                 valid_iscsi_targets.append(iscsi_target_info.data)
 
         if not valid_iscsi_targets or len(valid_iscsi_targets) == 0:
-            logger.error(
+            logger.writeError(
                 f"No valid iscsi targets found for provisioner: {hg_provisioner}."
             )
             raise ValueError(
@@ -71,7 +71,7 @@ class VspRemoteReplicationBatchHelper:
     @staticmethod
     def check_and_get_nvm_subsystem(nvm_prov, nvm_subsystem_spec):
         if not nvm_subsystem_spec:
-            logger.error("No nvm subsystem provided for remote replication.")
+            logger.writeError("No nvm subsystem provided for remote replication.")
             raise ValueError(VspRemoteReplicationMsg.NO_NVM_SUBSYSTEM_PROVIDED.value)
 
         nvm_subsystem_info = nvm_prov.get_nvme_subsystem_by_name(
@@ -152,7 +152,7 @@ class VspRemoteReplicationBatchHelper:
             )
 
     @staticmethod
-    def add_ldevs_to_nvm_subsystems(nvm_prov, ldevs, nvm_subsystem, spec_nvm_subsystem):
+    def add_ldevs_to_nvm_subsystem(nvm_prov, ldevs, nvm_subsystem, spec_nvm_subsystem):
         try:
             nvm_subsystem_id = nvm_subsystem.nvmSubsystemId
             for ldev in ldevs:

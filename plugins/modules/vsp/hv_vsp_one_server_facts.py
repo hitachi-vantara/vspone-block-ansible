@@ -171,6 +171,10 @@ ansible_facts:
           description: Server nickname.
           type: str
           sample: "WebServer414"
+        nick_name:
+          description: Deprecated. Use C(nickname) instead.
+          type: str
+          sample: "WebServer414"
         number_of_paths:
           description: Number of paths configured for the server.
           type: int

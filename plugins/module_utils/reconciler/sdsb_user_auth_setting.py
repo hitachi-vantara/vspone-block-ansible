@@ -37,9 +37,7 @@ class SDSBUserAuthSettingReconciler:
         if state == StateValue.PRESENT:
             return self.update_user_auth_settings(spec)
         else:
-            raise ValueError(SDSBUserAuthSettingMsg.UNSUPPORTED_STATE.value).format(
-                state
-            )
+            raise ValueError(SDSBUserAuthSettingMsg.UNSUPPORTED_STATE.value.format(state))
 
     @log_entry_exit
     def update_user_auth_settings(self, spec):

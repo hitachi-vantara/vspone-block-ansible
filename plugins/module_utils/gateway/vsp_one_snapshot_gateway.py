@@ -176,8 +176,8 @@ class VspOneSnapshotGateway:
         response = self.rest_api.pegasus_post(end_point, data=None)
         result = None
         # Retry logic to wait for pair status to become PSUS
-        max_retries = 30
-        retry_interval = 10  # seconds
+        max_retries = 90
+        retry_interval = 20  # seconds
         for attempt in range(max_retries):
             result = self.get_snapshot_by_id(response)
             if wait_for_final_state is False:

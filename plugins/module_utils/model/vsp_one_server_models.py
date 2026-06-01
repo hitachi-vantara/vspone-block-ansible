@@ -204,8 +204,8 @@ class CreateServerSpec(SingleBaseClass):
     os_type_options: Optional[List[int]] = None
     hbas: Optional[List[HBASpec]] = None
     keep_lun_config: Optional[bool] = None
-    host_groups: Optional[List[str]] = None
-    iscsi_targets: Optional[List[str]] = None
+    host_groups: Optional[List[HostGroupSpec]] = None
+    iscsi_targets: Optional[List[IscsiTargetSpec]] = None
     comments: Optional[List[str]] = None
     paths: Optional[List[VspOneServerPathSpec]] = None
     iscsi_target_settings: Optional[List[IscsiTargetNameSpec]] = None

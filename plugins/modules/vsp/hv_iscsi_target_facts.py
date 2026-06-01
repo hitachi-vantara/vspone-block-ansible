@@ -200,6 +200,10 @@ ansible_facts:
           description: Port ID.
           type: str
           sample: "CL1-C"
+        ports:
+          description: Deprecated. Use port_ids instead.
+          type: str
+          sample: ["CL1-A", "CL1-B"]
         resource_group_id:
           description: Resource group ID.
           type: int

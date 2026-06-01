@@ -13,6 +13,7 @@ module: hv_vsp_one_gad_consistency_group_facts
 short_description: Retrieves consistency group of GAD pairs from VSP One storage systems.
 description:
   - This module allows to fetch consistency groups of GAD pairs on VSP One storage systems.
+  - This module is only compatible with VSP One B85 systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_gad_consistency_group_facts.yml)
 version_added: '4.8.0'

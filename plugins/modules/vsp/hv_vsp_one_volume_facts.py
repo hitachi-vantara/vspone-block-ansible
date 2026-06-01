@@ -230,6 +230,9 @@ ansible_facts:
         capacity_saving:
           description: Capacity saving setting (e.g., DEDUPLICATION_AND_COMPRESSION).
           type: str
+        saving_setting:
+          description: Deprecated. Use C(capacity_saving) instead.
+          type: str
         capacity_saving_progress:
           description: Capacity saving progress.
           type: int

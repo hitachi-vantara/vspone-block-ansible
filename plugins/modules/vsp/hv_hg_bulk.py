@@ -383,6 +383,14 @@ host_groups:
       description: Default or requested port associated with the host group operations (e.g., CLx-A).
       type: str
       sample: "CL4-B"
+    ports:
+          description: Deprecated. Use port_ids instead.
+          type: str
+          sample: ["CL1-A", "CL1-B"]
+    nick_name:
+      description: Deprecated. Use nickname instead.
+      type: str
+      sample: "app-server-1"
     resource_group_id:
       description: Resource group ID associated with the host group (if applicable).
       type: int

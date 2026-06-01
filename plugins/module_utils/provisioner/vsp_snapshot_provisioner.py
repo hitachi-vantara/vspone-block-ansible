@@ -465,7 +465,7 @@ class VSPHtiSnapshotProvisioner:
                 # changed = False
                 resp = self.fill_nvm_subsystem_info_for_one_snapshot(ssp)
                 return self.fill_host_group_info_for_one_snapshot(resp)
-        spec.exiting_svol = True
+        spec.existing_svol = True
         return self.create_snapshot_auto_svol(spec)
 
     @log_entry_exit
@@ -492,7 +492,7 @@ class VSPHtiSnapshotProvisioner:
 
             # fix uca-3157, we want to show the error message from create_snapshot
             try:
-                if port and not spec.exiting_svol:
+                if port and not spec.existing_svol:
                     self.vol_provisioner.delete_lun_path(port)
                 self.vol_provisioner.delete_volume(
                     svol_id, spec.is_data_reduction_force_copy
@@ -735,21 +735,19 @@ class VSPHtiSnapshotProvisioner:
         return
 
     @log_entry_exit
-    def resync_snapshot(self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool):
+    def resync_snapshot(self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool, wait_for_final_state=True):
         ssp = self.gateway.get_one_snapshot(pvol, mirror_unit_id)
         if ssp.status in (PairStatus.PAIR, PairStatus.PFUL):
             return ssp
         enable_quick_mode = enable_quick_mode or False
         unused = self.gateway.resync_snapshot(pvol, mirror_unit_id, enable_quick_mode)
 
-        retryCount = 0
-        while retryCount < 30:
-            ssp = self.gateway.get_one_snapshot(pvol, mirror_unit_id)
-            if ssp.status in (PairStatus.PAIR, PairStatus.PFUL):
-                break
-            retryCount = retryCount + 1
-            self.logger.writeDebug(f"Polling for PAIR status: {retryCount}")
-            time.sleep(20)
+        ssp = self.__check_snapshot_status(
+            pvol,
+            mirror_unit_id,
+            (PairStatus.PAIR, PairStatus.PFUL),
+            wait_for_final_state
+        )
 
         self.connection_info.changed = True
         return ssp
@@ -883,6 +881,7 @@ class VSPHtiSnapshotProvisioner:
         mirror_unit_id: int,
         enable_quick_mode: bool,
         retention_period=None,
+        wait_for_final_state=True
     ):
 
         ssp = self.gateway.get_one_snapshot(pvol, mirror_unit_id)
@@ -893,15 +892,13 @@ class VSPHtiSnapshotProvisioner:
                 pvol, mirror_unit_id, enable_quick_mode
             )
 
-            #  20240816 - SPLIT: poll every 20 seconds for 10 mins for split status before returning
-            retryCount = 0
-            while retryCount < 30:
-                ssp = self.gateway.get_one_snapshot(pvol, mirror_unit_id)
-                if ssp.status in (PairStatus.PSUS, PairStatus.PFUS):
-                    break
-                retryCount = retryCount + 1
-                self.logger.writeDebug(f"Polling for split status: {retryCount}")
-                time.sleep(20)
+            ssp = self.__check_snapshot_status(
+                pvol,
+                mirror_unit_id,
+                (PairStatus.PSUS, PairStatus.PFUS),
+                wait_for_final_state
+            )
+
             self.connection_info.changed = True
 
         if retention_period:
@@ -916,7 +913,7 @@ class VSPHtiSnapshotProvisioner:
 
     @log_entry_exit
     def restore_snapshot(
-        self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool, auto_split: bool
+        self, pvol: int, mirror_unit_id: int, enable_quick_mode: bool, auto_split: bool, wait_for_final_state=True
     ):
         ssp = self.get_one_snapshot(pvol, mirror_unit_id)
         if ssp.status in (PairStatus.PAIR, PairStatus.PFUL) and auto_split is not True:
@@ -929,14 +926,12 @@ class VSPHtiSnapshotProvisioner:
             auto_split=auto_split,
         )
 
-        retryCount = 0
-        while retryCount < 3:
-            ssp = self.get_one_snapshot(pvol, mirror_unit_id)
-            if ssp.status in (PairStatus.PAIR, PairStatus.PFUL):
-                break
-            retryCount = retryCount + 1
-            self.logger.writeDebug(f"Polling for restore status: {retryCount}")
-            time.sleep(20)
+        ssp = self.__check_snapshot_status(
+            pvol,
+            mirror_unit_id,
+            (PairStatus.PAIR, PairStatus.PFUL),
+            wait_for_final_state
+        )
 
         self.connection_info.changed = True
         return ssp
@@ -984,7 +979,7 @@ class VSPHtiSnapshotProvisioner:
 
     def __check_snapshot_group_status(self, spec, status):
         retryCount = 0
-        while retryCount < 30:
+        while retryCount < 90:
             snapshots = self.get_snapshots_by_grp_name(spec.snapshot_group_name)
             all_in_pair = all(
                 snapshot.status in status for snapshot in snapshots.snapshots.data
@@ -1021,3 +1016,32 @@ class VSPHtiSnapshotProvisioner:
             retryCount = retryCount + 1
             self.logger.writeDebug(f"Checking snapshot deletion status: {retryCount}")
             time.sleep(20)
+
+    def __check_snapshot_status(self, pvol, mirror_unit_id, status, wait_for_final_state=True):
+        """
+        Polls for snapshot status if wait_for_final_state is True, then returns the last snapshot state.
+        If wait_for_final_state is False, fetches and returns the current snapshot immediately.
+        """
+        retryCount = 0
+        snapshots = None
+
+        # If we aren't waiting for a final state, just pull the current state once
+        if not wait_for_final_state:
+            snapshots = self.gateway.get_one_snapshot(pvol, mirror_unit_id)
+            self.logger.writeDebug("wait_for_final_state is False. Returning immediate snapshot state.")
+            return snapshots
+
+        # Otherwise, enter the polling loop
+        while retryCount < 90:
+            snapshots = self.gateway.get_one_snapshot(pvol, mirror_unit_id)
+
+            # Check if the snapshot status matches our target criteria
+            if snapshots and snapshots.status in status:
+                self.logger.writeDebug(f"Snapshot reached target status '{snapshots.status}' after {retryCount} retries.")
+                break
+
+            retryCount = retryCount + 1
+            self.logger.writeDebug(f"Polling for snapshot status: {retryCount}. Current: {getattr(snapshots, 'status', None)}")
+            time.sleep(20)
+
+        return snapshots

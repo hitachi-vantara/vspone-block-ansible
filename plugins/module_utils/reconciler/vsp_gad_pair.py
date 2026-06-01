@@ -32,6 +32,7 @@ try:
     from ..gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from ..model.vsp_gad_pairs_models import VspGadPairSpec
     from ..common.hv_constants import StateValue
+    from ..common.context_store import set_option_a1
     from ..message.vsp_gad_pair_msgs import GADPairValidateMSG
     from ..model.vsp_resource_group_models import (
         VSPResourceGroupFactSpec,
@@ -44,7 +45,6 @@ try:
     from ..model.vsp_host_group_models import HostGroupSpec
     from ..model.vsp_iscsi_target_models import IscsiTargetSpec
     from ..model.vsp_nvme_models import VSPNvmeSubsystemSpec
-    from ..model.vsp_resource_group_models import VSPResourceGroupSpec
     from ..model.vsp_volume_models import CreateVolumeSpec, LdevNamespec
     from ..message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
     from ..common.ansible_common_constants import MAX_WORKER_THREADS
@@ -68,11 +68,14 @@ except ImportError:
     from gateway.vsp_storage_system_gateway import VSPStorageSystemDirectGateway
     from model.vsp_gad_pairs_models import VspGadPairSpec
     from common.hv_constants import StateValue
+    from common.context_store import set_option_a1
     from model.vsp_resource_group_models import (
         VSPResourceGroupFactSpec,
     )
     from model.vsp_gad_pairs_models import (
         VspBatchGadPairSpec,
+        VSPResourceGroupSpec,
+        HostGroupInfo,
     )
     from message.vsp_true_copy_msgs import VSPTrueCopyValidateMsg
 
@@ -125,6 +128,10 @@ class VSPGadPairReconciler:
             result = self.delete_gad_pair(spec)
             return result
         elif state == StateValue.PRESENT:
+            resp_data = self.create_gad(spec)
+            logger.writeDebug("RC:resp_data={}", resp_data)
+        elif state == StateValue.FORCED_PRESENT:
+            set_option_a1(True)
             resp_data = self.create_gad(spec)
             logger.writeDebug("RC:resp_data={}", resp_data)
         elif state == StateValue.SPLIT:
@@ -238,6 +245,8 @@ class VSPGadPairReconciler:
         vsm_prov = None
         vsm = None
         unused, rg_id = self._get_vsm_details(spec)
+
+        set_option_a1(spec.force_create)
 
         if spec.virtual_storage_serial_number is not None:
             vsm_prov = VSPResourceGroupProvisioner(

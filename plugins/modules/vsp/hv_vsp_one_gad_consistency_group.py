@@ -14,6 +14,7 @@ short_description: Manages GAD pairs in a consistency group on VSP One block sto
 description:
   - This module allows for the splitting, and resynchronization of GAD pairs in a consistency group on VSP One block storage systems.
   - It supports various GAD pairs operations based on the specified task level.
+  - This module is only compatible with VSP One B85 systems.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_gad_consistency_group.yml)
 version_added: '4.8.0'

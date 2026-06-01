@@ -214,7 +214,7 @@ users:
           type: str
           sample: "SecurityAdministrators"
     user_id:
-      description: Unique ID of the user.
+      description: Deprecated. Use id instead.
       type: str
       sample: "testqw"
     user_object_id:

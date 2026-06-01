@@ -121,6 +121,10 @@ remote_path_groups:
       description: Unique identifier of the remote path group.
       type: str
       sample: "72b765af-5159-405d-9d60-a899ad8f751c"
+    local_port:
+      description: Deprecated. Use C(local_port_id) instead.
+      type: str
+      sample: "CL1-C"
     local_storage_controller_id:
       description: Identifier of the local storage controller associated with the path group.
       type: str
@@ -141,6 +145,10 @@ remote_path_groups:
       description: Serial number of the remote storage system.
       type: str
       sample: "810050"
+    remote_port:
+      description: Deprecated. Use C(remote_port_id) instead.
+      type: str
+      sample: "CL2-C"
     remote_storage_type_id:
       description: Model or type identifier of the remote storage system.
       type: str
