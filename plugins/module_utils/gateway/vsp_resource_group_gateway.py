@@ -4,6 +4,7 @@ try:
     from ..common.hv_log import Log
     from ..common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from ..common.vsp_storage_models import VSPStorageModelsManager
+    from ..common.context_store import get_option_a1
     from ..message.vsp_resource_group_msgs import VSPResourceGroupValidateMsg
     from ..model.vsp_resource_group_models import (
         VspResourceGroupInfo,
@@ -16,6 +17,7 @@ except ImportError:
     from common.hv_log import Log
     from common.ansible_common import dicts_to_dataclass_list, log_entry_exit
     from common.vsp_storage_models import VSPStorageModelsManager
+    from common.context_store import get_option_a1
     from message.vsp_resource_group_msgs import VSPResourceGroupValidateMsg
     from model.vsp_resource_group_models import (
         VspResourceGroupInfo,
@@ -353,8 +355,9 @@ class VSPResourceGroupDirectGateway:
         if len(parameters) == 0:
             return
 
-        # commenting out canRunIfResourceLocked as it causes error when resource is not locked
-        # parameters["canRunIfResourceLocked"] = True
+        # EAS-40
+        if rg_id and self.is_option_a1_enabled() and self.is_resource_group_locked(rg_id):
+            parameters["canRunIfResourceLocked"] = True
         payload = {"parameters": parameters}
         end_point = ADD_RESOURCE_TO_RESOURCE_GROUP_DIRECT.format(rg_id)
         timeout = None
@@ -402,8 +405,9 @@ class VSPResourceGroupDirectGateway:
             return
 
         # parameters["virtualStorageDeviceId"] = True
-        # commenting out canRunIfResourceLocked as it causes error when resource is not locked
-        # parameters["canRunIfResourceLocked"] = True
+        # EAS-40
+        if rg_id and self.is_option_a1_enabled() and self.is_resource_group_locked(rg_id):
+            parameters["canRunIfResourceLocked"] = True
         payload = {"parameters": parameters}
         self.remove_resoure_with_payload(rg_id, payload)
         self.connection_info.changed = True
@@ -459,10 +463,26 @@ class VSPResourceGroupDirectGateway:
 
         if bool(parameters):
             # parameters["virtualStorageDeviceId"] = True
-            # commenting out canRunIfResourceLocked as it causes error when resource is not locked
-            # parameters["canRunIfResourceLocked"] = True
+            # EAS-40
+            rg_id = rg.resourceGroupId
+            if rg_id and self.is_option_a1_enabled() and self.is_resource_group_locked(rg_id):
+                parameters["canRunIfResourceLocked"] = True
             payload = {"parameters": parameters}
             self.remove_resoure_with_payload(rg.resourceGroupId, payload)
 
         self.delete_resource_group(rg.resourceGroupId)
         self.connection_info.changed = True
+
+    @log_entry_exit
+    def is_resource_group_locked(self, resource_group_id: int) -> bool:
+        rg = self.get_resource_group_by_id(resource_group_id)
+        return (
+            rg.lockStatus is not None
+            and rg.lockStatus.upper() != "UNLOCKED"
+        )
+
+    @log_entry_exit
+    def is_option_a1_enabled(self) -> bool:
+        oa1 = get_option_a1()
+        logger.writeInfo("Option A1 enabled: {}".format(oa1))
+        return oa1

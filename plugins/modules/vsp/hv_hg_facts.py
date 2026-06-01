@@ -214,6 +214,14 @@ ansible_facts:
           description: Port associated with the host group.
           type: str
           sample: "CL4-B"
+        port:
+          description: Deprecated. Use port_id instead.
+          type: str
+          sample: "CL4-B"
+        ports:
+          description: Deprecated. Use port_ids instead.
+          type: str
+          sample: ['CL1-A', 'CL1-B']
         resource_group_id:
           description: Resource group ID.
           type: int

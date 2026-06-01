@@ -14,6 +14,10 @@ short_description: Manages GAD pairs on VSP One block storage systems.
 description:
   - This module allows for the creation, deletion, splitting, and resynchronization of GAD pairs on VSP One block storage systems.
   - It supports various GAD pairs operations based on the specified task level.
+  - This module is only compatible with VSP One B85 systems.
+  - For examples, go to URL
+    U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/vsp_one_gad_pair.yml)
+
 version_added: '4.8.0'
 author:
   - Hitachi Vantara LTD (@hitachi-vantara)
@@ -148,15 +152,6 @@ options:
         type: str
         required: false
 
-      # --- Delete Parameters (state=absent) ---
-      delete_mode:
-        description: NORMAL or FORCE deletion. Default is NORMAL.
-        type: str
-        required: false
-      allow_volume_access_after_force_delete:
-        description: Required if delete_mode is FORCE. Whether to allow access to volumes after force deletion.
-        type: bool
-        required: false
 """
 
 EXAMPLES = """
@@ -201,16 +196,6 @@ EXAMPLES = """
       copy_pace: 3
       io_preference: KEEP_CURRENT_SETTING
 
-- name: Delete GAD pairs (Force Mode)
-  hitachivantara.vspone_block.vsp.hv_vsp_one_gad:
-    connection_info: "{{ connection_info }}"
-    state: absent
-    spec:
-      primary_volume_mirrors:
-        - primary_volume_id: 100
-          mirror_unit_number: 1
-      delete_mode: force
-      allow_volume_access_after_force_delete: true
 """
 
 RETURN = """
@@ -389,8 +374,9 @@ class VSPOneGadUnifiedManager:
                     "is_swap_resynced",
                     "copy_pace",
                     "io_preference",
-                    "delete_mode",
-                    "allow_volume_access_after_force_delete",
+                    # commenting out delete_mode and allow_volume_access_after_force_delete: UCA-5762
+                    # "delete_mode",
+                    # "allow_volume_access_after_force_delete",
                 ]
                 # Filter the dictionary to only pair-specific keys
                 self.module.params["spec"] = {k: v for k, v in spec_params.items() if k in pair_keys}

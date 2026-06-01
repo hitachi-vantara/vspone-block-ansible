@@ -14,6 +14,7 @@ module: hv_gad_facts
 short_description: Retrieves GAD pairs information from VSP block storage systems.
 description:
   - This module allows to fetch GAD pairs on VSP block storage systems.
+  - For VSP One B85 systems use vsp.hv_vsp_one_gad_facts or vsp.hv_vsp_one_gad_consistency_group_facts.
   - For examples, go to URL
     U(https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/playbooks/vsp_direct/gad_pair_facts.yml)
 version_added: '3.1.0'

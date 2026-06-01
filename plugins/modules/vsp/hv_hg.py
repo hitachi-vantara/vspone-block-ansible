@@ -452,6 +452,14 @@ host_group:
       description: Default or requested port associated with the host group operations (e.g., CLx-A).
       type: str
       sample: "CL4-B"
+    port:
+      description: Deprecated. Use C(port_id) instead.
+      type: str
+      sample: "CL4-B"
+    ports:
+      description: Deprecated. Use C(port_ids) instead.
+      type: str
+      sample: ['CL1-A', 'CL1-B']
     resource_group_id:
       description: Resource group ID associated with the host group (if applicable).
       type: int

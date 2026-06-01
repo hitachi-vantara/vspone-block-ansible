@@ -190,15 +190,16 @@ class VspOneGadGateway:
 
     @log_entry_exit
     def get_body_for_delete_gad(self, spec):
-        delete_mode = getattr(spec, "delete_mode", "NORMAL").upper()
+        # commenting out deleteMode: UCA-5762
+        # delete_mode = getattr(spec, "delete_mode", "NORMAL").upper()
         body = {
             "ids": self._format_ids_for_api(spec.ids),
-            "deleteMode": delete_mode
+            # "deleteMode": delete_mode  # commenting out: UCA-5762
         }
-        if delete_mode == "FORCE":
-            # Map boolean to API ENUM: ALLOW or DENY
-            allow_access = getattr(spec, "allow_volume_access_after_force_delete", False)
-            body["forceVolumeAccess"] = "ALLOW" if allow_access else "DENY"
+        # if delete_mode == "FORCE":
+        #     # Map boolean to API ENUM: ALLOW or DENY
+        #     allow_access = getattr(spec, "allow_volume_access_after_force_delete", False)
+        #     body["forceVolumeAccess"] = "ALLOW" if allow_access else "DENY"
         return body
 
     @log_entry_exit

@@ -63,6 +63,7 @@
         spec:
           primary_volume_id: 100
           mirror_unit_number: 1
+          wait_for_final_state: true
       register: result
 
     - name: Debug the result variable
@@ -79,6 +80,7 @@
         spec:
           primary_volume_id: 100
           mirror_unit_number: 1
+          wait_for_final_state: false
       register: result
 
     - name: Debug the result variable
@@ -112,6 +114,7 @@
         spec:
           primary_volume_id: 100
           mirror_unit_number: 5
+          wait_for_final_state: true
       register: result
 
     - name: Debug the result variable

@@ -296,6 +296,10 @@ options:
         description: Virtual storage serial number for GAD pair creation.
         type: str
         required: false
+      force_create:
+        description: Forces creation when resource is locked by hv_resource_group_lock module.
+        type: bool
+        required: false
 """
 
 EXAMPLES = """
@@ -576,6 +580,7 @@ class VSPBatchGADPairManager:
             argument_spec=self.argument_spec,
             supports_check_mode=False,
         )
+
         try:
             self.params_manager = VSPParametersManager(self.module.params)
             self.spec = self.params_manager.batch_gad_pair_spec()

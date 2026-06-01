@@ -197,7 +197,7 @@ ansible_facts:
           type: str
           sample: "hur_bulk_cg_1P_"
         mirror_unit_id:
-          description: Deprecated. Use mirror_unit_number instead
+          description: Deprecated. Use mirror_unit_number instead.
           type: int
           sample: 1
         mirror_unit_number:

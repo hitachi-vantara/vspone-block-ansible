@@ -374,7 +374,7 @@ class VspOneGadProvisioner:
             "copyPace": "copy_pace",
             "ioPreference": "io_preference",
             "isSwapResynced": "is_swap_resynced",
-            "deleteMode": "delete_mode",
+            # "deleteMode": "delete_mode",  # commenting out deleteMode: UCA-5762
         }
 
         for api_field, spec_field in translation_map.items():

@@ -19,11 +19,6 @@ class VspOneSnapshotReconciler:
         self.provisioner = VspOneSnapshotProvisioner(connection_info)
 
     @log_entry_exit
-    def reconcile(self, spec: Any) -> Any:
-        spec.comments = []
-        return self.provisioner.change_port_settings(spec.port_id, spec)
-
-    @log_entry_exit
     def get_snapshot_facts(self, spec=None) -> Any:
         return self.provisioner.vsp_one_snapshot_facts(spec)
 
@@ -32,7 +27,7 @@ class VspOneSnapshotReconciler:
         return self.provisioner.get_snapshot_groups(spec)
 
     @log_entry_exit
-    def snapshot_group_reconcile(self, state, spec: str) -> bool:
+    def snapshot_group_reconcile(self, state, spec):
         if state == StateValue.PRESENT:
             response = self.provisioner.gateway.get_snapshot_group_by_name(
                 spec.snapshot_group_name

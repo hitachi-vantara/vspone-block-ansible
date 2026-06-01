@@ -62,7 +62,7 @@ class VSPLocalCopyGroupReconciler:
         self.logger.writeDebug("RC:local_copy_groups={}", copy_groups)
 
         if copy_groups is None:
-            return VSPCopyGroupsValidateMsg.OPERATION_CANNOT_BE_PERFORMED.format(
+            return VSPCopyGroupsValidateMsg.OPERATION_CANNOT_BE_PERFORMED.value.format(
                 spec.name
             )
         elif isinstance(copy_groups, LocalSpecificCopyGroupInfo):

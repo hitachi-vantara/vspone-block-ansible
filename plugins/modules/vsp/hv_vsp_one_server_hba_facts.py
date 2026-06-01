@@ -116,6 +116,10 @@ ansible_facts:
           type: list
           elements: str
           sample: ["CL1-C"]
+        nick_name:
+          description: Deprecated. Use C(nickname) instead.
+          type: str
+          sample: "WebServer414"
         server_id:
           description: Server identifier that this HBA belongs to.
           type: int

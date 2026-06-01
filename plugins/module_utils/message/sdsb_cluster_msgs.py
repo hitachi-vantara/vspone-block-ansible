@@ -103,3 +103,6 @@ class SDSBClusterValidationMsg(Enum):
     CONFIG_FILE_DOWNLOAD_FAILURE = (
         "Failed to  downloaded SystemConfigurationFile.csv in the directory."
     )
+    AWS_ADD_STORAGE_NODE_REQD = (
+        "configuration_file or vm_configuration_file_s3_uri must be specified to add storage node to AWS."
+    )

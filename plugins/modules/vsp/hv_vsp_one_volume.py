@@ -404,6 +404,9 @@ volume:
     capacity_saving:
       description: Capacity saving setting (e.g., DISABLE).
       type: str
+    saving_setting:
+      description: Deprecated. Use C(capacity_saving) instead.
+      type: str
     capacity_saving_status:
       description: Capacity saving status.
       type: str

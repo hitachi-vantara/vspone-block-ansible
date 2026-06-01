@@ -869,10 +869,10 @@ class SDSBClusterReconciler:
 
         storage_node = None
         if spec.node_id is None and spec.node_name is not None:
-            storage_node = storage_node_prov.get_storage_node_by_name(spec.node_name)
-            spec.node_id = storage_node.id if storage_node is not None else None
-        else:
-            storage_node = storage_node_prov.get_storage_node_by_id(spec.node_id)
+            storage_node_id = storage_node_prov.get_node_id_by_node_name(spec.node_name)
+            spec.node_id = storage_node_id
+
+        storage_node = storage_node_prov.get_storage_node_by_id(spec.node_id)
 
         if storage_node is None:
             raise ValueError(

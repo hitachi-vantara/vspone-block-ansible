@@ -447,7 +447,7 @@ snapshot_data:
       type: bool
       sample: false
     mirror_unit_id:
-      description: Deprecated. Use mirror_unit_number instead. Identifier of the mirror unit.
+      description: Deprecated. Use mirror_unit_number instead.
       type: int
       sample: 3
     mirror_unit_number:

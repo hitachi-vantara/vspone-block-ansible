@@ -549,6 +549,10 @@ hur_info:
         - Name of the local device group to retrieve TrueCopy pair information for.
       type: str
       sample: "hur_bulk_cg_1P_"
+    port:
+      description: Deprecated. Use port_id instead.
+      type: str
+      sample: 1
     mirror_unit_id:
       description: Deprecated. Use mirror_unit_number instead.
       type: int

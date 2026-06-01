@@ -66,6 +66,7 @@ class Drive(SingleBaseClass):
 class SubscriptionLimit(SingleBaseClass):
     isEnabled: bool = None
     currentRate: int = None
+    limitRate: any = None
 
 
 @dataclass

@@ -24,6 +24,9 @@ class SDSBRemotePathGroupValidationMsg(Enum):
     REMOTE_PATH_EXISTS = (
         "The remote path already exists in the remote path group with id = '{}'."
     )
+    REMOTE_PATH_NOT_FOUND = (
+        "The remote path with id = '{}' not found."
+    )
     REMOTE_PATH_DOES_NOT_EXIST = (
         "The remote path does not exist in the remote path group with id = '{}'."
     )

@@ -180,6 +180,10 @@ ansible_facts:
                     description: ID of the port.
                     type: str
                     sample: "CL8-B"
+                ports:
+                    description: Deprecated. Use port_ids instead.
+                    type: str
+                    sample: ["CL1-A", "CL1-B"]
                 port_mode:
                     description: Mode of the port.
                     type: str

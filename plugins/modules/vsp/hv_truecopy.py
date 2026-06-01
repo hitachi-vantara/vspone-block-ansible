@@ -470,6 +470,9 @@ truecopy_info:
         - Name of the local device group to retrieve TrueCopy pair information for.
       type: str
       sample: "tc_bulk_cg_1P_"
+    port:
+       description: Deprecated. Use port_id instead.
+       type: str
     primary_volume_id:
       description: Primary volume ID.
       type: int

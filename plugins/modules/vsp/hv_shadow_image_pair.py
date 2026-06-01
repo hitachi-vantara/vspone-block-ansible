@@ -245,7 +245,7 @@ data:
       type: str
       sample: "SI172"
     copy_pace_track_size:
-      description: Copy pace track size.
+      description: Deprecated. Use copy_pace instead.
       type: str
       sample: ""
     copy_pair_name:
@@ -281,6 +281,10 @@ data:
           host_group_number: 189
           lun: 0
           port_id: "CL2-B"
+    pvol_mu_number:
+      description: Deprecated. Use mirror_unit_number instead.
+      type: int
+      sample: 0
     pvol_host_groups:
       description: Deprecated. Use primary_volume_host_groups instead.
       type: list

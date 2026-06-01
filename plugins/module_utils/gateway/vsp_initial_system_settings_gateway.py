@@ -10,7 +10,7 @@ try:
         AuditLogFileDestResponse,
         UploadFileSpec,
         SpecifyTransferDestinationFileSpec,
-        SyslogServerPfrest,
+        SysLogServerSpec,
         SNMPV3,
         SNMPRequestSpec,
     )
@@ -24,7 +24,7 @@ except ImportError:
         AuditLogFileDestResponse,
         UploadFileSpec,
         SpecifyTransferDestinationFileSpec,
-        SyslogServerPfrest,
+        SysLogServerSpec,
         SNMPV3,
         SNMPRequestSpec,
     )
@@ -155,7 +155,7 @@ class SystemSettingsGateway:
         response = self.connection_manager.patch(end_point, data=payload)
         return response
 
-    def set_syslog_server(self, syslog: SyslogServerPfrest):
+    def set_syslog_server(self, syslog: SysLogServerSpec):
         """
         Set the syslog server.
         """

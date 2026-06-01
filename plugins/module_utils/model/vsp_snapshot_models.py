@@ -81,6 +81,7 @@ class SnapshotReconcileSpec:
     wait_for_final_state: Optional[bool] = None
     should_delete_svol: Optional[bool] = False
     create_drs_svol: Optional[bool] = False
+    existing_svol: Optional[bool] = None
 
     def __init__(self, **kwargs):
         for field in self.__dataclass_fields__.keys():

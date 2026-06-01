@@ -208,6 +208,10 @@ external_path_group:
               description: Port number.
               type: str
               sample: "CL6-B"
+            port:
+              description: Deprecated. Use C(port_id) instead.
+              type: str
+              sample: "CL6-B"
             priority:
               description: Priority within the external path group.
               type: int

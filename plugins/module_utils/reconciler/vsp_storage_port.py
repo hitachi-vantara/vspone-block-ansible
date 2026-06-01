@@ -299,9 +299,9 @@ class ExternalPortInfoExtractor:
         if isinstance(self.spec, ChangePortSettingSpec) and self.query:
             output[self.query] = iscsi_list
         else:
-            if "external_iscsi_targets" in self.spec.query:
+            if "external_iscsi_targets" in self.query:
                 output["external_iscsi_targets"] = iscsi_list
-            elif "registered_external_iscsi_targets" in self.spec.query:
+            elif "registered_external_iscsi_targets" in self.query:
                 output["registered_external_iscsi_targets"] = iscsi_list
 
         return output

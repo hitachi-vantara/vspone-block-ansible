@@ -81,6 +81,7 @@ class StoragePoolSpec:
     start_pool_volume_id: str = None
     end_pool_volume_id: str = None
     should_stop_shrinking: bool = None
+    pool_id: int = None
 
     def __post_init__(self):
         if self.pool_volumes:

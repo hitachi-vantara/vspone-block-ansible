@@ -254,7 +254,7 @@ class VSPIscsiTargetReconciler:
                     #         str(e),
                     #     )
                     # )
-                    raise ValueError(self.errors)
+                    raise e
 
         if subobjState == StateValue.ABSENT:
             if delLun:
@@ -730,7 +730,7 @@ class VSPIscsiTargetReconciler:
 
         ports = spec.port_ids
         name = spec.name
-        id = spec.id
+        id = spec.iscsi_id
         results = {"changed": False, "iscsi_targets": [], "comments": [], "errors": []}
         results_lock = threading.Lock()
         max_workers = min(len(ports), 10)  # Limit concurrent threads

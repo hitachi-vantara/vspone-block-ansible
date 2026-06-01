@@ -30,7 +30,6 @@ logger = Log()
 class VSPParityGroupReconciler:
 
     def __init__(self, connectionInfo, state=None):
-        self.logger = Log()
         self.connectionInfo = connectionInfo
         self.state = state
         self.provisioner = VSPParityGroupProvisioner(self.connectionInfo)
@@ -53,7 +52,7 @@ class VSPParityGroupReconciler:
         try:
             return self.provisioner.create_parity_group(spec)
         except Exception as e:
-            self.logger.error(f"Error occurred while creating parity group: {e}")
+            logger.writeError(f"Error occurred while creating parity group: {e}")
             if match_api_not_supported(str(e)):
                 raise ValueError(
                     VSPParityGroupValidateMsg.CREATE_PARITY_GROUP_NOT_SUPPORTED.value
@@ -65,7 +64,7 @@ class VSPParityGroupReconciler:
         try:
             return self.provisioner.delete_parity_group(spec)
         except Exception as e:
-            self.logger.error(f"Error occurred while deleting parity group: {e}")
+            logger.writeError(f"Error occurred while deleting parity group: {e}")
             if match_api_not_supported(str(e)):
                 raise ValueError(
                     VSPParityGroupValidateMsg.DELETE_PARITY_GROUP_NOT_SUPPORTED.value

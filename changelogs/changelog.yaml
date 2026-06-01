@@ -1718,3 +1718,28 @@ releases:
     fragments:
     - release-4.8.1.yml
     release_date: '2026-05-11'
+  4.8.2:
+    changes:
+      minor_changes:
+      - "Added a new input parameter \u201Cforce_create\u201D in the \u201Cgad_bulk\u201D
+        module to allow GAD pair creation even when resources are locked, must be
+        used only within the \u201Cresource_management_with_lock\u201D module."
+      - "Added a new playbook \u201Cremote_replication_gad\u201D in the resource_management_with_lock
+        module."
+      - "Added a new state \u201Cforced_present\u201D in the gad module to allow GAD
+        pair creation even when resources are locked, must be used only within the
+        \u201Cresource_management_with_lock\u201D module."
+      - "Added support for SVOS 10.5.3 NVMe_FC management \u201Cnvm_subsystems\u201D
+        and \u201Cnvm_subsystem_facts\u201D,( with the limitation that port configuration
+        migration from FC to NVMe_FC) for VSP One BHE storage models."
+      - Added support for input parameter wait_for_final_state for following module
+        hv_snapshot.
+      - "Removed the input parameters \u201Cdelete_mode\u201D and \u201Callow_volume_access_after_force_delete\u201D
+        from the \u201Chv_vsp_one_gad\u201D module."
+      release_summary: 'The following features and enhancements are new to VSP One
+        Block Storage Modules for Red Hat Ansible:
+
+        '
+    fragments:
+    - release-4.8.2.yml
+    release_date: '2026-05-29'

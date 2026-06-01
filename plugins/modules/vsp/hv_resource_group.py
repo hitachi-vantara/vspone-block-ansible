@@ -470,14 +470,18 @@ resource_groups:
             elements: str
             sample: ["0x1", "0x2", "0x3"]
         parity_groups:
-            description: List of parity groups in the resource group.
+            description: Deprecated. Use parity_group_ids instead.
             type: list
             elements: str
             sample: ["PG1", "PG2"]
-        ports:
-            description: Deprecated. Use port_ids instead.
+        port:
+            description: Deprecated. Use port_id instead.
             type: list
             elements: str
+            sample: ["CL1-A", "CL1-C"]
+        ports:
+            description: Deprecated. Use port_ids instead.
+            type: str
             sample: ["CL1-A", "CL1-C"]
         port_ids:
             description: List of port IDs in the resource group.
@@ -519,6 +523,7 @@ class VSPResourceGroupManager:
             argument_spec=self.argument_spec,
             supports_check_mode=False,
         )
+
         try:
             self.parameter_manager = VSPParametersManager(self.module.params)
             self.connection_info = self.parameter_manager.get_connection_info()

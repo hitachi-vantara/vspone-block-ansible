@@ -1,0 +1,11 @@
+---
+release_summary: |
+  The following features and enhancements are new to VSP One Block Storage Modules for Red Hat Ansible:
+
+minor_changes:
+  - Added support for SVOS 10.5.3 NVMe_FC management "nvm_subsystems" and "nvm_subsystem_facts",( with the limitation that port configuration migration from FC to NVMe_FC) for VSP One BHE storage models.
+  - Added support for input parameter wait_for_final_state for following module hv_snapshot.
+  - Removed the input parameters "delete_mode" and "allow_volume_access_after_force_delete" from the "hv_vsp_one_gad" module.
+  - Added a new playbook "remote_replication_gad" in the resource_management_with_lock module.
+  - Added a new input parameter "force_create" in the "gad_bulk" module to allow GAD pair creation even when resources are locked, must be used only within the "resource_management_with_lock" module.
+  - Added a new state "forced_present" in the gad module to allow GAD pair creation even when resources are locked, must be used only within the "resource_management_with_lock" module.
