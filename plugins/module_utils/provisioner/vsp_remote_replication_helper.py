@@ -115,8 +115,8 @@ class RemoteReplicationHelperForSVol:
                     for free_vol in free_vol_info.data:
                         if free_vol.resourceGroupId == 0:
                             if (
-                                free_vol.ldevId > spec.begin_secondary_volume_id
-                                and free_vol.ldevId < spec.end_secondary_volume_id
+                                free_vol.ldevId >= spec.begin_secondary_volume_id
+                                and free_vol.ldevId <= spec.end_secondary_volume_id
                             ):
                                 return free_vol.ldevId
                             else:

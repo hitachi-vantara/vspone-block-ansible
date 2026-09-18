@@ -238,6 +238,8 @@ class PathGroupInfoExtractor:
                 # Get the corresponding key from the response or its mapped key
                 response_key = response.get(key)
                 if value_type == list:
+                    if isinstance(response_key, dict) and "data" in response_key:
+                        response_key = response_key["data"]
                     response_key = self.process_list(response_key)
                 # Assign the value based on the response key and its data type
                 cased_key = camel_to_snake_case(key)

@@ -160,7 +160,8 @@ class VSPResourceGroupSpec(SingleBaseClass):
         if self.port_ids is not None:
             self.ports = [str(port_id) for port_id in self.port_ids]
         if self.virtual_storage_model and self.virtual_storage_serial:
-            self.virtual_storage_serial = self.virtual_storage_serial[-5:]
+            if len(self.virtual_storage_serial) > 6:
+                self.virtual_storage_serial = self.virtual_storage_serial[-5:]
 
 
 @dataclass

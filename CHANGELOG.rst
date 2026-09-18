@@ -4,6 +4,26 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.8.3
+======
+
+Release Summary
+---------------
+
+The following features and enhancements are new to VSP One Block Storage Modules for Red Hat Ansible:
+
+Minor Changes
+-------------
+
+- Added support for SVOS 10.5.4 VSP One B24/B26/B28 storage models.
+- Fixed an issue where external path group facts returned an empty external path.
+- Fixed an issue where creating a GAD pair failed with "No free LDEV found in the range."
+- Fixed an issue where adding an iSCSI target to a VSM returned empty output.
+- Fixed an issue where the IQN was blank in iSCSI target facts.
+- Fixed an issue where the WWN was blank in host group facts.
+- Fixed an issue affecting VSM creation for B-series storage.
+- Fixed an issue where an external LDEV could not be created on the first ELUN in local storage for Hitachi UVM.
+
 v4.8.2
 ======
 

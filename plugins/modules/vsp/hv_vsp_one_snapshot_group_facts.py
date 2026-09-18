@@ -72,7 +72,7 @@ ansible_facts:
   returned: always
   type: dict
   contains:
-    snapshots:
+    snapshot_groups:
       description: List of snapshot groups retrieved from the storage system.
       returned: always
       type: list
@@ -151,7 +151,7 @@ class VSPOneSnapshotGroupFacts:
             self.module.fail_json(msg=str(e))
 
         response = {
-            "snapshots": snapshots,
+            "snapshot_groups": snapshots,
         }
         if registration_message:
             response["user_consent_required"] = registration_message

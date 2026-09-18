@@ -406,26 +406,32 @@ class VSPResourceGroupProvisioner:
         hg_list = []
         if iscsi_target_ids is None:
             return hg_list
-        iscsi_targets_data = None
-        port_set = set()
-        id_set = set()
-        id_to_port = {}
-        for hg_id in iscsi_target_ids:
-            ss = hg_id.split(",")
-            port = ss[0]
-            port_set.add(port)
-            id = ss[1]
-            id_set.add(id)
-            id_to_port[id] = port
 
+        wanted_targets = {}
+        for hg_id in iscsi_target_ids:
+            parts = hg_id.split(",", 1)
+            if len(parts) < 2:
+                continue
+            port = parts[0]
+            target_id = str(parts[1])
+            wanted_targets[f"{port},{target_id}"] = port
+
+        ports_to_fetch = set(wanted_targets.values())
+        iscsi_targets_data = []
+
+        for port in sorted(ports_to_fetch):
             spec = IscsiTargetFactSpec(ports=[port])
             iscsi_targets = self.iscsi_gateway.get_iscsi_targets(spec)
-            # logger.writeDebug("PV:get_display_iscsi_targets:iscsi_targets={}", iscsi_targets)
-            iscsi_targets_data = iscsi_targets.data
-        if iscsi_targets_data is None:
+            if iscsi_targets and iscsi_targets.data:
+                iscsi_targets_data.extend(iscsi_targets.data)
+
+        if not iscsi_targets_data:
             return hg_list
+
+        matched_keys = set()
         for iscsi_target in iscsi_targets_data:
-            if str(iscsi_target.iscsiId) in id_set:
+            key = f"{iscsi_target.portId},{iscsi_target.iscsiId}"
+            if key in wanted_targets:
                 hg_list.append(
                     HostGroupInfo(
                         port=iscsi_target.portId,
@@ -433,11 +439,12 @@ class VSPResourceGroupProvisioner:
                         id=iscsi_target.iscsiId,
                     )
                 )
-                id_set.remove(str(iscsi_target.iscsiId))
+                matched_keys.add(key)
 
-        remaining = list(id_set)
-        for id in remaining:
-            hg_list.append(HostGroupInfo(port=id_to_port[id], name="", id=id))
+        remaining = set(wanted_targets) - matched_keys
+        for key in sorted(remaining, key=lambda k: (wanted_targets.get(k, ""), k)):
+            port, target_id = key.split(",", 1)
+            hg_list.append(HostGroupInfo(port=port, name="", id=target_id))
 
         return hg_list
 
