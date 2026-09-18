@@ -307,7 +307,7 @@
       else hv_vsp_ndm_gad_migration_pairs_primary_storage_model_raw -%}
       {%- if model_part.startswith('5') -%}
       R9{%- elif model_part in ['G1000', 'G1500', 'F1500'] -%}
-      R8{%- elif model_part in ['B85'] -%}
+      R8{%- elif 'B85' in model_part -%}
       RH20ETP{%- else -%}
       M8{%- endif -%}
 
@@ -318,7 +318,7 @@
       else hv_vsp_ndm_gad_migration_pairs_secondary_storage_model_raw -%}
       {%- if model_part.startswith('5') -%}
       R9{%- elif model_part in ['G1000', 'G1500', 'F1500'] -%}
-      R8{%- elif model_part in ['B85'] -%}
+      R8{%- elif 'B85' in model_part -%}
       RH20ETP{%- else -%}
       M8{%- endif -%}
 

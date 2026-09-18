@@ -495,7 +495,7 @@ class VSPExternalVolumeProvisioner:
                     if externalWwn != externalLun["externalWwn"]:
                         continue
                     if (
-                        externalLun.get("externalLun")
+                        externalLun.get("externalLun") is not None
                         and lunId == externalLun["externalLun"]
                     ):
                         return (
