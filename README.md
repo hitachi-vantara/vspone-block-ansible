@@ -1,4 +1,4 @@
-# Hitachi Virtual Storage Platform One Block Storage Modules for Red Hat® Ansible® 4.8.3
+# Hitachi Virtual Storage Platform One Block Storage Modules for Red Hat® Ansible® 4.8.4
 
 The Hitachi Virtual Storage Platform One Block Storage Modules provide a comprehensive set of Ansible modules for managing VSP block storage systems (VSP One Block, VSP 5000 series, VSP E series, VSP F series, and VSP G series) and VSP One SDS Block and Cloud systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
@@ -117,10 +117,10 @@ To upgrade a Galaxy installation to the latest available version, run:
 ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 ```
 
-If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.8.3:
+If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.8.4:
 
 ```bash
-ansible-galaxy collection install hitachivantara.vspone_block:==4.8.3
+ansible-galaxy collection install hitachivantara.vspone_block:==4.8.4
 ```
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
@@ -191,7 +191,7 @@ For additional support, please use one of the following channels:
 
 ### Release Notes
 
-Version **4.8.3** highlights:
+Version **4.8.4** highlights:
 
 - General performance enhancements and bug fixes
 

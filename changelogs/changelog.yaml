@@ -1761,3 +1761,14 @@ releases:
     fragments:
     - release-4.8.3.yml
     release_date: '2026-09-18'
+  4.8.4:
+    changes:
+      minor_changes:
+      - Updated README.md with Ansible Automation Hub installation instructions for Red Hat customers and clarified Ansible Galaxy installation guidance for community users.
+      - Corrected deprecation warning text in meta/runtime.yml for hv_journal_volume_facts and hv_journal_volume.
+      release_summary: 'Documentation and metadata updates required for Red Hat certification.
+
+        '
+    fragments:
+    - release-4.8.4.yml
+    release_date: '2026-10-22'
