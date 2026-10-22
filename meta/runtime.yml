@@ -5,8 +5,8 @@ plugin_routing:
     hv_journal_volume_facts:
       deprecation:
         removal_version: "5.0.0"
-        warning_text: hv_gateway_subscriber_facts will be removed in a future release of this collection.
+        warning_text: hv_journal_volume_facts will be removed in a future release of this collection.
     hv_journal_volume:
       deprecation:
         removal_version: "5.0.0"
-        warning_text: hv_gateway_subscriber will be removed in a future release of this collection.
+        warning_text: hv_journal_volume will be removed in a future release of this collection.
