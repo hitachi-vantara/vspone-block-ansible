@@ -4,6 +4,21 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+
+v4.8.4
+======
+
+Release Summary
+---------------
+
+Documentation and metadata updates required for Red Hat certification.
+
+Minor Changes
+-------------
+
+- Updated README.md with Ansible Automation Hub installation instructions for Red Hat customers and clarified Ansible Galaxy installation guidance for community users.
+- Corrected deprecation warning text in meta/runtime.yml for hv_journal_volume_facts and hv_journal_volume.
+
 v4.8.3
 ======
 
