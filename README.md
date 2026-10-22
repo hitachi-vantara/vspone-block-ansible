@@ -60,7 +60,40 @@ For a detailed list of available modules, please refer to the [Modules Documenta
 
 ## Installation
 
-Before using this collection, you need to install it with the Ansible Galaxy command-line tool:
+### Red Hat customers: Ansible Automation Hub
+
+For certified collection installs, configure Ansible Automation Hub as your collection source. Add the following to your `ansible.cfg` (use the Automation Hub URL provided by your organization if it differs):
+
+```ini
+[galaxy]
+server_list = automation_hub
+
+[galaxy_server.automation_hub]
+url = https://console.redhat.com/api/automation-hub/
+```
+
+Provide your Automation Hub API token through the `ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN` environment variable, preferably from your organization's secrets manager. Then install the collection:
+
+```bash
+ansible-galaxy collection install hitachivantara.vspone_block
+```
+
+To upgrade the collection:
+
+```bash
+ansible-galaxy collection install hitachivantara.vspone_block --upgrade
+```
+
+You can also install directly from Automation Hub by specifying its server URL:
+
+```bash
+ansible-galaxy collection install hitachivantara.vspone_block \
+  --server https://console.redhat.com/api/automation-hub/
+```
+
+### Community users: Ansible Galaxy
+
+Community users can install the collection from Ansible Galaxy:
 
 ```bash
 ansible-galaxy collection install hitachivantara.vspone_block
@@ -76,9 +109,9 @@ collections:
     - hitachivantara.vspone_block.vsp
 ```
 
-Note that if you install the collection from Ansible Galaxy, it will not be upgraded automatically when you upgrade the Ansible package.
+Collection installs are not upgraded automatically when you upgrade the Ansible package.
 
-To upgrade the collection to the latest available version, run the following command:
+To upgrade a Galaxy installation to the latest available version, run:
 
 ```bash
 ansible-galaxy collection install hitachivantara.vspone_block --upgrade
