@@ -187,12 +187,20 @@ class VSPTrueCopyDirectGateway(VSPReplicationPairsDirectGateway):
             self.connection_info.username,
             self.connection_info.password,
             self.connection_info.api_token,
+            client_cert=self.connection_info.client_cert,
+            client_key=self.connection_info.client_key,
+            validate_cert=self.connection_info.validate_cert,
+            ca_cert=self.connection_info.ca_cert,
         )
         remote_connection_manager = VSPConnectionManager(
             sec_conn_info.address,
             sec_conn_info.username,
             sec_conn_info.password,
             sec_conn_info.api_token,
+            client_cert=sec_conn_info.client_cert,
+            client_key=sec_conn_info.client_key,
+            validate_cert=sec_conn_info.validate_cert,
+            ca_cert=sec_conn_info.ca_cert,
         )
         headers = remote_connection_manager.getAuthToken()
         headers["Remote-Authorization"] = headers.pop("Authorization")

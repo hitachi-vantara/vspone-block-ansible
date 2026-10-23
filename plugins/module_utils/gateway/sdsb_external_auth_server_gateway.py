@@ -30,7 +30,10 @@ class SDSBExternalAuthServerGateway:
 
     def __init__(self, connection_info):
         self.connection_manager = SDSBConnectionManager(
-            connection_info.address, connection_info.username, connection_info.password
+            connection_info.address, connection_info.username, connection_info.password,
+            client_cert=connection_info.client_cert, client_key=connection_info.client_key,
+            validate_cert=connection_info.validate_cert,
+            ca_cert=connection_info.ca_cert,
         )
 
     @log_entry_exit
@@ -73,7 +76,10 @@ class SDSBExternalAuthServerGateway:
         self, host_ip, file_name, target_server
     ):
         downloads_connection_manager = SDSBConnectionManager(
-            host_ip, self.connection_manager.username, self.connection_manager.password
+            host_ip, self.connection_manager.username, self.connection_manager.password,
+            client_cert=self.connection_manager.client_cert, client_key=self.connection_manager.client_key,
+            validate_cert=self.connection_manager.validate_cert,
+            ca_cert=self.connection_manager.ca_cert,
         )
         end_point = f"v1/objects/external-auth-server-root-certificates/{target_server}/download"
 
@@ -93,7 +99,10 @@ class SDSBExternalAuthServerGateway:
         self, host_ip, certificate_path, target_server
     ):
         imports_connection_manager = SDSBConnectionManager(
-            host_ip, self.connection_manager.username, self.connection_manager.password
+            host_ip, self.connection_manager.username, self.connection_manager.password,
+            client_cert=self.connection_manager.client_cert, client_key=self.connection_manager.client_key,
+            validate_cert=self.connection_manager.validate_cert,
+            ca_cert=self.connection_manager.ca_cert,
         )
         end_point = f"v1/objects/external-auth-server-root-certificates/{target_server}/actions/import/invoke"
 

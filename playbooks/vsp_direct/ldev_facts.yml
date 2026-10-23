@@ -15,6 +15,12 @@
       address: "{{ storage_address }}"
       username: "{{ vault_storage_username }}"
       password: "{{ vault_storage_secret }}"
+      # SSL options (all optional – see vsp_direct/ssl_connection_examples.yml):
+      # validate_cert: false             # Validate storage SSL cert (default: false, changes to true in v5.0)
+      # ca_cert: "/path/to/ca.pem"      # CA cert file/dir for self-signed certs
+      # client_cert: "/path/to/client-cert.pem"  # Client cert for mTLS
+      # client_key: "/path/to/client-key.pem"    # Client private key for mTLS
+      # suppress_validate_cert_warning: false     # Suppress warning when validate_cert: false
 
   tasks:
     # ###################################################################
@@ -111,6 +117,12 @@
           address: "{{ storage_address }}"
           username: "{{ vault_storage_username }}"
           password: "{{ vault_storage_secret }}"
+      # SSL options (all optional – see vsp_direct/ssl_connection_examples.yml):
+      # validate_cert: false             # Validate storage SSL cert (default: false, changes to true in v5.0)
+      # ca_cert: "/path/to/ca.pem"      # CA cert file/dir for self-signed certs
+      # client_cert: "/path/to/client-cert.pem"  # Client cert for mTLS
+      # client_key: "/path/to/client-key.pem"    # Client private key for mTLS
+      # suppress_validate_cert_warning: false     # Suppress warning when validate_cert: false
         spec:
           ldev_ids: [5242, 7002]
           is_detailed: false

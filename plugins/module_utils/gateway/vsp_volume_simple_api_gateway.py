@@ -55,6 +55,10 @@ class VspSimpleApiGateway:
             connection_info.username,
             connection_info.password,
             connection_info.api_token,
+            client_cert=connection_info.client_cert,
+            client_key=connection_info.client_key,
+            validate_cert=connection_info.validate_cert,
+            ca_cert=connection_info.ca_cert,
         )
         self.storage_gw = VSPStorageSystemDirectGateway(connection_info)
         self.end_points = Endpoints
@@ -128,10 +132,13 @@ class VspSimpleApiGateway:
             return None
         volume_info = SalamanderSimpleVolumeInfo(**vol_data)
 
-        qos_info = self.get_volume_qos_info(volume_id)
-        volume_info.qosSettings = qos_info
-        # server_info = self.get_volume_server_connection_info_by_id(volume_id)
-        # volume_info.luns = [lun.lunId for lun in server_info.luns] if server_info and server_info.luns else []
+        try:
+            qos_info = self.get_volume_qos_info(volume_id)
+            volume_info.qosSettings = qos_info
+        except Exception as qos_err:
+            logger.writeDebug(
+                f"Could not retrieve QoS info for volume {volume_id}: {qos_err}"
+            )
 
         return volume_info
 
@@ -171,7 +178,8 @@ class VspSimpleApiGateway:
 
         # Capacity saving (e.g., COMPRESSION, DEDUPLICATION_AND_COMPRESSION)
         if spec.capacity_saving:
-            payload[VolumePayloadConst.SAVING_SETTING] = spec.capacity_saving.upper()
+            cs = spec.capacity_saving.upper()
+            payload[VolumePayloadConst.SAVING_SETTING] = "DISABLE" if cs == "DISABLED" else cs
 
         # Data reduction share flag
         if spec.is_data_reduction_share_enabled is not None:
@@ -235,7 +243,8 @@ class VspSimpleApiGateway:
         if nick_name is not None:
             payload[VolumePayloadConst.NICK_NAME] = nick_name
         if saving_setting is not None:
-            payload[VolumePayloadConst.SAVING_SETTING] = saving_setting.upper()
+            ss = saving_setting.upper()
+            payload[VolumePayloadConst.SAVING_SETTING] = "DISABLE" if ss == "DISABLED" else ss
         if compression_acceleration is not None:
             payload[VolumePayloadConst.COMPRESSION_ACCELERATION] = (
                 compression_acceleration
@@ -403,6 +412,56 @@ class VspSimpleApiGateway:
         )
         response = self.rest_api.pegasus_delete(end_point, None)
         return response
+
+    @log_entry_exit
+    def delete_volumes_bulk(self, payload):
+        """
+        Delete multiple volumes in a single request.
+        POST /volumes/actions/delete/invoke
+        """
+        return self.rest_api.pegasus_post_bulk(
+            self.end_points.DELETE_VOLUMES_BULK, payload
+        )
+
+    @log_entry_exit
+    def edit_volume_nicknames_bulk(self, payload):
+        """
+        Change nicknames for multiple volumes in a single request (max 32).
+        POST /volumes/actions/edit-nicknames/invoke
+        """
+        return self.rest_api.pegasus_post_bulk(
+            self.end_points.EDIT_VOLUME_NICKNAMES_BULK, payload
+        )
+
+    @log_entry_exit
+    def edit_volume_alua_settings_bulk(self, payload):
+        """
+        Change ALUA mode settings for multiple volumes in a single request (max 64).
+        POST /volumes/actions/edit-alua-settings/invoke
+        """
+        return self.rest_api.pegasus_post_bulk(
+            self.end_points.EDIT_VOLUME_ALUA_SETTINGS_BULK, payload
+        )
+
+    @log_entry_exit
+    def edit_volume_saving_settings_bulk(self, payload):
+        """
+        Change capacity saving settings for multiple volumes in a single request (max 1000).
+        POST /volumes/actions/edit-saving-settings/invoke
+        """
+        return self.rest_api.pegasus_post_bulk(
+            self.end_points.EDIT_VOLUME_SAVING_SETTINGS_BULK, payload
+        )
+
+    @log_entry_exit
+    def disconnect_volume_server_connections_bulk(self, payload):
+        """
+        Detach multiple volume-server connections in a single request (max 1000 pairs).
+        POST /volume-server-connections/actions/disconnect/invoke
+        """
+        return self.rest_api.pegasus_post_bulk(
+            self.end_points.DISCONNECT_VOLUME_SERVER_CONNECTIONS_BULK, payload
+        )
 
     @log_entry_exit
     def get_storage_details(self):

@@ -1,4 +1,5 @@
 import json
+import ssl
 import threading
 import time
 import atexit
@@ -230,7 +231,10 @@ class SessionManager:
                 url_username=username,
                 url_password=password,
                 force_basic_auth=True if username else False,
-                validate_certs=False,
+                validate_certs=getattr(connection_info, "validate_cert", False),
+                client_cert=getattr(connection_info, "client_cert", None),
+                client_key=getattr(connection_info, "client_key", None),
+                ca_path=getattr(connection_info, "ca_cert", None) if getattr(connection_info, "validate_cert", False) else None,
             )
         except socket.timeout as t_err:
             logger.writeError(f"SessionManager._make_request - TimeoutError {t_err}")
@@ -267,6 +271,13 @@ class SessionManager:
 
                         raise VspRestApiError(error_dtls)
             raise VspRestApiError(err)
+        except (ssl.SSLError, urllib_error.URLError) as err:
+            err_str = str(err)
+            logger.writeError(f"SessionManager._make_request - SSL error: {err}")
+            _client_cert_kws = ("private key", "bad certificate", "sslv3 alert bad", "client auth")
+            if any(kw in err_str.lower() for kw in _client_cert_kws):
+                raise VspRestApiError(f"client certificate verify failed: {err_str}")
+            raise VspRestApiError(f"certificate verify failed: {err_str}")
         except Exception as err:
             logger.writeException(err)
             raise err

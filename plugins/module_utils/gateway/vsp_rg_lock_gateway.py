@@ -25,6 +25,10 @@ class VSPResourceGroupLockDirectGateway:
             connection_info.username,
             connection_info.password,
             connection_info.api_token,
+            client_cert=connection_info.client_cert,
+            client_key=connection_info.client_key,
+            validate_cert=connection_info.validate_cert,
+            ca_cert=connection_info.ca_cert,
         )
         self.connection_info = connection_info
         self.remote_connection_manager = None
@@ -59,6 +63,10 @@ class VSPResourceGroupLockDirectGateway:
                 spec.secondary_connection_info.username,
                 spec.secondary_connection_info.password,
                 spec.secondary_connection_info.api_token,
+                client_cert=spec.secondary_connection_info.client_cert,
+                client_key=spec.secondary_connection_info.client_key,
+                validate_cert=spec.secondary_connection_info.validate_cert,
+                ca_cert=spec.secondary_connection_info.ca_cert,
             )
             remote_lock_session_id, remote_lock_token = (
                 self.remote_connection_manager.get_lock_session_token()
@@ -84,6 +92,10 @@ class VSPResourceGroupLockDirectGateway:
                 spec.secondary_connection_info.username,
                 spec.secondary_connection_info.password,
                 spec.secondary_connection_info.api_token,
+                client_cert=spec.secondary_connection_info.client_cert,
+                client_key=spec.secondary_connection_info.client_key,
+                validate_cert=spec.secondary_connection_info.validate_cert,
+                ca_cert=spec.secondary_connection_info.ca_cert,
             )
             response2 = self.remote_connection_manager.post(end_point, data=None)
             logger.writeDebug(f"unlock_resource_group:response2={response2}")

@@ -25,6 +25,10 @@ class VSPRemoteCopyGroupsDirectGateway:
             connection_info.username,
             connection_info.password,
             connection_info.api_token,
+            client_cert=connection_info.client_cert,
+            client_key=connection_info.client_key,
+            validate_cert=connection_info.validate_cert,
+            ca_cert=connection_info.ca_cert,
         )
         self.connection_info = connection_info
         self.remote_connection_manager = None
@@ -54,6 +58,10 @@ class VSPRemoteCopyGroupsDirectGateway:
             remote_connection_info.username,
             remote_connection_info.password,
             remote_connection_info.api_token,
+            client_cert=remote_connection_info.client_cert,
+            client_key=remote_connection_info.client_key,
+            validate_cert=remote_connection_info.validate_cert,
+            ca_cert=remote_connection_info.ca_cert,
         )
         headers = remote_connection_manager.getAuthToken()
         headers["Remote-Authorization"] = headers.pop("Authorization")
@@ -89,6 +97,10 @@ class VSPRemoteCopyGroupsDirectGateway:
             remote_connection_info.username,
             remote_connection_info.password,
             remote_connection_info.api_token,
+            client_cert=remote_connection_info.client_cert,
+            client_key=remote_connection_info.client_key,
+            validate_cert=remote_connection_info.validate_cert,
+            ca_cert=remote_connection_info.ca_cert,
         )
         copy_pairs = []
         headers = remote_connection_manager.getAuthToken()
@@ -110,12 +122,20 @@ class VSPRemoteCopyGroupsDirectGateway:
                         self.connection_info.username,
                         self.connection_info.password,
                         self.connection_info.api_token,
+                        client_cert=self.connection_info.client_cert,
+                        client_key=self.connection_info.client_key,
+                        validate_cert=self.connection_info.validate_cert,
+                        ca_cert=self.connection_info.ca_cert,
                     )
                     remote_connection_manager = VSPConnectionManager(
                         remote_connection_info.address,
                         remote_connection_info.username,
                         remote_connection_info.password,
                         remote_connection_info.api_token,
+                        client_cert=remote_connection_info.client_cert,
+                        client_key=remote_connection_info.client_key,
+                        validate_cert=remote_connection_info.validate_cert,
+                        ca_cert=remote_connection_info.ca_cert,
                     )
                     headers = remote_connection_manager.getAuthToken()
                     headers["Remote-Authorization"] = headers.pop("Authorization")
@@ -147,6 +167,10 @@ class VSPRemoteCopyGroupsDirectGateway:
             remote_connection_info.username,
             remote_connection_info.password,
             remote_connection_info.api_token,
+            client_cert=remote_connection_info.client_cert,
+            client_key=remote_connection_info.client_key,
+            validate_cert=remote_connection_info.validate_cert,
+            ca_cert=remote_connection_info.ca_cert,
         )
         copy_pairs = []
         for x in response.get("data"):

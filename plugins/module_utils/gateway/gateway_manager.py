@@ -5,6 +5,7 @@ __metaclass__ = type
 from abc import ABC, abstractmethod
 import json
 import time
+import ssl
 import urllib.error as urllib_error
 from ansible.module_utils.urls import socket
 
@@ -59,11 +60,16 @@ class ConnectionManager(ABC):
     retryCount = 0
     server_busy_msg = "The server might be temporarily busy"
 
-    def __init__(self, address, username=None, password=None, token=None):
+    def __init__(self, address, username=None, password=None, token=None,
+                 client_cert=None, client_key=None, validate_cert=False, ca_cert=None):
         self.address = address
         self.username = username
         self.password = password
         self.token = token
+        self.client_cert = client_cert
+        self.client_key = client_key
+        self.validate_cert = validate_cert
+        self.ca_cert = ca_cert
         self.base_url = None
 
         if not self.base_url:
@@ -157,7 +163,10 @@ class ConnectionManager(ABC):
                 url_username=self.username,
                 url_password=self.password,
                 force_basic_auth=True,
-                validate_certs=False,
+                validate_certs=self.validate_cert,
+                client_cert=self.client_cert,
+                client_key=self.client_key,
+                ca_path=self.ca_cert if self.validate_cert else None,
             )
         except socket.timeout as t_err:
             logger.writeError(f"ConnectionManager._make_request - TimeoutError {t_err}")
@@ -195,6 +204,13 @@ class ConnectionManager(ABC):
                 raise HvHttpError(error_dtls)
             else:
                 raise HvHttpError(err)
+        except (ssl.SSLError, urllib_error.URLError) as err:
+            err_str = str(err)
+            logger.writeError(f"SSL error: {err}")
+            _client_cert_kws = ("private key", "bad certificate", "sslv3 alert bad", "client auth")
+            if any(kw in err_str.lower() for kw in _client_cert_kws):
+                raise HvHttpError(f"client certificate verify failed: {err_str}")
+            raise HvHttpError(f"certificate verify failed: {err_str}")
         except Exception as err:
             logger.writeException(err)
             logger.writeDebug("Failed err: {}", err)
@@ -617,7 +633,10 @@ class SDSBConnectionManager(ConnectionManager):
                 url_username=self.username,
                 url_password=self.password,
                 force_basic_auth=True,
-                validate_certs=False,
+                validate_certs=self.validate_cert,
+                client_cert=self.client_cert,
+                client_key=self.client_key,
+                ca_path=self.ca_cert if self.validate_cert else None,
             )
         except socket.timeout as t_err:
             logger.writeError(f"ConnectionManager._make_request - TimeoutError {t_err}")
@@ -656,6 +675,13 @@ class SDSBConnectionManager(ConnectionManager):
 
                         raise HvHttpError(error_dtls)
             raise HvHttpError(err)
+        except (ssl.SSLError, urllib_error.URLError) as err:
+            err_str = str(err)
+            logger.writeError(f"ConnectionManager._make_request_for_file - SSL error: {err}")
+            _client_cert_kws = ("private key", "bad certificate", "sslv3 alert bad", "client auth")
+            if any(kw in err_str.lower() for kw in _client_cert_kws):
+                raise HvHttpError(f"client certificate verify failed: {err_str}")
+            raise HvHttpError(f"certificate verify failed: {err_str}")
         except Exception as err:
             logger.writeException(err)
             raise err
@@ -956,6 +982,151 @@ class VSPConnectionManager(ConnectionManager):
         url = Endpoints.PEGASUS_JOB
         return self._make_vsp_request("GET", url.format(job_id))
 
+    def pegasus_post_bulk(self, endpoint, data, headers_input=None, token=None):
+        """
+        POST for bulk operations that return multiple command-status jobs.
+
+        Instead of polling each command-status individually, this collects all
+        job IDs from the response and polls them together using the bulk
+        command-status endpoint (GET command-status?ids=...), then cleans them
+        up with a bulk DELETE (best-effort).
+        """
+        post_response = self._make_vsp_request(
+            "POST", endpoint, data, headers_input=headers_input, token=token
+        )
+
+        job_ids = self._extract_job_ids(post_response)
+        if not job_ids:
+            # No async jobs to track, return the raw response as-is.
+            return post_response
+
+        return self._process_pegasus_jobs_bulk(job_ids)
+
+    def _extract_job_ids(self, response):
+        """
+        Extract command-status job IDs from a POST response.
+
+        Handles a list response of {"statusResource": ".../command-status/N"},
+        a single object, and the plural "statusResources" list form.
+        """
+        job_ids = []
+        items = response if isinstance(response, list) else [response]
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+
+            links = []
+            s_res = item.get("statusResource")
+            if isinstance(s_res, list):
+                links.extend(s_res)
+            elif isinstance(s_res, str):
+                links.append(s_res)
+
+            s_res_plural = item.get("statusResources")
+            if isinstance(s_res_plural, list):
+                links.extend(s_res_plural)
+
+            for link in links:
+                try:
+                    job_ids.append(int(link.split("/")[-1]))
+                except (ValueError, AttributeError):
+                    logger.writeDebug(f"Could not parse job id from link: {link}")
+        return job_ids
+
+    def get_bulk_command_status(self, job_ids):
+        """
+        Query multiple command statuses in a single request using
+        GET command-status?ids=1,2,3
+        """
+        ids = ",".join(str(j) for j in job_ids)
+        url = Endpoints.GET_COMMAND_STATUS_BULK.format(ids)
+        return self._make_vsp_request("GET", url)
+
+    def delete_bulk_command_status(self, job_ids):
+        """
+        Delete multiple command statuses in a single request using
+        DELETE command-status?ids=1,2,3 (best-effort cleanup).
+        """
+        if not job_ids:
+            return
+        try:
+            ids = ",".join(str(j) for j in job_ids)
+            url = Endpoints.DELETE_COMMAND_STATUS_BULK.format(ids)
+            self._make_vsp_request("DELETE", url)
+            logger.writeDebug(f"Deleted bulk command-status for ids: {ids}")
+        except Exception as e:
+            # Cleanup is best-effort; never fail the operation because of it.
+            logger.writeDebug(f"Best-effort bulk command-status cleanup failed: {e}")
+
+    def _process_pegasus_jobs_bulk(self, job_ids):
+        """
+        Poll all given command-status jobs together until every job reaches the
+        "completed" progress, then aggregate the affected resource IDs.
+
+        Raises HvJobError if any job failed and HvJobTimeoutError on timeout.
+        """
+        retry_count = 0
+        max_retry = 60
+        completed_jobs = None
+
+        while retry_count < max_retry:
+            responses = self.get_bulk_command_status(job_ids)
+
+            # The bulk endpoint may return a plain list or a {"data": [...]} wrapper.
+            if isinstance(responses, dict):
+                job_list = responses.get("data", [])
+            else:
+                job_list = responses
+            if not isinstance(job_list, list):
+                job_list = [job_list]
+
+            all_completed = len(job_list) > 0 and all(
+                jr.get(API.PEGASUS_PROGRESS) == API.PEGASUS_COMPLETED
+                for jr in job_list
+            )
+            if all_completed:
+                completed_jobs = job_list
+                break
+
+            retry_count += 1
+            time.sleep(10)
+
+        if completed_jobs is None:
+            self.delete_bulk_command_status(job_ids)
+            raise HvJobTimeoutError(CommonMessage.JOB_TIMEOUT.value)
+
+        affected_resources = []
+        error_messages = []
+        for jr in completed_jobs:
+            if jr.get(API.STATUS) == API.PEGASUS_NORMAL:
+                ars = jr.get(API.AFFECTED_RESOURCES, [])
+                if isinstance(ars, str):
+                    ars = [ars]
+                for ar in ars:
+                    if ar:
+                        affected_resources.append(ar.split("/")[-1])
+            else:
+                msg = jr.get(API.ERROR_MESSAGE)
+                if msg:
+                    error_messages.append(msg)
+
+        # Best-effort cleanup of completed command statuses.
+        self.delete_bulk_command_status(job_ids)
+
+        if error_messages and not affected_resources:
+            # All jobs failed — raise so the caller knows nothing succeeded.
+            raise HvJobError("; ".join(error_messages))
+
+        if error_messages:
+            # Partial failure: log errors but return the successful resources
+            # so the caller can handle partial success gracefully.
+            logger.writeError(
+                f"Bulk job partial failure ({len(error_messages)} error(s)): "
+                + "; ".join(error_messages)
+            )
+
+        return affected_resources
+
     def delete(self, endpoint, data=None, headers_input=None, token=None):
         delete_response = self._make_vsp_request(
             method="DELETE",
@@ -1093,8 +1264,11 @@ class VSPConnectionManager(ConnectionManager):
                 url_username=None,
                 url_password=None,
                 force_basic_auth=False,
-                validate_certs=False,
+                validate_certs=self.validate_cert,
                 timeout=TIME_OUT,
+                client_cert=self.client_cert,
+                client_key=self.client_key,
+                ca_path=self.ca_cert if self.validate_cert else None,
             )
         except socket.timeout as t_err:
             logger.writeError(str(t_err))
@@ -1157,6 +1331,13 @@ class VSPConnectionManager(ConnectionManager):
                         parsed_response = error_dtls if error_dtls else error_resp
                         raise HvHttpError(parsed_response)
             raise HvHttpError(err)
+        except (ssl.SSLError, urllib_error.URLError) as err:
+            err_str = str(err)
+            logger.writeError(f"VSPConnectionManager._make_vsp_request - SSL error: {err}")
+            _client_cert_kws = ("private key", "bad certificate", "sslv3 alert bad", "client auth")
+            if any(kw in err_str.lower() for kw in _client_cert_kws):
+                raise HvHttpError(f"client certificate verify failed: {err_str}")
+            raise HvHttpError(f"certificate verify failed: {err_str}")
         except Exception as err:
             logger.writeException(err)
             raise err

@@ -37,6 +37,10 @@ class Endpoints(object):
     CREATE_BY_DETAILS_SETTINGS = (
         "simple/v1/objects/volumes/actions/create-by-detail-settings/invoke"
     )
+    DELETE_VOLUMES_BULK = "simple/v1/objects/volumes/actions/delete/invoke"
+    EDIT_VOLUME_NICKNAMES_BULK = "simple/v1/objects/volumes/actions/edit-nicknames/invoke"
+    EDIT_VOLUME_ALUA_SETTINGS_BULK = "simple/v1/objects/volumes/actions/edit-alua-settings/invoke"
+    EDIT_VOLUME_SAVING_SETTINGS_BULK = "simple/v1/objects/volumes/actions/edit-saving-settings/invoke"
     SIMPLE_API_VOLUME_EXPAND = "simple/v1/objects/volumes/{}/actions/expand/invoke"
     SALAMENDER_GET_LDEVS_SERVER_CONNECTION = (
         "simple/v1/objects/volume-server-connections"
@@ -47,6 +51,7 @@ class Endpoints(object):
     SALAMENDER_UPDATE_QOS_SETTINGS = "simple/v1/objects/volumes/{}/qos-setting"
     ATTACH_SERVER_SIMPLE = "simple/v1/objects/volume-server-connections"
     DETACH_SERVER_SIMPLE = "simple/v1/objects/volume-server-connections/{}"
+    DISCONNECT_VOLUME_SERVER_CONNECTIONS_BULK = "simple/v1/objects/volume-server-connections/actions/disconnect/invoke"
     LDEVS_JOURNAL_VOLUME = "v1/objects/ldevs/?journalId={}"
     PEGA_LDEVS_ONE = "simple/v1/objects/volumes/{}"
     GET_LDEVS = "v1/objects/ldevs{}"
@@ -201,6 +206,8 @@ class Endpoints(object):
     DELETE_SESSIONS = "simple/v1/objects/sessions/{}"
     GET_COMMAND_STATUS = "simple/v1/objects/command-status/{}"
     DELETE_COMMAND_STATUS = "simple/v1/objects/command-status/{}"
+    GET_COMMAND_STATUS_BULK = "simple/v1/objects/command-status?ids={}"
+    DELETE_COMMAND_STATUS_BULK = "simple/v1/objects/command-status?ids={}"
     GET_HOST_ISCSI_PATHS = "v1/views/host-iscsi-paths?{}"
     GET_STORAGE_SYSTEMS = "v1/objects/storages"
     GET_STORAGE_SYSTEM = "v1/objects/storages/{}"
@@ -375,13 +382,17 @@ class Endpoints(object):
     GET_WWN_OF_HBA = "simple/v1/objects/servers/{}/hbas"
     SINGLE_WWN_OF_HBA_PER_SERVER = "simple/v1/objects/servers/{}/hbas/{}"
     ADD_WWN_OF_HBA = "simple/v1/objects/servers/{}/hbas"
+    ADD_WWN_OF_HBA_BULK = "simple/v1/objects/servers/actions/add-hbas/invoke"
     ALL_SERVER_PATHS = "simple/v1/objects/servers/{}/paths"
     SPECIFIC_SERVER_PATH = "simple/v1/objects/servers/{}/paths/{}"
     ADD_PATH_TO_SERVER = "simple/v1/objects/servers/{}/paths"
+    ADD_PATH_TO_SERVER_BULK = "simple/v1/objects/servers/actions/add-paths/invoke"
+    REMOVE_PATH_FROM_SERVER_BULK = "simple/v1/objects/servers/actions/remove-paths/invoke"
     SINGLE_SERVER_PATH = "simple/v1/objects/servers/{}/paths/{}"
     GET_ALL_SERVER_ISCSI = "simple/v1/objects/servers/{}/target-iscsi-ports"
     SINGLE_SERVER_ISCSI = "simple/v1/objects/servers/{}/target-iscsi-ports/{}"
     ISCSI_TARGET_SETTINGS = "simple/v1/objects/servers/{}/target-iscsi-ports/{}"
+    CREATE_SERVERS_BULK = "simple/v1/objects/servers/actions/create/invoke"
 
     # VSP one Port
     VSP_ONE_GET_PORTS = "simple/v1/objects/ports"

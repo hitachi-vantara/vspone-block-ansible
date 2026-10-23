@@ -29,25 +29,31 @@
     - name: Set user_input from CLI argument if provided
       ansible.builtin.set_fact:
         user_input: "{{ args }}"
-      when: args is defined and args | length > 0
+      when: args is defined and args | string | trim | length > 0
 
     - name: Prompt for consent if no CLI argument provided
       ansible.builtin.pause:
         prompt: "{{ consent_msg | trim }}"
       register: pause_result
-      when: args is not defined or args | length == 0
+      when: args is not defined or args | string | trim | length == 0
 
     - name: Use prompted value if no CLI argument provided
       ansible.builtin.set_fact:
         user_input: "{{ pause_result.user_input }}"
-      when: args is not defined or args | length == 0
+      when: args is not defined or args | string | trim | length == 0
     - name: Debug user_input before setting consent
       ansible.builtin.debug:
         var: user_input
 
+    - name: Validate consent choice
+      ansible.builtin.assert:
+        that:
+          - user_input | string | trim | lower in ['yes', 'no', 'true', 'false', '1', '0']
+        fail_msg: "Invalid consent choice. Enter Yes to opt in or No to opt out."
+
     - name: Set consent variable
       ansible.builtin.set_fact:
-        user_consent: "{{ 'True' if (user_input is boolean and user_input) or (user_input | string | lower == 'yes') else 'False' }}"
+        user_consent: "{{ user_input | string | trim | lower in ['yes', 'true', '1'] }}"
     - name: Generate unique site ID if file does not exist
       ansible.builtin.command:
         cmd: uuidgen
@@ -75,41 +81,60 @@
         state: directory
         mode: "0755"
 
-    - name: Set previous consent record if exists
-      ansible.builtin.set_fact:
-        previous_record:
-          user_consent_accepted: "{{ existing_data.user_consent_accepted }}"
-          time: "{{ existing_data.time }}"
-      when: consent_file_exists.stat.exists and (existing_data.user_consent_accepted is defined and existing_data.time is defined)
-
-    - name: Build consent history when file exists
-      ansible.builtin.set_fact:
-        consent_history: >-
-          {{
-            (existing_data.consent_history | default([]))
-            +
-            ([ previous_record ] if (previous_record is defined) else [])
-          }}
-      when: consent_file_exists.stat.exists
-
-    - name: Set consent history to empty if file does not exist
-      ansible.builtin.set_fact:
-        consent_history: []
-      when: not consent_file_exists.stat.exists
-
     - name: Build consent data dictionary
       ansible.builtin.set_fact:
         consent_data:
           site_id: "{{ site_id }}"
-          consent_history: "{{ consent_history }}"
+          consent_history: []
           user_consent_accepted: "{{ user_consent }}"
           time: "{{ current_time }}"
 
     - name: Store consent response in JSON file
-      ansible.builtin.copy:
-        content: "{{ consent_data | to_nice_json }}"
-        dest: "{{ consent_file }}"
-        mode: "0644"
+      ansible.builtin.command:
+        argv:
+          - "{{ ansible_playbook_python }}"
+          - -c
+          - |
+            import fcntl
+            import json
+            import os
+            import sys
+            import tempfile
+
+            path = os.path.expanduser(sys.argv[1])
+            data = json.load(sys.stdin)
+            with open(path + ".lock", "a", encoding="utf-8") as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                try:
+                    with open(path, encoding="utf-8") as current:
+                        previous = json.load(current)
+                except FileNotFoundError:
+                    previous = {}
+                data["site_id"] = previous.get("site_id", data["site_id"])
+                data["consent_history"] = previous.get("consent_history", [])
+                if "time" in previous and "user_consent_accepted" in previous:
+                    data["consent_history"].append({
+                        "user_consent_accepted": previous["user_consent_accepted"],
+                        "time": previous["time"],
+                    })
+                temporary = None
+                try:
+                    with tempfile.NamedTemporaryFile(
+                        mode="w", encoding="utf-8",
+                        dir=os.path.dirname(path), delete=False
+                    ) as output:
+                        temporary = output.name
+                        json.dump(data, output, indent=4)
+                        output.flush()
+                        os.fsync(output.fileno())
+                    os.chmod(temporary, 0o644)
+                    os.replace(temporary, path)
+                finally:
+                    if temporary is not None and os.path.exists(temporary):
+                        os.unlink(temporary)
+          - "{{ consent_file }}"
+        stdin: "{{ consent_data | to_json }}"
+      changed_when: true
 
     - name: Display consent response
       ansible.builtin.debug:

@@ -42,6 +42,10 @@ class VspOneSnapshotGateway:
             connection_info.username,
             connection_info.password,
             connection_info.api_token,
+            client_cert=connection_info.client_cert,
+            client_key=connection_info.client_key,
+            validate_cert=connection_info.validate_cert,
+            ca_cert=connection_info.ca_cert,
         )
         self.storage_gw = VSPStorageSystemDirectGateway(connection_info)
         self.is_pegasus = self.storage_gw.is_pegasus()
@@ -145,6 +149,25 @@ class VspOneSnapshotGateway:
         # return VspOneSnapshotList().dump_to_object(result)
         logger.writeDebug(f"GW:create_snapshots:result = {result}")
         return result
+
+    @log_entry_exit
+    def create_snapshots_bulk(self, spec_list):
+        """
+        Create multiple snapshots in a single API call.
+        POST /snapshots with {"params": [item1, item2, ...]}
+        Returns a list of snapshot object IDs ("masterVolumeId,snapshotId" strings).
+        """
+        all_params = []
+        for spec in spec_list:
+            converted = self.convert_spec_params_to_rest_params_for_create(spec)
+            all_params.extend(converted)
+        payload = {"params": all_params}
+        logger.writeDebug(f"GW:create_snapshots_bulk:payload entries = {len(all_params)}")
+        affected = self.rest_api.pegasus_post_bulk(CREATE_SNAPSHOT_SIMPLE, payload)
+        # affected is a list of affected resource URLs or IDs
+        if isinstance(affected, list):
+            return affected
+        return [affected] if affected else []
 
     @log_entry_exit
     def convert_spec_params_to_rest_params_for_create(self, spec_params):

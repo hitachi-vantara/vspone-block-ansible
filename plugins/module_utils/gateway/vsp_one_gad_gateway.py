@@ -42,6 +42,10 @@ class VspOneGadGateway:
             connection_info.username,
             connection_info.password,
             connection_info.api_token,
+            client_cert=connection_info.client_cert,
+            client_key=connection_info.client_key,
+            validate_cert=connection_info.validate_cert,
+            ca_cert=connection_info.ca_cert,
         )
         self.storage_gw = VSPStorageSystemDirectGateway(connection_info)
         self.is_block_high_end = self.storage_gw.is_block_high_end()

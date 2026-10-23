@@ -4,6 +4,11 @@ import functools
 import re
 import string
 import random
+import json
+import uuid
+import fcntl
+import tempfile
+from contextlib import contextmanager
 from typing import List
 import ipaddress
 import math
@@ -340,13 +345,137 @@ def calculate_naid(wwn_any_port, serial_number, lun, array_family=7):
     return naid
 
 
-def validate_ansible_product_registration():
+def _get_consent_file_path(consent_file_path=None):
+    if consent_file_path:
+        return consent_file_path
+    return os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)
 
-    if not os.path.exists(  # nosec
-        os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)  # nosec
-    ):  # nosec
-        return CommonMessage.USER_CONSENT_MISSING.value
-    return
+
+def _write_consent_data(consent_file_path, consent_data):
+    directory = os.path.dirname(os.path.abspath(consent_file_path))
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=directory, delete=False
+        ) as file:
+            temporary_path = file.name
+            json.dump(consent_data, file, indent=4)
+            file.flush()
+            os.fsync(file.fileno())
+        os.replace(temporary_path, consent_file_path)
+    finally:
+        if temporary_path is not None and os.path.exists(temporary_path):
+            os.unlink(temporary_path)
+
+
+@contextmanager
+def _consent_file_lock(consent_file_path):
+    directory = os.path.dirname(os.path.abspath(consent_file_path))
+    os.makedirs(directory, exist_ok=True)
+    # Keep a separate lock inode because the JSON file is replaced atomically.
+    with open(consent_file_path + ".lock", "a", encoding="utf-8") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock, fcntl.LOCK_UN)
+
+
+def _read_consent_data(consent_file_path):
+    with open(consent_file_path, "r", encoding="utf-8") as file:  # nosec
+        return json.load(file)
+
+
+def _ensure_default_consent_data(consent_file_path):
+    try:
+        consent_data = _read_consent_data(consent_file_path)
+    except FileNotFoundError:
+        consent_data = {
+            "site_id": str(uuid.uuid4()),
+            "consent_history": [],
+            "reminder_count": 0,
+            "user_consent_accepted": True,
+        }
+        _write_consent_data(consent_file_path, consent_data)
+    return consent_data
+
+
+def _validate_consent_data(consent_data):
+    if not isinstance(consent_data, dict):
+        raise ValueError("Consent record must be a JSON object")
+    if (
+        not isinstance(consent_data.get("site_id"), str)
+        or not consent_data["site_id"].strip()
+    ):
+        raise ValueError("Consent record must contain a non-empty site_id")
+    consent_choice = consent_data.get("user_consent_accepted")
+    if isinstance(consent_choice, str):
+        consent_choice = consent_choice.strip().lower()
+        if consent_choice not in ("true", "yes", "1", "false", "no", "0"):
+            raise ValueError("Invalid user_consent_accepted value")
+        consent_choice = consent_choice in ("true", "yes", "1")
+    elif (
+        isinstance(consent_choice, int)
+        and not isinstance(consent_choice, bool)
+        and consent_choice in (0, 1)
+    ):
+        consent_choice = bool(consent_choice)
+    elif not isinstance(consent_choice, bool):
+        raise ValueError("Invalid or missing user_consent_accepted value")
+
+    if not isinstance(consent_data.get("consent_history", []), list):
+        raise ValueError("consent_history must be a list")
+    if "time" in consent_data and (
+        not isinstance(consent_data["time"], str) or not consent_data["time"].strip()
+    ):
+        raise ValueError("Consent decision time must be a non-empty string")
+    reminder_count = consent_data.get("reminder_count", 0)
+    if isinstance(reminder_count, str) and re.fullmatch(r"[0-9]+", reminder_count):
+        reminder_count = int(reminder_count)
+    if (
+        not isinstance(reminder_count, int)
+        or isinstance(reminder_count, bool)
+        or reminder_count < 0
+    ):
+        raise ValueError("reminder_count must be a non-negative integer")
+    return consent_choice, reminder_count
+
+
+def consent_file_error_message(consent_file, error):
+    return (
+        f"Usage data collection is disabled because the consent record at "
+        f"{consent_file} could not be read, validated or updated: {error}. "
+        "The existing consent record has not been replaced with default consent. "
+        "Check file permissions and repair invalid JSON or consent fields, then "
+        "run accept_user_consent.yml to record your choice."
+    )
+
+
+def get_user_consent(consent_file_path=None, record_reminder=False):
+    consent_file = _get_consent_file_path(consent_file_path)
+    with _consent_file_lock(consent_file):
+        consent_data = _ensure_default_consent_data(consent_file)
+        consent_choice, reminder_count = _validate_consent_data(consent_data)
+        automatic = (
+            "reminder_count" in consent_data
+            and "time" not in consent_data
+            and not consent_data.get("consent_history")
+        )
+        message = None
+        if record_reminder and consent_choice and automatic and reminder_count < 3:
+            consent_data["reminder_count"] = reminder_count + 1
+            _write_consent_data(consent_file, consent_data)
+            message = CommonMessage.USER_CONSENT_MISSING.value
+        return consent_choice, consent_data["site_id"], message
+
+
+def validate_ansible_product_registration(consent_file_path=None):
+    try:
+        return get_user_consent(consent_file_path, record_reminder=True)[2]
+    except (OSError, ValueError) as error:
+        return consent_file_error_message(
+            _get_consent_file_path(consent_file_path), error
+        )
 
 
 def convert_decimal_size_to_bytes(size_str, block_size=512):

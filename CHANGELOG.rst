@@ -4,6 +4,23 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.9
+====
+
+Release Summary
+---------------
+
+The following features and enhancements are new to VSP One Block Storage Modules for Red Hat Ansible:
+
+Major Changes
+-------------
+
+- Added bulk volume operation support for the "hv_vsp_one_volume" module.
+- Added bulk server operation support for the "hv_vsp_one_server" module.
+- Added SSL support for all Ansible modules.
+- Improved Ansible telemetry user consent handling. Consent is enabled by default, and users are prompted up to three times with an option to withdraw consent. Users can withdraw consent by running ``accept_user_consent.yml``; consent remains enabled until explicitly withdrawn.
+- Improved "hv_resource_group" operation performance, significantly reducing processing time by 80%.
+
 
 v4.8.4
 ======

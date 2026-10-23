@@ -33,6 +33,10 @@ class VSPServerSimpleAPIReconciler:
             StateValue.REMOVE_HBA: self.provisioner.remove_wwn_of_hba,
             StateValue.ADD_PATH: self.provisioner.add_path_to_server,
             StateValue.REMOVE_PATH: self.provisioner.remove_path_from_server,
+            StateValue.CREATE_SERVERS: self.provisioner.create_servers_bulk,
+            StateValue.ADD_HBA_BULK: self.provisioner.add_hba_bulk,
+            StateValue.ADD_PATH_BULK: self.provisioner.add_path_bulk,
+            StateValue.REMOVE_PATH_BULK: self.provisioner.remove_path_bulk,
             StateValue.CHANGE_ISCSI_TARGET_SETTINGS: self.provisioner.change_iscsi_target_settings,
             StateValue.ABSENT: self.provisioner.delete_server,
         }

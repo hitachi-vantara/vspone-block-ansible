@@ -33,11 +33,13 @@ options:
   state:
     description: Defines the server operation type. Available options include C(present), C(absent),
       C(sync_server_nick_name), C(sync_server_nickname), C(add_host_groups), C(add_hba), C(remove_hba), C(add_path), and C(remove_path).
+      Bulk operations are available via C(create_servers), C(add_hba_bulk), C(add_path_bulk), and C(remove_path_bulk).
       C(sync_server_nick_name) will be deprecated in favor of C(sync_server_nickname).
     type: str
     required: false
     choices: ['present', 'absent', 'sync_server_nick_name', 'sync_server_nickname', 'add_host_groups', 'add_hba',
-            'remove_hba', 'add_path', 'remove_path', 'change_iscsi_target_settings']
+            'remove_hba', 'add_path', 'remove_path', 'change_iscsi_target_settings', 'create_servers',
+            'add_hba_bulk', 'add_path_bulk', 'remove_path_bulk']
     default: 'present'
   spec:
     description: Configuration parameters for the server operation.
@@ -256,6 +258,186 @@ options:
             description: Port identifier.
             type: str
             required: false
+      servers:
+        description: List of servers to register in one API call when C(state=create_servers).
+          When C(count=1) (default) each entry creates a single server and may include
+          C(hbas) and C(paths). When C(count) is greater than 1 the C(nickname) is used
+          as a name prefix and C(count) identical server registrations are created
+          (C(nickname_01)…C(nickname_N)); C(hbas) and C(paths) are not allowed in this
+          mode because HBA WWNs and iSCSI names are physically unique per host — use
+          C(state=add_hba_bulk) and C(state=add_path_bulk) after creation instead.
+          Maximum value for C(count) is 50 per task.
+        type: list
+        required: false
+        elements: dict
+        suboptions:
+          nickname:
+            description: Server nickname. When creating multiple servers this value is
+              used as a prefix; servers are named C(<nickname>_1), C(<nickname>_2), etc.,
+              zero-padded to the number of digits in the largest index.
+            type: str
+            required: true
+          count:
+            description: Number of servers to create. Allowed range is 1–50.
+              Servers are named C(<nickname>_1) … C(<nickname>_N) starting from 1.
+              Cannot be combined with C(end_index).
+              Cannot be combined with C(hbas) or C(paths) when greater than 1.
+              Mutually exclusive with C(end_index); use C(start_index)+C(end_index) for
+              an explicit range.
+            type: int
+            required: false
+          start_index:
+            description: First index in the server name sequence.
+              Must be paired with either C(end_index) or C(count).
+              When paired with C(count), creates servers C(<nickname>_start) …
+              C(<nickname>_start+count-1). Defaults to 1 when C(count) is used alone.
+            type: int
+            required: false
+          end_index:
+            description: Last index in the server name sequence (inclusive).
+              Must be paired with C(start_index). The range C([start_index, end_index])
+              must not exceed 50 servers. Cannot be combined with C(count).
+            type: int
+            required: false
+          protocol:
+            description: Connection protocol for the server.
+            type: str
+            required: false
+            choices: ['FC', 'iSCSI']
+          os_type:
+            description: Operating system type of the server.
+            type: str
+            required: false
+            choices: ['Linux', 'HP-UX', 'Solaris', 'AIX', 'VMware', 'Windows']
+          os_type_options:
+            description: List of OS type option identifiers.
+            type: list
+            required: false
+            elements: int
+          is_reserved:
+            description: Whether the server is reserved.
+            type: bool
+            required: false
+          hbas:
+            description: HBAs to register on the created server immediately after creation.
+              Only valid when creating a single server (no C(count)/C(start_index)/C(end_index)
+              or C(count=1)). HBA WWNs and iSCSI names are unique per physical host and
+              cannot be shared across multiple servers.
+            type: list
+            required: false
+            elements: dict
+            suboptions:
+              hba_wwn:
+                description: HBA WWN address (FC).
+                type: str
+                required: false
+              iscsi_name:
+                description: iSCSI initiator name (iSCSI).
+                type: str
+                required: false
+          paths:
+            description: Paths to register on the created server immediately after HBAs.
+              Only valid when creating a single server. Paths are bound to specific HBA
+              WWNs or iSCSI names which are unique per host.
+            type: list
+            required: false
+            elements: dict
+            suboptions:
+              port_ids:
+                description: List of port identifiers for this path.
+                type: list
+                required: true
+                elements: str
+              hba_wwn:
+                description: HBA WWN address associated with the path (FC).
+                type: str
+                required: false
+              iscsi_name:
+                description: iSCSI initiator name associated with the path (iSCSI).
+                type: str
+                required: false
+      bulk_hbas:
+        description: List of server HBA payloads for C(state=add_hba_bulk).
+        type: list
+        required: false
+        elements: dict
+        suboptions:
+          server_id:
+            description: Identifier of the server to add HBAs to.
+            type: int
+            required: true
+          hbas:
+            description: List of HBAs to add to the server.
+            type: list
+            required: true
+            elements: dict
+            suboptions:
+              hba_wwn:
+                description: HBA WWN address.
+                type: str
+                required: false
+              iscsi_name:
+                description: iSCSI name.
+                type: str
+                required: false
+      bulk_paths:
+        description: List of server path payloads for C(state=add_path_bulk).
+        type: list
+        required: false
+        elements: dict
+        suboptions:
+          server_id:
+            description: Identifier of the server to add paths to.
+            type: int
+            required: true
+          paths:
+            description: List of paths to add to the server.
+            type: list
+            required: true
+            elements: dict
+            suboptions:
+              port_ids:
+                description: List of port identifiers for the path.
+                type: list
+                required: true
+                elements: str
+              hba_wwn:
+                description: HBA WWN address associated with the path.
+                type: str
+                required: false
+              iscsi_name:
+                description: iSCSI name associated with the path.
+                type: str
+                required: false
+      bulk_remove_paths:
+        description: List of server path payloads for C(state=remove_path_bulk).
+        type: list
+        required: false
+        elements: dict
+        suboptions:
+          server_id:
+            description: Identifier of the server to remove paths from.
+            type: int
+            required: true
+          paths:
+            description: List of paths to remove from the server.
+            type: list
+            required: true
+            elements: dict
+            suboptions:
+              port_ids:
+                description: List of port identifiers for the path.
+                type: list
+                required: true
+                elements: str
+              hba_wwn:
+                description: HBA WWN address associated with the path.
+                type: str
+                required: false
+              iscsi_name:
+                description: iSCSI name associated with the path.
+                type: str
+                required: false
 """
 
 EXAMPLES = """
@@ -488,6 +670,148 @@ EXAMPLES = """
       password: "password"
     spec:
       nickname: "WebServer01"
+
+- name: Bulk create multiple servers in a single request
+  hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+    state: create_servers
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      servers:
+        - nickname: "BulkServer01"
+          protocol: "FC"
+          os_type: "Linux"
+          os_type_options: [1, 2]
+        - nickname: "BulkServer02"
+          protocol: "iSCSI"
+          os_type: "Windows"
+          is_reserved: true
+
+- name: Bulk create servers with inline HBAs and paths
+  hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+    state: create_servers
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      servers:
+        - nickname: "AppServer01"
+          protocol: "FC"
+          os_type: "Linux"
+          hbas:
+            - hba_wwn: "50060e8010203040"
+          paths:
+            - port_ids: ["CL1-A", "CL1-B"]
+              hba_wwn: "50060e8010203040"
+        - nickname: "DBServer01"
+          protocol: "iSCSI"
+          os_type: "Windows"
+          hbas:
+            - iscsi_name: "iqn.1991-05.com.example:dbserver01"
+          paths:
+            - port_ids: ["CL1-A"]
+              iscsi_name: "iqn.1991-05.com.example:dbserver01"
+
+- name: Bulk create N servers using count (creates WebServer_1, WebServer_2, WebServer_3)
+  hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+    state: create_servers
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      servers:
+        - nickname: "WebServer"
+          count: 3                   # creates WebServer_1, WebServer_2, WebServer_3
+          protocol: "FC"
+          os_type: "Linux"
+          os_type_options: [1, 2]
+
+- name: Bulk create servers using start_index and end_index (creates WebServer_05 to WebServer_10)
+  hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+    state: create_servers
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      servers:
+        - nickname: "WebServer"
+          start_index: 5
+          end_index: 10             # creates WebServer_05, WebServer_06 … WebServer_10
+          protocol: "FC"
+          os_type: "Linux"
+
+- name: Bulk create servers using start_index and count (creates WebServer_05, WebServer_06, WebServer_07)
+  hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+    state: create_servers
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      servers:
+        - nickname: "WebServer"
+          start_index: 5
+          count: 3                  # creates WebServer_05, WebServer_06, WebServer_07
+          protocol: "FC"
+          os_type: "Linux"
+
+- name: Bulk add HBAs to multiple servers in a single request
+  hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+    state: add_hba_bulk
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      bulk_hbas:
+        - server_id: 101
+          hbas:
+            - hba_wwn: "50060e8010203040"
+            - hba_wwn: "50060e8010203041"
+        - server_id: 102
+          hbas:
+            - iscsi_name: "iqn.1991-05.com.example:server102-iscsi1"
+
+- name: Bulk add paths to multiple servers in a single request
+  hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+    state: add_path_bulk
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      bulk_paths:
+        - server_id: 101
+          paths:
+            - port_ids: ["CL1-A", "CL1-B"]
+              hba_wwn: "50060e8010203040"
+        - server_id: 102
+          paths:
+            - port_ids: ["CL2-A"]
+              iscsi_name: "iqn.1991-05.com.example:server102-iscsi1"
+
+- name: Bulk remove paths from multiple servers in a single request
+  hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+    state: remove_path_bulk
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      bulk_remove_paths:
+        - server_id: 101
+          paths:
+            - port_ids: ["CL1-A"]
+              hba_wwn: "50060e8010203040"
+        - server_id: 102
+          paths:
+            - port_ids: ["CL2-A"]
+              iscsi_name: "iqn.1991-05.com.example:server102-iscsi1"
 """
 
 RETURN = """

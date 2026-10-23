@@ -26,7 +26,10 @@ class SDSBLicenseGateway:
 
     def __init__(self, connection_info):
         self.connection_manager = SDSBConnectionManager(
-            connection_info.address, connection_info.username, connection_info.password
+            connection_info.address, connection_info.username, connection_info.password,
+            client_cert=connection_info.client_cert, client_key=connection_info.client_key,
+            validate_cert=connection_info.validate_cert,
+            ca_cert=connection_info.ca_cert,
         )
 
     @log_entry_exit
