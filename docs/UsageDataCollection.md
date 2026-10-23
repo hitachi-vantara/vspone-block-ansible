@@ -4,6 +4,25 @@ Hitachi Vantara LLC collects usage data such as storage model, storage serial nu
 operation name, status (success or failure), and duration. This data is collected for product
 improvement purposes only. It remains confidential and it is not shared with any third parties.
 
+For new installations, usage data collection is enabled by default. A notice is
+shown on the first three module executions sharing the same consent file. Each
+notice explains that data is being collected and how to opt out. After the third
+notice, collection remains enabled unless you opt out.
+
+Existing explicit opt-in or opt-out choices are preserved without further
+notices. To opt out, run the following playbook and answer **No**. Answer **Yes**
+to opt in explicitly; either choice stops any remaining notices.
+
+Consent-file updates are locked and written atomically so parallel module
+executions share the three-notice limit and do not overwrite a choice recorded
+by the consent playbook.
+
+If an existing consent record is unreadable or invalid, usage data collection is
+disabled and a diagnostic is returned/logged. The record is not reset to default
+opt-in. Check file permissions and repair invalid JSON or consent fields before
+running the consent playbook to record your choice. An absent consent file is
+treated as a new installation; deleting it resets consent and the notice count.
+
 accept_user_consent.yml file path:
 
 ```hcl

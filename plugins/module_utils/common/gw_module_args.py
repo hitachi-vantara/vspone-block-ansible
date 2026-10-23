@@ -37,6 +37,29 @@ class GatewayArgs:
                 "choices": ["gateway"],
                 "default": "gateway",
             },
+            "suppress_validate_cert_warning": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "validate_cert": {
+                "required": False,
+                "type": "bool",
+                "default": False,
+            },
+            "ca_cert": {
+                "required": False,
+                "type": "str",
+            },
+            "client_cert": {
+                "required": False,
+                "type": "str",
+            },
+            "client_key": {
+                "required": False,
+                "type": "str",
+                "no_log": True,
+            },
         },
     }
     STATE = {

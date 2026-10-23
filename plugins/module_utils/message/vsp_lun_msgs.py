@@ -54,6 +54,16 @@ class VSPVolumeMSG(Enum):
     STOP_ALL_VOLUME_FORMAT = "Stop all volume format operation initiated successfully."
     NVM_UPDATE_SUCCESS = "NVM subsystem updated successfully."
     VOLUME_CREATE_SUCCESS = "Volume created successfully."
+    BULK_DELETE_VOLUMES_SUCCESS = "Bulk volume deletion completed successfully."
+    BULK_DELETE_VOLUMES_REQUIRED = "volume_ids is required for bulk volume deletion."
+    BULK_EDIT_NICKNAMES_SUCCESS = "Bulk volume nickname update completed successfully."
+    BULK_EDIT_NICKNAMES_REQUIRED = "volumes list with volumeId and nickname is required for bulk nickname update."
+    BULK_EDIT_ALUA_SETTINGS_SUCCESS = "Bulk ALUA settings update completed successfully."
+    BULK_EDIT_ALUA_SETTINGS_REQUIRED = "volume_ids and alua_setting are required for bulk ALUA settings update."
+    BULK_EDIT_SAVING_SETTINGS_SUCCESS = "Bulk capacity saving settings update completed successfully."
+    BULK_EDIT_SAVING_SETTINGS_REQUIRED = "volume_ids is required for bulk saving settings update."
+    BULK_DISCONNECT_VOLUMES_SUCCESS = "Bulk volume-server disconnection completed successfully."
+    BULK_DISCONNECT_VOLUMES_REQUIRED = "connections list with serverId and volumeId is required for bulk disconnection."
 
 
 class VSPVolValidationMsg(Enum):

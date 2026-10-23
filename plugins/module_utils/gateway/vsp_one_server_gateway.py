@@ -32,6 +32,10 @@ class VspServerSimpleApiGateway:
             connection_info.username,
             connection_info.password,
             connection_info.api_token,
+            client_cert=connection_info.client_cert,
+            client_key=connection_info.client_key,
+            validate_cert=connection_info.validate_cert,
+            ca_cert=connection_info.ca_cert,
         )
         self.storage_gw = VSPStorageSystemDirectGateway(connection_info)
         self.end_points = Endpoints
@@ -131,6 +135,15 @@ class VspServerSimpleApiGateway:
             self.end_points.GET_SIMPLE_SERVER_INFO, spec.generate_create_payload()
         )
         return response
+
+    @log_entry_exit
+    def create_servers_bulk(self, payload):
+        """
+        Register multiple servers in a single request
+        """
+        return self.rest_api.pegasus_post_bulk(
+            self.end_points.CREATE_SERVERS_BULK, payload
+        )
 
     @log_entry_exit
     def change_server_settings(
@@ -258,6 +271,33 @@ class VspServerSimpleApiGateway:
             self.end_points.ADD_WWN_OF_HBA.format(spec.server_id), payload
         )
         return response
+
+    @log_entry_exit
+    def add_wwn_of_hba_bulk(self, payload):
+        """
+        Add WWN/iSCSI initiators to multiple servers in a single request
+        """
+        return self.rest_api.pegasus_post_bulk(
+            self.end_points.ADD_WWN_OF_HBA_BULK, payload
+        )
+
+    @log_entry_exit
+    def add_path_to_server_bulk(self, payload):
+        """
+        Add paths to multiple servers in a single request
+        """
+        return self.rest_api.pegasus_post_bulk(
+            self.end_points.ADD_PATH_TO_SERVER_BULK, payload
+        )
+
+    @log_entry_exit
+    def remove_path_from_server_bulk(self, payload):
+        """
+        Remove paths from multiple servers in a single request
+        """
+        return self.rest_api.pegasus_post_bulk(
+            self.end_points.REMOVE_PATH_FROM_SERVER_BULK, payload
+        )
 
     @log_entry_exit
     def remove_wwn_of_hba(self, server_id: int, wwn_or_iscsi: str):

@@ -71,6 +71,10 @@ class VSPResourceGroupDirectGateway:
             connection_info.username,
             connection_info.password,
             connection_info.api_token,
+            client_cert=connection_info.client_cert,
+            client_key=connection_info.client_key,
+            validate_cert=connection_info.validate_cert,
+            ca_cert=connection_info.ca_cert,
         )
         self.connection_info = connection_info
         self.serial = None
@@ -150,6 +154,10 @@ class VSPResourceGroupDirectGateway:
             spec.secondary_connection_info.username,
             spec.secondary_connection_info.password,
             spec.secondary_connection_info.api_token,
+            client_cert=spec.secondary_connection_info.client_cert,
+            client_key=spec.secondary_connection_info.client_key,
+            validate_cert=spec.secondary_connection_info.validate_cert,
+            ca_cert=spec.secondary_connection_info.ca_cert,
         )
         end_point = GET_RESOURCE_GROUPS_DIRECT
         resource_groups_date = remote_connection_manager.get(end_point)
@@ -312,6 +320,33 @@ class VSPResourceGroupDirectGateway:
     @log_entry_exit
     def get_rg_id_from_ldev_id(self, ldev_id):
         storage_device_id = self.get_storage_device_id()
+        return self._get_rg_id_from_ldev_id(ldev_id, storage_device_id)
+
+    @log_entry_exit
+    def get_storage_pool_resource_group_ids(self):
+        storage_device_id = self.get_storage_device_id()
+        dp_pools = self._get_dp_pools(storage_device_id)
+        logger.writeDebug("PV:handle_storage_pools:dp_pools={}", dp_pools)
+        hti_pools = self._get_hti_pools(storage_device_id)
+        logger.writeDebug("PV:handle_storage_pools:hti_pools={}", hti_pools)
+
+        pools_by_id = {
+            pool["poolId"]: pool["firstLdevId"] for pool in dp_pools
+        }
+        pools_by_id.update(
+            {
+                pool["poolId"]: pool["firstLdevId"]
+                for pool in hti_pools
+            }
+        )
+        logger.writeDebug("PV:handle_storage_pools:ldevs={}", pools_by_id)
+
+        return {
+            pool_id: self._get_rg_id_from_ldev_id(ldev_id, storage_device_id)
+            for pool_id, ldev_id in pools_by_id.items()
+        }
+
+    def _get_rg_id_from_ldev_id(self, ldev_id, storage_device_id):
         end_point = GET_LDEV_BY_ID_DIRECT.format(storage_device_id, ldev_id)
         ldev = self.connection_manager.get(end_point)
         return ldev["resourceGroupId"]
@@ -319,6 +354,9 @@ class VSPResourceGroupDirectGateway:
     @log_entry_exit
     def get_dp_pools(self):
         storage_device_id = self.get_storage_device_id()
+        return self._get_dp_pools(storage_device_id)
+
+    def _get_dp_pools(self, storage_device_id):
         end_point = GET_DP_POOLS_DIRECT.format(storage_device_id)
         dp_pools = self.connection_manager.get(end_point)
         return dp_pools["data"]
@@ -326,6 +364,9 @@ class VSPResourceGroupDirectGateway:
     @log_entry_exit
     def get_hti_pools(self):
         storage_device_id = self.get_storage_device_id()
+        return self._get_hti_pools(storage_device_id)
+
+    def _get_hti_pools(self, storage_device_id):
         end_point = GET_HTI_POOLS_DIRECT.format(storage_device_id)
         hti_pools = self.connection_manager.get(end_point)
         return hti_pools["data"]

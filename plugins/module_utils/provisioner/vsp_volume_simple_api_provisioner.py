@@ -88,12 +88,17 @@ class VSPVolumeSimpleApiProvisioner:
             if spec.server_ids and len(spec.server_ids) > 0:
                 spec.volume_ids = vol_ids
                 self.attach_servers_to_volumes(spec)
-            volumes = [
-                self.gateway.salamander_get_volume_by_id_with_details(
+            volumes = []
+            for vol_id in vol_ids:
+                details = self.gateway.salamander_get_volume_by_id_with_details(
                     vol_id
-                ).camel_to_snake_dict()
-                for vol_id in vol_ids
-            ]
+                )
+                if details is not None:
+                    volumes.append(details.camel_to_snake_dict())
+                else:
+                    spec.comments.append(
+                        f"Volume {vol_id} was created but details could not be retrieved."
+                    )
             return volumes
         else:
             self.salamander_update_volume(spec, vol_info)
@@ -311,3 +316,226 @@ class VSPVolumeSimpleApiProvisioner:
     @log_entry_exit
     def volume_facts_request_calls(self, spec):
         return self.gateway.filter_volume_by_specs(spec)
+
+    @log_entry_exit
+    def delete_volumes_bulk(self, spec, volume_ids, virtual_volume_id_clear_option=None):
+        """
+        Delete multiple volumes in a single request.
+        POST /volumes/actions/delete/invoke
+        Max 1000 volumes.
+        """
+        if not volume_ids:
+            raise ValueError(VSPVolumeMSG.BULK_DELETE_VOLUMES_REQUIRED.value)
+        payload = {"volumeIds": volume_ids}
+        if virtual_volume_id_clear_option is not None:
+            payload["virtualVolumeIdClearOption"] = virtual_volume_id_clear_option
+        try:
+            response = self.gateway.delete_volumes_bulk(payload)
+            self.connection_info.changed = True
+            spec.comments.append(VSPVolumeMSG.BULK_DELETE_VOLUMES_SUCCESS.value)
+            return response
+        except Exception as e:
+            err_str = str(e)
+            if "not found" in err_str.lower() or "does not exist" in err_str.lower():
+                spec.comments.append(f"Failed to delete volume: {err_str}")
+                return None
+            raise
+
+    @log_entry_exit
+    def edit_volume_nicknames_bulk(self, volumes):
+        """
+        Change nicknames for multiple volumes in a single request.
+        POST /volumes/actions/edit-nicknames/invoke
+        Each entry: {"volumeId": int, "nickname": str}
+        Max 32 volumes.
+        """
+        if not volumes:
+            raise ValueError(VSPVolumeMSG.BULK_EDIT_NICKNAMES_REQUIRED.value)
+        payload = []
+        for entry in volumes:
+            item = {}
+            if "volume_id" in entry:
+                item["volumeId"] = entry["volume_id"]
+            elif "volumeId" in entry:
+                item["volumeId"] = entry["volumeId"]
+            else:
+                raise ValueError("volumeId is required for each entry in volumes.")
+            if "nickname" not in entry:
+                raise ValueError("nickname is required for each entry in volumes.")
+            item["nickname"] = entry["nickname"]
+            payload.append(item)
+
+        # Idempotency: skip volumes whose nickname is already correct.
+        idempotent_payload = []
+        for item in payload:
+            current = self.gateway.salamander_get_volume_by_id(item["volumeId"])
+            if current is None or getattr(current, "nickname", None) != item["nickname"]:
+                idempotent_payload.append(item)
+
+        all_volume_ids = [str(item["volumeId"]) for item in payload]
+        if not idempotent_payload:
+            return self._fetch_volumes_by_ids(all_volume_ids)
+
+        response = self.gateway.edit_volume_nicknames_bulk(idempotent_payload)
+        self.connection_info.changed = True
+        return self._fetch_volumes_by_ids(
+            self._resolve_ids_from_response(response, all_volume_ids)
+        )
+
+    @log_entry_exit
+    def edit_volume_alua_settings_bulk(self, volume_ids, alua_setting):
+        """
+        Change ALUA mode settings for multiple volumes in a single request.
+        POST /volumes/actions/edit-alua-settings/invoke
+        Max 64 volumes.
+        """
+        if not volume_ids:
+            raise ValueError(VSPVolumeMSG.BULK_EDIT_ALUA_SETTINGS_REQUIRED.value)
+        if not alua_setting:
+            raise ValueError(VSPVolumeMSG.BULK_EDIT_ALUA_SETTINGS_REQUIRED.value)
+
+        # Idempotency: skip volumes whose ALUA setting already matches.
+        desired = alua_setting.upper()
+        ids_to_change = []
+        for vid in volume_ids:
+            current = self.gateway.salamander_get_volume_by_id(vid)
+            current_alua = (getattr(current, "aluaSetting", None) or "").upper()
+            if current is None or current_alua != desired:
+                ids_to_change.append(vid)
+
+        all_ids_str = [str(vid) for vid in volume_ids]
+        if not ids_to_change:
+            return self._fetch_volumes_by_ids(all_ids_str)
+
+        payload = {
+            "aluaSetting": desired,
+            "volumeIds": ids_to_change,
+        }
+        response = self.gateway.edit_volume_alua_settings_bulk(payload)
+        self.connection_info.changed = True
+        return self._fetch_volumes_by_ids(
+            self._resolve_ids_from_response(response, all_ids_str)
+        )
+
+    @log_entry_exit
+    def edit_volume_saving_settings_bulk(
+        self, volume_ids, saving_setting=None, compression_acceleration=None
+    ):
+        """
+        Change capacity saving settings for multiple volumes in a single request.
+        POST /volumes/actions/edit-saving-settings/invoke
+        Max 1000 volumes.
+        """
+        if not volume_ids:
+            raise ValueError(VSPVolumeMSG.BULK_EDIT_SAVING_SETTINGS_REQUIRED.value)
+        if saving_setting is None and compression_acceleration is None:
+            raise ValueError(VSPVolumeMSG.BULK_EDIT_SAVING_SETTINGS_REQUIRED.value)
+
+        # Idempotency: skip volumes already at the desired saving/acceleration state.
+        # Normalise "disabled" / "DISABLED" to the API value "DISABLE".
+        def _normalise_saving(val):
+            if val is None:
+                return None
+            v = val.upper()
+            return "DISABLE" if v == "DISABLED" else v
+
+        desired_saving = _normalise_saving(saving_setting)
+        ids_to_change = []
+        for vid in volume_ids:
+            current = self.gateway.salamander_get_volume_by_id(vid)
+            if current is None:
+                ids_to_change.append(vid)
+                continue
+            saving_matches = (
+                desired_saving is None
+                or _normalise_saving(getattr(current, "savingSetting", None)) == desired_saving
+            )
+            accel_matches = (
+                compression_acceleration is None
+                or getattr(current, "compressionAcceleration", None) == compression_acceleration
+            )
+            if not saving_matches or not accel_matches:
+                ids_to_change.append(vid)
+
+        all_ids_str = [str(vid) for vid in volume_ids]
+        if not ids_to_change:
+            return self._fetch_volumes_by_ids(all_ids_str)
+
+        payload = {"volumeIds": ids_to_change}
+        if saving_setting is not None:
+            payload["savingSetting"] = desired_saving  # already normalised
+        if compression_acceleration is not None:
+            payload["compressionAcceleration"] = compression_acceleration
+        response = self.gateway.edit_volume_saving_settings_bulk(payload)
+        self.connection_info.changed = True
+        return self._fetch_volumes_by_ids(
+            self._resolve_ids_from_response(response, all_ids_str)
+        )
+
+    def _resolve_ids_from_response(self, response, fallback_ids):
+        """
+        Normalize the bulk API response into a flat list of volume ID strings.
+
+        Handles two formats:
+          - list of ID strings (from _process_pegasus_jobs_bulk on async storages)
+          - {"data": [{"affectedResources": ["/…/volumes/123"]}, ...]} sync response
+        Falls back to fallback_ids when neither yields anything.
+        """
+        if isinstance(response, list) and response:
+            return response
+        if isinstance(response, dict):
+            ids = []
+            for item in response.get("data", []):
+                for ar in item.get("affectedResources", []):
+                    ids.append(str(ar).rsplit("/", maxsplit=1)[-1])
+            if ids:
+                return ids
+        return fallback_ids
+
+    def _fetch_volumes_by_ids(self, ids):
+        """
+        Re-fetch each volume with full details after a bulk edit operation.
+        `ids` is the flat list of volume ID strings returned by pegasus_post_bulk.
+        salamander_get_volume_by_id_with_details returns None on API failure,
+        so each result is checked before calling camel_to_snake_dict().
+        """
+        results = []
+        for vol_id in ids:
+            details = self.gateway.salamander_get_volume_by_id_with_details(vol_id)
+            if details is not None:
+                results.append(details.camel_to_snake_dict())
+            else:
+                logger.writeError(
+                    f"Could not retrieve details for volume {vol_id} after bulk edit."
+                )
+        return results
+
+    @log_entry_exit
+    def disconnect_volume_server_connections_bulk(self, connections):
+        """
+        Detach multiple volume-server connections in a single request.
+        POST /volume-server-connections/actions/disconnect/invoke
+        Each entry: {"serverId": int, "volumeId": int}
+        Max 1000 pairs.
+        """
+        if not connections:
+            raise ValueError(VSPVolumeMSG.BULK_DISCONNECT_VOLUMES_REQUIRED.value)
+        payload = []
+        for entry in connections:
+            item = {}
+            if "server_id" in entry:
+                item["serverId"] = entry["server_id"]
+            elif "serverId" in entry:
+                item["serverId"] = entry["serverId"]
+            else:
+                raise ValueError("serverId is required for each connection entry.")
+            if "volume_id" in entry:
+                item["volumeId"] = entry["volume_id"]
+            elif "volumeId" in entry:
+                item["volumeId"] = entry["volumeId"]
+            else:
+                raise ValueError("volumeId is required for each connection entry.")
+            payload.append(item)
+        response = self.gateway.disconnect_volume_server_connections_bulk(payload)
+        self.connection_info.changed = True
+        return response

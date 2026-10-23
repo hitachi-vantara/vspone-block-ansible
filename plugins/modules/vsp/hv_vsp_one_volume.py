@@ -31,10 +31,24 @@ extends_documentation_fragment:
   - hitachivantara.vspone_block.common.connection_info
 options:
   state:
-    description: Defines the volume operation type. Available options include C(present), C(absent), C(attach_server), and C(detach_server).
+    description:
+      - Defines the volume operation type.
+      - C(present) creates or updates a volume.
+      - C(absent) deletes a single volume.
+      - C(attach_server) attaches a volume to one or more servers.
+      - C(detach_server) detaches a volume from one or more servers.
+      - C(server_present) attaches multiple volumes to multiple servers in one call.
+      - C(change_qos_settings) updates QoS settings for a volume.
+      - C(delete_volumes_bulk) deletes up to 1000 volumes in a single API call.
+      - C(edit_volume_nicknames_bulk) renames up to 32 volumes in a single synchronous API call.
+      - C(edit_volume_alua_settings_bulk) changes the ALUA mode for up to 64 volumes in a single synchronous API call.
+      - C(edit_volume_saving_settings_bulk) changes capacity saving settings for up to 1000 volumes in a single API call.
+      - C(disconnect_volume_server_connections_bulk) detaches up to 1000 volume-server pairs in a single API call.
     type: str
     required: false
-    choices: ['present', 'absent', 'attach_server', 'detach_server', 'change_qos_settings', 'server_present']
+    choices: ['present', 'absent', 'attach_server', 'detach_server', 'change_qos_settings', 'server_present',
+             'delete_volumes_bulk', 'edit_volume_nicknames_bulk', 'edit_volume_alua_settings_bulk',
+             'edit_volume_saving_settings_bulk', 'disconnect_volume_server_connections_bulk']
     default: 'present'
   spec:
     description: Configuration parameters for the volume operation.
@@ -111,8 +125,12 @@ options:
         type: str
         required: false
       volume_ids:
-        description: Collection of volume identifiers for batch operations to add servers.
-          Required for the Attach multiple volumes to a multiple servers in one operation task.
+        description:
+          - Collection of volume identifiers for batch operations.
+          - Required for C(server_present) to attach multiple volumes to multiple servers.
+          - Required for C(delete_volumes_bulk) to delete multiple volumes (max 1000).
+          - Required for C(edit_volume_alua_settings_bulk) to set ALUA mode on multiple volumes (max 64).
+          - Required for C(edit_volume_saving_settings_bulk) to change saving settings on multiple volumes (max 1000).
         type: list
         required: false
         elements: str
@@ -236,18 +254,66 @@ options:
         required: false
         elements: int
       capacity_saving:
-        description: Data reduction function configuration.
-          Required for the Create volume with data reduction sharing enabled
-          /Update the Volume saving settings and compression_acceleration of an existing volume tasks.
+        description:
+          - Data reduction function configuration.
+          - Required for C(present) when creating/updating a volume with capacity saving.
+          - Required for C(edit_volume_saving_settings_bulk) to change saving settings on multiple volumes.
         type: str
         required: false
         aliases: ["saving_setting"]
         choices: ["compression", "deduplication_and_compression", "disable"]
       compression_acceleration:
-        description: Controls compression acceleration feature.
-          Required for the Update the Volume saving settings and compression_acceleration of an existing volume task.
+        description:
+          - Controls compression acceleration feature.
+          - Used with C(present) or C(edit_volume_saving_settings_bulk).
         type: bool
         required: false
+      alua_setting:
+        description:
+          - ALUA mode to apply to all volumes in the batch.
+          - Required for C(edit_volume_alua_settings_bulk).
+        type: str
+        required: false
+        choices: ["ENABLED", "DISABLED"]
+      virtual_volume_id_clear_option:
+        description:
+          - Controls how virtual volume IDs are cleared when deleting volumes.
+          - Optional for C(delete_volumes_bulk). If C(RESET), virtual IDs are reset to defaults.
+        type: str
+        required: false
+        choices: ["RESET"]
+      volumes:
+        description:
+          - List of volume ID and new nickname pairs for bulk rename.
+          - Required for C(edit_volume_nicknames_bulk). Maximum 32 entries.
+        type: list
+        required: false
+        elements: dict
+        suboptions:
+          volume_id:
+            description: ID of the volume to rename.
+            type: str
+            required: true
+          nickname:
+            description: New nickname to assign to the volume (max 32 characters).
+            type: str
+            required: true
+      connections:
+        description:
+          - List of volume-server pairs to disconnect.
+          - Required for C(disconnect_volume_server_connections_bulk). Maximum 1000 pairs.
+        type: list
+        required: false
+        elements: dict
+        suboptions:
+          server_id:
+            description: ID of the server to disconnect from.
+            type: int
+            required: true
+          volume_id:
+            description: ID of the volume to disconnect.
+            type: str
+            required: true
 """
 
 EXAMPLES = """
@@ -356,6 +422,79 @@ EXAMPLES = """
       password: "password"
     spec:
       volume_id: 1234
+
+- name: Bulk delete multiple volumes
+  hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+    state: delete_volumes_bulk
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      volume_ids:
+        - "100"
+        - "101"
+        - "102"
+
+- name: Bulk rename multiple volumes
+  hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+    state: edit_volume_nicknames_bulk
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      volumes:
+        - volume_id: "100"
+          nickname: "prod-vol-100"
+        - volume_id: "101"
+          nickname: "prod-vol-101"
+        - volume_id: "102"
+          nickname: "prod-vol-102"
+
+- name: Bulk enable ALUA mode on multiple volumes
+  hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+    state: edit_volume_alua_settings_bulk
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      alua_setting: "ENABLED"
+      volume_ids:
+        - "100"
+        - "101"
+        - "102"
+
+- name: Bulk change capacity saving settings on multiple volumes
+  hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+    state: edit_volume_saving_settings_bulk
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      capacity_saving: "deduplication_and_compression"
+      volume_ids:
+        - "100"
+        - "101"
+        - "102"
+
+- name: Bulk detach multiple volume-server connections
+  hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+    state: disconnect_volume_server_connections_bulk
+    connection_info:
+      address: vsp.company.com
+      username: "admin"
+      password: "password"
+    spec:
+      connections:
+        - server_id: 10
+          volume_id: "100"
+        - server_id: 10
+          volume_id: "101"
+        - server_id: 11
+          volume_id: "102"
 """
 
 RETURN = """

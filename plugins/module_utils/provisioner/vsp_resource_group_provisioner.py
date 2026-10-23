@@ -1,8 +1,11 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 try:
     from ..gateway.gateway_factory import GatewayFactory
     from ..common.hv_constants import GatewayClassTypes
     from ..common.hv_log import Log
     from ..common.ansible_common import log_entry_exit
+    from ..common.ansible_common_constants import MAX_WORKER_THREADS
     from ..model.vsp_resource_group_models import (
         DisplayResourceGroup,
         DisplayResourceGroupList,
@@ -17,6 +20,7 @@ except ImportError:
     from common.hv_constants import GatewayClassTypes
     from common.hv_log import Log
     from common.ansible_common import log_entry_exit
+    from common.ansible_common_constants import MAX_WORKER_THREADS
     from model.vsp_resource_group_models import (
         DisplayResourceGroup,
         DisplayResourceGroupList,
@@ -389,15 +393,66 @@ class VSPResourceGroupProvisioner:
     @log_entry_exit
     def get_display_host_groups(self, host_group_ids):
         hg_list = []
-        if host_group_ids is None:
+        if not host_group_ids:
             return hg_list
+
+        wanted = {}
         for hg_id in host_group_ids:
-            host_group_one = self.get_hg_by_id(hg_id)
-            # host_group = host_group_one.data
-            # logger.writeDebug("PV:get_display_host_groups:hg={}", host_group)
-            if host_group_one is None:
+            port, hg_number = hg_id.split(",", 1)
+            wanted.setdefault(port, set()).add(hg_number)
+
+        hg_by_id = {}
+
+        def fetch_ports(ports):
+            executor = ThreadPoolExecutor(
+                max_workers=MAX_WORKER_THREADS, thread_name_prefix="GetRgHostGroups"
+            )
+            try:
+                futures = {
+                    executor.submit(self.hg_gateway.get_host_group_list_by_port, port): port
+                    for port in ports
+                }
+                for future in as_completed(futures):
+                    port = futures[future]
+                    try:
+                        port_host_groups = future.result()
+                    except Exception as e:
+                        logger.writeWarning(
+                            f"Bulk host group list failed for port {port}: {e}"
+                        )
+                        continue
+                    for hg in port_host_groups:
+                        hg_number = str(hg["hostGroupNumber"])
+                        if hg_number in wanted[port]:
+                            hg_by_id[f"{port},{hg_number}"] = hg
+            finally:
+                executor.shutdown(wait=True)
+
+        def unresolved_ports():
+            return {
+                port
+                for port in wanted
+                if any(f"{port},{n}" not in hg_by_id for n in wanted[port])
+            }
+
+        fetch_ports(wanted)
+        retry_ports = unresolved_ports()
+        if retry_ports:
+            logger.writeInfo(f"Retrying bulk host group list for ports {sorted(retry_ports)}")
+            fetch_ports(retry_ports)
+
+        for hg_id in host_group_ids:
+            hg = hg_by_id.get(hg_id)
+            if hg is None:
+                hg_list.append(self.get_hg_by_id(hg_id))
                 continue
-            hg_list.append(host_group_one)
+            hg_list.append(
+                HostGroupInfo(
+                    port=hg["portId"],
+                    name=hg["hostGroupName"],
+                    id=hg["hostGroupNumber"],
+                )
+            )
 
         return hg_list
 
@@ -482,27 +537,8 @@ class VSPResourceGroupProvisioner:
 
     @log_entry_exit
     def handle_storage_pools(self):
-        dp_pools = self.gateway.get_dp_pools()
-        logger.writeDebug("PV:handle_storage_pools:dp_pools={}", dp_pools)
-        hti_pools = self.gateway.get_hti_pools()
-        logger.writeDebug("PV:handle_storage_pools:hti_pools={}", hti_pools)
-
-        pool_ldevs = {}
-        for dp in dp_pools:
-            pool_id = dp["poolId"]
-            first_ldev = dp["firstLdevId"]
-            pool_ldevs[pool_id] = first_ldev
-
-        logger.writeDebug("PV:handle_storage_pools:ldevs={}", pool_ldevs)
-
-        for hti in hti_pools:
-            pool_id = hti["poolId"]
-            first_ldev = hti["firstLdevId"]
-            pool_ldevs[pool_id] = first_ldev
-
         rg_id_pool = {}
-        for pool_id, ldev_id in pool_ldevs.items():
-            rg_id = self.gateway.get_rg_id_from_ldev_id(ldev_id)
+        for pool_id, rg_id in self.gateway.get_storage_pool_resource_group_ids().items():
             if rg_id in rg_id_pool:
                 pool_ids = rg_id_pool[rg_id]
                 pool_ids.append(pool_id)

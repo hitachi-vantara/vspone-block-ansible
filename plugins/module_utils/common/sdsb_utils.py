@@ -2,6 +2,14 @@ import copy
 import re
 
 try:
+    from ansible.module_utils.common.warnings import warn as _add_ansible_warning
+except ImportError:
+    try:
+        from ansible.module_utils.common.warnings import add_warning as _add_ansible_warning
+    except ImportError:
+        _add_ansible_warning = None
+
+try:
     from ..common.hv_constants import StateValue
     from ..common.hv_constants import ConnectionTypes
     from ..common.sdsb_constants import AutomationConstants
@@ -186,12 +194,30 @@ class SDSBParametersManager:
         self.state = self.params.get("state", None)
 
         SDSBSpecValidators.validate_connection_info(self.connection_info)
+        SDSBSpecValidators.validate_client_cert(self.connection_info)
+        SDSBSpecValidators.validate_ca_cert(self.connection_info)
+        self._emit_validate_cert_warning()
 
     def get_state(self):
         return self.state
 
     def get_connection_info(self):
         return self.connection_info
+
+    def _emit_validate_cert_warning(self):
+        if not self.connection_info.validate_cert and not self.connection_info.suppress_validate_cert_warning:
+            storage_id = self.connection_info.address
+            msg = (
+                f"Warning: validate_cert for storage {storage_id} is currently set to false. "
+                "Disabling certificate validation is insecure and may expose the connection to "
+                "man-in-the-middle attacks. It is recommended to set validate_cert: true. "
+                "Starting with major version 5.0, the default value will change to true."
+            )
+            if _add_ansible_warning is not None:
+                _add_ansible_warning(msg)
+            else:
+                import warnings as _warnings
+                _warnings.warn(msg, UserWarning)
 
     def get_journal_spec(self):
         if "spec" in self.params and self.params["spec"] is not None:
@@ -658,6 +684,29 @@ class SDSBCommonParameters:
                         "direct"
                     ],  # Removed gateway connection type as it is not supported
                     "default": "direct",
+                },
+                "suppress_validate_cert_warning": {
+                    "required": False,
+                    "type": "bool",
+                    "default": False,
+                },
+                "validate_cert": {
+                    "required": False,
+                    "type": "bool",
+                    "default": False,
+                },
+                "ca_cert": {
+                    "required": False,
+                    "type": "str",
+                },
+                "client_cert": {
+                    "required": False,
+                    "type": "str",
+                },
+                "client_key": {
+                    "required": False,
+                    "type": "str",
+                    "no_log": True,
                 },
             },
         }
@@ -3942,6 +3991,26 @@ class SDSBSpecValidators:
         ):
             raise ValueError(
                 SDSBConnectionValidationMsg.NOT_API_TOKEN_USER_DETAILS.value
+            )
+
+    @staticmethod
+    def validate_client_cert(conn_info: ConnectionInfo):
+        if conn_info.client_cert and not conn_info.client_key:
+            raise ValueError(
+                "client_key is required when client_cert is provided in connection_info."
+            )
+        if conn_info.client_key and not conn_info.client_cert:
+            raise ValueError(
+                "client_cert is required when client_key is provided in connection_info."
+            )
+
+    @staticmethod
+    def validate_ca_cert(conn_info: ConnectionInfo):
+        import os as _os
+        if conn_info.ca_cert and not _os.path.exists(conn_info.ca_cert):
+            raise ValueError(
+                f"ca_cert path does not exist: '{conn_info.ca_cert}'. "
+                "Please provide a valid file path or directory path to the CA certificate."
             )
 
     @staticmethod

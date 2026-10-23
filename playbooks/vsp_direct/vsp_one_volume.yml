@@ -15,6 +15,12 @@
       address: "{{ storage_address }}"
       username: "{{ vault_storage_username }}"
       password: "{{ vault_storage_secret }}"
+      # SSL options (all optional – see vsp_direct/ssl_connection_examples.yml):
+      # validate_cert: false             # Validate storage SSL cert (default: false, changes to true in v5.0)
+      # ca_cert: "/path/to/ca.pem"      # CA cert file/dir for self-signed certs
+      # client_cert: "/path/to/client-cert.pem"  # Client cert for mTLS
+      # client_key: "/path/to/client-key.pem"    # Client private key for mTLS
+      # suppress_validate_cert_warning: false     # Suppress warning when validate_cert: false
 
   tasks:
     # ###################################################################
@@ -289,6 +295,180 @@
           is_data_reduction_share_enabled: true
           capacity_saving: "disable"
           pool_id: 3
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk delete multiple volumes in a single request
+    ####################################################################
+    - name: Bulk delete multiple volumes
+      hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+        state: delete_volumes_bulk
+        connection_info: "{{ connection_info }}"
+        spec:
+          volume_ids:
+            - "100"
+            - "101"
+            - "102"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk rename multiple volumes in a single request
+    ####################################################################
+    - name: Bulk rename multiple volumes
+      hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+        state: edit_volume_nicknames_bulk
+        connection_info: "{{ connection_info }}"
+        spec:
+          volumes:
+            - volume_id: "100"
+              nickname: "prod-vol-100"
+            - volume_id: "101"
+              nickname: "prod-vol-101"
+            - volume_id: "102"
+              nickname: "prod-vol-102"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk change ALUA mode for multiple volumes
+    ####################################################################
+    - name: Bulk enable ALUA mode on multiple volumes
+      hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+        state: edit_volume_alua_settings_bulk
+        connection_info: "{{ connection_info }}"
+        spec:
+          alua_setting: "ENABLED"
+          volume_ids:
+            - "100"
+            - "101"
+            - "102"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk change capacity saving settings for multiple volumes
+    ####################################################################
+    - name: Bulk change capacity saving settings on multiple volumes
+      hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+        state: edit_volume_saving_settings_bulk
+        connection_info: "{{ connection_info }}"
+        spec:
+          capacity_saving: "deduplication_and_compression"
+          volume_ids:
+            - "100"
+            - "101"
+            - "102"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk disconnect multiple volume-server connections
+    ####################################################################
+    - name: Bulk detach multiple volume-server connections
+      hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+        state: disconnect_volume_server_connections_bulk
+        connection_info: "{{ connection_info }}"
+        spec:
+          connections:
+            - server_id: 10
+              volume_id: "100"
+            - server_id: 10
+              volume_id: "101"
+            - server_id: 11
+              volume_id: "102"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk delete multiple volumes and reset virtual IDs
+    ####################################################################
+    - name: Bulk delete multiple volumes and reset virtual IDs
+      hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+        state: delete_volumes_bulk
+        connection_info: "{{ connection_info }}"
+        spec:
+          volume_ids:
+            - "200"
+            - "201"
+          virtual_volume_id_clear_option: "RESET"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk disable ALUA mode on multiple volumes
+    ####################################################################
+    - name: Bulk disable ALUA mode on multiple volumes
+      hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+        state: edit_volume_alua_settings_bulk
+        connection_info: "{{ connection_info }}"
+        spec:
+          alua_setting: "DISABLED"
+          volume_ids:
+            - "100"
+            - "101"
+            - "102"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk change capacity saving with compression acceleration
+    ####################################################################
+    - name: Bulk change capacity saving with compression acceleration
+      hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+        state: edit_volume_saving_settings_bulk
+        connection_info: "{{ connection_info }}"
+        spec:
+          capacity_saving: "deduplication_and_compression"
+          compression_acceleration: true
+          volume_ids:
+            - "100"
+            - "101"
+            - "102"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk disable capacity saving on multiple volumes
+    ####################################################################
+    - name: Bulk disable capacity saving on multiple volumes
+      hitachivantara.vspone_block.vsp.hv_vsp_one_volume:
+        state: edit_volume_saving_settings_bulk
+        connection_info: "{{ connection_info }}"
+        spec:
+          capacity_saving: "disabled"
+          volume_ids:
+            - "100"
+            - "101"
+            - "102"
       register: result
 
     - name: Debug the result variable

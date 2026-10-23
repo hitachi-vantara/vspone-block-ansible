@@ -23,6 +23,21 @@ class ConnectionInfo:
         default="direct", metadata={"field": "connection_type"}
     )
     changed: bool = field(default=False, metadata={"field": "changed"})
+    suppress_validate_cert_warning: bool = field(
+        default=False, metadata={"field": "suppress_validate_cert_warning"}
+    )
+    validate_cert: bool = field(
+        default=False, metadata={"field": "validate_cert"}
+    )
+    ca_cert: Optional[str] = field(
+        default=None, metadata={"field": "ca_cert"}
+    )
+    client_cert: Optional[str] = field(
+        default=None, metadata={"field": "client_cert"}
+    )
+    client_key: Optional[str] = field(
+        default=None, metadata={"field": "client_key"}
+    )
 
 
 @dataclass

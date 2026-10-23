@@ -46,6 +46,28 @@ class VSPVolumeSimpleAPIReconciler:
             return self.provisioner.detach_server_from_volume(spec, spec.server_ids)
         elif state == StateValue.SERVER_PRESENT:
             return self.provisioner.attach_servers_to_volumes(spec)
+        elif state == StateValue.DELETE_VOLUMES_BULK:
+            return self.provisioner.delete_volumes_bulk(
+                spec,
+                spec.volume_ids,
+                getattr(spec, "virtual_volume_id_clear_option", None),
+            )
+        elif state == StateValue.EDIT_VOLUME_NICKNAMES_BULK:
+            return self.provisioner.edit_volume_nicknames_bulk(spec.volumes)
+        elif state == StateValue.EDIT_VOLUME_ALUA_SETTINGS_BULK:
+            return self.provisioner.edit_volume_alua_settings_bulk(
+                spec.volume_ids, spec.alua_setting
+            )
+        elif state == StateValue.EDIT_VOLUME_SAVING_SETTINGS_BULK:
+            return self.provisioner.edit_volume_saving_settings_bulk(
+                spec.volume_ids,
+                getattr(spec, "capacity_saving", None),
+                getattr(spec, "compression_acceleration", None),
+            )
+        elif state == StateValue.DISCONNECT_VOLUME_SERVER_CONNECTIONS_BULK:
+            return self.provisioner.disconnect_volume_server_connections_bulk(
+                spec.connections
+            )
 
     @log_entry_exit
     def volume_facts_reconcile(self, spec=None) -> Any:

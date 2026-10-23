@@ -15,6 +15,12 @@
       address: "{{ storage_address }}"
       username: "{{ vault_storage_username }}"
       password: "{{ vault_storage_secret }}"
+      # SSL options (all optional – see vsp_direct/ssl_connection_examples.yml):
+      # validate_cert: false             # Validate storage SSL cert (default: false, changes to true in v5.0)
+      # ca_cert: "/path/to/ca.pem"      # CA cert file/dir for self-signed certs
+      # client_cert: "/path/to/client-cert.pem"  # Client cert for mTLS
+      # client_key: "/path/to/client-key.pem"    # Client private key for mTLS
+      # suppress_validate_cert_warning: false     # Suppress warning when validate_cert: false
 
   tasks:
     # ###################################################################
@@ -433,6 +439,182 @@
         connection_info: "{{ connection_info }}"
         spec:
           nickname: "WebServer01"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk create multiple servers in a single request
+    ####################################################################
+    - name: Bulk create multiple servers in a single request
+      hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+        state: create_servers
+        connection_info: "{{ connection_info }}"
+        spec:
+          servers:
+            - nickname: "BulkServer01"
+              protocol: "FC"
+              os_type: "Linux"
+              os_type_options: [1, 2]
+            - nickname: "BulkServer02"
+              protocol: "iSCSI"
+              os_type: "Windows"
+              is_reserved: true
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk create N servers using count
+    # count must be 1-50; hbas/paths not allowed when count > 1
+    ####################################################################
+    - name: Bulk create N servers using count
+      hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+        state: create_servers
+        connection_info: "{{ connection_info }}"
+        spec:
+          servers:
+            - nickname: "WebServer"
+              count: 3
+              protocol: "FC"
+              os_type: "Linux"
+              os_type_options: [1, 2]
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk create servers using start_index and end_index
+    ####################################################################
+    - name: Bulk create servers using start_index and end_index
+      hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+        state: create_servers
+        connection_info: "{{ connection_info }}"
+        spec:
+          servers:
+            - nickname: "WebServer"
+              start_index: 5
+              end_index: 10
+              protocol: "FC"
+              os_type: "Linux"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk create servers using start_index and count
+    ####################################################################
+    - name: Bulk create servers using start_index and count
+      hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+        state: create_servers
+        connection_info: "{{ connection_info }}"
+        spec:
+          servers:
+            - nickname: "WebServer"
+              start_index: 5
+              count: 3
+              protocol: "FC"
+              os_type: "Linux"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk create single server with inline HBAs and paths
+    # (hbas/paths only valid when creating a single server, count = 1)
+    ####################################################################
+    - name: Bulk create single server with inline HBAs and paths
+      hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+        state: create_servers
+        connection_info: "{{ connection_info }}"
+        spec:
+          servers:
+            - nickname: "AppServer01"
+              protocol: "FC"
+              os_type: "Linux"
+              hbas:
+                - hba_wwn: "50060e8010203040"
+              paths:
+                - port_ids: ["CL1-A", "CL1-B"]
+                  hba_wwn: "50060e8010203040"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk add HBAs to multiple servers in a single request
+    ####################################################################
+    - name: Bulk add HBAs to multiple servers in a single request
+      hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+        state: add_hba_bulk
+        connection_info: "{{ connection_info }}"
+        spec:
+          bulk_hbas:
+            - server_id: 101
+              hbas:
+                - hba_wwn: "50060e8010203040"
+                - hba_wwn: "50060e8010203041"
+            - server_id: 102
+              hbas:
+                - iscsi_name: "iqn.1991-05.com.example:server102-iscsi1"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk add paths to multiple servers in a single request
+    ####################################################################
+    - name: Bulk add paths to multiple servers in a single request
+      hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+        state: add_path_bulk
+        connection_info: "{{ connection_info }}"
+        spec:
+          bulk_paths:
+            - server_id: 101
+              paths:
+                - port_ids: ["CL1-A", "CL1-B"]
+                  hba_wwn: "50060e8010203040"
+            - server_id: 102
+              paths:
+                - port_ids: ["CL2-A"]
+                  iscsi_name: "iqn.1991-05.com.example:server102-iscsi1"
+      register: result
+
+    - name: Debug the result variable
+      ansible.builtin.debug:
+        var: result
+
+    ####################################################################
+    # Task Name : Bulk remove paths from multiple servers in a single request
+    ####################################################################
+    - name: Bulk remove paths from multiple servers in a single request
+      hitachivantara.vspone_block.vsp.hv_vsp_one_server:
+        state: remove_path_bulk
+        connection_info: "{{ connection_info }}"
+        spec:
+          bulk_remove_paths:
+            - server_id: 101
+              paths:
+                - port_ids: ["CL1-A"]
+                  hba_wwn: "50060e8010203040"
+            - server_id: 102
+              paths:
+                - port_ids: ["CL2-A"]
+                  iscsi_name: "iqn.1991-05.com.example:server102-iscsi1"
       register: result
 
     - name: Debug the result variable

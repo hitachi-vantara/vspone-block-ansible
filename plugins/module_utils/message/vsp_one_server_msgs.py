@@ -78,6 +78,15 @@ class VSPOneServerMSG(Enum):
     PATHS_LIST_REQUIRED = (
         "paths list cannot be empty when adding or removing paths to/from server."
     )
+    BULK_SERVERS_REQUIRED = "servers list cannot be empty for bulk server creation."
+    BULK_HBAS_REQUIRED = "bulk_hbas list cannot be empty for bulk HBA add operation."
+    BULK_PATHS_REQUIRED = "bulk_paths list cannot be empty for bulk path add operation."
+    BULK_REMOVE_PATHS_REQUIRED = (
+        "bulk_remove_paths list cannot be empty for bulk path remove operation."
+    )
+    BULK_SERVER_OPERATION_SUCCESS = (
+        "Bulk server operation '{operation}' completed successfully."
+    )
     UNSUPPORTED_STATE = "Unsupported state: {}"
     SERVER_NOT_FOUND = "Server not found."
 

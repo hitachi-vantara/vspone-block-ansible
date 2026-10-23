@@ -50,6 +50,48 @@ options:
         description: This field is used to pass the value of the lock token to operate on locked resources.
         type: str
         required: false
+      suppress_validate_cert_warning:
+        description:
+          - Whether to suppress the SSL certificate validation warning.
+          - When set to V(false) (default), a warning is displayed if certificate validation is disabled.
+          - Set to V(true) to suppress the warning.
+        type: bool
+        required: false
+        default: false
+      validate_cert:
+        description:
+          - Whether to validate the storage system SSL certificate.
+          - When set to V(false) (default), certificate validation is disabled. A security warning
+            will be displayed unless O(connection_info.suppress_validate_cert_warning) is V(true).
+          - Set to V(true) to enable certificate validation. When V(true), provide
+            O(connection_info.ca_cert) if the storage system uses a self-signed certificate.
+          - >
+            Note: Starting with major version 5.0, the default value will change to V(true).
+            It is strongly recommended to enable certificate validation in production environments.
+        type: bool
+        required: false
+        default: false
+      ca_cert:
+        description:
+          - Path to a CA certificate file or directory on the Ansible control node used to
+            verify the storage system SSL certificate.
+          - Required when O(connection_info.validate_cert) is V(true) and the storage system
+            uses a self-signed or privately issued certificate.
+          - Accepts a PEM file path or a directory of hashed CA certificates.
+        type: str
+        required: false
+      client_cert:
+        description:
+          - Path to client SSL certificate file or CA certificate directory for mutual TLS authentication.
+          - Must be provided together with O(connection_info.client_key).
+        type: str
+        required: false
+      client_key:
+        description:
+          - Path to the client private key file for mutual TLS authentication.
+          - Must be provided together with O(connection_info.client_cert).
+        type: str
+        required: false
       connection_type:
         description: Type of connection to the storage system.
         type: str

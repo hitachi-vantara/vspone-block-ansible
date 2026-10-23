@@ -46,7 +46,6 @@ class VspOneSnapshotProvisioner:
         if (
             spec is not None
             and spec.include_snapshots
-            and not spec.include_snapshots
             and spec.snapshot_group_name is not None
             and spec.snapshot_group_name != ""
         ):
@@ -60,13 +59,13 @@ class VspOneSnapshotProvisioner:
 
         groups = self.gateway.get_snapshot_groups()
         snapshots = []
-        if spec.include_snapshots:
-            for group in groups.data:
-                snapshot = self.gateway.get_snapshot_group_by_name(group.name)
-                if snapshot:
-                    snapshots.append(snapshot.camel_to_snake_dict())
-        else:
-            snapshots = groups.data_to_snake_case_list()
+        for group in groups.data:
+            snapshot = self.gateway.get_snapshot_group_by_name(group.name)
+            if snapshot:
+                group_dict = snapshot.camel_to_snake_dict()
+                if not spec.include_snapshots:
+                    group_dict.pop("snapshots", None)
+                snapshots.append(group_dict)
         return snapshots
 
     @log_entry_exit

@@ -95,6 +95,10 @@ class VSPGadPairDirectGateway(VSPReplicationPairsDirectGateway):
             remote_connection_info.username,
             remote_connection_info.password,
             remote_connection_info.api_token,
+            client_cert=remote_connection_info.client_cert,
+            client_key=remote_connection_info.client_key,
+            validate_cert=remote_connection_info.validate_cert,
+            ca_cert=remote_connection_info.ca_cert,
         )
         return remote_connection_manager.getAuthToken()
 

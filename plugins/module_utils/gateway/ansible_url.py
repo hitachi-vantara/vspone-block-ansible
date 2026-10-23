@@ -10,6 +10,7 @@ from datetime import datetime
 import threading
 
 try:
+    from ..common.ansible_common import get_user_consent, consent_file_error_message
     from ..common.hv_log import Log
     from ..common.vsp_constants import Endpoints
     from ..common.sdsb_constants import SDSBlockEndpoints
@@ -25,6 +26,7 @@ try:
     from ..model.common_base_models import APIGRequestModel
     from ..common.hv_constants import IGNORED_APIS
 except ImportError:
+    from common.ansible_common import get_user_consent, consent_file_error_message
     from common.hv_log import Log
     from common.vsp_constants import Endpoints
     from common.sdsb_constants import SDSBlockEndpoints
@@ -467,28 +469,25 @@ def process_request(apig_body):
         log.writeError(f"Error processing request: {e}")
 
 
-def get_consent_flag():
-    # Get API key
+def get_consent_flag(consent_file_path=None):
     global USER_CONSENT, CONSENT_FILE_PRESENT, SITE_ID  # nosec
 
-    if not CONSENT_FILE_PRESENT and os.path.exists(  # nosec
-        os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)  # nosec
-    ):  # nosec
+    consent_file = consent_file_path or os.path.join(
+        USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME
+    )
+    try:
+        consent_result = get_user_consent(consent_file)
+        consent_choice, site_id = consent_result[:2]
+        USER_CONSENT = consent_choice
+        SITE_ID = site_id
         CONSENT_FILE_PRESENT = True
-    if not USER_CONSENT and os.path.exists(  # nosec
-        os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME)  # nosec
-    ):  # nosec
-        with open(  # nosec
-            os.path.join(USER_CONSENT_FILE_PATH, CONSENT_FILE_NAME), "r"  # nosec
-        ) as file:  # nosec
-            consent_data = json.load(file)
-            if consent_data.get("user_consent_accepted", False):
-                SITE_ID = consent_data.get("site_id")
-                USER_CONSENT = True
-
-    if USER_CONSENT and CONSENT_FILE_PRESENT:
-        return True
-    return False
+        return consent_choice
+    except (OSError, ValueError) as error:
+        USER_CONSENT = False
+        CONSENT_FILE_PRESENT = False
+        SITE_ID = "common_site_id"
+        logger.writeError(consent_file_error_message(consent_file, error))
+        return False
 
 
 def write_to_audit_log(url, request, response):

@@ -126,6 +126,10 @@ class VSPHostGroupDirectGateway:
             connection_info.username,
             connection_info.password,
             connection_info.api_token,
+            client_cert=connection_info.client_cert,
+            client_key=connection_info.client_key,
+            validate_cert=connection_info.validate_cert,
+            ca_cert=connection_info.ca_cert,
         )
         self.end_points = Endpoints
         self.serial = None
@@ -448,6 +452,14 @@ class VSPHostGroupDirectGateway:
         return resp
         # retHg = self.parse_host_group(resp, True, True)
         # return VSPOneHostGroupInfo(VSPHostGroupInfo(**retHg))
+
+    @log_entry_exit
+    def get_host_group_list_by_port(self, port_id):
+        end_point = self.end_points.GET_HOST_GROUPS.format(
+            "?portId={}&isUndefined=true&detailInfoType=resourceGroup".format(port_id)
+        )
+        resp = self.rest_api.read(end_point)
+        return resp["data"]
 
     @log_entry_exit
     def get_one_host_group(self, port_id, name):

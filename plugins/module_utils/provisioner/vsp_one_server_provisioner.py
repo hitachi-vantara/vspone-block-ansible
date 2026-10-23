@@ -156,6 +156,380 @@ class VSPServerSimpleApiProvisioner:
         return existing_server.camel_to_snake_dict()
 
     @log_entry_exit
+    def create_servers_bulk(self, spec: CreateServerSpec):
+        """
+        Create multiple servers, then optionally add HBAs and paths.
+        The API accepts at most 100 server entries per request; larger sets
+        are automatically split into batches of 100.
+
+        Idempotent: servers that already exist are skipped. If all requested
+        servers already exist the operation returns changed=False.
+        """
+        MAX_SERVERS_PER_REQUEST = 100
+
+        if not spec.servers:
+            raise ValueError(VSPOneServerMSG.BULK_SERVERS_REQUIRED.value)
+
+        # Expand entries that carry a count > 1 into individual (nickname, template) pairs.
+        expanded = []  # list of (resolved_nickname, BulkCreateServerSpec)
+        for entry in spec.servers:
+            if entry.nickname is None:
+                raise ValueError("nickname is required for each entry in servers.")
+            for resolved_name in entry.expand():
+                expanded.append((resolved_name, entry))
+
+        # ------------------------------------------------------------------
+        # Idempotency check — skip servers that already exist on the storage.
+        # ------------------------------------------------------------------
+        new_entries = []
+        skipped_names = []
+        for name, entry in expanded:
+            existing = self.get_server_by_nick_name(name)
+            if existing is not None:
+                logger.writeDebug(
+                    f"create_servers_bulk: server '{name}' already exists "
+                    f"(id={existing.id}), skipping creation."
+                )
+                skipped_names.append(name)
+            else:
+                new_entries.append((name, entry))
+
+        if skipped_names:
+            spec.comments.append(
+                f"Skipped {len(skipped_names)} already-existing server(s): "
+                + ", ".join(skipped_names)
+            )
+
+        if not new_entries:
+            # All servers already exist — nothing to do.
+            logger.writeDebug("create_servers_bulk: all servers already exist, no changes.")
+            spec.comments.append(
+                VSPOneServerMSG.BULK_SERVER_OPERATION_SUCCESS.value.format(
+                    operation="create_servers"
+                )
+            )
+            return self._get_servers_details_by_nicknames(
+                [name for name, entry in expanded], spec
+            )
+
+        # Build payload only for servers that don't yet exist, then send in
+        # batches of MAX_SERVERS_PER_REQUEST to stay within the API limit.
+        payload = [
+            entry.generate_create_payload(resolved_nickname=name)
+            for name, entry in new_entries
+        ]
+
+        total = len(payload)
+        batch_count = (total + MAX_SERVERS_PER_REQUEST - 1) // MAX_SERVERS_PER_REQUEST
+        logger.writeDebug(
+            f"create_servers_bulk: creating {total} new server(s) "
+            f"in {batch_count} batch(es) of up to {MAX_SERVERS_PER_REQUEST}."
+        )
+
+        for i in range(0, total, MAX_SERVERS_PER_REQUEST):
+            batch = payload[i: i + MAX_SERVERS_PER_REQUEST]
+            logger.writeDebug(
+                f"create_servers_bulk: batch {i // MAX_SERVERS_PER_REQUEST + 1}/{batch_count} "
+                f"— {len(batch)} server(s): "
+                + str([p.get("serverNickname") for p in batch])
+            )
+            self.gateway.create_servers_bulk(batch)
+
+        self.connection_info.changed = True
+
+        # Determine which new entries need HBAs or paths added.
+        needs_hba = [(name, entry) for name, entry in new_entries if entry.has_hbas()]
+        needs_path = [(name, entry) for name, entry in new_entries if entry.has_paths()]
+
+        if needs_hba or needs_path:
+            nicknames_needed = set(name for name, entry in needs_hba + needs_path)
+            nickname_to_id = {}
+            for nickname in nicknames_needed:
+                server = self.get_server_by_nick_name(nickname)
+                if server is None:
+                    logger.writeError(
+                        f"Could not find newly created server '{nickname}'; "
+                        "skipping HBA/path registration for this server."
+                    )
+                    continue
+                nickname_to_id[nickname] = server.id
+
+            if needs_hba:
+                hba_payload = []
+                for name, entry in needs_hba:
+                    server_id = nickname_to_id.get(name)
+                    if server_id is None:
+                        continue
+                    hbas = []
+                    for hba in entry.hbas:
+                        hba_item = {}
+                        if hba.hba_wwn is not None:
+                            hba_item["hbaWwn"] = hba.hba_wwn
+                        if hba.iscsi_name is not None:
+                            hba_item["iscsiName"] = hba.iscsi_name
+                        if hba_item:
+                            hbas.append(hba_item)
+                    if hbas:
+                        hba_payload.append({"serverId": server_id, "hbas": hbas})
+                if hba_payload:
+                    self.gateway.add_wwn_of_hba_bulk(hba_payload)
+
+            if needs_path:
+                path_payload = []
+                for name, entry in needs_path:
+                    server_id = nickname_to_id.get(name)
+                    if server_id is None:
+                        continue
+                    for path in entry.paths:
+                        path_item = {"serverId": server_id, "portIds": path.port_ids}
+                        if path.hba_wwn is not None:
+                            path_item["hbaWwn"] = path.hba_wwn
+                        if path.iscsi_name is not None:
+                            path_item["iscsiName"] = path.iscsi_name
+                        path_payload.append(path_item)
+                if path_payload:
+                    self.gateway.add_path_to_server_bulk(path_payload)
+
+        spec.comments.append(
+            VSPOneServerMSG.BULK_SERVER_OPERATION_SUCCESS.value.format(
+                operation="create_servers"
+            )
+        )
+        # Return enriched server objects for all expanded nicknames.
+        return self._get_servers_details_by_nicknames(
+            [name for name, entry in expanded], spec
+        )
+
+    def _get_servers_details_by_nicknames(self, nicknames, spec):
+        """
+        Look up each server by nickname and return a list of enriched server
+        dicts. Servers that cannot be found are skipped with a warning.
+        """
+        results = []
+        for nickname in nicknames:
+            server = self.get_server_by_nick_name(nickname)
+            if server is None:
+                logger.writeError(
+                    f"Could not retrieve details for server '{nickname}'."
+                )
+                continue
+            details = self.get_server_by_id_with_details(server.id)
+            if details is not None:
+                results.append(details.camel_to_snake_dict())
+        return results
+
+    @log_entry_exit
+    def add_hba_bulk(self, spec: CreateServerSpec):
+        """
+        Add HBAs/iSCSI names to multiple servers.
+        """
+        if not spec.bulk_hbas:
+            raise ValueError(VSPOneServerMSG.BULK_HBAS_REQUIRED.value)
+
+        payload = []
+        for entry in spec.bulk_hbas:
+            if entry.server_id is None:
+                raise ValueError("server_id is required for each entry in bulk_hbas.")
+            if not entry.hbas:
+                raise ValueError("hbas list is required for each entry in bulk_hbas.")
+
+            # Idempotency: collect HBAs already present on the server so we
+            # only add new ones.
+            existing_server = self.get_server_by_id_with_details(entry.server_id)
+            existing_hbas = set()
+            if existing_server is not None and existing_server.paths:
+                for path in existing_server.paths:
+                    if path.hbaWwn is not None:
+                        existing_hbas.add(path.hbaWwn)
+                    if path.iscsiName is not None:
+                        existing_hbas.add(path.iscsiName)
+
+            hbas = []
+            for hba in entry.hbas:
+                if hba.hba_wwn in existing_hbas or hba.iscsi_name in existing_hbas:
+                    spec.comments.append(
+                        f"HBA '{hba.hba_wwn or hba.iscsi_name}' already exists on "
+                        f"server {entry.server_id}. Skipping."
+                    )
+                    continue
+
+                hba_payload = {}
+                if hba.hba_wwn is not None:
+                    hba_payload["hbaWwn"] = hba.hba_wwn
+                if hba.iscsi_name is not None:
+                    hba_payload["iscsiName"] = hba.iscsi_name
+                if not hba_payload:
+                    raise ValueError(
+                        "Either hba_wwn or iscsi_name must be provided in bulk_hbas."
+                    )
+                hbas.append(hba_payload)
+
+            if hbas:
+                payload.append({"serverId": entry.server_id, "hbas": hbas})
+
+        if payload:
+            # API limit: max 32 server entries per add-HBA request.
+            MAX_HBA_PER_REQUEST = 32
+            for i in range(0, len(payload), MAX_HBA_PER_REQUEST):
+                batch = payload[i: i + MAX_HBA_PER_REQUEST]
+                logger.writeDebug(
+                    f"add_hba_bulk: batch {i // MAX_HBA_PER_REQUEST + 1} "
+                    f"— {len(batch)} server(s)."
+                )
+                self.gateway.add_wwn_of_hba_bulk(batch)
+            self.connection_info.changed = True
+            spec.comments.append(
+                VSPOneServerMSG.BULK_SERVER_OPERATION_SUCCESS.value.format(
+                    operation="add_hba_bulk"
+                )
+            )
+        return self._get_servers_details_by_ids(
+            [entry.server_id for entry in spec.bulk_hbas], spec
+        )
+
+    @log_entry_exit
+    def add_path_bulk(self, spec: CreateServerSpec):
+        """
+        Add paths to multiple servers.
+        """
+        if not spec.bulk_paths:
+            raise ValueError(VSPOneServerMSG.BULK_PATHS_REQUIRED.value)
+
+        payload = []
+        for entry in spec.bulk_paths:
+            if entry.server_id is None:
+                raise ValueError("server_id is required for each entry in bulk_paths.")
+            if not entry.paths:
+                raise ValueError("paths list is required for each entry in bulk_paths.")
+
+            # Idempotency: collect (hba/iscsi, portId) pairs already present on
+            # the server so we only add new paths.
+            existing_server = self.get_server_by_id_with_details(entry.server_id)
+            existing_paths = set()
+            if existing_server is not None and existing_server.paths:
+                for existing_path in existing_server.paths:
+                    identifier = existing_path.hbaWwn or existing_path.iscsiName
+                    for port_id in existing_path.portIds or []:
+                        existing_paths.add((identifier, port_id))
+
+            for path in entry.paths:
+                identifier = path.hba_wwn or path.iscsi_name
+                new_port_ids = [
+                    port_id
+                    for port_id in path.port_ids
+                    if (identifier, port_id) not in existing_paths
+                ]
+                if not new_port_ids:
+                    spec.comments.append(
+                        f"Path for '{identifier}' on server {entry.server_id} "
+                        f"already exists. Skipping."
+                    )
+                    continue
+
+                path_payload = {
+                    "serverId": entry.server_id,
+                    "portIds": new_port_ids,
+                }
+                if path.hba_wwn is not None:
+                    path_payload["hbaWwn"] = path.hba_wwn
+                if path.iscsi_name is not None:
+                    path_payload["iscsiName"] = path.iscsi_name
+                payload.append(path_payload)
+
+        if payload:
+            # API limit: max 64 path entries per add-path request.
+            MAX_PATHS_PER_REQUEST = 64
+            for i in range(0, len(payload), MAX_PATHS_PER_REQUEST):
+                batch = payload[i: i + MAX_PATHS_PER_REQUEST]
+                logger.writeDebug(
+                    f"add_path_bulk: batch {i // MAX_PATHS_PER_REQUEST + 1} "
+                    f"— {len(batch)} path entry(ies)."
+                )
+                self.gateway.add_path_to_server_bulk(batch)
+            self.connection_info.changed = True
+            spec.comments.append(
+                VSPOneServerMSG.BULK_SERVER_OPERATION_SUCCESS.value.format(
+                    operation="add_path_bulk"
+                )
+            )
+        return self._get_servers_details_by_ids(
+            [entry.server_id for entry in spec.bulk_paths], spec
+        )
+
+    @log_entry_exit
+    def remove_path_bulk(self, spec: CreateServerSpec):
+        """
+        Remove paths from multiple servers.
+        """
+        if not spec.bulk_remove_paths:
+            raise ValueError(VSPOneServerMSG.BULK_REMOVE_PATHS_REQUIRED.value)
+
+        payload = []
+        for entry in spec.bulk_remove_paths:
+            if entry.server_id is None:
+                raise ValueError(
+                    "server_id is required for each entry in bulk_remove_paths."
+                )
+            if not entry.paths:
+                raise ValueError(
+                    "paths list is required for each entry in bulk_remove_paths."
+                )
+
+            # Idempotency: collect (hba/iscsi, portId) pairs currently present on
+            # the server so we only remove paths that actually exist.
+            existing_server = self.get_server_by_id_with_details(entry.server_id)
+            existing_paths = set()
+            if existing_server is not None and existing_server.paths:
+                for existing_path in existing_server.paths:
+                    identifier = existing_path.hbaWwn or existing_path.iscsiName
+                    for port_id in existing_path.portIds or []:
+                        existing_paths.add((identifier, port_id))
+
+            for path in entry.paths:
+                identifier = path.hba_wwn or path.iscsi_name
+                port_ids_to_remove = [
+                    port_id
+                    for port_id in path.port_ids
+                    if (identifier, port_id) in existing_paths
+                ]
+                if not port_ids_to_remove:
+                    spec.comments.append(
+                        f"Path for '{identifier}' on server {entry.server_id} "
+                        f"does not exist. Skipping."
+                    )
+                    continue
+
+                path_payload = {
+                    "serverId": entry.server_id,
+                    "portIds": port_ids_to_remove,
+                }
+                if path.hba_wwn is not None:
+                    path_payload["hbaWwn"] = path.hba_wwn
+                if path.iscsi_name is not None:
+                    path_payload["iscsiName"] = path.iscsi_name
+                payload.append(path_payload)
+
+        if payload:
+            # API limit: max 64 path entries per remove-path request.
+            MAX_PATHS_PER_REQUEST = 64
+            for i in range(0, len(payload), MAX_PATHS_PER_REQUEST):
+                batch = payload[i: i + MAX_PATHS_PER_REQUEST]
+                logger.writeDebug(
+                    f"remove_path_bulk: batch {i // MAX_PATHS_PER_REQUEST + 1} "
+                    f"— {len(batch)} path entry(ies)."
+                )
+                self.gateway.remove_path_from_server_bulk(batch)
+            self.connection_info.changed = True
+            spec.comments.append(
+                VSPOneServerMSG.BULK_SERVER_OPERATION_SUCCESS.value.format(
+                    operation="remove_path_bulk"
+                )
+            )
+        return self._get_servers_details_by_ids(
+            [entry.server_id for entry in spec.bulk_remove_paths], spec
+        )
+
+    @log_entry_exit
     def register_server(self, spec: CreateServerSpec):
         """
         Register server
@@ -312,6 +686,22 @@ class VSPServerSimpleApiProvisioner:
         """
         response = self.gateway.change_server_settings(server_id, spec)
         return response
+
+    def _get_servers_details_by_ids(self, server_ids, spec):
+        """
+        Fetch enriched details for each server ID and return a list of dicts.
+        Servers that cannot be retrieved are skipped with a warning.
+        """
+        results = []
+        for server_id in server_ids:
+            details = self.get_server_by_id_with_details(server_id)
+            if details is not None:
+                results.append(details.camel_to_snake_dict())
+            else:
+                logger.writeError(
+                    f"Could not retrieve details for server id {server_id}."
+                )
+        return results
 
     @log_entry_exit
     def get_server_by_id(self, server_id: int):

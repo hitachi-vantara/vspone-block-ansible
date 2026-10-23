@@ -616,6 +616,7 @@ class SalamanderSimpleVolumeInfo(SingleBaseClass):
     reservedCapacity: Optional[int] = None
     savingSetting: Optional[str] = None
     capacitySaving: Optional[str] = None
+    aluaSetting: Optional[str] = None
     isDataReductionShareEnabled: Optional[bool] = None
     compressionAcceleration: Optional[bool] = None
     compressionAccelerationStatus: Optional[str] = None
@@ -739,6 +740,10 @@ class SalamanderCreateVolumeRequestSpec(SingleBaseClass):
     comments: Optional[List[str]] = None
     compression_acceleration: Optional[bool] = None
     volume_ids: Optional[List[int]] = None  # For multiple volume
+    alua_setting: Optional[str] = None  # For edit_volume_alua_settings_bulk
+    virtual_volume_id_clear_option: Optional[str] = None  # For delete_volumes_bulk
+    connections: Optional[List[dict]] = None  # For disconnect_volume_server_connections_bulk
+    volumes: Optional[List[dict]] = None  # For edit_volume_nicknames_bulk
 
     def __post_init__(self):
         # Convert dict to NicknameParam instance if needed
@@ -757,6 +762,22 @@ class SalamanderCreateVolumeRequestSpec(SingleBaseClass):
             self.volume_ids = [
                 normalize_ldev_id(ldev_id) for ldev_id in self.volume_ids
             ]
+        if self.volumes:
+            normalized = []
+            for entry in self.volumes:
+                e = dict(entry)
+                if "volume_id" in e:
+                    e["volume_id"] = normalize_ldev_id(e["volume_id"])
+                normalized.append(e)
+            self.volumes = normalized
+        if self.connections:
+            normalized = []
+            for entry in self.connections:
+                e = dict(entry)
+                if "volume_id" in e:
+                    e["volume_id"] = normalize_ldev_id(e["volume_id"])
+                normalized.append(e)
+            self.connections = normalized
 
 
 @dataclass
