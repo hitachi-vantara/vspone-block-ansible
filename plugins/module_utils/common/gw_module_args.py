@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 DEPCRECATED_MSG = "This module is deprecated and can't be used anymore. Please use 3.3.0 version of this module."
 
 

@@ -1,0 +1,124 @@
+---
+# ###################################################################
+# Example : SSL / TLS Connection Options Playbook
+#
+# This playbook demonstrates the SSL-related connection_info options
+# available for all VSP / VSP One / SDS Block Ansible tasks:
+#
+#   validate_cert (bool, default: false)
+#     Whether to validate the storage system SSL certificate.
+#     Defaults to false (no validation). A security warning is shown
+#     when false unless suppress_validate_cert_warning is true.
+#     NOTE: Starting with major version 5.0, the default changes to true.
+#
+#   ca_cert (str, optional)
+#     Path to a CA certificate file or directory on the Ansible
+#     control node.  Used when validate_cert: true and the storage
+#     system uses a self-signed or internally issued certificate.
+#     Accepts a PEM file path or a directory of hashed CA certificates.
+#     Ignored when validate_cert: false.
+#
+#   client_cert (str, optional)
+#     Path to the client certificate file (PEM format) for mutual
+#     TLS (mTLS) authentication.  Must be paired with client_key.
+#
+#   client_key (str, optional)
+#     Path to the client private key file for mTLS.
+#     Must be paired with client_cert.
+#
+#   suppress_validate_cert_warning (bool, default: false)
+#     When validate_cert is false, a security warning is displayed
+#     by default.  Set to true to suppress this warning.
+# ###################################################################
+- name: SSL / TLS Connection Option Examples
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../ansible_vault_vars/ansible_vault_storage_var.yml
+
+  vars:
+
+    # ----------------------------------------------------------------
+    # Scenario 1 - Default behavior: no certificate validation.
+    # A security warning is issued. Set suppress_validate_cert_warning
+    # to true if you want to silence it in automation.
+    # ----------------------------------------------------------------
+    connection_info_no_validation:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+      validate_cert: false
+      suppress_validate_cert_warning: true
+
+    # ----------------------------------------------------------------
+    # Scenario 2 - Enable server certificate validation with a CA bundle.
+    # Use this when the storage system uses a self-signed or internally
+    # issued certificate not trusted by the system CA bundle.
+    # ----------------------------------------------------------------
+    connection_info_with_ca:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+      validate_cert: true
+      ca_cert: "/etc/ssl/certs/my_internal_ca.pem"
+
+    # ----------------------------------------------------------------
+    # Scenario 3 - Mutual TLS (mTLS): verify the server certificate
+    # AND present a client certificate to the storage system.
+    # ----------------------------------------------------------------
+    connection_info_mtls:
+      address: "{{ storage_address }}"
+      username: "{{ vault_storage_username }}"
+      password: "{{ vault_storage_secret }}"
+      validate_cert: true
+      ca_cert: "/etc/ssl/certs/my_internal_ca.pem"
+      client_cert: "/path/to/client-cert.pem"
+      client_key: "/path/to/client-key.pem"
+
+  tasks:
+
+    ####################################################################
+    # Scenario 1 - Default: no cert validation (warning suppressed)
+    ####################################################################
+    - name: Get DDP Pool facts (no cert validation, warning suppressed)
+      hitachivantara.vspone_block.vsp.hv_ddp_pool_facts:
+        connection_info: "{{ connection_info_no_validation }}"
+      register: result_no_val
+
+    - name: Debug result (no validation scenario)
+      ansible.builtin.debug:
+        var: result_no_val
+
+    ####################################################################
+    # Scenario 2 - Validate server certificate using a custom CA bundle
+    ####################################################################
+    - name: Get DDP Pool facts (validate server cert with custom CA)
+      hitachivantara.vspone_block.vsp.hv_ddp_pool_facts:
+        connection_info: "{{ connection_info_with_ca }}"
+      register: result_ca
+
+    - name: Debug result (CA scenario)
+      ansible.builtin.debug:
+        var: result_ca
+
+    ####################################################################
+    # Scenario 3 - mTLS: server + client certificate validation
+    ####################################################################
+    - name: Create a DDP Pool (mTLS - server and client cert validation)
+      hitachivantara.vspone_block.vsp.hv_ddp_pool:
+        connection_info: "{{ connection_info_mtls }}"
+        state: present
+        spec:
+          pool_name: "SSL-Test-Pool"
+          is_encryption_enabled: true
+          threshold_warning: 70
+          threshold_depletion: 80
+          drives:
+            - drive_type_code: "NM5C-R1R9NC"
+              data_drive_count: 9
+      register: result_mtls
+
+    - name: Debug result (mTLS scenario)
+      ansible.builtin.debug:
+        var: result_mtls

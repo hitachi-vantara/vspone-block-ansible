@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..common.vsp_constants import Endpoints
     from .gateway_manager import VSPConnectionManager

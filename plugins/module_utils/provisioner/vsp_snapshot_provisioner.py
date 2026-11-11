@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 from typing import Optional, Any
 import time
 from typing import List, Dict

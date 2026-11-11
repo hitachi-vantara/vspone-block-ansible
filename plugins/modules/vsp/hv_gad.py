@@ -343,7 +343,11 @@ options:
         required: false
         type: str
       should_delete_svol:
-        description: Specify true to delete the SVOL.
+        description:
+          - Specify true to delete the SVOL.
+          - With C(state=absent), secondary-volume cleanup supports resource groups locked by
+            C(hv_resource_group_lock) when using the corresponding lock tokens.
+          - Cleanup failures are reported instead of continuing to delete the LDEV with incomplete VSM cleanup.
         type: bool
         required: false
         default: false

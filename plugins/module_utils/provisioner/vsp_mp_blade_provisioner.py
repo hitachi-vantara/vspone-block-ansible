@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..gateway.vsp_mp_blade_gateway import MPBladeGateway
     from ..common.ansible_common import log_entry_exit

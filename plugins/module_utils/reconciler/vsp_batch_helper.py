@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 from ..common.hv_log import Log
 from ..message.vsp_hur_msgs import VspRemoteReplicationMsg
 

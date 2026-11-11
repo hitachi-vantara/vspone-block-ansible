@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..provisioner.vsp_storage_system_provisioner import VSPStorageSystemProvisioner
     from ..common.ansible_common import log_entry_exit, get_default_value

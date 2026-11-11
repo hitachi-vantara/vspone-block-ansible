@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
@@ -125,6 +128,7 @@ class VSPGadPairReconciler:
 
         resp_data = None
         if state == StateValue.ABSENT:
+            set_option_a1(True)
             result = self.delete_gad_pair(spec)
             return result
         elif state == StateValue.PRESENT:

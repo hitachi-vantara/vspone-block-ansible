@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..gateway.sdsb_encryption_key_gateway import SDSBEncryptionKeyGateway
     from ..common.hv_log import Log

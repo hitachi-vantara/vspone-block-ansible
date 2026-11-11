@@ -1,5 +1,8 @@
 # provisioner/vsp_one_gad_provisioner.py
 
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 import re
 
 try:

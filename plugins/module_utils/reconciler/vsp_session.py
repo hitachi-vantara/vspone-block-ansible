@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..provisioner.vsp_session_provisioner import VSPSessionProvisioner
     from ..common.hv_constants import StateValue

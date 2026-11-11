@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..common.hv_constants import CommonConstants
     from ..common.ansible_common import camel_to_snake_case

@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from .vsp_session_manager import SessionManager
     from ..common.ansible_common import log_entry_exit
