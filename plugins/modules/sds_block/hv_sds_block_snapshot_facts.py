@@ -189,9 +189,9 @@ class SDSBSnapShotFactManager:
             sdsb_reconciler = SDSBSnapshotReconciler(self.connection_info)
             storage_nodes = sdsb_reconciler.snapshot_facts(self.spec)
         except Exception as e:
-            self.module.fail_json(msg=str(e))
             self.logger.writeException(e)
             self.logger.writeInfo("=== End of SDSB Snapshot Facts ===")
+            self.module.fail_json(msg=str(e))
         data = {
             "snapshots_info": storage_nodes,
         }
