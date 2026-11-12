@@ -188,9 +188,9 @@ class SDSBJobFactsManager:
             sdsb_reconciler = SDSBJobReconciler(self.connection_info)
             jobs = sdsb_reconciler.get_jobs(self.spec)
         except Exception as e:
-            self.module.fail_json(msg=str(e))
             self.logger.writeInfo("=== End of SDSB Job Facts ===")
             self.logger.writeException(e)
+            self.module.fail_json(msg=str(e))
         data = {
             "jobs": jobs if jobs is not None else [],
         }
