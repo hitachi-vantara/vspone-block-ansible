@@ -1,0 +1,9 @@
+---
+release_summary: |
+  Documentation and metadata updates required for Red Hat certification.
+
+minor_changes:
+  - Applied Ansible sanity compliance fixes required for Red Hat certification.
+
+bugfixes:
+  - Fixed locked GAD secondary-volume cleanup causing "No free LDEV" errors on recreation.

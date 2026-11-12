@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..provisioner.sdsb_port_provisioner import SDSBPortProvisioner
     from ..provisioner.sdsb_port_auth_provisioner import SDSBPortAuthProvisioner

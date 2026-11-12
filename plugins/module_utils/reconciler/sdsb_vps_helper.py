@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..provisioner.sdsb_vps_provisioner import SDSBVpsProvisioner
     from ..common.hv_log import Log

@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 import threading
 import time
 
@@ -1133,11 +1136,7 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
             volume = self.vol_gateway.get_volume_by_id(secondary_vol_id)
 
         self.delete_lun_path(volume)
-        try:
-            self.move_volume_back_to_meta(volume)
-        except Exception as e:
-            logger.writeError(f"Error moving volume back to meta: {e}")
-
+        self.move_volume_back_to_meta(volume)
         self.delete_actual_volume(secondary_vol_id, volume)
 
     @log_entry_exit
@@ -1691,21 +1690,18 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
     def move_volume_back_to_meta(self, volume_info):
         logger.writeDebug(f"move_volume_back_to_meta: volume_info: {volume_info}")
 
-        try:
-            if (
-                volume_info.virtualLdevId is None
-                or volume_info.virtualLdevId == volume_info.ldevId
-            ):
-                self.vol_gateway.unassign_vldev(volume_info.ldevId, volume_info.ldevId)
-            if (
-                volume_info.virtualLdevId == LdevConstants.GAD_RESERVE_LDEV_ID
-                or volume_info.virtualLdevId == LdevConstants.UNASSIGNED_LDEV_ID
-            ):
-                self.vol_gateway.unassign_vldev(
-                    volume_info.ldevId, volume_info.virtualLdevId
-                )
-        except Exception as e:
-            logger.writeError(f"Error unassigning vldev: {e}")
+        if (
+            volume_info.virtualLdevId is None
+            or volume_info.virtualLdevId == volume_info.ldevId
+        ):
+            self.vol_gateway.unassign_vldev(volume_info.ldevId, volume_info.ldevId)
+        if (
+            volume_info.virtualLdevId == LdevConstants.GAD_RESERVE_LDEV_ID
+            or volume_info.virtualLdevId == LdevConstants.UNASSIGNED_LDEV_ID
+        ):
+            self.vol_gateway.unassign_vldev(
+                volume_info.ldevId, volume_info.virtualLdevId
+            )
 
         logger.writeDebug("PROV:move_volume_back_to_meta:sec_vol_id = {}", volume_info)
 
@@ -1716,7 +1712,4 @@ class GadHelperForSvol(RemoteReplicationHelperForSVol):
                 volume_info.resourceGroupId, add_resource_spec
             )
         # assign back vldev
-        try:
-            self.vol_gateway.assign_vldev(volume_info.ldevId, volume_info.ldevId)
-        except Exception as e:
-            logger.writeError(f"Error assigning vldev: {e}")
+        self.vol_gateway.assign_vldev(volume_info.ldevId, volume_info.ldevId)

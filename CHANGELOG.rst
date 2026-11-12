@@ -4,6 +4,25 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.9.1
+======
+
+Release Summary
+---------------
+
+Documentation and metadata updates required for Red Hat certification.
+
+Minor Changes
+-------------
+
+- Applied Ansible sanity compliance fixes required for Red Hat certification.
+
+Bugfixes
+--------
+
+- Fixed locked GAD secondary-volume cleanup causing "No free LDEV" errors on recreation.
+
+
 v4.9
 ====
 

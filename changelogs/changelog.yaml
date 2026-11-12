@@ -1786,4 +1786,16 @@ releases:
         '
     fragments:
     - release-4.9.0.yml
-    release_date: '2027-01-15'
+    release_date: '2026-10-24'
+  4.9.1:
+    changes:
+      bugfixes:
+      - Fixed locked GAD secondary-volume cleanup causing "No free LDEV" errors on recreation.
+      minor_changes:
+      - Applied Ansible sanity compliance fixes required for Red Hat certification.
+      release_summary: 'Documentation and metadata updates required for Red Hat certification.
+
+        '
+    fragments:
+    - release-4.9.1.yml
+    release_date: '2026-11-6'

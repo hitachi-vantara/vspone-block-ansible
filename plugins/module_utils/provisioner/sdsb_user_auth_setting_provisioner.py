@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..gateway.sdsb_user_auth_setting_gateway import (
         SDSBUserAuthSettingGateway,

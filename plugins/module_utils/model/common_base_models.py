@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 from dataclasses import dataclass, field, asdict
 from typing import Optional, List, get_type_hints, get_origin, get_args, Union
 import re

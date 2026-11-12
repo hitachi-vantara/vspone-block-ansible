@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..gateway.sdsb_remote_path_group_gateway import SDSBRemotePathGroupGateway
     from ..common.ansible_common import log_entry_exit

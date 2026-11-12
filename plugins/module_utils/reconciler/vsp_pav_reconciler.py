@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 from ..provisioner.vsp_pav_provisioner import VSPPavProvisioner
 from ..model.vsp_pav_models import VSPPavLdevRequestSpec, VSPPavLdevFactsSpec
 from ..common.hv_constants import StateValue

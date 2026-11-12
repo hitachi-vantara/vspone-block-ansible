@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 from ..model.vsp_one_gad_models import VspOneGadFactSpec, VspOneGadList
 from ..gateway.vsp_one_gad_gateway import VspOneGadGateway
 from ..model.vsp_gad_pairs_models import VspGadCtgInfoList

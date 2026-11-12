@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..provisioner.vsp_storage_port_provisioner import VSPStoragePortProvisioner
     from ..provisioner.vsp_shadow_image_pair_provisioner import (

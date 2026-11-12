@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 from ..provisioner.sdsb_dump_log_provisioner import SDSBDumpLogProvisioner
 from ..common.ansible_common import log_entry_exit
 from ..model.sdsb_dump_log_models import CreateDumpFileSpec, DumpLogStatusSpec

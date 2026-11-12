@@ -1,4 +1,4 @@
-# Hitachi Virtual Storage Platform One Block Storage Modules for Red Hat® Ansible® 4.9.0
+# Hitachi Virtual Storage Platform One Block Storage Modules for Red Hat® Ansible® 4.9.1
 
 The Hitachi Virtual Storage Platform One Block Storage Modules provide a comprehensive set of Ansible modules for managing VSP block storage systems (VSP One Block, VSP 5000 series, VSP E series, VSP F series, and VSP G series) and VSP One SDS Block and Cloud systems. These modules enable seamless integration with Red Hat Ansible, allowing users to automate storage provisioning, configuration, and management tasks.
 
@@ -117,13 +117,39 @@ To upgrade a Galaxy installation to the latest available version, run:
 ansible-galaxy collection install hitachivantara.vspone_block --upgrade
 ```
 
-If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.9.0:
+If you need to install a specific version of the collection (for example, to downgrade due to issues in the latest version), you can use the following syntax to install version 4.9.1:
 
 ```bash
-ansible-galaxy collection install hitachivantara.vspone_block:==4.9.0
+ansible-galaxy collection install hitachivantara.vspone_block:==4.9.1
 ```
 
 See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
+
+## Usage data collection (telemetry)
+
+Usage data collection is enabled (opt-in) by default. While a module runs, it sends usage data for its storage API calls over HTTPS to the Hitachi Vantara telemetry service. These requests connect directly and do not use proxy settings.
+
+**Important:** If the Ansible control node cannot reach the telemetry service directly (for example, air-gapped networks, restricted firewalls, proxy-only internet access, or no external DNS), opt out before running playbooks. Otherwise each module waits for its telemetry requests to time out before it exits. Storage operations still complete, but each task can take several minutes longer, and overall playbook run time can increase significantly.
+
+To opt out, run the following command as the same user that runs your playbooks:
+
+```bash
+ansible-playbook ~/.ansible/collections/ansible_collections/hitachivantara/vspone_block/playbooks/accept_user_consent.yml -e "args=No"
+```
+
+Adjust the path if the collection is installed in a different location. Running the playbook without `-e "args=..."` prompts for Yes or No. Run it again with `args=Yes` to opt back in.
+
+The choice is saved in `~/ansible/hitachivantara/vspone_block/user_consent/user_consent.json`. After a successful opt-out, the file contains:
+
+```text
+"user_consent_accepted": false
+```
+
+The opt-out playbook always writes to this path. If the `HV_REGISTRATION_FILE_PATH` environment variable is set, the modules read the consent file from that directory instead, so record the opt-out there as well.
+
+After opting out, the module log (`~/logs/hitachivantara/ansible/vspone_block/hv_vspone_block_modules.log` by default) no longer contains `Error processing request` entries, and tasks finish without the telemetry timeout delay. Local usage counters and audit logging are not affected.
+
+For details about the data collected and network requirements, see [Usage data collection](https://github.com/hitachi-vantara/vspone-block-ansible/blob/main/docs/UsageDataCollection.md).
 
 ## Troubleshooting
 
@@ -191,7 +217,7 @@ For additional support, please use one of the following channels:
 
 ### Release Notes
 
-Version **4.9.0** highlights:
+Version **4.9.1** highlights:
 
 - General performance enhancements and bug fixes
 

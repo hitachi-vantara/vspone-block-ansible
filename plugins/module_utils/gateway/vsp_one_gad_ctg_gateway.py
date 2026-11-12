@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 import ast
 from .gateway_manager import AdministratorConnectionManager
 from ..model.vsp_gad_pairs_models import (

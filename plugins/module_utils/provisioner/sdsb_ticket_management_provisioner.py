@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..gateway.sdsb_ticket_management_gateway import TicketManagementGateway
     from ..common.hv_log import Log

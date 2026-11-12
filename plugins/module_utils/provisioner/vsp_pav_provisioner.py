@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 from ..gateway.vsp_pav_gateway import VSPPavLdevGateway
 from ..model.vsp_pav_models import VSPPavLdevRequestSpec
 from ..common.ansible_common import log_entry_exit

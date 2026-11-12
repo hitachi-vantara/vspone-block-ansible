@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..provisioner.sdsb_audit_log_setting_provisioner import (
         SDSBAuditLogSettingProvisioner,

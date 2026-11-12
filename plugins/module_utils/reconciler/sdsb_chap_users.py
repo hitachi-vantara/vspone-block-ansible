@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 try:
     from ..provisioner.sdsb_chap_user_provisioner import SDSBChapUserProvisioner
     from ..common.hv_constants import StateValue

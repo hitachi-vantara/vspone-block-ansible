@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function
+__metaclass__ = type
+
 from ..gateway.sdsb_dump_log_gateway import SDSBDumpLogGateway
 from ..message.sdsb_dump_file_msgs import SDSBDumpFileMsg
 from ..common.ansible_common import log_entry_exit
