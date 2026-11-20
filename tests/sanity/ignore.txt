@@ -1,3 +1,0 @@
-metaclass-boilerplate
-future-import-boilerplate
-internal/

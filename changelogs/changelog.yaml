@@ -1799,3 +1799,14 @@ releases:
     fragments:
     - release-4.9.1.yml
     release_date: '2026-11-6'
+  4.9.2:
+    changes:
+      bugfixes:
+      - Removed stale HTTP-client and duplicate license-management and event-log model files from the public collection to align its runtime source with the internal 4.9.1 baseline.
+      - Removed the unused legacy exception helper and its logging method, eliminating a stale dependency already missing from the internal source. Standard exception logging is unchanged.
+      - Removed the malformed sanity ignore file instead of suppressing boilerplate checks.
+      release_summary: |
+        Source consistency and sanity compliance corrections for Red Hat certification.
+    fragments:
+    - release-4.9.2.yml
+    release_date: '2026-11-20'
