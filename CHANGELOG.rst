@@ -4,6 +4,21 @@ Hitachivantara.Vspone\_Block Release Notes
 
 .. contents:: Topics
 
+v4.9.2
+======
+
+Release Summary
+---------------
+
+Source consistency and sanity compliance corrections for Red Hat certification.
+
+Bugfixes
+--------
+
+- Removed stale HTTP-client and duplicate license-management and event-log model files from the public collection to align its runtime source with the internal 4.9.1 baseline.
+- Removed the unused legacy exception helper and its logging method, eliminating a stale dependency already missing from the internal source. Standard exception logging is unchanged.
+- Removed the malformed sanity ignore file instead of suppressing boilerplate checks.
+
 v4.9.1
 ======
 

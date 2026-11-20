@@ -254,26 +254,6 @@ class Log:
         msg = "MODULE {0}".format(messageID)
         self.logger.error(msg)
 
-    def writeHiException(self, exception):
-        from .hv_exceptions import HiException
-
-        # ....................self.logger.debug("writeHiException")
-
-        if isinstance(exception, HiException):
-
-            # ........................self.writeParam("exception={}",str(exception))
-
-            messageId = exception.messageId
-            errorMessage = exception.errorMessage
-
-            # ........................self.writeParam("messageId={}",messageId)
-            # ........................self.writeParam("errorMessage={}",str(type(errorMessage)))
-            # ........................self.writeParam("errorMessage={}",str(errorMessage))
-            # message = exception.errorMessage
-            # ........................self.writeParam("errorMessage={}",errorMessage)
-            msg = "SDK [{0}] {1}".format(messageId, errorMessage)
-            self.logger.error(msg)
-
     def addHandler(self):
         handler = logging.StreamHandler(sys.stderr)
         handler.setFormatter(

@@ -9,7 +9,6 @@
 playbooks.devtest/*
 rabi
 spec
-version.txt
 pylint_run_report.txt
 new_version.py
 get_session_id.py
